@@ -35,6 +35,7 @@ var app = new Vue({ // eslint-disable-line no-unused-vars
                 },
                 'perPage': 25,
                 'perPageValues': [25, 50, 100],
+                'sortable': ['name', 'date'],
                 customFilters: ['filters']
             }
         };

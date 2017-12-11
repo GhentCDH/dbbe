@@ -16,7 +16,6 @@
             <v-server-table
                 url="/manuscripts/search_api"
                 :columns="['name', 'date', 'content', 'edit']"
-                :sortable="['name', 'date', 'content']"
                 :options="options">
                 <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">${ props.row.name}</a>
                 <template slot="content" slot-scope="props">
