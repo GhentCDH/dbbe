@@ -18,42 +18,41 @@ class ManuscriptController extends Controller
     {
         // TODO: process POST parameters as well (->request->all())
         $params = $request->query->all();
+        $es_params = [];
 
         // Sorting
         if (isset($params['orderBy'])) {
             if (($params['orderBy']) == 'name') {
-                $params['orderBy'] = ['name.keyword'];
+                $es_params['orderBy'] = ['name.keyword'];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if ($isset($params['ascending']) && $params['ascending'] == 0) {
-                    $params['orderBy'] = ['date_ceiling'];
+                    $es_params['orderBy'] = ['date_ceiling'];
                 } else {
-                    $params['orderBy'] = ['date_floor'];
+                    $es_params['orderBy'] = ['date_floor'];
                 }
             } elseif (($params['orderBy']) == 'genre') {
-                $params['orderBy'] = ['parent_genre.keyword', 'child_genre.keyword'];
-            } else {
-                unset($params['orderBy']);
+                $es_params['orderBy'] = ['parent_genre.keyword', 'child_genre.keyword'];
             }
         }
 
         // Filtering
         if (isset($params['filters'])) {
-            $params['filters'] = json_decode($params['filters']);
+            $filters = json_decode($params['filters']);
+            if (isset($filters) && is_object($filters)) {
+                foreach ($filters as $key => $value) {
+                    if (isset($value) && $value != '') {
+                        $es_params['filters'][$key] = $value;
+                    }
+                }
+            }
         }
 
         $search_result = $this->get('elasticsearch_service')->search(
             TYPE,
-            $params
+            $es_params
         );
-        // foreach ($search_result['data'] as $id => $result) {
-        //     echo($result['child_genre']);
-        //     if (isset($result['parent_genre'])) {
-        //         $search_result['data'][$id]['genre'] = $result['parent_genre'] + ': ' + $result['child_genre'];
-        //     } else {
-        //         $search_result['data'][$id]['genre'] = $result['child_genre'];
-        //     }
-        // }
+
         return new Response(json_encode($search_result));
     }
 
