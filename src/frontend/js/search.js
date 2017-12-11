@@ -33,6 +33,8 @@ var app = new Vue({ // eslint-disable-line no-unused-vars
                 'orderBy': {
                     'column': 'name'
                 },
+                'perPage': 25,
+                'perPageValues': [25, 50, 100],
                 customFilters: ['filters']
             }
         };
