@@ -22,18 +22,16 @@ gulp.task('eslint', () => {
 
 gulp.task('vendor-javascript', () => {
   vfs.src([
-    'websites/static/js/vendor/**/*',
-    '!websites/static/js/vendor/modernizr-custom.min.js',
-    '!websites/static/js/vendor/modernizr-custom.min.js.map',
-    '!websites/static/js/vendor/locale'
+    'websites/static/js/vendor/bootstrap.min.js'
   ])
     .pipe(vfs.symlink('../../web/assets/js/vendor', {relative: true}));
-  vfs.src(
+  gulp.src(
       [
-        'websites/static/js/vendor/locale/*'
+        'bower_components/vue/dist/vue.js',
+        'bower_components/vue-form-generator/dist/vfg.js'
       ]
   )
-    .pipe(vfs.symlink('../../web/assets/js/vendor/locale', {relative: true}));
+    .pipe(gulp.dest('../../web/assets/js/vendor'));
 });
 
 // Detect which Modernizr tests are needed and build a custom Modernizr version.
@@ -51,8 +49,6 @@ gulp.task('modernizr', () => {
 
 gulp.task('uglify', ['eslint'], () => {
   return gulp.src([
-    'websites/js/!(main)*.js',
-    'websites/js/main.js',
     'js/!(main)*.js',
     'js/main.js'
   ])

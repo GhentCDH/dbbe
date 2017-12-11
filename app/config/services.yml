@@ -29,14 +29,15 @@ services:
         public: true
         tags: ['controller.service_arguments']
 
+    database_service:
+        class: AppBundle\Service\DatabaseService
+        arguments:
+            - '@doctrine.orm.entity_manager'
+        public: true
+
     elasticsearch_service:
         class: AppBundle\Service\ElasticsearchService
         arguments:
             - '%elastic_hosts%'
             - '%elastic_index%'
         public: true
-
-    # add more services, or override services that need manual wiring
-    # AppBundle\Service\ExampleService:
-    #     arguments:
-    #         $someArgument: 'some_value'

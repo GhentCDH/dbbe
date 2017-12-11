@@ -1,8 +1,8 @@
 {
-  "name": "ugent.theme",
+  "name": "dbbe.theme",
   "private": true,
   "dependencies": {
-    "bootstrap-sass": "bootstrap-sass-official#^3.3.7",
-    "font-awesome": "fontawesome#^4.7.0"
+    "vue": "^2.5.9",
+    "vue-form-generator": "git https://github.com/pdpotter/vue-form-generator.git#2afb4ac2e8929a5e2a451bd70c404fde8d2d736c"
   }
 }

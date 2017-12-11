@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="app">
+        <aside class="col-sm-3">
+            <div class="bg-tertiary">
+                <div class="padding-default">
+                    <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
+                    <button class="btn btn-default" v-on:click="applyFilters">Apply filters</button>
+                </div>
+            </div>
+        </aside>
+        <article class="col-sm-9">
+            <h2>{{ title }}</h2>
+            <!--TODO: only display edit when a user has sufficient rights-->
+            <v-server-table
+                url="/manuscripts/search_api"
+                :columns="['name', 'date', 'genre', 'edit']"
+                :sortable="['name', 'date', 'genre']"
+                :options="options">
+                <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">${ props.row.name}</a>
+                <template slot="genre" slot-scope="props">
+                    <ul v-if="props.row.genre.includes('|')">
+                        <li v-for="genre in props.row.genre.split('|')">${ genre }</li>
+                    </ul>
+                    <template v-else>
+                        ${ props.row.genre}
+                    </template>
+                </template
+                <a slot="edit" slot-scope="props" class="fa fa-edit" :href="'/manuscrips/' + props.row.id + '/edit'"></a>
+            </v-server-table>
+        </article>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset('assets/js/vendor/vue.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('assets/js/vendor/vfg.js') }}"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-tables-2@1.0.1/dist/vue-tables-2.min.js"></script>
+    <script type="text/javascript" src="{{ asset('assets/js/main.min.js') }}"></script>
+{% endblock %}

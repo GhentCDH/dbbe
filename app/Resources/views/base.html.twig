@@ -111,13 +111,7 @@
 
         <div class="fluid-container">
             <div class="row">
-                <article class="col-sm-9">
-                    ..primary content..
-                </article>
-
-                <aside class="col-sm-3">
-                    ..aside..
-                </aside>
+                {% block content %}{% endblock %}
             </div>
         </div>
 
@@ -148,5 +142,6 @@
                 </div>
             </div>
         </footer>
+        {% block javascript %}{% endblock %}
     </body>
 </html>
