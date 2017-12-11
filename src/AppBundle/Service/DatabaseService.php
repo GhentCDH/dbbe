@@ -66,7 +66,7 @@ class DatabaseService
                 'name' => $raw_ms['name'],
                 'date_floor' => $fuzzy_date[1],
                 'date_ceiling' => $fuzzy_date[2],
-                'genre' => $this->getDocumentGenres($raw_ms['identity']),
+                'content' => $this->getDocumentGenres($raw_ms['identity']),
             ];
         }
 
