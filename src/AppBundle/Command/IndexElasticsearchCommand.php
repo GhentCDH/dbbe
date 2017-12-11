@@ -32,11 +32,11 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             ->get('elasticsearch_service');
 
         // Delete index
-        $es->deleteIndex();
+        $es->resetIndex();
 
         // Index all types
         // Manuscripts
         $manuscripts = $db->getAllManuscripts();
-        $es->addToIndex('manuscript', $manuscripts);
+        $es->addManuscripts($manuscripts);
     }
 }

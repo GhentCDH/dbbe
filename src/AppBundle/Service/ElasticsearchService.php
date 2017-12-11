@@ -4,7 +4,9 @@ namespace AppBundle\Service;
 
 use Elastica\Client;
 use Elastica\Document;
+use Elastica\Type\Mapping;
 use Elastica\Query;
+use Elastica\Suggest\Completion;
 
 class ElasticsearchService
 {
@@ -17,16 +19,50 @@ class ElasticsearchService
         $this->index = $this->client->getIndex($index);
     }
 
-    public function deleteIndex()
+    public function resetIndex()
     {
         if ($this->index->exists()) {
             $this->index->delete();
         }
+        $this->index->create();
     }
 
-    public function addToIndex(string $typeName, array $manuscripts)
+    public function addManuscripts(array $manuscripts)
     {
-        $type = $this->index->getType($typeName);
+        $type = $this->index->getType('manuscript');
+        $mapping = new Mapping();
+        $mapping->setType($type);
+
+        $mapping->setProperties(
+            [
+                'id' => ['type' => 'integer'],
+                'name' => [
+                    'type' => 'text',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'ignore_above' => 256,
+                        ]
+                    ]
+                ],
+                'name_suggest' => [
+                    'type' => 'completion'
+                ],
+                'date_floor' => [ 'type' => 'date'],
+                'date_ceiling' => [ 'type' => 'date'],
+                'genre' => [
+                    'type' => 'text',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'ignore_above' => 256,
+                        ]
+                    ]
+                ],
+            ]
+        );
+        $mapping->send();
+
         $documents = [];
         foreach ($manuscripts as $manuscript) {
             $documents[] = new Document($manuscript['id'], $manuscript);
@@ -44,7 +80,6 @@ class ElasticsearchService
         $this->index->refresh();
     }
 
-    // TODO: process params
     public function search(string $type = null, array $params = null): array
     {
         // Define query object (index or single type)
@@ -103,5 +138,28 @@ class ElasticsearchService
             $response['data'][] = $result['_source'];
         }
         return $response;
+    }
+
+    public function suggest(string $typeName, string $field, string $text): array
+    {
+        $type = $this->index->getType($typeName);
+
+        // Construct query
+        $query = new Query();
+        $completion = new Completion('suggest', $field . '_suggest');
+
+        // $completion->setField($field);
+        $completion->setPrefix($text);
+        // $completion->setFuzzy(['fuzziness' => 1]);
+
+        // var_dump($type->search($completion)->getQuery()->toArray());
+        // var_dump($type->search($completion)->getResponse()->getData());
+        $suggestions = $type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]['options'];
+        foreach ($suggestions as $suggestion) {
+            var_dump($suggestion['_source']);
+        }
+        // var_dump($type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]);
+        return [];
+
     }
 }

@@ -2,9 +2,13 @@
 
 namespace AppBundle\Service;
 
-use Twig_Tests_LegacyIntegrationTest;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Id;
+
+const IGNORE_SUGGEST = [
+    '',
+    '-',
+    'gr.',
+];
 
 class DatabaseService
 {
@@ -61,9 +65,38 @@ class DatabaseService
                 $fuzzy_date = [null, null, null];
             }
 
+            // Clean up suggestion inputs
+            $suggestion_inputs = [];
+            foreach (explode(' ', $raw_ms['name']) as $suggestion_input) {
+                if (!in_array($suggestion_input, IGNORE_SUGGEST)) {
+                    $suggestion_inputs[] = $suggestion_input;
+                }
+            }
+
+            // Make suggestions with multiple words input possible
+            $count = count($suggestion_inputs);
+            $members = pow(2, $count);
+            $suggestion_inputs_combinations = [];
+            for ($i = 0; $i < $members; $i++) {
+                $b = sprintf("%0" . $count . "b", $i);
+                $out = [];
+                for ($j = 0; $j < $count; $j++) {
+                    if ($b{$j} == '1') {
+                        $out[] = $suggestion_inputs[$j];
+                    }
+                }
+
+                if (count($out) >= 1) {
+                    $suggestion_inputs_combinations[] = implode(' ', $out);
+                }
+            }
+
             $manuscripts[] = [
                 'id' => $raw_ms['identity'],
                 'name' => $raw_ms['name'],
+                'name_suggest' => [
+                    'input' => $suggestion_inputs_combinations,
+                ],
                 'date_floor' => $fuzzy_date[1],
                 'date_ceiling' => $fuzzy_date[2],
                 'content' => $this->getDocumentGenres($raw_ms['identity']),

@@ -57,6 +57,19 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * @Route("/manuscripts/suggest_api/{field}/{text}")
+     */
+    public function suggestManuscriptsAPI(string $field, string $text)
+    {
+        $suggestion_result = $this->get('elasticsearch_service')->suggest(
+            'manuscript',
+            $field,
+            $text
+        );
+        return new Response(json_encode($suggestion_result));
+    }
+
+    /**
      * @Route("/manuscripts/search/")
      */
     public function searchManuscripts(Request $request)
