@@ -13,6 +13,7 @@ var app = new Vue({ // eslint-disable-line no-unused-vars
             model: {},
             schema: {
                 fields: [
+                    // TODO: get the field defenitions using AJAX
                     {
                         // TODO: apply filter on enter
                         type: 'input',
