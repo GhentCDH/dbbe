@@ -20,6 +20,15 @@ class ManuscriptController extends Controller
         $params = $request->query->all();
         $es_params = [];
 
+        // Pagination
+        if (isset($params['limit']) && is_numeric($params['limit'])) {
+            $es_params['limit'] = $params['limit'];
+        }
+        if (isset($params['page']) && is_numeric($params['page'])) {
+            $es_params['page'] = $params['page'];
+        }
+
+
         // Sorting
         if (isset($params['orderBy'])) {
             if (($params['orderBy']) == 'name') {
