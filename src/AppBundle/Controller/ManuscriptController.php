@@ -31,6 +31,9 @@ class ManuscriptController extends Controller
 
         // Sorting
         if (isset($params['orderBy'])) {
+            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
+                $es_params['ascending'] = $params['ascending'];
+            }
             if (($params['orderBy']) == 'name') {
                 $es_params['orderBy'] = ['name.keyword'];
             } elseif (($params['orderBy']) == 'date') {
@@ -87,7 +90,7 @@ class ManuscriptController extends Controller
         return $this->render(
             'search.html.twig',
             [
-                'title' => 'Manuscripts'
+                'title' => 'Search Manuscripts'
             ]
         );
     }

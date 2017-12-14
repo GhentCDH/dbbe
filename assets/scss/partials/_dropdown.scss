@@ -1,0 +1,8 @@
+.dropdown-menu > li {
+    &::before {
+        content: "";
+    }
+    a {
+        border: none;
+    }
+}

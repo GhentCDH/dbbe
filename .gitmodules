@@ -1,3 +1,3 @@
-[submodule "web/assets/websites"]
-	path = src/frontend/websites
+[submodule "assets/websites"]
+	path = assets/websites
 	url = git@github.ugent.be:UGent-Huisstijl/websites.git

@@ -122,7 +122,10 @@ class ElasticsearchService
         if (isset($params['filters'])) {
             $filterQuery = new Query\BoolQuery();
             foreach ($params['filters'] as $key => $value) {
-                $filterQuery->addShould(['term' => [$key => strtolower($value)]]);
+                $terms = explode(' ', $value);
+                foreach ($terms as $term) {
+                    $filterQuery->addShould(['term' => [$key => strtolower($term)]]);
+                }
             }
             $query->setQuery($filterQuery);
         }
@@ -148,18 +151,13 @@ class ElasticsearchService
         $query = new Query();
         $completion = new Completion('suggest', $field . '_suggest');
 
-        // $completion->setField($field);
         $completion->setPrefix($text);
-        // $completion->setFuzzy(['fuzziness' => 1]);
 
-        // var_dump($type->search($completion)->getQuery()->toArray());
-        // var_dump($type->search($completion)->getResponse()->getData());
         $suggestions = $type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]['options'];
+        $results = [];
         foreach ($suggestions as $suggestion) {
-            var_dump($suggestion['_source']);
+            $results[] = $suggestion['_source']['name'];
         }
-        // var_dump($type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]);
-        return [];
-
+        return $results;
     }
 }

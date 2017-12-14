@@ -4,12 +4,6 @@ namespace AppBundle\Service;
 
 use Doctrine\ORM\EntityManager;
 
-const IGNORE_SUGGEST = [
-    '',
-    '-',
-    'gr.',
-];
-
 class DatabaseService
 {
     protected $conn;
@@ -68,7 +62,7 @@ class DatabaseService
             // Clean up suggestion inputs
             $suggestion_inputs = [];
             foreach (explode(' ', $raw_ms['name']) as $suggestion_input) {
-                if (!in_array($suggestion_input, IGNORE_SUGGEST)) {
+                if (strlen($suggestion_input) > 1) {
                     $suggestion_inputs[] = $suggestion_input;
                 }
             }

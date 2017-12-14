@@ -1,0 +1,7 @@
+<div class="form-group">
+    {% if label is defined %}
+    <label class="control-label" for="{{ name }}">{{ label }}</label>
+    {% endif %}
+    <input type="text" name="{{ name }}" id="{{ name }}" class="form-control typeahead" v-model="model.{{ name }}" data-provide="typeahead" data-source="suggest" data-api="{{ autocomplete }}" autocomplete="off" />
+    <!-- {{autocomplete is defined ? 'v-on="{keyup: autocomplete}"': '' }} -->
+</div>
