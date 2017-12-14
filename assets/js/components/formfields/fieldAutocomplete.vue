@@ -5,14 +5,18 @@
             type="text"
             autocomplete="off"
             :placeholder="schema.placeholder"
-            v-model="value"
-            @keyup="getSuggestions()"
+            v-model="tempValue"
+            @input="getSuggestions"
+            @keydown.enter = "enter"
+            @keydown.down = "down"
+            @keydown.up = "up"
         >
         <ul class="dropdown-menu" style="width:100%">
-            <li v-for="suggestion in suggestions"
+            <li v-for="(suggestion, index) in suggestions"
                 @click="suggestionClick(suggestion)"
+                @mouseover="mouseOver(index)"
             >
-              <a href="#">{{ suggestion }}
+              <a :class="{'selected':isSelected(index)}" href="#">{{ suggestion }}
               </a>
             </li>
         </ul>
@@ -28,8 +32,11 @@
         data () {
             return {
                 open: false,
-                current: 0,
-                suggestions: []
+                current: -1,
+                suggestions: [],
+                // Changes to tempValue are not emitted
+                tempValue: ''
+                // Changes to value are emitted
             }
         },
 
@@ -43,14 +50,14 @@
 
         methods: {
             getSuggestions () {
-                if (this.value === '') {
-                    this.open = false;
-                    return;
+                if (this.tempValue === '') {
+                    this.open = false
+                    return
                 }
 
                 this.open = true
 
-                axios.get(this.schema.url + this.value)
+                axios.get(this.schema.url + this.tempValue)
                     .then( (response) => {
                         this.suggestions = response.data
                     })
@@ -59,9 +66,35 @@
                     })
             },
             suggestionClick (suggestion) {
-                this.value = suggestion
+                this.tempValue = suggestion
+                this.value = this.tempValue
+                this.current = -1
                 this.open = false
+            },
+            enter () {
+                if (this.current !== -1) {
+                    this.tempValue = this.suggestions[this.current]
+                }
+                this.value = this.tempValue
+                this.current = -1
+                this.open = false
+            },
+            down () {
+                if (this.current < this.suggestions.length - 1) {
+                    this.current++
+                }
+            },
+            up () {
+                if (this.current > - 1) {
+                    this.current--
+                }
+            },
+            isSelected (index) {
+                return index === this.current
+            },
+            mouseOver (index) {
+                this.current = index
             }
         }
-    };
+    }
 </script>

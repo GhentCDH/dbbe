@@ -25,12 +25,6 @@ let manuscriptSearchApp = new Vue({
                         placeholder: 'Manuscript Name',
                         model: 'name',
                         url: '/manuscripts/suggest_api/name/'
-                    },
-                    {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Test',
-                        model: 'test'
                     }
                 ]
             },
@@ -38,7 +32,7 @@ let manuscriptSearchApp = new Vue({
                 validateAfterLoad: true,
                 validateAfterChanged: true
             },
-            options: {
+            tableOptions: {
                 'filterable': false,
                 'orderBy': {
                     'column': 'name'
@@ -53,21 +47,22 @@ let manuscriptSearchApp = new Vue({
     },
     methods: {
         updateFilters() {
-            let removeSorting = false
             let filters = JSON.parse(JSON.stringify(this.model))
-            for (let filter in filters) {
-                if(filters[filter] !== undefined && filters[filter] !== '') {
-                    removeSorting = true
+            for (let key of Object.keys(filters)) {
+                if(filters[key] === undefined || filters[key] === '') {
+                    delete filters[key]
                 }
             }
-            if (removeSorting) {
+            // Save old table sorting options and unset table sorting
+            if (Object.keys(filters).length > 0) {
                 if (this.$refs.resultTable.orderBy.column !== undefined && this.$refs.resultTable.orderBy.ascending !== undefined) {
                     this.oldOrder = {
                         'column': this.$refs.resultTable.orderBy.column,
                         'ascending': this.$refs.resultTable.orderBy.ascending
                     }
                 }
-                this.$refs.resultTable.setOrder()
+                this.$refs.resultTable.orderBy.column = ''
+                this.$refs.resultTable.orderBy.ascending = ''
             }
             else {
                 if (this.oldOrder.column !== undefined && this.oldOrder.ascending !== undefined) {
@@ -75,7 +70,7 @@ let manuscriptSearchApp = new Vue({
                     this.$refs.resultTable.orderBy.ascending = this.oldOrder.ascending;
                 }
             }
-            VueTables.Event.$emit('vue-tables.filter::filters', this.model)
+            VueTables.Event.$emit('vue-tables.filter::filters', filters)
         }
     }
 })
