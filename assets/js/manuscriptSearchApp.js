@@ -25,6 +25,13 @@ let manuscriptSearchApp = new Vue({
                         placeholder: 'Manuscript Name',
                         model: 'name',
                         url: '/manuscripts/suggest_api/name/'
+                    },
+                    {
+                        type: 'autocomplete',
+                        label: 'Content',
+                        placeholder: 'Manuscript Content',
+                        model: 'content',
+                        url: '/manuscripts/suggest_api/content/'
                     }
                 ]
             },

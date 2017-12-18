@@ -7,7 +7,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-const TYPE = 'manuscript';
+const M_INDEX = 'documents';
+const M_TYPE = 'manuscript';
+const MC_INDEX = 'contents';
+const MC_TYPE = 'manuscript';
 
 class ManuscriptController extends Controller
 {
@@ -61,7 +64,8 @@ class ManuscriptController extends Controller
         }
 
         $search_result = $this->get('elasticsearch_service')->search(
-            TYPE,
+            M_INDEX,
+            M_TYPE,
             $es_params
         );
 
@@ -69,16 +73,42 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/suggest_api/{field}/{text}")
+     * @Route("/manuscripts/suggest_api/name/{text}")
      */
-    public function suggestManuscriptsAPI(string $field, string $text)
+    public function suggestManuscriptsAPI(string $text)
     {
-        $suggestion_result = $this->get('elasticsearch_service')->suggest(
-            'manuscript',
-            $field,
+        $suggestionResult = $this->get('elasticsearch_service')->suggest(
+            M_INDEX,
+            M_TYPE,
+            'name',
             $text
         );
-        return new Response(json_encode($suggestion_result));
+
+        return $this->suggestAPIFormatter($suggestionResult, 'name');
+    }
+
+    /**
+     * @Route("/manuscripts/suggest_api/content/{text}")
+     */
+    public function suggestManuscriptContentsAPI(string $text)
+    {
+        $suggestionResult = $this->get('elasticsearch_service')->suggest(
+            MC_INDEX,
+            MC_TYPE,
+            'name',
+            str_replace(':', ' ', $text)
+        );
+
+        return $this->suggestAPIFormatter($suggestionResult, 'name');
+    }
+
+    private function suggestAPIFormatter(array $rawResults, $field)
+    {
+        $results = [];
+        foreach ($rawResults as $rawResult) {
+            $results[] = $rawResult['_source'][$field];
+        }
+        return new Response(json_encode($results));
     }
 
     /**

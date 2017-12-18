@@ -4,32 +4,96 @@ namespace AppBundle\Service;
 
 use Elastica\Client;
 use Elastica\Document;
+use Elastica\Type;
 use Elastica\Type\Mapping;
 use Elastica\Query;
 use Elastica\Suggest\Completion;
 
+const INDEX_PREFIX = "dbbe_";
+
 class ElasticsearchService
 {
     protected $client;
-    protected $index;
 
-    public function __construct($hosts, $index)
+    public function __construct($hosts)
     {
         $this->client = new Client($hosts);
-        $this->index = $this->client->getIndex($index);
     }
 
-    public function resetIndex()
+    public function getIndex($indexName)
     {
-        if ($this->index->exists()) {
-            $this->index->delete();
+        return $this->client->getIndex(INDEX_PREFIX . $indexName);
+    }
+
+    public function resetIndex($indexName)
+    {
+        $index = $this->getIndex($indexName);
+        if ($index->exists()) {
+            $index->delete();
         }
-        $this->index->create();
+        $index->create();
+    }
+
+    protected function bulkAdd(Type $type, array $indexing_contents)
+    {
+        $bulk_documents = [];
+        while (count($indexing_contents) > 0) {
+            $bulk_contents = array_splice($indexing_contents, 0, 500);
+            foreach ($bulk_contents as $bc) {
+                $bulk_documents[] = new Document($bc['id'], $bc);
+            }
+            $type->addDocuments($bulk_documents);
+            $bulk_documents = [];
+        }
+        $type->getIndex()->refresh();
     }
 
     public function addManuscripts(array $manuscripts)
     {
-        $type = $this->index->getType('manuscript');
+        $index = $this->getIndex('documents');
+        $type = $index->getType('manuscript');
+
+        $mapping = new Mapping();
+        $mapping->setType($type);
+
+        $mapping->setProperties(
+            [
+                'id' => ['type' => 'integer'],
+                'name' => [
+                    'type' => 'text',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'ignore_above' => 256,
+                        ]
+                    ],
+                ],
+                'name_suggest' => [
+                    'type' => 'completion'
+                ],
+                'date_floor' => [ 'type' => 'date'],
+                'date_ceiling' => [ 'type' => 'date'],
+                'content' => [
+                    'type' => 'text',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'ignore_above' => 256,
+                        ]
+                    ],
+                ],
+            ]
+        );
+        $mapping->send();
+
+        $this->bulkAdd($type, $manuscripts);
+    }
+
+    public function addManuscriptContents(array $contents)
+    {
+        $index = $this->getIndex('contents');
+        $type = $index->getType('manuscript');
+
         $mapping = new Mapping();
         $mapping->setType($type);
 
@@ -48,46 +112,16 @@ class ElasticsearchService
                 'name_suggest' => [
                     'type' => 'completion'
                 ],
-                'date_floor' => [ 'type' => 'date'],
-                'date_ceiling' => [ 'type' => 'date'],
-                'genre' => [
-                    'type' => 'text',
-                    'fields' => [
-                        'keyword' => [
-                            'type' => 'keyword',
-                            'ignore_above' => 256,
-                        ]
-                    ]
-                ],
             ]
         );
         $mapping->send();
 
-        $documents = [];
-        foreach ($manuscripts as $manuscript) {
-            $documents[] = new Document($manuscript['id'], $manuscript);
-
-            // Bulk index each 500 documents
-            if (count($documents == 500)) {
-                $type->addDocuments($documents);
-                $documents = [];
-            }
-        }
-        // Bulk index the rest of the documents
-        if (count($documents) > 0) {
-            $type->addDocuments($documents);
-        }
-        $this->index->refresh();
+        $this->bulkAdd($type, $contents);
     }
 
-    public function search(string $type = null, array $params = null): array
+    public function search(string $indexName, string $typeName, array $params = null): array
     {
-        // Define query object (index or single type)
-        if (isset($type)) {
-            $query_object = $this->index->getType($type);
-        } else {
-            $query_object = $this->index;
-        }
+        $type = $this->getIndex($indexName)->getType($typeName);
 
         // Construct query
         $query = new Query();
@@ -122,15 +156,12 @@ class ElasticsearchService
         if (isset($params['filters'])) {
             $filterQuery = new Query\BoolQuery();
             foreach ($params['filters'] as $key => $value) {
-                $terms = explode(' ', $value);
-                foreach ($terms as $term) {
-                    $filterQuery->addShould(['term' => [$key => strtolower($term)]]);
-                }
+                $filterQuery->addShould(['match' => [$key => $value]]);
             }
             $query->setQuery($filterQuery);
         }
 
-        $data = $query_object->search($query)->getResponse()->getData();
+        $data = $type->search($query)->getResponse()->getData();
 
         // Format response
         $response = [
@@ -143,9 +174,9 @@ class ElasticsearchService
         return $response;
     }
 
-    public function suggest(string $typeName, string $field, string $text): array
+    public function suggest(string $indexName, string $typeName, string $field, string $text): array
     {
-        $type = $this->index->getType($typeName);
+        $type = $this->getIndex($indexName)->getType($typeName);
 
         // Construct query
         $query = new Query();
@@ -154,10 +185,6 @@ class ElasticsearchService
         $completion->setPrefix($text);
 
         $suggestions = $type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]['options'];
-        $results = [];
-        foreach ($suggestions as $suggestion) {
-            $results[] = $suggestion['_source']['name'];
-        }
-        return $results;
+        return $suggestions;
     }
 }

@@ -1,12 +1,38 @@
 .dropdown-menu > li {
-    &::before {
-        content: "";
+  &::before {
+    content: '';
+  }
+
+  a {
+    border: 0;
+
+    &.selected {
+      background-color: $dropdown-link-hover-bg;
+      color: $dropdown-link-hover-color;
     }
-    a {
-        border: none;
-        &.selected {
-            color: $dropdown-link-hover-color;
-            background-color: $dropdown-link-hover-bg;
-        }
-    }
+  }
+}
+
+.dropdown {
+  position: relative;
+
+  .spinner {
+    animation-duration: 1.2s;
+    animation-iteration-count: infinite;
+    animation-name: rotate;
+    border: 2px solid $border-color;
+    border-radius: 50%;
+    border-top: 2px solid $black;
+    height: 1em;
+    position: absolute;
+    right: 1em;
+    top: .5em;
+    transition-property: transform;
+    width: 1em;
+  }
+}
+
+@keyframes rotate {
+  from {transform: rotate(0deg);}
+  to {transform: rotate(360deg);}
 }

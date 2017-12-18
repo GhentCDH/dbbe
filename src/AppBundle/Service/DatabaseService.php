@@ -4,6 +4,8 @@ namespace AppBundle\Service;
 
 use Doctrine\ORM\EntityManager;
 
+use AppBundle\Model\FuzzyDate;
+
 class DatabaseService
 {
     protected $conn;
@@ -14,17 +16,70 @@ class DatabaseService
     }
 
     /**
-     * Returns all manuscripts in the database.
-     * The return data contains these fields:
-     * - id
-     * - name
-     * - date_floor: earliest estimate for the creation date of a manuscript.
-     * - date_ceiling: latest estimate for the creation date of a manuscript.
-     * - genre: string containing all genre information, in following format:
-     *   parent_genre1: child_genre1|parent_genre2: child_genre2
-     * @return array All manuscripts found in the database.
+     * Returns all manuscripts and related contents in the database.
+     * The return data contains the arrays manuscripts and manuscript_contents with these fields:
+     * - manuscripts
+     *   - id
+     *   - name
+     *   - name_suggest: combinations of name parts for autocomplete
+     *   - date_floor: earliest estimate for the creation date of a manuscript.
+     *   - date_ceiling: latest estimate for the creation date of a manuscript.
+     *   - content: string containing all content information, in following format:
+     *     parent_content1: child_content1|parent_content2: child_content2
+     * - manuscript_contents
+     *   - id
+     *   - name: string containing all content information, in following format:
+     *     parent_content: child_content
+     *   - name_suggest: combinations of name parts for autocomplete
+     * @return array All manuscripts and related contents found in the database.
      */
-    public function getAllManuscripts(): array
+    public function getAllManuscriptsAndContents(): array
+    {
+        // Get all manuscripts from the database
+        $rawManuscripts = $this->getAllManuscripts();
+
+        // Get all manuscript content relations from the database
+        $mcRelations = $this->getAllManuscriptContentRelations();
+
+        // Filter out all unique content identifiers
+        $mcUniqueIds = [];
+        foreach ($mcRelations as $mcRelation) {
+            if (!in_array($mcRelation['idgenre'], $mcUniqueIds)) {
+                $mcUniqueIds[] = $mcRelation['idgenre'];
+            }
+        }
+
+        // Get all content info from the list of unique identifiers
+        $rawContents = $this->getContents($mcUniqueIds);
+
+        // Create an array of content names per manuscript id
+        $indexedContents = [];
+        foreach ($mcRelations as $mcRelation) {
+            if (!array_key_exists($mcRelation['iddocument'], $indexedContents)) {
+                $indexedContents[$mcRelation['iddocument']] = [];
+            }
+            foreach ($rawContents as $mc) {
+                if ($mc['id'] == $mcRelation['idgenre']) {
+                    $indexedContents[$mcRelation['iddocument']][] = $mc['name'];
+                    break;
+                }
+            }
+        }
+
+        return [
+            'manuscripts' => $this->formatManuscripts($rawManuscripts, $indexedContents),
+            'contents' => $this->formatContents($rawContents)
+        ];
+    }
+
+    /**
+     * Get all manuscripts from the database
+     * @return array All manuscripts in the database. Provided information:
+     * - identity
+     * - name
+     * - completion_date
+     */
+    private function getAllManuscripts(): array
     {
         $statement = $this->conn->prepare(
             'SELECT document.identity,
@@ -43,57 +98,33 @@ class DatabaseService
             ) factoid_merge ON manuscript.identity = factoid_merge.factoid_identity'
         );
         $statement->execute();
-        $raw_manuscripts = $statement->fetchAll();
+        return $statement->fetchAll();
+    }
 
+    /**
+     * Format an array of manuscripts for indexing in elasticsearch.
+     * @param  array $rawManuscripts  The raw information of all manuscripts.
+     * @param  array $indexedContents An array with per manuscript id (key) an array of content names.
+     * @return array                  An array containing manuscript and related content information,
+     *                                ready for indexing in elasticsearch.
+     */
+    private function formatManuscripts(array $rawManuscripts, array $indexedContents): array
+    {
         $manuscripts = [];
 
-        // Transform to requested format
-        foreach ($raw_manuscripts as $raw_ms) {
-            // Extract date_floor and date_ceiling
-            preg_match(
-                '/[(](\d{4}[-]\d{2}-\d{2})[,](\d{4}[-]\d{2}-\d{2})[)]/',
-                $raw_ms['completion_date'],
-                $fuzzy_date
-            );
-            if (count($fuzzy_date) == 0) {
-                $fuzzy_date = [null, null, null];
-            }
-
-            // Clean up suggestion inputs
-            $suggestion_inputs = [];
-            foreach (explode(' ', $raw_ms['name']) as $suggestion_input) {
-                if (strlen($suggestion_input) > 1) {
-                    $suggestion_inputs[] = $suggestion_input;
-                }
-            }
-
-            // Make suggestions with multiple words input possible
-            $count = count($suggestion_inputs);
-            $members = pow(2, $count);
-            $suggestion_inputs_combinations = [];
-            for ($i = 0; $i < $members; $i++) {
-                $b = sprintf("%0" . $count . "b", $i);
-                $out = [];
-                for ($j = 0; $j < $count; $j++) {
-                    if ($b{$j} == '1') {
-                        $out[] = $suggestion_inputs[$j];
-                    }
-                }
-
-                if (count($out) >= 1) {
-                    $suggestion_inputs_combinations[] = implode(' ', $out);
-                }
-            }
+        foreach ($rawManuscripts as $rawManuscript) {
+            $fuzzyDate = new FuzzyDate($rawManuscript['completion_date']);
 
             $manuscripts[] = [
-                'id' => $raw_ms['identity'],
-                'name' => $raw_ms['name'],
+                'id' => $rawManuscript['identity'],
+                'name' => $rawManuscript['name'],
                 'name_suggest' => [
-                    'input' => $suggestion_inputs_combinations,
+                    'input' => $this->findCleanPermutations(explode(' ', $rawManuscript['name'])),
                 ],
-                'date_floor' => $fuzzy_date[1],
-                'date_ceiling' => $fuzzy_date[2],
-                'content' => $this->getDocumentGenres($raw_ms['identity']),
+                'date_floor' => $fuzzyDate->getFloor(),
+                'date_ceiling' => $fuzzyDate->getCeiling(),
+                'content' => array_key_exists($rawManuscript['identity'], $indexedContents)
+                    ? implode('|', $indexedContents[$rawManuscript['identity']]) : '',
             ];
         }
 
@@ -101,14 +132,34 @@ class DatabaseService
     }
 
     /**
-     * Get the genres that are linked to the document with id $documentId.
-     * Format: parent_genre1: child_genre1|parent_genre2: child_genre2|...
-     * @param  int    $documentId The id of the document.
-     * @return string             The genres, formatted as indicated above.
+     * Get all contents linked to a manuscript from the database.
+     * @return array All contents linked to a manuscript. Fields per entry:
+     * - iddocument
+     * - idgenre
      */
-    private function getDocumentGenres(int $documentId): string
+    private function getAllManuscriptContentRelations(): array
     {
         $statement = $this->conn->prepare(
+            'SELECT iddocument, idgenre
+            FROM data.manuscript
+            JOIN data.document_genre
+            ON manuscript.identity = document_genre.iddocument'
+        );
+        $statement->execute();
+        return $statement->fetchAll();
+    }
+
+    /**
+     * Get the contents with ids $ids.
+     * @param  array $ids The ids of the genres.
+     * @return array The contents. Fields per entry:
+     * id: id of the content
+     * name: name of the content item and parent items as follows:
+     *       'grandparent: parent: child'.
+     */
+    private function getContents(array $ids): array
+    {
+        $statement = $this->conn->executeQuery(
             'WITH RECURSIVE rec (idgenre, idparentgenre, genre, concat, depth) AS (
             	SELECT
             		g.idgenre,
@@ -125,36 +176,83 @@ class DatabaseService
             		g.idgenre,
             		g.idparentgenre,
             		g.genre,
-            		r.concat || \':\' || g.genre AS concat,
+            		r.concat || \': \' || g.genre AS concat,
             		r.depth + 1
 
             	FROM rec AS r
             	INNER JOIN data.genre g
             	ON r.idgenre = g.idparentgenre
             )
-            SELECT concat
-            FROM data.document_genre
+            SELECT r.idgenre as id, concat as name
+	        FROM rec r
             INNER JOIN (
-            	SELECT r.*
-            	FROM rec r
-            	INNER JOIN (
-            		SELECT idgenre, MAX(depth) AS maxdepth
-            		FROM rec
-            		GROUP BY idgenre
-            	) rj
-            	ON r.idgenre = rj.idgenre AND r.depth = rj.maxdepth
-            ) rec_max
-            ON document_genre.idgenre = rec_max.idgenre
-            WHERE iddocument = :iddocument'
+            	SELECT idgenre, MAX(depth) AS maxdepth
+            	FROM rec
+            	GROUP BY idgenre
+            ) rj
+            ON r.idgenre = rj.idgenre AND r.depth = rj.maxdepth
+            WHERE r.idgenre in (?)',
+            [$ids],
+            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
-        $statement->bindValue('iddocument', $documentId);
-        $statement->execute();
-        $genres = $statement->fetchAll();
+        return $statement->fetchAll();
+    }
 
-        $concats = [];
-        foreach ($genres as $genre) {
-            $concats[] = $genre['concat'];
+    /**
+     * Format an array of contents for indexing in elasticsearch
+     * @param  array $rawContents The raw information of the contents to be formatted.
+     * @return array              Content information, ready for indexing in elasticsearch.
+     */
+    private function formatContents(array $rawContents): array
+    {
+        $contents = [];
+        foreach ($rawContents as $rawContent) {
+            $contents[] = [
+                'id' => $rawContent['id'],
+                'name' => $rawContent['name'],
+                'name_suggest' => [
+                    'input' => $this->findCleanPermutations(preg_split('/[:]|[ ]/', $rawContent['name'])),
+                ],
+            ];
         }
-        return implode('|', $concats);
+        return $contents;
+    }
+
+    /**
+     * Given an array of inputs:
+     * - remove inputs that should not be available for autocompletion
+     *   e.g., strings with a length of one or less
+     * - find all combinations of the input strings, taking the order of the inputs into account.
+     * @param  array $inputs A list with inputs that needs an improved list for autocompletion.
+     * @return array         A list that is more autocompletion friendly.
+     */
+    private function findCleanPermutations(array $inputs): array
+    {
+        // Remove strings with a length smaller or equal to one
+        $cleanInputs = [];
+        foreach ($inputs as $input) {
+            if (strlen($input) > 1) {
+                $cleanInputs[] = $input;
+            }
+        }
+
+        // Make permutations to make suggestions with multiple word input possible
+        $count = count($cleanInputs);
+        $members = pow(2, $count);
+        $permutations = [];
+        for ($i = 0; $i < $members; $i++) {
+            $b = sprintf("%0" . $count . "b", $i);
+            $out = [];
+            for ($j = 0; $j < $count; $j++) {
+                if ($b{$j} == '1') {
+                    $out[] = $cleanInputs[$j];
+                }
+            }
+
+            if (count($out) >= 1) {
+                $permutations[] = implode(' ', $out);
+            }
+        }
+        return $permutations;
     }
 }
