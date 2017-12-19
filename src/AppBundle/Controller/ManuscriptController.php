@@ -38,7 +38,7 @@ class ManuscriptController extends Controller
                 $es_params['ascending'] = $params['ascending'];
             }
             if (($params['orderBy']) == 'name') {
-                $es_params['orderBy'] = ['name.keyword'];
+                $es_params['orderBy'] = ['city.keyword', 'library.keyword', 'fund.keyword', 'shelf.keyword'];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if ($isset($params['ascending']) && $params['ascending'] == 0) {

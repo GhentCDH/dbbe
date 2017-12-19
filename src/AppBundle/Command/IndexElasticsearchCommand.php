@@ -23,9 +23,9 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Get database and elasticsearch clients
-        $db = $this
+        $msdb = $this
             ->getContainer()
-            ->get('database_service');
+            ->get('database_manuscript_service');
 
         $es = $this
             ->getContainer()
@@ -34,10 +34,10 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         // Index all types
         // (Re)index manuscripts
         $es->resetIndex('documents');
-        $mc = $db->getAllManuscriptsAndContents();
-        $es->addManuscripts($mc['manuscripts']);
+        $mcs = $msdb->getCompleteManuscripts();
+        $es->addManuscripts($mcs);
         // Manuscript content (enabling autocomplete)
-        $es->resetIndex('contents');
-        $es->addManuscriptContents($mc['contents']);
+        // $es->resetIndex('contents');
+        // $es->addManuscriptContents($mc['contents']);
     }
 }

@@ -53,38 +53,38 @@ class ElasticsearchService
         $index = $this->getIndex('documents');
         $type = $index->getType('manuscript');
 
-        $mapping = new Mapping();
-        $mapping->setType($type);
-
-        $mapping->setProperties(
-            [
-                'id' => ['type' => 'integer'],
-                'name' => [
-                    'type' => 'text',
-                    'fields' => [
-                        'keyword' => [
-                            'type' => 'keyword',
-                            'ignore_above' => 256,
-                        ]
-                    ],
-                ],
-                'name_suggest' => [
-                    'type' => 'completion'
-                ],
-                'date_floor' => [ 'type' => 'date'],
-                'date_ceiling' => [ 'type' => 'date'],
-                'content' => [
-                    'type' => 'text',
-                    'fields' => [
-                        'keyword' => [
-                            'type' => 'keyword',
-                            'ignore_above' => 256,
-                        ]
-                    ],
-                ],
-            ]
-        );
-        $mapping->send();
+        // $mapping = new Mapping();
+        // $mapping->setType($type);
+        //
+        // $mapping->setProperties(
+        //     [
+        //         'id' => ['type' => 'integer'],
+        //         'name' => [
+        //             'type' => 'text',
+        //             'fields' => [
+        //                 'keyword' => [
+        //                     'type' => 'keyword',
+        //                     'ignore_above' => 256,
+        //                 ]
+        //             ],
+        //         ],
+        //         'name_suggest' => [
+        //             'type' => 'completion'
+        //         ],
+        //         'date_floor' => [ 'type' => 'date'],
+        //         'date_ceiling' => [ 'type' => 'date'],
+        //         'content' => [
+        //             'type' => 'text',
+        //             'fields' => [
+        //                 'keyword' => [
+        //                     'type' => 'keyword',
+        //                     'ignore_above' => 256,
+        //                 ]
+        //             ],
+        //         ],
+        //     ]
+        // );
+        // $mapping->send();
 
         $this->bulkAdd($type, $manuscripts);
     }
