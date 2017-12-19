@@ -1,38 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
-    <div id="manuscriptSearchApp">
-        <div>
-            <aside class="col-sm-3">
-                <div class="bg-tertiary">
-                    <div class="padding-default">
-                        <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="updateFilters"></vue-form-generator>
-                    </div>
-                </div>
-            </aside>
-            <article class="col-sm-9">
-                <h2>{{ title }}</h2>
-                <v-server-table
-                    ref="resultTable"
-                    url="/manuscripts/search_api"
-                    :columns="['name', 'date', 'content']"
-                    :options="tableOptions">
-                    <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">${ props.row.name}</a>
-                    <template slot="content" slot-scope="props">
-                        <ul v-if="props.row.content.includes('|')">
-                            <li v-for="content in props.row.content.split('|')">${ content }</li>
-                        </ul>
-                        <template v-else>
-                            ${ props.row.content}
-                        </template>
-                    </template>
-                    <a slot="edit" slot-scope="props" class="fa fa-edit" :href="'/manuscrips/' + props.row.id + '/edit'"></a>
-                </v-server-table>
-            </article>
-        </div>
+    <div id="manuscript-search-app">
+        <manuscript-search-app />
     </div>
 {% endblock %}
 
 {% block javascript %}
-    <script type='text/javascript' src='{{ asset("/build/manuscriptSearchApp.js") }}'></script>
+    <script type="text/javascript" src="{{ asset("/build/index.js") }}"></script>
 {% endblock %}

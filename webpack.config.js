@@ -9,7 +9,7 @@ Encore
     .setPublicPath('/build')
 
     // Add javascripts
-    .addEntry('manuscriptSearchApp', './assets/js/manuscriptSearchApp.js')
+    .addEntry('index', './assets/js/index.js')
 
     // allow sass/scss files to be processed
     .enableSassLoader()

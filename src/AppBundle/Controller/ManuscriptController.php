@@ -118,10 +118,7 @@ class ManuscriptController extends Controller
     {
         // TODO: check if the user has rights to access all results
         return $this->render(
-            'search.html.twig',
-            [
-                'title' => 'Search Manuscripts'
-            ]
+            'search.html.twig'
         );
     }
 }
