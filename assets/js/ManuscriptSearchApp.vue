@@ -14,8 +14,10 @@
                 url="/manuscripts/search_api"
                 :columns="['name', 'date', 'content']"
                 :options="tableOptions">
-                <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">{{ props.row.name}}</a>
-                <template slot="content" slot-scope="props">
+                <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">
+                    {{ formatName(props.row) }}
+                </a>
+                <template slot="content" slot-scope="props" v-if="props.row.content">
                     <ul v-if="props.row.content.includes('|')">
                         <li v-for="content in props.row.content.split('|')">{{ content }}</li>
                     </ul>
@@ -23,7 +25,6 @@
                         {{ props.row.content}}
                     </template>
                 </template>
-                <a slot="edit" slot-scope="props" class="fa fa-edit" :href="'/manuscrips/' + props.row.id + '/edit'"></a>
             </v-server-table>
         </article>
     </div>
@@ -33,14 +34,13 @@
 
     import Vue from 'vue'
     import VueTables from 'vue-tables-2'
+    import VueMultiselect from 'vue-multiselect'
     import VueFormGenerator from 'vue-form-generator'
-
-    import fieldAutocomplete from './components/formfields/fieldAutocomplete'
-
-    Vue.component('fieldAutocomplete', fieldAutocomplete)
 
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
+
+    Vue.component('multiselect', VueMultiselect);
 
     export default {
         data() {
@@ -49,18 +49,20 @@
                 schema: {
                     fields: [
                         {
-                            type: 'autocomplete',
-                            label: 'Name',
-                            placeholder: 'Manuscript Name',
-                            model: 'name',
-                            url: '/manuscripts/suggest_api/name/'
+                            type: 'vueMultiSelect',
+                            label: 'City',
+                            placeholder: 'Select a city',
+                            model: 'city',
+                            values: ['Athena', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London'],
+                            selectOptions: {
+                                showLabels: false
+                            }
                         },
                         {
-                            type: 'autocomplete',
-                            label: 'Content',
-                            placeholder: 'Manuscript Content',
-                            model: 'content',
-                            url: '/manuscripts/suggest_api/content/'
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Library',
+                            model: 'library'
                         }
                     ]
                 },
@@ -82,6 +84,21 @@
             }
         },
         methods: {
+            formatName (row) {
+                let result = ''
+                result += row.city.toUpperCase()
+                if (row.library) {
+                    result += ' - ' +  row.library
+                }
+                if (row.fund) {
+                    result += ' - ' +  row.fund
+                }
+                if (row.shelf) {
+                    result += ' ' +  row.shelf
+                }
+                return result
+
+            },
             updateFilters() {
                 let filters = JSON.parse(JSON.stringify(this.model))
                 for (let key of Object.keys(filters)) {
