@@ -8,6 +8,9 @@ Encore
     // the public path used by the web server to access the previous directory
     .setPublicPath('/build')
 
+    // allow pug templates in vue components
+    .enableVueLoader()
+
     // Add javascripts
     .addEntry('index', './assets/js/index.js')
 

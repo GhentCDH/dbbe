@@ -2,6 +2,7 @@
 
 namespace AppBundle\Service;
 
+use Elastica\Aggregation\Terms;
 use Elastica\Client;
 use Elastica\Document;
 use Elastica\Type;
@@ -10,6 +11,7 @@ use Elastica\Query;
 use Elastica\Suggest\Completion;
 
 const INDEX_PREFIX = "dbbe_";
+const MAX = 2147483647;
 
 class ElasticsearchService
 {
@@ -50,73 +52,9 @@ class ElasticsearchService
 
     public function addManuscripts(array $manuscripts)
     {
-        $index = $this->getIndex('documents');
-        $type = $index->getType('manuscript');
-
-        // $mapping = new Mapping();
-        // $mapping->setType($type);
-        //
-        // $mapping->setProperties(
-        //     [
-        //         'id' => ['type' => 'integer'],
-        //         'name' => [
-        //             'type' => 'text',
-        //             'fields' => [
-        //                 'keyword' => [
-        //                     'type' => 'keyword',
-        //                     'ignore_above' => 256,
-        //                 ]
-        //             ],
-        //         ],
-        //         'name_suggest' => [
-        //             'type' => 'completion'
-        //         ],
-        //         'date_floor' => [ 'type' => 'date'],
-        //         'date_ceiling' => [ 'type' => 'date'],
-        //         'content' => [
-        //             'type' => 'text',
-        //             'fields' => [
-        //                 'keyword' => [
-        //                     'type' => 'keyword',
-        //                     'ignore_above' => 256,
-        //                 ]
-        //             ],
-        //         ],
-        //     ]
-        // );
-        // $mapping->send();
+        $index = $this->getIndex('documents')->getType('manuscript');
 
         $this->bulkAdd($type, $manuscripts);
-    }
-
-    public function addManuscriptContents(array $contents)
-    {
-        $index = $this->getIndex('contents');
-        $type = $index->getType('manuscript');
-
-        $mapping = new Mapping();
-        $mapping->setType($type);
-
-        $mapping->setProperties(
-            [
-                'id' => ['type' => 'integer'],
-                'name' => [
-                    'type' => 'text',
-                    'fields' => [
-                        'keyword' => [
-                            'type' => 'keyword',
-                            'ignore_above' => 256,
-                        ]
-                    ]
-                ],
-                'name_suggest' => [
-                    'type' => 'completion'
-                ],
-            ]
-        );
-        $mapping->send();
-
-        $this->bulkAdd($type, $contents);
     }
 
     public function search(string $indexName, string $typeName, array $params = null): array
@@ -174,17 +112,32 @@ class ElasticsearchService
         return $response;
     }
 
-    public function suggest(string $indexName, string $typeName, string $field, string $text): array
+    public function aggregate(string $indexName, string $typeName, string $field): array
     {
         $type = $this->getIndex($indexName)->getType($typeName);
 
+        // use keyword field if available
+        $aggregationField = $field;
+        if (isset($type->getMapping()[$typeName]['properties'][$field]['fields']['keyword'])) {
+            $aggregationField .= '.keyword';
+        }
+
         // Construct query
         $query = new Query();
-        $completion = new Completion('suggest', $field . '_suggest');
 
-        $completion->setPrefix($text);
+        // Add aggregation part
+        $agg = new Terms($field);
+        $agg->setField($aggregationField);
+        $agg->setSize(MAX);
+        $query->addAggregation($agg);
 
-        $suggestions = $type->search($completion)->getResponse()->getData()['suggest']['suggest'][0]['options'];
-        return $suggestions;
+        $buckets = $type->search($query)->getAggregation($field);
+
+        $results = [];
+        foreach ($buckets['buckets'] as $bucket) {
+            $results[$bucket['key']] = $bucket['doc_count'];
+        }
+
+        return $results;
     }
 }

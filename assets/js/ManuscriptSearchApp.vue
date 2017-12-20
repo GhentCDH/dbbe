@@ -37,10 +37,13 @@
     import VueMultiselect from 'vue-multiselect'
     import VueFormGenerator from 'vue-form-generator'
 
+    import fieldMultiselectClear from './components/formfields/fieldMultiselectClear'
+
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
 
     Vue.component('multiselect', VueMultiselect);
+    Vue.component('fieldMultiselectClear', fieldMultiselectClear);
 
     export default {
         data() {
@@ -49,20 +52,18 @@
                 schema: {
                     fields: [
                         {
-                            type: 'vueMultiSelect',
+                            type: 'multiselectClear',
                             label: 'City',
                             placeholder: 'Select a city',
                             model: 'city',
-                            values: ['Athena', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London', 'Andros', 'Oxford', 'London'],
+                            // Values will be loaded using ajax request
+                            values: [],
                             selectOptions: {
-                                showLabels: false
-                            }
-                        },
-                        {
-                            type: 'input',
-                            inputType: 'text',
-                            label: 'Library',
-                            model: 'library'
+                                showLabels: false,
+                                loading: true,
+                                taggable: true
+                            },
+                            disabled: true
                         }
                     ]
                 },
@@ -83,8 +84,21 @@
                 oldOrder: {}
             }
         },
+        mounted () {
+            this.$nextTick( () => {
+                axios.get('/manuscripts/cities')
+                    .then( (response) => {
+                        this.$data.schema.fields[0].disabled = false
+                        this.$data.schema.fields[0].selectOptions.loading = false
+                        this.$data.schema.fields[0].values = Object.keys(response.data).sort()
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                    })
+            })
+        },
         methods: {
-            formatName (row) {
+            formatName(row) {
                 let result = ''
                 result += row.city.toUpperCase()
                 if (row.library) {
@@ -107,7 +121,15 @@
                     }
                 }
                 // Save old table sorting options and unset table sorting
-                if (Object.keys(filters).length > 0) {
+                let filtersSet = false
+                let filterKeys = Object.keys(filters)
+                for (let filterKey of filterKeys) {
+                    console.log(filters[filterKey])
+                    if (filters[filterKey] !== undefined && filters[filterKey] !== null) {
+                        filtersSet = true
+                    }
+                }
+                if (filtersSet) {
                     if (this.$refs.resultTable.orderBy.column !== undefined && this.$refs.resultTable.orderBy.ascending !== undefined) {
                         this.oldOrder = {
                             'column': this.$refs.resultTable.orderBy.column,

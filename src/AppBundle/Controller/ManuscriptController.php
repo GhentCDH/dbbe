@@ -15,6 +15,17 @@ const MC_TYPE = 'manuscript';
 class ManuscriptController extends Controller
 {
     /**
+     * @Route("/manuscripts/search/")
+     */
+    public function searchManuscripts(Request $request)
+    {
+        // TODO: check if the user has rights to access all results
+        return $this->render(
+            'search.html.twig'
+        );
+    }
+
+    /**
      * @Route("/manuscripts/search_api/")
      */
     public function searchManuscriptsAPI(Request $request)
@@ -73,52 +84,15 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/suggest_api/name/{text}")
+     * @Route("/manuscripts/cities/")
      */
-    public function suggestManuscriptsAPI(string $text)
+    public function getCities(Request $request)
     {
-        $suggestionResult = $this->get('elasticsearch_service')->suggest(
+        $citiesResult = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
             M_TYPE,
-            'name',
-            $text
+            'city'
         );
-
-        return $this->suggestAPIFormatter($suggestionResult, 'name');
-    }
-
-    /**
-     * @Route("/manuscripts/suggest_api/content/{text}")
-     */
-    public function suggestManuscriptContentsAPI(string $text)
-    {
-        $suggestionResult = $this->get('elasticsearch_service')->suggest(
-            MC_INDEX,
-            MC_TYPE,
-            'name',
-            str_replace(':', ' ', $text)
-        );
-
-        return $this->suggestAPIFormatter($suggestionResult, 'name');
-    }
-
-    private function suggestAPIFormatter(array $rawResults, $field)
-    {
-        $results = [];
-        foreach ($rawResults as $rawResult) {
-            $results[] = $rawResult['_source'][$field];
-        }
-        return new Response(json_encode($results));
-    }
-
-    /**
-     * @Route("/manuscripts/search/")
-     */
-    public function searchManuscripts(Request $request)
-    {
-        // TODO: check if the user has rights to access all results
-        return $this->render(
-            'search.html.twig'
-        );
+        return new Response(json_encode($citiesResult));
     }
 }

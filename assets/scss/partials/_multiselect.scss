@@ -14,11 +14,12 @@ fieldset {
   top: 1px;
   width: 48px;
 
-  &::before,
-  &::after {
+  &::before {
+    animation-duration: 1.2s;
     animation-iteration-count: infinite;
+    animation-name: spinning;
     border-color: $brand-primary transparent transparent;
-    border-radius: 100%;
+    border-radius: 50%;
     border-style: solid;
     border-width: 2px;
     box-shadow: 0 0 0 1px transparent;
@@ -29,14 +30,6 @@ fieldset {
     position: absolute;
     top: 50%;
     width: 16px;
-  }
-
-  &::before {
-    animation: spinning 2.4s cubic-bezier(.41, .26, .2, .62);
-  }
-
-  &::after {
-    animation: spinning 2.4s cubic-bezier(.51, .09, .21, .8);
   }
 }
 
@@ -370,10 +363,6 @@ fieldset {
   pointer-events: none;
 }
 
-// .multiselect__option--disabled.multiselect__option--highlight {
-//   background: #dedede !important;
-// }
-
 .multiselect-enter-active,
 .multiselect-leave-active {
   transition: all .15s ease;
@@ -389,6 +378,36 @@ fieldset {
   line-height: 20px;
   margin-bottom: 8px;
   vertical-align: top;
+}
+
+.multiselect__clear {
+  cursor: pointer;
+  display: block;
+  height: 40px;
+  position: absolute;
+  right: 41px;
+  width: 40px;
+  z-index: 2;
+
+  &::before,
+  &::after {
+    background: $border-color;
+    content: '';
+    display: block;
+    height: 16px;
+    position: absolute;
+    right: 4px;
+    top: 12px;
+    width: 3px;
+  }
+
+  &::before {
+    transform: rotate(45deg);
+  }
+
+  &::after {
+    transform: rotate(-45deg);
+  }
 }
 
 *[dir='rtl'] {
@@ -428,6 +447,6 @@ fieldset {
 }
 
 @keyframes spinning {
-  from { transform: rotate(0); }
-  to { transform: rotate(2turn); }
+  from {transform: rotate(0deg);}
+  to {transform: rotate(360deg);}
 }
