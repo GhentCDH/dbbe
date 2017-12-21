@@ -54,7 +54,7 @@
                         city: {
                             type: 'multiselectClear',
                             label: 'City',
-                            placeholder: 'Select a city',
+                            placeholder: 'Loading cities',
                             model: 'city',
                             // Values will be loaded using ajax request
                             values: [],
@@ -94,6 +94,12 @@
                             // Will be enabled when list of funds are loaded
                             // after city and library selection
                             disabled: true
+                        },
+                        shelf: {
+                            type: 'input',
+                            intputType: 'text',
+                            label: 'Shelf nr',
+                            model: 'shelf'
                         }
                     }
                 },
@@ -118,9 +124,7 @@
             this.$nextTick( () => {
                 axios.get('/manuscripts/cities')
                     .then( (response) => {
-                        this.$data.schema.fields['city'].disabled = false
-                        this.$data.schema.fields['city'].selectOptions.loading = false
-                        this.$data.schema.fields['city'].values = Object.keys(response.data).sort()
+                        this.enableField('city', Object.keys(response.data).sort())
                     })
                     .catch( (error) => {
                         console.log(error)
@@ -174,41 +178,39 @@
                 }
                 VueTables.Event.$emit('vue-tables.filter::filters', filters)
             },
-            citySelected(model, newVal, oldVal, field) {
-                if (model.city === undefined || model.city === null) {
-                    model.library = null
-                    model.fund = null
-                    this.disableField('library', 'city')
-                    this.disableField('fund', 'library')
-                    this.updateFilters()
-                }
-                else {
+            citySelected() {
+                this.model.library = null
+                this.model.fund = null
+                this.disableField('library', 'city')
+                this.disableField('fund', 'library')
+                this.updateFilters()
+
+                if (this.model.city !== undefined && this.model.city !== null) {
                     this.$data.schema.fields['library'].selectOptions.loading = true
-                    axios.get('/manuscripts/libraries/' + model.city)
+                    axios.get('/manuscripts/libraries/' + this.model.city)
                         .then( (response) => {
                             this.enableField('library', Object.keys(response.data).sort())
                         })
                         .catch( (error) => {
                             console.log(error)
                         })
-                    }
-            },
-            librarySelected(model, newVal, oldVal, field) {
-                if (model.library === undefined || model.library === null) {
-                    model.fund = null
-                    this.disableField('fund', 'library')
-                    this.updateFilters()
                 }
-                else {
+            },
+            librarySelected() {
+                this.model.fund = null
+                this.disableField('fund', 'library')
+                this.updateFilters()
+
+                if (this.model.library !== undefined && this.model.library !== null) {
                     this.$data.schema.fields['fund'].selectOptions.loading = true
-                    axios.get('/manuscripts/funds/' + model.city + '/' + model.library)
+                    axios.get('/manuscripts/funds/' + this.model.city + '/' + this.model.library)
                         .then( (response) => {
                             this.enableField('fund', Object.keys(response.data).sort())
                         })
                         .catch( (error) => {
                             console.log(error)
                         })
-                    }
+                }
             },
             disableField(fieldName, dependencyName) {
                 this.$data.schema.fields[fieldName].disabled = true
@@ -216,10 +218,23 @@
                 this.$data.schema.fields[fieldName].values = []
             },
             enableField(fieldName, values) {
+                if (values.length === 0) {
+                    if (fieldName == 'fund') {
+                        this.$data.schema.fields[fieldName].placeholder = 'No funds found for this library'
+                        this.$data.schema.fields[fieldName].selectOptions.loading = false
+                    }
+                    return
+                }
                 this.$data.schema.fields[fieldName].disabled = false
                 this.$data.schema.fields[fieldName].placeholder = 'Select a ' + fieldName
                 this.$data.schema.fields[fieldName].selectOptions.loading = false
                 this.$data.schema.fields[fieldName].values = values
+                if (values.length === 1) {
+                    this.model[fieldName] = values[0]
+                    if (fieldName === 'library') {
+                        this.librarySelected()
+                    }
+                }
             }
         }
     }
