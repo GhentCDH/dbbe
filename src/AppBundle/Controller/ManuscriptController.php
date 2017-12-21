@@ -95,4 +95,18 @@ class ManuscriptController extends Controller
         );
         return new Response(json_encode($citiesResult));
     }
+
+    /**
+     * @Route("/manuscripts/libraries/{city}")
+     */
+    public function getLibraries(string $city)
+    {
+        $citiesResult = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'library',
+            ['city.keyword' => $city]
+        );
+        return new Response(json_encode($citiesResult));
+    }
 }

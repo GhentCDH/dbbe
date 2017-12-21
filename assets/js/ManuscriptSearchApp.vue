@@ -50,8 +50,8 @@
             return {
                 model: {},
                 schema: {
-                    fields: [
-                        {
+                    fields: {
+                        city: {
                             type: 'multiselectClear',
                             label: 'City',
                             placeholder: 'Select a city',
@@ -62,9 +62,25 @@
                                 showLabels: false,
                                 loading: true
                             },
+                            // Will be enabled when list of cities are loaded
+                            disabled: true,
+                            onChanged: this.citySelected
+                        },
+                        library: {
+                            type: 'multiselectClear',
+                            label: 'Library',
+                            placeholder: 'Please select a city first',
+                            model: 'library',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false
+                            },
+                            // Will be enabled when list of libraries are loaded
+                            // after city selection
                             disabled: true
                         }
-                    ]
+                    }
                 },
                 formOptions: {
                     validateAfterLoad: true,
@@ -87,9 +103,9 @@
             this.$nextTick( () => {
                 axios.get('/manuscripts/cities')
                     .then( (response) => {
-                        this.$data.schema.fields[0].disabled = false
-                        this.$data.schema.fields[0].selectOptions.loading = false
-                        this.$data.schema.fields[0].values = Object.keys(response.data).sort()
+                        this.$data.schema.fields['city'].disabled = false
+                        this.$data.schema.fields['city'].selectOptions.loading = false
+                        this.$data.schema.fields['city'].values = Object.keys(response.data).sort()
                     })
                     .catch( (error) => {
                         console.log(error)
@@ -114,37 +130,56 @@
             },
             updateFilters() {
                 let filters = JSON.parse(JSON.stringify(this.model))
+                // if city is reset, wait untill library and fund are reset as well
+                if (
+                    (
+                        (filters['library'] !== undefined && filters['library'] !== null)
+                        || (filters['fund'] !== undefined && filters['fund'] !== null)
+                    )
+                    && filters['city'] === null
+                ) {
+                    return
+                }
+                // if library is reset, wait untill fund is reset as well
+                if (
+                    (filters['fund'] !== undefined && filters['fund'] !== null)
+                    && filters['library'] === null
+                ) {
+                    return
+                }
                 for (let key of Object.keys(filters)) {
-                    if(filters[key] === undefined || filters[key] === '') {
+                    if(filters[key] === undefined || filters[key] === null || filters[key] === '') {
+                        delete filters[key]
+                    }
+                    // make sure the complete filter is matched
+                    else if (['city', 'library', 'fund'].includes(key)) {
+                        filters[key + '.keyword'] = filters[key]
                         delete filters[key]
                     }
                 }
-                // Save old table sorting options and unset table sorting
-                let filtersSet = false
-                let filterKeys = Object.keys(filters)
-                for (let filterKey of filterKeys) {
-                    console.log(filters[filterKey])
-                    if (filters[filterKey] !== undefined && filters[filterKey] !== null) {
-                        filtersSet = true
-                    }
-                }
-                if (filtersSet) {
-                    if (this.$refs.resultTable.orderBy.column !== undefined && this.$refs.resultTable.orderBy.ascending !== undefined) {
-                        this.oldOrder = {
-                            'column': this.$refs.resultTable.orderBy.column,
-                            'ascending': this.$refs.resultTable.orderBy.ascending
-                        }
-                    }
-                    this.$refs.resultTable.orderBy.column = ''
-                    this.$refs.resultTable.orderBy.ascending = ''
+                VueTables.Event.$emit('vue-tables.filter::filters', filters)
+            },
+            citySelected(model, newVal, oldVal, field) {
+                if (model.city === undefined || model.city === null) {
+                    model.library = null
+                    this.$data.schema.fields['library'].disabled = true
+                    this.$data.schema.fields['library'].placeholder = 'Please select a city first'
+                    this.$data.schema.fields['library'].values = []
+                    this.updateFilters()
                 }
                 else {
-                    if (this.oldOrder.column !== undefined && this.oldOrder.ascending !== undefined) {
-                        this.$refs.resultTable.orderBy.column = this.oldOrder.column;
-                        this.$refs.resultTable.orderBy.ascending = this.oldOrder.ascending;
+                    this.$data.schema.fields['library'].selectOptions.loading = true
+                    axios.get('/manuscripts/libraries/' + model.city)
+                        .then( (response) => {
+                            this.$data.schema.fields['library'].disabled = false
+                            this.$data.schema.fields['library'].placeholder = 'Select a library'
+                            this.$data.schema.fields['library'].selectOptions.loading = false
+                            this.$data.schema.fields['library'].values = Object.keys(response.data).sort()
+                        })
+                        .catch( (error) => {
+                            console.log(error)
+                        })
                     }
-                }
-                VueTables.Event.$emit('vue-tables.filter::filters', filters)
             }
         }
     }

@@ -94,7 +94,7 @@ class ElasticsearchService
         if (isset($params['filters'])) {
             $filterQuery = new Query\BoolQuery();
             foreach ($params['filters'] as $key => $value) {
-                $filterQuery->addShould(['match' => [$key => $value]]);
+                $filterQuery->addMust(['match' => [$key => $value]]);
             }
             $query->setQuery($filterQuery);
         }
@@ -112,7 +112,7 @@ class ElasticsearchService
         return $response;
     }
 
-    public function aggregate(string $indexName, string $typeName, string $field): array
+    public function aggregate(string $indexName, string $typeName, string $field, array $preselected = []): array
     {
         $type = $this->getIndex($indexName)->getType($typeName);
 
@@ -130,6 +130,15 @@ class ElasticsearchService
         $agg->setField($aggregationField);
         $agg->setSize(MAX);
         $query->addAggregation($agg);
+
+        // Add preselected query
+        if (count($preselected) > 0) {
+            $filterQuery = new Query\BoolQuery();
+            foreach ($preselected as $key => $value) {
+                $filterQuery->addShould(['match' => [$key => $value]]);
+            }
+            $query->setQuery($filterQuery);
+        }
 
         $buckets = $type->search($query)->getAggregation($field);
 
