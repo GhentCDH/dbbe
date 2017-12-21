@@ -135,7 +135,7 @@ class ElasticsearchService
         if (count($preselected) > 0) {
             $filterQuery = new Query\BoolQuery();
             foreach ($preselected as $key => $value) {
-                $filterQuery->addShould(['match' => [$key => $value]]);
+                $filterQuery->addMust(['match' => [$key => $value]]);
             }
             $query->setQuery($filterQuery);
         }

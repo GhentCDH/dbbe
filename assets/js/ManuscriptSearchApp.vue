@@ -78,6 +78,21 @@
                             },
                             // Will be enabled when list of libraries are loaded
                             // after city selection
+                            disabled: true,
+                            onChanged: this.librarySelected
+                        },
+                        fund: {
+                            type: 'multiselectClear',
+                            label: 'Fund',
+                            placeholder: 'Please select a library first',
+                            model: 'fund',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false
+                            },
+                            // Will be enabled when list of funds are loaded
+                            // after city and library selection
                             disabled: true
                         }
                     }
@@ -162,24 +177,49 @@
             citySelected(model, newVal, oldVal, field) {
                 if (model.city === undefined || model.city === null) {
                     model.library = null
-                    this.$data.schema.fields['library'].disabled = true
-                    this.$data.schema.fields['library'].placeholder = 'Please select a city first'
-                    this.$data.schema.fields['library'].values = []
+                    model.fund = null
+                    this.disableField('library', 'city')
+                    this.disableField('fund', 'library')
                     this.updateFilters()
                 }
                 else {
                     this.$data.schema.fields['library'].selectOptions.loading = true
                     axios.get('/manuscripts/libraries/' + model.city)
                         .then( (response) => {
-                            this.$data.schema.fields['library'].disabled = false
-                            this.$data.schema.fields['library'].placeholder = 'Select a library'
-                            this.$data.schema.fields['library'].selectOptions.loading = false
-                            this.$data.schema.fields['library'].values = Object.keys(response.data).sort()
+                            this.enableField('library', Object.keys(response.data).sort())
                         })
                         .catch( (error) => {
                             console.log(error)
                         })
                     }
+            },
+            librarySelected(model, newVal, oldVal, field) {
+                if (model.library === undefined || model.library === null) {
+                    model.fund = null
+                    this.disableField('fund', 'library')
+                    this.updateFilters()
+                }
+                else {
+                    this.$data.schema.fields['fund'].selectOptions.loading = true
+                    axios.get('/manuscripts/funds/' + model.city + '/' + model.library)
+                        .then( (response) => {
+                            this.enableField('fund', Object.keys(response.data).sort())
+                        })
+                        .catch( (error) => {
+                            console.log(error)
+                        })
+                    }
+            },
+            disableField(fieldName, dependencyName) {
+                this.$data.schema.fields[fieldName].disabled = true
+                this.$data.schema.fields[fieldName].placeholder = 'Please select a ' + dependencyName + ' first'
+                this.$data.schema.fields[fieldName].values = []
+            },
+            enableField(fieldName, values) {
+                this.$data.schema.fields[fieldName].disabled = false
+                this.$data.schema.fields[fieldName].placeholder = 'Select a ' + fieldName
+                this.$data.schema.fields[fieldName].selectOptions.loading = false
+                this.$data.schema.fields[fieldName].values = values
             }
         }
     }

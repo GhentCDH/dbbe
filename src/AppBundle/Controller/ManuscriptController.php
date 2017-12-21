@@ -88,12 +88,12 @@ class ManuscriptController extends Controller
      */
     public function getCities(Request $request)
     {
-        $citiesResult = $this->get('elasticsearch_service')->aggregate(
+        $result = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
             M_TYPE,
             'city'
         );
-        return new Response(json_encode($citiesResult));
+        return new Response(json_encode($result));
     }
 
     /**
@@ -101,12 +101,29 @@ class ManuscriptController extends Controller
      */
     public function getLibraries(string $city)
     {
-        $citiesResult = $this->get('elasticsearch_service')->aggregate(
+        $result = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
             M_TYPE,
             'library',
             ['city.keyword' => $city]
         );
-        return new Response(json_encode($citiesResult));
+        return new Response(json_encode($result));
+    }
+
+    /**
+     * @Route("/manuscripts/funds/{city}/{library}")
+     */
+    public function getFunds(string $city, string $library)
+    {
+        $result = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'fund',
+            [
+                'city.keyword' => $city,
+                'library.keyword' => $library
+            ]
+        );
+        return new Response(json_encode($result));
     }
 }
