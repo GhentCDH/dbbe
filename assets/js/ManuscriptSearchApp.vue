@@ -98,8 +98,22 @@
                         shelf: {
                             type: 'input',
                             intputType: 'text',
-                            label: 'Shelf nr',
+                            label: 'Shelf Number',
                             model: 'shelf'
+                        },
+                        content: {
+                            type: 'multiselectClear',
+                            label: 'Content',
+                            placeholder: 'Loading content',
+                            model: 'content',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false,
+                                loading: true
+                            },
+                            // Will be enabled when list of content is loaded
+                            disabled: true
                         }
                     }
                 },
@@ -125,6 +139,13 @@
                 axios.get('/manuscripts/cities')
                     .then( (response) => {
                         this.enableField('city', Object.keys(response.data).sort())
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                    })
+                axios.get('/manuscripts/content')
+                    .then( (response) => {
+                        this.enableField('content', Object.keys(response.data).sort())
                     })
                     .catch( (error) => {
                         console.log(error)
@@ -171,7 +192,7 @@
                         delete filters[key]
                     }
                     // make sure the complete filter is matched
-                    else if (['city', 'library', 'fund'].includes(key)) {
+                    else if (['city', 'library', 'fund', 'content'].includes(key)) {
                         filters[key + '.keyword'] = filters[key]
                         delete filters[key]
                     }

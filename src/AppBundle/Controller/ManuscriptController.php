@@ -52,13 +52,11 @@ class ManuscriptController extends Controller
                 $es_params['orderBy'] = ['city.keyword', 'library.keyword', 'fund.keyword', 'shelf.keyword'];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
-                if ($isset($params['ascending']) && $params['ascending'] == 0) {
+                if (isset($params['ascending']) && $params['ascending'] == 0) {
                     $es_params['orderBy'] = ['date_ceiling'];
                 } else {
                     $es_params['orderBy'] = ['date_floor'];
                 }
-            } elseif (($params['orderBy']) == 'genre') {
-                $es_params['orderBy'] = ['parent_genre.keyword', 'child_genre.keyword'];
             }
         }
 
@@ -123,6 +121,19 @@ class ManuscriptController extends Controller
                 'city.keyword' => $city,
                 'library.keyword' => $library
             ]
+        );
+        return new Response(json_encode($result));
+    }
+
+    /**
+     * @Route("/manuscripts/content/")
+     */
+    public function getContent(Request $request)
+    {
+        $result = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'content'
         );
         return new Response(json_encode($result));
     }

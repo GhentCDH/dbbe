@@ -36,8 +36,5 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         $es->resetIndex('documents');
         $mcs = $msdb->getCompleteManuscripts();
         $es->addManuscripts($mcs);
-        // Manuscript content (enabling autocomplete)
-        // $es->resetIndex('contents');
-        // $es->addManuscriptContents($mc['contents']);
     }
 }
