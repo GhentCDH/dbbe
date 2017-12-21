@@ -52,7 +52,7 @@ class ElasticsearchService
 
     public function addManuscripts(array $manuscripts)
     {
-        $index = $this->getIndex('documents')->getType('manuscript');
+        $type = $this->getIndex('documents')->getType('manuscript');
 
         $this->bulkAdd($type, $manuscripts);
     }

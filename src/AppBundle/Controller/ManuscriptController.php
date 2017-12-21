@@ -53,9 +53,9 @@ class ManuscriptController extends Controller
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if (isset($params['ascending']) && $params['ascending'] == 0) {
-                    $es_params['orderBy'] = ['date_ceiling'];
+                    $es_params['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
                 } else {
-                    $es_params['orderBy'] = ['date_floor'];
+                    $es_params['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
                 }
             }
         }

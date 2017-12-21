@@ -17,6 +17,14 @@
                 <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">
                     {{ formatName(props.row) }}
                 </a>
+                <template slot="date" slot-scope="props" v-if="props.row.date_floor_year && props.row.date_ceiling_year">
+                    <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
+                        {{ props.row.date_floor_year }}
+                    </template>
+                    <template v-else>
+                        {{ props.row.date_floor_year }} - {{ props.row.date_ceiling_year }}
+                    </template>
+                </template>
                 <template slot="content" slot-scope="props" v-if="props.row.content">
                     <ul v-if="props.row.content.includes('|')">
                         <li v-for="content in props.row.content.split('|')">{{ content }}</li>

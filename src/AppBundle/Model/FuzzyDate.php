@@ -39,6 +39,16 @@ class FuzzyDate
     }
 
     /**
+     * Get the year of the floor date
+     *
+     * @return mixed
+     */
+    public function getFloorYear()
+    {
+        return $this->getYear($this->floor);
+    }
+
+    /**
      * Set the value of Floor
      *
      * @param string $floor
@@ -63,6 +73,16 @@ class FuzzyDate
     }
 
     /**
+     * Get the year of the ceiling date
+     *
+     * @return mixed
+     */
+    public function getCeilingYear()
+    {
+        return $this->getYear($this->ceiling);
+    }
+
+    /**
      * Set the value of Ceiling
      *
      * @param string $ceiling
@@ -74,5 +94,15 @@ class FuzzyDate
         $this->ceiling = $ceiling;
 
         return $this;
+    }
+
+    /**
+     * Extracts the year from a datestring and removes leading zeros.
+     * @param  string $dateString String in the YYYY-MM-DD format
+     * @return mixed              Integer representing the year.
+     */
+    private function getYear(string $dateString)
+    {
+        return (int)(explode('-', $dateString)[0]);
     }
 }
