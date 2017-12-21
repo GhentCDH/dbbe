@@ -10,7 +10,7 @@ fieldset {
   display: block;
   height: 35px;
   position: absolute;
-  right: 1px;
+  right: -3px;
   top: 1px;
   width: 48px;
 
@@ -71,8 +71,23 @@ fieldset {
 }
 
 .multiselect--disabled {
+  background: $brand-disabled;
+  color: $border-color-light;
   opacity: .6;
   pointer-events: none;
+
+  input {
+    background: $brand-disabled;
+
+    &::placeholder {
+      color: $border-color-light;
+    }
+  }
+
+  .multiselect__current,
+  .multiselect__select {
+    border-color: $border-color-light;
+  }
 }
 
 .multiselect--active {
@@ -343,16 +358,6 @@ fieldset {
       color: $white;
       content: attr(data-deselect);
     }
-  }
-}
-
-.multiselect--disabled {
-  background: $border-color;
-  pointer-events: none;
-
-  .multiselect__current,
-  .multiselect__select {
-       color: #a6a6a6;
   }
 }
 

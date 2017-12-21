@@ -60,8 +60,7 @@
                             values: [],
                             selectOptions: {
                                 showLabels: false,
-                                loading: true,
-                                taggable: true
+                                loading: true
                             },
                             disabled: true
                         }
