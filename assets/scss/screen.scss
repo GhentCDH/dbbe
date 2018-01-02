@@ -7,7 +7,7 @@
 @import '../websites/sass/base/layout';
 
 // vendor
-// @import '../bower_components/font-awesome/scss/font-awesome';
+@import '../../node_modules/nouislider/distribute/nouislider';
 
 // partials
 @import '../websites/sass/partials/baseline';
@@ -66,3 +66,4 @@
 // Extra
 @import 'partials/dropdown';
 @import 'partials/multiselect';
+@import 'partials/nouislider';

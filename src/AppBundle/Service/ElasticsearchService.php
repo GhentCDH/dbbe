@@ -94,7 +94,37 @@ class ElasticsearchService
         if (isset($params['filters'])) {
             $filterQuery = new Query\BoolQuery();
             foreach ($params['filters'] as $key => $value) {
-                $filterQuery->addMust(['match' => [$key => $value]]);
+                if ($key == 'date_range') {
+                    // floor or ceiling must be within range, or range must be between floor and ceiling
+                    // the value in this case will be a two-dimentsional array with
+                    // * in the first row the floor and ceiling field names
+                    // * in the second row the range min and max values
+                    $dateRangeQuery = new Query\BoolQuery();
+
+                    // floor
+                    $floorQuery = new Query\Range();
+                    $floorQuery->addField($value[0][0], ['gte' => $value[1][0], 'lte' => $value[1][1]]);
+                    $dateRangeQuery->addShould($floorQuery);
+
+                    // ceiling
+                    $ceilingQuery = new Query\Range();
+                    $ceilingQuery->addField($value[0][1], ['gte' => $value[1][0], 'lte' => $value[1][1]]);
+                    $dateRangeQuery->addShould($ceilingQuery);
+
+                    // between floor and ceiling
+                    $betweenQuery = new Query\BoolQuery();
+                    $betweenFloorQuery = new Query\Range();
+                    $betweenFloorQuery->addField($value[0][0], ['lte' => $value[1][0]]);
+                    $betweenQuery->addMust($betweenFloorQuery);
+                    $betweenCeilingQuery = new Query\Range();
+                    $betweenCeilingQuery->addField($value[0][1], ['gte' => $value[1][1]]);
+                    $betweenQuery->addMust($betweenCeilingQuery);
+                    $dateRangeQuery->addShould($betweenQuery);
+
+                    $filterQuery->addMust($dateRangeQuery);
+                } else {
+                    $filterQuery->addMust(['match' => [$key => $value]]);
+                }
             }
             $query->setQuery($filterQuery);
         }

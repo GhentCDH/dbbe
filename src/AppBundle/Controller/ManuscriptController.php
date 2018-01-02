@@ -66,7 +66,14 @@ class ManuscriptController extends Controller
             if (isset($filters) && is_object($filters)) {
                 foreach ($filters as $key => $value) {
                     if (isset($value) && $value != '') {
-                        $es_params['filters'][$key] = $value;
+                        if ($key == 'date') {
+                            $es_params['filters']['date_range'] = [
+                                ['date_floor_year', 'date_ceiling_year'],
+                                [$value[0], $value[1]],
+                            ];
+                        } else {
+                            $es_params['filters'][$key] = $value;
+                        }
                     }
                 }
             }

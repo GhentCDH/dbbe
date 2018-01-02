@@ -39,11 +39,13 @@
 </template>
 <script>
     window.axios = require('axios')
+    window.noUiSlider = require('nouislider')
 
     import Vue from 'vue'
-    import VueTables from 'vue-tables-2'
-    import VueMultiselect from 'vue-multiselect'
     import VueFormGenerator from 'vue-form-generator'
+    import VueMultiselect from 'vue-multiselect'
+    import VueTables from 'vue-tables-2'
+    import wNumb from 'wnumb';
 
     import fieldMultiselectClear from './components/formfields/fieldMultiselectClear'
 
@@ -108,6 +110,21 @@
                             intputType: 'text',
                             label: 'Shelf Number',
                             model: 'shelf'
+                        },
+                        date: {
+                            type: 'noUiSlider',
+                            label: 'Date',
+                            model: 'date',
+                            min: 0,
+                            max: 2018,
+                            step: 10,
+                            noUiSliderOptions: {
+                                behaviour: 'drag',
+                                connect: true,
+                                start: [501, 1500],
+                                step: 1,
+                                tooltips: [ wNumb({ decimals: 0 }), wNumb({ decimals: 0 }) ]
+                            }
                         },
                         content: {
                             type: 'multiselectClear',
