@@ -26,11 +26,11 @@
                     </template>
                 </template>
                 <template slot="content" slot-scope="props" v-if="props.row.content">
-                    <ul v-if="props.row.content.includes('|')">
-                        <li v-for="content in props.row.content.split('|')">{{ content }}</li>
+                    <ul v-if="props.row.content.length > 1">
+                        <li v-for="content in props.row.content">{{ content }}</li>
                     </ul>
                     <template v-else>
-                        {{ props.row.content}}
+                        {{ props.row.content[0]}}
                     </template>
                 </template>
             </v-server-table>
@@ -139,6 +139,20 @@
                             },
                             // Will be enabled when list of content is loaded
                             disabled: true
+                        },
+                        patron: {
+                            type: 'multiselectClear',
+                            label: 'Patron',
+                            placeholder: 'Loading patrons',
+                            model: 'patron',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false,
+                                loading: true
+                            },
+                            // Will be enabled when list of patrons is loaded
+                            disabled: true
                         }
                     }
                 },
@@ -171,6 +185,13 @@
                 axios.get('/manuscripts/content')
                     .then( (response) => {
                         this.enableField('content', Object.keys(response.data).sort())
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                    })
+                axios.get('/manuscripts/patrons')
+                    .then( (response) => {
+                        this.enableField('patron', Object.keys(response.data).sort())
                     })
                     .catch( (error) => {
                         console.log(error)

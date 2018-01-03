@@ -15,9 +15,12 @@ class Manuscript extends DatabaseService
         $locations = $this->getLocations();
 
         $mcs = $this->getManuscriptContents();
-        $uniqueIds = $this->getUniqueDocumentContentIds($mcs);
-        $contents = $this->getcontents($uniqueIds);
+        $uniqueMCIds = $this->getUniqueIds($mcs);
+        $contents = $this->getcontents($uniqueMCIds);
         $completionDates = $this->getCompletionDates();
+        $mps = $this->getPatrons();
+        $uniqueMPIds = $this->getUniqueIds($mps);
+        $patrons = $this->getPersonDescriptions($uniqueMPIds);
 
         foreach ($manuscripts as $key => $ms) {
             if (isset($locations[$ms['id']])) {
@@ -31,12 +34,23 @@ class Manuscript extends DatabaseService
                 foreach ($mcs[$ms['id']] as $contentid) {
                     $contentNames[] = implode(':', $contents[$contentid]);
                 }
-                $manuscripts[$key]['content'] = implode('|', $contentNames);
+                $manuscripts[$key]['content'] = $contentNames;
             }
 
             if (isset($completionDates[$ms['id']])) {
-                $manuscripts[$key]['date_floor_year'] = $completionDates[$ms['id']]->getFloorYear();
-                $manuscripts[$key]['date_ceiling_year'] = $completionDates[$ms['id']]->getCeilingYear();
+                $completionDate = new FuzzyDate($completionDates[$ms['id']]);
+                $manuscripts[$key]['date_floor_year'] =
+                    !empty($completionDate->getFloor()) ? $completionDate->getFloor()->format('Y') : null;
+                $manuscripts[$key]['date_ceiling_year'] =
+                    !empty($completionDate->getCeiling()) ? $completionDate->getCeiling()->format('Y') : null;
+            }
+
+            if (isset($mps[$ms['id']])) {
+                $patronNames = [];
+                foreach ($mps[$ms['id']] as $patronid) {
+                    $patronNames[] = $patrons[$patronid];
+                }
+                $manuscripts[$key]['patron'] = implode('|', $patronNames);
             }
         }
 
@@ -150,5 +164,26 @@ class Manuscript extends DatabaseService
             $completionDates[$key] = new FuzzyDate($value);
         }
         return $completionDates;
+    }
+
+    private function getPatrons(): array
+    {
+        $statement = $this->conn->prepare(
+            'SELECT idcontainer, idperson
+            from data.document_contains
+            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+            inner join data.original_poem on document_contains.idcontent = original_poem.identity
+            inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
+            where type = \'patron\'
+            group by idcontainer, idperson
+            order by idcontainer'
+        );
+        $statement->execute();
+        $rawPatrons = $statement->fetchAll();
+        $patrons = [];
+        foreach ($rawPatrons as $rawPatron) {
+            $patrons[$rawPatron['idcontainer']][] = $rawPatron['idperson'];
+        }
+        return $patrons;
     }
 }

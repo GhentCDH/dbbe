@@ -69,8 +69,7 @@ class ElasticsearchService
         }
 
         // Pagination
-        if (
-            isset($params['page']) && is_numeric($params['page']) &&
+        if (isset($params['page']) && is_numeric($params['page']) &&
             isset($params['limit']) && is_numeric($params['limit'])
         ) {
             $query->setFrom(($params['page'] - 1) * $params['limit']);

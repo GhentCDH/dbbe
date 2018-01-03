@@ -144,4 +144,17 @@ class ManuscriptController extends Controller
         );
         return new Response(json_encode($result));
     }
+
+    /**
+     * @Route("/manuscripts/patrons/")
+     */
+    public function getPatrons(Request $request)
+    {
+        $result = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'patron'
+        );
+        return new Response(json_encode($result));
+    }
 }
