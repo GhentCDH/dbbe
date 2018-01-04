@@ -167,6 +167,20 @@
                             },
                             // Will be enabled when list of scribes is loaded
                             disabled: true
+                        },
+                        origin: {
+                            type: 'multiselectClear',
+                            label: 'Origin',
+                            placeholder: 'Loading origins',
+                            model: 'origin',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false,
+                                loading: true
+                            },
+                            // Will be enabled when list of scribes is loaded
+                            disabled: true
                         }
                     }
                 },
@@ -213,6 +227,13 @@
                 axios.get('/manuscripts/scribes')
                     .then( (response) => {
                         this.enableField('scribe', Object.keys(response.data).sort())
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                    })
+                axios.get('/manuscripts/origins')
+                    .then( (response) => {
+                        this.enableField('origin', Object.keys(response.data).sort())
                     })
                     .catch( (error) => {
                         console.log(error)

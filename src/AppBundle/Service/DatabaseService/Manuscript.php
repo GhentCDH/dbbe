@@ -15,18 +15,20 @@ class Manuscript extends DatabaseService
         $locations = $this->getLocations();
 
         $mcs = $this->getManuscriptContents();
-        $uniqueMCIds = $this->getUniqueIds($mcs);
+        $uniqueMCIds = self::getUniqueIds($mcs);
         $contents = $this->getcontents($uniqueMCIds);
 
         $completionDates = $this->getCompletionDates();
 
         $mps = $this->getPatrons();
-        $uniqueMPIds = $this->getUniqueIds($mps);
+        $uniqueMPIds = self::getUniqueIds($mps);
         $patrons = $this->getPersonDescriptions($uniqueMPIds);
 
         $mss = $this->getScribes();
-        $uniqueMSIds = $this->getUniqueIds($mss);
+        $uniqueMSIds = self::getUniqueIds($mss);
         $scribes = $this->getPersonDescriptions($uniqueMSIds);
+
+        $origins = $this->getOrigins();
 
         foreach ($manuscripts as $key => $ms) {
             if (isset($locations[$ms['id']])) {
@@ -65,6 +67,11 @@ class Manuscript extends DatabaseService
                     $scribeNames[] = $scribes[$scribeId];
                 }
                 $manuscripts[$key]['scribe'] = implode('|', $scribeNames);
+            }
+
+            if (isset($origins[$ms['id']])) {
+                $manuscripts[$key]['origin']['id'] = $origins[$ms['id']]['id'];
+                $manuscripts[$key]['origin']['name'] = $origins[$ms['id']]['name'];
             }
         }
 
@@ -189,8 +196,7 @@ class Manuscript extends DatabaseService
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
             where type = \'patron\'
-            group by idcontainer, idperson
-            order by idcontainer'
+            group by idcontainer, idperson'
         );
         $statement->execute();
         $rawPatrons = $statement->fetchAll();
@@ -210,8 +216,7 @@ class Manuscript extends DatabaseService
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
             where type = \'scribe\'
-            group by idcontainer, idperson
-            order by idcontainer'
+            group by idcontainer, idperson'
         );
         $statement->execute();
         $rawPatrons = $statement->fetchAll();
@@ -220,5 +225,43 @@ class Manuscript extends DatabaseService
             $patrons[$rawPatron['idcontainer']][] = $rawPatron['idperson'];
         }
         return $patrons;
+    }
+
+    private function getOrigins(): array
+    {
+        // origin can be eather an institution or a region
+        // regions can have parents
+
+        // institution (with region)
+        $statement = $this->conn->prepare(
+            'SELECT subject_identity, idinstitution, coalesce(institution.idregion, location.idregion) as idregion, name
+            from data.factoid
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.location on factoid.idlocation = location.idlocation
+            left join data.institution on location.idinstitution = institution.identity
+            where type = \'written\''
+        );
+        $statement->execute();
+        $rawOrigins = $statement->fetchAll();
+
+        $uniqueRegions = [];
+        foreach ($rawOrigins as $rawOrigin) {
+            if (!in_array($rawOrigin['idregion'], $uniqueRegions)) {
+                $uniqueRegions[] = $rawOrigin['idregion'];
+            }
+        }
+
+        $regionDescriptions = $this->getRegions($uniqueRegions);
+
+        $origins = [];
+        foreach ($rawOrigins as $rawOrigin) {
+            $origins[$rawOrigin['subject_identity']]['id'] = $regionDescriptions[$rawOrigin['idregion']]['id'];
+            $origins[$rawOrigin['subject_identity']]['name'] = $regionDescriptions[$rawOrigin['idregion']]['name'];
+            if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['name'])) {
+                $origins[$rawOrigin['subject_identity']]['id'][] = $rawOrigin['idinstitution'];
+                $origins[$rawOrigin['subject_identity']]['name'][] = $rawOrigin['name'];
+            }
+        }
+        return $origins;
     }
 }

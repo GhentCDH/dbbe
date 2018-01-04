@@ -115,12 +115,60 @@ class DatabaseService
         return $persons;
     }
 
+    protected function getRegions(array $ids): array
+    {
+        $statement = $this->conn->executeQuery(
+            'WITH RECURSIVE rec (identity, parent_idregion, name, ids, names, depth) AS (
+                SELECT
+                    r.identity,
+                    r.parent_idregion,
+                    r.name,
+                    r.identity::text as ids,
+                    r.name AS names,
+                    1
+                FROM data.region r
+
+                UNION ALL
+
+                SELECT
+                    r.identity,
+                    r.parent_idregion,
+                    r.name,
+                    rec.ids || \':\' || r.identity::text AS ids,
+                    rec.names || \':\' || r.name AS names,
+                    rec.depth + 1
+
+                FROM rec
+                INNER JOIN data.region r
+                ON rec.identity = r.parent_idregion
+            )
+            SELECT rec.identity, ids, names
+            FROM rec
+            INNER JOIN (
+                SELECT identity, MAX(depth) AS maxdepth
+                FROM rec
+                GROUP BY identity
+            ) rj
+            ON rec.identity = rj.identity AND rec.depth = rj.maxdepth
+            WHERE rec.identity in (?)',
+            [$ids],
+            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $rawRegions = $statement->fetchAll();
+        $regions = [];
+        foreach ($rawRegions as $rawRegion) {
+            $regions[$rawRegion['identity']]['id'] = array_map('intval', explode(':', $rawRegion['ids']));
+            $regions[$rawRegion['identity']]['name'] = explode(':', $rawRegion['names']);
+        }
+        return $regions;
+    }
+
     /**
      * Get all unique other entity ids from an array with as keys entity ids and as other entity ids.
      * @param  array $ids An array with as keys entity ids and as values other entity ids.
      * @return array      An array with the unique other entity ids.
      */
-    protected function getUniqueIds(array $ids): array
+    protected static function getUniqueIds(array $ids): array
     {
         $uniqueIds = [];
         foreach ($ids as $entryIds) {

@@ -170,4 +170,17 @@ class ManuscriptController extends Controller
         );
         return new Response(json_encode($result));
     }
+
+    /**
+     * @Route("/manuscripts/origins/")
+     */
+    public function getOrigins(Request $request)
+    {
+        $result = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'origin.name.keyword'
+        );
+        return new Response(json_encode($result));
+    }
 }
