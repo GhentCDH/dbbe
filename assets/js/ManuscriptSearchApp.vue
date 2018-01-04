@@ -153,6 +153,20 @@
                             },
                             // Will be enabled when list of patrons is loaded
                             disabled: true
+                        },
+                        scribe: {
+                            type: 'multiselectClear',
+                            label: 'Scribe',
+                            placeholder: 'Loading scribes',
+                            model: 'scribe',
+                            // Values will be loaded using ajax request
+                            values: [],
+                            selectOptions: {
+                                showLabels: false,
+                                loading: true
+                            },
+                            // Will be enabled when list of scribes is loaded
+                            disabled: true
                         }
                     }
                 },
@@ -182,7 +196,7 @@
                     .catch( (error) => {
                         console.log(error)
                     })
-                axios.get('/manuscripts/content')
+                axios.get('/manuscripts/contents')
                     .then( (response) => {
                         this.enableField('content', Object.keys(response.data).sort())
                     })
@@ -192,6 +206,13 @@
                 axios.get('/manuscripts/patrons')
                     .then( (response) => {
                         this.enableField('patron', Object.keys(response.data).sort())
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                    })
+                axios.get('/manuscripts/scribes')
+                    .then( (response) => {
+                        this.enableField('scribe', Object.keys(response.data).sort())
                     })
                     .catch( (error) => {
                         console.log(error)

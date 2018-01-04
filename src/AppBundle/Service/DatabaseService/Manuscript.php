@@ -17,10 +17,16 @@ class Manuscript extends DatabaseService
         $mcs = $this->getManuscriptContents();
         $uniqueMCIds = $this->getUniqueIds($mcs);
         $contents = $this->getcontents($uniqueMCIds);
+
         $completionDates = $this->getCompletionDates();
+
         $mps = $this->getPatrons();
         $uniqueMPIds = $this->getUniqueIds($mps);
         $patrons = $this->getPersonDescriptions($uniqueMPIds);
+
+        $mss = $this->getScribes();
+        $uniqueMSIds = $this->getUniqueIds($mss);
+        $scribes = $this->getPersonDescriptions($uniqueMSIds);
 
         foreach ($manuscripts as $key => $ms) {
             if (isset($locations[$ms['id']])) {
@@ -31,8 +37,8 @@ class Manuscript extends DatabaseService
 
             if (isset($mcs[$ms['id']])) {
                 $contentNames = [];
-                foreach ($mcs[$ms['id']] as $contentid) {
-                    $contentNames[] = implode(':', $contents[$contentid]);
+                foreach ($mcs[$ms['id']] as $contentId) {
+                    $contentNames[] = implode(':', $contents[$contentId]);
                 }
                 $manuscripts[$key]['content'] = $contentNames;
             }
@@ -47,10 +53,18 @@ class Manuscript extends DatabaseService
 
             if (isset($mps[$ms['id']])) {
                 $patronNames = [];
-                foreach ($mps[$ms['id']] as $patronid) {
-                    $patronNames[] = $patrons[$patronid];
+                foreach ($mps[$ms['id']] as $patronId) {
+                    $patronNames[] = $patrons[$patronId];
                 }
                 $manuscripts[$key]['patron'] = implode('|', $patronNames);
+            }
+
+            if (isset($mss[$ms['id']])) {
+                $scribeNames = [];
+                foreach ($mss[$ms['id']] as $scribeId) {
+                    $scribeNames[] = $scribes[$scribeId];
+                }
+                $manuscripts[$key]['scribe'] = implode('|', $scribeNames);
             }
         }
 
@@ -175,6 +189,27 @@ class Manuscript extends DatabaseService
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
             where type = \'patron\'
+            group by idcontainer, idperson
+            order by idcontainer'
+        );
+        $statement->execute();
+        $rawPatrons = $statement->fetchAll();
+        $patrons = [];
+        foreach ($rawPatrons as $rawPatron) {
+            $patrons[$rawPatron['idcontainer']][] = $rawPatron['idperson'];
+        }
+        return $patrons;
+    }
+
+    private function getScribes(): array
+    {
+        $statement = $this->conn->prepare(
+            'SELECT idcontainer, idperson
+            from data.document_contains
+            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+            inner join data.original_poem on document_contains.idcontent = original_poem.identity
+            inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
+            where type = \'scribe\'
             group by idcontainer, idperson
             order by idcontainer'
         );

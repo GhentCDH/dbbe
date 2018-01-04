@@ -133,9 +133,9 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/content/")
+     * @Route("/manuscripts/contents/")
      */
-    public function getContent(Request $request)
+    public function getContents(Request $request)
     {
         $result = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
@@ -154,6 +154,19 @@ class ManuscriptController extends Controller
             M_INDEX,
             M_TYPE,
             'patron'
+        );
+        return new Response(json_encode($result));
+    }
+
+    /**
+     * @Route("/manuscripts/scribes/")
+     */
+    public function getScribes(Request $request)
+    {
+        $result = $this->get('elasticsearch_service')->aggregate(
+            M_INDEX,
+            M_TYPE,
+            'scribe'
         );
         return new Response(json_encode($result));
     }
