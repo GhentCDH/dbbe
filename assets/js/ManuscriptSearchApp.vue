@@ -36,6 +36,10 @@
                     </template>
                 </template>
             </v-server-table>
+            <div class="loading-overlay" v-if="this.openTableRequests">
+                <div class="spinner">
+                </div>
+            </div>
         </article>
     </div>
 </template>
@@ -105,11 +109,40 @@
                     'perPage': 25,
                     'perPageValues': [25, 50, 100],
                     'sortable': ['name', 'date'],
-                    customFilters: ['filters']
+                    customFilters: ['filters'],
+                    requestFunction: function (data) {
+                        if (this.$parent.openTableRequests > 0) {
+                            this.$parent.tableCancel('Operation canceled by newer request')
+                        }
+                        this.$parent.openTableRequests++
+                        return axios.get(this.url, {
+                            params: data,
+                            cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+                        })
+                            .then( (response) => {
+                                this.$parent.openTableRequests--
+                                return response
+                            })
+                            .catch(function (error) {
+                                this.$parent.openTableRequests--
+                                if (axios.isCancel(error)) {
+                                    // Return the current data if the request is cancelled
+                                    return {
+                                        data : {
+                                            data: this.data,
+                                            count: this.count
+                                        }
+                                    }
+                                }
+                                this.dispatch('error', error)
+                            }.bind(this))
+                    }
                 },
                 oldOrder: {},
-                openRequests: 0,
-                cancel: null
+                openFilterRequests: 0,
+                filterCancel: null,
+                openTableRequests: 0,
+                tableCancel: null
             }
         },
         mounted () {
@@ -185,8 +218,8 @@
                 return result
             },
             setFilters() {
-                if (this.openRequests > 0) {
-                    this.cancel('Operation canceled by newer request')
+                if (this.openFilterRequests > 0) {
+                    this.filterCancel('Operation canceled by newer request')
                 }
                 for (let fieldName of Object.keys(this.schema.fields)) {
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
@@ -199,12 +232,12 @@
                         this.disableField(fieldName)
                     }
                 }
-                this.openRequests++
+                this.openFilterRequests++
                 axios.post('/manuscripts/filtervalues', this.cleanFilterValues(), {
-                    cancelToken: new axios.CancelToken((c) => {this.cancel = c})
+                    cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
                 })
                     .then( (response) => {
-                        this.openRequests--
+                        this.openFilterRequests--
                         for (let fieldName of Object.keys(this.schema.fields)) {
                             if (this.schema.fields[fieldName].type == 'multiselectClear') {
                                 this.enableField(fieldName, response.data[fieldName] === undefined ? [] : response.data[fieldName].sort(this.sortByName))
@@ -212,7 +245,7 @@
                         }
                     })
                     .catch( (error) => {
-                        this.openRequests--
+                        this.openFilterRequests--
                         if (!axios.isCancel(error)) {
                             console.log(error)
                         }
