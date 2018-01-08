@@ -3,7 +3,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary">
                 <div class="padding-default">
-                    <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="updateFilters"></vue-form-generator>
+                    <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="filterChanged"></vue-form-generator>
                 </div>
             </div>
         </aside>
@@ -26,11 +26,13 @@
                     </template>
                 </template>
                 <template slot="content" slot-scope="props" v-if="props.row.content">
-                    <ul v-if="props.row.content.length > 1">
-                        <li v-for="content in props.row.content">{{ content }}</li>
-                    </ul>
-                    <template v-else>
-                        {{ props.row.content[0]}}
+                    <template v-for="displayContent in filterDisplayContent(props.row.content)">
+                        <ul v-if="displayContent.length > 1">
+                            <li v-for="content in displayContent">{{ content.name }}</li>
+                        </ul>
+                        <template v-else>
+                            {{ displayContent[0].name}}
+                        </template>
                     </template>
                 </template>
             </v-server-table>
@@ -45,15 +47,15 @@
     import VueFormGenerator from 'vue-form-generator'
     import VueMultiselect from 'vue-multiselect'
     import VueTables from 'vue-tables-2'
-    import wNumb from 'wnumb';
+    import wNumb from 'wnumb'
 
     import fieldMultiselectClear from './components/formfields/fieldMultiselectClear'
 
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
 
-    Vue.component('multiselect', VueMultiselect);
-    Vue.component('fieldMultiselectClear', fieldMultiselectClear);
+    Vue.component('multiselect', VueMultiselect)
+    Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
     export default {
         data() {
@@ -61,50 +63,9 @@
                 model: {},
                 schema: {
                     fields: {
-                        city: {
-                            type: 'multiselectClear',
-                            label: 'City',
-                            placeholder: 'Loading cities',
-                            model: 'city',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false,
-                                loading: true
-                            },
-                            // Will be enabled when list of cities are loaded
-                            disabled: true,
-                            onChanged: this.citySelected
-                        },
-                        library: {
-                            type: 'multiselectClear',
-                            label: 'Library',
-                            placeholder: 'Please select a city first',
-                            model: 'library',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false
-                            },
-                            // Will be enabled when list of libraries are loaded
-                            // after city selection
-                            disabled: true,
-                            onChanged: this.librarySelected
-                        },
-                        fund: {
-                            type: 'multiselectClear',
-                            label: 'Fund',
-                            placeholder: 'Please select a library first',
-                            model: 'fund',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false
-                            },
-                            // Will be enabled when list of funds are loaded
-                            // after city and library selection
-                            disabled: true
-                        },
+                        city: this.createMultiSelect('City'),
+                        library: this.createMultiSelect('Library', {dependency: 'city'}),
+                        fund: this.createMultiSelect('Fund', {dependency: 'library'}),
                         shelf: {
                             type: 'input',
                             intputType: 'text',
@@ -126,62 +87,10 @@
                                 tooltips: [ wNumb({ decimals: 0 }), wNumb({ decimals: 0 }) ]
                             }
                         },
-                        content: {
-                            type: 'multiselectClear',
-                            label: 'Content',
-                            placeholder: 'Loading content',
-                            model: 'content',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false,
-                                loading: true
-                            },
-                            // Will be enabled when list of content is loaded
-                            disabled: true
-                        },
-                        patron: {
-                            type: 'multiselectClear',
-                            label: 'Patron',
-                            placeholder: 'Loading patrons',
-                            model: 'patron',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false,
-                                loading: true
-                            },
-                            // Will be enabled when list of patrons is loaded
-                            disabled: true
-                        },
-                        scribe: {
-                            type: 'multiselectClear',
-                            label: 'Scribe',
-                            placeholder: 'Loading scribes',
-                            model: 'scribe',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false,
-                                loading: true
-                            },
-                            // Will be enabled when list of scribes is loaded
-                            disabled: true
-                        },
-                        origin: {
-                            type: 'multiselectClear',
-                            label: 'Origin',
-                            placeholder: 'Loading origins',
-                            model: 'origin',
-                            // Values will be loaded using ajax request
-                            values: [],
-                            selectOptions: {
-                                showLabels: false,
-                                loading: true
-                            },
-                            // Will be enabled when list of scribes is loaded
-                            disabled: true
-                        }
+                        content: this.createMultiSelect('Content'),
+                        patron: this.createMultiSelect('Patron'),
+                        scribe: this.createMultiSelect('Scribe'),
+                        origin: this.createMultiSelect('Origin')
                     }
                 },
                 formOptions: {
@@ -198,152 +107,164 @@
                     'sortable': ['name', 'date'],
                     customFilters: ['filters']
                 },
-                oldOrder: {}
+                oldOrder: {},
+                openRequests: 0,
+                cancel: null
             }
         },
         mounted () {
             this.$nextTick( () => {
-                axios.get('/manuscripts/cities')
-                    .then( (response) => {
-                        this.enableField('city', Object.keys(response.data).sort())
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                    })
-                axios.get('/manuscripts/contents')
-                    .then( (response) => {
-                        this.enableField('content', Object.keys(response.data).sort())
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                    })
-                axios.get('/manuscripts/patrons')
-                    .then( (response) => {
-                        this.enableField('patron', Object.keys(response.data).sort())
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                    })
-                axios.get('/manuscripts/scribes')
-                    .then( (response) => {
-                        this.enableField('scribe', Object.keys(response.data).sort())
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                    })
-                axios.get('/manuscripts/origins')
-                    .then( (response) => {
-                        this.enableField('origin', Object.keys(response.data).sort())
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                    })
+                this.setFilters()
             })
         },
         methods: {
             formatName(row) {
                 let result = ''
-                result += row.city.toUpperCase()
+                result += row.city.name.toUpperCase()
                 if (row.library) {
-                    result += ' - ' +  row.library
+                    result += ' - ' +  row.library.name
                 }
                 if (row.fund) {
-                    result += ' - ' +  row.fund
+                    result += ' - ' +  row.fund.name
                 }
                 if (row.shelf) {
                     result += ' ' +  row.shelf
                 }
                 return result
-
             },
-            updateFilters() {
-                let filters = JSON.parse(JSON.stringify(this.model))
-                // if city is reset, wait untill library and fund are reset as well
-                if (
-                    (
-                        (filters['library'] !== undefined && filters['library'] !== null)
-                        || (filters['fund'] !== undefined && filters['fund'] !== null)
-                    )
-                    && filters['city'] === null
-                ) {
-                    return
-                }
-                // if library is reset, wait untill fund is reset as well
-                if (
-                    (filters['fund'] !== undefined && filters['fund'] !== null)
-                    && filters['library'] === null
-                ) {
-                    return
-                }
-                for (let key of Object.keys(filters)) {
-                    if(filters[key] === undefined || filters[key] === null || filters[key] === '') {
-                        delete filters[key]
-                    }
-                    // make sure the complete filter is matched
-                    else if (['city', 'library', 'fund', 'content'].includes(key)) {
-                        filters[key + '.keyword'] = filters[key]
-                        delete filters[key]
+            filterDisplayContent(contentList) {
+                // extra dimension is needed to declare variable in template using v-for
+                let result = [[]]
+                for (let contentItem of contentList) {
+                    if (contentItem.display) {
+                        result[0].push(contentItem)
                     }
                 }
-                VueTables.Event.$emit('vue-tables.filter::filters', filters)
+                return result
             },
-            citySelected() {
-                this.model.library = null
-                this.model.fund = null
-                this.disableField('library', 'city')
-                this.disableField('fund', 'library')
-                this.updateFilters()
-
-                if (this.model.city !== undefined && this.model.city !== null) {
-                    this.$data.schema.fields['library'].selectOptions.loading = true
-                    axios.get('/manuscripts/libraries/' + this.model.city)
-                        .then( (response) => {
-                            this.enableField('library', Object.keys(response.data).sort())
-                        })
-                        .catch( (error) => {
-                            console.log(error)
-                        })
+            createMultiSelect(label, extra) {
+                let result = {
+                    type: 'multiselectClear',
+                    label: label,
+                    placeholder: 'Loading',
+                    model: label.toLowerCase(),
+                    // Values will be loaded using ajax request
+                    values: [],
+                    selectOptions: {
+                        customLabel: ({id, name}) => {
+                            return name
+                        },
+                        showLabels: false,
+                        loading: true
+                    },
+                    // Will be enabled when list of scribes is loaded
+                    disabled: true
                 }
-            },
-            librarySelected() {
-                this.model.fund = null
-                this.disableField('fund', 'library')
-                this.updateFilters()
-
-                if (this.model.library !== undefined && this.model.library !== null) {
-                    this.$data.schema.fields['fund'].selectOptions.loading = true
-                    axios.get('/manuscripts/funds/' + this.model.city + '/' + this.model.library)
-                        .then( (response) => {
-                            this.enableField('fund', Object.keys(response.data).sort())
-                        })
-                        .catch( (error) => {
-                            console.log(error)
-                        })
+                if (extra !== undefined) {
+                    for (let key of Object.keys(extra)) {
+                        result[key] = extra[key]
+                    }
                 }
+                return result
             },
-            disableField(fieldName, dependencyName) {
-                this.$data.schema.fields[fieldName].disabled = true
-                this.$data.schema.fields[fieldName].placeholder = 'Please select a ' + dependencyName + ' first'
-                this.$data.schema.fields[fieldName].values = []
+            cleanFilterValues() {
+                let result = {}
+                if (this.model !== undefined) {
+                    for (let fieldName of Object.keys(this.model)) {
+                        if (this.model[fieldName] === null || this.model[fieldName].derived) {
+                            continue
+                        }
+                        if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                            result[fieldName] = this.model[fieldName]['id']
+                        }
+                        else {
+                            result[fieldName] = this.model[fieldName]
+                        }
+                    }
+                }
+                return result
+            },
+            setFilters() {
+                if (this.openRequests > 0) {
+                    this.cancel('Operation canceled by newer request')
+                }
+                for (let fieldName of Object.keys(this.schema.fields)) {
+                    if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                        if (this.model[fieldName] && this.model[fieldName].derived) {
+                            this.model[fieldName] = null
+                        }
+                        if (this.model[fieldName] && this.schema.fields[fieldName].dependency && !this.model[this.schema.fields[fieldName].dependency]) {
+                            this.model[fieldName] = null
+                        }
+                        this.disableField(fieldName)
+                    }
+                }
+                this.openRequests++
+                axios.post('/manuscripts/filtervalues', this.cleanFilterValues(), {
+                    cancelToken: new axios.CancelToken((c) => {this.cancel = c})
+                })
+                    .then( (response) => {
+                        this.openRequests--
+                        for (let fieldName of Object.keys(this.schema.fields)) {
+                            if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                                this.enableField(fieldName, response.data[fieldName] === undefined ? [] : response.data[fieldName].sort(this.sortByName))
+                            }
+                        }
+                    })
+                    .catch( (error) => {
+                        this.openRequests--
+                        if (!axios.isCancel(error)) {
+                            console.log(error)
+                        }
+                    })
+            },
+            filterChanged() {
+                this.setFilters()
+                VueTables.Event.$emit('vue-tables.filter::filters', this.cleanFilterValues())
+            },
+            disableField(fieldName) {
+                this.schema.fields[fieldName].disabled = true
+                this.schema.fields[fieldName].placeholder = 'Loading'
+                this.schema.fields[fieldName].selectOptions.loading = true
+                this.schema.fields[fieldName].values = []
             },
             enableField(fieldName, values) {
+                this.schema.fields[fieldName].selectOptions.loading = false
+                this.schema.fields[fieldName].placeholder = (['origin'].indexOf(fieldName) < 0 ? 'Select a ' : 'Select an ') + fieldName
+                // Handle dependencies
+                if (this.schema.fields[fieldName].dependency !== undefined) {
+                    let dependency = this.schema.fields[fieldName].dependency
+                    if (this.model[dependency] === undefined || this.model[dependency] === null) {
+                        this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
+                        return
+                    }
+                }
+                // No results
                 if (values.length === 0) {
-                    if (fieldName == 'fund') {
-                        this.$data.schema.fields[fieldName].placeholder = 'No funds found for this library'
-                        this.$data.schema.fields[fieldName].selectOptions.loading = false
+                    if (this.model[fieldName] !== undefined && this.model[fieldName] !== null) {
+                        this.schema.fields[fieldName].disabled = false
+                        return
                     }
                     return
                 }
-                this.$data.schema.fields[fieldName].disabled = false
-                this.$data.schema.fields[fieldName].placeholder = 'Select a ' + fieldName
-                this.$data.schema.fields[fieldName].selectOptions.loading = false
-                this.$data.schema.fields[fieldName].values = values
+                // Only one result
                 if (values.length === 1) {
-                    this.model[fieldName] = values[0]
-                    if (fieldName === 'library') {
-                        this.librarySelected()
+                    if (this.model[fieldName] === undefined || this.model[fieldName] === null || this.model[fieldName].derived) {
+                        this.model[fieldName] = values[0]
+                        this.model[fieldName].derived = true
+                        return
                     }
                 }
+                // Default
+                this.schema.fields[fieldName].disabled = false
+                this.schema.fields[fieldName].values = values
+            },
+            sortByName(a, b) {
+                if (a.name < b.name)
+                    return -1
+                if (a.name > b.name)
+                    return 1
+                return 0
             }
         }
     }

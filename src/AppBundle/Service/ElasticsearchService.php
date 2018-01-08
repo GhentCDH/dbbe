@@ -2,13 +2,11 @@
 
 namespace AppBundle\Service;
 
-use Elastica\Aggregation\Terms;
+use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Document;
 use Elastica\Type;
-use Elastica\Type\Mapping;
 use Elastica\Query;
-use Elastica\Suggest\Completion;
 
 const INDEX_PREFIX = "dbbe_";
 const MAX = 2147483647;
@@ -54,6 +52,19 @@ class ElasticsearchService
     {
         $type = $this->getIndex('documents')->getType('manuscript');
 
+        $mapping = new Type\Mapping;
+        $mapping->setType($type);
+
+        $mapping->setProperties(
+            [
+                'content' => ['type' => 'nested'],
+                'patron' => ['type' => 'nested'],
+                'scribe' => ['type' => 'nested'],
+                'origin' => ['type' => 'nested'],
+            ]
+        );
+        $mapping->send();
+
         $this->bulkAdd($type, $manuscripts);
     }
 
@@ -91,41 +102,7 @@ class ElasticsearchService
 
         // Filtering
         if (isset($params['filters'])) {
-            $filterQuery = new Query\BoolQuery();
-            foreach ($params['filters'] as $key => $value) {
-                if ($key == 'date_range') {
-                    // floor or ceiling must be within range, or range must be between floor and ceiling
-                    // the value in this case will be a two-dimentsional array with
-                    // * in the first row the floor and ceiling field names
-                    // * in the second row the range min and max values
-                    $dateRangeQuery = new Query\BoolQuery();
-
-                    // floor
-                    $floorQuery = new Query\Range();
-                    $floorQuery->addField($value[0][0], ['gte' => $value[1][0], 'lte' => $value[1][1]]);
-                    $dateRangeQuery->addShould($floorQuery);
-
-                    // ceiling
-                    $ceilingQuery = new Query\Range();
-                    $ceilingQuery->addField($value[0][1], ['gte' => $value[1][0], 'lte' => $value[1][1]]);
-                    $dateRangeQuery->addShould($ceilingQuery);
-
-                    // between floor and ceiling
-                    $betweenQuery = new Query\BoolQuery();
-                    $betweenFloorQuery = new Query\Range();
-                    $betweenFloorQuery->addField($value[0][0], ['lte' => $value[1][0]]);
-                    $betweenQuery->addMust($betweenFloorQuery);
-                    $betweenCeilingQuery = new Query\Range();
-                    $betweenCeilingQuery->addField($value[0][1], ['gte' => $value[1][1]]);
-                    $betweenQuery->addMust($betweenCeilingQuery);
-                    $dateRangeQuery->addShould($betweenQuery);
-
-                    $filterQuery->addMust($dateRangeQuery);
-                } else {
-                    $filterQuery->addMust(['match' => [$key => $value]]);
-                }
-            }
-            $query->setQuery($filterQuery);
+            $query->setQuery(self::createQuery($params['filters']));
         }
 
         $data = $type->search($query)->getResponse()->getData();
@@ -141,41 +118,150 @@ class ElasticsearchService
         return $response;
     }
 
-    public function aggregate(string $indexName, string $typeName, string $field, array $preselected = []): array
+    public function aggregate(string $indexName, string $typeName, array $fieldTypes, array $filterValues): array
     {
         $type = $this->getIndex($indexName)->getType($typeName);
 
-        // use keyword field if available
-        $aggregationField = $field;
-        if (isset($type->getMapping()[$typeName]['properties'][$field]['fields']['keyword'])) {
-            $aggregationField .= '.keyword';
-        }
+        $query = (new Query())
+            ->setQuery(self::createQuery($filterValues));
 
-        // Construct query
-        $query = new Query();
-
-        // Add aggregation part
-        $agg = new Terms($field);
-        $agg->setField($aggregationField);
-        $agg->setSize(MAX);
-        $query->addAggregation($agg);
-
-        // Add preselected query
-        if (count($preselected) > 0) {
-            $filterQuery = new Query\BoolQuery();
-            foreach ($preselected as $key => $value) {
-                $filterQuery->addMust(['match' => [$key => $value]]);
+        foreach ($fieldTypes as $fieldType => $fieldNames) {
+            switch ($fieldType) {
+                case 'object':
+                    foreach ($fieldNames as $fieldName) {
+                        $query->addAggregation(
+                            (new Aggregation\Terms($fieldName))
+                                ->setSize(MAX)
+                                ->setField($fieldName . '.id')
+                                ->addAggregation(
+                                    (new Aggregation\Terms('name'))
+                                        ->setField($fieldName . '.name.keyword')
+                                )
+                        );
+                    }
+                    break;
+                case 'nested':
+                    foreach ($fieldNames as $fieldName) {
+                        $query->addAggregation(
+                            (new Aggregation\Nested($fieldName, $fieldName))
+                                ->addAggregation(
+                                    (new Aggregation\Terms('id'))
+                                        ->setSize(MAX)
+                                        ->setField($fieldName . '.id')
+                                        ->addAggregation(
+                                            (new Aggregation\Terms('name'))
+                                                ->setField($fieldName . '.name.keyword')
+                                        )
+                                )
+                        );
+                    }
+                    break;
             }
-            $query->setQuery($filterQuery);
         }
-
-        $buckets = $type->search($query)->getAggregation($field);
 
         $results = [];
-        foreach ($buckets['buckets'] as $bucket) {
-            $results[$bucket['key']] = $bucket['doc_count'];
+        foreach ($fieldTypes as $fieldType => $fieldNames) {
+            switch ($fieldType) {
+                case 'object':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        foreach ($aggregation['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['name']['buckets'][0]['key'],
+                            ];
+                        }
+                    }
+                    break;
+                case 'nested':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        foreach ($aggregation['id']['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['name']['buckets'][0]['key'],
+                            ];
+                        }
+                    }
+                    break;
+            }
         }
 
         return $results;
+    }
+
+    private static function createQuery(array $filterTypes): Query\BoolQuery
+    {
+        $filterQuery = new Query\BoolQuery();
+        foreach ($filterTypes as $filterType => $filterValues) {
+            switch ($filterType) {
+                case 'object':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
+                            (new Query\Match($key . '.id', $value))
+                        );
+                    }
+                    break;
+                case 'date_range':
+                    foreach ($filterValues as $value) {
+                        // floor or ceiling must be within range, or range must be between floor and ceiling
+                        // the value in this case will be a two-dimentsional array with
+                        // * in the first row the floor and ceiling field names
+                        // * in the second row the range min and max values
+                        $filterQuery->addMust(
+                            (new Query\BoolQuery())
+                                // floor
+                                ->addShould(
+                                    (new Query\Range())
+                                        ->addField(
+                                            $value['floorField'],
+                                            ['gte' => $value['startDate'], 'lte' => $value['endDate']]
+                                        )
+                                )
+                                // ceiling
+                                ->addShould(
+                                    (new Query\Range())
+                                        ->addField(
+                                            $value['ceilingField'],
+                                            ['gte' => $value['startDate'], 'lte' => $value['endDate']]
+                                        )
+                                )
+                                // between floor and ceiling
+                                ->addShould(
+                                    (new Query\BoolQuery())
+                                        ->addMust(
+                                            (new Query\Range())
+                                                ->addField($value['floorField'], ['lte' => $value['startDate']])
+                                        )
+                                        ->addMust(
+                                            (new Query\Range())
+                                                ->addField($value['ceilingField'], ['gte' => $value['endDate']])
+                                        )
+                                )
+                        );
+                    }
+                    break;
+                case 'nested':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
+                            (new Query\Nested())
+                                ->setPath($key)
+                                ->setQuery(
+                                    (new Query\BoolQuery())
+                                        ->addMust(['match' => [$key . '.id' => $value]])
+                                )
+                        );
+                    }
+                    break;
+                case 'text':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
+                            (new Query\Match($key . '.keyword', $value))
+                        );
+                    }
+                    break;
+            }
+        }
+        return $filterQuery;
     }
 }

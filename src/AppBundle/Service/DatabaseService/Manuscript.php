@@ -11,24 +11,12 @@ class Manuscript extends DatabaseService
     public function getCompleteManuscripts(): array
     {
         $manuscripts = $this->getManuscriptIds();
-
         $locations = $this->getLocations();
-
-        $mcs = $this->getManuscriptContents();
-        $uniqueMCIds = self::getUniqueIds($mcs);
-        $contents = $this->getcontents($uniqueMCIds);
-
+        $contents = $this->getContents();
         $completionDates = $this->getCompletionDates();
-
-        $mps = $this->getPatrons();
-        $uniqueMPIds = self::getUniqueIds($mps);
-        $patrons = $this->getPersonDescriptions($uniqueMPIds);
-
-        $mss = $this->getScribes();
-        $uniqueMSIds = self::getUniqueIds($mss);
-        $scribes = $this->getPersonDescriptions($uniqueMSIds);
-
-        $origins = $this->getOrigins();
+        $patrons = $this->getBibroles('patron');
+        $scribes = $this->getBibroles('scribe');
+        $origins = $this->getManuscriptOrigins();
 
         foreach ($manuscripts as $key => $ms) {
             if (isset($locations[$ms['id']])) {
@@ -37,41 +25,28 @@ class Manuscript extends DatabaseService
                 }
             }
 
-            if (isset($mcs[$ms['id']])) {
-                $contentNames = [];
-                foreach ($mcs[$ms['id']] as $contentId) {
-                    $contentNames[] = implode(':', $contents[$contentId]);
-                }
-                $manuscripts[$key]['content'] = $contentNames;
+            if (isset($contents[$ms['id']])) {
+                $manuscripts[$key]['content'] = $contents[$ms['id']];
             }
 
             if (isset($completionDates[$ms['id']])) {
-                $completionDate = new FuzzyDate($completionDates[$ms['id']]);
+                $completionDate = $completionDates[$ms['id']];
                 $manuscripts[$key]['date_floor_year'] =
-                    !empty($completionDate->getFloor()) ? $completionDate->getFloor()->format('Y') : null;
+                    !empty($completionDate->getFloor()) ? intval($completionDate->getFloor()->format('Y')) : null;
                 $manuscripts[$key]['date_ceiling_year'] =
-                    !empty($completionDate->getCeiling()) ? $completionDate->getCeiling()->format('Y') : null;
+                    !empty($completionDate->getCeiling()) ? intval($completionDate->getCeiling()->format('Y')) : null;
             }
 
-            if (isset($mps[$ms['id']])) {
-                $patronNames = [];
-                foreach ($mps[$ms['id']] as $patronId) {
-                    $patronNames[] = $patrons[$patronId];
-                }
-                $manuscripts[$key]['patron'] = implode('|', $patronNames);
+            if (isset($patrons[$ms['id']])) {
+                $manuscripts[$key]['patron'] = $patrons[$ms['id']];
             }
 
-            if (isset($mss[$ms['id']])) {
-                $scribeNames = [];
-                foreach ($mss[$ms['id']] as $scribeId) {
-                    $scribeNames[] = $scribes[$scribeId];
-                }
-                $manuscripts[$key]['scribe'] = implode('|', $scribeNames);
+            if (isset($scribes[$ms['id']])) {
+                $manuscripts[$key]['scribe'] = $scribes[$ms['id']];
             }
 
             if (isset($origins[$ms['id']])) {
-                $manuscripts[$key]['origin']['id'] = $origins[$ms['id']]['id'];
-                $manuscripts[$key]['origin']['name'] = $origins[$ms['id']]['name'];
+                $manuscripts[$key]['origin'] = $origins[$ms['id']];
             }
         }
 
@@ -92,9 +67,12 @@ class Manuscript extends DatabaseService
     {
         $statement = $this->conn->prepare(
             'SELECT manuscript.identity as manuscriptid,
-                    region.name as city,
-                    institution.name as library,
-                    fund.name as fund,
+                    region.identity as cityid,
+                    region.name as cityname,
+                    institution.identity as libraryid,
+                    institution.name as libraryname,
+                    fund.idfund as fundid,
+                    fund.name as fundname,
                     located_at.identification as shelf
             from data.located_at
             inner join data.manuscript on manuscript.identity = located_at.iddocument
@@ -108,8 +86,10 @@ class Manuscript extends DatabaseService
 
         $statement = $this->conn->prepare(
             'SELECT manuscript.identity as manuscriptid,
-                    region.name as city,
-                    institution.name as library,
+                    region.identity as cityid,
+                    region.name as cityname,
+                    institution.identity as libraryid,
+                    institution.name as libraryname,
                     located_at.identification as shelf
             from data.located_at
             inner join data.manuscript on manuscript.identity = located_at.iddocument
@@ -123,12 +103,21 @@ class Manuscript extends DatabaseService
         $locations = [];
         foreach (array_merge($fundLocations, $libraryLocations) as $fl) {
             $locations[$fl['manuscriptid']] = [
-                'city' => $fl['city'],
-                'library' => $fl['library'],
-                'shelf' => $fl['shelf']
+                'city' => [
+                    'id' => $fl['cityid'],
+                    'name' => $fl['cityname'],
+                ],
+                'library' => [
+                    'id' => $fl['libraryid'],
+                    'name' => $fl['libraryname'],
+                ],
+                'shelf' => $fl['shelf'],
             ];
-            if (isset($fl['fund'])) {
-                $locations[$fl['manuscriptid']]['fund'] = $fl['fund'];
+            if (isset($fl['fundid'])) {
+                $locations[$fl['manuscriptid']]['fund'] = [
+                    'id' => $fl['fundid'],
+                    'name' => $fl['fundname'],
+                ];
             }
         }
 
@@ -139,9 +128,9 @@ class Manuscript extends DatabaseService
      * Get all contents linked to a manuscript from the database.
      * @return array The contents linked to a manuscript with
      * as key the manuscript id
-     * as value an array with the linked content ids
+     * as value an array ids and names of content
      */
-    private function getManuscriptContents(): array
+    private function getContents(): array
     {
         $statement = $this->conn->prepare(
             'SELECT iddocument, idgenre
@@ -150,9 +139,24 @@ class Manuscript extends DatabaseService
         );
         $statement->execute();
         $rawContents = $statement->fetchAll();
+
+        $uniqueContents = self::getUniqueIds($rawContents, 'idgenre');
+        $contentDescriptions = $this->getContentDescriptions($uniqueContents);
+
         $contents = [];
         foreach ($rawContents as $rawContent) {
-            $contents[$rawContent['iddocument']][] = $rawContent['idgenre'];
+            $contentEntries = $contentDescriptions[$rawContent['idgenre']];
+
+            $names = [];
+            foreach ($contentEntries as $content) {
+                $names[] = $content['name'];
+                $contents[$rawContent['iddocument']][] = [
+                    'id' => $content['id'],
+                    'name' => implode(' > ', $names),
+                ];
+            }
+            // Only last element from eacht content parent array should be shown to the end user
+            $contents[$rawContent['iddocument']][count($contents[$rawContent['iddocument']]) -1]['display'] = true;
         }
         return $contents;
     }
@@ -187,7 +191,7 @@ class Manuscript extends DatabaseService
         return $completionDates;
     }
 
-    private function getPatrons(): array
+    private function getBibroles(string $role): array
     {
         $statement = $this->conn->prepare(
             'SELECT idcontainer, idperson
@@ -195,39 +199,27 @@ class Manuscript extends DatabaseService
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where type = \'patron\'
+            where type = ?
             group by idcontainer, idperson'
         );
-        $statement->execute();
-        $rawPatrons = $statement->fetchAll();
-        $patrons = [];
-        foreach ($rawPatrons as $rawPatron) {
-            $patrons[$rawPatron['idcontainer']][] = $rawPatron['idperson'];
+        $statement->execute([$role]);
+        $rawBibRoles = $statement->fetchAll();
+
+        $uniqueBibRoles = self::getUniqueIds($rawBibRoles, 'idperson');
+        $personDescriptions = $this->getPersonDescriptions($uniqueBibRoles);
+
+        $bibRoles = [];
+        foreach ($rawBibRoles as $rawBibRole) {
+            $bibRoles[$rawBibRole['idcontainer']][] = [
+                    'id' => $rawBibRole['idperson'],
+                    'name' => $personDescriptions[$rawBibRole['idperson']],
+            ];
         }
-        return $patrons;
+
+        return $bibRoles;
     }
 
-    private function getScribes(): array
-    {
-        $statement = $this->conn->prepare(
-            'SELECT idcontainer, idperson
-            from data.document_contains
-            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            inner join data.original_poem on document_contains.idcontent = original_poem.identity
-            inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where type = \'scribe\'
-            group by idcontainer, idperson'
-        );
-        $statement->execute();
-        $rawPatrons = $statement->fetchAll();
-        $patrons = [];
-        foreach ($rawPatrons as $rawPatron) {
-            $patrons[$rawPatron['idcontainer']][] = $rawPatron['idperson'];
-        }
-        return $patrons;
-    }
-
-    private function getOrigins(): array
+    private function getManuscriptOrigins(): array
     {
         // origin can be eather an institution or a region
         // regions can have parents
@@ -244,22 +236,26 @@ class Manuscript extends DatabaseService
         $statement->execute();
         $rawOrigins = $statement->fetchAll();
 
-        $uniqueRegions = [];
-        foreach ($rawOrigins as $rawOrigin) {
-            if (!in_array($rawOrigin['idregion'], $uniqueRegions)) {
-                $uniqueRegions[] = $rawOrigin['idregion'];
-            }
-        }
-
+        $uniqueRegions = self::getUniqueIds($rawOrigins, 'idregion');
         $regionDescriptions = $this->getRegions($uniqueRegions);
 
         $origins = [];
         foreach ($rawOrigins as $rawOrigin) {
-            $origins[$rawOrigin['subject_identity']]['id'] = $regionDescriptions[$rawOrigin['idregion']]['id'];
-            $origins[$rawOrigin['subject_identity']]['name'] = $regionDescriptions[$rawOrigin['idregion']]['name'];
+            $regions = $regionDescriptions[$rawOrigin['idregion']];
             if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['name'])) {
-                $origins[$rawOrigin['subject_identity']]['id'][] = $rawOrigin['idinstitution'];
-                $origins[$rawOrigin['subject_identity']]['name'][] = $rawOrigin['name'];
+                $regions[] = [
+                    'id' => $rawOrigin['idinstitution'],
+                    'name' => $rawOrigin['name'],
+                ];
+            }
+
+            $names = [];
+            foreach ($regions as $region) {
+                $names[] = $region['name'];
+                $origins[$rawOrigin['subject_identity']][] = [
+                    'id' => $region['id'],
+                    'name' => implode(' > ', $names),
+                ];
             }
         }
         return $origins;

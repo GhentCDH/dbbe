@@ -43,7 +43,7 @@
         )
             template(slot="clear", slot-scope="props")
                 div.multiselect__clear(
-                    v-if="value && (options.length > 1)",
+                    v-if="value && !disabled",
                     @mousedown.prevent.stop="clearAll()"
                 )
 </template>

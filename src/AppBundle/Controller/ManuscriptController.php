@@ -6,6 +6,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 const M_INDEX = 'documents';
 const M_TYPE = 'manuscript';
@@ -49,7 +50,12 @@ class ManuscriptController extends Controller
                 $es_params['ascending'] = $params['ascending'];
             }
             if (($params['orderBy']) == 'name') {
-                $es_params['orderBy'] = ['city.keyword', 'library.keyword', 'fund.keyword', 'shelf.keyword'];
+                $es_params['orderBy'] = [
+                    'city.name.keyword',
+                    'library.name.keyword',
+                    'fund.name.keyword',
+                    'shelf.keyword',
+                ];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if (isset($params['ascending']) && $params['ascending'] == 0) {
@@ -62,20 +68,9 @@ class ManuscriptController extends Controller
 
         // Filtering
         if (isset($params['filters'])) {
-            $filters = json_decode($params['filters']);
-            if (isset($filters) && is_object($filters)) {
-                foreach ($filters as $key => $value) {
-                    if (isset($value) && $value != '') {
-                        if ($key == 'date') {
-                            $es_params['filters']['date_range'] = [
-                                ['date_floor_year', 'date_ceiling_year'],
-                                [$value[0], $value[1]],
-                            ];
-                        } else {
-                            $es_params['filters'][$key] = $value;
-                        }
-                    }
-                }
+            $filters = json_decode($params['filters'], true);
+            if (isset($filters) && is_array($filters)) {
+                $es_params['filters'] = self::classifyFilters($filters);
             }
         }
 
@@ -89,98 +84,63 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/cities/")
+     * @Route("/manuscripts/filtervalues")
      */
-    public function getCities(Request $request)
+    public function getFilterValues(Request $request)
     {
+        $filters = [];
+        if (json_decode($request->getContent(), true) !== null) {
+            $filters = self::classifyFilters(json_decode($request->getContent(), true));
+        }
         $result = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
             M_TYPE,
-            'city'
+            self::classifyFilters(['city', 'library', 'fund', 'content', 'patron', 'scribe', 'origin']),
+            $filters
         );
-        return new Response(json_encode($result));
+        return new JsonResponse($result);
     }
 
-    /**
-     * @Route("/manuscripts/libraries/{city}")
-     */
-    public function getLibraries(string $city)
+    private static function classifyFilters(array $filters): array
     {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'library',
-            ['city.keyword' => $city]
-        );
-        return new Response(json_encode($result));
-    }
-
-    /**
-     * @Route("/manuscripts/funds/{city}/{library}")
-     */
-    public function getFunds(string $city, string $library)
-    {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'fund',
-            [
-                'city.keyword' => $city,
-                'library.keyword' => $library
-            ]
-        );
-        return new Response(json_encode($result));
-    }
-
-    /**
-     * @Route("/manuscripts/contents/")
-     */
-    public function getContents(Request $request)
-    {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'content'
-        );
-        return new Response(json_encode($result));
-    }
-
-    /**
-     * @Route("/manuscripts/patrons/")
-     */
-    public function getPatrons(Request $request)
-    {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'patron'
-        );
-        return new Response(json_encode($result));
-    }
-
-    /**
-     * @Route("/manuscripts/scribes/")
-     */
-    public function getScribes(Request $request)
-    {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'scribe'
-        );
-        return new Response(json_encode($result));
-    }
-
-    /**
-     * @Route("/manuscripts/origins/")
-     */
-    public function getOrigins(Request $request)
-    {
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
-            'origin.name.keyword'
-        );
-        return new Response(json_encode($result));
+        // $filters can be a sequential (aggregation) or an associative (query) array
+        $result = [];
+        foreach ($filters as $key => $value) {
+            if (isset($value) && $value != '') {
+                switch (is_int($key) ? $value : $key) {
+                    case 'city':
+                    case 'library':
+                    case 'fund':
+                        if (is_int($key)) {
+                            $result['object'][] = $value;
+                        } else {
+                            $result['object'][$key] = $value;
+                        }
+                        break;
+                    case 'shelf':
+                        $result['text'][$key] = $value;
+                        break;
+                    case 'date':
+                        $result['date_range'][] = [
+                            'floorField' => 'date_floor_year',
+                            'ceilingField' => 'date_ceiling_year',
+                            'startDate' => $value[0],
+                            'endDate' => $value[1],
+                        ];
+                        break;
+                    case 'content':
+                    case 'patron':
+                    case 'scribe':
+                    case 'origin':
+                        if (is_int($key)) {
+                            $result['nested'][] = $value;
+                        } else {
+                            $result['nested'][$key] = $value;
+                        }
+                        break;
+                }
+            }
+        }
+        return $result;
     }
 }

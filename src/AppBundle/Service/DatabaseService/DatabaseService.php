@@ -7,31 +7,44 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Model\FuzzyDate;
 
+/**
+ * The DatabaseService is the parent database service class.
+ * It provides common functions that can be reused by its child classes.
+ */
 class DatabaseService
 {
+    /**
+     * The connection to the database.
+     * @var \Doctrine\DBAL\Connection
+     */
     protected $conn;
 
+    /**
+     * Creates a new DatabaseService that operates on the given entity manager
+     * @param EntityManagerInterface $entityManager
+     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->conn = $entityManager->getConnection();
     }
 
     /**
-     * Get the contents with ids $ids.
-     * @param  array $ids The ids of the genres.
-     * @return array The contents with
-     * as key the contentid
-     * as value an array with the names of the content item and its parents: grandparent, parent, child.
+     * Get the content descriptions for content with ids $ids.
+     * @param  array $ids The ids of the content.
+     * @return array The contents with for each row as key the content id and as value
+     *               an array with first the parent objects and in the end the last child object
+     *               For each of these objects, the 'id'  and 'name' are returned
      */
-    protected function getContents(array $ids): array
+    protected function getContentDescriptions(array $ids): array
     {
         $statement = $this->conn->executeQuery(
-            'WITH RECURSIVE rec (idgenre, idparentgenre, genre, concat, depth) AS (
+            'WITH RECURSIVE rec (idgenre, idparentgenre, genre, ids, names, depth) AS (
             	SELECT
             		g.idgenre,
             		g.idparentgenre,
             		g.genre,
-            		g.genre AS concat,
+                    g.idgenre::text as ids,
+                    g.genre AS names,
             		1
             	FROM data.genre g
 
@@ -42,14 +55,15 @@ class DatabaseService
             		g.idgenre,
             		g.idparentgenre,
             		g.genre,
-            		r.concat || \':\' || g.genre AS concat,
+                    r.ids || \':\' || g.idgenre::text AS ids,
+                    r.names || \':\' || g.genre AS names,
             		r.depth + 1
 
             	FROM rec AS r
             	INNER JOIN data.genre g
             	ON r.idgenre = g.idparentgenre
             )
-            SELECT r.idgenre, concat
+            SELECT r.idgenre, ids, names
 	        FROM rec r
             INNER JOIN (
             	SELECT idgenre, MAX(depth) AS maxdepth
@@ -61,13 +75,26 @@ class DatabaseService
             [$ids],
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
-        $contents = $statement->fetchAll(\PDO::FETCH_KEY_PAIR);
-        foreach ($contents as $contentid => $content) {
-            $contents[$contentid] = explode(':', $content);
+        $rawContents = $statement->fetchAll();
+        $contents = [];
+        foreach ($rawContents as $rawContent) {
+            $ids = explode(':', $rawContent['ids']);
+            $names = explode(':', $rawContent['names']);
+            foreach ($ids as $index => $id) {
+                $contents[$rawContent['idgenre']][] = [
+                    'id' => (int) $ids[$index],
+                    'name' => $names[$index],
+                ];
+            }
         }
         return $contents;
     }
-
+    /**
+     * Get the person descriptions for persons with ids $ids.
+     * @param  array $ids The ids of the persons.
+     * @return array The persons with for each row as key the person id and as value
+     *               a concatenation of names and birth and death information.
+     */
     protected function getPersonDescriptions(array $ids): array
     {
         $statement = $this->conn->executeQuery(
@@ -115,6 +142,13 @@ class DatabaseService
         return $persons;
     }
 
+    /**
+     * Get the region descriptions for regions with ids $ids.
+     * @param  array $ids The ids of the regions.
+     * @return array The regions with for each row as key the region id  and as value
+     *               an array with first the parent objects and in the end the last child object
+     *               For each of these objects, the 'id'  and 'name' are returned
+     */
     protected function getRegions(array $ids): array
     {
         $statement = $this->conn->executeQuery(
@@ -157,25 +191,30 @@ class DatabaseService
         $rawRegions = $statement->fetchAll();
         $regions = [];
         foreach ($rawRegions as $rawRegion) {
-            $regions[$rawRegion['identity']]['id'] = array_map('intval', explode(':', $rawRegion['ids']));
-            $regions[$rawRegion['identity']]['name'] = explode(':', $rawRegion['names']);
+            $ids = explode(':', $rawRegion['ids']);
+            $names = explode(':', $rawRegion['names']);
+            foreach ($ids as $index => $id) {
+                $regions[$rawRegion['identity']][] = [
+                    'id' => (int) $ids[$index],
+                    'name' => $names[$index],
+                ];
+            }
         }
         return $regions;
     }
 
     /**
-     * Get all unique other entity ids from an array with as keys entity ids and as other entity ids.
-     * @param  array $ids An array with as keys entity ids and as values other entity ids.
-     * @return array      An array with the unique other entity ids.
+     * Get all unique ids from a certain key in an array with objects.
+     * @param  array  $rows Array with objects with at least a key $key, containing an id for that object.
+     * @param  string $key  The key for which all unique values need to be listed.
+     * @return array        The array with all unique ids.
      */
-    protected static function getUniqueIds(array $ids): array
+    protected static function getUniqueIds(array $rows, string $key): array
     {
         $uniqueIds = [];
-        foreach ($ids as $entryIds) {
-            foreach ($entryIds as $entryId) {
-                if (!in_array($entryId, $uniqueIds)) {
-                    $uniqueIds[] = $entryId;
-                }
+        foreach ($rows as $row) {
+            if (!in_array($row[$key], $uniqueIds)) {
+                $uniqueIds[] = $row[$key];
             }
         }
         return $uniqueIds;
