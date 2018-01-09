@@ -6,9 +6,6 @@
 @import '../websites/sass/base/typography';
 @import '../websites/sass/base/layout';
 
-// vendor
-@import '../../node_modules/nouislider/distribute/nouislider';
-
 // partials
 @import '../websites/sass/partials/baseline';
 @import '../websites/sass/partials/bootstrap-select';
@@ -66,5 +63,4 @@
 // Extra
 @import 'partials/dropdown';
 @import 'partials/multiselect';
-@import 'partials/nouislider';
 @import 'partials/loading';

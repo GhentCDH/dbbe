@@ -3,7 +3,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary">
                 <div class="padding-default">
-                    <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="filterChanged"></vue-form-generator>
+                    <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="modelUpdated" @validated="onValidated"></vue-form-generator>
                 </div>
             </div>
         </aside>
@@ -45,13 +45,11 @@
 </template>
 <script>
     window.axios = require('axios')
-    window.noUiSlider = require('nouislider')
 
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
     import VueMultiselect from 'vue-multiselect'
     import VueTables from 'vue-tables-2'
-    import wNumb from 'wnumb'
 
     import fieldMultiselectClear from './components/formfields/fieldMultiselectClear'
 
@@ -61,10 +59,16 @@
     Vue.component('multiselect', VueMultiselect)
     Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
+    var YEAR_MIN = 1
+    var YEAR_MAX = (new Date()).getFullYear()
+
     export default {
         data() {
             return {
-                model: {},
+                model: {
+                    'year_from': 501,
+                    'year_to': 1500
+                },
                 schema: {
                     fields: {
                         city: this.createMultiSelect('City'),
@@ -72,24 +76,29 @@
                         fund: this.createMultiSelect('Collection', {dependency: 'library', model: 'fund'}),
                         shelf: {
                             type: 'input',
-                            intputType: 'text',
+                            inputType: 'text',
                             label: 'Shelf Number',
                             model: 'shelf'
                         },
-                        date: {
-                            type: 'noUiSlider',
-                            label: 'Date',
-                            model: 'date',
-                            min: 0,
-                            max: 2018,
-                            step: 10,
-                            noUiSliderOptions: {
-                                behaviour: 'drag',
-                                connect: true,
-                                start: [501, 1500],
-                                step: 1,
-                                tooltips: [ wNumb({ decimals: 0 }), wNumb({ decimals: 0 }) ]
-                            }
+                        year_from: {
+                            type: 'input',
+                            inputType: 'number',
+                            label: 'Year from',
+                            model: 'year_from',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
+                            required: true,
+                            validator: VueFormGenerator.validators.number
+                        },
+                        year_to: {
+                            type: 'input',
+                            inputType: 'number',
+                            label: 'Year to',
+                            model: 'year_to',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
+                            required: true,
+                            validator: VueFormGenerator.validators.number
                         },
                         content: this.createMultiSelect('Content'),
                         patron: this.createMultiSelect('Patron'),
@@ -142,7 +151,9 @@
                 openFilterRequests: 0,
                 filterCancel: null,
                 openTableRequests: 0,
-                tableCancel: null
+                tableCancel: null,
+                lastChangedField: '',
+                inputCancel: null
             }
         },
         mounted () {
@@ -201,14 +212,22 @@
                 return result
             },
             cleanFilterValues() {
-                let result = {}
+                let result = {
+                    'date': []
+                }
                 if (this.model !== undefined) {
                     for (let fieldName of Object.keys(this.model)) {
                         if (this.model[fieldName] === null) {
                             continue
                         }
-                        if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                        if (this.schema.fields[fieldName].type === 'multiselectClear') {
                             result[fieldName] = this.model[fieldName]['id']
+                        }
+                        else if (fieldName === 'year_from') {
+                            result['date'][0] = this.model[fieldName]
+                        }
+                        else if (fieldName === 'year_to') {
+                            result['date'][1] = this.model[fieldName]
                         }
                         else {
                             result[fieldName] = this.model[fieldName]
@@ -217,20 +236,24 @@
                 }
                 return result
             },
-            setFilters() {
+            setFilters(filterValues) {
                 if (this.openFilterRequests > 0) {
                     this.filterCancel('Operation canceled by newer request')
                 }
                 for (let fieldName of Object.keys(this.schema.fields)) {
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                        if (this.model[fieldName] && this.schema.fields[fieldName].dependency && !this.model[this.schema.fields[fieldName].dependency]) {
+                        if (
+                            this.model[fieldName] && this.schema.fields[fieldName].dependency
+                            && this.model[this.schema.fields[fieldName].dependency] !== undefined
+                            && this.model[this.schema.fields[fieldName].dependency] !== null
+                        ) {
                             this.model[fieldName] = null
                         }
                         this.disableField(fieldName)
                     }
                 }
                 this.openFilterRequests++
-                axios.post('/manuscripts/filtervalues', this.cleanFilterValues(), {
+                axios.post('/manuscripts/filtervalues', filterValues, {
                     cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
                 })
                     .then( (response) => {
@@ -248,9 +271,41 @@
                         }
                     })
             },
-            filterChanged() {
-                this.setFilters()
-                VueTables.Event.$emit('vue-tables.filter::filters', this.cleanFilterValues())
+            modelUpdated(value, fieldName) {
+                this.lastChangedField = fieldName
+            },
+            onValidated(isValid, errors) {
+                // do nothin but cancelling requests if invalid
+                if (!isValid) {
+                    if (this.inputCancel !== null) {
+                        window.clearTimeout(this.inputCancel)
+                        this.inputCancel = null
+                    }
+                    return
+                }
+
+                // update year min and max values
+                this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+
+                // Cancel timeouts caused by input requests not long ago
+                if (this.inputCancel !== null) {
+                    window.clearTimeout(this.inputCancel)
+                    this.inputCancel = null
+                }
+
+                // Send requests to update filters and result table
+                // Add a delay to requests originated from input field changes to limit the number of requests
+                let timeoutValue = 0
+                if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
+                    timeoutValue = 1000
+                }
+                this.inputCancel = window.setTimeout(() => {
+                    this.inputCancel = null
+                    let filterValues = this.cleanFilterValues()
+                    this.setFilters(filterValues)
+                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                }, timeoutValue)
             },
             disableField(fieldName) {
                 this.schema.fields[fieldName].disabled = true
