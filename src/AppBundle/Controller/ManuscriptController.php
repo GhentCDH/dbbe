@@ -98,6 +98,13 @@ class ManuscriptController extends Controller
             self::classifyFilters(['city', 'library', 'fund', 'content', 'patron', 'scribe', 'origin']),
             $filters
         );
+        // Make it possible to filter on all manuscripts without fund
+        if (array_key_exists('fund', $result)) {
+            $result['fund'][] = [
+                'id' => -1,
+                'name' => 'No collection',
+            ];
+        }
         return new JsonResponse($result);
     }
 

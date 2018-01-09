@@ -41,10 +41,15 @@
         @close="onClose",
         :option-height="selectOptions.optionHeight",
         )
-            template(slot="clear", slot-scope="props")
+            template(slot="clear")
                 div.multiselect__clear(
-                    v-if="value && !disabled",
+                    v-if="!disabled && (value !== undefined && value !== null)",
                     @mousedown.prevent.stop="clearAll()"
+                )
+            template(slot="caret", slot-scope="props")
+                div.multiselect__select(
+                    v-if="!disabled && (value === undefined || value === null)",
+                    @mousedown.prevent.stop="props.toggle()"
                 )
 </template>
 <script>

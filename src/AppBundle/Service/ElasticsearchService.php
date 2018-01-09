@@ -197,9 +197,14 @@ class ElasticsearchService
             switch ($filterType) {
                 case 'object':
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(
-                            (new Query\Match($key . '.id', $value))
-                        );
+                        // If value == -1, select all entries without a value for a specific field
+                        if ($value == -1) {
+                            $filterQuery->addMustNot(new Query\Exists($key));
+                        } else {
+                            $filterQuery->addMust(
+                                (new Query\Match($key . '.id', $value))
+                            );
+                        }
                     }
                     break;
                 case 'date_range':
@@ -243,13 +248,17 @@ class ElasticsearchService
                     break;
                 case 'nested':
                     foreach ($filterValues as $key => $value) {
+                        // If value == -1, select all entries without a value for a specific field
+                        $subQuery = new Query\BoolQuery();
+                        if ($value == -1) {
+                            $subQuery->addMustNot(new Query\Exists($key));
+                        } else {
+                            $subQuery->addMust(['match' => [$key . '.id' => $value]]);
+                        }
                         $filterQuery->addMust(
                             (new Query\Nested())
                                 ->setPath($key)
-                                ->setQuery(
-                                    (new Query\BoolQuery())
-                                        ->addMust(['match' => [$key . '.id' => $value]])
-                                )
+                                ->setQuery($subQuery)
                         );
                     }
                     break;

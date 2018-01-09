@@ -69,7 +69,7 @@
                     fields: {
                         city: this.createMultiSelect('City'),
                         library: this.createMultiSelect('Library', {dependency: 'city'}),
-                        fund: this.createMultiSelect('Fund', {dependency: 'library'}),
+                        fund: this.createMultiSelect('Collection', {dependency: 'library', model: 'fund'}),
                         shelf: {
                             type: 'input',
                             intputType: 'text',
@@ -204,7 +204,7 @@
                 let result = {}
                 if (this.model !== undefined) {
                     for (let fieldName of Object.keys(this.model)) {
-                        if (this.model[fieldName] === null || this.model[fieldName].derived) {
+                        if (this.model[fieldName] === null) {
                             continue
                         }
                         if (this.schema.fields[fieldName].type == 'multiselectClear') {
@@ -223,9 +223,6 @@
                 }
                 for (let fieldName of Object.keys(this.schema.fields)) {
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                        if (this.model[fieldName] && this.model[fieldName].derived) {
-                            this.model[fieldName] = null
-                        }
                         if (this.model[fieldName] && this.schema.fields[fieldName].dependency && !this.model[this.schema.fields[fieldName].dependency]) {
                             this.model[fieldName] = null
                         }
@@ -262,8 +259,9 @@
                 this.schema.fields[fieldName].values = []
             },
             enableField(fieldName, values) {
+                let label = this.schema.fields[fieldName].label.toLowerCase()
                 this.schema.fields[fieldName].selectOptions.loading = false
-                this.schema.fields[fieldName].placeholder = (['origin'].indexOf(fieldName) < 0 ? 'Select a ' : 'Select an ') + fieldName
+                this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
                 // Handle dependencies
                 if (this.schema.fields[fieldName].dependency !== undefined) {
                     let dependency = this.schema.fields[fieldName].dependency
@@ -280,23 +278,24 @@
                     }
                     return
                 }
-                // Only one result
-                if (values.length === 1) {
-                    if (this.model[fieldName] === undefined || this.model[fieldName] === null || this.model[fieldName].derived) {
-                        this.model[fieldName] = values[0]
-                        this.model[fieldName].derived = true
-                        return
-                    }
-                }
                 // Default
                 this.schema.fields[fieldName].disabled = false
                 this.schema.fields[fieldName].values = values
             },
             sortByName(a, b) {
-                if (a.name < b.name)
+                // Move special filter values to the top
+                if (a.id === -1) {
                     return -1
-                if (a.name > b.name)
+                }
+                if (b.id === -1) {
                     return 1
+                }
+                if (a.name < b.name) {
+                    return -1
+                }
+                if (a.name > b.name) {
+                    return 1
+                }
                 return 0
             }
         }
