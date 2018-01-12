@@ -2,10 +2,12 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use AppBundle\Model\FuzzyInterval;
 use Doctrine\ORM\EntityManagerInterface;
 
 use AppBundle\Model\FuzzyDate;
+use AppBundle\Model\FuzzyInterval;
+
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * The DatabaseService is the parent database service class.
@@ -20,12 +22,20 @@ class DatabaseService
     protected $conn;
 
     /**
+     * The cache to store database query results.
+     * @var \Symfony\Component\Cache\Adapter\ApcuAdapter
+     */
+    protected $cache;
+
+    /**
      * Creates a new DatabaseService that operates on the given entity manager
      * @param EntityManagerInterface $entityManager
+     * @param CacheItemPoolInterface $cacheItemPool
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, CacheItemPoolInterface $cacheItemPool)
     {
         $this->conn = $entityManager->getConnection();
+        $this->cache = $cacheItemPool;
     }
 
     /**

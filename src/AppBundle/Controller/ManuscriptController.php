@@ -1,12 +1,14 @@
 <?php
 
 namespace AppBundle\Controller;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+
+use AppBundle\Model\FuzzyDate;
+use AppBundle\Model\FuzzyInterval;
 
 const M_INDEX = 'documents';
 const M_TYPE = 'manuscript';
@@ -149,5 +151,80 @@ class ManuscriptController extends Controller
             }
         }
         return $result;
+    }
+
+    /**
+     * @Route("/manuscripts/{id}")
+     */
+    public function getManuscript(int $id)
+    {
+        $dms = $this->get('database_manuscript_service');
+
+        // Get locations to construct the name
+        $names = $dms->getNames();
+
+        // Check if a manuscript with the requested id exists
+        if (!array_key_exists($id, $names)) {
+            throw $this->createNotFoundException('This manuscript does not exist');
+        }
+
+        // Manscript name
+        $params['name'] = $names[$id];
+
+        // Other information
+        $params['infos'] = [];
+
+        // Content
+        $contents = $dms->getFormattedContents();
+        if (array_key_exists($id, $contents)) {
+            $params['infos']['content'] = [
+                'title' => 'Content',
+                'content' => $contents[$id],
+            ];
+        }
+
+        // Date
+        $dates = $dms->getFormattedCompletionDates();
+        if (array_key_exists($id, $dates)) {
+            $params['infos']['date'] = [
+                'title' => 'Date',
+                'content' => $dates[$id],
+            ];
+        }
+
+        // Patron
+        $patrons = $dms->getBibroles('patron');
+        if (array_key_exists($id, $patrons)) {
+            $params['infos']['patrons'] = [
+                'title' => 'Patron(s)',
+                'content' => $patrons[$id],
+                'type' => 'person'
+            ];
+        }
+
+        // Scribe
+        $scribes = $dms->getBibroles('scribe');
+        if (array_key_exists($id, $scribes)) {
+            $params['infos']['scribes'] = [
+                'title' => 'Scribe(s)',
+                'content' => $scribes[$id],
+                'type' => 'person'
+            ];
+        }
+
+        // Related persons
+        $persons = $dms->getRelatedPersons();
+        if (array_key_exists($id, $persons)) {
+            $params['infos']['persons'] = [
+                'title' => 'Person(s)',
+                'content' => $persons[$id],
+                'type' => 'person'
+            ];
+        }
+
+        return $this->render(
+            'manuscript.html.twig',
+            $params
+        );
     }
 }

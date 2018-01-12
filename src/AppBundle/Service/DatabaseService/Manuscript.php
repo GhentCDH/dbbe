@@ -63,6 +63,32 @@ class Manuscript extends DatabaseService
         return $statement->fetchAll();
     }
 
+    public function getNames(): array
+    {
+        $cache = $this->cache->getItem('manuscript_names');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $locations = $this->getLocations();
+        $names = [];
+        foreach ($locations as $id => $location) {
+            $names[$id] = strtoupper($location['city']['name']);
+            if (isset($location['library']['name'])) {
+                $names[$id] .= ' - ' . $location['library']['name'];
+            }
+            if (isset($location['fund']['name'])) {
+                $names[$id] .= ' - ' . $location['fund']['name'];
+            }
+            if (isset($location['shelf'])) {
+                $names[$id] .= ' ' . $location['shelf'];
+            }
+        }
+
+        $this->cache->save($cache->set($names));
+        return $names;
+    }
+
     private function getLocations(): array
     {
         $statement = $this->conn->prepare(
@@ -124,6 +150,23 @@ class Manuscript extends DatabaseService
         return $locations;
     }
 
+    public function getFormattedContents(): array
+    {
+        $cache = $this->cache->getItem('manuscript_formatted_contents');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $contents = $this->getContents();
+        $formattedContents = [];
+        foreach ($contents as $id => $content) {
+            $formattedContents[$id] = $content[count($content) -1]['name'];
+        }
+
+        $this->cache->save($cache->set($formattedContents));
+        return $formattedContents;
+    }
+
     /**
      * Get all contents linked to a manuscript from the database.
      * @return array The contents linked to a manuscript with
@@ -158,7 +201,31 @@ class Manuscript extends DatabaseService
             // Only last element from eacht content parent array should be shown to the end user
             $contents[$rawContent['iddocument']][count($contents[$rawContent['iddocument']]) -1]['display'] = true;
         }
+
         return $contents;
+    }
+
+    /**
+     * Get the completion dates of manuscripts as strings.
+     * @return array The completion dates of manuscripts with
+     * as key the manuscript id
+     * as value the completion date formatted as a string
+     */
+    public function getFormattedCompletionDates(): array
+    {
+        $cache = $this->cache->getItem('manuscript_formatted_completion_dates');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $completionDates = $this->getCompletionDates();
+        $formattedCompletionDates = [];
+        foreach ($completionDates as $id => $date) {
+            $formattedCompletionDates[$id] = (string)$date;
+        }
+
+        $this->cache->save($cache->set($formattedCompletionDates));
+        return $formattedCompletionDates;
     }
 
     /**
@@ -188,11 +255,17 @@ class Manuscript extends DatabaseService
         foreach ($rawCompletionDates as $key => $value) {
             $completionDates[$key] = new FuzzyDate($value);
         }
+
         return $completionDates;
     }
 
-    private function getBibroles(string $role): array
+    public function getBibroles(string $role): array
     {
+        $cache = $this->cache->getItem('manuscript_bibrole_' . $role);
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $statement = $this->conn->prepare(
             'SELECT idcontainer, idperson
             from data.document_contains
@@ -216,7 +289,41 @@ class Manuscript extends DatabaseService
             ];
         }
 
+        $this->cache->save($cache->set($bibRoles));
         return $bibRoles;
+    }
+
+    public function getRelatedPersons(): array
+    {
+        $cache = $this->cache->getItem('manuscript_related_persons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $statement = $this->conn->prepare(
+            'SELECT factoid.subject_identity, factoid.object_identity
+            from data.manuscript
+            inner join data.factoid on manuscript.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.person on factoid.object_identity = person.identity
+            where type = \'related to\''
+        );
+        $statement->execute();
+        $rawRelatedPersons = $statement->fetchAll();
+
+        $uniqueRelatedPersons = self::getUniqueIds($rawRelatedPersons, 'object_identity');
+        $personDescriptions = $this->getPersonDescriptions($uniqueRelatedPersons);
+
+        $relatedPersons = [];
+        foreach ($rawRelatedPersons as $rawRelatedPerson) {
+            $relatedPersons[$rawRelatedPerson['subject_identity']][] = [
+                'id' => $rawRelatedPerson['object_identity'],
+                'name' => $personDescriptions[$rawRelatedPerson['object_identity']],
+            ];
+        }
+
+        $this->cache->save($cache->set($relatedPersons));
+        return $relatedPersons;
     }
 
     private function getManuscriptOrigins(): array

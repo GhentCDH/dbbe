@@ -33,6 +33,7 @@ services:
         class: AppBundle\Service\DatabaseService\Manuscript
         arguments:
             - '@doctrine.orm.entity_manager'
+            - '@cache.app'
         public: true
 
     elasticsearch_service:

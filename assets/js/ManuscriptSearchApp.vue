@@ -14,7 +14,7 @@
                 url="/manuscripts/search_api"
                 :columns="['name', 'date', 'content']"
                 :options="tableOptions">
-                <a slot="name" slot-scope="props" :href="'/manuscrips/' + props.row.id">
+                <a slot="name" slot-scope="props" :href="'/manuscripts/' + props.row.id">
                     {{ formatName(props.row) }}
                 </a>
                 <template slot="date" slot-scope="props" v-if="props.row.date_floor_year && props.row.date_ceiling_year">

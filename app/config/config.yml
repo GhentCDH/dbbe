@@ -32,6 +32,8 @@ framework:
     assets: ~
     php_errors:
         log: true
+    cache:
+        app: cache.adapter.apcu
 
 # Twig Configuration
 twig:
