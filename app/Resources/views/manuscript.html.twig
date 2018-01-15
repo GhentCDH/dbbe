@@ -22,12 +22,12 @@
                         {% elseif value.type is defined and value.type == 'multiple_link' %}
                             {% if value.content|length == 1 %}
                                 {% for id, name in value.content %}
-                                    <a href="/persons/{{ id }}">{{ name }}</a>
+                                    <a href="{{ value.url ~ id }}">{{ name }}</a>
                                 {% endfor %}
                             {% else %}
                                 <ul>
                                 {% for id, name in value.content %}
-                                    <li><a href="/persons/{{ id }}">{{ name }}</a></li>
+                                    <li><a href="{{ value.url ~ id }}">{{ name }}</a></li>
                                 {% endfor %}
                                 </ul>
                             {% endif %}

@@ -188,27 +188,38 @@ class ManuscriptController extends Controller
         $params['infos']['patrons'] = [
             'title' => 'Patron(s)',
             'content' => $dms->getBibroles('patron', $id),
-            'type' => 'multiple_link'
+            'type' => 'multiple_link',
+            'url' => '/persons/',
         ];
 
         // Scribe
         $params['infos']['scribes'] = [
             'title' => 'Scribe(s)',
             'content' => $dms->getBibroles('scribe', $id),
-            'type' => 'multiple_link'
+            'type' => 'multiple_link',
+            'url' => '/persons/',
         ];
 
         // Related persons
         $params['infos']['persons'] = [
             'title' => 'Related person(s)',
             'content' => $dms->getRelatedPersons($id),
-            'type' => 'multiple_link'
+            'type' => 'multiple_link',
+            'url' => '/persons/',
         ];
 
         // Origin
         $params['infos']['origin'] = [
             'title' => 'Origin',
-            'content' => $dms->getOrigin($id)
+            'content' => $dms->getOrigin($id),
+        ];
+
+        // Bibliography
+        $params['infos']['bibliography'] = [
+            'title' => 'Bibliography(s)',
+            'content' => $dms->getBibliographys($id),
+            'type' => 'multiple_link',
+            'url' => '/bibliographies/',
         ];
 
         // Do not display empty fields

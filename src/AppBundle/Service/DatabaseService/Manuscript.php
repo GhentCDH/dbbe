@@ -118,7 +118,7 @@ class Manuscript extends DatabaseService
         return $statement->fetchAll();
     }
 
-    private static function formatName(array $location): string
+    private static function formatManuscriptName(array $location): string
     {
         $name = strtoupper($location['cityname']);
         if (isset($location['libraryname'])) {
@@ -140,7 +140,7 @@ class Manuscript extends DatabaseService
         $rawLocations = $this->getRawLocations();
         foreach ($rawLocations as $rawLocation) {
             $locations[$rawLocation['manuscriptid']] = [
-                'name' => self::formatName($rawLocation),
+                'name' => self::formatManuscriptName($rawLocation),
                 'city' => [
                     'id' => $rawLocation['cityid'],
                     'name' => $rawLocation['cityname'],
@@ -169,7 +169,7 @@ class Manuscript extends DatabaseService
             throw new NotFoundInDatabaseException;
         }
 
-        return self::formatName($locations[0]);
+        return self::formatManuscriptName($locations[0]);
     }
 
     private function getRawContents(array $ids = null): array
@@ -339,7 +339,7 @@ class Manuscript extends DatabaseService
         $rawBibRoles = $this->getRawBibroles($role);
 
         $uniqueBibRoles = self::getUniqueIds($rawBibRoles, 'idperson');
-        $personDescriptions = $this->getPersonDescriptions($uniqueBibRoles);
+        $personDescriptions = $this->getPersonFullDescriptions($uniqueBibRoles);
 
         $bibRoles = [];
         foreach ($rawBibRoles as $rawBibRole) {
@@ -362,7 +362,7 @@ class Manuscript extends DatabaseService
             $personIds[] = $rawBibrole['idperson'];
         }
 
-        return $this->getPersonDescriptions($personIds);
+        return $this->getPersonFullDescriptions($personIds);
     }
 
     private function getRawRelatedPersons(array $ids = null): array
@@ -400,7 +400,7 @@ class Manuscript extends DatabaseService
             $personIds[] = $rawRelatedPerson['idperson'];
         }
 
-        return $this->getPersonDescriptions($personIds);
+        return $this->getPersonFullDescriptions($personIds);
     }
 
     private function getRawOrigins(array $ids = null): array
@@ -483,5 +483,40 @@ class Manuscript extends DatabaseService
         }
 
         return implode(' > ', $names);
+    }
+
+    private function getRawBibliography(array $ids): array
+    {
+        $sql = 'SELECT reference.idtarget, reference.idsource
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        $params = [];
+        $types = [];
+        if (isset($ids)) {
+            $params = [$ids];
+            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
+        );
+        return $statement->fetchAll();
+    }
+
+    public function getBibliographys(int $id): array
+    {
+        $rawBibliographies = $this->getRawBibliography([$id]);
+
+        // get bibliography descriptions
+        $bibliographyIds = [];
+        foreach ($rawBibliographies as $rawBibliography) {
+            $bibliographyIds[] = $rawBibliography['idsource'];
+        }
+
+        return $this->getBibliographyDescriptions($bibliographyIds);
     }
 }

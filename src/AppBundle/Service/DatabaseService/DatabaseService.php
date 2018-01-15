@@ -100,12 +100,12 @@ class DatabaseService
         return $contents;
     }
     /**
-     * Get the person descriptions for persons with ids $ids.
+     * Get the full person descriptions for persons with ids $ids.
      * @param  array $ids The ids of the persons.
      * @return array The persons with for each row as key the person id and as value
      *               a concatenation of names and birth and death information.
      */
-    protected function getPersonDescriptions(array $ids): array
+    protected function getPersonFullDescriptions(array $ids): array
     {
         $statement = $this->conn->executeQuery(
             'SELECT person.identity, first_name, last_name, extra, unprocessed, born_date, death_date
@@ -144,6 +144,34 @@ class DatabaseService
                         new FuzzyDate($raw_person['death_date'])
                     ) . ')';
                 }
+            } else {
+                $description = $raw_person['unprocessed'];
+            }
+            $persons[$raw_person['identity']] = $description;
+        }
+        return $persons;
+    }
+
+    protected function getPersonShortDescriptions(array $ids): array
+    {
+        $statement = $this->conn->executeQuery(
+            'SELECT person.identity, first_name, last_name, unprocessed
+                from data.person
+                inner join data.name on name.idperson = person.identity
+                where person.identity in (?)',
+            [$ids],
+            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $raw_persons = $statement->fetchAll();
+        $persons = [];
+        foreach ($raw_persons as $raw_person) {
+            $name_array = [
+                $raw_person['first_name'],
+                $raw_person['last_name']
+            ];
+            $name_array = array_filter($name_array);
+            if (!empty($name_array)) {
+                $description = implode(' ', $name_array);
             } else {
                 $description = $raw_person['unprocessed'];
             }
@@ -211,6 +239,46 @@ class DatabaseService
             }
         }
         return $regions;
+    }
+
+    protected function getBibliographyDescriptions(array $ids): array
+    {
+        // Books
+        $statement = $this->conn->executeQuery(
+            'SELECT
+                book.identity,
+                bibrole.idperson,
+                bibrole.rank,
+                document_title.title,
+                book.year
+            from data.book
+            left join data.bibrole on book.identity = bibrole.iddocument and bibrole.type = ?
+            inner join data.document_title on book.identity = document_title.iddocument
+            where book.identity in (?)
+            order by identity, rank',
+            ['author', $ids],
+            [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $rawBooks = $statement->fetchAll();
+
+        // Construct author names
+        $uniquePersons = self::getUniqueIds($rawBooks, 'idperson');
+        $personDescriptions = $this->getPersonShortDescriptions($uniquePersons);
+        $authorNames = [];
+        foreach ($rawBooks as $rawBook) {
+            $authorNames[$rawBook['identity']][] = $personDescriptions[$rawBook['idperson']];
+        }
+
+        // Add books to result
+        $bibliographies = [];
+        foreach ($rawBooks as $rawBook) {
+            if (!array_key_exists($rawBook['identity'], $bibliographies)) {
+                $bibliographies[$rawBook['identity']] = implode(', ', $authorNames[$rawBook['identity']])
+                    . ' - ' . $rawBook['title'] . ' - ' . $rawBook['year'];
+            }
+        }
+
+        return $bibliographies;
     }
 
     /**
