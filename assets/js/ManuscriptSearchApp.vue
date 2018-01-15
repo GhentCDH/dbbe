@@ -15,7 +15,7 @@
                 :columns="['name', 'date', 'content']"
                 :options="tableOptions">
                 <a slot="name" slot-scope="props" :href="'/manuscripts/' + props.row.id">
-                    {{ formatName(props.row) }}
+                    {{ props.row.name }}
                 </a>
                 <template slot="date" slot-scope="props" v-if="props.row.date_floor_year && props.row.date_ceiling_year">
                     <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
@@ -162,20 +162,6 @@
             })
         },
         methods: {
-            formatName(row) {
-                let result = ''
-                result += row.city.name.toUpperCase()
-                if (row.library) {
-                    result += ' - ' +  row.library.name
-                }
-                if (row.fund) {
-                    result += ' - ' +  row.fund.name
-                }
-                if (row.shelf) {
-                    result += ' ' +  row.shelf
-                }
-                return result
-            },
             filterDisplayContent(contentList) {
                 // extra dimension is needed to declare variable in template using v-for
                 let result = [[]]

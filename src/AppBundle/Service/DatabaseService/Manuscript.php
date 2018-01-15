@@ -2,21 +2,22 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Service\DatabaseService\DatabaseService;
 
 class Manuscript extends DatabaseService
 {
-    // city, library, fund, shelf, content, date, origin, patron, scribe
+    // name, city, library, fund, shelf, content, date, origin, patron, scribe
     public function getCompleteManuscripts(): array
     {
         $manuscripts = $this->getManuscriptIds();
-        $locations = $this->getLocations();
-        $contents = $this->getContents();
-        $completionDates = $this->getCompletionDates();
-        $patrons = $this->getBibroles('patron');
-        $scribes = $this->getBibroles('scribe');
-        $origins = $this->getManuscriptOrigins();
+        $locations = $this->getAllLocations();
+        $contents = $this->getAllContents();
+        $completionDates = $this->getAllCompletionDates();
+        $patrons = $this->getAllBibroles('patron');
+        $scribes = $this->getAllBibroles('scribe');
+        $origins = $this->getAllOrigins();
 
         foreach ($manuscripts as $key => $ms) {
             if (isset($locations[$ms['id']])) {
@@ -63,86 +64,97 @@ class Manuscript extends DatabaseService
         return $statement->fetchAll();
     }
 
-    public function getNames(): array
+    private function getRawLocations(array $ids = null): array
     {
-        $cache = $this->cache->getItem('manuscript_names');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $locations = $this->getLocations();
-        $names = [];
-        foreach ($locations as $id => $location) {
-            $names[$id] = strtoupper($location['city']['name']);
-            if (isset($location['library']['name'])) {
-                $names[$id] .= ' - ' . $location['library']['name'];
-            }
-            if (isset($location['fund']['name'])) {
-                $names[$id] .= ' - ' . $location['fund']['name'];
-            }
-            if (isset($location['shelf'])) {
-                $names[$id] .= ' ' . $location['shelf'];
-            }
-        }
-
-        $this->cache->save($cache->set($names));
-        return $names;
-    }
-
-    private function getLocations(): array
-    {
-        $statement = $this->conn->prepare(
-            'SELECT manuscript.identity as manuscriptid,
-                    region.identity as cityid,
-                    region.name as cityname,
-                    institution.identity as libraryid,
-                    institution.name as libraryname,
-                    fund.idfund as fundid,
-                    fund.name as fundname,
-                    located_at.identification as shelf
+        $sql = 'SELECT
+                manuscript.identity as manuscriptid,
+                region.identity as cityid,
+                region.name as cityname,
+                institution.identity as libraryid,
+                institution.name as libraryname,
+                fund.idfund as fundid,
+                fund.name as fundname,
+                located_at.identification as shelf
             from data.located_at
             inner join data.manuscript on manuscript.identity = located_at.iddocument
             inner join data.location on located_at.idlocation = location.idlocation
             inner join data.fund on location.idfund = fund.idfund
             inner join data.institution on fund.idlibrary = institution.identity
             inner join data.region on institution.idregion = region.identity'
-        );
-        $statement->execute();
-        $fundLocations = $statement->fetchAll();
 
-        $statement = $this->conn->prepare(
-            'SELECT manuscript.identity as manuscriptid,
-                    region.identity as cityid,
-                    region.name as cityname,
-                    institution.identity as libraryid,
-                    institution.name as libraryname,
-                    located_at.identification as shelf
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '')
+
+            . ' UNION '
+
+            . 'SELECT
+                manuscript.identity as manuscriptid,
+                region.identity as cityid,
+                region.name as cityname,
+                institution.identity as libraryid,
+                institution.name as libraryname,
+                null as fundid,
+                null as fundname,
+                located_at.identification as shelf
             from data.located_at
             inner join data.manuscript on manuscript.identity = located_at.iddocument
             inner join data.location on located_at.idlocation = location.idlocation
             inner join data.institution on location.idinstitution = institution.identity
-            inner join data.region on institution.idregion = region.identity'
-        );
-        $statement->execute();
-        $libraryLocations = $statement->fetchAll();
+            inner join data.region on institution.idregion = region.identity
+            where location.idfund is null'
 
+            . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
+
+        $params = [];
+        $types = [];
+        if (isset($ids)) {
+            $params = [$ids, $ids];
+            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
+        );
+        return $statement->fetchAll();
+    }
+
+    private static function formatName(array $location): string
+    {
+        $name = strtoupper($location['cityname']);
+        if (isset($location['libraryname'])) {
+            $name .= ' - ' . $location['libraryname'];
+        }
+        if (isset($location['fundname'])) {
+            $name .= ' - ' . $location['fundname'];
+        }
+        if (isset($location['shelf'])) {
+            $name .= ' ' . $location['shelf'];
+        }
+
+        return $name;
+    }
+
+    private function getAllLocations(): array
+    {
         $locations = [];
-        foreach (array_merge($fundLocations, $libraryLocations) as $fl) {
-            $locations[$fl['manuscriptid']] = [
+        $rawLocations = $this->getRawLocations();
+        foreach ($rawLocations as $rawLocation) {
+            $locations[$rawLocation['manuscriptid']] = [
+                'name' => self::formatName($rawLocation),
                 'city' => [
-                    'id' => $fl['cityid'],
-                    'name' => $fl['cityname'],
+                    'id' => $rawLocation['cityid'],
+                    'name' => $rawLocation['cityname'],
                 ],
                 'library' => [
-                    'id' => $fl['libraryid'],
-                    'name' => $fl['libraryname'],
+                    'id' => $rawLocation['libraryid'],
+                    'name' => $rawLocation['libraryname'],
                 ],
-                'shelf' => $fl['shelf'],
+                'shelf' => $rawLocation['shelf'],
             ];
-            if (isset($fl['fundid'])) {
-                $locations[$fl['manuscriptid']]['fund'] = [
-                    'id' => $fl['fundid'],
-                    'name' => $fl['fundname'],
+            if (isset($rawLocation['fundid'])) {
+                $locations[$rawLocation['manuscriptid']]['fund'] = [
+                    'id' => $rawLocation['fundid'],
+                    'name' => $rawLocation['fundname'],
                 ];
             }
         }
@@ -150,21 +162,36 @@ class Manuscript extends DatabaseService
         return $locations;
     }
 
-    public function getFormattedContents(): array
+    public function getName(int $id): string
     {
-        $cache = $this->cache->getItem('manuscript_formatted_contents');
-        if ($cache->isHit()) {
-            return $cache->get();
+        $locations = $this->getRawLocations([$id]);
+        if (count($locations) == 0) {
+            throw new NotFoundInDatabaseException;
         }
 
-        $contents = $this->getContents();
-        $formattedContents = [];
-        foreach ($contents as $id => $content) {
-            $formattedContents[$id] = $content[count($content) -1]['name'];
-        }
+        return self::formatName($locations[0]);
+    }
 
-        $this->cache->save($cache->set($formattedContents));
-        return $formattedContents;
+    private function getRawContents(array $ids = null): array
+    {
+        $sql = 'SELECT iddocument, idgenre
+            from data.manuscript
+            inner join data.document_genre on manuscript.identity = document_genre.iddocument'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        $params = [];
+        $types = [];
+        if (isset($ids)) {
+            $params = [$ids];
+            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
+        );
+        return $statement->fetchAll();
     }
 
     /**
@@ -173,15 +200,9 @@ class Manuscript extends DatabaseService
      * as key the manuscript id
      * as value an array ids and names of content
      */
-    private function getContents(): array
+    private function getAllContents(): array
     {
-        $statement = $this->conn->prepare(
-            'SELECT iddocument, idgenre
-            from data.manuscript
-            inner join data.document_genre on manuscript.identity = document_genre.iddocument'
-        );
-        $statement->execute();
-        $rawContents = $statement->fetchAll();
+        $rawContents = $this->getRawContents();
 
         $uniqueContents = self::getUniqueIds($rawContents, 'idgenre');
         $contentDescriptions = $this->getContentDescriptions($uniqueContents);
@@ -205,40 +226,34 @@ class Manuscript extends DatabaseService
         return $contents;
     }
 
-    /**
-     * Get the completion dates of manuscripts as strings.
-     * @return array The completion dates of manuscripts with
-     * as key the manuscript id
-     * as value the completion date formatted as a string
-     */
-    public function getFormattedCompletionDates(): array
+    public function getContents(int $id): array
     {
-        $cache = $this->cache->getItem('manuscript_formatted_completion_dates');
-        if ($cache->isHit()) {
-            return $cache->get();
+        $rawContents = $this->getRawContents([$id]);
+
+        // get content names
+        $contentIds = [];
+        foreach ($rawContents as $rawContent) {
+            $contentIds[] = $rawContent['idgenre'];
+        }
+        $contentNames = $this->getContentDescriptions($contentIds);
+
+        // construct result
+        $results = [];
+        foreach ($rawContents as $rawContent) {
+            $contentName = $contentNames[$rawContent['idgenre']];
+            $names = [];
+            foreach ($contentName as $contentNamePart) {
+                $names[] = $contentNamePart['name'];
+            }
+            $results[] = implode(' > ', $names);
         }
 
-        $completionDates = $this->getCompletionDates();
-        $formattedCompletionDates = [];
-        foreach ($completionDates as $id => $date) {
-            $formattedCompletionDates[$id] = (string)$date;
-        }
-
-        $this->cache->save($cache->set($formattedCompletionDates));
-        return $formattedCompletionDates;
+        return $results;
     }
 
-    /**
-     * Get the completion dates of manuscripts.
-     * These completion dates are stored in the database as factoids with name 'completed at'.
-     * @return array The completion dates of manuscripts with
-     * as key the manuscript id
-     * as value the completion date as FuzzyDate
-     */
-    private function getCompletionDates(): array
+    private function getRawCompletionDates(array $ids = null): array
     {
-        $statement = $this->conn->prepare(
-            'SELECT manuscript.identity, factoid_merge.factoid_date
+        $sql ='SELECT manuscript.identity as id, factoid_merge.factoid_date as cdate
             from data.manuscript
             inner join (
                 select factoid.subject_identity as factoid_identity,
@@ -248,35 +263,80 @@ class Manuscript extends DatabaseService
                 on factoid.idfactoid_type = factoid_type.idfactoid_type
                     and factoid_type.type = \'completed at\'
             ) factoid_merge ON manuscript.identity = factoid_merge.factoid_identity'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        $params = [];
+        $types = [];
+        if (isset($ids)) {
+            $params = [$ids];
+            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
         );
-        $statement->execute();
-        $rawCompletionDates = $statement->fetchAll(\PDO::FETCH_KEY_PAIR);
+        return $statement->fetchAll();
+    }
+
+    /**
+     * Get the completion dates of manuscripts.
+     * These completion dates are stored in the database as factoids with name 'completed at'.
+     * @return array The completion dates of manuscripts with
+     * as key the manuscript id
+     * as value the completion date as FuzzyDate
+     */
+    private function getAllCompletionDates(): array
+    {
+        $rawCompletionDates = $this->getRawCompletionDates();
         $completionDates = [];
-        foreach ($rawCompletionDates as $key => $value) {
-            $completionDates[$key] = new FuzzyDate($value);
+        foreach ($rawCompletionDates as $rawCompletionDate) {
+            $completionDates[$rawCompletionDate['id']] = new FuzzyDate($rawCompletionDate['cdate']);
         }
 
         return $completionDates;
     }
 
-    public function getBibroles(string $role): array
+    public function getCompletionDate(int $id)
     {
-        $cache = $this->cache->getItem('manuscript_bibrole_' . $role);
-        if ($cache->isHit()) {
-            return $cache->get();
+        $completionDates = $this->getRawCompletionDates([$id]);
+        if (count($completionDates) == 1) {
+            return (string)(new FuzzyDate($completionDates[0]['cdate']));
         }
+        return null;
+    }
 
-        $statement = $this->conn->prepare(
-            'SELECT idcontainer, idperson
+    private function getRawBibroles(string $role, array $ids = null): array
+    {
+        $sql = 'SELECT idcontainer, idperson
             from data.document_contains
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where type = ?
-            group by idcontainer, idperson'
+            where type = ?'
+
+            . (isset($ids) ? ' AND manuscript.identity in (?)' : '')
+
+            . 'group by idcontainer, idperson';
+
+        $params = [$role];
+        $types = [\PDO::PARAM_STR];
+        if (isset($ids)) {
+            $params[] = $ids;
+            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
         );
-        $statement->execute([$role]);
-        $rawBibRoles = $statement->fetchAll();
+        return $statement->fetchAll();
+    }
+
+    private function getAllBibroles(string $role): array
+    {
+        $rawBibRoles = $this->getRawBibroles($role);
 
         $uniqueBibRoles = self::getUniqueIds($rawBibRoles, 'idperson');
         $personDescriptions = $this->getPersonDescriptions($uniqueBibRoles);
@@ -289,59 +349,92 @@ class Manuscript extends DatabaseService
             ];
         }
 
-        $this->cache->save($cache->set($bibRoles));
         return $bibRoles;
     }
 
-    public function getRelatedPersons(): array
+    public function getBibroles(string $role, int $id): array
     {
-        $cache = $this->cache->getItem('manuscript_related_persons');
-        if ($cache->isHit()) {
-            return $cache->get();
+        $rawBibroles = $this->getRawBibroles($role, [$id]);
+
+        // get person names
+        $personIds = [];
+        foreach ($rawBibroles as $rawBibrole) {
+            $personIds[] = $rawBibrole['idperson'];
         }
 
-        $statement = $this->conn->prepare(
-            'SELECT factoid.subject_identity, factoid.object_identity
+        return $this->getPersonDescriptions($personIds);
+    }
+
+    private function getRawRelatedPersons(array $ids = null): array
+    {
+        $sql = 'SELECT factoid.subject_identity, factoid.object_identity as idperson
             from data.manuscript
             inner join data.factoid on manuscript.identity = factoid.subject_identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
             inner join data.person on factoid.object_identity = person.identity
-            where type = \'related to\''
-        );
-        $statement->execute();
-        $rawRelatedPersons = $statement->fetchAll();
+            where type = ?'
 
-        $uniqueRelatedPersons = self::getUniqueIds($rawRelatedPersons, 'object_identity');
-        $personDescriptions = $this->getPersonDescriptions($uniqueRelatedPersons);
+            . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
 
-        $relatedPersons = [];
-        foreach ($rawRelatedPersons as $rawRelatedPerson) {
-            $relatedPersons[$rawRelatedPerson['subject_identity']][] = [
-                'id' => $rawRelatedPerson['object_identity'],
-                'name' => $personDescriptions[$rawRelatedPerson['object_identity']],
-            ];
+        $params = ['related to'];
+        $types = [\PDO::PARAM_STR];
+        if (isset($ids)) {
+            $params[] = $ids;
+            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
         }
-
-        $this->cache->save($cache->set($relatedPersons));
-        return $relatedPersons;
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
+        );
+        return $statement->fetchAll();
     }
 
-    private function getManuscriptOrigins(): array
+    public function getRelatedPersons(int $id): array
     {
-        // origin can be eather an institution or a region
-        // regions can have parents
+        $rawRelatedPersons = $this->getRawRelatedPersons([$id]);
 
-        // institution (with region)
-        $statement = $this->conn->prepare(
-            'SELECT subject_identity, idinstitution, coalesce(institution.idregion, location.idregion) as idregion, name
-            from data.factoid
+        // get person names
+        $personIds = [];
+        foreach ($rawRelatedPersons as $rawRelatedPerson) {
+            $personIds[] = $rawRelatedPerson['idperson'];
+        }
+
+        return $this->getPersonDescriptions($personIds);
+    }
+
+    private function getRawOrigins(array $ids = null): array
+    {
+        $sql = 'SELECT subject_identity,
+                idinstitution,
+                coalesce(institution.idregion, location.idregion) as idregion,
+                institution.name as institution_name
+            from data.manuscript
+            inner join data.factoid on manuscript.identity = factoid.subject_identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
             inner join data.location on factoid.idlocation = location.idlocation
             left join data.institution on location.idinstitution = institution.identity
-            where type = \'written\''
+            where type = ?'
+
+            . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
+
+        $params = ['written'];
+        $types = [\PDO::PARAM_STR];
+        if (isset($ids)) {
+            $params[] = $ids;
+            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
         );
-        $statement->execute();
-        $rawOrigins = $statement->fetchAll();
+        return $statement->fetchAll();
+    }
+
+    private function getAllOrigins(): array
+    {
+        $rawOrigins = $this->getRawOrigins();
 
         $uniqueRegions = self::getUniqueIds($rawOrigins, 'idregion');
         $regionDescriptions = $this->getRegions($uniqueRegions);
@@ -349,10 +442,10 @@ class Manuscript extends DatabaseService
         $origins = [];
         foreach ($rawOrigins as $rawOrigin) {
             $regions = $regionDescriptions[$rawOrigin['idregion']];
-            if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['name'])) {
+            if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['institution_name'])) {
                 $regions[] = [
                     'id' => $rawOrigin['idinstitution'],
-                    'name' => $rawOrigin['name'],
+                    'name' => $rawOrigin['institution_name'],
                 ];
             }
 
@@ -366,5 +459,29 @@ class Manuscript extends DatabaseService
             }
         }
         return $origins;
+    }
+
+    public function getOrigin(int $id)
+    {
+        $rawOrigins = $this->getRawOrigins([$id]);
+
+        if (count($rawOrigins) == 0) {
+            return null;
+        }
+
+        // get region parents and all region names
+        $rawOrigin = $rawOrigins[0];
+        $regions = $this->getRegions([$rawOrigin['idregion']]);
+
+        // construct names array
+        $names = [];
+        if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['institution_name'])) {
+            $names[] = $rawOrigin['institution_name'];
+        }
+        foreach ($regions[$rawOrigin['idregion']] as $region) {
+            $names[] = $region['name'];
+        }
+
+        return implode(' > ', $names);
     }
 }

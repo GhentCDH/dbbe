@@ -9,12 +9,28 @@
                 <tr>
                     <td>{{ value.title }}</td>
                     <td>
-                        {% if value.type is defined and value.type == 'person' %}
-                            <ul>
-                            {% for person in value.content %}
-                                <li><a href="/persons/{{ person.id }}">{{ person.name }}</a></li>
-                            {% endfor %}
-                            </ul>
+                        {% if value.type is defined and value.type == 'multiple' %}
+                            {% if value.content|length == 1 %}
+                                {{ value.content[0] }}
+                            {% else %}
+                                <ul>
+                                {% for item in value.content %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% elseif value.type is defined and value.type == 'multiple_link' %}
+                            {% if value.content|length == 1 %}
+                                {% for id, name in value.content %}
+                                    <a href="/persons/{{ id }}">{{ name }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <ul>
+                                {% for id, name in value.content %}
+                                    <li><a href="/persons/{{ id }}">{{ name }}</a></li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
                         {% else %}
                             {{ value.content }}
                         {% endif %}
