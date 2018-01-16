@@ -2,7 +2,7 @@
 @import '../websites/sass/settings';
 @import '../websites/sass/bootstrap-custom';
 
-// Override settings
+// Partially override settings
 @import 'settings';
 
 //base
@@ -19,6 +19,8 @@
 @import '../websites/sass/partials/form';
 @import '../websites/sass/partials/table';
 @import '../websites/sass/partials/generic-elements';
+// Partially override generic-elements
+@import 'partials/generic-elements';
 @import '../websites/sass/partials/icons';
 @import '../websites/sass/partials/pageheader';
 @import '../websites/sass/partials/breadcrumb';
