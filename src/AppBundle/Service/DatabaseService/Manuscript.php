@@ -425,11 +425,11 @@ class Manuscript extends DatabaseService
 
         // construct names array
         $names = [];
-        if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['institution_name'])) {
-            $names[] = $rawOrigin['institution_name'];
-        }
         foreach ($regions[$rawOrigin['idregion']] as $region) {
             $names[] = $region['name'];
+        }
+        if (isset($rawOrigin['idinstitution']) && isset($rawOrigin['institution_name'])) {
+            $names[] = $rawOrigin['institution_name'];
         }
 
         return implode(' > ', $names);
