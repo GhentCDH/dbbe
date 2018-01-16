@@ -2,6 +2,9 @@
 @import '../websites/sass/settings';
 @import '../websites/sass/bootstrap-custom';
 
+// Override settings
+@import 'settings';
+
 //base
 @import '../websites/sass/base/typography';
 @import '../websites/sass/base/layout';
