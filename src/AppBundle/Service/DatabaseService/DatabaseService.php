@@ -255,15 +255,37 @@ class DatabaseService
             left join data.bibrole on book.identity = bibrole.iddocument and bibrole.type = ?
             inner join data.document_title on book.identity = document_title.iddocument
             where book.identity in (?)
-            order by identity, rank',
+            order by book.identity, bibrole.rank',
             ['author', $ids],
             [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $rawBooks = $statement->fetchAll();
 
-        // Construct author names
-        $uniquePersons = self::getUniqueIds($rawBooks, 'idperson');
+        // Articles
+        $statement = $this->conn->executeQuery(
+            'SELECT
+                article.identity,
+                bibrole.idperson,
+                bibrole.rank,
+                document_title.title,
+                journal.year
+            from data.article
+            left join data.bibrole on article.identity = bibrole.iddocument and bibrole.type = ?
+            inner join data.document_title on article.identity = document_title.iddocument
+            inner join data.document_contains on article.identity = document_contains.idcontent
+            inner join data.journal on journal.identity = document_contains.idcontainer
+            where article.identity in (?)
+            order by article.identity, bibrole.rank',
+            ['author', $ids],
+            [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $rawArticles = $statement->fetchAll();
+
+        // Get all author names
+        $uniquePersons = self::getUniqueIds(array_merge($rawBooks, $rawArticles), 'idperson');
         $personDescriptions = $this->getPersonShortDescriptions($uniquePersons);
+
+        // Construct author names for books
         $authorNames = [];
         foreach ($rawBooks as $rawBook) {
             $authorNames[$rawBook['identity']][] = $personDescriptions[$rawBook['idperson']];
@@ -273,8 +295,27 @@ class DatabaseService
         $bibliographies = [];
         foreach ($rawBooks as $rawBook) {
             if (!array_key_exists($rawBook['identity'], $bibliographies)) {
-                $bibliographies[$rawBook['identity']] = implode(', ', $authorNames[$rawBook['identity']])
+                $bibliographies[$rawBook['identity']] =
+                    '(Book) '
+                    . implode(', ', $authorNames[$rawBook['identity']])
                     . ' - ' . $rawBook['title'] . ' - ' . $rawBook['year'];
+            }
+        }
+
+        // Construct author names for articles
+        $authorNames = [];
+        foreach ($rawArticles as $rawArticle) {
+            $authorNames[$rawArticle['identity']][] = $personDescriptions[$rawArticle['idperson']];
+        }
+
+        // Add books to result
+        $bibliographies = [];
+        foreach ($rawArticles as $rawArticle) {
+            if (!array_key_exists($rawArticle['identity'], $bibliographies)) {
+                $bibliographies[$rawArticle['identity']] =
+                    '(Article) '
+                    . implode(', ', $authorNames[$rawArticle['identity']])
+                    . ' - ' . $rawArticle['title'] . ' - ' . $rawArticle['year'];
             }
         }
 
