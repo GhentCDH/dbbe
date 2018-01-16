@@ -230,6 +230,12 @@ class ManuscriptController extends Controller
             'base_url' => 'http://pinakes.irht.cnrs.fr/notices/cote/id/',
         ];
 
+        // Public comment
+        $params['infos']['public_comment'] = [
+            'title' => 'Comment',
+            'content' => $dms->getPublicComment($id),
+        ];
+
         // Do not display empty fields
         foreach ($params['infos'] as $key => $value) {
             if (empty($value['content'])) {

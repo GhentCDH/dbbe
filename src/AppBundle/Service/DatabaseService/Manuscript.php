@@ -480,6 +480,28 @@ class Manuscript extends DatabaseService
             return null;
         }
 
-        return $this->getRawDiktyon([$id])[0]['identifier'];
+        return $rawDiktyon[0]['identifier'];
+    }
+
+    public function getRawPublicComments(array $ids = null): array
+    {
+        $sql = 'SELECT manuscript.identity, entity.public_comment
+            from data.manuscript
+            inner join data.entity on manuscript.identity = entity.identity'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        return $this->getRaw($sql, 1, [], [], $ids);
+    }
+
+    public function getPublicComment(int $id)
+    {
+        $rawPublicComment = $this->getRawPublicComments([$id]);
+
+        if (count($rawPublicComment) == 0) {
+            return null;
+        }
+
+        return $rawPublicComment[0]['public_comment'];
     }
 }
