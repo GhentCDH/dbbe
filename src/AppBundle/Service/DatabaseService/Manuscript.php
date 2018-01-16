@@ -64,6 +64,22 @@ class Manuscript extends DatabaseService
         return $statement->fetchAll();
     }
 
+    private function getRaw(string $sql, int $wherecount, array $params, array $types, array $ids = null): array
+    {
+        if (isset($ids)) {
+            for ($i = 0; $i < $wherecount; $i++) {
+                $params[] = $ids;
+                $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+            }
+        }
+        $statement = $this->conn->executeQuery(
+            $sql,
+            $params,
+            $types
+        );
+        return $statement->fetchAll();
+    }
+
     private function getRawLocations(array $ids = null): array
     {
         $sql = 'SELECT
@@ -104,18 +120,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
 
-        $params = [];
-        $types = [];
-        if (isset($ids)) {
-            $params = [$ids, $ids];
-            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 2, [], [], $ids);
     }
 
     private static function formatManuscriptName(array $location): string
@@ -180,18 +185,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
 
-        $params = [];
-        $types = [];
-        if (isset($ids)) {
-            $params = [$ids];
-            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, [], [], $ids);
     }
 
     /**
@@ -266,18 +260,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
 
-        $params = [];
-        $types = [];
-        if (isset($ids)) {
-            $params = [$ids];
-            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, [], [], $ids);
     }
 
     /**
@@ -320,18 +303,7 @@ class Manuscript extends DatabaseService
 
             . 'group by idcontainer, idperson';
 
-        $params = [$role];
-        $types = [\PDO::PARAM_STR];
-        if (isset($ids)) {
-            $params[] = $ids;
-            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, [$role], [\PDO::PARAM_STR], $ids);
     }
 
     private function getAllBibroles(string $role): array
@@ -376,18 +348,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
 
-        $params = ['related to'];
-        $types = [\PDO::PARAM_STR];
-        if (isset($ids)) {
-            $params[] = $ids;
-            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, ['related to'], [\PDO::PARAM_STR], $ids);
     }
 
     public function getRelatedPersons(int $id): array
@@ -418,18 +379,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
 
-        $params = ['written'];
-        $types = [\PDO::PARAM_STR];
-        if (isset($ids)) {
-            $params[] = $ids;
-            $types[] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, ['written'], [\PDO::PARAM_STR], $ids);
     }
 
     private function getAllOrigins(): array
@@ -493,18 +443,7 @@ class Manuscript extends DatabaseService
 
             . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
 
-        $params = [];
-        $types = [];
-        if (isset($ids)) {
-            $params = [$ids];
-            $types = [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY];
-        }
-        $statement = $this->conn->executeQuery(
-            $sql,
-            $params,
-            $types
-        );
-        return $statement->fetchAll();
+        return $this->getRaw($sql, 1, [], [], $ids);
     }
 
     public function getBibliographys(int $id): array
@@ -518,5 +457,29 @@ class Manuscript extends DatabaseService
         }
 
         return $this->getBibliographyDescriptions($bibliographyIds);
+    }
+
+    public function getRawDiktyon(array $ids = null): array
+    {
+        $sql = 'SELECT manuscript.identity, global_id.identifier
+            from data.manuscript
+            inner join data.global_id on manuscript.identity = global_id.idsubject
+            inner join data.institution on global_id.idauthority = institution.identity
+            where institution.name = ?'
+
+            . (isset($ids) ? ' AND manuscript.identity in (?)' : '');
+
+        return $this->getRaw($sql, 1, ['Diktyon'], [\PDO::PARAM_STR], $ids);
+    }
+
+    public function getDiktyon(int $id)
+    {
+        $rawDiktyon = $this->getRawDiktyon([$id]);
+
+        if (count($rawDiktyon) == 0) {
+            return null;
+        }
+
+        return $this->getRawDiktyon([$id])[0]['identifier'];
     }
 }

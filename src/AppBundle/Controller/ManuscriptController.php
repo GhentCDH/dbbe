@@ -189,7 +189,7 @@ class ManuscriptController extends Controller
             'title' => 'Patron(s)',
             'content' => $dms->getBibroles('patron', $id),
             'type' => 'multiple_link',
-            'url' => '/persons/',
+            'base_url' => '/persons/',
         ];
 
         // Scribe
@@ -197,7 +197,7 @@ class ManuscriptController extends Controller
             'title' => 'Scribe(s)',
             'content' => $dms->getBibroles('scribe', $id),
             'type' => 'multiple_link',
-            'url' => '/persons/',
+            'base_url' => '/persons/',
         ];
 
         // Related persons
@@ -205,7 +205,7 @@ class ManuscriptController extends Controller
             'title' => 'Related person(s)',
             'content' => $dms->getRelatedPersons($id),
             'type' => 'multiple_link',
-            'url' => '/persons/',
+            'base_url' => '/persons/',
         ];
 
         // Origin
@@ -219,7 +219,15 @@ class ManuscriptController extends Controller
             'title' => 'Bibliography(s)',
             'content' => $dms->getBibliographys($id),
             'type' => 'multiple_expl_link',
-            'url' => '/bibliographies/',
+            'base_url' => '/bibliographies/',
+        ];
+
+        // Pinakes link
+        $params['infos']['pinakes'] = [
+            'title' => 'Link to Pinakes',
+            'content' => $dms->getDiktyon($id),
+            'type' => 'link_without_name',
+            'base_url' => 'http://pinakes.irht.cnrs.fr/notices/cote/id/',
         ];
 
         // Do not display empty fields

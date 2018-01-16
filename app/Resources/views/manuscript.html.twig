@@ -24,12 +24,12 @@
                         {% elseif value.type is defined and value.type == 'multiple_link' %}
                             {% if value.content|length == 1 %}
                                 {% for id, name in value.content %}
-                                    <a href="{{ value.url ~ id }}">{{ name }}</a>
+                                    <a href="{{ value.base_url ~ id }}">{{ name }}</a>
                                 {% endfor %}
                             {% else %}
                                 <ul>
                                 {% for id, name in value.content %}
-                                    <li><a href="{{ value.url ~ id }}">{{ name }}</a></li>
+                                    <li><a href="{{ value.base_url ~ id }}">{{ name }}</a></li>
                                 {% endfor %}
                                 </ul>
                             {% endif %}
@@ -37,15 +37,17 @@
                         {% elseif value.type is defined and value.type == 'multiple_expl_link' %}
                             {% if value.content|length == 1 %}
                                 {% for content in value.content %}
-                                    <a href="{{ value.url ~ content.id }}">{{ content.name }}</a>
+                                    <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
                                 {% endfor %}
                             {% else %}
                                 <ul>
                                 {% for content in value.content %}
-                                    <li><a href="{{ value.url ~ content.id }}">{{ content.name }}</a></li>
+                                    <li><a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a></li>
                                 {% endfor %}
                                 </ul>
                             {% endif %}
+                        {% elseif value.type is defined and value.type == 'link_without_name' %}
+                            <a href="{{ value.base_url ~ value.content }}">{{ value.base_url ~ value.content }}</a>
                         {% else %}
                             {{ value.content }}
                         {% endif %}
