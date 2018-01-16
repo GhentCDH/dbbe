@@ -246,15 +246,20 @@ class DatabaseService
         // Books
         $statement = $this->conn->executeQuery(
             'SELECT
-                book.identity,
+                reference.idreference,
+                \'Book\' as biblio_type,
+                book.identity as idbiblio,
                 bibrole.idperson,
                 bibrole.rank,
                 document_title.title,
-                book.year
+                book.year,
+                reference.page_start,
+                reference.page_end
             from data.book
+            inner join data.reference on book.identity = reference.idsource
             left join data.bibrole on book.identity = bibrole.iddocument and bibrole.type = ?
             inner join data.document_title on book.identity = document_title.iddocument
-            where book.identity in (?)
+            where reference.idreference in (?)
             order by book.identity, bibrole.rank',
             ['author', $ids],
             [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
@@ -264,59 +269,103 @@ class DatabaseService
         // Articles
         $statement = $this->conn->executeQuery(
             'SELECT
-                article.identity,
+                reference.idreference,
+                \'Article\' as biblio_type,
+                article.identity as idbiblio,
                 bibrole.idperson,
                 bibrole.rank,
                 document_title.title,
-                journal.year
+                journal.year,
+                reference.page_start,
+                reference.page_end
             from data.article
+            inner join data.reference on article.identity = reference.idsource
             left join data.bibrole on article.identity = bibrole.iddocument and bibrole.type = ?
             inner join data.document_title on article.identity = document_title.iddocument
             inner join data.document_contains on article.identity = document_contains.idcontent
             inner join data.journal on journal.identity = document_contains.idcontainer
-            where article.identity in (?)
+            where reference.idreference in (?)
             order by article.identity, bibrole.rank',
             ['author', $ids],
             [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $rawArticles = $statement->fetchAll();
 
+        // Contributions
+        $statement = $this->conn->executeQuery(
+            'SELECT
+                reference.idreference,
+                \'Book chapter\' as biblio_type,
+                bookchapter.identity as idbiblio,
+                bibrole.idperson,
+                bibrole.rank,
+                document_title.title,
+                book.year,
+                reference.page_start,
+                reference.page_end
+            from data.bookchapter
+            inner join data.reference on bookchapter.identity = reference.idsource
+            left join data.bibrole on bookchapter.identity = bibrole.iddocument and bibrole.type = ?
+            inner join data.document_title on bookchapter.identity = document_title.iddocument
+            inner join data.document_contains on bookchapter.identity = document_contains.idcontent
+            inner join data.book on book.identity = document_contains.idcontainer
+            where reference.idreference in (?)
+            order by bookchapter.identity, bibrole.rank',
+            ['author', $ids],
+            [\PDO::PARAM_STR, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $rawBookChapters = $statement->fetchAll();
+
+        // Online source
+        $statement = $this->conn->executeQuery(
+            'SELECT
+                reference.idreference,
+                \'Online source\' as biblio_type,
+                institution.identity as idbiblio,
+            	institution.name
+            from data.institution
+            inner join data.reference on institution.identity = reference.idsource
+            where reference.idreference in (?)',
+            [$ids],
+            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+        );
+        $rawOnlineSources = $statement->fetchAll();
+
         // Get all author names
-        $uniquePersons = self::getUniqueIds(array_merge($rawBooks, $rawArticles), 'idperson');
+        $uniquePersons = self::getUniqueIds(array_merge($rawBooks, $rawArticles, $rawBookChapters), 'idperson');
         $personDescriptions = $this->getPersonShortDescriptions($uniquePersons);
 
-        // Construct author names for books
-        $authorNames = [];
-        foreach ($rawBooks as $rawBook) {
-            $authorNames[$rawBook['identity']][] = $personDescriptions[$rawBook['idperson']];
-        }
-
-        // Add books to result
         $bibliographies = [];
-        foreach ($rawBooks as $rawBook) {
-            if (!array_key_exists($rawBook['identity'], $bibliographies)) {
-                $bibliographies[$rawBook['identity']] =
-                    '(Book) '
-                    . implode(', ', $authorNames[$rawBook['identity']])
-                    . ' - ' . $rawBook['title'] . ' - ' . $rawBook['year'];
+
+        foreach ([$rawBooks, $rawArticles, $rawBookChapters] as $raws) {
+            // Construct author names array
+            $authorNames = [];
+            foreach ($raws as $raw) {
+                $authorNames[$raw['idreference']][] = $personDescriptions[$raw['idperson']];
+            }
+
+            // Add description to result array
+            foreach ($raws as $raw) {
+                if (!array_key_exists($raw['idreference'], $bibliographies)) {
+                    $bibliographies[$raw['idreference']] = [
+                        'id' => $raw['idbiblio'],
+                        'name' =>
+                            '(' . $raw['biblio_type'] . ') '
+                            . implode(', ', $authorNames[$raw['idreference']])
+                            . ' - ' . $raw['title'] . ' - ' . $raw['year']
+                            . self::formatPages($raw['page_start'], $raw['page_end']),
+                    ];
+                }
             }
         }
 
-        // Construct author names for articles
-        $authorNames = [];
-        foreach ($rawArticles as $rawArticle) {
-            $authorNames[$rawArticle['identity']][] = $personDescriptions[$rawArticle['idperson']];
-        }
-
-        // Add books to result
-        $bibliographies = [];
-        foreach ($rawArticles as $rawArticle) {
-            if (!array_key_exists($rawArticle['identity'], $bibliographies)) {
-                $bibliographies[$rawArticle['identity']] =
-                    '(Article) '
-                    . implode(', ', $authorNames[$rawArticle['identity']])
-                    . ' - ' . $rawArticle['title'] . ' - ' . $rawArticle['year'];
-            }
+        foreach ($rawOnlineSources as $rawOnlineSource) {
+            $bibliographies[$rawOnlineSource['idreference']] = [
+                'id' => $raw['idbiblio'],
+                'name' =>
+                    '(' . $rawOnlineSource['biblio_type'] . ') '
+                    . $rawOnlineSource['name'],
+            ];
         }
 
         return $bibliographies;
@@ -337,5 +386,16 @@ class DatabaseService
             }
         }
         return $uniqueIds;
+    }
+
+    protected static function formatPages(string $page_start = null, string $page_end = null): string
+    {
+        if (empty($page_start)) {
+            return '';
+        }
+        if (empty($page_end)) {
+            return ' (' . $page_start . ')';
+        }
+        return ' (' . $page_start . '-' . $page_end . ')';
     }
 }

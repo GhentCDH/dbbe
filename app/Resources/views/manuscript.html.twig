@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
-    <article class="col-xs-12">
+    <article class="col-xs-9">
         <h2>Manuscript "{{ name }}"</h2>
         <table class="table table-hover table-bordered">
             <tbody>
@@ -9,6 +9,7 @@
                 <tr>
                     <td>{{ value.title }}</td>
                     <td>
+                        {# [item, item] #}
                         {% if value.type is defined and value.type == 'multiple' %}
                             {% if value.content|length == 1 %}
                                 {{ value.content[0] }}
@@ -19,6 +20,7 @@
                                 {% endfor %}
                                 </ul>
                             {% endif %}
+                        {# [id => name, id => name] #}
                         {% elseif value.type is defined and value.type == 'multiple_link' %}
                             {% if value.content|length == 1 %}
                                 {% for id, name in value.content %}
@@ -28,6 +30,19 @@
                                 <ul>
                                 {% for id, name in value.content %}
                                     <li><a href="{{ value.url ~ id }}">{{ name }}</a></li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {# [['id' => id, 'name' => name], ['id' => id, 'name' => name]] #}
+                        {% elseif value.type is defined and value.type == 'multiple_expl_link' %}
+                            {% if value.content|length == 1 %}
+                                {% for content in value.content %}
+                                    <a href="{{ value.url ~ content.id }}">{{ content.name }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <ul>
+                                {% for content in value.content %}
+                                    <li><a href="{{ value.url ~ content.id }}">{{ content.name }}</a></li>
                                 {% endfor %}
                                 </ul>
                             {% endif %}

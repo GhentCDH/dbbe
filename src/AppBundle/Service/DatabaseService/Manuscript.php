@@ -487,7 +487,7 @@ class Manuscript extends DatabaseService
 
     private function getRawBibliography(array $ids): array
     {
-        $sql = 'SELECT reference.idtarget, reference.idsource
+        $sql = 'SELECT reference.idreference, reference.idtarget
             from data.manuscript
             inner join data.reference on manuscript.identity = reference.idtarget'
 
@@ -514,7 +514,7 @@ class Manuscript extends DatabaseService
         // get bibliography descriptions
         $bibliographyIds = [];
         foreach ($rawBibliographies as $rawBibliography) {
-            $bibliographyIds[] = $rawBibliography['idsource'];
+            $bibliographyIds[] = $rawBibliography['idreference'];
         }
 
         return $this->getBibliographyDescriptions($bibliographyIds);

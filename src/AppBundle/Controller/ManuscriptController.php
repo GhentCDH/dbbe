@@ -218,7 +218,7 @@ class ManuscriptController extends Controller
         $params['infos']['bibliography'] = [
             'title' => 'Bibliography(s)',
             'content' => $dms->getBibliographys($id),
-            'type' => 'multiple_link',
+            'type' => 'multiple_expl_link',
             'url' => '/bibliographies/',
         ];
 
