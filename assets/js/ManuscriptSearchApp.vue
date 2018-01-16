@@ -230,8 +230,8 @@
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
                         if (
                             this.model[fieldName] && this.schema.fields[fieldName].dependency
-                            && this.model[this.schema.fields[fieldName].dependency] !== undefined
-                            && this.model[this.schema.fields[fieldName].dependency] !== null
+                            && (this.model[this.schema.fields[fieldName].dependency] === undefined
+                            || this.model[this.schema.fields[fieldName].dependency] === null)
                         ) {
                             this.model[fieldName] = null
                         }
