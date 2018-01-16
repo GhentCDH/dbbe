@@ -3,6 +3,9 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary">
                 <div class="padding-default">
+                    <div class="form-group" v-if="Object.keys(model).length !== 0">
+                        <button class="btn btn-block" @click="resetAllFilters">Reset all filters</button>
+                    </div>
                     <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="modelUpdated" @validated="onValidated"></vue-form-generator>
                 </div>
             </div>
@@ -337,6 +340,10 @@
                     return 1
                 }
                 return 0
+            },
+            resetAllFilters() {
+                this.model = {}
+                this.onValidated(true)
             }
         }
     }
