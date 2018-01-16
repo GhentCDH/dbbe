@@ -65,10 +65,7 @@
     export default {
         data() {
             return {
-                model: {
-                    'year_from': 501,
-                    'year_to': 1500
-                },
+                model: {},
                 schema: {
                     fields: {
                         city: this.createMultiSelect('City'),
@@ -85,9 +82,6 @@
                             inputType: 'number',
                             label: 'Year from',
                             model: 'year_from',
-                            min: YEAR_MIN,
-                            max: YEAR_MAX,
-                            required: true,
                             validator: VueFormGenerator.validators.number
                         },
                         year_to: {
@@ -95,9 +89,6 @@
                             inputType: 'number',
                             label: 'Year to',
                             model: 'year_to',
-                            min: YEAR_MIN,
-                            max: YEAR_MAX,
-                            required: true,
                             validator: VueFormGenerator.validators.number
                         },
                         content: this.createMultiSelect('Content'),
@@ -199,7 +190,11 @@
             },
             cleanFilterValues() {
                 let result = {
-                    'date': []
+                    // default values for date
+                    'date': [
+                        1,
+                        2000
+                    ]
                 }
                 if (this.model !== undefined) {
                     for (let fieldName of Object.keys(this.model)) {
@@ -270,9 +265,13 @@
                     return
                 }
 
-                // update year min and max values
-                this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
-                this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+                // set year min and max values
+                if (this.model.year_from !== undefined && this.model.year_from !== null) {
+                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                }
+                if (this.model.year_to !== undefined && this.model.year_to !== null) {
+                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+                }
 
                 // Cancel timeouts caused by input requests not long ago
                 if (this.inputCancel !== null) {
