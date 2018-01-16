@@ -398,4 +398,45 @@ class DatabaseService
         }
         return ' (' . $page_start . '-' . $page_end . ')';
     }
+
+    protected static function formatOccurrenceName(
+        string $folium_start = null,
+        bool $folium_start_recto = null,
+        string $folium_end = null,
+        bool $folium_end_recto = null,
+        string $general_location = null,
+        string $incipit = null
+    ): string {
+        $result = '';
+        if (!empty($folium_start)) {
+            if (!empty($folium_end)) {
+                $result .= '(f. ' . $folium_start . self::formatRecto($folium_start_recto)
+                    . '-' . $folium_end . self::formatRecto($folium_end_recto) . ') ';
+            } else {
+                $result .= '(f. ' . $folium_start . self::formatRecto($folium_start_recto) . ') ';
+            }
+        }
+
+        if (!empty($general_location)) {
+            $result .= '(' . $general_location . ') ';
+        }
+
+        if (!empty($incipit)) {
+            $result .= $incipit;
+        }
+        return $result;
+    }
+
+    protected static function formatRecto(bool $recto = null): string
+    {
+        if (empty($recto)) {
+            return '';
+        }
+
+        if ($recto) {
+            return 'r';
+        } else {
+            return 'v';
+        }
+    }
 }

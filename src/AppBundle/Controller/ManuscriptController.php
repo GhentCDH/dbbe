@@ -236,6 +236,14 @@ class ManuscriptController extends Controller
             'content' => $dms->getPublicComment($id),
         ];
 
+        // Occurrences
+        $params['infos']['occurrences'] = [
+            'title' => 'Occurrences',
+            'content' => $dms->getOccurrences($id),
+            'type' => 'multiple_link',
+            'base_url' => '/occurrences/',
+        ];
+
         // Do not display empty fields
         foreach ($params['infos'] as $key => $value) {
             if (empty($value['content'])) {

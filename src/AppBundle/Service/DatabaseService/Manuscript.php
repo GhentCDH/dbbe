@@ -459,7 +459,7 @@ class Manuscript extends DatabaseService
         return $this->getBibliographyDescriptions($bibliographyIds);
     }
 
-    public function getRawDiktyon(array $ids = null): array
+    private function getRawDiktyon(array $ids = null): array
     {
         $sql = 'SELECT manuscript.identity, global_id.identifier
             from data.manuscript
@@ -483,7 +483,7 @@ class Manuscript extends DatabaseService
         return $rawDiktyon[0]['identifier'];
     }
 
-    public function getRawPublicComments(array $ids = null): array
+    private function getRawPublicComments(array $ids = null): array
     {
         $sql = 'SELECT manuscript.identity, entity.public_comment
             from data.manuscript
@@ -503,5 +503,45 @@ class Manuscript extends DatabaseService
         }
 
         return $rawPublicComment[0]['public_comment'];
+    }
+
+    private function getRawOccurrences(array $ids = null): array
+    {
+        $sql = 'SELECT
+                manuscript.identity,
+                idcontent,
+                folium_start,
+                folium_start_recto,
+                folium_end,
+                folium_end_recto,
+                general_location,
+                incipit
+            from data.manuscript
+            inner join data.document_contains on manuscript.identity = document_contains.idcontainer
+            inner join data.original_poem on document_contains.idcontent = original_poem.identity
+            inner join data.poem on original_poem.identity = poem.identity'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        return $this->getRaw($sql, 1, [], [], $ids);
+    }
+
+    public function getOccurrences(int $id): array
+    {
+        $rawOccurrences = $this->getRawOccurrences([$id]);
+
+        $occurrences = [];
+        foreach ($rawOccurrences as $rawOccurrence) {
+            $occurrences[$rawOccurrence['idcontent']] = self::formatOccurrenceName(
+                $rawOccurrence['folium_start'],
+                $rawOccurrence['folium_start_recto'],
+                $rawOccurrence['folium_end'],
+                $rawOccurrence['folium_end_recto'],
+                $rawOccurrence['general_location'],
+                $rawOccurrence['incipit']
+            );
+        }
+
+        return $occurrences;
     }
 }
