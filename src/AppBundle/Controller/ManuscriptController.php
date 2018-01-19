@@ -17,7 +17,7 @@ const MC_TYPE = 'manuscript';
 class ManuscriptController extends Controller
 {
     /**
-     * @Route("/manuscripts/search/")
+     * @Route("/manuscripts/")
      */
     public function searchManuscripts(Request $request)
     {

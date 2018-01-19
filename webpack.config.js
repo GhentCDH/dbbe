@@ -12,7 +12,9 @@ Encore
     .enableVueLoader()
 
     // Add javascripts
+    .autoProvidejQuery()
     .addEntry('index', './assets/js/index.js')
+    .addEntry('main', './assets/js/main.js')
 
     // allow sass/scss files to be processed
     .enableSassLoader()
