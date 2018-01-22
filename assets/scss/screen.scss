@@ -5,6 +5,9 @@
 // Partially override settings
 @import 'settings';
 
+// external
+@import '../websites/bower_components/font-awesome/scss/font-awesome';
+
 //base
 @import '../websites/sass/base/typography';
 @import '../websites/sass/base/layout';
@@ -67,5 +70,6 @@
 
 // Extra
 @import 'partials/dropdown';
-@import 'partials/multiselect';
+@import 'partials/icons';
 @import 'partials/loading';
+@import 'partials/multiselect';

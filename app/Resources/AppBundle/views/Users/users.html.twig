@@ -1,43 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
-    <article class="col-xs-9">
-        <h2>Users</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <td>Username</td>
-                    <td>E-mail</td>
-                    <td>Full name</td>
-                    <td>Roles</td>
-                    <td>Status</td>
-                    <td>Created</td>
-                    <td>Modified</td>
-                    <td>Last login</td>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                    <tr>
-                        <td>{{ user.usernameCanonical }}</td>
-                        <td>{{ user.emailCanonical }}</td>
-                        <td>{{ user.fullName }}</td>
-                        <td>
-                            <ul>
-                                {% for role in user.roles %}
-                                    <li>
-                                        {{ role }}
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                        <td>Status</td>
-                        <td>{{ user.created|date('Y-m-d') }}</td>
-                        <td>{{ user.lastLogin|date('Y-m-d') }}</td>
-                        <td>{{ user.lastLogin|date('Y-m-d') }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </article>
+    <div id="users-app">
+        <users-app />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/users.js") }}"></script>
 {% endblock %}

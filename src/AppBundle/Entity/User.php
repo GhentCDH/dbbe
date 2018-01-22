@@ -34,12 +34,12 @@ class User extends BaseUser
     protected $endTenure;
 
     /**
-     * @ORM\Column(name="created", type="date")
+     * @ORM\Column(name="created", type="datetime")
      */
     protected $created;
 
     /**
-     * @ORM\Column(name="modified", type="date")
+     * @ORM\Column(name="modified", type="datetime")
      */
     protected $modified;
 

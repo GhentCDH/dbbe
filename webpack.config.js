@@ -13,8 +13,9 @@ Encore
 
     // Add javascripts
     .autoProvidejQuery()
-    .addEntry('index', './assets/js/index.js')
-    .addEntry('main', './assets/js/main.js')
+    .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
+    .addEntry('users', './assets/js/main/users.js')
+    .addEntry('main', './assets/js/main/main.js')
 
     // allow sass/scss files to be processed
     .enableSassLoader()

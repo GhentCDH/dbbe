@@ -54,7 +54,7 @@
     import VueMultiselect from 'vue-multiselect'
     import VueTables from 'vue-tables-2'
 
-    import fieldMultiselectClear from './components/formfields/fieldMultiselectClear'
+    import fieldMultiselectClear from '../components/formfields/fieldMultiselectClear'
 
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
