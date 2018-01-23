@@ -132,7 +132,7 @@
             {% if app.request.hasPreviousSession %}
                 {% for type, messages in app.session.flashbag.all() %}
                     {% for message in messages %}
-                        <div role="alert" class="alert alert-dismissable alert-{{ type }}">
+                        <div role="alert" class="alert alert-dismissible alert-{{ type }}">
                             <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
                             {{ message }}
                         </div>
