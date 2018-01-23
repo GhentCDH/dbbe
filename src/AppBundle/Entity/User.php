@@ -61,6 +61,13 @@ class User extends BaseUser
         return $this->fullName;
     }
 
+    public function setFullName(string $fullName)
+    {
+        $this->fullName = $fullName;
+
+        return $this;
+    }
+
     public function getCreated()
     {
         return $this->created;
@@ -69,5 +76,12 @@ class User extends BaseUser
     public function getModified()
     {
         return $this->modified;
+    }
+
+    public function setModified(\DateTime $dateTime)
+    {
+        $this->modified = $dateTime;
+
+        return $this;
     }
 }

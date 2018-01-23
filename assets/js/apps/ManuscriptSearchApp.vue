@@ -51,7 +51,6 @@
 
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
-    import VueMultiselect from 'vue-multiselect'
     import VueTables from 'vue-tables-2'
 
     import fieldMultiselectClear from '../components/formfields/fieldMultiselectClear'
@@ -59,7 +58,6 @@
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
 
-    Vue.component('multiselect', VueMultiselect)
     Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
     var YEAR_MIN = 1

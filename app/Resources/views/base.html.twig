@@ -65,7 +65,12 @@
                                                         </li>
                                                         {% if is_granted("IS_AUTHENTICATED_REMEMBERED") %}
                                                             <li>
-                                                                <span>{{ 'layout.logged_in_as'|trans({'%username%': app.user.username}, 'FOSUserBundle') }}</span>
+                                                                <span><i class="fa fa-key"></i>&nbsp;{{ app.user.fullName }}</span>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{{ path('fos_user_change_password') }}">
+                                                                    {{ 'change_password.submit'|trans({}, 'FOSUserBundle') }}
+                                                                </a>
                                                             </li>
                                                             <li>
                                                                 <a href="{{ path('fos_user_security_logout') }}">
