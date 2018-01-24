@@ -169,79 +169,60 @@ class ManuscriptController extends Controller
         }
 
         // Other information
-        $params['infos'] = [];
-
-        // Content
-        $params['infos']['content'] = [
-            'title' => 'Content',
-            'content' => $dms->getContents($id),
-            'type' => 'multiple'
-        ];
-
-        // Date
-        $params['infos']['date'] = [
-            'title' => 'Date',
-            'content' => $dms->getCompletionDate($id),
-        ];
-
-        // Patron
-        $params['infos']['patrons'] = [
-            'title' => 'Patron(s)',
-            'content' => $dms->getBibroles('patron', $id),
-            'type' => 'multiple_link',
-            'base_url' => '/persons/',
-        ];
-
-        // Scribe
-        $params['infos']['scribes'] = [
-            'title' => 'Scribe(s)',
-            'content' => $dms->getBibroles('scribe', $id),
-            'type' => 'multiple_link',
-            'base_url' => '/persons/',
-        ];
-
-        // Related persons
-        $params['infos']['persons'] = [
-            'title' => 'Related person(s)',
-            'content' => $dms->getRelatedPersons($id),
-            'type' => 'multiple_link',
-            'base_url' => '/persons/',
-        ];
-
-        // Origin
-        $params['infos']['origin'] = [
-            'title' => 'Origin',
-            'content' => $dms->getOrigin($id),
-        ];
-
-        // Bibliography
-        $params['infos']['bibliography'] = [
-            'title' => 'Bibliography',
-            'content' => $dms->getBibliographys($id),
-            'type' => 'multiple_expl_link',
-            'base_url' => '/bibliographies/',
-        ];
-
-        // Pinakes link
-        $params['infos']['pinakes'] = [
-            'title' => 'Link to Pinakes',
-            'content' => $dms->getDiktyon($id),
-            'type' => 'link_without_name',
-            'base_url' => 'http://pinakes.irht.cnrs.fr/notices/cote/id/',
-        ];
-
-        // Public comment
-        $params['infos']['public_comment'] = [
-            'title' => 'Comment',
-            'content' => $dms->getPublicComment($id),
-        ];
-
-        // Occurrences
-        $params['infos']['occurrences'] = [
-            'title' => 'Occurrences',
-            'content' => $dms->getOccurrences($id),
-            'type' => 'multiple_link',
-            'base_url' => '/occurrences/',
+        $params['infos'] = [
+            'content' => [
+                'title' => 'Content',
+                'content' => $dms->getContents($id),
+                'type' => 'multiple'
+            ],
+            'date' => [
+                'title' => 'Date',
+                'content' => $dms->getCompletionDate($id),
+            ],
+            'patrons' => [
+                'title' => 'Patron(s)',
+                'content' => $dms->getBibroles('patron', $id),
+                'type' => 'multiple_link',
+                'base_url' => '/persons/',
+            ],
+            'scribes' => [
+                'title' => 'Scribe(s)',
+                'content' => $dms->getBibroles('scribe', $id),
+                'type' => 'multiple_link',
+                'base_url' => '/persons/',
+            ],
+            'persons' => [
+                'title' => 'Related person(s)',
+                'content' => $dms->getRelatedPersons($id),
+                'type' => 'multiple_link',
+                'base_url' => '/persons/',
+            ],
+            'origin' => [
+                'title' => 'Origin',
+                'content' => $dms->getOrigin($id),
+            ],
+            'bibliography' => [
+                'title' => 'Bibliography',
+                'content' => $dms->getBibliographys($id),
+                'type' => 'multiple_expl_link',
+                'base_url' => '/bibliographies/',
+            ],
+            'pinakes' => [
+                'title' => 'Link to Pinakes',
+                'content' => $dms->getDiktyon($id),
+                'type' => 'link_without_name',
+                'base_url' => 'http://pinakes.irht.cnrs.fr/notices/cote/id/',
+            ],
+            'public_comment' => [
+                'title' => 'Comment',
+                'content' => $dms->getPublicComment($id),
+            ],
+            'occurrences' => [
+                'title' => 'Occurrences',
+                'content' => $dms->getOccurrences($id),
+                'type' => 'multiple_link',
+                'base_url' => '/occurrences/',
+            ]
         ];
 
         // Do not display empty fields
