@@ -1,0 +1,9 @@
+resetting:
+    email:
+        message: |
+            Dear %username%,
+
+            To reset your password - please visit %confirmationUrl%
+
+            Best regards,
+            the DBBE Team.
