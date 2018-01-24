@@ -21,7 +21,6 @@ class ManuscriptController extends Controller
      */
     public function searchManuscripts(Request $request)
     {
-        // TODO: check if the user has rights to access all results
         return $this->render(
             'search.html.twig'
         );
@@ -32,7 +31,6 @@ class ManuscriptController extends Controller
      */
     public function searchManuscriptsAPI(Request $request)
     {
-        // TODO: process POST parameters as well (->request->all())
         $params = $request->query->all();
         $es_params = [];
 
