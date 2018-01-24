@@ -9,58 +9,63 @@
                 <tr>
                     <td>{{ value.title }}</td>
                     <td>
-                        {# [item, item] #}
-                        {% if value.type is defined and value.type == 'multiple' %}
-                            {% if value.content|length == 1 %}
-                                {{ value.content[0] }}
-                            {% else %}
-                                <ul>
-                                {% for item in value.content %}
-                                    <li>{{ item }}</li>
-                                {% endfor %}
-                                </ul>
+                        {# create unordered lists if there are multiple entries #}
+                        {% if value.content|length > 1 %}
+                            <ul>
+                        {% endif %}
+                        {% for content_key, content_value in value.content %}
+                            {% if value.content|length > 1 %}
+                                <li>
                             {% endif %}
-                        {# [id => name, id => name] #}
-                        {% elseif value.type is defined and value.type == 'multiple_link' %}
-                            {% if value.content|length == 1 %}
-                                {% for id, name in value.content %}
-                                    <a href="{{ value.base_url ~ id }}">{{ name }}</a>
-                                {% endfor %}
-                            {% else %}
-                                <ul>
-                                {% for id, name in value.content %}
-                                    <li><a href="{{ value.base_url ~ id }}">{{ name }}</a></li>
-                                {% endfor %}
-                                </ul>
-                            {% endif %}
-                        {# [['id' => id, 'name' => name], ['id' => id, 'name' => name]] #}
-                        {# or [['url' => url, 'name' => name], ['url' => url, 'name' => name]] #}
-                        {% elseif value.type is defined and value.type == 'multiple_expl_link' %}
-                            {% if value.content|length == 1 %}
-                                {% for content in value.content %}
-                                    {% if content.url is defined %}
-                                        <a href="{{ content.url }}">{{ content.name }}<i class="fa fa-link-external"></i></a>
-                                    {% else %}
-                                        <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
+
+                            {# main part #}
+                            {% if value.type is defined and value.type == 'link_without_name' %}
+                                {# [id, id] #}
+                                <a href="{{ value.base_url ~ content_value }}">
+                                    {{ value.base_url ~ content_value }}
+                                    {# if an url doesn't start with /, it's an external link #}
+                                    {% if value.base_url matches '$^[^/]$' %}
+                                        <i class="fa fa-external-link"></i>
                                     {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <ul>
-                                {% for content in value.content %}
-                                    <li>
-                                        {% if content.url is defined %}
-                                            <a href="{{ content.url }}">{{ content.name }}<i class="fa fa-external-link"></i></a>
-                                        {% else %}
-                                            <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
+                                </a>
+                            {% elseif value.type is defined and value.type == 'link' %}
+                                {# [id => name, id => name] #}
+                                <a href="{{ value.base_url ~ content_key }}">
+                                    {{ content_value }}
+                                    {% if value.base_url matches '$^[^/]$' %}
+                                        <i class="fa fa-external-link"></i>
+                                    {% endif %}
+                                </a>
+                            {% elseif value.type is defined and value.type == 'link_expl' %}
+                                {% if content_value.url is defined %}
+                                    {# [['url' => url, 'name' => name], ['url' => url, 'name' => name]] #}
+                                    <a href="{{ content_value.url }}">
+                                        {{ content_value.name }}
+                                        {% if content_value.url matches '$^[^/]$' %}
+                                            <i class="fa fa-external-link"></i>
                                         {% endif %}
-                                    </li>
-                                {% endfor %}
-                                </ul>
+                                    </a>
+                                {% else %}
+                                    {# [['id' => id, 'name' => name], ['id' => id, 'name' => name]] #}
+                                    <a href="{{ value.base_url ~ content_value.id }}">
+                                        {{ content_value.name }}
+                                        {% if value.base_url matches '$^[^/]$' %}
+                                            <i class="fa fa-external-link"></i>
+                                        {% endif %}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {# [item, item] #}
+                                {{ content_value }}
                             {% endif %}
-                        {% elseif value.type is defined and value.type == 'link_without_name' %}
-                            <a href="{{ value.base_url ~ value.content }}">{{ value.base_url ~ value.content }}</a>
-                        {% else %}
-                            {{ value.content }}
+
+                        {# create unordered lists if there are multiple entries #}
+                            {% if value.content|length > 1 %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if value.content|length > 1 %}
+                            </ul>
                         {% endif %}
                     </td>
                 </tr>

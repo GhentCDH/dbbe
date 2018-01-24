@@ -247,15 +247,19 @@ class Manuscript extends DatabaseService
 
     private function getRawCompletionDates(array $ids = null): array
     {
-        $sql ='SELECT manuscript.identity as id, factoid_merge.factoid_date as cdate
+        $sql =
+            'SELECT
+                manuscript.identity as id,
+                factoid_merge.factoid_date as cdate
             from data.manuscript
             inner join (
-                select factoid.subject_identity as factoid_identity,
-                factoid.date as factoid_date
+                select
+                    factoid.subject_identity as factoid_identity,
+                    factoid.date as factoid_date
                 from data.factoid
                 inner join data.factoid_type
-                on factoid.idfactoid_type = factoid_type.idfactoid_type
-                    and factoid_type.type = \'completed at\'
+                    on factoid.idfactoid_type = factoid_type.idfactoid_type
+                        and factoid_type.type = \'completed at\'
             ) factoid_merge ON manuscript.identity = factoid_merge.factoid_identity'
 
             . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
