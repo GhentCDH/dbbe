@@ -34,15 +34,26 @@
                                 </ul>
                             {% endif %}
                         {# [['id' => id, 'name' => name], ['id' => id, 'name' => name]] #}
+                        {# or [['url' => url, 'name' => name], ['url' => url, 'name' => name]] #}
                         {% elseif value.type is defined and value.type == 'multiple_expl_link' %}
                             {% if value.content|length == 1 %}
                                 {% for content in value.content %}
-                                    <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
+                                    {% if content.url is defined %}
+                                        <a href="{{ content.url }}">{{ content.name }}<i class="fa fa-link-external"></i></a>
+                                    {% else %}
+                                        <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
+                                    {% endif %}
                                 {% endfor %}
                             {% else %}
                                 <ul>
                                 {% for content in value.content %}
-                                    <li><a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a></li>
+                                    <li>
+                                        {% if content.url is defined %}
+                                            <a href="{{ content.url }}">{{ content.name }}<i class="fa fa-external-link"></i></a>
+                                        {% else %}
+                                            <a href="{{ value.base_url ~ content.id }}">{{ content.name }}</a>
+                                        {% endif %}
+                                    </li>
                                 {% endfor %}
                                 </ul>
                             {% endif %}

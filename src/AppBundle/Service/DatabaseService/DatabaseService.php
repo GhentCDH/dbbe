@@ -339,10 +339,14 @@ class DatabaseService
         $statement = $this->conn->executeQuery(
             'SELECT
                 reference.idreference,
-                institution.identity as idbiblio,
-            	institution.name
-            from data.institution
-            inner join data.reference on institution.identity = reference.idsource
+                online_source.url as base_url,
+                reference.url as rel_url,
+                name,
+                online_source.last_accessed
+            from data.online_source
+            inner join data.reference on online_source.identity = reference.idsource
+            inner join data.institution on institution.identity = online_source.identity
+            inner join data.manuscript on reference.idtarget = manuscript.identity
             where reference.idreference in (?)',
             [$ids],
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
@@ -418,9 +422,10 @@ class DatabaseService
 
         foreach ($rawOnlineSources as $rawOnlineSource) {
             $bibliographies[$rawOnlineSource['idreference']] = [
-                'id' => $raw['idbiblio'],
+                'url' => $rawOnlineSource['base_url'] . $rawOnlineSource['rel_url'],
                 'name' =>
-                    $rawOnlineSource['name'],
+                    $rawOnlineSource['name']
+                    . ' (last accessed: ' . (new \DateTime($rawOnlineSource['last_accessed']))->format('Y-m-d') . ')',
             ];
         }
 
