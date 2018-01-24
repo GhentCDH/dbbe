@@ -241,18 +241,27 @@ class DatabaseService
         return $regions;
     }
 
+    /**
+     * Get bibliography descriptions based on reference ids.
+     * @param  array $ids
+     * @return array with
+     * key: reference id
+     * value: ass. array with
+     *   id => biblio id
+     *   name => displayable name
+     */
     protected function getBibliographyDescriptions(array $ids): array
     {
         // Books
         $statement = $this->conn->executeQuery(
             'SELECT
                 reference.idreference,
-                \'Book\' as biblio_type,
                 book.identity as idbiblio,
                 bibrole.idperson,
                 bibrole.rank,
                 document_title.title,
                 book.year,
+                book.city,
                 reference.page_start,
                 reference.page_end
             from data.book
@@ -270,20 +279,25 @@ class DatabaseService
         $statement = $this->conn->executeQuery(
             'SELECT
                 reference.idreference,
-                \'Article\' as biblio_type,
                 article.identity as idbiblio,
                 bibrole.idperson,
                 bibrole.rank,
-                document_title.title,
+                article_title.title as article_title,
                 journal.year,
+                journal_title.title as journal_title,
+                journal.volume,
+                journal.number,
+                document_contains.page_start as article_page_start,
+                document_contains.page_end as article_page_end,
                 reference.page_start,
                 reference.page_end
             from data.article
             inner join data.reference on article.identity = reference.idsource
             left join data.bibrole on article.identity = bibrole.iddocument and bibrole.type = ?
-            inner join data.document_title on article.identity = document_title.iddocument
+            inner join data.document_title as article_title on article.identity = article_title.iddocument
             inner join data.document_contains on article.identity = document_contains.idcontent
             inner join data.journal on journal.identity = document_contains.idcontainer
+            inner join data.document_title as journal_title on journal.identity = journal_title.iddocument
             where reference.idreference in (?)
             order by article.identity, bibrole.rank',
             ['author', $ids],
@@ -295,20 +309,25 @@ class DatabaseService
         $statement = $this->conn->executeQuery(
             'SELECT
                 reference.idreference,
-                \'Book chapter\' as biblio_type,
                 bookchapter.identity as idbiblio,
                 bibrole.idperson,
                 bibrole.rank,
-                document_title.title,
                 book.year,
+                bookchapter_title.title as bookchapter_title,
+                book.editor,
+                book_title.title as book_title,
+                book.city,
+                document_contains.page_start as bookchapter_page_start,
+                document_contains.page_end as bookchapter_page_end,
                 reference.page_start,
                 reference.page_end
             from data.bookchapter
             inner join data.reference on bookchapter.identity = reference.idsource
             left join data.bibrole on bookchapter.identity = bibrole.iddocument and bibrole.type = ?
-            inner join data.document_title on bookchapter.identity = document_title.iddocument
+            inner join data.document_title as bookchapter_title on bookchapter.identity = bookchapter_title.iddocument
             inner join data.document_contains on bookchapter.identity = document_contains.idcontent
             inner join data.book on book.identity = document_contains.idcontainer
+            inner join data.document_title as book_title on book.identity = book_title.iddocument
             where reference.idreference in (?)
             order by bookchapter.identity, bibrole.rank',
             ['author', $ids],
@@ -320,7 +339,6 @@ class DatabaseService
         $statement = $this->conn->executeQuery(
             'SELECT
                 reference.idreference,
-                \'Online source\' as biblio_type,
                 institution.identity as idbiblio,
             	institution.name
             from data.institution
@@ -335,27 +353,66 @@ class DatabaseService
         $uniquePersons = self::getUniqueIds(array_merge($rawBooks, $rawArticles, $rawBookChapters), 'idperson');
         $personDescriptions = $this->getPersonShortDescriptions($uniquePersons);
 
-        $bibliographies = [];
-
+        // Construct author names arrays
+        $authorNames = [];
         foreach ([$rawBooks, $rawArticles, $rawBookChapters] as $raws) {
-            // Construct author names array
-            $authorNames = [];
             foreach ($raws as $raw) {
                 $authorNames[$raw['idreference']][] = $personDescriptions[$raw['idperson']];
             }
+        }
 
-            // Add description to result array
-            foreach ($raws as $raw) {
-                if (!array_key_exists($raw['idreference'], $bibliographies)) {
-                    $bibliographies[$raw['idreference']] = [
-                        'id' => $raw['idbiblio'],
-                        'name' =>
-                            '(' . $raw['biblio_type'] . ') '
-                            . implode(', ', $authorNames[$raw['idreference']])
-                            . ' - ' . $raw['title'] . ' - ' . $raw['year']
-                            . self::formatPages($raw['page_start'], $raw['page_end']),
-                    ];
-                }
+        $bibliographies = [];
+
+        foreach ($rawBooks as $rawBook) {
+            if (!array_key_exists($rawBook['idreference'], $bibliographies)) {
+                $bibliographies[$rawBook['idreference']] = [
+                    'id' => $rawBook['idbiblio'],
+                    'name' =>
+                        implode(', ', $authorNames[$rawBook['idreference']])
+                        . ' ' . $rawBook['year']
+                        . ', ' . $rawBook['title']
+                        . ', ' . $rawBook['city']
+                        . self::formatPages($rawBook['page_start'], $rawBook['page_end'], ': '),
+                ];
+            }
+        }
+
+        foreach ($rawArticles as $rawArticle) {
+            if (!array_key_exists($rawArticle['idreference'], $bibliographies)) {
+                $bibliographies[$rawArticle['idreference']] = [
+                    'id' => $rawArticle['idbiblio'],
+                    'name' =>
+                        implode(', ', $authorNames[$rawArticle['idreference']])
+                        . ' ' . $rawArticle['year']
+                        . ', ' . $rawArticle['article_title']
+                        . ', ' . $rawArticle['journal_title']
+                        . ' ' . $rawArticle['volume']
+                        . (!empty($rawArticle['number']) ? '(' . $rawArticle['number'] . ')' : '')
+                        . self::formatPages($rawArticle['article_page_start'], $rawArticle['article_page_end'], ', ')
+                        . self::formatPages($rawArticle['page_start'], $rawArticle['page_end'], ': '),
+                ];
+            }
+        }
+
+        foreach ($rawBookChapters as $rawBookChapter) {
+            if (!array_key_exists($rawBookChapter['idreference'], $bibliographies)) {
+                $bibliographies[$rawBookChapter['idreference']] = [
+                    'id' => $rawBookChapter['idbiblio'],
+                    'name' =>
+                        implode(', ', $authorNames[$rawBookChapter['idreference']])
+                        . ' ' . $rawBookChapter['year']
+                        . ', ' . $rawBookChapter['bookchapter_title']
+                        . ', in '
+                        . (!empty($rawBookChapter['editor']) ? $rawBookChapter['editor'] . ' (ed.) ' : '')
+                        . $rawBookChapter['book_title']
+                        . $rawBookChapter['city']
+                        . self::formatPages(
+                            $rawBookChapter['bookchapter_page_start'],
+                            $rawBookChapter['bookchapter_page_end'],
+                            ', '
+                        )
+                        . self::formatPages($rawBookChapter['page_start'], $rawBookChapter['page_end'], ': '),
+                ];
             }
         }
 
@@ -363,8 +420,7 @@ class DatabaseService
             $bibliographies[$rawOnlineSource['idreference']] = [
                 'id' => $raw['idbiblio'],
                 'name' =>
-                    '(' . $rawOnlineSource['biblio_type'] . ') '
-                    . $rawOnlineSource['name'],
+                    $rawOnlineSource['name'],
             ];
         }
 
@@ -388,17 +444,37 @@ class DatabaseService
         return $uniqueIds;
     }
 
-    protected static function formatPages(string $page_start = null, string $page_end = null): string
-    {
+    /**
+     * Format page numbers.
+     * @param  string|null $page_start
+     * @param  string|null $page_end
+     * @param  string $prefix
+     * @return string
+     */
+    protected static function formatPages(
+        string $page_start = null,
+        string $page_end = null,
+        string $prefix = ''
+    ): string {
         if (empty($page_start)) {
             return '';
         }
         if (empty($page_end)) {
-            return ' (' . $page_start . ')';
+            return $prefix . $page_start;
         }
-        return ' (' . $page_start . '-' . $page_end . ')';
+        return $prefix . $page_start . '-' . $page_end;
     }
 
+    /**
+     * Format occurrence names.
+     * @param  string|null $folium_start
+     * @param  bool|null $folium_start_recto
+     * @param  string|null $folium_end
+     * @param  bool|null $folium_end_recto
+     * @param  string|null $general_location
+     * @param  string|null $incipit
+     * @return string
+     */
     protected static function formatOccurrenceName(
         string $folium_start = null,
         bool $folium_start_recto = null,
@@ -427,6 +503,11 @@ class DatabaseService
         return $result;
     }
 
+    /**
+     * Format recto for folia.
+     * @param  bool|null $recto
+     * @return string
+     */
     protected static function formatRecto(bool $recto = null): string
     {
         if (empty($recto)) {
