@@ -268,12 +268,19 @@
                     return
                 }
 
+                if (isNaN(this.model.year_from)) {
+                    this.model.year_from = null
+                }
+                if (isNaN(this.model.year_to)) {
+                    this.model.year_to = null
+                }
+
                 // set year min and max values
                 if (this.model.year_from !== undefined && this.model.year_from !== null) {
-                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
                 }
                 if (this.model.year_to !== undefined && this.model.year_to !== null) {
-                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
                 }
 
                 // Cancel timeouts caused by input requests not long ago
