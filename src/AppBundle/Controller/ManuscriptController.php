@@ -224,7 +224,8 @@ class ManuscriptController extends Controller
 
         // Do not display empty fields
         foreach ($params['infos'] as $key => $value) {
-            if (empty($value['content'])) {
+            // empty array or first element is null
+            if (count($value['content']) == 0 || reset($value['content']) == null) {
                 unset($params['infos'][$key]);
             }
         }
