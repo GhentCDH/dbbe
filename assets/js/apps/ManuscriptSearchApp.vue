@@ -102,7 +102,9 @@
                 },
                 formOptions: {
                     validateAfterLoad: true,
-                    validateAfterChanged: true
+                    validateAfterChanged: true,
+                    validationErrorClass: "has-error",
+                    validationSuccessClass: "success"
                 },
                 tableOptions: {
                     'filterable': false,
