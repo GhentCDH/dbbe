@@ -294,51 +294,41 @@ class Manuscript extends DatabaseService
         return null;
     }
 
-    private function getRawBibroles(string $role, array $ids = null): array
+    private function getRawBibroles(array $roles = null, array $ids = null): array
     {
-        $sql = 'SELECT idcontainer, idperson
-            from data.document_contains
-            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            inner join data.original_poem on document_contains.idcontent = original_poem.identity
+        $sql =
+            'SELECT
+                manuscript.identity,
+                bibrole.idperson,
+                bibrole.type
+            from data.manuscript
+            inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where type = ?'
+            where type in (?)'
 
             . (isset($ids) ? ' AND manuscript.identity in (?)' : '')
 
-            . 'group by idcontainer, idperson';
+            . 'group by identity, idperson, type';
 
-        return $this->getRaw($sql, 1, [$role], [\PDO::PARAM_STR], $ids);
+        return $this->getRaw($sql, 1, [$roles], [\Doctrine\DBAL\Connection::PARAM_STR_ARRAY], $ids);
     }
 
     private function getAllBibroles(string $role): array
     {
-        $rawBibRoles = $this->getRawBibroles($role);
+        $rawBibRoles = $this->getRawBibroles([$role]);
 
         $uniqueBibRoles = self::getUniqueIds($rawBibRoles, 'idperson');
         $personDescriptions = $this->getPersonFullDescriptions($uniqueBibRoles);
 
         $bibRoles = [];
         foreach ($rawBibRoles as $rawBibRole) {
-            $bibRoles[$rawBibRole['idcontainer']][] = [
+            $bibRoles[$rawBibRole['identity']][] = [
                     'id' => $rawBibRole['idperson'],
                     'name' => $personDescriptions[$rawBibRole['idperson']],
             ];
         }
 
         return $bibRoles;
-    }
-
-    public function getBibroles(string $role, int $id): array
-    {
-        $rawBibroles = $this->getRawBibroles($role, [$id]);
-
-        // get person names
-        $personIds = [];
-        foreach ($rawBibroles as $rawBibrole) {
-            $personIds[] = $rawBibrole['idperson'];
-        }
-
-        return $this->getPersonFullDescriptions($personIds);
     }
 
     private function getRawRelatedPersons(array $ids = null): array
@@ -355,17 +345,33 @@ class Manuscript extends DatabaseService
         return $this->getRaw($sql, 1, ['related to'], [\PDO::PARAM_STR], $ids);
     }
 
-    public function getRelatedPersons(int $id): array
+    public function getPersons(int $id): array
     {
+        $persons = [
+            'scribes' => [],
+            'patrons' => [],
+            'relatedPersons' => [],
+        ];
+        $rawBibroles = $this->getRawBibroles(['patron', 'scribe'], [$id]);
         $rawRelatedPersons = $this->getRawRelatedPersons([$id]);
 
         // get person names
         $personIds = [];
+        foreach (array_merge($rawBibroles, $rawRelatedPersons) as $rawPerson) {
+            $personIds[] = $rawPerson['idperson'];
+        }
+        $personDescriptions = $this->getPersonFullDescriptions($personIds);
+
+        foreach ($rawBibroles as $rawBibrole) {
+            $persons[$rawBibrole['type'] . 's'][$rawBibrole['idperson']] =
+                $personDescriptions[$rawBibrole['idperson']];
+        }
         foreach ($rawRelatedPersons as $rawRelatedPerson) {
-            $personIds[] = $rawRelatedPerson['idperson'];
+            $persons['relatedPersons'][$rawRelatedPerson['idperson']] =
+                $personDescriptions[$rawRelatedPerson['idperson']];
         }
 
-        return $this->getPersonFullDescriptions($personIds);
+        return $persons;
     }
 
     private function getRawOrigins(array $ids = null): array
@@ -441,7 +447,10 @@ class Manuscript extends DatabaseService
 
     private function getRawBibliography(array $ids): array
     {
-        $sql = 'SELECT reference.idreference, reference.idtarget
+        $sql =
+            'SELECT
+                reference.idreference,
+                reference.idtarget
             from data.manuscript
             inner join data.reference on manuscript.identity = reference.idtarget'
 
@@ -487,9 +496,13 @@ class Manuscript extends DatabaseService
         return $rawDiktyon[0]['identifier'];
     }
 
-    private function getRawPublicComments(array $ids = null): array
+    private function getRawComments(array $ids = null): array
     {
-        $sql = 'SELECT manuscript.identity, entity.public_comment
+        $sql =
+            'SELECT
+                manuscript.identity,
+                entity.public_comment,
+                entity.private_comment
             from data.manuscript
             inner join data.entity on manuscript.identity = entity.identity'
 
@@ -498,15 +511,21 @@ class Manuscript extends DatabaseService
         return $this->getRaw($sql, 1, [], [], $ids);
     }
 
-    public function getPublicComment(int $id)
+    public function getComments(int $id): array
     {
-        $rawPublicComment = $this->getRawPublicComments([$id]);
+        $comments = [
+            'public_comment' => null,
+            'private_comment' => null,
+        ];
 
-        if (count($rawPublicComment) == 0) {
-            return null;
+        $rawComment = $this->getRawComments([$id]);
+
+        if (count($rawComment) == 1) {
+            $comments['public_comment'] = $rawComment[0]['public_comment'];
+            $comments['private_comment'] = $rawComment[0]['private_comment'];
         }
 
-        return $rawPublicComment[0]['public_comment'];
+        return $comments;
     }
 
     private function getRawOccurrences(array $ids = null): array
@@ -547,5 +566,35 @@ class Manuscript extends DatabaseService
         }
 
         return $occurrences;
+    }
+
+    private function getRawIsIllustrated(array $ids = null): array
+    {
+        $sql =
+            'SELECT
+                manuscript.identity,
+                document.is_illustrated
+            from data.manuscript
+            inner join data.document on manuscript.identity = document.identity'
+
+            . (isset($ids) ? ' WHERE manuscript.identity in (?)' : '');
+
+        return $this->getRaw($sql, 1, [], [], $ids);
+    }
+
+    /**
+     * Get whether a manuscript is illustrated
+     * @param  int    $id manuscript id
+     * @return bool|null
+     */
+    public function getIsIllustrated(int $id)
+    {
+        $rawIsIllustrated = $this->getRawIsIllustrated([$id]);
+
+        if (count($rawIsIllustrated) == 0) {
+            return null;
+        }
+
+        return $rawIsIllustrated[0]['is_illustrated'];
     }
 }

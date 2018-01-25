@@ -6,7 +6,7 @@
         <table class="table table-hover table-bordered">
             <tbody>
                 {% for key,value in infos %}
-                <tr>
+                <tr {% if value.internal is defined and value.internal %}class="warning"{% endif %}>
                     <td>{{ value.title }}</td>
                     <td>
                         {# create unordered lists if there are multiple entries #}

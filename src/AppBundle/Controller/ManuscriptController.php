@@ -166,6 +166,9 @@ class ManuscriptController extends Controller
             throw $this->createNotFoundException('There is no manuscript with the requested id.');
         }
 
+        $persons = $dms->getPersons($id);
+        $comments = $dms->getComments($id);
+
         // Other information
         $params['infos'] = [
             'content' => [
@@ -178,19 +181,19 @@ class ManuscriptController extends Controller
             ],
             'patrons' => [
                 'title' => 'Patron(s)',
-                'content' => $dms->getBibroles('patron', $id),
+                'content' => $persons['patrons'],
                 'type' => 'link',
                 'base_url' => '/persons/',
             ],
             'scribes' => [
                 'title' => 'Scribe(s)',
-                'content' => $dms->getBibroles('scribe', $id),
+                'content' => $persons['scribes'],
                 'type' => 'link',
                 'base_url' => '/persons/',
             ],
             'persons' => [
                 'title' => 'Related person(s)',
-                'content' => $dms->getRelatedPersons($id),
+                'content' => $persons['relatedPersons'],
                 'type' => 'link',
                 'base_url' => '/persons/',
             ],
@@ -212,7 +215,7 @@ class ManuscriptController extends Controller
             ],
             'public_comment' => [
                 'title' => 'Comment',
-                'content' => [ $dms->getPublicComment($id) ],
+                'content' => !empty($comments) ? [$comments['public_comment']] : [],
             ],
             'occurrences' => [
                 'title' => 'Occurrences',
@@ -221,6 +224,20 @@ class ManuscriptController extends Controller
                 'base_url' => '/occurrences/',
             ]
         ];
+
+        // Internal fields
+        if ($this->get('security.authorization_checker')->isGranted('ROLE_VIEW_INTERNAL')) {
+            $params['infos']['internal_comment'] = [
+                'title' => 'Internal comment',
+                'content' => !empty($comments) ? [$comments['private_comment']] : [],
+                'internal' => true,
+            ];
+            $params['infos']['illustrated'] = [
+                'title' => 'Illustrated',
+                'content' => [ $dms->getIsIllustrated($id) ? 'Yes': 'No'],
+                'internal' => true,
+            ];
+        }
 
         // Do not display empty fields
         foreach ($params['infos'] as $key => $value) {
