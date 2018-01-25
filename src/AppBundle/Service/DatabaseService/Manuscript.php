@@ -397,7 +397,7 @@ class Manuscript extends DatabaseService
         $rawOrigins = $this->getRawOrigins();
 
         $uniqueRegions = self::getUniqueIds($rawOrigins, 'idregion');
-        $regionDescriptions = $this->getRegions($uniqueRegions);
+        $regionDescriptions = $this->getRegionsDescriptions($uniqueRegions);
 
         $origins = [];
         foreach ($rawOrigins as $rawOrigin) {
@@ -431,7 +431,7 @@ class Manuscript extends DatabaseService
 
         // get region parents and all region names
         $rawOrigin = $rawOrigins[0];
-        $regions = $this->getRegions([$rawOrigin['idregion']]);
+        $regions = $this->getRegionsDescriptions([$rawOrigin['idregion']]);
 
         // construct names array
         $names = [];

@@ -40,13 +40,27 @@ class DatabaseService
 
     /**
      * Get the content descriptions for content with ids $ids.
-     * @param  array $ids The ids of the content.
+     * @param  array $ids content ids.
      * @return array The contents with for each row as key the content id and as value
      *               an array with first the parent objects and in the end the last child object
      *               For each of these objects, the 'id'  and 'name' are returned
      */
     protected function getContentDescriptions(array $ids): array
     {
+        $contents = [];
+
+        foreach ($ids as $key => $id) {
+            $cache = $this->cache->getItem('content_desc.' . $id);
+            if ($cache->isHit()) {
+                $contents[$id] = $cache->get();
+                unset($ids[$key]);
+            }
+        }
+
+        if (empty($ids)) {
+            return $contents;
+        }
+
         $statement = $this->conn->executeQuery(
             'WITH RECURSIVE rec (idgenre, idparentgenre, genre, ids, names, depth) AS (
             	SELECT
@@ -86,7 +100,7 @@ class DatabaseService
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $rawContents = $statement->fetchAll();
-        $contents = [];
+
         foreach ($rawContents as $rawContent) {
             $ids = explode(':', $rawContent['ids']);
             $names = explode(':', $rawContent['names']);
@@ -96,17 +110,33 @@ class DatabaseService
                     'name' => $names[$index],
                 ];
             }
+            $cache = $this->cache->getItem('content_desc.' . $rawContent['idgenre']);
+            $this->cache->save($cache->set($contents[$rawContent['idgenre']]));
         }
         return $contents;
     }
     /**
      * Get the full person descriptions for persons with ids $ids.
-     * @param  array $ids The ids of the persons.
+     * @param  array $ids person ids
      * @return array The persons with for each row as key the person id and as value
      *               a concatenation of names and birth and death information.
      */
     protected function getPersonFullDescriptions(array $ids): array
     {
+        $persons = [];
+
+        foreach ($ids as $key => $id) {
+            $cache = $this->cache->getItem('person_full_desc.' . $id);
+            if ($cache->isHit()) {
+                $persons[$id] = $cache->get();
+                unset($ids[$key]);
+            }
+        }
+
+        if (empty($ids)) {
+            return $persons;
+        }
+
         $statement = $this->conn->executeQuery(
             'SELECT person.identity, first_name, last_name, extra, unprocessed, born_date, death_date
             from data.person
@@ -128,7 +158,7 @@ class DatabaseService
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $raw_persons = $statement->fetchAll();
-        $persons = [];
+
         foreach ($raw_persons as $raw_person) {
             $name_array = [
                 $raw_person['first_name'],
@@ -148,12 +178,34 @@ class DatabaseService
                 $description = $raw_person['unprocessed'];
             }
             $persons[$raw_person['identity']] = $description;
+            $cache = $this->cache->getItem('person_full_desc.' . $raw_person['identity']);
+            $this->cache->save($cache->set($description));
         }
         return $persons;
     }
 
+    /**
+     * Get the full person short for persons with ids $ids.
+     * @param  array $ids person ids
+     * @return array      The persons with for each row as key the person id and as value
+     *                    a concatenation of names.
+     */
     protected function getPersonShortDescriptions(array $ids): array
     {
+        $persons = [];
+
+        foreach ($ids as $key => $id) {
+            $cache = $this->cache->getItem('person_short_desc.' . $id);
+            if ($cache->isHit()) {
+                $persons[$id] = $cache->get();
+                unset($ids[$key]);
+            }
+        }
+
+        if (empty($ids)) {
+            return $persons;
+        }
+
         $statement = $this->conn->executeQuery(
             'SELECT person.identity, first_name, last_name, unprocessed
                 from data.person
@@ -163,7 +215,7 @@ class DatabaseService
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $raw_persons = $statement->fetchAll();
-        $persons = [];
+
         foreach ($raw_persons as $raw_person) {
             $name_array = [
                 $raw_person['first_name'],
@@ -176,19 +228,35 @@ class DatabaseService
                 $description = $raw_person['unprocessed'];
             }
             $persons[$raw_person['identity']] = $description;
+            $cache = $this->cache->getItem('person_short_desc.' . $raw_person['identity']);
+            $this->cache->save($cache->set($description));
         }
         return $persons;
     }
 
     /**
      * Get the region descriptions for regions with ids $ids.
-     * @param  array $ids The ids of the regions.
+     * @param  array $ids region ids
      * @return array The regions with for each row as key the region id  and as value
      *               an array with first the parent objects and in the end the last child object
      *               For each of these objects, the 'id'  and 'name' are returned
      */
-    protected function getRegions(array $ids): array
+    protected function getRegionsDescriptions(array $ids): array
     {
+        $regions = [];
+
+        foreach ($ids as $key => $id) {
+            $cache = $this->cache->getItem('region_desc.' . $id);
+            if ($cache->isHit()) {
+                $regions[$id] = $cache->get();
+                unset($ids[$key]);
+            }
+        }
+
+        if (empty($ids)) {
+            return $regions;
+        }
+
         $statement = $this->conn->executeQuery(
             'WITH RECURSIVE rec (identity, parent_idregion, name, ids, names, depth) AS (
                 SELECT
@@ -227,7 +295,7 @@ class DatabaseService
             [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
         );
         $rawRegions = $statement->fetchAll();
-        $regions = [];
+
         foreach ($rawRegions as $rawRegion) {
             $ids = explode(':', $rawRegion['ids']);
             $names = explode(':', $rawRegion['names']);
@@ -237,6 +305,8 @@ class DatabaseService
                     'name' => $names[$index],
                 ];
             }
+            $cache = $this->cache->getItem('region_desc.' . $rawRegion['identity']);
+            $this->cache->save($cache->set($regions[$rawRegion['identity']]));
         }
         return $regions;
     }
@@ -252,6 +322,20 @@ class DatabaseService
      */
     protected function getBibliographyDescriptions(array $ids): array
     {
+        $bibliographies = [];
+
+        foreach ($ids as $key => $id) {
+            $cache = $this->cache->getItem('bib_desc.' . $id);
+            if ($cache->isHit()) {
+                $bibliographies[] = $cache->get();
+                unset($ids[$key]);
+            }
+        }
+
+        if (empty($ids)) {
+            return $bibliographies;
+        }
+
         // Books
         $statement = $this->conn->executeQuery(
             'SELECT
@@ -365,8 +449,6 @@ class DatabaseService
             }
         }
 
-        $bibliographies = [];
-
         foreach ($rawBooks as $rawBook) {
             if (!array_key_exists($rawBook['idreference'], $bibliographies)) {
                 $bibliographies[$rawBook['idreference']] = [
@@ -378,6 +460,8 @@ class DatabaseService
                         . ', ' . $rawBook['city']
                         . self::formatPages($rawBook['page_start'], $rawBook['page_end'], ': '),
                 ];
+                $cache = $this->cache->getItem('bib_desc.' . $rawBook['idreference']);
+                $this->cache->save($cache->set($bibliographies[$rawBook['idreference']]));
             }
         }
 
@@ -395,6 +479,8 @@ class DatabaseService
                         . self::formatPages($rawArticle['article_page_start'], $rawArticle['article_page_end'], ', ')
                         . self::formatPages($rawArticle['page_start'], $rawArticle['page_end'], ': '),
                 ];
+                $cache = $this->cache->getItem('bib_desc.' . $rawArticle['idreference']);
+                $this->cache->save($cache->set($bibliographies[$rawArticle['idreference']]));
             }
         }
 
@@ -417,6 +503,8 @@ class DatabaseService
                         )
                         . self::formatPages($rawBookChapter['page_start'], $rawBookChapter['page_end'], ': '),
                 ];
+                $cache = $this->cache->getItem('bib_desc.' . $rawBookChapter['idreference']);
+                $this->cache->save($cache->set($bibliographies[$rawBookChapter['idreference']]));
             }
         }
 
@@ -427,6 +515,8 @@ class DatabaseService
                     $rawOnlineSource['name']
                     . ' (last accessed: ' . (new \DateTime($rawOnlineSource['last_accessed']))->format('Y-m-d') . ')',
             ];
+            $cache = $this->cache->getItem('bib_desc.' . $rawOnlineSource['idreference']);
+            $this->cache->save($cache->set($bibliographies[$rawOnlineSource['idreference']]));
         }
 
         return $bibliographies;
