@@ -22,7 +22,7 @@ class ManuscriptController extends Controller
     public function searchManuscripts(Request $request)
     {
         return $this->render(
-            'search.html.twig'
+            'AppBundle:Manuscript:overview.html.twig'
         );
     }
 
@@ -248,7 +248,7 @@ class ManuscriptController extends Controller
         }
 
         return $this->render(
-            'manuscript.html.twig',
+            'AppBundle:Manuscript:detail.html.twig',
             $params
         );
     }

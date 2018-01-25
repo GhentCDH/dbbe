@@ -63,7 +63,7 @@ class UserController extends Controller
             return new JsonResponse($response);
         } else {
             // HTML
-            return $this->render('AppBundle:Users:users.html.twig');
+            return $this->render('AppBundle:User:overview.html.twig');
         }
     }
 
