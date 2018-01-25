@@ -151,12 +151,19 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/{id}")
+     * @Route("/manuscripts/{id}", name="getManuscript")
      */
-    public function getManuscript(int $id)
+    public function getManuscript(int $id, Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return $this->getManuscriptJSON($id);
+        }
+        return $this->getManuscriptHTML($id);
+    }
+
+    public function getManuscriptHTML(int $id)
     {
         $dms = $this->get('database_manuscript_service');
-
         $params = [];
 
         // Get name, create not found page if it is not found in the database
@@ -250,6 +257,35 @@ class ManuscriptController extends Controller
         return $this->render(
             'AppBundle:Manuscript:detail.html.twig',
             $params
+        );
+    }
+
+    public function getManuscriptJSON(int $id)
+    {
+        $dms = $this->get('database_manuscript_service');
+
+        // Check if manuscript with id exists
+        try {
+            $location = $dms->getLocation($id);
+        } catch (NotFoundInDatabaseException $e) {
+            throw $this->createNotFoundException('There is no manuscript with the requested id.');
+        }
+
+        return new JsonResponse([
+            'location' => $location,
+            'diktyon' => (int)$dms->getDiktyon($id),
+        ]);
+    }
+
+    /**
+     * @Route("/manuscripts/{id}/edit")
+     */
+    public function editManuscript(int $id)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        return $this->render(
+            'AppBundle:Manuscript:edit.html.twig',
+            ['id' => $id]
         );
     }
 }

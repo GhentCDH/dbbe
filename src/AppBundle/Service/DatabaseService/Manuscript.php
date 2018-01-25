@@ -139,42 +139,69 @@ class Manuscript extends DatabaseService
         return $name;
     }
 
+    private static function formatManuscriptLocationArray(array $rawLocation): array
+    {
+        $location = [
+            'name' => self::formatManuscriptName($rawLocation),
+            'city' => [
+                'id' => $rawLocation['cityid'],
+                'name' => $rawLocation['cityname'],
+            ],
+            'library' => [
+                'id' => $rawLocation['libraryid'],
+                'name' => $rawLocation['libraryname'],
+            ],
+            'shelf' => $rawLocation['shelf'],
+        ];
+        if (isset($rawLocation['fundid'])) {
+            $location['fund'] = [
+                'id' => $rawLocation['fundid'],
+                'name' => $rawLocation['fundname'],
+            ];
+        }
+        return $location;
+    }
+
     private function getAllLocations(): array
     {
         $locations = [];
         $rawLocations = $this->getRawLocations();
         foreach ($rawLocations as $rawLocation) {
-            $locations[$rawLocation['manuscriptid']] = [
-                'name' => self::formatManuscriptName($rawLocation),
-                'city' => [
-                    'id' => $rawLocation['cityid'],
-                    'name' => $rawLocation['cityname'],
-                ],
-                'library' => [
-                    'id' => $rawLocation['libraryid'],
-                    'name' => $rawLocation['libraryname'],
-                ],
-                'shelf' => $rawLocation['shelf'],
-            ];
-            if (isset($rawLocation['fundid'])) {
-                $locations[$rawLocation['manuscriptid']]['fund'] = [
-                    'id' => $rawLocation['fundid'],
-                    'name' => $rawLocation['fundname'],
-                ];
-            }
+            $locations[$rawLocation['manuscriptid']] = self::formatManuscriptLocationArray($rawLocation);
         }
 
         return $locations;
     }
 
+    /**
+     * Get the manuscript name
+     * @param  int    $id manuscript id
+     * @return string
+     * @throws NotFoundInDatabaseException
+     */
     public function getName(int $id): string
     {
-        $locations = $this->getRawLocations([$id]);
-        if (count($locations) == 0) {
+        $rawLocations = $this->getRawLocations([$id]);
+        if (count($rawLocations) == 0) {
             throw new NotFoundInDatabaseException;
         }
 
-        return self::formatManuscriptName($locations[0]);
+        return self::formatManuscriptName($rawLocations[0]);
+    }
+
+    /**
+     * Get the manuscript location
+     * @param  int    $id manuscript id
+     * @return array [cityid, cityname, libraryid, libraryname, (fundid, fundname), shelf]
+     * @throws NotFoundInDatabaseException
+     */
+    public function getLocation(int $id): array
+    {
+        $rawLocations = $this->getRawLocations([$id]);
+        if (count($rawLocations) == 0) {
+            throw new NotFoundInDatabaseException;
+        }
+        return self::formatManuscriptLocationArray($rawLocations[0]);
     }
 
     private function getRawContents(array $ids = null): array

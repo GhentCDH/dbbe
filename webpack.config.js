@@ -14,6 +14,7 @@ Encore
     // Add javascripts
     .autoProvidejQuery()
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
+    .addEntry('manuscriptedit', './assets/js/main/manuscriptedit.js')
     .addEntry('users', './assets/js/main/users.js')
     .addEntry('main', './assets/js/main/main.js')
 

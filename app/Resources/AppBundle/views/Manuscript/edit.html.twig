@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="manuscript-edit-app">
+        <manuscript-edit-app get-manuscript-url="{{ path('getManuscript', {'id': id}) }}"/>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/manuscriptedit.js") }}"></script>
+{% endblock %}
