@@ -271,10 +271,10 @@
                 }
 
                 if (isNaN(this.model.year_from)) {
-                    this.model.year_from = null
+                    delete this.model['year_from']
                 }
                 if (isNaN(this.model.year_to)) {
-                    this.model.year_to = null
+                    delete this.model ['year_to']
                 }
 
                 // set year min and max values
