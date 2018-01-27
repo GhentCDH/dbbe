@@ -149,13 +149,9 @@
                 openTableRequests: 0,
                 tableCancel: null,
                 lastChangedField: '',
-                inputCancel: null
+                inputCancel: null,
+                initialized: false
             }
-        },
-        mounted () {
-            this.$nextTick( () => {
-                this.setFilters()
-            })
         },
         methods: {
             filterDisplayContent(contentList) {
@@ -301,7 +297,13 @@
                     this.inputCancel = null
                     let filterValues = this.cleanFilterValues()
                     this.setFilters(filterValues)
-                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                    // Don't duplicate initial table request
+                    if (this.initialized) {
+                        VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                    }
+                    else {
+                        this.initialized = true
+                    }
                 }, timeoutValue)
             },
             disableField(fieldName) {
