@@ -148,10 +148,18 @@
                 filterCancel: null,
                 openTableRequests: 0,
                 tableCancel: null,
+                // used to set timeout on free input fields
                 lastChangedField: '',
+                // used to only send requests after timeout when inputting free input fields
                 inputCancel: null,
-                initialized: false
+                // Remove requesting the same data that is already displayed
+                oldFilterValues: this.constructFilterValues()
             }
+        },
+        mounted () {
+            this.$nextTick( () => {
+                this.setFilters()
+            })
         },
         methods: {
             filterDisplayContent(contentList) {
@@ -189,7 +197,7 @@
                 }
                 return result
             },
-            cleanFilterValues() {
+            constructFilterValues() {
                 let result = {
                     // default values for date
                     'date': [
@@ -199,9 +207,6 @@
                 }
                 if (this.model !== undefined) {
                     for (let fieldName of Object.keys(this.model)) {
-                        if (this.model[fieldName] === null) {
-                            continue
-                        }
                         if (this.schema.fields[fieldName].type === 'multiselectClear') {
                             result[fieldName] = this.model[fieldName]['id']
                         }
@@ -226,10 +231,9 @@
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
                         if (
                             this.model[fieldName] && this.schema.fields[fieldName].dependency
-                            && (this.model[this.schema.fields[fieldName].dependency] === undefined
-                            || this.model[this.schema.fields[fieldName].dependency] === null)
+                            && (this.model[this.schema.fields[fieldName].dependency] === undefined)
                         ) {
-                            this.model[fieldName] = null
+                            delete this.model[fieldName]
                         }
                         this.disableField(fieldName)
                     }
@@ -266,18 +270,23 @@
                     return
                 }
 
-                if (isNaN(this.model.year_from)) {
-                    delete this.model['year_from']
-                }
-                if (isNaN(this.model.year_to)) {
-                    delete this.model ['year_to']
+                if (this.model !== undefined) {
+                    for (let fieldName of Object.keys(this.model)) {
+                        if (
+                            this.model[fieldName] === null ||
+                            this.model[fieldName] === '' ||
+                            ((['year_from', 'year_to'].indexOf(fieldName) > -1) && isNaN(this.model[fieldName]))
+                        ) {
+                            delete this.model[fieldName];
+                        }
+                    }
                 }
 
                 // set year min and max values
-                if (this.model.year_from !== undefined && this.model.year_from !== null) {
+                if (this.model.year_from !== undefined) {
                     this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
                 }
-                if (this.model.year_to !== undefined && this.model.year_to !== null) {
+                if (this.model.year_to !== undefined) {
                     this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
                 }
 
@@ -295,14 +304,13 @@
                 }
                 this.inputCancel = window.setTimeout(() => {
                     this.inputCancel = null
-                    let filterValues = this.cleanFilterValues()
-                    this.setFilters(filterValues)
-                    // Don't duplicate initial table request
-                    if (this.initialized) {
+                    let filterValues = this.constructFilterValues()
+                    // only send request if the filters have changed
+                    // filters are always in the same order, so we can compare serialization
+                    if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
+                        this.oldFilterValues = filterValues
+                        this.setFilters(filterValues)
                         VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
-                    }
-                    else {
-                        this.initialized = true
                     }
                 }, timeoutValue)
             },
@@ -319,14 +327,14 @@
                 // Handle dependencies
                 if (this.schema.fields[fieldName].dependency !== undefined) {
                     let dependency = this.schema.fields[fieldName].dependency
-                    if (this.model[dependency] === undefined || this.model[dependency] === null) {
+                    if (this.model[dependency] === undefined) {
                         this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
                         return
                     }
                 }
                 // No results
                 if (values.length === 0) {
-                    if (this.model[fieldName] !== undefined && this.model[fieldName] !== null) {
+                    if (this.model[fieldName] !== undefined) {
                         this.schema.fields[fieldName].disabled = false
                         return
                     }
