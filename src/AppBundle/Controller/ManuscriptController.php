@@ -32,12 +32,6 @@ class ManuscriptController extends Controller
     {
         $params = $request->query->all();
 
-        $cache = $this->get('cache.app');
-        $cacheItem = $cache->getItem('manuscript_search.' . self::manuscriptSearchCacheKey($params));
-        if ($cacheItem->isHit()) {
-            return new JsonResponse($cacheItem->get(), 200, [], true);
-        }
-
         $es_params = [];
 
         // Pagination
@@ -80,36 +74,7 @@ class ManuscriptController extends Controller
             $es_params
         );
 
-        $json = json_encode($search_result);
-
-        $cacheItem->set($json);
-        $cacheItem->tag(['manuscripts']);
-        $cache->save($cacheItem);
-
-        return new JsonResponse($json, 200, [], true);
-    }
-
-    private static function manuscriptSearchCacheKey(array $params): string
-    {
-        $cacheKey = ''
-            . $params['ascending'] . '_'
-            . $params['byColumn'] . '_'
-            . $params['limit'] . '_'
-            . $params['orderBy'] . '_'
-            . $params['page'];
-        if (isset($params['filters'])) {
-            foreach (json_decode($params['filters']) as $key => $value) {
-                $cacheKey .= '_' . $key;
-                if (is_array($value)) {
-                    foreach ($value as $subKey => $subValue) {
-                        $cacheKey .= '_' . $subKey . '_' . $subValue;
-                    }
-                } else {
-                    $cacheKey .= '_' . $value;
-                }
-            }
-        }
-        return $cacheKey;
+        return new JsonResponse($search_result);
     }
 
     /**
@@ -120,12 +85,6 @@ class ManuscriptController extends Controller
         $filters = [];
         if (json_decode($request->getContent(), true) !== null) {
             $filters = self::classifyFilters(json_decode($request->getContent(), true));
-        }
-
-        $cache = $this->get('cache.app');
-        $cacheItem = $cache->getItem('manuscript_filterValues.' . self::manuscriptFilterValuesCacheKey($filters));
-        if ($cacheItem->isHit()) {
-            return new JsonResponse($cacheItem->get(), 200, [], true);
         }
 
         $result = $this->get('elasticsearch_service')->aggregate(
@@ -142,13 +101,7 @@ class ManuscriptController extends Controller
             ];
         }
 
-        $json = json_encode($result);
-
-        $cacheItem->set($json);
-        $cacheItem->tag(['manuscripts']);
-        $cache->save($cacheItem);
-
-        return new JsonResponse($json, 200, [], true);
+        return new JsonResponse($result);
     }
 
     private static function classifyFilters(array $filters): array
@@ -192,25 +145,6 @@ class ManuscriptController extends Controller
             }
         }
         return $result;
-    }
-
-    private static function manuscriptFilterValuesCacheKey(array $filters): string
-    {
-        $cacheKey = '';
-        foreach ($filters as $key => $value) {
-            $cacheKey .= '_' . $key;
-            foreach ($value as $subKey => $subValue) {
-                $cacheKey .= '_' . $subKey;
-                if (is_array($subValue)) {
-                    foreach ($subValue as $subSubKey => $subSubValue) {
-                        $cacheKey .= '_' . $subSubKey . '_' . $subSubValue;
-                    }
-                } else {
-                    $cacheKey .= '_' . $subValue;
-                }
-            }
-        }
-        return $cacheKey;
     }
 
     /**
