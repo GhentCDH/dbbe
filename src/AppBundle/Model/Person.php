@@ -1,0 +1,114 @@
+<?php
+
+namespace AppBundle\Model;
+
+class Person
+{
+    private $id;
+    private $firstName;
+    private $lastName;
+    private $extra;
+    private $unprocessed;
+    private $bornDate;
+    private $deathDate;
+
+    public function __construct()
+    {
+        return $this;
+    }
+
+    public function setId(int $id): Person
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setFirstName(string $firstName = null): Person
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function setLastName(string $lastName = null): Person
+    {
+        $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function setExtra(string $extra = null): Person
+    {
+        $this->extra = $extra;
+
+        return $this;
+    }
+
+    public function setUnprocessed(string $unprocessed = null): Person
+    {
+        $this->unprocessed = $unprocessed;
+
+        return $this;
+    }
+
+    public function setBornDate(FuzzyDate $bornDate = null): Person
+    {
+        $this->bornDate = $bornDate;
+
+        return $this;
+    }
+
+    public function setDeathDate(FuzzyDate $deathDate = null): Person
+    {
+        $this->deathDate = $deathDate;
+
+        return $this;
+    }
+
+    public function getFullDescription(): string
+    {
+        $nameArray = array_filter([
+            $this->firstName,
+            $this->lastName,
+            $this->extra,
+        ]);
+        if (empty($nameArray)) {
+            return $this->unprocessed;
+        }
+
+        $description = implode(' ', $nameArray);
+        if (isset($this->bornDate) && isset($this->deathDate)) {
+            $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+        }
+
+        return $description;
+    }
+
+    public function getShortDescription(): string
+    {
+        $nameArray = array_filter([
+            isset($this->firstName) ? substr($this->firstName, 0, 1) . '.' : null,
+            $this->lastName,
+            $this->extra,
+        ]);
+        if (empty($nameArray)) {
+            return $this->unprocessed;
+        }
+
+        return implode(' ', $nameArray);
+    }
+
+    public function getElastic(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getFullDescription(),
+        ];
+    }
+}

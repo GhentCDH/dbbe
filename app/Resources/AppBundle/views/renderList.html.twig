@@ -1,0 +1,21 @@
+{% if list|length > 1 %}
+    <ul>
+{% endif %}
+
+    {% for item in list %}
+        {% if list|length > 1 %}
+            <li>
+        {% endif %}
+
+        {% with {'item': item} %}
+            {% block renderItem %}{% endblock %}
+        {% endwith %}
+
+        {% if list|length > 1 %}
+            </li>
+        {% endif %}
+    {% endfor %}
+
+{% if list|length > 1 %}
+    </ul>
+{% endif %}

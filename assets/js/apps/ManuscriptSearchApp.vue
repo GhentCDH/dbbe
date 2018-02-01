@@ -73,7 +73,7 @@
                     fields: {
                         city: this.createMultiSelect('City'),
                         library: this.createMultiSelect('Library', {dependency: 'city'}),
-                        fund: this.createMultiSelect('Collection', {dependency: 'library', model: 'fund'}),
+                        collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}),
                         shelf: {
                             type: 'input',
                             inputType: 'text',

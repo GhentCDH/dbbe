@@ -90,12 +90,12 @@ class ManuscriptController extends Controller
         $result = $this->get('elasticsearch_service')->aggregate(
             M_INDEX,
             M_TYPE,
-            self::classifyFilters(['city', 'library', 'fund', 'content', 'patron', 'scribe', 'origin']),
+            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin']),
             $filters
         );
-        // Make it possible to filter on all manuscripts without fund
-        if (array_key_exists('fund', $result)) {
-            $result['fund'][] = [
+        // Make it possible to filter on all manuscripts without collection
+        if (array_key_exists('collection', $result)) {
+            $result['collection'][] = [
                 'id' => -1,
                 'name' => 'No collection',
             ];
@@ -113,7 +113,7 @@ class ManuscriptController extends Controller
                 switch (is_int($key) ? $value : $key) {
                     case 'city':
                     case 'library':
-                    case 'fund':
+                    case 'collection':
                         if (is_int($key)) {
                             $result['object'][] = $value;
                         } else {
@@ -148,7 +148,7 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/{id}", name="getManuscript")
+     * @Route("/manuscripts/{id}", name="manuscript_show")
      */
     public function getManuscript(int $id, Request $request)
     {
@@ -160,100 +160,15 @@ class ManuscriptController extends Controller
 
     public function getManuscriptHTML(int $id)
     {
-        $dms = $this->get('database_manuscript_service');
-        $params = [];
+        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
 
-        // Get name, create not found page if it is not found in the database
-        try {
-            $params['name'] = $dms->getName($id);
-        } catch (NotFoundInDatabaseException $e) {
+        if (empty($manuscript)) {
             throw $this->createNotFoundException('There is no manuscript with the requested id.');
-        }
-
-        $persons = $dms->getPersons($id);
-        $comments = $dms->getComments($id);
-
-        // Other information
-        $params['infos'] = [
-            'content' => [
-                'title' => 'Content',
-                'content' => $dms->getContents($id),
-            ],
-            'date' => [
-                'title' => 'Date',
-                'content' => [ $dms->getCompletionDate($id) ],
-            ],
-            'patrons' => [
-                'title' => 'Patron(s)',
-                'content' => $persons['patrons'],
-                'type' => 'link',
-                'base_url' => '/persons/',
-            ],
-            'scribes' => [
-                'title' => 'Scribe(s)',
-                'content' => $persons['scribes'],
-                'type' => 'link',
-                'base_url' => '/persons/',
-            ],
-            'persons' => [
-                'title' => 'Related person(s)',
-                'content' => $persons['relatedPersons'],
-                'type' => 'link',
-                'base_url' => '/persons/',
-            ],
-            'origin' => [
-                'title' => 'Origin',
-                'content' => [ $dms->getOrigin($id) ],
-            ],
-            'bibliography' => [
-                'title' => 'Bibliography',
-                'content' => $dms->getBibliographys($id),
-                'type' => 'link_expl',
-                'base_url' => '/bibliographies/',
-            ],
-            'pinakes' => [
-                'title' => 'Link to Pinakes',
-                'content' => [ $dms->getDiktyon($id) ],
-                'type' => 'link_without_name',
-                'base_url' => 'http://pinakes.irht.cnrs.fr/notices/cote/id/',
-            ],
-            'public_comment' => [
-                'title' => 'Comment',
-                'content' => !empty($comments) ? [$comments['public_comment']] : [],
-            ],
-            'occurrences' => [
-                'title' => 'Occurrences',
-                'content' => $dms->getOccurrences($id),
-                'type' => 'link',
-                'base_url' => '/occurrences/',
-            ]
-        ];
-
-        // Internal fields
-        if ($this->get('security.authorization_checker')->isGranted('ROLE_VIEW_INTERNAL')) {
-            $params['infos']['internal_comment'] = [
-                'title' => 'Internal comment',
-                'content' => !empty($comments) ? [$comments['private_comment']] : [],
-                'internal' => true,
-            ];
-            $params['infos']['illustrated'] = [
-                'title' => 'Illustrated',
-                'content' => [ $dms->getIsIllustrated($id) ? 'Yes': 'No'],
-                'internal' => true,
-            ];
-        }
-
-        // Do not display empty fields
-        foreach ($params['infos'] as $key => $value) {
-            // empty array or first element is null
-            if (count($value['content']) == 0 || reset($value['content']) == null) {
-                unset($params['infos'][$key]);
-            }
         }
 
         return $this->render(
             'AppBundle:Manuscript:detail.html.twig',
-            $params
+            ['manuscript' => $manuscript]
         );
     }
 

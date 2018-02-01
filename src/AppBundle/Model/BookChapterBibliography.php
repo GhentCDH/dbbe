@@ -1,0 +1,49 @@
+<?php
+
+namespace AppBundle\Model;
+
+class BookChapterBibliography extends Bibliography
+{
+    use StartEndPages;
+
+    private $bookChapter;
+
+    public function __construct(int $id)
+    {
+        parent::__construct($id, 'book_chapter');
+    }
+
+    public function setBookChapter(BookChapter $bookChapter): BookChapterBibliography
+    {
+        $this->bookChapter = $bookChapter;
+
+        return $this;
+    }
+
+    public function getBookChapter(): BookChapter
+    {
+        return $this->bookChapter;
+    }
+
+    public function getDescription(): string
+    {
+        $authorNames = [];
+        foreach ($this->bookChapter->getAuthors() as $author) {
+            $authorNames[] = $author->getShortDescription();
+        }
+        return implode(', ', $authorNames)
+            . ' ' . $this->bookChapter->getBook()->getYear()
+            . ', ' . $this->bookChapter->getTitle()
+            . ', in '
+            . (
+                !empty($this->bookChapter->getBook()->getEditor())
+                    ? $this->bookChapter->getBook()->getEditor() . ' (ed.) '
+                    : ''
+            )
+            . ', ' . $this->bookChapter->getBook()->getTitle()
+            . ', ' . $this->bookChapter->getBook()->getCity()
+            . self::formatPages($this->bookChapter->getStartPage(), $this->bookChapter->getEndPage(), ', ')
+            . self::formatPages($this->startPage, $this->endPage, ': ')
+            . '.';
+    }
+}

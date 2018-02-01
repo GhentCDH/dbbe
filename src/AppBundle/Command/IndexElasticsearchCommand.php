@@ -6,9 +6,6 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use AppBundle\Service\DatabaseService;
-use AppBundle\Service\ElasticsearchService;
-
 class IndexElasticsearchCommand extends ContainerAwareCommand
 {
     protected function configure()
@@ -23,18 +20,14 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Get database and elasticsearch clients
-        $msdb = $this
-            ->getContainer()
-            ->get('database_manuscript_service');
+        $manuscriptManager = $this->getContainer()->get('manuscript_manager');
 
-        $es = $this
-            ->getContainer()
-            ->get('elasticsearch_service');
+        $elasticSearchService = $this->getContainer()->get('elasticsearch_service');
 
         // Index all types
         // (Re)index manuscripts
-        $es->resetIndex('documents');
-        $mcs = $msdb->getCompleteManuscripts();
-        $es->addManuscripts($mcs);
+        $elasticSearchService->resetIndex('documents');
+        $manuscripts = $manuscriptManager->getAllManuscripts();
+        $elasticSearchService->addManuscripts($manuscripts);
     }
 }

@@ -29,16 +29,62 @@ services:
         public: true
         tags: ['controller.service_arguments']
 
-    database_manuscript_service:
-        class: AppBundle\Service\DatabaseService\Manuscript
-        arguments:
-            - '@doctrine.orm.entity_manager'
-            - '@cache.app'
+    manuscript_manager:
+        class: AppBundle\ObjectStorage\ManuscriptManager
+        arguments: ['@manuscript_service',
+            '@cache.app',
+            {'content_manager': '@content_manager',
+            'person_manager': '@person_manager',
+            'region_manager': '@region_manager',
+            'bibliography_manager': '@bibliography_manager',
+            'occurrence_manager': '@occurrence_manager'}]
         public: true
+
+    content_manager:
+        class: AppBundle\ObjectStorage\ContentManager
+        arguments: ['@content_service', '@cache.app', {}]
+
+    person_manager:
+        class: AppBundle\ObjectStorage\PersonManager
+        arguments: ['@person_service', '@cache.app', {}]
+
+    region_manager:
+        class: AppBundle\ObjectStorage\RegionManager
+        arguments: ['@region_service', '@cache.app', {}]
+
+    bibliography_manager:
+        class: AppBundle\ObjectStorage\BibliographyManager
+        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}]
+
+    occurrence_manager:
+        class: AppBundle\ObjectStorage\OccurrenceManager
+        arguments: ['@occurrence_service', '@cache.app', {}]
+
+    manuscript_service:
+        class: AppBundle\Service\DatabaseService\ManuscriptService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    content_service:
+        class: AppBundle\Service\DatabaseService\ContentService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    person_service:
+        class: AppBundle\Service\DatabaseService\PersonService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    region_service:
+        class: AppBundle\Service\DatabaseService\RegionService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    bilbiography_service:
+        class: AppBundle\Service\DatabaseService\BibliographyService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    occurrence_service:
+        class: AppBundle\Service\DatabaseService\OccurrenceService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
     elasticsearch_service:
         class: AppBundle\Service\ElasticsearchService
-        arguments:
-            - '%elastic_hosts%'
-            - '%elastic_index%'
+        arguments: ['%elastic_hosts%', '%elastic_index%']
         public: true

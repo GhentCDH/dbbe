@@ -65,7 +65,12 @@ class ElasticsearchService
         );
         $mapping->send();
 
-        $this->bulkAdd($type, $manuscripts);
+        $manuscriptsElastic = [];
+        foreach ($manuscripts as $manuscript) {
+            $manuscriptsElastic [] = $manuscript->getElastic();
+        }
+
+        $this->bulkAdd($type, $manuscriptsElastic);
     }
 
     public function search(string $indexName, string $typeName, array $params = null): array

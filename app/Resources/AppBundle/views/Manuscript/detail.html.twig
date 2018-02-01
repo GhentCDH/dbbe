@@ -2,74 +2,130 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2>Manuscript "{{ name }}"</h2>
+        <h2>Manuscript "{{ manuscript.getName() }}"</h2>
         <table class="table table-hover table-bordered">
             <tbody>
-                {% for key,value in infos %}
-                <tr {% if value.internal is defined and value.internal %}class="warning"{% endif %}>
-                    <td>{{ value.title }}</td>
-                    <td>
-                        {# create unordered lists if there are multiple entries #}
-                        {% if value.content|length > 1 %}
-                            <ul>
-                        {% endif %}
-                        {% for content_key, content_value in value.content %}
-                            {% if value.content|length > 1 %}
-                                <li>
-                            {% endif %}
-
-                            {# main part #}
-                            {% if value.type is defined and value.type == 'link_without_name' %}
-                                {# [id, id] #}
-                                <a href="{{ value.base_url ~ content_value }}">
-                                    {{ value.base_url ~ content_value }}
-                                    {# if an url doesn't start with /, it's an external link #}
-                                    {% if value.base_url matches '$^[^/]$' %}
-                                        <i class="fa fa-external-link"></i>
+                {% if manuscript.getContentsWithParents() is not empty %}
+                    <tr>
+                        <td>Content</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getPatrons() is not empty %}
+                    <tr>
+                        <td>Patron(s)</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getPatrons()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getScribes() is not empty %}
+                    <tr>
+                        <td>Patron(s)</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getScribes()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getRelatedPersons() is not empty %}
+                    <tr>
+                        <td>Patron(s)</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getRelatedPersons()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getDate() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ manuscript.getDate() }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getOrigin() is not empty %}
+                    <tr>
+                        <td>Origin</td>
+                        <td>{{ manuscript.getOrigin().getName() }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getBibliographies()} only %}
+                                {% block renderItem %}
+                                    {% if item.getType() == 'book' %}
+                                        <a href="{{ path('bibliography_show', {'id': item.getBook().getId()}) }}">{{ item.getDescription() }}</a>
+                                    {% elseif item.getType() == 'article' %}
+                                        <a href="{{ path('bibliography_show', {'id': item.getArticle().getId()}) }}">{{ item.getDescription() }}</a>
+                                    {% elseif item.getType() == 'book_chapter' %}
+                                        <a href="{{ path('bibliography_show', {'id': item.getBookChapter().getId()}) }}">{{ item.getDescription() }}</a>
+                                    {% elseif item.getType() == 'online_source' %}
+                                        <a href="{{ item.getUrl() }}">{{ item.getDescription() }} <i class="fa fa-external-link"></i></a>
                                     {% endif %}
-                                </a>
-                            {% elseif value.type is defined and value.type == 'link' %}
-                                {# [id => name, id => name] #}
-                                <a href="{{ value.base_url ~ content_key }}">
-                                    {{ content_value }}
-                                    {% if value.base_url matches '$^[^/]$' %}
-                                        <i class="fa fa-external-link"></i>
-                                    {% endif %}
-                                </a>
-                            {% elseif value.type is defined and value.type == 'link_expl' %}
-                                {% if content_value.url is defined %}
-                                    {# [['url' => url, 'name' => name], ['url' => url, 'name' => name]] #}
-                                    <a href="{{ content_value.url }}">
-                                        {{ content_value.name }}
-                                        {% if content_value.url matches '$^[^/]$' %}
-                                            <i class="fa fa-external-link"></i>
-                                        {% endif %}
-                                    </a>
-                                {% else %}
-                                    {# [['id' => id, 'name' => name], ['id' => id, 'name' => name]] #}
-                                    <a href="{{ value.base_url ~ content_value.id }}">
-                                        {{ content_value.name }}
-                                        {% if value.base_url matches '$^[^/]$' %}
-                                            <i class="fa fa-external-link"></i>
-                                        {% endif %}
-                                    </a>
-                                {% endif %}
-                            {% else %}
-                                {# [item, item] #}
-                                {{ content_value }}
-                            {% endif %}
-
-                        {# create unordered lists if there are multiple entries #}
-                            {% if value.content|length > 1 %}
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                        {% if value.content|length > 1 %}
-                            </ul>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getDiktyon() is not empty %}
+                    <tr>
+                        <td>Link to Pinakes</td>
+                        <td>
+                            <a href="http://pinakes.irht.cnrs.fr/notices/cote/id/{{ manuscript.getDiktyon() }}">http://pinakes.irht.cnrs.fr/notices/cote/id/{{ manuscript.getDiktyon() }}</a>
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ manuscript.getPublicComment() }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getOccurrences() is not empty %}
+                    <tr>
+                        <td>Occurrences</td>
+                        <td>
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getOccurrences()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrence_show', {'id': item.getId()}) }}">{{ item.getDescription() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if manuscript.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ manuscript.getPrivateComment() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if manuscript.getIllustrated() is defined %}
+                        <tr class="warning">
+                            <td>Illustrated</td>
+                            <td>{{ manuscript.getIllustrated() ? 'Yes': 'No' }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+                </tbody>
             </tbody>
         </table>
     </article>
