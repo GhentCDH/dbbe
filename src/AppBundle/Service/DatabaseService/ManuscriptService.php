@@ -83,9 +83,28 @@ class ManuscriptService extends DatabaseService
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
             where manuscript.identity in (?)
             and bibrole.type in (?)
-            group by manuscript.identity, bibrole.idperson, bibrole.type',
-            [$ids, $roles],
-            [Connection::PARAM_INT_ARRAY, Connection::PARAM_STR_ARRAY]
+            group by manuscript.identity, bibrole.idperson, bibrole.type
+            union
+            select
+                manuscript.identity as manuscript_id,
+                bibrole.idperson as person_id,
+                bibrole.type
+            from data.manuscript
+            inner join data.bibrole on manuscript.identity = bibrole.iddocument
+            where manuscript.identity in (?)
+            and bibrole.type in (?)',
+            [
+                $ids,
+                $roles,
+                $ids,
+                $roles
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_STR_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_STR_ARRAY,
+            ]
         )->fetchAll();
     }
 
