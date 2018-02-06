@@ -76,11 +76,17 @@ class ManuscriptManager extends ObjectManager
                     $manuscripts[$rawPerson['manuscript_id']]
                         ->addPatron($person)
                         ->addCacheDependency('person.' . $person->getId());
-                } elseif (in_array($person->getId(), $scribeIds)) {
+                }
+                if (in_array($rawPerson['person_id'], $scribeIds)) {
                     $manuscripts[$rawPerson['manuscript_id']]
                         ->addScribe($person)
                         ->addCacheDependency('person.' . $person->getId());
-                } else {
+                }
+                // only display related persons if not in patrons or scribes list
+                if (in_array($rawPerson['person_id'], $relatedPersonIds)
+                    && !in_array($rawPerson['person_id'], $patronIds)
+                    && !in_array($rawPerson['person_id'], $scribeIds)
+                ) {
                     $manuscripts[$rawPerson['manuscript_id']]
                         ->addRelatedPerson($person)
                         ->addCacheDependency('person.' . $person->getId());
