@@ -1,13 +1,13 @@
 <template>
     <div>
         <article class="col-sm-9">
-            <h2>Search Manuscripts</h2>
+            <h2>Edit Manuscript</h2>
             <div role="alert" class="alert alert-dismissible alert-danger" v-if="this.error">
                 <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
                 <span class="sr-only">Error</span>
                 {{ this.error }}
             </div>
-            <vue-form-generator :schema="diktyonSchema" :model="model" :options="formOptions"></vue-form-generator>
+            <vue-form-generator :schema="citySchema" :model="model" :options="formOptions"></vue-form-generator>
             <template v-if="this.model.diktyon !== undefined && this.model.diktyon !== null && !isNaN(this.model.diktyon)">
                 <a :href="'http://pinakes.irht.cnrs.fr/notices/cote/id/' + this.model.diktyon">http://pinakes.irht.cnrs.fr/notices/cote/id/{{ this.model.diktyon }}</a>
             </template>
@@ -38,23 +38,17 @@
 
     export default {
         props: [
-            'getManuscriptUrl'
+            'getManuscriptUrl',
+            'getCitiesUrl'
         ],
         data() {
             return {
                 model: {
-                    diktyon: null
+                    city: null
                 },
-                diktyonSchema: {
+                citySchema: {
                     fields: {
-                        diktyon: {
-                            type: 'input',
-                            inputType: 'number',
-                            label: 'Pinakes number',
-                            model: 'diktyon',
-                            validator: VueFormGenerator.validators.number
-
-                        }
+                        city: this.createMultiSelect('City', {required: true}, this.addCity)
                     }
                 },
                 formOptions: {
@@ -64,57 +58,104 @@
                     validationSuccessClass: "success"
                 },
                 openRequests: 0,
-                error: ''
+                error: '',
+                originalModel: {}
             }
         },
         mounted () {
             this.$nextTick( () => {
-                if (this.getManuscriptUrl !== undefined && this.getManuscriptUrl !== null) {
-                    this.openRequests++
-                    axios.get(this.getManuscriptUrl)
-                        .then( (response) => {
-                            this.model.diktyon = response.data.diktyon
-                            console.log(this.model)
-                            this.openRequests--
-                        })
-                        .catch( (error) => {
-                            console.log(error)
-                            this.error = 'Something whent wrong while loading the manuscript data.'
-                            this.openRequests--
-                        })
-                }
+                this.openRequests++
+                axios.get(this.getManuscriptUrl)
+                    .then( (response) => {
+                        this.model.city = response.data.city
+                        this.originalModel = Object.assign({}, this.model)
+                        this.openRequests--
+                        this.loadCities()
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                        this.error = 'Something whent wrong while loading the manuscript data.'
+                        this.openRequests--
+                    })
             })
         },
         methods: {
-            disableField(fieldName) {
+            createMultiSelect(label, extra, addTag) {
+                let result = {
+                    type: 'vueMultiSelect',
+                    label: label,
+                    placeholder: 'Loading',
+                    model: label.toLowerCase(),
+                    // Values will be loaded using ajax request
+                    values: [],
+                    selectOptions: {
+                        customLabel: ({id, name}) => {
+                            return name
+                        },
+                        showLabels: false,
+                        loading: true
+                    },
+                    // Will be enabled when list of scribes is loaded
+                    disabled: true
+                }
+                if (extra !== undefined) {
+                    for (let key of Object.keys(extra)) {
+                        result[key] = extra[key]
+                    }
+                }
+                return result
+            },
+            loadCities() {
+                this.openRequests++
+                axios.get(this.getCitiesUrl)
+                    .then( (response) => {
+                        this.enableField(this.citySchema.fields.city, response.data.sort(this.sortByName))
+                        this.openRequests--
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                        this.error = 'Something whent wrong while loading the manuscript data.'
+                        this.openRequests--
+                    })
+            },
+            disableField(field) {
                 this.schema.fields[fieldName].disabled = true
                 this.schema.fields[fieldName].placeholder = 'Loading'
                 this.schema.fields[fieldName].selectOptions.loading = true
                 this.schema.fields[fieldName].values = []
             },
-            enableField(fieldName, values) {
-                let label = this.schema.fields[fieldName].label.toLowerCase()
-                this.schema.fields[fieldName].selectOptions.loading = false
-                this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
+            enableField(field, values) {
+                let label = field.label.toLowerCase()
+                field.selectOptions.loading = false
+                field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
                 // Handle dependencies
-                if (this.schema.fields[fieldName].dependency !== undefined) {
-                    let dependency = this.schema.fields[fieldName].dependency
+                if (field.dependency !== undefined) {
+                    let dependency = field.dependency
                     if (this.model[dependency] === undefined || this.model[dependency] === null) {
-                        this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
+                        field.placeholder = 'Please select a ' + dependency + ' first'
                         return
                     }
                 }
                 // No results
                 if (values.length === 0) {
-                    if (this.model[fieldName] !== undefined && this.model[fieldName] !== null) {
-                        this.schema.fields[fieldName].disabled = false
-                        return
-                    }
                     return
                 }
                 // Default
-                this.schema.fields[fieldName].disabled = false
-                this.schema.fields[fieldName].values = values
+                field.disabled = false
+                field.values = values
+                // Set value
+                if (this.model[label] !== undefined) {
+                    field.value = this.model[label]
+                }
+            },
+            sortByName(a, b) {
+                if (a.name < b.name) {
+                    return -1
+                }
+                if (a.name > b.name) {
+                    return 1
+                }
+                return 0
             }
         }
     }

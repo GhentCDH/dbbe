@@ -148,6 +148,15 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * @Route("/manuscripts/cities", name="manuscript_cities")
+     */
+    public function getManuscriptCities()
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        return new JsonResponse($this->get('manuscript_service')->getAllCities());
+    }
+
+    /**
      * @Route("/manuscripts/{id}", name="manuscript_show")
      */
     public function getManuscript(int $id, Request $request)
@@ -174,19 +183,13 @@ class ManuscriptController extends Controller
 
     public function getManuscriptJSON(int $id)
     {
-        $dms = $this->get('database_manuscript_service');
+        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
 
-        // Check if manuscript with id exists
-        try {
-            $location = $dms->getLocation($id);
-        } catch (NotFoundInDatabaseException $e) {
+        if (empty($manuscript)) {
             throw $this->createNotFoundException('There is no manuscript with the requested id.');
         }
 
-        return new JsonResponse([
-            'location' => $location,
-            'diktyon' => (int)$dms->getDiktyon($id),
-        ]);
+        return new JsonResponse($manuscript->getJson());
     }
 
     /**

@@ -51,6 +51,7 @@ services:
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', {}]
+        public: true
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager

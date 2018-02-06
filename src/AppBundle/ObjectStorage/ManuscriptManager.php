@@ -2,13 +2,13 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\City;
 use AppBundle\Model\Collection;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
 use AppBundle\Model\Library;
-use AppBundle\Model\Origin;
 use AppBundle\Model\Manuscript;
+use AppBundle\Model\Origin;
+use AppBundle\Model\Region;
 
 class ManuscriptManager extends ObjectManager
 {
@@ -28,8 +28,8 @@ class ManuscriptManager extends ObjectManager
         foreach ($rawLocations as $rawLocation) {
             $manuscripts[$rawLocation['manuscript_id']] = (new Manuscript())
                 ->setId($rawLocation['manuscript_id'])
-                ->setCity(new City($rawLocation['city_id'], $rawLocation['city_name']))
-                ->addCacheDependency('city.' . $rawLocation['city_id'])
+                ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null)
+                ->addCacheDependency('region.' . $rawLocation['city_id'])
                 ->setLibrary(new Library($rawLocation['library_id'], $rawLocation['library_name']))
                 ->addCacheDependency('library.' . $rawLocation['library_id'])
                 ->setShelf($rawLocation['shelf']);

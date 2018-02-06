@@ -50,11 +50,11 @@ class Origin
 
     public function getName(): string
     {
-        return $this->getFullRegion()->getName();
+        return $this->getFullRegion()->getHistoricalName();
     }
 
     public function getElastic(): array
     {
-        return $this->getFullRegion()->getElastic();
+        return $this->getFullRegion()->getHistoricalElastic();
     }
 }

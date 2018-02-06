@@ -4,16 +4,28 @@ namespace AppBundle\Service\DatabaseService;
 
 class RegionService extends DatabaseService
 {
+    public function getCityIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                region.identity as region_id
+            from data.region
+            where region.is_city = TRUE'
+        )->fetchAll();
+    }
+
     public function getRegionsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
-            'WITH RECURSIVE rec (identity, parent_idregion, name, ids, names, depth) AS (
+            'WITH RECURSIVE rec (identity, parent_idregion, name, historical_name, ids, names, historical_names, depth) AS (
                 SELECT
                     r.identity,
                     r.parent_idregion,
                     r.name,
-                    r.identity::text as ids,
+                    r.historical_name,
+                    r.identity::text AS ids,
                     r.name AS names,
+                    r.historical_name AS historical_names,
                     1
                 FROM data.region r
 
@@ -23,15 +35,17 @@ class RegionService extends DatabaseService
                     r.identity,
                     r.parent_idregion,
                     r.name,
+                    r.historical_name,
                     rec.ids || \':\' || r.identity::text AS ids,
                     rec.names || \':\' || r.name AS names,
+                    rec.historical_names || \':\' || r.historical_name AS historical_names,
                     rec.depth + 1
 
                 FROM rec
                 INNER JOIN data.region r
                 ON rec.identity = r.parent_idregion
             )
-            SELECT rec.identity, ids, names
+            SELECT rec.identity, ids, names, historical_names
             FROM rec
             INNER JOIN (
                 SELECT identity, MAX(depth) AS maxdepth

@@ -54,4 +54,12 @@ class IdNameObjectWithParents
         }
         return $result;
     }
+
+    public function getJson(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+        ];
+    }
 }

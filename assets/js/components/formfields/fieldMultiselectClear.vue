@@ -40,17 +40,17 @@
         @open="onOpen",
         @close="onClose",
         :option-height="selectOptions.optionHeight",
-        )
-            template(slot="clear")
-                div.multiselect__clear(
-                    v-if="!disabled && (value !== undefined && value !== null)",
-                    @mousedown.prevent.stop="clearAll()"
-                )
-            template(slot="caret", slot-scope="props")
-                div.multiselect__select(
-                    v-if="!disabled && (value === undefined || value === null)",
-                    @mousedown.prevent.stop="props.toggle()"
-                )
+    )
+        template(slot="clear")
+            div.multiselect__clear(
+                v-if="!disabled && (value !== undefined && value !== null)",
+                @mousedown.prevent.stop="clearAll()"
+            )
+        template(slot="caret", slot-scope="props")
+            div.multiselect__select(
+                v-if="!disabled && (value === undefined || value === null)",
+                @mousedown.prevent.stop="props.toggle()"
+            )
 </template>
 <script>
 	import { abstractField } from 'vue-form-generator';

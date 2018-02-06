@@ -20,10 +20,11 @@ class RegionManager extends ObjectManager
         foreach ($rawRegionsWithParents as $rawRegionWithParents) {
             $ids = explode(':', $rawRegionWithParents['ids']);
             $names = explode(':', $rawRegionWithParents['names']);
+            $historicalNames = explode(':', $rawRegionWithParents['historical_names']);
 
             $regions = [];
             foreach (array_keys($ids) as $key) {
-                $regions[] = new Region($ids[$key], $names[$key]);
+                $regions[] = new Region($ids[$key], $names[$key], $historicalNames[$key]);
             }
             $regionWithParents = new RegionWithParents($regions);
 
@@ -37,5 +38,12 @@ class RegionManager extends ObjectManager
         $this->setCache($regionsWithParents, 'region_with_parents');
 
         return $regionsWithParents;
+    }
+
+    public function getAllCitiesWithParents(): array
+    {
+        $rawIds = $this->dbs->getCityIds();
+        $ids = self::getUniqueIds($rawIds, 'region_id');
+        return $this->getRegionsWithParentsByIds($ids);
     }
 }

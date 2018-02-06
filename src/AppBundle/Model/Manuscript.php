@@ -41,14 +41,14 @@ class Manuscript
         return $this->id;
     }
 
-    public function setCity(City $city): Manuscript
+    public function setCity(Region $city): Manuscript
     {
         $this->city = $city;
 
         return $this;
     }
 
-    public function getCity(): City
+    public function getCity(): Region
     {
         return $this->city;
     }
@@ -298,6 +298,19 @@ class Manuscript
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getElastic();
         }
+
+        return $result;
+    }
+
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'city' => $this->city->getElastic(),
+            'library' => $this->library->getElastic(),
+            'shelf' => $this->shelf,
+            'name' => $this->getName(),
+        ];
 
         return $result;
     }
