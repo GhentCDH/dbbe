@@ -14,6 +14,7 @@ class Person
     private $RGK;
     private $VGK;
     private $PBW;
+    private $occupations;
 
     public function __construct()
     {
@@ -95,6 +96,14 @@ class Person
         return $this;
     }
 
+    public function setOccupations(array $occupations): Person
+    {
+        sort($occupations);
+        $this->occupations = $occupations;
+
+        return $this;
+    }
+
     public function getFullDescription(): string
     {
         $nameArray = array_filter([
@@ -118,6 +127,17 @@ class Person
         }
         if (isset($this->PBW)) {
             $description .= ' - PBW: ' . $this->PBW;
+        }
+
+        return $description;
+    }
+
+    public function getFullDescriptionWithOccupations(): string
+    {
+        $description = $this->getFullDescription();
+
+        if (!empty($this->occupations)) {
+            $description .= ' (' . implode(', ', $this->occupations) . ')';
         }
 
         return $description;

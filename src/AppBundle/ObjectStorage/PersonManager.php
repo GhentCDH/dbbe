@@ -42,6 +42,9 @@ class PersonManager extends ObjectManager
             if (isset($rawPerson['pbw'])) {
                 $person->setPBW($rawPerson['pbw']);
             }
+            if (isset($rawPerson['occupations'])) {
+                $person->setOccupations(json_decode($rawPerson['occupations']));
+            }
             $persons[$rawPerson['person_id']] = $person;
         }
 

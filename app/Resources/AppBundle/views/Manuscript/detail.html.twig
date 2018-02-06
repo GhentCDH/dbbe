@@ -23,7 +23,7 @@
                         <td>
                             {% embed '@App/renderList.html.twig' with {'list': manuscript.getPatrons()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -35,7 +35,7 @@
                         <td>
                             {% embed '@App/renderList.html.twig' with {'list': manuscript.getScribes()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -47,7 +47,7 @@
                         <td>
                             {% embed '@App/renderList.html.twig' with {'list': manuscript.getRelatedPersons()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescription() }}</a>
+                                    <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
