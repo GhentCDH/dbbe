@@ -13,13 +13,13 @@ class RegionWithParents extends IdNameObjectWithParents
         return implode(' > ', $names);
     }
 
-    public function getHistoricalElastic(): string
+    public function getHistoricalElastic(): array
     {
         $result = [];
         $array = $this->array;
         $last = true;
         while (count($array) > 0) {
-            $object = new IdNameObjectWithParents($array);
+            $object = new RegionWithParents($array);
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getHistoricalName(),
