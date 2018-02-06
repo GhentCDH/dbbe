@@ -11,6 +11,9 @@ class Person
     private $unprocessed;
     private $bornDate;
     private $deathDate;
+    private $RGK;
+    private $VGK;
+    private $PBW;
 
     public function __construct()
     {
@@ -71,6 +74,27 @@ class Person
         return $this;
     }
 
+    public function setRGK(string $volume, string $rgk): Person
+    {
+        $this->RGK = $volume . '.' . $rgk;
+
+        return $this;
+    }
+
+    public function setVGK(string $vgk): Person
+    {
+        $this->VGK = $vgk;
+
+        return $this;
+    }
+
+    public function setPBW(string $pbw): Person
+    {
+        $this->PBW = $pbw;
+
+        return $this;
+    }
+
     public function getFullDescription(): string
     {
         $nameArray = array_filter([
@@ -79,12 +103,21 @@ class Person
             $this->extra,
         ]);
         if (empty($nameArray)) {
-            return $this->unprocessed;
+            $description = $this->unprocessed;
+        } else {
+            $description = implode(' ', $nameArray);
+            if (isset($this->bornDate) && isset($this->deathDate)) {
+                $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+            }
         }
-
-        $description = implode(' ', $nameArray);
-        if (isset($this->bornDate) && isset($this->deathDate)) {
-            $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+        if (isset($this->RGK)) {
+            $description .= ' - RGK: ' . $this->RGK;
+        }
+        if (isset($this->VGK)) {
+            $description .= ' - VGK: ' . $this->VGK;
+        }
+        if (isset($this->PBW)) {
+            $description .= ' - PBW: ' . $this->PBW;
         }
 
         return $description;
