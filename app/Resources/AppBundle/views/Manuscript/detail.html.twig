@@ -31,7 +31,7 @@
                 {% endif %}
                 {% if manuscript.getScribes() is not empty %}
                     <tr>
-                        <td>Patron(s)</td>
+                        <td>Scribe(s)</td>
                         <td>
                             {% embed '@App/renderList.html.twig' with {'list': manuscript.getScribes()} only %}
                                 {% block renderItem %}
@@ -43,7 +43,7 @@
                 {% endif %}
                 {% if manuscript.getRelatedPersons() is not empty %}
                     <tr>
-                        <td>Patron(s)</td>
+                        <td>Person(s)</td>
                         <td>
                             {% embed '@App/renderList.html.twig' with {'list': manuscript.getRelatedPersons()} only %}
                                 {% block renderItem %}
