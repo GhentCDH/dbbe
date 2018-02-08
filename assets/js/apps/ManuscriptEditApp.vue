@@ -2,61 +2,53 @@
     <div>
         <article class="col-sm-9 mbottom-large">
             <h2>Edit Manuscript</h2>
-            <!--TODO: manage locations outside of manuscripts-->
-            <alert v-for="(item, index) in alerts" dismissible :type="item.type" @dismissed="alerts.splice(index, 1)">
+            <!--TODO: manage locations outside of manuscripts link-->
+            <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
             </alert>
-            <!-- <alert type="success" v-if="this.success" dismissable>
-                {{ this.success }}
-            </alert>
-            <alert type="danger" v-if="this.error" dismissable>
-                {{ this.error }}
-            </alert> -->
             <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @onValidated="validated()"></vue-form-generator>
             <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="noNewValues || invalidForms" @click="calcDiff();saveModal=true">Save changes</btn>
-            <modal v-model="resetModal" title="Reset manuscript" auto-focus>
-                <p>Are you sure you want to reset the manuscript information?</p>
-                <div slot="footer">
-                    <btn @click="resetModal=false">Cancel</btn>
-                    <btn type="danger" @click="reset()" data-action="auto-focus">Reset</btn>
-                </div>
-            </modal>
-            <modal v-model="saveModal" title="Save manuscript" auto-focus>
-                <p>Are you sure you want to save this manuscript information?</p>
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Previous value</th>
-                            <th>New value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="row in diff">
-                            <td>{{ row['label'] }}</td>
-                            <td>{{ row['old'] }}</td>
-                            <td>{{ row['new'] }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div slot="footer">
-                    <btn @click="saveModal=false">Cancel</btn>
-                    <btn type="success" @click="save()" data-action="auto-focus">Save</btn>
-                </div>
-            </modal>
             <div class="loading-overlay" v-if="this.openRequests">
                 <div class="spinner">
                 </div>
             </div>
         </article>
+        <modal v-model="resetModal" title="Reset manuscript" auto-focus>
+            <p>Are you sure you want to reset the manuscript information?</p>
+            <div slot="footer">
+                <btn @click="resetModal=false">Cancel</btn>
+                <btn type="danger" @click="reset()" data-action="auto-focus">Reset</btn>
+            </div>
+        </modal>
+        <modal v-model="saveModal" title="Save manuscript" auto-focus>
+            <p>Are you sure you want to save this manuscript information?</p>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Previous value</th>
+                        <th>New value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="row in diff">
+                        <td>{{ row['label'] }}</td>
+                        <td>{{ row['old'] }}</td>
+                        <td>{{ row['new'] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div slot="footer">
+                <btn @click="saveModal=false">Cancel</btn>
+                <btn type="success" @click="save()" data-action="auto-focus">Save</btn>
+            </div>
+        </modal>
     </div>
 </template>
 
 <script>
     window.axios = require('axios')
-    var $ = require('jquery')
-    require('bootstrap-sass')
 
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
@@ -298,15 +290,14 @@
             },
             save() {
                 this.openRequests++
+                this.saveModal = false
                 axios.put(this.putManuscriptUrl, this.toSave())
                     .then( (response) => {
                         this.loadManuscript(response.data)
-                        this.saveModal = false
                         this.alerts.push({type: 'success', message: 'Manuscript data successfully saved.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
-                        this.saveModal = false
                         console.log(error)
                         this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
                         this.openRequests--

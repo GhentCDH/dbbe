@@ -2,12 +2,13 @@
     <div>
         <article class="col-xs-12">
             <h2>Users</h2>
-            <button class="btn btn-success" @click="create"><i class="fa fa-user-plus"></i>Add a new user</button>
+            <btn type="success" @click="create"><i class="fa fa-user-plus"></i> Add a new user</btn>
             <v-server-table
                 url="/admin/users"
                 ref="table"
                 :columns="['username', 'email', 'full name', 'roles', 'status', 'created', 'modified', 'last login', 'actions']"
-                :options="tableOptions">
+                :options="tableOptions"
+                @loaded="tableLoaded">
                 <template slot="roles" slot-scope="props">
                     <ul>
                         <li v-for="role in props.row.roles">{{ roleNames[role] }}</li>
@@ -21,73 +22,51 @@
                     <a href="#" class="action" title="Delete" @click.prevent="del(props.row)"><i class="fa fa-trash-o"></i></a>
                 </template>
             </v-server-table>
+            <div class="loading-overlay" v-if="this.openRequests">
+                <div class="spinner">
+                </div>
+            </div>
         </article>
-        <div class="modal fade" id="formModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" v-if="this.model.id">Edit user "{{ this.model.username }}"</h4>
-                        <h4 class="modal-title" v-if="!this.model.id">Add a new user</h4>
-                    </div>
-                    <div class="modal-body" @keyup.enter="submitForm">
-                        <div role="alert" class="alert alert-dismissible alert-danger" v-if="this.error">
-                            <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
-                            <span class="sr-only">Error</span>
-                            Something went wrong.
-                        </div>
-                        <vue-form-generator :schema="schema" :model="model" :options="formOptions" ref="form"></vue-form-generator>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-warning" @click="reset()">Reset</button>
-                        <button type="button" class="btn btn-success" @click="submitForm()">Save changes</button>
-                    </div>
-                </div>
+        <modal v-model="formModal" auto-focus>
+            <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
+            <vue-form-generator :schema="schema" :model="model" :options="formOptions" ref="form"></vue-form-generator>
+            <div slot="header">
+                <h4 class="modal-title" v-if="this.model.id">Edit user "{{ this.model.username }}"</h4>
+                <h4 class="modal-title" v-if="!this.model.id">Add a new user</h4>
             </div>
-            <div class="loading-overlay" v-if="this.openRequest">
-                <div class="spinner">
-                </div>
+            <div slot="footer">
+                <btn @click="formModal=false">Cancel</btn>
+                <btn type="warning" @click="reset()">Reset</btn>
+                <btn type="success" @click="submitForm()">Save changes</btn>
             </div>
-        </div>
-        <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Delete user "{{ this.model.username }}"</h4>
-                    </div>
-                    <div class="modal-body" @keyup.enter="submitDelete">
-                        <div role="alert" class="alert alert-dismissible alert-danger" v-if="this.error">
-                            <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
-                            <span class="sr-only">Error</span>
-                            Something went wrong.
-                        </div>
-                        Are you sure you want to delete user "{{this.model.username}}"?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger" @click="submitDelete()">Delete</button>
-                    </div>
-                </div>
+        </modal>
+        <modal v-model="delModal" auto-focus>
+            <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
+            Are you sure you want to delete user "{{this.model.username}}"?
+            <div slot="header">
+                <h4 class="modal-title">Delete user "{{ this.model.username }}"</h4>
             </div>
-            <div class="loading-overlay" v-if="this.openRequest">
-                <div class="spinner">
-                </div>
+            <div slot="footer">
+                <btn @click="delModal=false">Cancel</btn>
+                <btn type="danger" @click="submitDelete()">Delete</btn>
             </div>
-        </div>
+        </modal>
     </div>
 </template>
 <script>
     window.axios = require('axios')
-    var $ = require('jquery')
-    require('bootstrap-sass')
 
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
+    import * as uiv from 'uiv'
     import VueTables from 'vue-tables-2'
 
     Vue.use(VueFormGenerator)
+    Vue.use(uiv)
     Vue.use(VueTables.ServerTable)
 
     export default {
@@ -114,7 +93,7 @@
                     validationSuccessClass: "success"
                 },
                 showEditModal: false,
-                error: false,
+                alerts: [],
                 model: {},
                 resetModel: {},
                 defaultModel: {
@@ -169,21 +148,21 @@
                         }
                     }
                 },
-                openRequest: false
+                formModal: false,
+                delModal: false,
+                openRequests: 0
             }
         },
         methods: {
             create() {
-                this.error = false
                 this.model = Object.assign({}, this.defaultModel)
                 this.resetModel = Object.assign({}, this.defaultModel)
-                $('#formModal').modal({backdrop: 'static'})
+                this.formModal = true
             },
             update(user) {
-                this.error = false
                 this.model = Object.assign({}, user)
                 this.resetModel = Object.assign({}, user)
-                $('#formModal').modal({backdrop: 'static'})
+                this.formModal = true
             },
             reset() {
                 this.model = Object.assign({}, this.resetModel)
@@ -191,55 +170,58 @@
             submitForm() {
                 this.$refs.form.validate()
                 if (this.$refs.form.errors.length == 0) {
-                    this.openRequest = true
+                    this.openRequests++
+                    this.formModal = false
+                    // create new user
                     if (this.model.id === undefined) {
                         axios.post('/admin/users', this.model)
                             .then( (response) => {
                                 this.$refs.table.refresh()
-                                $('#formModal').modal('hide')
                             })
                             .catch( (error) => {
-                                this.error = true
+                                this.formModal = true
+                                this.openRequests--
+                                this.alerts.push({type: 'error', message: 'Something whent wrong while saving the new user.'})
                                 console.log(error)
                             })
-                            .finally( () => {
-                                this.openRequest = false
-                            })
                     }
+                    // update existing user
                     else {
                         axios.put('/admin/users/' + this.model.id, this.model)
                             .then( (response) => {
                                 this.$refs.table.refresh()
-                                $('#formModal').modal('hide')
                             })
                             .catch( (error) => {
-                                this.error = true
+                                this.formModal = true
+                                this.openRequests--
+                                this.alerts.push({type: 'error', message: 'Something whent wrong while saving the updated user.'})
                                 console.log(error)
-                            })
-                            .finally( () => {
-                                this.openRequest = false
                             })
                         }
                 }
             },
             del(user) {
                 this.model = Object.assign({}, user)
-                $('#confirmModal').modal({backdrop: 'static'})
+                this.delModal = true
             },
             submitDelete() {
-                this.openRequest = true
+                this.openRequests++
+                this.delModal = false
                 axios.delete('/admin/users/' + this.model.id)
                     .then( (response) => {
                         this.$refs.table.refresh()
-                        $('#confirmModal').modal('hide')
                     })
                     .catch( (error) => {
-                        this.error = true
+                        this.formModal = true
+                            this.openRequests--
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the user.'})
                         console.log(error)
                     })
-                    .finally( () => {
-                        this.openRequest = false
-                    })
+            },
+            tableLoaded() {
+                if (this.openRequests > 0) {
+                    this.openRequests--
+                }
             }
         }
     }
