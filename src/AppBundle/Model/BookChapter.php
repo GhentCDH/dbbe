@@ -4,8 +4,8 @@ namespace AppBundle\Model;
 
 class BookChapter
 {
-    use Authors;
-    use StartEndPages;
+    use AuthorsTrait;
+    use StartEndPagesTrait;
 
     private $id;
     private $title;

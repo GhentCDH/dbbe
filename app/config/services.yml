@@ -33,11 +33,17 @@ services:
         class: AppBundle\ObjectStorage\ManuscriptManager
         arguments: ['@manuscript_service',
             '@cache.app',
-            {'content_manager': '@content_manager',
+            {'location_manager': '@location_manager',
+            'content_manager': '@content_manager',
             'person_manager': '@person_manager',
             'region_manager': '@region_manager',
             'bibliography_manager': '@bibliography_manager',
             'occurrence_manager': '@occurrence_manager'}]
+        public: true
+
+    location_manager:
+        class: AppBundle\ObjectStorage\LocationManager
+        arguments: ['@location_service', '@cache.app', {}]
         public: true
 
     content_manager:
@@ -51,7 +57,6 @@ services:
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', {}]
-        public: true
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
@@ -63,6 +68,10 @@ services:
 
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    location_service:
+        class: AppBundle\Service\DatabaseService\LocationService
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
     content_service:

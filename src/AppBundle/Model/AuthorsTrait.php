@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-trait Authors
+trait AuthorsTrait
 {
     private $authors;
 

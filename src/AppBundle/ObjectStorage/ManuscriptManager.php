@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use stdClass;
 use AppBundle\Model\Collection;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
@@ -21,22 +22,19 @@ class ManuscriptManager extends ObjectManager
         }
 
         $manuscripts = [];
-        $rawLocations = $this->dbs->getLocations($ids);
-        if (count($rawLocations) == 0) {
+        // Locations
+        // locations are identifiedd by document ids
+        $locations = $this->oms['location_manager']->getLocationsByIds($ids);
+        if (count($locations) == 0) {
             return $cached_short + $cached;
         }
-        foreach ($rawLocations as $rawLocation) {
-            $manuscripts[$rawLocation['manuscript_id']] = (new Manuscript())
-                ->setId($rawLocation['manuscript_id'])
-                ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null)
-                ->addCacheDependency('region.' . $rawLocation['city_id'])
-                ->setLibrary(new Library($rawLocation['library_id'], $rawLocation['library_name']))
-                ->addCacheDependency('library.' . $rawLocation['library_id'])
-                ->setShelf($rawLocation['shelf']);
-            if (isset($rawLocation['fund_id'])) {
-                $manuscripts[$rawLocation['manuscript_id']]
-                    ->setCollection(new Collection($rawLocation['fund_id'], $rawLocation['fund_name']))
-                    ->addCacheDependency('collection.' . $rawLocation['fund_id']);
+        foreach ($locations as $location) {
+            $manuscripts[$location->getId()] = (new Manuscript())
+                ->setId($location->getId())
+                ->setLocation($location);
+            foreach ($location->getCacheDependencies() as $cacheDependency) {
+                $manuscripts[$location->getId()]
+                    ->addCacheDependency($cacheDependency);
             }
         }
 
@@ -203,6 +201,38 @@ class ManuscriptManager extends ObjectManager
         $rawIllustrateds = $this->dbs->getIllustrateds([$id]);
         if (count($rawComments) == 1) {
             $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
+        }
+
+        $this->setCache([$manuscript], 'manuscript');
+
+        return $manuscript;
+    }
+
+    public function updateManuscript(int $id, stdClass $data): ?Manuscript
+    {
+        $manuscript = $this->getManuscriptById($id);
+        if ($manuscript == null) {
+            return null;
+        }
+
+        // construct manuscript
+        foreach ($data as $key => $value) {
+            switch ($key) {
+                case 'collection':
+                    $manuscript->getLocation()->setCollection(new Collection($value->id, $value->name));
+                    break;
+                case 'shelf':
+                    $manuscript->getLocation()->setShelf($value);
+                    break;
+            }
+        }
+
+        // save manuscript to database
+        if (property_exists($data, 'collection')) {
+            $this->oms['location_manager']->updateLocation($manuscript->getLocation());
+        }
+        if (property_exists($data, 'shelf')) {
+            $this->oms['location_manager']->updateShelf($manuscript->getLocation());
         }
 
         $this->setCache([$manuscript], 'manuscript');

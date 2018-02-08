@@ -1,16 +1,50 @@
 <template>
     <div>
-        <article class="col-sm-9">
+        <article class="col-sm-9 mbottom-large">
             <h2>Edit Manuscript</h2>
-            <div role="alert" class="alert alert-dismissible alert-danger" v-if="this.error">
-                <button aria-label="Close" data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span></button>
-                <span class="sr-only">Error</span>
+            <!--TODO: manage locations outside of manuscripts-->
+            <alert v-for="(item, index) in alerts" dismissible :type="item.type" @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
+            <!-- <alert type="success" v-if="this.success" dismissable>
+                {{ this.success }}
+            </alert>
+            <alert type="danger" v-if="this.error" dismissable>
                 {{ this.error }}
-            </div>
-            <vue-form-generator :schema="citySchema" :model="model" :options="formOptions"></vue-form-generator>
-            <template v-if="this.model.diktyon !== undefined && this.model.diktyon !== null && !isNaN(this.model.diktyon)">
-                <a :href="'http://pinakes.irht.cnrs.fr/notices/cote/id/' + this.model.diktyon">http://pinakes.irht.cnrs.fr/notices/cote/id/{{ this.model.diktyon }}</a>
-            </template>
+            </alert> -->
+            <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @onValidated="validated()"></vue-form-generator>
+            <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
+            <btn type="success" :disabled="noNewValues || invalidForms" @click="calcDiff();saveModal=true">Save changes</btn>
+            <modal v-model="resetModal" title="Reset manuscript" auto-focus>
+                <p>Are you sure you want to reset the manuscript information?</p>
+                <div slot="footer">
+                    <btn @click="resetModal=false">Cancel</btn>
+                    <btn type="danger" @click="reset()" data-action="auto-focus">Reset</btn>
+                </div>
+            </modal>
+            <modal v-model="saveModal" title="Save manuscript" auto-focus>
+                <p>Are you sure you want to save this manuscript information?</p>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Previous value</th>
+                            <th>New value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in diff">
+                            <td>{{ row['label'] }}</td>
+                            <td>{{ row['old'] }}</td>
+                            <td>{{ row['new'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div slot="footer">
+                    <btn @click="saveModal=false">Cancel</btn>
+                    <btn type="success" @click="save()" data-action="auto-focus">Save</btn>
+                </div>
+            </modal>
             <div class="loading-overlay" v-if="this.openRequests">
                 <div class="spinner">
                 </div>
@@ -21,14 +55,17 @@
 
 <script>
     window.axios = require('axios')
+    var $ = require('jquery')
+    require('bootstrap-sass')
 
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
+    import * as uiv from 'uiv'
     import VueMultiselect from 'vue-multiselect'
-
     import fieldMultiselectClear from '../components/formfields/fieldMultiselectClear'
 
     Vue.use(VueFormGenerator)
+    Vue.use(uiv)
 
     Vue.component('multiselect', VueMultiselect)
     Vue.component('fieldMultiselectClear', fieldMultiselectClear)
@@ -39,16 +76,32 @@
     export default {
         props: [
             'getManuscriptUrl',
-            'getCitiesUrl'
+            'putManuscriptUrl',
+            'getCitiesUrl',
+            'getLibrariesUrl',
+            'getCollectionsUrl'
         ],
         data() {
             return {
                 model: {
-                    city: null
+                    city: null,
+                    library: null,
+                    collection: null,
+                    shelf: null
                 },
-                citySchema: {
+                locationSchema: {
                     fields: {
-                        city: this.createMultiSelect('City', {required: true}, this.addCity)
+                        city: this.createMultiSelect('City', {required: true, validator: VueFormGenerator.validators.required}),
+                        library: this.createMultiSelect('Library', {required: true, validator: VueFormGenerator.validators.required, dependency: 'city'}),
+                        collection: this.createMultiSelect('Collection', {dependency: 'library'}),
+                        shelf: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Shelf Number',
+                            model: 'shelf',
+                            required: true,
+                            validator: VueFormGenerator.validators.string
+                        }
                     }
                 },
                 formOptions: {
@@ -58,8 +111,12 @@
                     validationSuccessClass: "success"
                 },
                 openRequests: 0,
-                error: '',
-                originalModel: {}
+                alerts: [],
+                originalModel: {},
+                diff:[],
+                resetModal: false,
+                saveModal: false,
+                invalidForms: false
             }
         },
         mounted () {
@@ -67,22 +124,43 @@
                 this.openRequests++
                 axios.get(this.getManuscriptUrl)
                     .then( (response) => {
-                        this.model.city = response.data.city
-                        this.originalModel = Object.assign({}, this.model)
+                        this.loadManuscript(response.data)
                         this.openRequests--
-                        this.loadCities()
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.error = 'Something whent wrong while loading the manuscript data.'
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while loading the manuscript data.'})
                         this.openRequests--
                     })
             })
         },
+        computed: {
+            noNewValues() {
+                return JSON.stringify(this.originalModel) === JSON.stringify(this.model)
+            }
+        },
+        watch: {
+            'model.city': function(newValue, oldValue) {
+                if (newValue === undefined || newValue === null) {
+                    this.dependencyField(this.locationSchema.fields.library)
+                }
+                else {
+                    this.loadList(this.getLibrariesUrl.replace('city_id', newValue.id), this.locationSchema.fields.library)
+                }
+            },
+            'model.library': function(newValue, oldValue) {
+                if (newValue === undefined || newValue === null) {
+                    this.dependencyField(this.locationSchema.fields.collection)
+                }
+                else {
+                    this.loadList(this.getCollectionsUrl.replace('library_id', newValue.id), this.locationSchema.fields.collection)
+                }
+            }
+        },
         methods: {
-            createMultiSelect(label, extra, addTag) {
+            createMultiSelect(label, extra) {
                 let result = {
-                    type: 'vueMultiSelect',
+                    type: 'multiselectClear',
                     label: label,
                     placeholder: 'Loading',
                     model: label.toLowerCase(),
@@ -105,18 +183,42 @@
                 }
                 return result
             },
-            loadCities() {
+            loadManuscript(data) {
+                this.model.city = data.city
+                this.model.library = data.library
+                this.model.collection = data.collection
+                this.model.shelf = data.shelf
+
+                this.$refs.locationForm.validate()
+
+                this.originalModel = Object.assign({}, this.model)
+                if (this.locationSchema.fields.city.values.length === 0) {
+                    this.loadList(this.getCitiesUrl, this.locationSchema.fields.city)
+                }
+            },
+            loadList(url, field) {
                 this.openRequests++
-                axios.get(this.getCitiesUrl)
+                axios.get(url)
                     .then( (response) => {
-                        this.enableField(this.citySchema.fields.city, response.data.sort(this.sortByName))
+                        // only keep current value if it is in the list of possible values
+                        if (this.model[field.model] !== undefined && this.model[field.model] !== null) {
+                            if ((response.data.filter(d => d.id === this.model[field.model].id)).length === 0) {
+                                this.model[field.model] = null
+                            }
+                        }
+                        this.enableField(field, response.data.sort(this.sortByName))
                         this.openRequests--
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.error = 'Something whent wrong while loading the manuscript data.'
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while loading data.'})
                         this.openRequests--
                     })
+            },
+            validated(isValid, errors) {
+                this.invalidForms = (
+                    !this.$refs.hasOwnProperty('locationForm') || this.$refs.locationForm.errors.length > 0
+                )
             },
             disableField(field) {
                 this.schema.fields[fieldName].disabled = true
@@ -124,29 +226,28 @@
                 this.schema.fields[fieldName].selectOptions.loading = true
                 this.schema.fields[fieldName].values = []
             },
-            enableField(field, values) {
-                let label = field.label.toLowerCase()
+            dependencyField(field) {
+                this.model[field.model] = null
+                field.disabled = true
                 field.selectOptions.loading = false
-                field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
-                // Handle dependencies
-                if (field.dependency !== undefined) {
-                    let dependency = field.dependency
-                    if (this.model[dependency] === undefined || this.model[dependency] === null) {
-                        field.placeholder = 'Please select a ' + dependency + ' first'
-                        return
-                    }
-                }
-                // No results
+                field.placeholder = 'Please select a ' + field.dependency + ' first'
+            },
+            noValuesField(field) {
+                this.model[field.model] = null
+                field.disabled = true
+                field.selectOptions.loading = false
+                field.placeholder = 'No ' + field.label.toLowerCase() + 's available'
+            },
+            enableField(field, values) {
                 if (values.length === 0) {
-                    return
+                    return this.noValuesField(field)
                 }
-                // Default
-                field.disabled = false
+
                 field.values = values
-                // Set value
-                if (this.model[label] !== undefined) {
-                    field.value = this.model[label]
-                }
+                field.selectOptions.loading = false
+                field.disabled = false
+                let label = field.label.toLowerCase()
+                field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
             },
             sortByName(a, b) {
                 if (a.name < b.name) {
@@ -156,6 +257,60 @@
                     return 1
                 }
                 return 0
+            },
+            calcDiff() {
+                this.diff = []
+                let fields = Object.assign({}, this.locationSchema.fields)
+                for (let key of Object.keys(this.model)) {
+                    if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
+                        this.diff.push({
+                            'label': fields[key]['label'],
+                            'old': this.getValue(this.originalModel[key]),
+                            'new': this.getValue(this.model[key]),
+                        })
+                    }
+                }
+            },
+            getValue(modelField) {
+                if (
+                    modelField === undefined
+                    || modelField === null
+                ) {
+                    return null
+                }
+                else if (modelField.hasOwnProperty('name')) {
+                    return modelField['name']
+                }
+                return modelField
+            },
+            toSave() {
+                let result = {}
+                for (let key of Object.keys(this.model)) {
+                    if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
+                        result[key] = this.model[key]
+                    }
+                }
+                return result
+            },
+            reset() {
+                this.resetModal = false
+                this.model = Object.assign({}, this.originalModel)
+            },
+            save() {
+                this.openRequests++
+                axios.put(this.putManuscriptUrl, this.toSave())
+                    .then( (response) => {
+                        this.loadManuscript(response.data)
+                        this.saveModal = false
+                        this.alerts.push({type: 'success', message: 'Manuscript data successfully saved.'})
+                        this.openRequests--
+                    })
+                    .catch( (error) => {
+                        this.saveModal = false
+                        console.log(error)
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.openRequests--
+                    })
             }
         }
     }

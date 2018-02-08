@@ -5637,6 +5637,12 @@ uid-number@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/uid-number/-/uid-number-0.0.6.tgz#0ea10e8035e8eb5b8e4449f06da1c730663baa81"
 
+uiv@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/uiv/-/uiv-0.18.0.tgz#42e188321df786b6864e596371177a05343bc91b"
+  dependencies:
+    vue-functional-data-merge "^2.0.3"
+
 union-value@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/union-value/-/union-value-1.0.0.tgz#5c71c34cb5bad5dcebe3ea0cd08207ba5aa1aea4"
@@ -5766,6 +5772,10 @@ void-elements@^2.0.1:
 vue-form-generator@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/vue-form-generator/-/vue-form-generator-2.2.0.tgz#240b93c9489b7355ae708f7d8379776686182f2f"
+
+vue-functional-data-merge@^2.0.3:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/vue-functional-data-merge/-/vue-functional-data-merge-2.0.4.tgz#b045ca57097f31446db6de15c87642b6e88ca7c2"
 
 vue-hot-reload-api@^2.2.0:
   version "2.2.4"

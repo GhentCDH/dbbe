@@ -2,8 +2,11 @@
 
 namespace AppBundle\Controller;
 
+use stdClass;
 use AppBundle\Exceptions\NotFoundInDatabaseException;
+use AppBundle\Model\Manuscript;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -158,6 +161,7 @@ class ManuscriptController extends Controller
 
     /**
      * @Route("/manuscripts/{id}", name="manuscript_show")
+     * @Method("GET")
      */
     public function getManuscript(int $id, Request $request)
     {
@@ -184,6 +188,28 @@ class ManuscriptController extends Controller
     public function getManuscriptJSON(int $id)
     {
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+
+        if (empty($manuscript)) {
+            throw $this->createNotFoundException('There is no manuscript with the requested id.');
+        }
+
+        return new JsonResponse($manuscript->getJson());
+    }
+
+    /**
+     * @Route("/manuscripts/{id}", name="manuscript_put")
+     * @Method("PUT")
+     * @param  int    $id user id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateManuscript(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        $manuscript = $this
+            ->get('manuscript_manager')
+            ->updateManuscript($id, json_decode($request->getContent()));
 
         if (empty($manuscript)) {
             throw $this->createNotFoundException('There is no manuscript with the requested id.');

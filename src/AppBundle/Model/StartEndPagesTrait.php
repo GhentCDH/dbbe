@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-trait StartEndPages
+trait StartEndPagesTrait
 {
     private $startPage;
     private $endPage;

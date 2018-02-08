@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 class IdNameObjectWithParents
 {
-    use CacheDependencies;
+    use CacheDependenciesTrait;
 
     protected $array;
 

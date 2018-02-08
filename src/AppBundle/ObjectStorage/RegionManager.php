@@ -7,7 +7,7 @@ use AppBundle\Model\RegionWithParents;
 
 class RegionManager extends ObjectManager
 {
-    public function getRegionsWithParentsByIds(array $ids)
+    public function getRegionsWithParentsByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'region_with_parents');
         if (empty($ids)) {
@@ -38,12 +38,5 @@ class RegionManager extends ObjectManager
         $this->setCache($regionsWithParents, 'region_with_parents');
 
         return $regionsWithParents;
-    }
-
-    public function getAllCitiesWithParents(): array
-    {
-        $rawIds = $this->dbs->getCityIds();
-        $ids = self::getUniqueIds($rawIds, 'region_id');
-        return $this->getRegionsWithParentsByIds($ids);
     }
 }

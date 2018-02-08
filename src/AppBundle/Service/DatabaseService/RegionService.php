@@ -2,18 +2,10 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Doctrine\DBAL\Connection;
+
 class RegionService extends DatabaseService
 {
-    public function getCityIds(): array
-    {
-        return $this->conn->query(
-            'SELECT
-                region.identity as region_id
-            from data.region
-            where region.is_city = TRUE'
-        )->fetchAll();
-    }
-
     public function getRegionsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -55,7 +47,7 @@ class RegionService extends DatabaseService
             ON rec.identity = rj.identity AND rec.depth = rj.maxdepth
             WHERE rec.identity in (?)',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 }

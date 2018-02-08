@@ -23,11 +23,16 @@ class IdNameObject
         return $this->name;
     }
 
-    public function getElastic(): array
+    public function getJson(): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
         ];
+    }
+
+    public function getElastic(): array
+    {
+        return $this->getJson();
     }
 }

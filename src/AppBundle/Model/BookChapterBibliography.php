@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 class BookChapterBibliography extends Bibliography
 {
-    use StartEndPages;
+    use StartEndPagesTrait;
 
     private $bookChapter;
 

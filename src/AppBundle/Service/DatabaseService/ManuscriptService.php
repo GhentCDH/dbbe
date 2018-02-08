@@ -16,47 +16,6 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getLocations(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                region.identity as city_id,
-                region.name as city_name,
-                institution.identity as library_id,
-                institution.name as library_name,
-                fund.idfund as fund_id,
-                fund.name as fund_name,
-                located_at.identification as shelf
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.fund on location.idfund = fund.idfund
-            inner join data.institution on fund.idlibrary = institution.identity
-            inner join data.region on institution.idregion = region.identity
-            where manuscript.identity in (?)
-            union
-            select
-                manuscript.identity as manuscript_id,
-                region.identity as city_id,
-                region.name as city_name,
-                institution.identity as library_id,
-                institution.name as library_name,
-                null as fund_id,
-                null as fund_name,
-                located_at.identification as shelf
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.institution on location.idinstitution = institution.identity
-            inner join data.region on institution.idregion = region.identity
-            where manuscript.identity in (?)
-            and location.idfund is null',
-            [$ids, $ids],
-            [Connection::PARAM_INT_ARRAY, Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(

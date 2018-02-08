@@ -4,14 +4,11 @@ namespace AppBundle\Model;
 
 class Manuscript
 {
-    use CacheDependencies;
+    use CacheDependenciesTrait;
 
     private $id;
     private $diktyon;
-    private $city;
-    private $library;
-    private $collection;
-    private $shelf;
+    private $location;
     private $date;
     private $contentsWithParents;
     private $origin;
@@ -41,64 +38,21 @@ class Manuscript
         return $this->id;
     }
 
-    public function setCity(Region $city): Manuscript
+    public function setLocation(Location $location): Manuscript
     {
-        $this->city = $city;
+        $this->location = $location;
 
         return $this;
     }
 
-    public function getCity(): Region
+    public function getLocation(): Location
     {
-        return $this->city;
-    }
-
-    public function setLibrary(Library $library): Manuscript
-    {
-        $this->library = $library;
-
-        return $this;
-    }
-
-    public function getLibrary(): Library
-    {
-        return $this->library;
-    }
-
-    public function setCollection(Collection $collection): Manuscript
-    {
-        $this->collection = $collection;
-
-        return $this;
-    }
-
-    public function getCollection(): ?Collection
-    {
-        return $this->collection;
-    }
-
-    public function setShelf(string $shelf): Manuscript
-    {
-        $this->shelf = $shelf;
-
-        return $this;
-    }
-
-    public function getShelf(): string
-    {
-        return $this->shelf;
+        return $this->location;
     }
 
     public function getName(): string
     {
-        $name = strtoupper($this->city->getName());
-        $name .= ' - ' . $this->library->getName();
-        if (!empty($this->collection)) {
-            $name .= ' - ' . $this->collection->getName();
-        }
-        $name .= ' ' . $this->shelf;
-
-        return $name;
+        return $this->location->getName();
     }
 
     public function addContentWithParents(ContentWithParents $contentWithParents): Manuscript
@@ -257,19 +211,26 @@ class Manuscript
         return $this->illustrated;
     }
 
-    public function getElastic(): array
+    public function getJson(): array
     {
         $result = [
             'id' => $this->id,
-            'city' => $this->city->getElastic(),
-            'library' => $this->library->getElastic(),
-            'shelf' => $this->shelf,
+            'city' => $this->location->getCity()->getElastic(),
+            'library' => $this->location->getLibrary()->getElastic(),
+            'shelf' => $this->location->getShelf(),
             'name' => $this->getName(),
         ];
 
-        if (isset($this->collection)) {
-            $result['collection'] = $this->collection->getElastic();
+        if (!empty($this->location->getCollection())) {
+            $result['collection'] = $this->location->getCollection()->getElastic();
         }
+
+        return $result;
+    }
+
+    public function getElastic(): array
+    {
+        $result = $this->getJson();
         if (isset($this->contentsWithParents)) {
             $contents = [];
             foreach ($this->contentsWithParents as $contentWithParents) {
@@ -298,19 +259,6 @@ class Manuscript
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getElastic();
         }
-
-        return $result;
-    }
-
-    public function getJson(): array
-    {
-        $result = [
-            'id' => $this->id,
-            'city' => $this->city->getElastic(),
-            'library' => $this->library->getElastic(),
-            'shelf' => $this->shelf,
-            'name' => $this->getName(),
-        ];
 
         return $result;
     }

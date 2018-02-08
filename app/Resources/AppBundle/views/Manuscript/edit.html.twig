@@ -4,7 +4,10 @@
     <div id="manuscript-edit-app">
         <manuscript-edit-app
             get-manuscript-url="{{ path('manuscript_show', {'id': id}) }}"
+            put-manuscript-url="{{ path('manuscript_put', {'id': id}) }}"
             get-cities-url="{{ path('cities') }}"
+            get-libraries-url="{{ path('libraries', {'city_id': 'city_id'}) }}"
+            get-collections-url="{{ path('collections', {'library_id': 'library_id'}) }}"
         />
     </div>
 {% endblock %}

@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 abstract class Bibliography
 {
-    use CacheDependencies;
+    use CacheDependenciesTrait;
 
     protected $id;
     protected $type;

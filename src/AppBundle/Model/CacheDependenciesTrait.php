@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-trait CacheDependencies
+trait CacheDependenciesTrait
 {
     protected $cacheDependencies;
 

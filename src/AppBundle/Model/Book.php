@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 class Book
 {
-    use Authors;
+    use AuthorsTrait;
 
     private $id;
     private $year;
