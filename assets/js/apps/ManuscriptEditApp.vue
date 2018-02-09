@@ -69,11 +69,13 @@
         props: [
             'getManuscriptUrl',
             'putManuscriptUrl',
-            'manuscript',
-            'locations'
+            'initManuscript',
+            'initLocations'
         ],
         data() {
             return {
+                manuscript: null,
+                locations: [],
                 model: {
                     city: null,
                     library: null,
@@ -112,7 +114,9 @@
         },
         mounted () {
             this.$nextTick( () => {
-                this.loadManuscript(JSON.parse(this.manuscript))
+                this.manuscript = JSON.parse(this.initManuscript)
+                this.locations = JSON.parse(this.initLocations)
+                this.loadManuscript()
             })
         },
         computed: {
@@ -121,12 +125,19 @@
             }
         },
         watch: {
+            'locations': function(newValue, oldValue)  {
+                this.loadList(this.locationSchema.fields.city)
+                this.enableField(this.locationSchema.fields.city)
+                this.loadList(this.locationSchema.fields.library)
+                this.loadList(this.locationSchema.fields.collection)
+            },
             'model.city': function(newValue, oldValue) {
                 if (newValue === undefined || newValue === null) {
                     this.dependencyField(this.locationSchema.fields.library)
                 }
                 else {
                     this.loadList(this.locationSchema.fields.library)
+                    this.enableField(this.locationSchema.fields.library)
                 }
             },
             'model.library': function(newValue, oldValue) {
@@ -135,6 +146,7 @@
                 }
                 else {
                     this.loadList(this.locationSchema.fields.collection)
+                    this.enableField(this.locationSchema.fields.collection)
                 }
             }
         },
@@ -164,11 +176,11 @@
                 }
                 return result
             },
-            loadManuscript(data) {
-                this.model.city = data.location.city
-                this.model.library = data.location.library
-                this.model.collection = data.location.collection
-                this.model.shelf = data.location.shelf
+            loadManuscript() {
+                this.model.city = this.manuscript.location.city
+                this.model.library = this.manuscript.location.library
+                this.model.collection = this.manuscript.location.collection
+                this.model.shelf = this.manuscript.location.shelf
 
                 this.$refs.locationForm.validate()
 
@@ -178,7 +190,7 @@
                 }
             },
             loadList(field) {
-                let locations = Object.values(JSON.parse(this.locations))
+                let locations = Object.values(this.locations)
                 if (field.hasOwnProperty('dependency')) {
                     locations = locations.filter((location) => location[field.dependency + '_id'] === this.model[field.dependency]['id'])
                 }
@@ -195,7 +207,7 @@
                         this.model[field.model] = null
                     }
                 }
-                this.enableField(field, values)
+                field.values = values
             },
             validated(isValid, errors) {
                 this.invalidForms = (
@@ -220,12 +232,11 @@
                 field.selectOptions.loading = false
                 field.placeholder = 'No ' + field.label.toLowerCase() + 's available'
             },
-            enableField(field, values) {
-                if (values.length === 0) {
+            enableField(field) {
+                if (field.values.length === 0) {
                     return this.noValuesField(field)
                 }
 
-                field.values = values
                 field.selectOptions.loading = false
                 field.disabled = false
                 let label = field.label.toLowerCase()
@@ -283,7 +294,8 @@
                 this.saveModal = false
                 axios.put(this.putManuscriptUrl, this.toSave())
                     .then( (response) => {
-                        this.loadManuscript(response.data)
+                        this.manuscript = response.data
+                        this.loadManuscript()
                         this.alerts.push({type: 'success', message: 'Manuscript data successfully saved.'})
                         this.openRequests--
                     })

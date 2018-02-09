@@ -5,8 +5,8 @@
         <manuscript-edit-app
             get-manuscript-url="{{ path('manuscript_show', {'id': id}) }}"
             put-manuscript-url="{{ path('manuscript_put', {'id': id}) }}"
-            manuscript="{{ manuscript }}"
-            locations="{{ locations }}"
+            init-manuscript="{{ manuscript }}"
+            init-locations="{{ locations }}"
         />
     </div>
 {% endblock %}
