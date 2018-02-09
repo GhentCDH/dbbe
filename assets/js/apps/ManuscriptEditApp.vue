@@ -116,7 +116,6 @@
             this.$nextTick( () => {
                 this.manuscript = JSON.parse(this.initManuscript)
                 this.locations = JSON.parse(this.initLocations)
-                this.loadManuscript()
             })
         },
         computed: {
@@ -125,6 +124,19 @@
             }
         },
         watch: {
+            'manuscript': function (newValue, oldValue) {
+                this.model.city = this.manuscript.location.city
+                this.model.library = this.manuscript.location.library
+                this.model.collection = this.manuscript.location.collection
+                this.model.shelf = this.manuscript.location.shelf
+
+                this.$refs.locationForm.validate()
+
+                this.originalModel = Object.assign({}, this.model)
+                if (this.locationSchema.fields.city.values.length === 0) {
+                    this.loadList(this.locationSchema.fields.city)
+                }
+            },
             'locations': function(newValue, oldValue)  {
                 this.loadList(this.locationSchema.fields.city)
                 this.enableField(this.locationSchema.fields.city)
@@ -175,19 +187,6 @@
                     }
                 }
                 return result
-            },
-            loadManuscript() {
-                this.model.city = this.manuscript.location.city
-                this.model.library = this.manuscript.location.library
-                this.model.collection = this.manuscript.location.collection
-                this.model.shelf = this.manuscript.location.shelf
-
-                this.$refs.locationForm.validate()
-
-                this.originalModel = Object.assign({}, this.model)
-                if (this.locationSchema.fields.city.values.length === 0) {
-                    this.loadList(this.locationSchema.fields.city)
-                }
             },
             loadList(field) {
                 let locations = Object.values(this.locations)
@@ -295,7 +294,6 @@
                 axios.put(this.putManuscriptUrl, this.toSave())
                     .then( (response) => {
                         this.manuscript = response.data
-                        this.loadManuscript()
                         this.alerts.push({type: 'success', message: 'Manuscript data successfully saved.'})
                         this.openRequests--
                     })

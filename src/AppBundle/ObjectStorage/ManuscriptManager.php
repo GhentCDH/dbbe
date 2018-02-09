@@ -3,6 +3,9 @@
 namespace AppBundle\ObjectStorage;
 
 use stdClass;
+
+use AppBundle\Exceptions\NotFoundInDatabaseException;
+
 use AppBundle\Model\Collection;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
@@ -218,8 +221,17 @@ class ManuscriptManager extends ObjectManager
         // construct manuscript
         foreach ($data as $key => $value) {
             switch ($key) {
+                case 'library':
+                    if (!property_exists($data, 'collection') || empty($data->collection)) {
+                        $manuscript->getLocation()->setLibrary(new Library($value->id, $value->name));
+                    }
+                    break;
                 case 'collection':
-                    $manuscript->getLocation()->setCollection(new Collection($value->id, $value->name));
+                    if (empty($value)) {
+                        $manuscript->getLocation()->setCollection(null);
+                    } else {
+                        $manuscript->getLocation()->setCollection(new Collection($value->id, $value->name));
+                    }
                     break;
                 case 'shelf':
                     $manuscript->getLocation()->setShelf($value);
@@ -228,11 +240,20 @@ class ManuscriptManager extends ObjectManager
         }
 
         // save manuscript to database
-        if (property_exists($data, 'collection')) {
-            $this->oms['location_manager']->updateLocation($manuscript->getLocation());
-        }
         if (property_exists($data, 'shelf')) {
             $this->oms['location_manager']->updateShelf($manuscript->getLocation());
+        }
+        if (property_exists($data, 'library')  || property_exists($data, 'collection')) {
+            // update location
+            $this->oms['location_manager']->updateLocation($manuscript->getLocation());
+
+            // set new location
+            $locationId = $manuscript->getLocation()->getId();
+            $locations = $this->oms['location_manager']->getLocationsByIds([$locationId]);
+            if (count($locations) != 1) {
+                throw NotFoundInDatabaseException('Location not found');
+            }
+            $manuscript->setLocation($locations[$locationId]);
         }
 
         $this->setCache([$manuscript], 'manuscript');

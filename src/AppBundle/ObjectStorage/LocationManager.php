@@ -64,6 +64,7 @@ class LocationManager extends ObjectManager
 
     public function updateLocation(Location $location): void
     {
+        $this->cache->deleteItem('location.' . $location->getId());
         if (!empty($location->getCollection())) {
             $this->dbs->updateCollection($location->getId(), $location->getCollection()->getId());
         } else {
@@ -73,6 +74,7 @@ class LocationManager extends ObjectManager
 
     public function updateShelf(Location $location): void
     {
+        $this->setCache([$location], 'location');
         $this->dbs->updateShelf($location->getId(), $location->getShelf());
     }
 }
