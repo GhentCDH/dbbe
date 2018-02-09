@@ -92,4 +92,40 @@ class Location
 
         return $name;
     }
+
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'city' => $this->city->getJson(),
+            'library' => $this->library->getJson(),
+            'shelf' => $this->shelf,
+        ];
+
+        if (!empty($this->collection)) {
+            $result['collection'] = $this->collection->getJson();
+        }
+
+        return $result;
+    }
+
+    public static function sortByName(Location $a, Location $b): int
+    {
+        if ($a->getCity()->getName() === $b->getCity()->getName()) {
+            if ($a->getLibrary()->getName() === $b->getLibrary()->getName()) {
+                if (!empty($a->getCollection()) && !empty($b->getCollection())) {
+                    return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
+                }
+                if (!empty($a->getCollection())) {
+                    return -1;
+                }
+                if (!empty($b->getCollection())) {
+                    return 1;
+                }
+                return 0;
+            }
+            return strcmp($a->getLibrary()->getName(), $b->getLibrary()->getName());
+        }
+        return strcmp($a->getCity()->getName(), $b->getCity()->getName());
+    }
 }

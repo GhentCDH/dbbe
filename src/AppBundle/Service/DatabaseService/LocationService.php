@@ -6,6 +6,16 @@ use Doctrine\DBAL\Connection;
 
 class LocationService extends DatabaseService
 {
+    public function getIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                -- iddocument is the unique identifier in the located_at table
+                located_at.iddocument as location_id
+            from data.located_at'
+        )->fetchAll();
+    }
+
     public function getLocationsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -25,7 +35,9 @@ class LocationService extends DatabaseService
             inner join data.institution on fund.idlibrary = institution.identity
             inner join data.region on institution.idregion = region.identity
             where located_at.iddocument in (?)
+
             union
+
             select
                 -- iddocument is the unique identifier in the located_at table
                 located_at.iddocument as location_id,
@@ -47,38 +59,37 @@ class LocationService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getAllCities(): array
+    public function getAllCitiesLibrariesCollections(): array
     {
         return $this->conn->query(
-            'SELECT
-                region.identity as city_id,
-                region.name as city_name
-            from data.region
-            where region.is_city = TRUE'
-        )->fetchAll();
-    }
+            '(
+                SELECT
+                    region.identity AS city_id,
+                    region.name AS city_name,
+                    institution.identity AS library_id,
+                    institution.name AS library_name,
+                    fund.idfund AS collection_id,
+                    fund.name AS collection_name
+                FROM data.location
+                INNER JOIN data.fund ON location.idfund = fund.idfund
+                INNER JOIN data.institution ON fund.idlibrary = institution.identity
+                INNER JOIN data.region ON institution.idregion = region.identity
 
-    public function getLibrariesInCity(int $city_id): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                institution.identity as library_id,
-                institution.name as library_name
-            from data.institution
-            where institution.idregion = ?',
-            [$city_id]
-        )->fetchAll();
-    }
+                UNION
 
-    public function getCollectionsInLibrary(int $library_id): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                fund.idfund as collection_id,
-                fund.name as collection_name
-            from data.fund
-            where fund.idlibrary = ?',
-            [$library_id]
+                SELECT
+                    region.identity AS city_id,
+                    region.name AS city_name,
+                    institution.identity AS library_id,
+                    institution.name AS library_name,
+                    NULL AS collection_id,
+                    NULL AS collection_name
+                FROM data.location
+                INNER JOIN data.institution ON location.idinstitution = institution.identity
+                INNER JOIN data.region ON institution.idregion = region.identity
+                WHERE location.idfund is NULL
+            )
+            ORDER BY city_name, library_name, collection_name'
         )->fetchAll();
     }
 

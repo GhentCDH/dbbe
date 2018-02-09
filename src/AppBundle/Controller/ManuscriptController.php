@@ -2,9 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use stdClass;
-use AppBundle\Exceptions\NotFoundInDatabaseException;
-use AppBundle\Model\Manuscript;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -18,6 +15,8 @@ const MC_TYPE = 'manuscript';
 
 class ManuscriptController extends Controller
 {
+    use ArrayToJsonTrait;
+
     /**
      * @Route("/manuscripts/")
      */
@@ -224,9 +223,20 @@ class ManuscriptController extends Controller
     public function editManuscript(int $id)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+
+        $locations = $this
+            ->get('location_manager')
+            ->getAllCitiesLibrariesCollections();
+
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
-            ['id' => $id]
+            [
+                'id' => $id,
+                'locations' => json_encode($locations),
+                'manuscript' => json_encode($manuscript->getJson()),
+            ]
         );
     }
 }

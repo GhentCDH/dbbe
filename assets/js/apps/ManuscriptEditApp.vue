@@ -69,9 +69,8 @@
         props: [
             'getManuscriptUrl',
             'putManuscriptUrl',
-            'getCitiesUrl',
-            'getLibrariesUrl',
-            'getCollectionsUrl'
+            'manuscript',
+            'locations'
         ],
         data() {
             return {
@@ -113,17 +112,7 @@
         },
         mounted () {
             this.$nextTick( () => {
-                this.openRequests++
-                axios.get(this.getManuscriptUrl)
-                    .then( (response) => {
-                        this.loadManuscript(response.data)
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while loading the manuscript data.'})
-                        this.openRequests--
-                    })
+                this.loadManuscript(JSON.parse(this.manuscript))
             })
         },
         computed: {
@@ -137,7 +126,7 @@
                     this.dependencyField(this.locationSchema.fields.library)
                 }
                 else {
-                    this.loadList(this.getLibrariesUrl.replace('city_id', newValue.id), this.locationSchema.fields.library)
+                    this.loadList(this.locationSchema.fields.library)
                 }
             },
             'model.library': function(newValue, oldValue) {
@@ -145,7 +134,7 @@
                     this.dependencyField(this.locationSchema.fields.collection)
                 }
                 else {
-                    this.loadList(this.getCollectionsUrl.replace('library_id', newValue.id), this.locationSchema.fields.collection)
+                    this.loadList(this.locationSchema.fields.collection)
                 }
             }
         },
@@ -176,36 +165,37 @@
                 return result
             },
             loadManuscript(data) {
-                this.model.city = data.city
-                this.model.library = data.library
-                this.model.collection = data.collection
-                this.model.shelf = data.shelf
+                this.model.city = data.location.city
+                this.model.library = data.location.library
+                this.model.collection = data.location.collection
+                this.model.shelf = data.location.shelf
 
                 this.$refs.locationForm.validate()
 
                 this.originalModel = Object.assign({}, this.model)
                 if (this.locationSchema.fields.city.values.length === 0) {
-                    this.loadList(this.getCitiesUrl, this.locationSchema.fields.city)
+                    this.loadList(this.locationSchema.fields.city)
                 }
             },
-            loadList(url, field) {
-                this.openRequests++
-                axios.get(url)
-                    .then( (response) => {
-                        // only keep current value if it is in the list of possible values
-                        if (this.model[field.model] !== undefined && this.model[field.model] !== null) {
-                            if ((response.data.filter(d => d.id === this.model[field.model].id)).length === 0) {
-                                this.model[field.model] = null
-                            }
-                        }
-                        this.enableField(field, response.data.sort(this.sortByName))
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while loading data.'})
-                        this.openRequests--
-                    })
+            loadList(field) {
+                let locations = Object.values(JSON.parse(this.locations))
+                if (field.hasOwnProperty('dependency')) {
+                    locations = locations.filter((location) => location[field.dependency + '_id'] === this.model[field.dependency]['id'])
+                }
+
+                let values = locations
+                    .map((location) => {return {'id': location[field.model + '_id'], 'name': location[field.model + '_name']}})
+                    // remove duplicates
+                    .filter((location, index, self) => index === self.findIndex((l) => l.id === location.id))
+
+
+                // only keep current value if it is in the list of possible values
+                if (this.model[field.model] !== undefined && this.model[field.model] !== null) {
+                    if ((values.filter(v => v.id === this.model[field.model].id)).length === 0) {
+                        this.model[field.model] = null
+                    }
+                }
+                this.enableField(field, values)
             },
             validated(isValid, errors) {
                 this.invalidForms = (
@@ -213,10 +203,10 @@
                 )
             },
             disableField(field) {
-                this.schema.fields[fieldName].disabled = true
-                this.schema.fields[fieldName].placeholder = 'Loading'
-                this.schema.fields[fieldName].selectOptions.loading = true
-                this.schema.fields[fieldName].values = []
+                field.disabled = true
+                field.placeholder = 'Loading'
+                field.selectOptions.loading = true
+                field.values = []
             },
             dependencyField(field) {
                 this.model[field.model] = null

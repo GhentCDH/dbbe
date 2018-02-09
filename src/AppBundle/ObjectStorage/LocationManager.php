@@ -39,59 +39,27 @@ class LocationManager extends ObjectManager
         return $locations;
     }
 
-    public function getAllCities(): array
+    public function getAllLocations(): array
     {
-        $cache = $this->cache->getItem('cities');
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'location_id');
+        return $this->getLocationsByIds($ids);
+    }
+
+    public function getAllCitiesLibrariesCollections(): array
+    {
+        $cache = $this->cache->getItem('citiesLibrariesCollections');
         if ($cache->isHit()) {
             return $cache->get();
         }
 
-        $rawCities = $this->dbs->getAllCities();
-        $cities = [];
-        foreach ($rawCities as $rawCity) {
-            $cities[$rawCity['city_id']] = new Region($rawCity['city_id'], $rawCity['city_name']);
-        }
+        $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
 
         $cache->tag('regions');
-        $this->cache->save($cache->set($cities));
-        return $cities;
-    }
-
-    public function getLibrariesInCity(int $city_id): array
-    {
-        $cache = $this->cache->getItem('libraries_in_city.' . $city_id);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $rawLibraries = $this->dbs->getLibrariesInCity($city_id);
-        $libraries = [];
-        foreach ($rawLibraries as $rawLibrary) {
-            $libraries[$rawLibrary['library_id']] = new Library($rawLibrary['library_id'], $rawLibrary['library_name']);
-        }
-
         $cache->tag('libraries');
-        $this->cache->save($cache->set($libraries));
-        return $libraries;
-    }
-
-    public function getCollectionsInLibrary(int $library_id): array
-    {
-        $cache = $this->cache->getItem('collections_in_library.' . $library_id);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $rawCollections = $this->dbs->getCollectionsInLibrary($library_id);
-        $collections = [];
-        foreach ($rawCollections as $rawCollection) {
-            $collections[$rawCollection['collection_id']] =
-                new Collection($rawCollection['collection_id'], $rawCollection['collection_name']);
-        }
-
-        $cache->tag('libraries');
-        $this->cache->save($cache->set($collections));
-        return $collections;
+        $cache->tag('collections');
+        $this->cache->save($cache->set($citiesLibrariesCollections));
+        return $citiesLibrariesCollections;
     }
 
     public function updateLocation(Location $location): void

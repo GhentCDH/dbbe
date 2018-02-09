@@ -215,15 +215,9 @@ class Manuscript
     {
         $result = [
             'id' => $this->id,
-            'city' => $this->location->getCity()->getElastic(),
-            'library' => $this->location->getLibrary()->getElastic(),
-            'shelf' => $this->location->getShelf(),
+            'location' => $this->location->getJson(),
             'name' => $this->getName(),
         ];
-
-        if (!empty($this->location->getCollection())) {
-            $result['collection'] = $this->location->getCollection()->getElastic();
-        }
 
         return $result;
     }
