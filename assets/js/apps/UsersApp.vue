@@ -46,7 +46,7 @@
             <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
             </alert>
-            Are you sure you want to delete user "{{this.model.username}}"?
+            Are you sure you want to delete user "{{ this.model.username }}"?
             <div slot="header">
                 <h4 class="modal-title">Delete user "{{ this.model.username }}"</h4>
             </div>
@@ -60,13 +60,13 @@
 <script>
     window.axios = require('axios')
 
+    import * as uiv from 'uiv'
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
-    import * as uiv from 'uiv'
     import VueTables from 'vue-tables-2'
 
-    Vue.use(VueFormGenerator)
     Vue.use(uiv)
+    Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
 
     export default {
@@ -212,8 +212,8 @@
                         this.$refs.table.refresh()
                     })
                     .catch( (error) => {
-                        this.formModal = true
-                            this.openRequests--
+                        this.delModal = true
+                        this.openRequests--
                         this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the user.'})
                         console.log(error)
                     })
