@@ -15,9 +15,10 @@
             <v-server-table
                 ref="resultTable"
                 url="/manuscripts/search_api"
-                :columns="['name', 'date', 'content']"
-                :options="tableOptions">
-                <a slot="name" slot-scope="props" :href="'/manuscripts/' + props.row.id">
+                :columns="tableColumns"
+                :options="tableOptions"
+                @loaded="tableLoaded">
+                <a slot="name" slot-scope="props" :href="showManuscriptUrl.replace('manuscript_id', props.row.id)">
                     {{ props.row.name }}
                 </a>
                 <template slot="date" slot-scope="props" v-if="props.row.date_floor_year && props.row.date_ceiling_year">
@@ -38,17 +39,35 @@
                         </template>
                     </template>
                 </template>
+                <template slot="actions" slot-scope="props">
+                    <a :href="editManuscriptUrl.replace('manuscript_id', props.row.id)" class="action" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                    <a href="#" class="action" title="Delete" @click.prevent="del(props.row)"><i class="fa fa-trash-o"></i></a>
+                </template>
             </v-server-table>
             <div class="loading-overlay" v-if="this.openTableRequests">
                 <div class="spinner">
                 </div>
             </div>
         </article>
+        <modal v-model="delModal" auto-focus>
+            <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
+            Are you sure you want to delete manuscript "{{ this.delManuscript.name }}"?
+            <div slot="header">
+                <h4 class="modal-title">Delete manuscript "{{ this.delManuscript.name }}"</h4>
+            </div>
+            <div slot="footer">
+                <btn @click="delModal=false">Cancel</btn>
+                <btn type="danger" @click="submitDelete()">Delete</btn>
+            </div>
+        </modal>
     </div>
 </template>
 <script>
     window.axios = require('axios')
 
+    import * as uiv from 'uiv'
     import Vue from 'vue'
     import VueFormGenerator from 'vue-form-generator'
     import VueMultiselect from 'vue-multiselect'
@@ -56,6 +75,7 @@
 
     import fieldMultiselectClear from '../components/formfields/fieldMultiselectClear'
 
+    Vue.use(uiv)
     Vue.use(VueFormGenerator)
     Vue.use(VueTables.ServerTable)
 
@@ -66,6 +86,12 @@
     var YEAR_MAX = (new Date()).getFullYear()
 
     export default {
+        props: [
+            'isEditor',
+            'showManuscriptUrl',
+            'editManuscriptUrl',
+            'delManuscriptUrl'
+        ],
         data() {
             return {
                 model: {},
@@ -153,13 +179,28 @@
                 // used to only send requests after timeout when inputting free input fields
                 inputCancel: null,
                 // Remove requesting the same data that is already displayed
-                oldFilterValues: this.constructFilterValues()
+                oldFilterValues: this.constructFilterValues(),
+                delManuscript: {
+                    id: 0,
+                    name: ''
+                },
+                delModal: false,
+                alerts: []
             }
         },
         mounted () {
             this.$nextTick( () => {
                 this.setFilters()
             })
+        },
+        computed: {
+            tableColumns() {
+                let columns = ['name', 'date', 'content']
+                if (this.isEditor) {
+                    columns.push('actions')
+                }
+                return columns
+            },
         },
         methods: {
             filterDisplayContent(contentList) {
@@ -363,6 +404,29 @@
             resetAllFilters() {
                 this.model = {}
                 this.onValidated(true)
+            },
+            del(row) {
+                this.delManuscript = row
+                this.delModal = true
+            },
+            submitDelete() {
+                this.openTableRequests++
+                this.delModal = false
+                axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
+                    .then( (response) => {
+                        this.$refs.table.refresh()
+                    })
+                    .catch( (error) => {
+                        this.delModal = true
+                        this.openTableRequests--
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the manuscript.'})
+                        console.log(error)
+                    })
+            },
+            tableLoaded() {
+                if (this.openTableRequests > 0) {
+                    this.openTableRequests--
+                }
             }
         }
     }

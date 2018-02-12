@@ -2,7 +2,12 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2>Manuscript "{{ manuscript.getName() }}"</h2>
+        <h2>
+            Manuscript "{{ manuscript.getName() }}"
+            {% if is_granted('ROLE_EDITOR') %}
+                <a href="{{ path('manuscript_edit', {'id': manuscript.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
         <table class="table table-hover table-bordered">
             <tbody>
                 {% if manuscript.getContentsWithParents() is not empty %}

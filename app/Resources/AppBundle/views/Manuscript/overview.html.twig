@@ -2,7 +2,12 @@
 
 {% block content %}
     <div id="manuscript-search-app">
-        <manuscript-search-app />
+        <manuscript-search-app
+            is-editor="{{ is_granted('ROLE_EDITOR') }}"
+            show-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
+            edit-manuscript-url="{{ path('manuscript_edit', {'id': 'manuscript_id'}) }}"
+            del-manuscript-url="{{ path('manuscript_delete', {'id': 'manuscript_id'}) }}"
+        />
     </div>
 {% endblock %}
 

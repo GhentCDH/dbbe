@@ -6,6 +6,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 const M_INDEX = 'documents';
@@ -198,7 +199,7 @@ class ManuscriptController extends Controller
     /**
      * @Route("/manuscripts/{id}", name="manuscript_put")
      * @Method("PUT")
-     * @param  int    $id user id
+     * @param  int    $id manuscript id
      * @param Request $request
      * @return JsonResponse
      */
@@ -218,7 +219,23 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/{id}/edit")
+     * @Route("/manuscripts/{id}", name="manuscript_delete")
+     * @Method("DELETE")
+     * @param  int    $id manuscript id
+     * @param Request $request
+     * @return Response
+     */
+    public function deleteManuscript(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        throw new \Exception('Not implemented');
+
+        return new Response(null, 204);
+    }
+
+    /**
+     * @Route("/manuscripts/{id}/edit", name="manuscript_edit")
      */
     public function editManuscript(int $id)
     {
