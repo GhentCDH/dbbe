@@ -84,7 +84,7 @@ class ManuscriptManager extends ObjectManager
             $occurrences = $this->oms['occurrence_manager']->getOccurrencesByIds($occurrenceIds);
         }
 
-        foreach (($rawBibroles + $rawOccurrenceBibroles + $rawRelatedPersons) as $rawPerson) {
+        foreach (array_merge($rawBibroles, $rawOccurrenceBibroles, $rawRelatedPersons) as $rawPerson) {
             $person = $persons[$rawPerson['person_id']];
 
             if (in_array($person->getId(), $patronIds)) {

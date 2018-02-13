@@ -2,7 +2,7 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use Elastica\Connection;
+use Doctrine\DBAL\Connection;
 
 class OccurrenceService extends DatabaseService
 {

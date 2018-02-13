@@ -342,9 +342,8 @@
                 this.saveModal = false
                 axios.put(this.putManuscriptUrl, this.toSave())
                     .then( (response) => {
-                        this.manuscript = response.data
-                        this.alerts.push({type: 'success', message: 'Manuscript data successfully saved.'})
-                        this.openRequests--
+                        // redirect to the detail page
+                        window.location = this.getManuscriptUrl
                     })
                     .catch( (error) => {
                         console.log(error)

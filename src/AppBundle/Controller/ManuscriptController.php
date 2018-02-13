@@ -215,6 +215,8 @@ class ManuscriptController extends Controller
             throw $this->createNotFoundException('There is no manuscript with the requested id.');
         }
 
+        $this->addFlash('success', 'Manuscript data successfully saved.');
+
         return new JsonResponse($manuscript->getJson());
     }
 
