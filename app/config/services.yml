@@ -39,7 +39,8 @@ services:
             'region_manager': '@region_manager',
             'bibliography_manager': '@bibliography_manager',
             'occurrence_manager': '@occurrence_manager'},
-            '@elasticsearch_service']
+            '@elasticsearch_service',
+            '@security.token_storage']
         public: true
 
     location_manager:
@@ -49,24 +50,24 @@ services:
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
-        arguments: ['@content_service', '@cache.app', {}, null]
+        arguments: ['@content_service', '@cache.app', {}, null, null]
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager
-        arguments: ['@person_service', '@cache.app', {}, null]
+        arguments: ['@person_service', '@cache.app', {}, null, null]
         public: true
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
-        arguments: ['@region_service', '@cache.app', {}, null]
+        arguments: ['@region_service', '@cache.app', {}, null, null]
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
-        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null]
+        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null, null]
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager
-        arguments: ['@occurrence_service', '@cache.app', {}, null]
+        arguments: ['@occurrence_service', '@cache.app', {}, null, null]
 
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService

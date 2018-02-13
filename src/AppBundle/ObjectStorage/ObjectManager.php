@@ -7,23 +7,28 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class ObjectManager
 {
     protected $dbs;
     protected $cache;
     protected $oms;
+    protected $ess;
+    protected $ts;
 
     public function __construct(
         DatabaseServiceInterface $databaseService,
         CacheItemPoolInterface $cacheItemPool,
         array $objectManagers,
-        ElasticSearchServiceInterface $elasticSearchService = null
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null
     ) {
         $this->dbs = $databaseService;
         $this->cache = new TagAwareAdapter($cacheItemPool);
         $this->oms = $objectManagers;
         $this->ess = $elasticSearchService;
+        $this->ts = $tokenStorage;
     }
 
     protected static function getUniqueIds(array $rows, string $key, string $filterKey = null, $filterValue = null): array

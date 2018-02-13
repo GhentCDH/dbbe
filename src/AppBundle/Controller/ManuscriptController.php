@@ -246,6 +246,7 @@ class ManuscriptController extends Controller
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
         $locations = $this->get('location_manager')->getAllCitiesLibrariesCollections();
         $patrons = self::arrayToShortJson($this->get('person_manager')->getPatrons());
+        $scribes = self::arrayToShortJson($this->get('person_manager')->getSCribes());
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
@@ -254,6 +255,7 @@ class ManuscriptController extends Controller
                 'manuscript' => json_encode($manuscript->getJson()),
                 'locations' => json_encode($locations),
                 'patrons' => json_encode($patrons),
+                'scribes' => json_encode($scribes),
             ]
         );
     }

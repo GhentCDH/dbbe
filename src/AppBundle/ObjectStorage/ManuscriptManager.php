@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use DateTime;
 use stdClass;
 
 use AppBundle\Exceptions\NotFoundInDatabaseException;
@@ -87,35 +88,31 @@ class ManuscriptManager extends ObjectManager
         foreach (array_merge($rawBibroles, $rawOccurrenceBibroles, $rawRelatedPersons) as $rawPerson) {
             $person = $persons[$rawPerson['person_id']];
 
-            if (in_array($person->getId(), $patronIds)) {
-                $manuscripts[$rawPerson['manuscript_id']]
-                    ->addPatron($person)
-                    ->addCacheDependency('person.' . $person->getId());
-            }
-            if (in_array($person->getId(), $scribeIds)) {
-                $manuscripts[$rawPerson['manuscript_id']]
-                    ->addScribe($person)
-                    ->addCacheDependency('person.' . $person->getId());
-            }
-            if (in_array($person->getId(), $occurrencePatronIds)) {
-                $manuscripts[$rawPerson['manuscript_id']]
-                    ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
-                    ->addCacheDependency('person.' . $person->getId())
-                    ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
-            }
-            if (in_array($person->getId(), $occurrenceScribeIds)) {
-                $manuscripts[$rawPerson['manuscript_id']]
-                    ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
-                    ->addCacheDependency('person.' . $person->getId())
-                    ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
-            }
-            // only display related persons if not in any patrons or scribes list
-            if (in_array($person->getId(), $relatedPersonIds)
-                && !in_array($person->getId(), $patronIds)
-                && !in_array($person->getId(), $scribeIds)
-                && !in_array($person->getId(), $occurrencePatronIds)
-                && !in_array($person->getId(), $occurrenceScribeIds)
-            ) {
+            if (isset($rawPerson['type'])) {
+                if (isset($rawPerson['occurrence_id'])) {
+                    if ($rawPerson['type'] == 'patron') {
+                        $manuscripts[$rawPerson['manuscript_id']]
+                            ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
+                            ->addCacheDependency('person.' . $person->getId())
+                            ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+                    } elseif ($rawPerson['type'] == 'scribe') {
+                        $manuscripts[$rawPerson['manuscript_id']]
+                            ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
+                            ->addCacheDependency('person.' . $person->getId())
+                            ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+                    }
+                } else {
+                    if ($rawPerson['type'] == 'patron') {
+                        $manuscripts[$rawPerson['manuscript_id']]
+                            ->addPatron($person)
+                            ->addCacheDependency('person.' . $person->getId());
+                    } elseif ($rawPerson['type'] == 'scribe') {
+                        $manuscripts[$rawPerson['manuscript_id']]
+                            ->addScribe($person)
+                            ->addCacheDependency('person.' . $person->getId());
+                    }
+                }
+            } else {
                 $manuscripts[$rawPerson['manuscript_id']]
                     ->addRelatedPerson($person)
                     ->addCacheDependency('person.' . $person->getId());
@@ -258,46 +255,62 @@ class ManuscriptManager extends ObjectManager
             $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
         }
         if (property_exists($data, 'patrons')) {
-            $this->updatePatrons($manuscript, $data->patrons);
+            $this->updateBibroles($manuscript, $data->patrons, $manuscript->getPatrons(), 'patron');
+        }
+        if (property_exists($data, 'scribes')) {
+            $this->updateBibroles($manuscript, $data->scribes, $manuscript->getScribes(), 'scribe');
         }
 
         // load new manuscript data
         $this->cache->deleteItem('manuscript_short.' . $id);
         $this->cache->deleteItem('manuscript.' . $id);
-        $manuscript = $this->getManuscriptById($id);
+        $newManuscript = $this->getManuscriptById($id);
+
+        $this->updateModified($manuscript, $newManuscript);
 
         // re-index in elastic search
-        $this->ess->addManuscript($manuscript);
+        $this->ess->addManuscript($newManuscript);
 
         // update cache
-        $this->setCache([$manuscript->getId() => $manuscript], 'manuscript');
+        $this->setCache([$newManuscript->getId() => $newManuscript], 'manuscript');
 
-        return $manuscript;
+        return $newManuscript;
     }
 
-    private function updatePatrons(Manuscript $manuscript, array $patrons)
+    private function updateBibroles(Manuscript $manuscript, array $newPersons, array $oldPersons, string $role)
     {
-        $newPatronIds = array_map(
-            function ($patron) {
-                return $patron->id;
+        $newPersonIds = array_map(
+            function ($newPerson) {
+                return $newPerson->id;
             },
-            $patrons
+            $newPersons
         );
-        $oldPatronIds = array_map(
-            function ($patron) {
-                return $patron->getId();
+        $oldPersonIds = array_map(
+            function ($oldPerson) {
+                return $oldPerson->getId();
             },
-            $manuscript->getPatrons()
+            $oldPersons
         );
 
-        $delPatronIds = array_diff($oldPatronIds, $newPatronIds);
-        $addPatronIds = array_diff($newPatronIds, $oldPatronIds);
+        $delPersonIds = array_diff($oldPersonIds, $newPersonIds);
+        $addPersonIds = array_diff($newPersonIds, $oldPersonIds);
 
-        if (count($delPatronIds) > 0) {
-            $this->dbs->delBibroles($manuscript->getId(), 'patron', $delPatronIds);
+        if (count($delPersonIds) > 0) {
+            $this->dbs->delBibroles($manuscript->getId(), $role, $delPersonIds);
         }
-        foreach ($addPatronIds as $addPatronId) {
-            $this->dbs->addBibrole($manuscript->getId(), 'patron', $addPatronId);
+        foreach ($addPersonIds as $addPersonId) {
+            $this->dbs->addBibrole($manuscript->getId(), $role, $addPersonId);
         }
+    }
+
+    private function updateModified(Manuscript $old, Manuscript $new)
+    {
+        $this->dbs->updateModified($new->getId());
+        $this->dbs->createRevision(
+            $new->getId(),
+            $this->ts->getToken()->getUser()->getId(),
+            json_encode($old->getJson()),
+            json_encode($new->getJson())
+        );
     }
 }

@@ -53,31 +53,41 @@ class PersonManager extends ObjectManager
         return $cached + $persons;
     }
 
-    public function getPatrons(): array
+    private function getBibroles(string $cacheKey, array $occupations): array
     {
-        $cache = $this->cache->getItem('patrons');
+        $cache = $this->cache->getItem($cacheKey);
         if ($cache->isHit()) {
             return $cache->get();
         }
 
-        $patrons = [];
-        $patronIds = [];
-        $personsByOccupations = array_merge($this->getPersonsByOccupations(['Sponsor', 'Owner']));
+        $persons = [];
+        $personIds = [];
+        $personsByOccupations = array_merge($this->getPersonsByOccupations($occupations));
         foreach ($personsByOccupations as $personsByOccupation) {
             foreach ($personsByOccupation as $person) {
-                if (!in_array($person->getId(), $patronIds)) {
-                    $patronIds[] = $person->getId();
-                    $patrons[] = $person;
+                if (!in_array($person->getId(), $personIds)) {
+                    $personIds[] = $person->getId();
+                    $persons[] = $person;
                 }
             }
         }
 
-        usort($patrons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
         $cache->tag('persons');
         $cache->tag('occupations');
-        $this->cache->save($cache->set($patrons));
-        return $patrons;
+        $this->cache->save($cache->set($persons));
+        return $persons;
+    }
+
+    public function getPatrons(): array
+    {
+        return $this->getBibroles('patrons', ['Sponsor', 'Owner']);
+    }
+
+    public function getScribes(): array
+    {
+        return $this->getBibroles('scribes', ['Scribe']);
     }
 
     private function getPersonsByOccupations(array $occupations): array

@@ -2,8 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
@@ -33,5 +33,28 @@ class DatabaseService implements DatabaseServiceInterface
     {
         $this->conn = $entityManager->getConnection();
         $this->cache = $cacheItemPool;
+    }
+
+    public function updateModified(int $entityId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set modified = DEFAULT
+            where entity.identity = ?',
+            [$entityId]
+        );
+    }
+
+    public function createRevision(
+        int $entityId,
+        int $userId,
+        string $oldValue,
+        string $newValue
+    ): int {
+        return $this->conn->executeUpdate(
+            'INSERT INTO logic.revision (identity, created, iduser, old_value, new_value)
+            values (?, DEFAULT, ?, ?, ?)',
+            [$entityId, $userId, $oldValue, $newValue]
+        );
     }
 }

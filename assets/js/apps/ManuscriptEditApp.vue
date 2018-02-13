@@ -29,6 +29,20 @@
                             </li>
                         </ul>
                     </template>
+                    <vue-form-generator :schema="scribesSchema" :model="model" :options="formOptions" ref="scribesForm" @validated="validated()"></vue-form-generator>
+                    <template v-if="this.manuscript.occurrenceScribes.length > 0">
+                        Scribe(s) provided by occurrences:
+                        <ul>
+                            <li v-for="scribe in this.manuscript.occurrenceScribes">
+                                {{ scribe.name }}
+                                <ul>
+                                    <li v-for="occurrence in scribe.occurrences">
+                                        {{ occurrence }}
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </template>
                 </div>
             </div>
             <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
@@ -105,21 +119,25 @@
             'putManuscriptUrl',
             'initManuscript',
             'initLocations',
-            'initPatrons'
+            'initPatrons',
+            'initScribes'
         ],
         data() {
             return {
                 manuscript: {
-                    occurrencePatrons: []
+                    occurrencePatrons: [],
+                    occurrenceScribes: []
                 },
                 locations: [],
                 patrons: [],
+                scribes: [],
                 model: {
                     city: null,
                     library: null,
                     collection: null,
                     shelf: null,
-                    patrons: []
+                    patrons: [],
+                    scribes: []
                 },
                 locationSchema: {
                     fields: {
@@ -139,6 +157,11 @@
                 patronsSchema: {
                     fields: {
                         patrons: this.createMultiSelect('Patrons', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
+                    }
+                },
+                scribesSchema: {
+                    fields: {
+                        scribes: this.createMultiSelect('Scribes', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
                     }
                 },
                 formOptions: {
@@ -162,6 +185,7 @@
                 this.manuscript = JSON.parse(this.initManuscript)
                 this.locations = JSON.parse(this.initLocations)
                 this.patrons = JSON.parse(this.initPatrons)
+                this.scribes = JSON.parse(this.initScribes)
             })
         },
         watch: {
@@ -174,6 +198,7 @@
 
                 // People
                 this.model.patrons = this.manuscript.patrons
+                this.model.scribes = this.manuscript.scribes
 
                 this.originalModel = Object.assign({}, this.model)
 
@@ -183,6 +208,7 @@
 
                 this.$refs.locationForm.validate()
                 this.$refs.patronsForm.validate()
+                this.$refs.scribesForm.validate()
             },
             'locations': function(newValue, oldValue)  {
                 this.loadLocationField(this.locationSchema.fields.city)
@@ -193,6 +219,10 @@
             'patrons': function(newValue, oldValue) {
                 this.patronsSchema.fields.patrons.values = this.patrons
                 this.enableField(this.patronsSchema.fields.patrons)
+            },
+            'scribes': function(newValue, oldValue) {
+                this.scribesSchema.fields.scribes.values = this.scribes
+                this.enableField(this.scribesSchema.fields.scribes)
             },
             'model.city': function(newValue, oldValue) {
                 if (newValue === undefined || newValue === null) {
@@ -301,7 +331,12 @@
             },
             calcDiff() {
                 this.diff = []
-                let fields = Object.assign({}, this.locationSchema.fields, this.patronsSchema.fields)
+                let fields = Object.assign(
+                    {},
+                    this.locationSchema.fields,
+                    this.patronsSchema.fields,
+                    this.scribesSchema.fields
+                )
                 for (let key of Object.keys(this.model)) {
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
                         this.diff.push({
