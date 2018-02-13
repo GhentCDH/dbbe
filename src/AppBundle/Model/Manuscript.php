@@ -75,7 +75,7 @@ class Manuscript extends Document
 
     public function addPatron(Person $person): Manuscript
     {
-        $this->patrons[] = $person;
+        $this->patrons[$person->getId()] = $person;
 
         return $this;
     }
@@ -104,14 +104,17 @@ class Manuscript extends Document
     {
         $patrons = $this->patrons;
         foreach ($this->occurrencePatrons as $occurrencePatron) {
-            $patrons[] = $occurrencePatron[0];
+            $occurrencePatronPerson = $occurrencePatron[0];
+            if (!array_key_exists($occurrencePatronPerson->getId(), $patrons)) {
+                $patrons[$occurrencePatronPerson->getId()] = $occurrencePatronPerson;
+            }
         }
         return $patrons;
     }
 
     public function addScribe(Person $person): Manuscript
     {
-        $this->scribes[] = $person;
+        $this->scribes[$person->getId()] = $person;
 
         return $this;
     }
@@ -140,21 +143,39 @@ class Manuscript extends Document
     {
         $scribes = $this->scribes;
         foreach ($this->occurrenceScribes as $occurrenceScribe) {
-            $scribes[] = $occurrenceScribe[0];
+            $occurrenceScribePerson = $occurrenceScribe[0];
+            if (!array_key_exists($occurrenceScribePerson->getId(), $scribes)) {
+                $scribes[$occurrenceScribePerson->getId()] = $occurrenceScribePerson;
+            }
         }
         return $scribes;
     }
 
     public function addRelatedPerson(Person $person): Manuscript
     {
-        $this->relatedPersons[] = $person;
+        $this->relatedPersons[$person->getId()] = $person;
 
         return $this;
     }
 
-    public function getRelatedPersons(): ?array
+    public function getRelatedPersons(): array
     {
         return $this->relatedPersons;
+    }
+
+    public function getOnlyRelatedPersons(): array
+    {
+        $persons = [];
+        $allPatrons = $this->getAllPatrons();
+        $allScribes = $this->getAllSCribes();
+        foreach ($this->relatedPersons as $relatedPerson) {
+            if (!array_key_exists($relatedPerson->getId(), $allPatrons)
+                && !array_key_exists($relatedPerson->getId(), $allScribes)
+            ) {
+                $persons[$relatedPerson->getId()] = $relatedPerson;
+            }
+        }
+        return $persons;
     }
 
     public function setDate(FuzzyDate $date): Manuscript
@@ -259,9 +280,9 @@ class Manuscript extends Document
             'id' => $this->id,
             'location' => $this->location->getJson(),
             'name' => $this->getName(),
-            'patrons' => self::arrayToShortJson($this->patrons),
+            'patrons' => self::arrayToShortJson(array_values($this->patrons)),
             'occurrencePatrons' =>self::getOccurrencePersonsJson($this->occurrencePatrons),
-            'scribes' => self::arrayToShortJson($this->scribes),
+            'scribes' => self::arrayToShortJson(array_values($this->scribes)),
             'occurrenceScribes' =>self::getOccurrencePersonsJson($this->occurrenceScribes),
         ];
 

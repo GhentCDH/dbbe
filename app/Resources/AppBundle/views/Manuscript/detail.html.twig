@@ -46,11 +46,11 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getRelatedPersons() is not empty %}
+                {% if manuscript.getOnlyRelatedPersons() is not empty %}
                     <tr>
                         <td>Person(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getRelatedPersons()} only %}
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getOnlyRelatedPersons()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
