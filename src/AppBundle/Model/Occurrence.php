@@ -93,7 +93,7 @@ class Occurrence
         return $result;
     }
 
-    private static function formatRecto(bool $recto): string
+    private static function formatRecto(bool $recto = null): string
     {
         if (empty($recto)) {
             return '';

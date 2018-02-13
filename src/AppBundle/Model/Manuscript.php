@@ -233,10 +233,10 @@ class Manuscript
             $result['content'] = $contents;
         }
         if (isset($this->date) && !empty($this->date->getFloor())) {
-            $result['date_floor_year'] = $this->date->getFloor()->format('Y');
+            $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));
         }
         if (isset($this->date) && !empty($this->date->getCeiling())) {
-            $result['date_ceiling_year'] = $this->date->getCeiling()->format('Y');
+            $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
         if (isset($this->patrons)) {
             $result['patron'] = [];
