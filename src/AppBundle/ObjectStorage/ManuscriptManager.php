@@ -254,6 +254,7 @@ class ManuscriptManager extends ObjectManager
         if (property_exists($data, 'shelf')) {
             $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
         }
+        // TODO: update content
         if (property_exists($data, 'patrons')) {
             $this->updateBibroles($manuscript, $data->patrons, $manuscript->getPatrons(), 'patron');
         }

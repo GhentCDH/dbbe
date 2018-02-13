@@ -245,6 +245,7 @@ class ManuscriptController extends Controller
 
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
         $locations = $this->get('location_manager')->getAllCitiesLibrariesCollections();
+        $contents = self::arrayToShortJson($this->get('content_manager')->getAllContents());
         $patrons = self::arrayToShortJson($this->get('person_manager')->getPatrons());
         $scribes = self::arrayToShortJson($this->get('person_manager')->getSCribes());
 
@@ -254,6 +255,7 @@ class ManuscriptController extends Controller
                 'id' => $id,
                 'manuscript' => json_encode($manuscript->getJson()),
                 'locations' => json_encode($locations),
+                'contents' => json_encode($contents),
                 'patrons' => json_encode($patrons),
                 'scribes' => json_encode($scribes),
             ]

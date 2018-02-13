@@ -51,6 +51,7 @@ services:
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
         arguments: ['@content_service', '@cache.app', {}, null, null]
+        public: true
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager

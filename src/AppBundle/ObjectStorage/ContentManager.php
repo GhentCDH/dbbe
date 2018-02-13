@@ -38,4 +38,23 @@ class ContentManager extends ObjectManager
 
         return $cached + $contentsWithParents;
     }
+
+    public function getAllContents(): array
+    {
+        $cache = $this->cache->getItem('contents');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawIds = $this->dbs->getContentIds();
+        $ids = self::getUniqueIds($rawIds, 'content_id');
+        $contentsWithParents = $this->getContentsWithParentsByIds($ids);
+
+        // Sort by name
+        usort($contentsWithParents, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $contentsWithParents;
+    }
 }

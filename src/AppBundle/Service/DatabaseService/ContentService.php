@@ -6,6 +6,16 @@ use Doctrine\DBAL\Connection;
 
 class ContentService extends DatabaseService
 {
+    public function getContentIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                genre.idgenre as content_id
+            from data.genre
+            where genre.is_content = TRUE'
+        )->fetchAll();
+    }
+
     public function getContentsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(

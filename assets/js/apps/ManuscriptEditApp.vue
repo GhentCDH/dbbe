@@ -13,6 +13,12 @@
                 </div>
             </div>
             <div class="panel panel-default">
+                <div class="panel-heading">Content</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="contentSchema" :model="model" :options="formOptions" ref="contentForm" @validated="validated()"></vue-form-generator>
+                </div>
+            </div>
+            <div class="panel panel-default">
                 <div class="panel-heading">People</div>
                 <div class="panel-body">
                     <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
@@ -119,6 +125,7 @@
             'putManuscriptUrl',
             'initManuscript',
             'initLocations',
+            'initContents',
             'initPatrons',
             'initScribes'
         ],
@@ -129,6 +136,7 @@
                     occurrenceScribes: []
                 },
                 locations: [],
+                contents: [],
                 patrons: [],
                 scribes: [],
                 model: {
@@ -136,6 +144,7 @@
                     library: null,
                     collection: null,
                     shelf: null,
+                    content: [],
                     patrons: [],
                     scribes: []
                 },
@@ -152,6 +161,11 @@
                             required: true,
                             validator: VueFormGenerator.validators.string
                         }
+                    }
+                },
+                contentSchema: {
+                    fields: {
+                        content: this.createMultiSelect('Content', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
                     }
                 },
                 patronsSchema: {
@@ -184,6 +198,7 @@
             this.$nextTick( () => {
                 this.manuscript = JSON.parse(this.initManuscript)
                 this.locations = JSON.parse(this.initLocations)
+                this.contents = JSON.parse(this.initContents)
                 this.patrons = JSON.parse(this.initPatrons)
                 this.scribes = JSON.parse(this.initScribes)
             })
@@ -196,6 +211,9 @@
                 this.model.collection = this.manuscript.location.collection
                 this.model.shelf = this.manuscript.location.shelf
 
+                // Content
+                this.model.content = this.manuscript.content
+
                 // People
                 this.model.patrons = this.manuscript.patrons
                 this.model.scribes = this.manuscript.scribes
@@ -207,6 +225,7 @@
                 }
 
                 this.$refs.locationForm.validate()
+                this.$refs.contentForm.validate()
                 this.$refs.patronsForm.validate()
                 this.$refs.scribesForm.validate()
             },
@@ -215,6 +234,10 @@
                 this.enableField(this.locationSchema.fields.city)
                 this.loadLocationField(this.locationSchema.fields.library)
                 this.loadLocationField(this.locationSchema.fields.collection)
+            },
+            'contents': function(newValue, oldValue) {
+                this.contentSchema.fields.content.values = this.contents
+                this.enableField(this.contentSchema.fields.content)
             },
             'patrons': function(newValue, oldValue) {
                 this.patronsSchema.fields.patrons.values = this.patrons
@@ -334,6 +357,7 @@
                 let fields = Object.assign(
                     {},
                     this.locationSchema.fields,
+                    this.contentSchema.fields,
                     this.patronsSchema.fields,
                     this.scribesSchema.fields
                 )

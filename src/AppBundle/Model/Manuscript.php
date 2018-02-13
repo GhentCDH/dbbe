@@ -280,6 +280,7 @@ class Manuscript extends Document
             'id' => $this->id,
             'location' => $this->location->getJson(),
             'name' => $this->getName(),
+            'content' => self::arrayToShortJson(array_values($this->contentsWithParents)),
             'patrons' => self::arrayToShortJson(array_values($this->patrons)),
             'occurrencePatrons' =>self::getOccurrencePersonsJson($this->occurrencePatrons),
             'scribes' => self::arrayToShortJson(array_values($this->scribes)),

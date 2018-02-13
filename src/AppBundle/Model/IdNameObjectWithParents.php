@@ -34,6 +34,14 @@ class IdNameObjectWithParents
         return $this->array;
     }
 
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+        ];
+    }
+
     public function getElastic(): array
     {
         $result = [];
@@ -53,13 +61,5 @@ class IdNameObjectWithParents
             array_pop($array);
         }
         return $result;
-    }
-
-    public function getJson(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'name' => $this->getName(),
-        ];
     }
 }
