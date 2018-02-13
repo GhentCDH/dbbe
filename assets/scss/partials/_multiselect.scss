@@ -167,19 +167,18 @@ fieldset {
 }
 
 .multiselect__tags-wrap {
-  display: inline
+  display: inline;
 }
 
 .multiselect__tags {
-  border: 1px solid $brand-tertiary;
+  border: 1px solid $input-border;
   display: block;
   min-height: 40px;
   padding: 8px 40px 0 8px;
 }
 
 .multiselect__tag {
-  background: $brand-tertiary;
-  border-radius: 5px;
+  background: $brand-primary;
   color: $white;
   display: inline-block;
   line-height: 1;
@@ -194,7 +193,6 @@ fieldset {
 }
 
 .multiselect__tag-icon {
-  border-radius: 5px;
   bottom: 0;
   cursor: pointer;
   font-style: initial;
@@ -209,17 +207,14 @@ fieldset {
   width: 22px;
 
   &::after {
-    color: $border-color;
     content: '×';
     font-size: 14px;
   }
 
   &:focus,
   &:hover {
-    background: $brand-secondary;
-
     &::after {
-      color: $white;
+      color: $brand-secondary;
     }
   }
 }

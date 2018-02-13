@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Doctrine\DBAL\Connection;
+
 class PersonService extends DatabaseService
 {
     public function getPersonsByIds(array $ids): array
@@ -90,7 +92,22 @@ class PersonService extends DatabaseService
             ) as occupation_merge on person.identity = occupation_merge.idperson
             where person.identity in (?)',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getIdsByOccupations(array $occupations): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                occupation.occupation,
+                person.identity as person_id
+            from data.person
+            inner join data.person_occupation on person.identity = person_occupation.idperson
+            inner join data.occupation on person_occupation.idoccupation = occupation.idoccupation
+            where occupation.occupation in (?)',
+            [$occupations],
+            [Connection::PARAM_STR_ARRAY]
         )->fetchAll();
     }
 }

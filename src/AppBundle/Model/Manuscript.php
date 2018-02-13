@@ -2,18 +2,30 @@
 
 namespace AppBundle\Model;
 
-class Manuscript
+use AppBundle\Helpers\ArrayToJsonTrait;
+
+class Manuscript extends Document
 {
     use CacheDependenciesTrait;
+    use ArrayToJsonTrait;
 
-    private $id;
     private $diktyon;
     private $location;
     private $date;
     private $contentsWithParents;
     private $origin;
     private $patrons;
+    /**
+     * Array of arrays with one person and at least one occurrence
+     * @var array
+     */
+    private $occurrencePatrons;
     private $scribes;
+    /**
+     * Array of arrays with one person and at least one occurrence
+     * @var array
+     */
+    private $occurrenceScribes;
     private $relatedPersons;
     private $bibliographies;
     private $occurrences;
@@ -23,19 +35,13 @@ class Manuscript
 
     public function __construct()
     {
+        $this->contentsWithParents = [];
+        $this->patrons = [];
+        $this->occurrencePatrons = [];
+        $this->scribes = [];
+        $this->occurrenceScribes = [];
+        $this->relatedPersons = [];
         return $this;
-    }
-
-    public function setId(int $id): Manuscript
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
     }
 
     public function setLocation(Location $location): Manuscript
@@ -57,54 +63,90 @@ class Manuscript
 
     public function addContentWithParents(ContentWithParents $contentWithParents): Manuscript
     {
-        if (!isset($this->contentsWithParents)) {
-            $this->contentsWithParents = [];
-        }
         $this->contentsWithParents[] = $contentWithParents;
 
         return $this;
     }
 
-    public function getContentsWithParents(): ?array
+    public function getContentsWithParents(): array
     {
         return $this->contentsWithParents;
     }
 
     public function addPatron(Person $person): Manuscript
     {
-        if (!isset($this->patrons)) {
-            $this->patrons = [];
-        }
         $this->patrons[] = $person;
 
         return $this;
     }
 
-    public function getPatrons(): ?array
+    public function getPatrons(): array
     {
         return $this->patrons;
     }
 
+    public function addOccurrencePatron(Person $person, Occurrence $occurrence): Manuscript
+    {
+        if (isset($this->occurrencePatrons[$person->getId()])) {
+            $this->occurrencePatrons[$person->getId()][] = $occurrence;
+        }
+        $this->occurrencePatrons[$person->getId()] = [$person, $occurrence];
+
+        return $this;
+    }
+
+    public function getOccurrencePatrons(): array
+    {
+        return $this->occurrencePatrons;
+    }
+
+    public function getAllPatrons(): array
+    {
+        $patrons = $this->patrons;
+        foreach ($this->occurrencePatrons as $occurrencePatron) {
+            $patrons[] = $occurrencePatron[0];
+        }
+        return $patrons;
+    }
+
     public function addScribe(Person $person): Manuscript
     {
-        if (!isset($this->scribes)) {
-            $this->scribes = [];
-        }
         $this->scribes[] = $person;
 
         return $this;
     }
 
-    public function getScribes(): ?array
+    public function getScribes(): array
     {
         return $this->scribes;
     }
 
+    public function addOccurrenceScribe(Person $person, Occurrence $occurrence): Manuscript
+    {
+        if (isset($this->occurrenceScribes[$person->getId()])) {
+            $this->occurrenceScribes[$person->getId()][] = $occurrence;
+        }
+        $this->occurrenceScribes[$person->getId()] = [$person, $occurrence];
+
+        return $this;
+    }
+
+    public function getOccurrenceScribes(): array
+    {
+        return $this->occurrenceScribes;
+    }
+
+    public function getAllSCribes(): array
+    {
+        $scribes = $this->scribes;
+        foreach ($this->occurrenceScribes as $occurrenceScribe) {
+            $scribes[] = $occurrenceScribe[0];
+        }
+        return $scribes;
+    }
+
     public function addRelatedPerson(Person $person): Manuscript
     {
-        if (!isset($this->relatedPersons)) {
-            $this->relatedPersons = [];
-        }
         $this->relatedPersons[] = $person;
 
         return $this;
@@ -217,6 +259,10 @@ class Manuscript
             'id' => $this->id,
             'location' => $this->location->getJson(),
             'name' => $this->getName(),
+            'patrons' => self::arrayToShortJson($this->patrons),
+            'occurrencePatrons' =>self::getOccurrencePersonsJson($this->occurrencePatrons),
+            'scribes' => self::arrayToShortJson($this->scribes),
+            'occurrenceScribes' =>self::getOccurrencePersonsJson($this->occurrenceScribes),
         ];
 
         return $result;
@@ -225,7 +271,7 @@ class Manuscript
     public function getElastic(): array
     {
         $result = $this->getJson();
-        if (isset($this->contentsWithParents)) {
+        if (!empty($this->contentsWithParents)) {
             $contents = [];
             foreach ($this->contentsWithParents as $contentWithParents) {
                 $contents = array_merge($contents, $contentWithParents->getElastic());
@@ -238,15 +284,15 @@ class Manuscript
         if (isset($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
-        if (isset($this->patrons)) {
+        if (!empty($this->getAllPatrons())) {
             $result['patron'] = [];
-            foreach ($this->patrons as $patron) {
+            foreach ($this->getAllPatrons() as $patron) {
                 $result['patron'][] = $patron->getElastic();
             }
         }
-        if (isset($this->scribes)) {
+        if (!empty($this->getAllSCribes())) {
             $result['scribe'] = [];
-            foreach ($this->scribes as $scribe) {
+            foreach ($this->getAllSCribes() as $scribe) {
                 $result['scribe'][] = $scribe->getElastic();
             }
         }
@@ -254,6 +300,23 @@ class Manuscript
             $result['origin'] = $this->origin->getElastic();
         }
 
+        return $result;
+    }
+
+    private static function getOccurrencePersonsJson(array $occurrencePersons): array
+    {
+        $result = [];
+        foreach ($occurrencePersons as $occurrencePerson) {
+            $person = array_shift($occurrencePerson);
+            $row = $person->getShortJson();
+            $row['occurrences'] = array_map(
+                function ($occurrence) {
+                    return $occurrence->getDescription();
+                },
+                $occurrencePerson
+            );
+            $result[] = $row;
+        }
         return $result;
     }
 }

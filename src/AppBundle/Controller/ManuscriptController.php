@@ -9,10 +9,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use AppBundle\Helpers\ArrayToJsonTrait;
+
 const M_INDEX = 'documents';
 const M_TYPE = 'manuscript';
-const MC_INDEX = 'contents';
-const MC_TYPE = 'manuscript';
 
 class ManuscriptController extends Controller
 {
@@ -242,17 +242,16 @@ class ManuscriptController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
-
-        $locations = $this
-            ->get('location_manager')
-            ->getAllCitiesLibrariesCollections();
+        $locations = $this->get('location_manager')->getAllCitiesLibrariesCollections();
+        $patrons = self::arrayToShortJson($this->get('person_manager')->getPatrons());
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
             [
                 'id' => $id,
-                'locations' => json_encode($locations),
                 'manuscript' => json_encode($manuscript->getJson()),
+                'locations' => json_encode($locations),
+                'patrons' => json_encode($patrons),
             ]
         );
     }

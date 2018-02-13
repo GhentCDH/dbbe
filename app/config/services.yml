@@ -38,33 +38,35 @@ services:
             'person_manager': '@person_manager',
             'region_manager': '@region_manager',
             'bibliography_manager': '@bibliography_manager',
-            'occurrence_manager': '@occurrence_manager'}]
+            'occurrence_manager': '@occurrence_manager'},
+            '@elasticsearch_service']
         public: true
 
     location_manager:
         class: AppBundle\ObjectStorage\LocationManager
-        arguments: ['@location_service', '@cache.app', {}]
+        arguments: ['@location_service', '@cache.app', {}, null]
         public: true
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
-        arguments: ['@content_service', '@cache.app', {}]
+        arguments: ['@content_service', '@cache.app', {}, null]
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager
-        arguments: ['@person_service', '@cache.app', {}]
+        arguments: ['@person_service', '@cache.app', {}, null]
+        public: true
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
-        arguments: ['@region_service', '@cache.app', {}]
+        arguments: ['@region_service', '@cache.app', {}, null]
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
-        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}]
+        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null]
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager
-        arguments: ['@occurrence_service', '@cache.app', {}]
+        arguments: ['@occurrence_service', '@cache.app', {}, null]
 
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
@@ -95,6 +97,6 @@ services:
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
     elasticsearch_service:
-        class: AppBundle\Service\ElasticsearchService
+        class: AppBundle\Service\ElasticSearchService\ElasticSearchService
         arguments: ['%elastic_hosts%', '%elastic_index%']
         public: true

@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Doctrine\DBAL\Connection;
+
 class BibliographyService extends DatabaseService
 {
     public function getBookBibliographiesByIds(array $ids): array
@@ -23,7 +25,7 @@ class BibliographyService extends DatabaseService
             where reference.idreference in (?)
             order by book.identity, bibrole.rank',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
@@ -54,7 +56,7 @@ class BibliographyService extends DatabaseService
             where reference.idreference in (?)
             order by article.identity, bibrole.rank',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
@@ -85,7 +87,7 @@ class BibliographyService extends DatabaseService
             where reference.idreference in (?)
             order by bookchapter.identity, bibrole.rank',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
@@ -104,7 +106,7 @@ class BibliographyService extends DatabaseService
             inner join data.institution on online_source.identity = institution.identity
             where reference.idreference in (?)',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 }

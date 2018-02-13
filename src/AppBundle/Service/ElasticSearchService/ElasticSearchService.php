@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Service;
+namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Aggregation;
 use Elastica\Client;
@@ -8,21 +8,24 @@ use Elastica\Document;
 use Elastica\Type;
 use Elastica\Query;
 
-const INDEX_PREFIX = "dbbe_";
+use AppBundle\Model\Manuscript;
+
 const MAX = 2147483647;
 
-class ElasticsearchService
+class ElasticSearchService implements ElasticSearchServiceInterface
 {
-    protected $client;
+    private $client;
+    private $indexPrefix;
 
-    public function __construct($hosts)
+    public function __construct(array $config, string $indexPrefix)
     {
-        $this->client = new Client($hosts);
+        $this->client = new Client($config);
+        $this->indexPrefix = $indexPrefix;
     }
 
     public function getIndex($indexName)
     {
-        return $this->client->getIndex(INDEX_PREFIX . $indexName);
+        return $this->client->getIndex($this->indexPrefix . '_'. $indexName);
     }
 
     public function resetIndex($indexName)
@@ -34,11 +37,11 @@ class ElasticsearchService
         $index->create();
     }
 
-    protected function bulkAdd(Type $type, array $indexing_contents)
+    protected function bulkAdd(Type $type, array $indexingContents)
     {
         $bulk_documents = [];
-        while (count($indexing_contents) > 0) {
-            $bulk_contents = array_splice($indexing_contents, 0, 500);
+        while (count($indexingContents) > 0) {
+            $bulk_contents = array_splice($indexingContents, 0, 500);
             foreach ($bulk_contents as $bc) {
                 $bulk_documents[] = new Document($bc['id'], $bc);
             }
@@ -46,6 +49,12 @@ class ElasticsearchService
             $bulk_documents = [];
         }
         $type->getIndex()->refresh();
+    }
+
+    protected function add(Type $type, array $indexingContent)
+    {
+        $document = new Document($indexingContent['id'], $indexingContent);
+        $type->addDocument($document);
     }
 
     public function addManuscripts(array $manuscripts)
@@ -71,6 +80,12 @@ class ElasticsearchService
         }
 
         $this->bulkAdd($type, $manuscriptsElastic);
+    }
+
+    public function addManuscript(Manuscript $manuscript)
+    {
+        $type = $this->getIndex('documents')->getType('manuscript');
+        $this->add($type, $manuscript->getElastic());
     }
 
     public function search(string $indexName, string $typeName, array $params = null): array

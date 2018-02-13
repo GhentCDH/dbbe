@@ -2,8 +2,11 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
+
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class ObjectManager
 {
@@ -14,11 +17,13 @@ class ObjectManager
     public function __construct(
         DatabaseServiceInterface $databaseService,
         CacheItemPoolInterface $cacheItemPool,
-        array $objectManagers
+        array $objectManagers,
+        ElasticSearchServiceInterface $elasticSearchService = null
     ) {
         $this->dbs = $databaseService;
-        $this->cache = $cacheItemPool;
+        $this->cache = new TagAwareAdapter($cacheItemPool);
         $this->oms = $objectManagers;
+        $this->ess = $elasticSearchService;
     }
 
     protected static function getUniqueIds(array $rows, string $key, string $filterKey = null, $filterValue = null): array
@@ -52,8 +57,8 @@ class ObjectManager
 
     protected function setCache(array $items, string $cacheKey): void
     {
-        foreach ($items as $item) {
-            $cache = $this->cache->getItem($cacheKey . '.' . $item->getId());
+        foreach ($items as $id => $item) {
+            $cache = $this->cache->getItem($cacheKey . '.' . $id);
             if (method_exists($item, 'getCacheDependencies')) {
                 foreach ($item->getCacheDependencies() as $cacheDependency) {
                     $cache->tag($cacheDependency);

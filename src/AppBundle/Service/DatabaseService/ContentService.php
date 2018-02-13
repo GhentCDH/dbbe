@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Doctrine\DBAL\Connection;
+
 class ContentService extends DatabaseService
 {
     public function getContentsWithParentsByIds(array $ids): array
@@ -42,7 +44,7 @@ class ContentService extends DatabaseService
             ON r.idgenre = rj.idgenre AND r.depth = rj.maxdepth
             WHERE r.idgenre in (?)',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 }

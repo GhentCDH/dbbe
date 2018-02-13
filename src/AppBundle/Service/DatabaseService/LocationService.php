@@ -93,33 +93,33 @@ class LocationService extends DatabaseService
         )->fetchAll();
     }
 
-    public function updateCollection(int $location_id, int $collection_id): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.located_at
-            set idlocation = (select location.idlocation from data.location where location.idfund = ?)
-            where located_at.iddocument = ?',
-            [$collection_id, $location_id]
-        );
-    }
-
-    public function updateLibrary(int $location_id, int $library_id): int
+    public function updateLibraryId(int $documentId, int $libraryId): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.located_at
             set idlocation = (select location.idlocation from data.location where location.idinstitution = ?)
             where located_at.iddocument = ?',
-            [$library_id, $location_id]
+            [$libraryId, $documentId]
         );
     }
 
-    public function updateShelf(int $document_id, string $shelf): int
+    public function updateCollectionId(int $documentId, int $collectionId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.located_at
+            set idlocation = (select location.idlocation from data.location where location.idfund = ?)
+            where located_at.iddocument = ?',
+            [$collectionId, $documentId]
+        );
+    }
+
+    public function updateShelf(int $documentId, string $shelf): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.located_at
             set identification = ?
             where located_at.iddocument = ?',
-            [$shelf, $document_id]
+            [$shelf, $documentId]
         );
     }
 }

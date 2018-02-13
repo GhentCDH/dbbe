@@ -52,4 +52,52 @@ class PersonManager extends ObjectManager
 
         return $cached + $persons;
     }
+
+    public function getPatrons(): array
+    {
+        $cache = $this->cache->getItem('patrons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $patrons = [];
+        $patronIds = [];
+        $personsByOccupations = array_merge($this->getPersonsByOccupations(['Sponsor', 'Owner']));
+        foreach ($personsByOccupations as $personsByOccupation) {
+            foreach ($personsByOccupation as $person) {
+                if (!in_array($person->getId(), $patronIds)) {
+                    $patronIds[] = $person->getId();
+                    $patrons[] = $person;
+                }
+            }
+        }
+
+        usort($patrons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+
+        $cache->tag('persons');
+        $cache->tag('occupations');
+        $this->cache->save($cache->set($patrons));
+        return $patrons;
+    }
+
+    private function getPersonsByOccupations(array $occupations): array
+    {
+        list($cached, $occupations) = $this->getCache($occupations, 'persons_by_occupation');
+        if (empty($occupations)) {
+            return $cached;
+        }
+
+        $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
+        $personIds = self::getUniqueIds($rawOccupationPersons, 'person_id');
+        $persons = $this->getPersonsByIds($personIds);
+
+        $occupationPersons = [];
+        foreach ($rawOccupationPersons as $rawOccupationPerson) {
+            $occupationPersons[$rawOccupationPerson['occupation']][] = $persons[$rawOccupationPerson['person_id']];
+        }
+
+        $this->setCache($occupationPersons, 'persons_by_occupation');
+
+        return $cached + $occupationPersons;
+    }
 }

@@ -8,8 +8,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 class LocationController extends Controller
 {
-    use ArrayToJsonTrait;
-
     /**
      * @Route("/locations", name="locations")
      */

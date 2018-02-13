@@ -2,7 +2,10 @@
 
 namespace AppBundle\ObjectStorage;
 
+use stdClass;
+
 use AppBundle\Model\Collection;
+use AppBundle\Model\Document;
 use AppBundle\Model\Library;
 use AppBundle\Model\Location;
 use AppBundle\Model\Region;
@@ -62,19 +65,24 @@ class LocationManager extends ObjectManager
         return $citiesLibrariesCollections;
     }
 
-    public function updateLocation(Location $location): void
+    public function updateLibrary(Document $document, stdClass $libary): void
     {
-        $this->cache->deleteItem('location.' . $location->getId());
-        if (!empty($location->getCollection())) {
-            $this->dbs->updateCollection($location->getId(), $location->getCollection()->getId());
-        } else {
-            $this->dbs->updateLibrary($location->getId(), $location->getLibrary()->getId());
-        }
+        $this->cache->deleteItem('location.' . $document->getId());
+        $this->cache->invalidateTags(['location.' . $document->getId()]);
+        $this->dbs->updateLibraryId($document->getId(), $libary->id);
     }
 
-    public function updateShelf(Location $location): void
+    public function updateCollection(Document $document, stdClass $collection): void
     {
-        $this->setCache([$location], 'location');
-        $this->dbs->updateShelf($location->getId(), $location->getShelf());
+        $this->cache->deleteItem('location.' . $document->getId());
+        $this->cache->invalidateTags(['location.' . $document->getId()]);
+        $this->dbs->updateCollectionId($document->getId(), $collection->id);
+    }
+
+    public function updateShelf(Document $document, string $shelf): void
+    {
+        $this->cache->deleteItem('location.' . $document->getId());
+        $this->cache->invalidateTags(['location.' . $document->getId()]);
+        $this->dbs->updateShelf($document->getId(), $shelf);
     }
 }

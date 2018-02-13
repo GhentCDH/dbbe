@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Elastica\Connection;
+
 class OccurrenceService extends DatabaseService
 {
     public function getOccurrencesByIds(array $ids): array
@@ -20,7 +22,7 @@ class OccurrenceService extends DatabaseService
             inner join data.poem on original_poem.identity = poem.identity
             where original_poem.identity in (?)',
             [$ids],
-            [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 }

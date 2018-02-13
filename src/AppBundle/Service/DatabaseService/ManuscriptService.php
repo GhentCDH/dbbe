@@ -38,29 +38,38 @@ class ManuscriptService extends DatabaseService
                 bibrole.idperson as person_id,
                 bibrole.type
             from data.manuscript
-            inner join data.document_contains on manuscript.identity = document_contains.idcontainer
-            inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where manuscript.identity in (?)
-            and bibrole.type in (?)
-            group by manuscript.identity, bibrole.idperson, bibrole.type
-            union
-            select
-                manuscript.identity as manuscript_id,
-                bibrole.idperson as person_id,
-                bibrole.type
-            from data.manuscript
             inner join data.bibrole on manuscript.identity = bibrole.iddocument
             where manuscript.identity in (?)
             and bibrole.type in (?)',
             [
                 $ids,
                 $roles,
-                $ids,
-                $roles
             ],
             [
                 Connection::PARAM_INT_ARRAY,
                 Connection::PARAM_STR_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getOccurrenceBibroles(array $ids, array $roles): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id,
+                bibrole.iddocument as occurrence_id,
+                bibrole.idperson as person_id,
+                bibrole.type
+            from data.manuscript
+            inner join data.document_contains on manuscript.identity = document_contains.idcontainer
+            inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
+            where manuscript.identity in (?)
+            and bibrole.type in (?)',
+            [
+                $ids,
+                $roles,
+            ],
+            [
                 Connection::PARAM_INT_ARRAY,
                 Connection::PARAM_STR_ARRAY,
             ]
@@ -228,5 +237,39 @@ class ManuscriptService extends DatabaseService
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
+    }
+
+    public function delBibroles(int $manuscriptId, string $role, array $personIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.bibrole
+            where bibrole.iddocument = ?
+            and bibrole.type = ?
+            and bibrole.idperson in (?)',
+            [
+                $manuscriptId,
+                $role,
+                $personIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                \PDO::PARAM_STR,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function addBibrole(int $manuscriptId, string $role, int $personId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.bibrole (iddocument, type, idperson)
+                values (?, ?, ?)',
+            [
+                $manuscriptId,
+                $role,
+                $personId,
+            ]
+        );
     }
 }

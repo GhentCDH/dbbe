@@ -6,7 +6,31 @@
             <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
             </alert>
-            <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @onValidated="validated()"></vue-form-generator>
+            <div class="panel panel-default">
+                <div class="panel-heading">Location</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @validated="validated()"></vue-form-generator>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">People</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
+                    <template v-if="this.manuscript.occurrencePatrons.length > 0">
+                        Patron(s) provided by occurrences:
+                        <ul>
+                            <li v-for="patron in this.manuscript.occurrencePatrons">
+                                {{ patron.name }}
+                                <ul>
+                                    <li v-for="occurrence in patron.occurrences">
+                                        {{ occurrence }}
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </template>
+                </div>
+            </div>
             <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="noNewValues || invalidForms" @click="calcDiff();saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="this.openRequests">
@@ -34,8 +58,18 @@
                 <tbody>
                     <tr v-for="row in diff">
                         <td>{{ row['label'] }}</td>
-                        <td>{{ row['old'] }}</td>
-                        <td>{{ row['new'] }}</td>
+                        <template v-for="key in ['old', 'new']">
+                            <td v-if="Array.isArray(row[key])">
+                                <ul v-if="row[key].length > 0">
+                                    <li v-for="item in row[key]">
+                                        {{ getDisplay(item) }}
+                                    </li>
+                                </ul>
+                            </td>
+                            <td v-else>
+                                {{ getDisplay(row[key]) }}
+                            </td>
+                        </template>
                     </tr>
                 </tbody>
             </table>
@@ -70,17 +104,22 @@
             'getManuscriptUrl',
             'putManuscriptUrl',
             'initManuscript',
-            'initLocations'
+            'initLocations',
+            'initPatrons'
         ],
         data() {
             return {
-                manuscript: null,
+                manuscript: {
+                    occurrencePatrons: []
+                },
                 locations: [],
+                patrons: [],
                 model: {
                     city: null,
                     library: null,
                     collection: null,
-                    shelf: null
+                    shelf: null,
+                    patrons: []
                 },
                 locationSchema: {
                     fields: {
@@ -97,6 +136,11 @@
                         }
                     }
                 },
+                patronsSchema: {
+                    fields: {
+                        patrons: this.createMultiSelect('Patrons', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -109,46 +153,53 @@
                 diff:[],
                 resetModal: false,
                 saveModal: false,
-                invalidForms: false
+                invalidForms: false,
+                noNewValues: true
             }
         },
         mounted () {
             this.$nextTick( () => {
                 this.manuscript = JSON.parse(this.initManuscript)
                 this.locations = JSON.parse(this.initLocations)
+                this.patrons = JSON.parse(this.initPatrons)
             })
-        },
-        computed: {
-            noNewValues() {
-                return JSON.stringify(this.originalModel) === JSON.stringify(this.model)
-            }
         },
         watch: {
             'manuscript': function (newValue, oldValue) {
+                // Location
                 this.model.city = this.manuscript.location.city
                 this.model.library = this.manuscript.location.library
                 this.model.collection = this.manuscript.location.collection
                 this.model.shelf = this.manuscript.location.shelf
 
-                this.$refs.locationForm.validate()
+                // People
+                this.model.patrons = this.manuscript.patrons
 
                 this.originalModel = Object.assign({}, this.model)
+
                 if (this.locationSchema.fields.city.values.length === 0) {
-                    this.loadList(this.locationSchema.fields.city)
+                    this.loadLocationField(this.locationSchema.fields.city)
                 }
+
+                this.$refs.locationForm.validate()
+                this.$refs.patronsForm.validate()
             },
             'locations': function(newValue, oldValue)  {
-                this.loadList(this.locationSchema.fields.city)
+                this.loadLocationField(this.locationSchema.fields.city)
                 this.enableField(this.locationSchema.fields.city)
-                this.loadList(this.locationSchema.fields.library)
-                this.loadList(this.locationSchema.fields.collection)
+                this.loadLocationField(this.locationSchema.fields.library)
+                this.loadLocationField(this.locationSchema.fields.collection)
+            },
+            'patrons': function(newValue, oldValue) {
+                this.patronsSchema.fields.patrons.values = this.patrons
+                this.enableField(this.patronsSchema.fields.patrons)
             },
             'model.city': function(newValue, oldValue) {
                 if (newValue === undefined || newValue === null) {
                     this.dependencyField(this.locationSchema.fields.library)
                 }
                 else {
-                    this.loadList(this.locationSchema.fields.library)
+                    this.loadLocationField(this.locationSchema.fields.library)
                     this.enableField(this.locationSchema.fields.library)
                 }
             },
@@ -157,19 +208,19 @@
                     this.dependencyField(this.locationSchema.fields.collection)
                 }
                 else {
-                    this.loadList(this.locationSchema.fields.collection)
+                    this.loadLocationField(this.locationSchema.fields.collection)
                     this.enableField(this.locationSchema.fields.collection)
                 }
             }
         },
         methods: {
-            createMultiSelect(label, extra) {
+            createMultiSelect(label, extra, extraSelectOptions) {
                 let result = {
                     type: 'multiselectClear',
                     label: label,
                     placeholder: 'Loading',
                     model: label.toLowerCase(),
-                    // Values will be loaded using ajax request
+                    // Values will be loaded using a watcher
                     values: [],
                     selectOptions: {
                         customLabel: ({id, name}) => {
@@ -186,9 +237,14 @@
                         result[key] = extra[key]
                     }
                 }
+                if (extraSelectOptions !== undefined) {
+                    for (let key of Object.keys(extraSelectOptions)) {
+                        result['selectOptions'][key] = extraSelectOptions[key]
+                    }
+                }
                 return result
             },
-            loadList(field) {
+            loadLocationField(field) {
                 let locations = Object.values(this.locations)
                 if (field.hasOwnProperty('dependency')) {
                     locations = locations.filter((location) => location[field.dependency + '_id'] === this.model[field.dependency]['id'])
@@ -212,6 +268,7 @@
                 this.invalidForms = (
                     !this.$refs.hasOwnProperty('locationForm') || this.$refs.locationForm.errors.length > 0
                 )
+                this.noNewValues = (JSON.stringify(this.originalModel) === JSON.stringify(this.model))
             },
             disableField(field) {
                 field.disabled = true
@@ -239,41 +296,33 @@
                 field.selectOptions.loading = false
                 field.disabled = false
                 let label = field.label.toLowerCase()
-                field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
-            },
-            sortByName(a, b) {
-                if (a.name < b.name) {
-                    return -1
-                }
-                if (a.name > b.name) {
-                    return 1
-                }
-                return 0
+                let article = ['origin'].indexOf(label) < 0 ? 'a ' : 'an '
+                field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label
             },
             calcDiff() {
                 this.diff = []
-                let fields = Object.assign({}, this.locationSchema.fields)
+                let fields = Object.assign({}, this.locationSchema.fields, this.patronsSchema.fields)
                 for (let key of Object.keys(this.model)) {
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
                         this.diff.push({
                             'label': fields[key]['label'],
-                            'old': this.getValue(this.originalModel[key]),
-                            'new': this.getValue(this.model[key]),
+                            'old': this.originalModel[key],
+                            'new': this.model[key],
                         })
                     }
                 }
             },
-            getValue(modelField) {
+            getDisplay(item) {
                 if (
-                    modelField === undefined
-                    || modelField === null
+                    item === undefined
+                    || item === null
                 ) {
                     return null
                 }
-                else if (modelField.hasOwnProperty('name')) {
-                    return modelField['name']
+                else if (item.hasOwnProperty('name')) {
+                    return item['name']
                 }
-                return modelField
+                return item
             },
             toSave() {
                 let result = {}

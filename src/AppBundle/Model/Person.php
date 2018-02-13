@@ -157,11 +157,21 @@ class Person
         return implode(' ', $nameArray);
     }
 
-    public function getElastic(): array
+    public function getShortJson(): array
     {
         return [
             'id' => $this->id,
             'name' => $this->getFullDescription(),
         ];
+    }
+
+    public function getElastic(): array
+    {
+        return $this->getShortJson();
+    }
+
+    public static function sortByFullDescription($a, $b)
+    {
+        return strcmp($a->getFullDescription(), $b->getFullDescription());
     }
 }

@@ -22,11 +22,11 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getPatrons() is not empty %}
+                {% if manuscript.getAllPatrons() is not empty %}
                     <tr>
                         <td>Patron(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getPatrons()} only %}
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getAllPatrons()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
@@ -34,11 +34,11 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getScribes() is not empty %}
+                {% if manuscript.getAllScribes() is not empty %}
                     <tr>
                         <td>Scribe(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getScribes()} only %}
+                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getAllScribes()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}

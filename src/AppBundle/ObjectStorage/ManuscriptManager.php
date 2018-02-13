@@ -6,10 +6,8 @@ use stdClass;
 
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 
-use AppBundle\Model\Collection;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
-use AppBundle\Model\Library;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
 use AppBundle\Model\Region;
@@ -34,7 +32,8 @@ class ManuscriptManager extends ObjectManager
         foreach ($locations as $location) {
             $manuscripts[$location->getId()] = (new Manuscript())
                 ->setId($location->getId())
-                ->setLocation($location);
+                ->setLocation($location)
+                ->addCacheDependency('location.' . $location->getId());
             foreach ($location->getCacheDependencies() as $cacheDependency) {
                 $manuscripts[$location->getId()]
                     ->addCacheDependency($cacheDependency);
@@ -60,38 +59,66 @@ class ManuscriptManager extends ObjectManager
         }
 
         // Patrons, scribes, related persons
+        // Both the direct patrons and scribes as the patrons and scribes of occurrences
         // Bundle to reduce number of database requests
         $rawBibroles = $this->dbs->getBibroles($ids, ['patron', 'scribe']);
         $patronIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'patron');
         $scribeIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'scribe');
+
+        $rawOccurrenceBibroles = $this->dbs->getOccurrenceBibroles($ids, ['patron', 'scribe']);
+        $occurrencePatronIds = self::getUniqueIds($rawOccurrenceBibroles, 'person_id', 'type', 'patron');
+        $occurrenceScribeIds = self::getUniqueIds($rawOccurrenceBibroles, 'person_id', 'type', 'scribe');
+        $occurrenceIds = self::getUniqueIds($rawOccurrenceBibroles, 'occurrence_id');
+
         $rawRelatedPersons = $this->dbs->getRelatedPersons($ids);
         $relatedPersonIds = self::getUniqueIds($rawRelatedPersons, 'person_id');
-        $personIds = array_merge($patronIds, $scribeIds, $relatedPersonIds);
-        $rawPersons = $rawBibroles + $rawRelatedPersons;
+
+        $personIds = array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds);
+        $persons = [];
         if (count($personIds) > 0) {
             $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+        }
 
-            foreach ($rawPersons as $rawPerson) {
-                $person = $persons[$rawPerson['person_id']];
-                if (in_array($rawPerson['person_id'], $patronIds)) {
-                    $manuscripts[$rawPerson['manuscript_id']]
-                        ->addPatron($person)
-                        ->addCacheDependency('person.' . $person->getId());
-                }
-                if (in_array($rawPerson['person_id'], $scribeIds)) {
-                    $manuscripts[$rawPerson['manuscript_id']]
-                        ->addScribe($person)
-                        ->addCacheDependency('person.' . $person->getId());
-                }
-                // only display related persons if not in patrons or scribes list
-                if (in_array($rawPerson['person_id'], $relatedPersonIds)
-                    && !in_array($rawPerson['person_id'], $patronIds)
-                    && !in_array($rawPerson['person_id'], $scribeIds)
-                ) {
-                    $manuscripts[$rawPerson['manuscript_id']]
-                        ->addRelatedPerson($person)
-                        ->addCacheDependency('person.' . $person->getId());
-                }
+        $occurrences = [];
+        if (count($occurrenceIds) > 0) {
+            $occurrences = $this->oms['occurrence_manager']->getOccurrencesByIds($occurrenceIds);
+        }
+
+        foreach (($rawBibroles + $rawOccurrenceBibroles + $rawRelatedPersons) as $rawPerson) {
+            $person = $persons[$rawPerson['person_id']];
+
+            if (in_array($person->getId(), $patronIds)) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addPatron($person)
+                    ->addCacheDependency('person.' . $person->getId());
+            }
+            if (in_array($person->getId(), $scribeIds)) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addScribe($person)
+                    ->addCacheDependency('person.' . $person->getId());
+            }
+            if (in_array($person->getId(), $occurrencePatronIds)) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
+                    ->addCacheDependency('person.' . $person->getId())
+                    ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+            }
+            if (in_array($person->getId(), $occurrenceScribeIds)) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
+                    ->addCacheDependency('person.' . $person->getId())
+                    ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+            }
+            // only display related persons if not in any patrons or scribes list
+            if (in_array($person->getId(), $relatedPersonIds)
+                && !in_array($person->getId(), $patronIds)
+                && !in_array($person->getId(), $scribeIds)
+                && !in_array($person->getId(), $occurrencePatronIds)
+                && !in_array($person->getId(), $occurrenceScribeIds)
+            ) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addRelatedPerson($person)
+                    ->addCacheDependency('person.' . $person->getId());
             }
         }
 
@@ -206,7 +233,7 @@ class ManuscriptManager extends ObjectManager
             $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
         }
 
-        $this->setCache([$manuscript], 'manuscript');
+        $this->setCache([$manuscript->getId() => $manuscript], 'manuscript');
 
         return $manuscript;
     }
@@ -218,46 +245,59 @@ class ManuscriptManager extends ObjectManager
             return null;
         }
 
-        // construct manuscript
-        foreach ($data as $key => $value) {
-            switch ($key) {
-                case 'library':
-                    if (!property_exists($data, 'collection') || empty($data->collection)) {
-                        $manuscript->getLocation()->setLibrary(new Library($value->id, $value->name));
-                    }
-                    break;
-                case 'collection':
-                    if (empty($value)) {
-                        $manuscript->getLocation()->setCollection(null);
-                    } else {
-                        $manuscript->getLocation()->setCollection(new Collection($value->id, $value->name));
-                    }
-                    break;
-                case 'shelf':
-                    $manuscript->getLocation()->setShelf($value);
-                    break;
-            }
+        // update manuscript data
+        if (property_exists($data, 'library')
+            && !(property_exists($data, 'collection') && !empty($data->collection))
+        ) {
+            $this->oms['location_manager']->updateLibrary($manuscript, $data->library);
         }
-
-        // save manuscript to database
+        if (property_exists($data, 'collection') && !empty($data->collection)) {
+            $this->oms['location_manager']->updateCollection($manuscript, $data->collection);
+        }
         if (property_exists($data, 'shelf')) {
-            $this->oms['location_manager']->updateShelf($manuscript->getLocation());
+            $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
         }
-        if (property_exists($data, 'library')  || property_exists($data, 'collection')) {
-            // update location
-            $this->oms['location_manager']->updateLocation($manuscript->getLocation());
-
-            // set new location
-            $locationId = $manuscript->getLocation()->getId();
-            $locations = $this->oms['location_manager']->getLocationsByIds([$locationId]);
-            if (count($locations) != 1) {
-                throw NotFoundInDatabaseException('Location not found');
-            }
-            $manuscript->setLocation($locations[$locationId]);
+        if (property_exists($data, 'patrons')) {
+            $this->updatePatrons($manuscript, $data->patrons);
         }
 
-        $this->setCache([$manuscript], 'manuscript');
+        // load new manuscript data
+        $this->cache->deleteItem('manuscript_short.' . $id);
+        $this->cache->deleteItem('manuscript.' . $id);
+        $manuscript = $this->getManuscriptById($id);
+
+        // re-index in elastic search
+        $this->ess->addManuscript($manuscript);
+
+        // update cache
+        $this->setCache([$manuscript->getId() => $manuscript], 'manuscript');
 
         return $manuscript;
+    }
+
+    private function updatePatrons(Manuscript $manuscript, array $patrons)
+    {
+        $newPatronIds = array_map(
+            function ($patron) {
+                return $patron->id;
+            },
+            $patrons
+        );
+        $oldPatronIds = array_map(
+            function ($patron) {
+                return $patron->getId();
+            },
+            $manuscript->getPatrons()
+        );
+
+        $delPatronIds = array_diff($oldPatronIds, $newPatronIds);
+        $addPatronIds = array_diff($newPatronIds, $oldPatronIds);
+
+        if (count($delPatronIds) > 0) {
+            $this->dbs->delBibroles($manuscript->getId(), 'patron', $delPatronIds);
+        }
+        foreach ($addPatronIds as $addPatronId) {
+            $this->dbs->addBibrole($manuscript->getId(), 'patron', $addPatronId);
+        }
     }
 }
