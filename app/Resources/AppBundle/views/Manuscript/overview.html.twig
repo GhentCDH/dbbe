@@ -4,6 +4,8 @@
     <div id="manuscript-search-app">
         <manuscript-search-app
             is-editor="{{ is_granted('ROLE_EDITOR') }}"
+            manuscripts-search-api-url="{{ path('manuscripts_search_api') }}"
+            manuscripts-filtervalues-url="{{ path('manuscripts_filtervalues') }}"
             show-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
             edit-manuscript-url="{{ path('manuscript_edit', {'id': 'manuscript_id'}) }}"
             del-manuscript-url="{{ path('manuscript_delete', {'id': 'manuscript_id'}) }}"

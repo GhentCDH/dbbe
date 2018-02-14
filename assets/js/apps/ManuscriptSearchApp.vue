@@ -12,7 +12,7 @@
             <h2>Search Manuscripts</h2>
             <v-server-table
                 ref="resultTable"
-                url="/manuscripts/search_api"
+                :url="manuscriptsSearchApiUrl"
                 :columns="tableColumns"
                 :options="tableOptions"
                 @loaded="tableLoaded">
@@ -28,12 +28,12 @@
                     </template>
                 </template>
                 <template slot="content" slot-scope="props" v-if="props.row.content">
-                    <template v-for="displayContent in filterDisplayContent(props.row.content)">
+                    <template v-for="displayContent in [props.row.content.filter((content) => content['display'])]">
                         <ul v-if="displayContent.length > 1">
                             <li v-for="content in displayContent">{{ content.name }}</li>
                         </ul>
                         <template v-else>
-                            {{ displayContent[0].name}}
+                            {{ displayContent[0].name }}
                         </template>
                     </template>
                 </template>
@@ -86,6 +86,8 @@
     export default {
         props: [
             'isEditor',
+            'manuscriptsSearchApiUrl',
+            'manuscriptsFiltervaluesUrl',
             'showManuscriptUrl',
             'editManuscriptUrl',
             'delManuscriptUrl'
@@ -201,16 +203,6 @@
             },
         },
         methods: {
-            filterDisplayContent(contentList) {
-                // extra dimension is needed to declare variable in template using v-for
-                let result = [[]]
-                for (let contentItem of contentList) {
-                    if (contentItem.display) {
-                        result[0].push(contentItem)
-                    }
-                }
-                return result
-            },
             createMultiSelect(label, extra) {
                 let result = {
                     type: 'multiselectClear',
@@ -278,7 +270,7 @@
                     }
                 }
                 this.openFilterRequests++
-                axios.post('/manuscripts/filtervalues', filterValues, {
+                axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
                     cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
                 })
                     .then( (response) => {

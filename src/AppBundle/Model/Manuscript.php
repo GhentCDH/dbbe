@@ -63,7 +63,7 @@ class Manuscript extends Document
 
     public function addContentWithParents(ContentWithParents $contentWithParents): Manuscript
     {
-        $this->contentsWithParents[] = $contentWithParents;
+        $this->contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
 
         return $this;
     }
@@ -292,7 +292,16 @@ class Manuscript extends Document
 
     public function getElastic(): array
     {
-        $result = $this->getJson();
+        $result = [
+            'id' => $this->id,
+            'city' => $this->location->getCity()->getJson(),
+            'library' => $this->location->getLibrary()->getJson(),
+            'shelf' => $this->location->getShelf(),
+            'name' => $this->getName(),
+        ];
+        if (isset($this->location->getCollection)) {
+            $result['collection'] = $this->location->getCollection()->getJson();
+        }
         if (!empty($this->contentsWithParents)) {
             $contents = [];
             foreach ($this->contentsWithParents as $contentWithParents) {
