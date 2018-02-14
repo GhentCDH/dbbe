@@ -2,8 +2,9 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Doctrine\DBAL\Connection;
+
 use AppBundle\Service\DatabaseService\DatabaseService;
-use \Doctrine\DBAL\Connection;
 
 class ManuscriptService extends DatabaseService
 {
@@ -239,6 +240,36 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
+    public function delContents(int $manuscriptId, array $contentIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.document_genre
+            where document_genre.iddocument = ?
+            and document_genre.idgenre in (?)',
+            [
+                $manuscriptId,
+                $contentIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function addContent(int $manuscriptId, int $contentId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.document_genre (iddocument, idgenre)
+            values (?, ?)',
+            [
+                $manuscriptId,
+                $contentId,
+            ]
+        );
+    }
+
     public function delBibroles(int $manuscriptId, string $role, array $personIds): int
     {
         return $this->conn->executeUpdate(
@@ -264,7 +295,7 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeUpdate(
             'INSERT INTO data.bibrole (iddocument, type, idperson)
-                values (?, ?, ?)',
+            values (?, ?, ?)',
             [
                 $manuscriptId,
                 $role,

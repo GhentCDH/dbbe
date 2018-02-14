@@ -29,7 +29,7 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/search_api/")
+     * @Route("/manuscripts/search_api/", name="manuscripts_search_api")
      */
     public function searchManuscriptsAPI(Request $request)
     {
@@ -81,7 +81,7 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/filtervalues")
+     * @Route("/manuscripts/filtervalues", name="manuscripts_filtervalues")
      */
     public function getFilterValues(Request $request)
     {

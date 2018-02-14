@@ -165,17 +165,17 @@
                 },
                 contentSchema: {
                     fields: {
-                        content: this.createMultiSelect('Content', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
+                        content: this.createMultiSelect('Content', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
                     }
                 },
                 patronsSchema: {
                     fields: {
-                        patrons: this.createMultiSelect('Patrons', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
+                        patrons: this.createMultiSelect('Patrons', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
                     }
                 },
                 scribesSchema: {
                     fields: {
-                        scribes: this.createMultiSelect('Scribes', {}, {multiple: true, closeOnSelect: false, clearOnSelect: false}),
+                        scribes: this.createMultiSelect('Scribes', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
                     }
                 },
                 formOptions: {

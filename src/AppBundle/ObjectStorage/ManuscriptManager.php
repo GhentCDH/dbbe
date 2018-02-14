@@ -2,16 +2,12 @@
 
 namespace AppBundle\ObjectStorage;
 
-use DateTime;
 use stdClass;
-
-use AppBundle\Exceptions\NotFoundInDatabaseException;
 
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
-use AppBundle\Model\Region;
 
 class ManuscriptManager extends ObjectManager
 {
@@ -254,12 +250,14 @@ class ManuscriptManager extends ObjectManager
         if (property_exists($data, 'shelf')) {
             $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
         }
-        // TODO: update content
+        if (property_exists($data, 'content')) {
+            $this->updateContent($manuscript, $data->content);
+        }
         if (property_exists($data, 'patrons')) {
-            $this->updateBibroles($manuscript, $data->patrons, $manuscript->getPatrons(), 'patron');
+            $this->updatePatrons($manuscript, $data->patrons);
         }
         if (property_exists($data, 'scribes')) {
-            $this->updateBibroles($manuscript, $data->scribes, $manuscript->getScribes(), 'scribe');
+            $this->updateScribes($manuscript, $data->scribes);
         }
 
         // load new manuscript data
@@ -278,29 +276,37 @@ class ManuscriptManager extends ObjectManager
         return $newManuscript;
     }
 
+    private function updateContent(Manuscript $manuscript, array $contents)
+    {
+        list($delIds, $addIds) = self::calcDiff($contents, $manuscript->getContentsWithParents());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delContents($manuscript->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addContent($manuscript->getId(), $addId);
+        }
+    }
+
+    private function updatePatrons(Manuscript $manuscript, array $patrons)
+    {
+        $this->updateBibroles($manuscript, $patrons, $manuscript->getPatrons(), 'patron');
+    }
+
+    private function updateScribes(Manuscript $manuscript, array $scribes)
+    {
+        $this->updateBibroles($manuscript, $scribes, $manuscript->getScribes(), 'scribe');
+    }
+
     private function updateBibroles(Manuscript $manuscript, array $newPersons, array $oldPersons, string $role)
     {
-        $newPersonIds = array_map(
-            function ($newPerson) {
-                return $newPerson->id;
-            },
-            $newPersons
-        );
-        $oldPersonIds = array_map(
-            function ($oldPerson) {
-                return $oldPerson->getId();
-            },
-            $oldPersons
-        );
+        list($delIds, $addIds) = self::calcDiff($newPersons, $oldPersons);
 
-        $delPersonIds = array_diff($oldPersonIds, $newPersonIds);
-        $addPersonIds = array_diff($newPersonIds, $oldPersonIds);
-
-        if (count($delPersonIds) > 0) {
-            $this->dbs->delBibroles($manuscript->getId(), $role, $delPersonIds);
+        if (count($delIds) > 0) {
+            $this->dbs->delBibroles($manuscript->getId(), $role, $delIds);
         }
-        foreach ($addPersonIds as $addPersonId) {
-            $this->dbs->addBibrole($manuscript->getId(), $role, $addPersonId);
+        foreach ($addIds as $addId) {
+            $this->dbs->addBibrole($manuscript->getId(), $role, $addId);
         }
     }
 
@@ -313,5 +319,26 @@ class ManuscriptManager extends ObjectManager
             json_encode($old->getJson()),
             json_encode($new->getJson())
         );
+    }
+
+    private static function calcDiff(array $newJsonArray, array $oldObjectArray): array
+    {
+        $newIds = array_map(
+            function ($newJsonItem) {
+                return $newJsonItem->id;
+            },
+            $newJsonArray
+        );
+        $oldIds = array_map(
+            function ($oldObjectItem) {
+                return $oldObjectItem->getId();
+            },
+            $oldObjectArray
+        );
+
+        $delIds = array_diff($oldIds, $newIds);
+        $addIds = array_diff($newIds, $oldIds);
+
+        return [$delIds, $addIds];
     }
 }
