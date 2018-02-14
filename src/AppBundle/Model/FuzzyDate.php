@@ -152,4 +152,12 @@ class FuzzyDate
 
         return $this;
     }
+
+    public function getJson(): array
+    {
+        return [
+            'floor' => $this->floor->format('c'),
+            'ceiling' => $this->ceiling->format('c'),
+        ];
+    }
 }

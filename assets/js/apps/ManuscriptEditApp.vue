@@ -51,6 +51,12 @@
                     </template>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Date</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated()"></vue-form-generator>
+                </div>
+            </div>
             <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="noNewValues || invalidForms" @click="calcDiff();saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="this.openRequests">
@@ -146,7 +152,10 @@
                     shelf: null,
                     content: [],
                     patrons: [],
-                    scribes: []
+                    scribes: [],
+                    same_year: false,
+                    year_from: null,
+                    year_to: null
                 },
                 locationSchema: {
                     fields: {
@@ -176,6 +185,34 @@
                 scribesSchema: {
                     fields: {
                         scribes: this.createMultiSelect('Scribes', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
+                    }
+                },
+                dateSchema: {
+                    fields: {
+                        same_year: {
+                            type: 'checkbox',
+                            label: 'Exact year',
+                            model: 'same_year',
+                            default: false
+                        },
+                        year_from: {
+                            type: 'input',
+                            inputType: 'number',
+                            label: 'Year from',
+                            model: 'year_from',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
+                            validator: VueFormGenerator.validators.number
+                        },
+                        year_to: {
+                            type: 'input',
+                            inputType: 'number',
+                            label: 'Year to',
+                            model: 'year_to',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
+                            validator: VueFormGenerator.validators.number
+                        }
                     }
                 },
                 formOptions: {
@@ -218,6 +255,15 @@
                 this.model.patrons = this.manuscript.patrons
                 this.model.scribes = this.manuscript.scribes
 
+                // Date
+                if (this.manuscript.date !== undefined) {
+                    this.model.year_from = (new Date(this.manuscript.date.floor)).getFullYear()
+                    this.model.year_to = (new Date(this.manuscript.date.ceiling)).getFullYear()
+                    if (this.model.year_from === this.model.year_to) {
+                        this.model.same_year = true
+                    }
+                }
+
                 this.originalModel = Object.assign({}, this.model)
 
                 if (this.locationSchema.fields.city.values.length === 0) {
@@ -229,25 +275,25 @@
                 this.$refs.patronsForm.validate()
                 this.$refs.scribesForm.validate()
             },
-            'locations': function(newValue, oldValue)  {
+            'locations': function (newValue, oldValue)  {
                 this.loadLocationField(this.locationSchema.fields.city)
                 this.enableField(this.locationSchema.fields.city)
                 this.loadLocationField(this.locationSchema.fields.library)
                 this.loadLocationField(this.locationSchema.fields.collection)
             },
-            'contents': function(newValue, oldValue) {
+            'contents': function (newValue, oldValue) {
                 this.contentSchema.fields.content.values = this.contents
                 this.enableField(this.contentSchema.fields.content)
             },
-            'patrons': function(newValue, oldValue) {
+            'patrons': function (newValue, oldValue) {
                 this.patronsSchema.fields.patrons.values = this.patrons
                 this.enableField(this.patronsSchema.fields.patrons)
             },
-            'scribes': function(newValue, oldValue) {
+            'scribes': function (newValue, oldValue) {
                 this.scribesSchema.fields.scribes.values = this.scribes
                 this.enableField(this.scribesSchema.fields.scribes)
             },
-            'model.city': function(newValue, oldValue) {
+            'model.city': function (newValue, oldValue) {
                 if (newValue === undefined || newValue === null) {
                     this.dependencyField(this.locationSchema.fields.library)
                 }
@@ -256,13 +302,27 @@
                     this.enableField(this.locationSchema.fields.library)
                 }
             },
-            'model.library': function(newValue, oldValue) {
+            'model.library': function (newValue, oldValue) {
                 if (newValue === undefined || newValue === null) {
                     this.dependencyField(this.locationSchema.fields.collection)
                 }
                 else {
                     this.loadLocationField(this.locationSchema.fields.collection)
                     this.enableField(this.locationSchema.fields.collection)
+                }
+            },
+            'model.same_year': function (newValue, oldValue) {
+                this.dateSchema.fields.year_to.disabled = this.model.same_year
+                this.model.year_to = this.model.year_from
+                if (this.model.same_year) {
+                    this.dateSchema.fields.year_to.min = YEAR_MIN
+                    this.dateSchema.fields.year_from.max = YEAR_MAX
+                    this.$refs.dateForm.validate()
+                }
+            },
+            'model.year_from': function (newValue, oldValue) {
+                if (this.model.same_year) {
+                    this.model.year_to = this.model.year_from
                 }
             }
         },
@@ -318,6 +378,21 @@
                 field.values = values
             },
             validated(isValid, errors) {
+                // set year min and max values
+                if (!this.model.same_year) {
+                    if (this.model.year_from !== undefined && this.model.year_from !== null) {
+                        this.dateSchema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+                    }
+                    else {
+                        this.dateSchema.fields.year_to.min = YEAR_MIN
+                    }
+                    if (this.model.year_to !== undefined && this.model.year_to !== null) {
+                        this.dateSchema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                    }
+                    else {
+                        this.dateSchema.fields.year_from.max = YEAR_MAX
+                    }
+                }
                 this.invalidForms = (
                     !this.$refs.hasOwnProperty('locationForm') || this.$refs.locationForm.errors.length > 0
                 )

@@ -64,14 +64,14 @@
 
 			options() {
 				let values = this.schema.values;
-				if (typeof(values) == "function") {
+				if (typeof(values) == 'function') {
 					return values.apply(this, [this.model, this.schema]);
 				} else {
 					return values;
 				}
 			},
 			customLabel(){
-				if (typeof this.schema.selectOptions !== "undefined" && typeof this.schema.selectOptions.customLabel !== "undefined" && typeof this.schema.selectOptions.customLabel === "function") {
+				if (typeof this.schema.selectOptions !== 'undefined' && typeof this.schema.selectOptions.customLabel !== 'undefined' && typeof this.schema.selectOptions.customLabel === 'function') {
 					return this.schema.selectOptions.customLabel;
 				} else {
 					//this will let the multiselect library use the default behavior if customLabel is not specified
@@ -85,13 +85,13 @@
 			},
 			addTag(newTag, id) {
 				let onNewTag = this.selectOptions.onNewTag;
-				if (typeof(onNewTag) == "function") {
+				if (typeof(onNewTag) == 'function') {
 					onNewTag(newTag, id, this.options, this.value);
 				}
 			},
 			onSearchChange(searchQuery, id) {
 				let onSearch = this.selectOptions.onSearch;
-				if (typeof(onSearch) == "function") {
+				if (typeof(onSearch) == 'function') {
 					onSearch(searchQuery, id, this.options);
 				}
 			},
@@ -113,8 +113,8 @@
 		},
 		created() {
 			// Check if the component is loaded globally
-			if (!this.$root.$options.components["fieldMultiselectClear"]) {
-				console.error("'fieldMultiselectClear' is missing.");
+			if (!this.$root.$options.components['multiselect']) {
+				console.error("'vue-multiselect' is missing. Please download from https://github.com/monterail/vue-multiselect and register the component globally!");
 			}
 		}
 	};

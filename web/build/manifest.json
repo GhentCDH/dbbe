@@ -1,4 +1,8 @@
 {
+  "build/main.js": "/build/main.js",
+  "build/manuscriptedit.js": "/build/manuscriptedit.js",
+  "build/manuscriptsearch.js": "/build/manuscriptsearch.js",
+  "build/users.js": "/build/users.js",
   "build/fonts/fontawesome-webfont.eot?v=4.7.0": "/build/fonts/fontawesome-webfont.674f50d2.eot",
   "build/fonts/fontawesome-webfont.ttf?v=4.7.0": "/build/fonts/fontawesome-webfont.b06871f2.ttf",
   "build/fonts/fontawesome-webfont.woff2?v=4.7.0": "/build/fonts/fontawesome-webfont.af7ae505.woff2",
@@ -21,9 +25,5 @@
   "build/fonts/ugentpannotext-semilight-web.woff": "/build/fonts/ugentpannotext-semilight-web.b0769f8b.woff",
   "build/images/fontawesome-webfont.svg?v=4.7.0": "/build/images/fontawesome-webfont.912ec66d.svg",
   "build/images/glyphicons-halflings-regular.svg": "/build/images/glyphicons-halflings-regular.89889688.svg",
-  "build/main.js": "/build/main.js",
-  "build/manuscriptedit.js": "/build/manuscriptedit.js",
-  "build/manuscriptsearch.js": "/build/manuscriptsearch.js",
-  "build/screen.css": "/build/screen.css",
-  "build/users.js": "/build/users.js"
+  "build/screen.css": "/build/screen.css"
 }

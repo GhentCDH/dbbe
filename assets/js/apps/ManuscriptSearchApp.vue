@@ -111,6 +111,8 @@
                             inputType: 'number',
                             label: 'Year from',
                             model: 'year_from',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
                             validator: VueFormGenerator.validators.number
                         },
                         year_to: {
@@ -118,6 +120,8 @@
                             inputType: 'number',
                             label: 'Year to',
                             model: 'year_to',
+                            min: YEAR_MIN,
+                            max: YEAR_MAX,
                             validator: VueFormGenerator.validators.number
                         },
                         content: this.createMultiSelect('Content'),
@@ -314,11 +318,17 @@
                 }
 
                 // set year min and max values
-                if (this.model.year_from !== undefined) {
+                if (this.model.year_from !== undefined && this.model.year_from !== null) {
                     this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
                 }
-                if (this.model.year_to !== undefined) {
+                else {
+                    this.schema.fields.year_to.min = YEAR_MIN
+                }
+                if (this.model.year_to !== undefined && this.model.year_from !== null) {
                     this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                }
+                else {
+                    this.schema.fields.year_from.max = YEAR_MAX
                 }
 
                 // Cancel timeouts caused by input requests not long ago
