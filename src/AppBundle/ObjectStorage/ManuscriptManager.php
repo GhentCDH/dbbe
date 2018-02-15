@@ -233,50 +233,63 @@ class ManuscriptManager extends ObjectManager
 
     public function updateManuscript(int $id, stdClass $data): ?Manuscript
     {
-        $manuscript = $this->getManuscriptById($id);
-        if ($manuscript == null) {
-            return null;
-        }
+        $this->dbs->beginTransaction();
+        try {
+            $manuscript = $this->getManuscriptById($id);
+            if ($manuscript == null) {
+                $this->dbs->rollBack();
+                return null;
+            }
 
-        // update manuscript data
-        if (property_exists($data, 'library')
-            && !(property_exists($data, 'collection') && !empty($data->collection))
-        ) {
-            $this->oms['location_manager']->updateLibrary($manuscript, $data->library);
-        }
-        if (property_exists($data, 'collection') && !empty($data->collection)) {
-            $this->oms['location_manager']->updateCollection($manuscript, $data->collection);
-        }
-        if (property_exists($data, 'shelf')) {
-            $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
-        }
-        if (property_exists($data, 'content')) {
-            $this->updateContent($manuscript, $data->content);
-        }
-        if (property_exists($data, 'patrons')) {
-            $this->updatePatrons($manuscript, $data->patrons);
-        }
-        if (property_exists($data, 'scribes')) {
-            $this->updateScribes($manuscript, $data->scribes);
-        }
+            // update manuscript data
+            if (property_exists($data, 'library')
+                && !(property_exists($data, 'collection') && !empty($data->collection))
+            ) {
+                $this->oms['location_manager']->updateLibrary($manuscript, $data->library);
+            }
+            if (property_exists($data, 'collection') && !empty($data->collection)) {
+                $this->oms['location_manager']->updateCollection($manuscript, $data->collection);
+            }
+            if (property_exists($data, 'shelf')) {
+                $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
+            }
+            if (property_exists($data, 'content')) {
+                $this->updateContent($manuscript, $data->content);
+            }
+            if (property_exists($data, 'patrons')) {
+                $this->updatePatrons($manuscript, $data->patrons);
+            }
+            if (property_exists($data, 'scribes')) {
+                $this->updateScribes($manuscript, $data->scribes);
+            }
+            if (property_exists($data, 'date')) {
+                $this->updateDate($manuscript, $data->date);
+            }
 
-        // load new manuscript data
-        $this->cache->deleteItem('manuscript_short.' . $id);
-        $this->cache->deleteItem('manuscript.' . $id);
-        $newManuscript = $this->getManuscriptById($id);
+            // load new manuscript data
+            $this->cache->deleteItem('manuscript_short.' . $id);
+            $this->cache->deleteItem('manuscript.' . $id);
+            $newManuscript = $this->getManuscriptById($id);
 
-        $this->updateModified($manuscript, $newManuscript);
+            $this->updateModified($manuscript, $newManuscript);
 
-        // re-index in elastic search
-        $this->ess->addManuscript($newManuscript);
+            // re-index in elastic search
+            $this->ess->addManuscript($newManuscript);
 
-        // update cache
-        $this->setCache([$newManuscript->getId() => $newManuscript], 'manuscript');
+            // update cache
+            $this->setCache([$newManuscript->getId() => $newManuscript], 'manuscript');
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
 
         return $newManuscript;
     }
 
-    private function updateContent(Manuscript $manuscript, array $contents)
+    private function updateContent(Manuscript $manuscript, array $contents): void
     {
         list($delIds, $addIds) = self::calcDiff($contents, $manuscript->getContentsWithParents());
 
@@ -288,17 +301,17 @@ class ManuscriptManager extends ObjectManager
         }
     }
 
-    private function updatePatrons(Manuscript $manuscript, array $patrons)
+    private function updatePatrons(Manuscript $manuscript, array $patrons): void
     {
         $this->updateBibroles($manuscript, $patrons, $manuscript->getPatrons(), 'patron');
     }
 
-    private function updateScribes(Manuscript $manuscript, array $scribes)
+    private function updateScribes(Manuscript $manuscript, array $scribes): void
     {
         $this->updateBibroles($manuscript, $scribes, $manuscript->getScribes(), 'scribe');
     }
 
-    private function updateBibroles(Manuscript $manuscript, array $newPersons, array $oldPersons, string $role)
+    private function updateBibroles(Manuscript $manuscript, array $newPersons, array $oldPersons, string $role): void
     {
         list($delIds, $addIds) = self::calcDiff($newPersons, $oldPersons);
 
@@ -310,7 +323,17 @@ class ManuscriptManager extends ObjectManager
         }
     }
 
-    private function updateModified(Manuscript $old, Manuscript $new)
+    private function updateDate(Manuscript $manuscript, stdClass $date): void
+    {
+        $dbDate = "($date->floor-01-01, $date->ceiling-12-31)";
+        if (empty($manuscript->getDate())) {
+            $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);
+        } else {
+            $this->dbs->updateCompletionDate($manuscript->getId(), $dbDate);
+        }
+    }
+
+    private function updateModified(Manuscript $old, Manuscript $new): void
     {
         $this->dbs->updateModified($new->getId());
         $this->dbs->createRevision(

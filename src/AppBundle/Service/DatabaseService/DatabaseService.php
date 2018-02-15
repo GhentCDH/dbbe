@@ -2,7 +2,7 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use DateTime;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -32,7 +32,23 @@ class DatabaseService implements DatabaseServiceInterface
     public function __construct(EntityManagerInterface $entityManager, CacheItemPoolInterface $cacheItemPool)
     {
         $this->conn = $entityManager->getConnection();
+        $this->conn->setTransactionIsolation(Connection::TRANSACTION_SERIALIZABLE);
         $this->cache = $cacheItemPool;
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->conn->beginTransaction();
+    }
+
+    public function commit(): void
+    {
+        $this->conn->commit();
+    }
+
+    public function rollBack(): void
+    {
+        $this->conn->rollBack();
     }
 
     public function updateModified(int $entityId): int

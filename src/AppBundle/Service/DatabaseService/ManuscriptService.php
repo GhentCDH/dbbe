@@ -303,4 +303,41 @@ class ManuscriptService extends DatabaseService
             ]
         );
     }
+
+    public function insertCompletionDate(int $manuscriptId, string $completionDate): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.factoid (subject_identity, date, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (
+                    select
+                        factoid_type.type
+                    from data.factoid_type
+                    where factoid_type.type = \'completed at\'
+                )
+            )',
+            [
+                $manuscriptId,
+                $completionDate,
+            ]
+        );
+    }
+
+    public function updateCompletionDate(int $manuscriptId, string $completionDate): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set date = ?
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'completed at\'',
+            [
+                $completionDate,
+                $manuscriptId,
+            ]
+        );
+    }
 }

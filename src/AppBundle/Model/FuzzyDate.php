@@ -156,8 +156,8 @@ class FuzzyDate
     public function getJson(): array
     {
         return [
-            'floor' => $this->floor->format('c'),
-            'ceiling' => $this->ceiling->format('c'),
+            'floor' => $this->floor->format('Y-m-d'),
+            'ceiling' => $this->ceiling->format('Y-m-d'),
         ];
     }
 }

@@ -1,4 +1,4 @@
-<template>
+    <template>
     <div>
         <article class="col-sm-9 mbottom-large">
             <h2>Edit Manuscript</h2>
@@ -323,6 +323,7 @@
             'model.year_from': function (newValue, oldValue) {
                 if (this.model.same_year) {
                     this.model.year_to = this.model.year_from
+                    this.$refs.dateForm.validate()
                 }
             }
         },
@@ -434,7 +435,11 @@
                     this.locationSchema.fields,
                     this.contentSchema.fields,
                     this.patronsSchema.fields,
-                    this.scribesSchema.fields
+                    this.scribesSchema.fields,
+                    {
+                        year_from: this.dateSchema.fields.year_from,
+                        year_to: this.dateSchema.fields.year_to
+                    }
                 )
                 for (let key of Object.keys(this.model)) {
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
@@ -461,7 +466,18 @@
             toSave() {
                 let result = {}
                 for (let key of Object.keys(this.model)) {
+                    // all date values are set if 'year_from' is present
+                    if (['same_year', 'year_to'].indexOf(key) > 0) {
+                        continue
+                    }
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
+                        if (key === 'year_from') {
+                            result['date'] = {
+                                floor: this.model.year_from,
+                                ceiling: this.model.year_to
+                            }
+                            continue
+                        }
                         result[key] = this.model[key]
                     }
                 }
