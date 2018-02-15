@@ -37,6 +37,6 @@ class RegionManager extends ObjectManager
 
         $this->setCache($regionsWithParents, 'region_with_parents');
 
-        return $regionsWithParents;
+        return $cached + $regionsWithParents;
     }
 }
