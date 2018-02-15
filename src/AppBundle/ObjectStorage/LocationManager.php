@@ -6,8 +6,10 @@ use stdClass;
 
 use AppBundle\Model\Collection;
 use AppBundle\Model\Document;
+use AppBundle\Model\Institution;
 use AppBundle\Model\Library;
 use AppBundle\Model\Location;
+use AppBundle\Model\Origin;
 use AppBundle\Model\Region;
 
 class LocationManager extends ObjectManager
@@ -59,10 +61,39 @@ class LocationManager extends ObjectManager
         $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
 
         $cache->tag('regions');
-        $cache->tag('libraries');
+        $cache->tag('institutions');
         $cache->tag('collections');
         $this->cache->save($cache->set($citiesLibrariesCollections));
         return $citiesLibrariesCollections;
+    }
+
+    public function getAllOrigins(): array
+    {
+        $cache = $this->cache->getItem('origins');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawOrigins = $this->dbs->getAllOrigins();
+        $regionIds = self::getUniqueIds($rawOrigins, 'region_id');
+        $regionsWithParents = $this->oms['region_manager']->getRegionsWithParentsByIds($regionIds);
+        $origins = [];
+        foreach ($rawOrigins as $rawOrigin) {
+            $origin = (new Origin())
+                ->setId($rawOrigin['origin_id'])
+                ->setRegionWithParents($regionsWithParents[$rawOrigin['region_id']]);
+            if (isset($rawOrigin['institution_id'])) {
+                $origin->setInstitution(
+                    new Institution($rawOrigin['institution_id'], $rawOrigin['institution_name'])
+                );
+            }
+            $origins[] = $origin;
+        }
+
+        $cache->tag('regions');
+        $cache->tag('institutions');
+        $this->cache->save($cache->set($origins));
+        return $origins;
     }
 
     public function updateLibrary(Document $document, stdClass $libary): void

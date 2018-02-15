@@ -265,6 +265,9 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'date')) {
                 $this->updateDate($manuscript, $data->date);
             }
+            if (property_exists($data, 'origin')) {
+                $this->updateOrigin($manuscript, $data->origin);
+            }
 
             // load new manuscript data
             $this->cache->deleteItem('manuscript_short.' . $id);
@@ -335,6 +338,11 @@ class ManuscriptManager extends ObjectManager
         } else {
             $this->dbs->updateCompletionDate($manuscript->getId(), $dbDate);
         }
+    }
+
+    private function updateOrigin(Manuscript $manuscript, stdClass $origin): void
+    {
+        $this->dbs->updateOrigin($manuscript->getId(), $origin->id);
     }
 
     private function updateModified(Manuscript $old, Manuscript $new): void

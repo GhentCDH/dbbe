@@ -285,6 +285,7 @@ class Manuscript extends Document
             'occurrencePatrons' => self::getOccurrencePersonsJson($this->occurrencePatrons),
             'scribes' => self::arrayToShortJson(array_values($this->scribes)),
             'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
+            'origin' => $this->getOrigin()->getShortJson(),
         ];
 
         if (isset($this->date)) {

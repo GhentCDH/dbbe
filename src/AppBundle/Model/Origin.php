@@ -53,8 +53,18 @@ class Origin
         return $this->getFullRegion()->getHistoricalName();
     }
 
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getName(),
+        ];
+    }
+
     public function getElastic(): array
     {
+        // add all parent regions as well
+        // use the ids of the regions / institution
         return $this->getFullRegion()->getHistoricalElastic();
     }
 }

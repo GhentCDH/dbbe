@@ -80,12 +80,12 @@ class PersonManager extends ObjectManager
         return $persons;
     }
 
-    public function getPatrons(): array
+    public function getAllPatrons(): array
     {
         return $this->getBibroles('patrons', ['Sponsor', 'Owner']);
     }
 
-    public function getScribes(): array
+    public function getAllScribes(): array
     {
         return $this->getBibroles('scribes', ['Scribe']);
     }

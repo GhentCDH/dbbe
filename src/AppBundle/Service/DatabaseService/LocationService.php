@@ -93,6 +93,22 @@ class LocationService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getAllOrigins(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                location.idlocation as origin_id,
+                coalesce(institution.idregion, location.idregion) as region_id,
+                institution.identity as institution_id,
+                institution.name as institution_name
+            from data.location
+            left join data.institution on location.idinstitution = institution.identity
+            inner join data.region on coalesce(institution.idregion, location.idregion) = region.identity
+            where region.historical_name is not null
+            order by region.historical_name, institution.name'
+        )->fetchAll();
+    }
+
     public function updateLibraryId(int $documentId, int $libraryId): int
     {
         return $this->conn->executeUpdate(

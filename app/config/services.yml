@@ -45,7 +45,10 @@ services:
 
     location_manager:
         class: AppBundle\ObjectStorage\LocationManager
-        arguments: ['@location_service', '@cache.app', {}, null]
+        arguments: ['@location_service',
+            '@cache.app',
+            {'region_manager': '@region_manager'},
+            null]
         public: true
 
     content_manager:

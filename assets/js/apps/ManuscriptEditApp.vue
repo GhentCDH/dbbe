@@ -57,6 +57,12 @@
                     <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated()"></vue-form-generator>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Origin</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="originSchema" :model="model" :options="formOptions" ref="originForm" @validated="validated()"></vue-form-generator>
+                </div>
+            </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="this.openRequests">
@@ -133,7 +139,8 @@
             'initLocations',
             'initContents',
             'initPatrons',
-            'initScribes'
+            'initScribes',
+            'initOrigins'
         ],
         data() {
             return {
@@ -145,6 +152,7 @@
                 contents: [],
                 patrons: [],
                 scribes: [],
+                origins: [],
                 model: {
                     city: null,
                     library: null,
@@ -216,6 +224,11 @@
                         }
                     }
                 },
+                originSchema: {
+                    fields: {
+                        origin: this.createMultiSelect('Origin', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'})
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -239,6 +252,7 @@
                 this.contents = JSON.parse(this.initContents)
                 this.patrons = JSON.parse(this.initPatrons)
                 this.scribes = JSON.parse(this.initScribes)
+                this.origins = JSON.parse(this.initOrigins)
             })
         },
         watch: {
@@ -270,6 +284,9 @@
                     this.model.same_year = true
                 }
 
+                // Origin
+                this.model.origin = this.manuscript.origin
+
                 this.originalModel = Object.assign({}, this.model)
 
                 if (this.locationSchema.fields.city.values.length === 0) {
@@ -298,6 +315,10 @@
             'scribes': function (newValue, oldValue) {
                 this.scribesSchema.fields.scribes.values = this.scribes
                 this.enableField(this.scribesSchema.fields.scribes)
+            },
+            'origins': function (newValue, oldValue) {
+                this.originSchema.fields.origin.values = this.origins
+                this.enableField(this.originSchema.fields.origin)
             },
             'model.city': function (newValue, oldValue) {
                 if (this.model.city == null) {
@@ -466,7 +487,8 @@
                     {
                         year_from: this.dateSchema.fields.year_from,
                         year_to: this.dateSchema.fields.year_to
-                    }
+                    },
+                    this.originSchema.fields
                 )
                 for (let key of Object.keys(this.model)) {
                     if (['same_year'].indexOf(key) > -1) {

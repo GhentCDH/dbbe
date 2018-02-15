@@ -340,4 +340,20 @@ class ManuscriptService extends DatabaseService
             ]
         );
     }
+
+    public function updateOrigin(int $manuscriptId, int $locationId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set idlocation = ?
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'written\'',
+            [
+                $locationId,
+                $manuscriptId,
+            ]
+        );
+    }
 }
