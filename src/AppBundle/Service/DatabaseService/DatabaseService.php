@@ -32,7 +32,6 @@ class DatabaseService implements DatabaseServiceInterface
     public function __construct(EntityManagerInterface $entityManager, CacheItemPoolInterface $cacheItemPool)
     {
         $this->conn = $entityManager->getConnection();
-        $this->conn->setTransactionIsolation(Connection::TRANSACTION_SERIALIZABLE);
         $this->cache = $cacheItemPool;
     }
 
