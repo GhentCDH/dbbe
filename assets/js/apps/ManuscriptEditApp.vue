@@ -155,13 +155,14 @@
                     scribes: [],
                     same_year: false,
                     year_from: null,
-                    year_to: null
+                    year_to: null,
+                    origin: null
                 },
                 locationSchema: {
                     fields: {
-                        city: this.createMultiSelect('City', {required: true, validator: VueFormGenerator.validators.required}),
-                        library: this.createMultiSelect('Library', {required: true, validator: VueFormGenerator.validators.required, dependency: 'city'}),
-                        collection: this.createMultiSelect('Collection', {dependency: 'library'}),
+                        city: this.createMultiSelect('City', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        library: this.createMultiSelect('Library', {required: true, validator: VueFormGenerator.validators.required, dependency: 'city'}, {trackBy: 'id'}),
+                        collection: this.createMultiSelect('Collection', {dependency: 'library'}, {trackBy: 'id'}),
                         shelf: {
                             type: 'input',
                             inputType: 'text',
