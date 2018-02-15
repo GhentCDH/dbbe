@@ -55,6 +55,8 @@ class ContentManager extends ObjectManager
             return strcmp($a->getName(), $b->getName());
         });
 
+        $cache->tag('contents');
+        $this->cache->save($cache->set($contentsWithParents));
         return $contentsWithParents;
     }
 }
