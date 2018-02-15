@@ -57,8 +57,8 @@
                     <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated()"></vue-form-generator>
                 </div>
             </div>
-            <btn type="warning" :disabled="noNewValues" @click="resetModal=true">Reset</btn>
-            <btn type="success" :disabled="noNewValues || invalidForms" @click="calcDiff();saveModal=true">Save changes</btn>
+            <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
+            <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="this.openRequests">
                 <div class="spinner">
                 </div>
@@ -256,12 +256,17 @@
                 this.model.scribes = this.manuscript.scribes
 
                 // Date
-                if (this.manuscript.date !== undefined) {
-                    this.model.year_from = (new Date(this.manuscript.date.floor)).getFullYear()
-                    this.model.year_to = (new Date(this.manuscript.date.ceiling)).getFullYear()
-                    if (this.model.year_from === this.model.year_to) {
-                        this.model.same_year = true
+                if (this.manuscript.date != null) {
+                    if (this.manuscript.date.floor != null) {
+                        this.model.year_from = (new Date(this.manuscript.date.floor)).getFullYear()
                     }
+                    if (this.manuscript.date.ceiling != null) {
+                        this.model.year_to = (new Date(this.manuscript.date.ceiling)).getFullYear()
+                    }
+                }
+
+                if (this.model.year_from === this.model.year_to && this.model.year_from != null) {
+                    this.model.same_year = true
                 }
 
                 this.originalModel = Object.assign({}, this.model)
@@ -294,7 +299,7 @@
                 this.enableField(this.scribesSchema.fields.scribes)
             },
             'model.city': function (newValue, oldValue) {
-                if (newValue === undefined || newValue === null) {
+                if (this.model.city == null) {
                     this.dependencyField(this.locationSchema.fields.library)
                 }
                 else {
@@ -303,7 +308,7 @@
                 }
             },
             'model.library': function (newValue, oldValue) {
-                if (newValue === undefined || newValue === null) {
+                if (this.model.library == null) {
                     this.dependencyField(this.locationSchema.fields.collection)
                 }
                 else {
@@ -313,7 +318,12 @@
             },
             'model.same_year': function (newValue, oldValue) {
                 this.dateSchema.fields.year_to.disabled = this.model.same_year
-                this.model.year_to = this.model.year_from
+                if (this.model.year_from == null && this.model.year_to != null) {
+                    this.model.year_from = this.model.year_to
+                }
+                else {
+                    this.model.year_to = this.model.year_from
+                }
                 if (this.model.same_year) {
                     this.dateSchema.fields.year_to.min = YEAR_MIN
                     this.dateSchema.fields.year_from.max = YEAR_MAX
@@ -323,7 +333,15 @@
             'model.year_from': function (newValue, oldValue) {
                 if (this.model.same_year) {
                     this.model.year_to = this.model.year_from
-                    this.$refs.dateForm.validate()
+                }
+                if (this.model.year_from === this.model.year_to && this.model.year_from != null) {
+                    this.model.same_year = true
+                }
+                this.$refs.dateForm.validate()
+            },
+            'model.year_to': function (newValue, oldValue) {
+                if (this.model.year_from === this.model.year_to && this.model.year_from != null) {
+                    this.model.same_year = true
                 }
             }
         },
@@ -346,12 +364,12 @@
                     // Will be enabled when list of scribes is loaded
                     disabled: true
                 }
-                if (extra !== undefined) {
+                if (extra != null) {
                     for (let key of Object.keys(extra)) {
                         result[key] = extra[key]
                     }
                 }
-                if (extraSelectOptions !== undefined) {
+                if (extraSelectOptions != null) {
                     for (let key of Object.keys(extraSelectOptions)) {
                         result['selectOptions'][key] = extraSelectOptions[key]
                     }
@@ -371,7 +389,7 @@
 
 
                 // only keep current value if it is in the list of possible values
-                if (this.model[field.model] !== undefined && this.model[field.model] !== null) {
+                if (this.model[field.model] != null) {
                     if ((values.filter(v => v.id === this.model[field.model].id)).length === 0) {
                         this.model[field.model] = null
                     }
@@ -379,15 +397,22 @@
                 field.values = values
             },
             validated(isValid, errors) {
+                for (let field of ['year_from', 'year_to']) {
+                    if (isNaN(this.model[field])) {
+                        this.model[field] = null
+                        this.$refs.dateForm.validate()
+                        return
+                    }
+                }
                 // set year min and max values
                 if (!this.model.same_year) {
-                    if (this.model.year_from !== undefined && this.model.year_from !== null) {
+                    if (this.model.year_from != null) {
                         this.dateSchema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
                     }
                     else {
                         this.dateSchema.fields.year_to.min = YEAR_MIN
                     }
-                    if (this.model.year_to !== undefined && this.model.year_to !== null) {
+                    if (this.model.year_to != null) {
                         this.dateSchema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
                     }
                     else {
@@ -397,7 +422,8 @@
                 this.invalidForms = (
                     !this.$refs.hasOwnProperty('locationForm') || this.$refs.locationForm.errors.length > 0
                 )
-                this.noNewValues = (JSON.stringify(this.originalModel) === JSON.stringify(this.model))
+
+                this.calcDiff()
             },
             disableField(field) {
                 field.disabled = true
@@ -442,6 +468,9 @@
                     }
                 )
                 for (let key of Object.keys(this.model)) {
+                    if (['same_year'].indexOf(key) > -1) {
+                        continue
+                    }
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
                         this.diff.push({
                             'label': fields[key]['label'],
@@ -452,10 +481,7 @@
                 }
             },
             getDisplay(item) {
-                if (
-                    item === undefined
-                    || item === null
-                ) {
+                if (item == null) {
                     return null
                 }
                 else if (item.hasOwnProperty('name')) {
@@ -466,18 +492,18 @@
             toSave() {
                 let result = {}
                 for (let key of Object.keys(this.model)) {
-                    // all date values are set if 'year_from' is present
-                    if (['same_year', 'year_to'].indexOf(key) > 0) {
+                    if (['same_year'].indexOf(key) > -1) {
                         continue
                     }
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
-                        if (key === 'year_from') {
+                        if (['year_from', 'year_to'].indexOf(key) > -1 && result['date'] == null) {
                             result['date'] = {
                                 floor: this.model.year_from,
                                 ceiling: this.model.year_to
                             }
                             continue
                         }
+                        // default
                         result[key] = this.model[key]
                     }
                 }

@@ -325,7 +325,11 @@ class ManuscriptManager extends ObjectManager
 
     private function updateDate(Manuscript $manuscript, stdClass $date): void
     {
-        $dbDate = "($date->floor-01-01, $date->ceiling-12-31)";
+        $dbDate = '('
+            . (empty($date->floor) ? '-infinity' : "$date->floor-01-01")
+            . ', '
+            . (empty($date->ceiling) ? 'infinity' : "$date->ceiling-12-31")
+            . ')';
         if (empty($manuscript->getDate())) {
             $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);
         } else {

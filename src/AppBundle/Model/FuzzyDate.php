@@ -51,16 +51,24 @@ class FuzzyDate
     {
         // unknown floor and ceiling
         if (empty($this->floor) && empty($this->ceiling)) {
-            return '?';
+            return '';
         }
 
         // unknown floor
         if (empty($this->floor)) {
+            // year
+            if ($this->ceiling->format('m-d') == '12-31') {
+                return 'before ' . $this->ceiling->format('Y');
+            }
             return 'before ' . $this->ceiling->format('Y-m-d');
         }
 
         // unknown ceiling
         if (empty($this->ceiling)) {
+            // year
+            if ($this->floor->format('m-d') == '01-01') {
+                return 'after ' . $this->floor->format('Y');
+            }
             return 'after ' . $this->floor->format('Y-m-d');
         }
 
@@ -156,8 +164,8 @@ class FuzzyDate
     public function getJson(): array
     {
         return [
-            'floor' => $this->floor->format('Y-m-d'),
-            'ceiling' => $this->ceiling->format('Y-m-d'),
+            'floor' => empty($this->floor) ? null : $this->floor->format('Y-m-d'),
+            'ceiling' => empty($this->ceiling) ? null : $this->ceiling->format('Y-m-d'),
         ];
     }
 }
