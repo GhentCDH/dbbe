@@ -97,9 +97,9 @@
                 model: {},
                 schema: {
                     fields: {
-                        city: this.createMultiSelect('City'),
-                        library: this.createMultiSelect('Library', {dependency: 'city'}),
-                        collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}),
+                        city: this.createMultiSelect('City', {}, {trackBy: 'id'}),
+                        library: this.createMultiSelect('Library', {dependency: 'city'}, {trackBy: 'id'}),
+                        collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}, {trackBy: 'id'}),
                         shelf: {
                             type: 'input',
                             inputType: 'text',
@@ -124,10 +124,10 @@
                             max: YEAR_MAX,
                             validator: VueFormGenerator.validators.number
                         },
-                        content: this.createMultiSelect('Content'),
-                        patron: this.createMultiSelect('Patron'),
-                        scribe: this.createMultiSelect('Scribe'),
-                        origin: this.createMultiSelect('Origin')
+                        content: this.createMultiSelect('Content', {}, {trackBy: 'id'}),
+                        patron: this.createMultiSelect('Patron', {}, {trackBy: 'id'}),
+                        scribe: this.createMultiSelect('Scribe', {}, {trackBy: 'id'}),
+                        origin: this.createMultiSelect('Origin', {}, {trackBy: 'id'})
                     }
                 },
                 formOptions: {
@@ -207,7 +207,7 @@
             },
         },
         methods: {
-            createMultiSelect(label, extra) {
+            createMultiSelect(label, extra, extraSelectOptions) {
                 let result = {
                     type: 'multiselectClear',
                     label: label,
@@ -225,9 +225,14 @@
                     // Will be enabled when list of scribes is loaded
                     disabled: true
                 }
-                if (extra !== undefined) {
+                if (extra != null) {
                     for (let key of Object.keys(extra)) {
                         result[key] = extra[key]
+                    }
+                }
+                if (extraSelectOptions != null) {
+                    for (let key of Object.keys(extraSelectOptions)) {
+                        result['selectOptions'][key] = extraSelectOptions[key]
                     }
                 }
                 return result
@@ -240,7 +245,7 @@
                         2000
                     ]
                 }
-                if (this.model !== undefined) {
+                if (this.model != null) {
                     for (let fieldName of Object.keys(this.model)) {
                         if (this.schema.fields[fieldName].type === 'multiselectClear') {
                             result[fieldName] = this.model[fieldName]['id']
@@ -266,7 +271,7 @@
                     if (this.schema.fields[fieldName].type == 'multiselectClear') {
                         if (
                             this.model[fieldName] && this.schema.fields[fieldName].dependency
-                            && (this.model[this.schema.fields[fieldName].dependency] === undefined)
+                            && (this.model[this.schema.fields[fieldName].dependency] == null)
                         ) {
                             delete this.model[fieldName]
                         }
@@ -281,7 +286,7 @@
                         this.openFilterRequests--
                         for (let fieldName of Object.keys(this.schema.fields)) {
                             if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                                this.enableField(fieldName, response.data[fieldName] === undefined ? [] : response.data[fieldName].sort(this.sortByName))
+                                this.enableField(fieldName, response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
                             }
                         }
                     })
@@ -305,7 +310,7 @@
                     return
                 }
 
-                if (this.model !== undefined) {
+                if (this.model != null) {
                     for (let fieldName of Object.keys(this.model)) {
                         if (
                             this.model[fieldName] === null ||
@@ -318,13 +323,13 @@
                 }
 
                 // set year min and max values
-                if (this.model.year_from !== undefined && this.model.year_from !== null) {
+                if (this.model.year_from != null) {
                     this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
                 }
                 else {
                     this.schema.fields.year_to.min = YEAR_MIN
                 }
-                if (this.model.year_to !== undefined && this.model.year_from !== null) {
+                if (this.model.year_to != null) {
                     this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
                 }
                 else {
@@ -332,7 +337,7 @@
                 }
 
                 // Cancel timeouts caused by input requests not long ago
-                if (this.inputCancel !== null) {
+                if (this.inputCancel != null) {
                     window.clearTimeout(this.inputCancel)
                     this.inputCancel = null
                 }
@@ -366,16 +371,16 @@
                 this.schema.fields[fieldName].selectOptions.loading = false
                 this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
                 // Handle dependencies
-                if (this.schema.fields[fieldName].dependency !== undefined) {
+                if (this.schema.fields[fieldName].dependency != null) {
                     let dependency = this.schema.fields[fieldName].dependency
-                    if (this.model[dependency] === undefined) {
+                    if (this.model[dependency] == null) {
                         this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
                         return
                     }
                 }
                 // No results
                 if (values.length === 0) {
-                    if (this.model[fieldName] !== undefined) {
+                    if (this.model[fieldName] != null) {
                         this.schema.fields[fieldName].disabled = false
                         return
                     }
