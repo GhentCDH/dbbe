@@ -262,6 +262,9 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'scribes')) {
                 $this->updateScribes($manuscript, $data->scribes);
             }
+            if (property_exists($data, 'relatedPersons')) {
+                $this->updateRelatedPersons($manuscript, $data->relatedPersons);
+            }
             if (property_exists($data, 'date')) {
                 $this->updateDate($manuscript, $data->date);
             }
@@ -323,6 +326,18 @@ class ManuscriptManager extends ObjectManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addBibrole($manuscript->getId(), $role, $addId);
+        }
+    }
+
+    private function updateRelatedPersons(Manuscript $manuscript, array $persons): void
+    {
+        list($delIds, $addIds) = self::calcDiff($persons, $manuscript->getRelatedPersons());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delRelatedPersons($manuscript->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addRelatedPerson($manuscript->getId(), $addId);
         }
     }
 

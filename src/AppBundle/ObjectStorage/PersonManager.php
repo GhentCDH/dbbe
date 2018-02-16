@@ -90,6 +90,24 @@ class PersonManager extends ObjectManager
         return $this->getBibroles('scribes', ['Scribe']);
     }
 
+    public function getAllPersons(): array
+    {
+        $cache = $this->cache->getItem('persons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'person_id');
+
+        $persons = array_values($this->getPersonsByIds($ids));
+
+        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+
+        $this->cache->save($cache->set($persons));
+        return $persons;
+    }
+
     private function getPersonsByOccupations(array $occupations): array
     {
         list($cached, $occupations) = $this->getCache($occupations, 'persons_by_occupation');

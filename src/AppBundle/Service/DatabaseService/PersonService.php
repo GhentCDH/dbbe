@@ -6,6 +6,15 @@ use Doctrine\DBAL\Connection;
 
 class PersonService extends DatabaseService
 {
+    public function getIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                person.identity as person_id
+            from data.person'
+        )->fetchAll();
+    }
+
     public function getPersonsByIds(array $ids): array
     {
         return $this->conn->executeQuery(

@@ -115,7 +115,7 @@ class Person
             $description = $this->unprocessed;
         } else {
             $description = implode(' ', $nameArray);
-            if (isset($this->bornDate) && isset($this->deathDate)) {
+            if (!$this->bornDate->isEmpty() && !$this->deathDate->isEmpty()) {
                 $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
             }
         }

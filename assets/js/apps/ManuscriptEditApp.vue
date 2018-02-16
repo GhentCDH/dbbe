@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="panel panel-default">
-                <div class="panel-heading">People</div>
+                <div class="panel-heading">Persons</div>
                 <div class="panel-body">
                     <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
                     <template v-if="this.manuscript.occurrencePatrons.length > 0">
@@ -49,6 +49,7 @@
                             </li>
                         </ul>
                     </template>
+                    <vue-form-generator :schema="relatedPersonsSchema" :model="model" :options="formOptions" ref="relatedPersonsForm" @validated="validated()"></vue-form-generator>
                 </div>
             </div>
             <div class="panel panel-default">
@@ -140,6 +141,7 @@
             'initContents',
             'initPatrons',
             'initScribes',
+            'initRelatedPersons',
             'initOrigins'
         ],
         data() {
@@ -152,6 +154,7 @@
                 contents: [],
                 patrons: [],
                 scribes: [],
+                relatedPersons: [],
                 origins: [],
                 model: {
                     city: null,
@@ -161,6 +164,7 @@
                     content: [],
                     patrons: [],
                     scribes: [],
+                    relatedPersons: [],
                     same_year: false,
                     year_from: null,
                     year_to: null,
@@ -194,6 +198,11 @@
                 scribesSchema: {
                     fields: {
                         scribes: this.createMultiSelect('Scribes', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
+                    }
+                },
+                relatedPersonsSchema: {
+                    fields: {
+                        relatedPersons: this.createMultiSelect('Related Persons', {}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
                     }
                 },
                 dateSchema: {
@@ -252,6 +261,7 @@
                 this.contents = JSON.parse(this.initContents)
                 this.patrons = JSON.parse(this.initPatrons)
                 this.scribes = JSON.parse(this.initScribes)
+                this.relatedPersons = JSON.parse(this.initRelatedPersons)
                 this.origins = JSON.parse(this.initOrigins)
             })
         },
@@ -269,6 +279,7 @@
                 // People
                 this.model.patrons = this.manuscript.patrons
                 this.model.scribes = this.manuscript.scribes
+                this.model.relatedPersons = this.manuscript.relatedPersons
 
                 // Date
                 if (this.manuscript.date != null) {
@@ -297,6 +308,9 @@
                 this.$refs.contentForm.validate()
                 this.$refs.patronsForm.validate()
                 this.$refs.scribesForm.validate()
+                this.$refs.relatedPersonsForm.validate()
+                this.$refs.dateForm.validate()
+                this.$refs.originForm.validate()
             },
             'locations': function (newValue, oldValue)  {
                 this.loadLocationField(this.locationSchema.fields.city)
@@ -315,6 +329,10 @@
             'scribes': function (newValue, oldValue) {
                 this.scribesSchema.fields.scribes.values = this.scribes
                 this.enableField(this.scribesSchema.fields.scribes)
+            },
+            'relatedPersons': function (newValue, oldValue) {
+                this.relatedPersonsSchema.fields.relatedPersons.values = this.relatedPersons
+                this.enableField(this.relatedPersonsSchema.fields.relatedPersons)
             },
             'origins': function (newValue, oldValue) {
                 this.originSchema.fields.origin.values = this.origins
@@ -373,7 +391,8 @@
                     type: 'multiselectClear',
                     label: label,
                     placeholder: 'Loading',
-                    model: label.toLowerCase(),
+                    // lowercase first letter + remove spaces
+                    model: label.charAt(0).toLowerCase() + label.slice(1).replace(/[ ]/g, ''),
                     // Values will be loaded using a watcher
                     values: [],
                     selectOptions: {
@@ -484,6 +503,7 @@
                     this.contentSchema.fields,
                     this.patronsSchema.fields,
                     this.scribesSchema.fields,
+                    this.relatedPersonsSchema.fields,
                     {
                         year_from: this.dateSchema.fields.year_from,
                         year_to: this.dateSchema.fields.year_to

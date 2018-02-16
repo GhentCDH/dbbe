@@ -114,11 +114,21 @@ class FuzzyDate
     }
 
     /**
+     * Check if any property is set
+     *
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return empty($this->floor) && empty($this->ceiling);
+    }
+
+    /**
      * Get the value of Floor
      *
      * @return DateTime|null
      */
-    public function getFloor()
+    public function getFloor(): ?DateTime
     {
         return $this->floor;
     }
@@ -130,7 +140,7 @@ class FuzzyDate
      *
      * @return self
      */
-    public function setFloor(DateTime $floor = null)
+    public function setFloor(DateTime $floor = null): FuzzyDate
     {
         $this->floor = $floor;
 
@@ -142,7 +152,7 @@ class FuzzyDate
      *
      * @return DateTime|null
      */
-    public function getCeiling()
+    public function getCeiling(): ?DateTime
     {
         return $this->ceiling;
     }
@@ -154,7 +164,7 @@ class FuzzyDate
      *
      * @return self
      */
-    public function setCeiling(DateTime $ceiling = null)
+    public function setCeiling(DateTime $ceiling = null): FuzzyDate
     {
         $this->ceiling = $ceiling;
 

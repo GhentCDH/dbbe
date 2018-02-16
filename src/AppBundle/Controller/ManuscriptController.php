@@ -248,6 +248,7 @@ class ManuscriptController extends Controller
         $contents = self::arrayToShortJson($this->get('content_manager')->getAllContents());
         $patrons = self::arrayToShortJson($this->get('person_manager')->getAllPatrons());
         $scribes = self::arrayToShortJson($this->get('person_manager')->getAllSCribes());
+        $relatedPersons = self::arrayToShortJson($this->get('person_manager')->getAllPersons());
         $origins = self::arrayToShortJson($this->get('location_manager')->getAllOrigins());
 
         return $this->render(
@@ -259,6 +260,7 @@ class ManuscriptController extends Controller
                 'contents' => json_encode($contents),
                 'patrons' => json_encode($patrons),
                 'scribes' => json_encode($scribes),
+                'relatedPersons' => json_encode($relatedPersons),
                 'origins' => json_encode($origins),
             ]
         );

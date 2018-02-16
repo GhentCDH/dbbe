@@ -44,13 +44,6 @@ class LocationManager extends ObjectManager
         return $locations;
     }
 
-    public function getAllLocations(): array
-    {
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'location_id');
-        return $this->getLocationsByIds($ids);
-    }
-
     public function getAllCitiesLibrariesCollections(): array
     {
         $cache = $this->cache->getItem('citiesLibrariesCollections');

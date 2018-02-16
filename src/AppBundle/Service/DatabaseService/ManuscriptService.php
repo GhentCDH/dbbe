@@ -304,6 +304,45 @@ class ManuscriptService extends DatabaseService
         );
     }
 
+    public function delRelatedPersons(int $manuscriptId, array $personIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.factoid
+            where factoid.subject_identity = ?
+            and factoid.object_identity in (?)',
+            [
+                $manuscriptId,
+                $personIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function addRelatedPerson(int $manuscriptId, int $personId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.factoid (subject_identity, object_identity, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (
+                    select
+                        factoid_type.idfactoid_type
+                    from data.factoid_type
+                    where factoid_type.type = \'related to\'
+                )
+            )',
+            [
+                $manuscriptId,
+                $personId,
+            ]
+        );
+    }
+
     public function insertCompletionDate(int $manuscriptId, string $completionDate): int
     {
         return $this->conn->executeUpdate(
@@ -313,7 +352,7 @@ class ManuscriptService extends DatabaseService
                 ?,
                 (
                     select
-                        factoid_type.type
+                        factoid_type.idfactoid_type
                     from data.factoid_type
                     where factoid_type.type = \'completed at\'
                 )
