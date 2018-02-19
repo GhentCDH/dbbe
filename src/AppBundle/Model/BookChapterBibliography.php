@@ -46,4 +46,9 @@ class BookChapterBibliography extends Bibliography
             . self::formatPages($this->startPage, $this->endPage, ': ')
             . '.';
     }
+
+    public function getShortJson(): array
+    {
+        throw new \Exception('Not implemented');
+    }
 }

@@ -4,13 +4,10 @@ namespace AppBundle\Model;
 
 trait AuthorsTrait
 {
-    private $authors;
+    private $authors = [];
 
     public function addAuthor(Person $author)
     {
-        if (!isset($this->authors)) {
-            $this->authors = [];
-        }
         $this->authors[] = $author;
 
         return $this;

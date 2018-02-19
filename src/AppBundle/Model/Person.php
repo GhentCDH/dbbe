@@ -146,7 +146,7 @@ class Person
     public function getShortDescription(): string
     {
         $nameArray = array_filter([
-            isset($this->firstName) ? substr($this->firstName, 0, 1) . '.' : null,
+            isset($this->firstName) ? mb_substr($this->firstName, 0, 1) . '.' : null,
             $this->lastName,
             $this->extra,
         ]);

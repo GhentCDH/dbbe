@@ -5,6 +5,7 @@ namespace AppBundle\Model;
 class Book
 {
     use AuthorsTrait;
+    use CacheDependenciesTrait;
 
     private $id;
     private $year;
@@ -49,8 +50,29 @@ class Book
         return $this->city;
     }
 
-    public function getEditor()
+    public function getEditor(): ?string
     {
         return $this->editor;
+    }
+
+    public function getDescription(): string
+    {
+        $authorNames = [];
+        foreach ($this->authors as $author) {
+            $authorNames[] = $author->getShortDescription();
+        }
+        return
+            implode(', ', $authorNames)
+            . ' ' . $this->year
+            . ', ' . $this->title
+            . ', ' . $this->city;
+    }
+
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getDescription(),
+        ];
     }
 }

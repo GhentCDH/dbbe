@@ -43,4 +43,9 @@ class OnlineSourceBibliography extends Bibliography
             . ' (last accessed: ' . $this->onlineSource->getLastAccessed()->format('Y-m-d') . ')'
             . '.';
     }
+
+    public function getShortJson(): array
+    {
+        throw new \Exception('Not implemented');
+    }
 }

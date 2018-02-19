@@ -27,15 +27,22 @@ class BookBibliography extends Bibliography
 
     public function getDescription(): string
     {
-        $authorNames = [];
-        foreach ($this->book->getAuthors() as $author) {
-            $authorNames[] = $author->getShortDescription();
-        }
-        return implode(', ', $authorNames)
-            . ' ' . $this->book->getYear()
-            . ', ' . $this->book->getTitle()
-            . ', ' . $this->book->getCity()
+        return
+            $this->book->getDescription()
             . self::formatPages($this->startPage, $this->endPage, ': ')
             . '.';
+    }
+
+    public function getShortJson(): array
+    {
+        return [
+            'type' => $this->type,
+            'book' => [
+                'id' => $this->book->getId(),
+                'name' => $this->book->getDescription(),
+            ],
+            'startPage' => $this->startPage,
+            'endPage' => $this->endPage,
+        ];
     }
 }

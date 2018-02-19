@@ -64,6 +64,34 @@
                     <vue-form-generator :schema="originSchema" :model="model" :options="formOptions" ref="originForm" @validated="validated()"></vue-form-generator>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Bibliograpy</div>
+                <div class="panel-body">
+                    <h3>Books</h3>
+                    <table v-if="model.bibliography.books.length > 0" class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Start page</th>
+                                <th>End page</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in model.bibliography.books">
+                                <td>{{ item.book.name }}</td>
+                                <td>{{ item.startPage }}</td>
+                                <td>{{ item.endPage }}</td>
+                                <td>
+                                    <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
+                                    <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <btn @click="newBib('book')"><i class="fa fa-plus"></i>&nbsp;Add a new book reference</btn>
+                </div>
+            </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="this.openRequests">
@@ -78,7 +106,7 @@
                 <btn type="danger" @click="reset()" data-action="auto-focus">Reset</btn>
             </div>
         </modal>
-        <modal v-model="saveModal" title="Save manuscript" auto-focus>
+        <modal v-model="saveModal" title="Save manuscript" size="lg" auto-focus>
             <p>Are you sure you want to save this manuscript information?</p>
             <table class="table table-striped table-hover">
                 <thead>
@@ -109,6 +137,24 @@
             <div slot="footer">
                 <btn @click="saveModal=false">Cancel</btn>
                 <btn type="success" @click="save()" data-action="auto-focus">Save</btn>
+            </div>
+        </modal>
+        <modal v-model="editBibModal" size="lg" auto-focus>
+            <vue-form-generator v-if="this.editBib.type" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <div slot="header">
+                <h4 class="modal-title" v-if="this.editBib.id">Edit bibliography</h4>
+                <h4 class="modal-title" v-if="!this.editBib.id">Add a new bibliography</h4>
+            </div>
+            <div slot="footer">
+                <btn @click="editBibModal=false">Cancel</btn>
+                <btn type="success" @click="submitBib()">{{ this.editBib.id ? 'Update' : 'Add' }}</btn>
+            </div>
+        </modal>
+        <modal v-model="delBibModal" title="Delete bibliography" auto-focus>
+            Are you sure you want to delete this bibliography?
+            <div slot="footer">
+                <btn @click="delBibModal=false">Cancel</btn>
+                <btn type="danger" @click="submitDeleteBib()">Delete</btn>
             </div>
         </modal>
     </div>
@@ -142,7 +188,11 @@
             'initPatrons',
             'initScribes',
             'initRelatedPersons',
-            'initOrigins'
+            'initOrigins',
+            'initBooks',
+            'initArticles',
+            'initBookChapters',
+            'initOnlineSources'
         ],
         data() {
             return {
@@ -156,6 +206,10 @@
                 scribes: [],
                 relatedPersons: [],
                 origins: [],
+                books: [],
+                articles: [],
+                bookChapters: [],
+                onlineSources: [],
                 model: {
                     city: null,
                     library: null,
@@ -168,7 +222,13 @@
                     same_year: false,
                     year_from: null,
                     year_to: null,
-                    origin: null
+                    origin: null,
+                    bibliography: {
+                        books: [],
+                        articles: [],
+                        bookChapters: [],
+                        onlineSources: [],
+                    }
                 },
                 locationSchema: {
                     fields: {
@@ -238,6 +298,25 @@
                         origin: this.createMultiSelect('Origin', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'})
                     }
                 },
+                editBookBibSchema: {
+                    fields: {
+                        book: this.createMultiSelect('Book', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        startPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Start page',
+                            model: 'startPage',
+                            validator: VueFormGenerator.validators.string
+                        },
+                        endPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'End page',
+                            model: 'endPage',
+                            validator: VueFormGenerator.validators.string
+                        }
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -251,7 +330,11 @@
                 resetModal: false,
                 saveModal: false,
                 invalidForms: false,
-                noNewValues: true
+                noNewValues: true,
+                editBibModal: false,
+                delBibModal: false,
+                bibIndex: null,
+                editBib: {}
             }
         },
         mounted () {
@@ -263,6 +346,7 @@
                 this.scribes = JSON.parse(this.initScribes)
                 this.relatedPersons = JSON.parse(this.initRelatedPersons)
                 this.origins = JSON.parse(this.initOrigins)
+                this.books = JSON.parse(this.initBooks)
             })
         },
         watch: {
@@ -298,7 +382,18 @@
                 // Origin
                 this.model.origin = this.manuscript.origin
 
-                this.originalModel = Object.assign({}, this.model)
+                // Bibliography
+                for (let id of Object.keys(this.manuscript.bibliography)) {
+                    let bib = this.manuscript.bibliography[id]
+                    bib['id'] = id
+                    switch (bib['type']) {
+                        case 'book':
+                            this.model.bibliography.books.push(bib);
+                            break
+                    }
+                }
+
+                this.originalModel = JSON.parse(JSON.stringify(this.model))
 
                 if (this.locationSchema.fields.city.values.length === 0) {
                     this.loadLocationField(this.locationSchema.fields.city)
@@ -337,6 +432,10 @@
             'origins': function (newValue, oldValue) {
                 this.originSchema.fields.origin.values = this.origins
                 this.enableField(this.originSchema.fields.origin)
+            },
+            'books': function (newValue, oldValue) {
+                this.editBookBibSchema.fields.book.values = this.books
+                this.enableField(this.editBookBibSchema.fields.book)
             },
             'model.city': function (newValue, oldValue) {
                 if (this.model.city == null) {
@@ -496,7 +595,9 @@
                 field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label
             },
             calcDiff() {
-                this.diff = []
+                if (Object.keys(this.originalModel).length === 0) {
+                    return
+                }
                 let fields = Object.assign(
                     {},
                     this.locationSchema.fields,
@@ -508,18 +609,30 @@
                         year_from: this.dateSchema.fields.year_from,
                         year_to: this.dateSchema.fields.year_to
                     },
-                    this.originSchema.fields
-                )
-                for (let key of Object.keys(this.model)) {
-                    if (['same_year'].indexOf(key) > -1) {
-                        continue
+                    this.originSchema.fields,
+                    {
+                        bibliography: {
+                            label: 'Bibliography'
+                        }
                     }
+                )
+                this.diff = []
+                for (let key of Object.keys(fields)) {
                     if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])) {
-                        this.diff.push({
-                            'label': fields[key]['label'],
-                            'old': this.originalModel[key],
-                            'new': this.model[key],
-                        })
+                        if (key === 'bibliography') {
+                            this.diff.push({
+                                'label': fields[key]['label'],
+                                'old': this.displayBibliography(this.originalModel[key]),
+                                'new': this.displayBibliography(this.model[key]),
+                            })
+                        }
+                        else {
+                            this.diff.push({
+                                'label': fields[key]['label'],
+                                'old': this.originalModel[key],
+                                'new': this.model[key],
+                            })
+                        }
                     }
                 }
             },
@@ -554,7 +667,7 @@
             },
             reset() {
                 this.resetModal = false
-                this.model = Object.assign({}, this.originalModel)
+                this.model = JSON.parse(JSON.stringify(this.originalModel))
             },
             save() {
                 this.openRequests++
@@ -569,6 +682,56 @@
                         this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
                         this.openRequests--
                     })
+            },
+            updateBib(bibliography, index) {
+                this.bibIndex = index
+                this.editBib = JSON.parse(JSON.stringify(bibliography))
+                this.editBibModal = true
+            },
+            delBib(bibliography, index) {
+                this.bibIndex = index
+                this.editBib = JSON.parse(JSON.stringify(bibliography))
+                this.delBibModal = true
+            },
+            newBib(type) {
+                this.bibIndex = -1
+                this.editBib = {
+                    type: type
+                }
+                this.editBibModal = true
+            },
+            submitBib() {
+                this.$refs.editBibForm.validate()
+                if (this.$refs.editBibForm.errors.length == 0) {
+                    if (this.bibIndex > -1) {
+                        this.model.bibliography[this.editBib.type + "s"][this.bibIndex] = JSON.parse(JSON.stringify(this.editBib))
+                    }
+                    else {
+                        this.model.bibliography[this.editBib.type + "s"].push(JSON.parse(JSON.stringify(this.editBib)))
+                    }
+                    this.calcDiff()
+                    this.editBibModal = false
+                }
+            },
+            submitDeleteBib() {
+                this.model.bibliography[this.editBib.type + "s"].splice(this.bibIndex, 1)
+                this.delBibModal = false
+            },
+            displayBibliography(bibliography) {
+                let result = []
+                for (let bookBibliography of bibliography['books']) {
+                    result.push(bookBibliography.book.name + this.formatPages(bookBibliography.startPage, bookBibliography.endPage, ': ') + '.')
+                }
+                return result
+            },
+            formatPages(startPage = null, endPage = null, prefix = '') {
+                if (startPage == null) {
+                    return '';
+                }
+                if (endPage == null) {
+                    return prefix + startPage;
+                }
+                return prefix + startPage + '-' + endPage;
             }
         }
     }

@@ -27,6 +27,8 @@ abstract class Bibliography
 
     abstract public function getDescription(): string;
 
+    abstract public function getShortJson(): array;
+
     protected static function formatPages(
         string $page_start = null,
         string $page_end = null,

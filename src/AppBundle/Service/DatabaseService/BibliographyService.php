@@ -6,26 +6,48 @@ use Doctrine\DBAL\Connection;
 
 class BibliographyService extends DatabaseService
 {
-    public function getBookBibliographiesByIds(array $ids): array
+    public function getBibliographiesByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 reference.idreference as reference_id,
+                reference.idsource as source_id,
+                reference.page_start,
+                reference.page_end,
+                reference.url as rel_url
+            from data.reference
+            where reference.idreference in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getBooksByIds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
                 book.identity as book_id,
-                bibrole.idperson as person_id,
+                array_to_json(array_agg(bibrole.idperson order by bibrole.rank)) as person_ids,
                 document_title.title,
                 book.year,
                 book.city,
-                reference.page_start,
-                reference.page_end
-            from data.reference
-            inner join data.book on reference.idsource = book.identity
+                book.editor
+            from data.book
             left join data.bibrole on book.identity = bibrole.iddocument and bibrole.type = \'author\'
             inner join data.document_title on book.identity = document_title.iddocument
-            where reference.idreference in (?)
-            order by book.identity, bibrole.rank',
+            where book.identity in (?)
+            group by book.identity, document_title.title',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getBookIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                book.identity as book_id
+            from data.book'
         )->fetchAll();
     }
 

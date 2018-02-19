@@ -41,6 +41,7 @@ class Manuscript extends Document
         $this->scribes = [];
         $this->occurrenceScribes = [];
         $this->relatedPersons = [];
+        $this->bibliographies = [];
         return $this;
     }
 
@@ -209,7 +210,7 @@ class Manuscript extends Document
         return $this;
     }
 
-    public function getBibliographies(): ?array
+    public function getBibliographies(): array
     {
         return $this->bibliographies;
     }
@@ -286,11 +287,15 @@ class Manuscript extends Document
             'scribes' => self::arrayToShortJson(array_values($this->scribes)),
             'relatedPersons' => self::arrayToShortJson(array_values($this->relatedPersons)),
             'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
-            'origin' => $this->getOrigin()->getShortJson(),
+            'bibliography' => self::arrayToShortJson($this->getBibliographies()),
         ];
 
         if (isset($this->date)) {
             $result['date'] = $this->date->getJson();
+        }
+
+        if (isset($this->origin)) {
+            $result['origin'] = $this->getOrigin()->getShortJson();
         }
 
         return $result;

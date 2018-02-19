@@ -68,6 +68,7 @@ services:
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
         arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null, null]
+        public: true
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager

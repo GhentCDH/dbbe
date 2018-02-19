@@ -250,6 +250,7 @@ class ManuscriptController extends Controller
         $scribes = self::arrayToShortJson($this->get('person_manager')->getAllSCribes());
         $relatedPersons = self::arrayToShortJson($this->get('person_manager')->getAllPersons());
         $origins = self::arrayToShortJson($this->get('location_manager')->getAllOrigins());
+        $books = self::arrayToShortJson($this->get('bibliography_manager')->getAllBooks());
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
@@ -262,7 +263,10 @@ class ManuscriptController extends Controller
                 'scribes' => json_encode($scribes),
                 'relatedPersons' => json_encode($relatedPersons),
                 'origins' => json_encode($origins),
+                'books' => json_encode($books),
             ]
         );
+
+        var_dump(json_last_error());
     }
 }

@@ -189,8 +189,9 @@ class ManuscriptManager extends ObjectManager
             $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
         foreach ($bibliographies as $bibliography) {
             foreach ($bibliography->getCacheDependencies() as $cacheDependency) {
-                $manuscript->addCacheDePendency($cacheDependency);
+                $manuscript->addCacheDependency($cacheDependency);
             }
+            $manuscript->addCacheDependency('book_bibliography.' . $bibliography->getId());
         }
         if (!empty($bibliographies)) {
             $manuscript->setBibliographies($bibliographies);
@@ -215,7 +216,7 @@ class ManuscriptManager extends ObjectManager
             $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
             $occurrences = $this->oms['occurrence_manager']->getOccurrencesByIds($occurrenceIds);
             foreach ($occurrences as $occurrence) {
-                $manuscript->addCacheDePendency('occurrence.' . $occurrence->getId());
+                $manuscript->addCacheDependency('occurrence.' . $occurrence->getId());
             }
             $manuscript->setOccurrences($occurrences);
         }
