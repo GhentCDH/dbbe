@@ -42,8 +42,8 @@ class BookChapterBibliography extends Bibliography
             )
             . ', ' . $this->bookChapter->getBook()->getTitle()
             . ', ' . $this->bookChapter->getBook()->getCity()
-            . self::formatPages($this->bookChapter->getStartPage(), $this->bookChapter->getEndPage(), ', ')
-            . self::formatPages($this->startPage, $this->endPage, ': ')
+            . $this->bookChapter->formatStartEndPages(', ')
+            . $this->formatStartEndPages(': ')
             . '.';
     }
 

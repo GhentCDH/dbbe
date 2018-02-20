@@ -29,7 +29,7 @@ class BookBibliography extends Bibliography
     {
         return
             $this->book->getDescription()
-            . self::formatPages($this->startPage, $this->endPage, ': ')
+            . $this->formatStartEndPages(': ')
             . '.';
     }
 
@@ -37,10 +37,7 @@ class BookBibliography extends Bibliography
     {
         return [
             'type' => $this->type,
-            'book' => [
-                'id' => $this->book->getId(),
-                'name' => $this->book->getDescription(),
-            ],
+            'book' => $this->book->getShortJson(),
             'startPage' => $this->startPage,
             'endPage' => $this->endPage,
         ];

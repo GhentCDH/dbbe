@@ -28,18 +28,4 @@ abstract class Bibliography
     abstract public function getDescription(): string;
 
     abstract public function getShortJson(): array;
-
-    protected static function formatPages(
-        string $page_start = null,
-        string $page_end = null,
-        string $prefix = ''
-    ): string {
-        if (empty($page_start)) {
-            return '';
-        }
-        if (empty($page_end)) {
-            return $prefix . $page_start;
-        }
-        return $prefix . $page_start . '-' . $page_end;
-    }
 }

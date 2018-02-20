@@ -14,7 +14,7 @@ class Journal
         int $id,
         string $title,
         int $year,
-        int $volume,
+        int $volume = null,
         int $number = null
     ) {
         $this->id = $id;
@@ -34,12 +34,12 @@ class Journal
         return $this->year;
     }
 
-    public function getVolume(): int
+    public function getVolume(): ?int
     {
         return $this->volume;
     }
 
-    public function getNumber()
+    public function getNumber(): ?int
     {
         return $this->number;
     }

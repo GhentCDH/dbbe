@@ -77,29 +77,56 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Bibliograpy</div>
                 <div class="panel-body">
-                    <h3>Books</h3>
-                    <table v-if="model.bibliography.books.length > 0" class="table table-striped table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Book</th>
-                                <th>Start page</th>
-                                <th>End page</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item, index) in model.bibliography.books">
-                                <td>{{ item.book.name }}</td>
-                                <td>{{ item.startPage }}</td>
-                                <td>{{ item.endPage }}</td>
-                                <td>
-                                    <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
-                                    <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <btn @click="newBib('book')"><i class="fa fa-plus"></i>&nbsp;Add a new book reference</btn>
+                    <div class="pbottom-large">
+                        <h3>Books</h3>
+                        <table v-if="model.bibliography.books.length > 0" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book</th>
+                                    <th>Start page</th>
+                                    <th>End page</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in model.bibliography.books">
+                                    <td>{{ item.book.name }}</td>
+                                    <td>{{ item.startPage }}</td>
+                                    <td>{{ item.endPage }}</td>
+                                    <td>
+                                        <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
+                                        <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <btn @click="newBib('book')"><i class="fa fa-plus"></i>&nbsp;Add a new book reference</btn>
+                    </div>
+                    <div class="pbottom-large">
+                        <h3>Articles</h3>
+                        <table v-if="model.bibliography.articles.length > 0" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Article</th>
+                                    <th>Start page</th>
+                                    <th>End page</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in model.bibliography.articles">
+                                    <td>{{ item.article.name }}</td>
+                                    <td>{{ item.startPage }}</td>
+                                    <td>{{ item.endPage }}</td>
+                                    <td>
+                                        <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
+                                        <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <btn @click="newBib('article')"><i class="fa fa-plus"></i>&nbsp;Add a new article reference</btn>
+                    </div>
                 </div>
             </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
@@ -150,7 +177,8 @@
             </div>
         </modal>
         <modal v-model="editBibModal" size="lg" auto-focus>
-            <vue-form-generator v-if="editBib.type" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'book'" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'article'" :schema="editArticleBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <div slot="header">
                 <h4 class="modal-title" v-if="editBib.id">Edit bibliography</h4>
                 <h4 class="modal-title" v-if="!editBib.id">Add a new bibliography item</h4>
@@ -327,6 +355,25 @@
                         }
                     }
                 },
+                editArticleBibSchema: {
+                    fields: {
+                        article: this.createMultiSelect('Article', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        startPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Start page',
+                            model: 'startPage',
+                            validator: VueFormGenerator.validators.string
+                        },
+                        endPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'End page',
+                            model: 'endPage',
+                            validator: VueFormGenerator.validators.string
+                        }
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -357,6 +404,7 @@
                 this.relatedPersons = JSON.parse(this.initRelatedPersons)
                 this.origins = JSON.parse(this.initOrigins)
                 this.books = JSON.parse(this.initBooks)
+                this.articles = JSON.parse(this.initArticles)
             })
         },
         watch: {
@@ -399,6 +447,9 @@
                     switch (bib['type']) {
                         case 'book':
                             this.model.bibliography.books.push(bib);
+                            break
+                        case 'article':
+                            this.model.bibliography.articles.push(bib);
                             break
                     }
                 }
@@ -446,6 +497,10 @@
             'books': function (newValue, oldValue) {
                 this.editBookBibSchema.fields.book.values = this.books
                 this.enableField(this.editBookBibSchema.fields.book)
+            },
+            'articles': function (newValue, oldValue) {
+                this.editArticleBibSchema.fields.article.values = this.articles
+                this.enableField(this.editArticleBibSchema.fields.article)
             },
             'model.city': function (newValue, oldValue) {
                 if (this.model.city == null) {
@@ -734,12 +789,16 @@
             },
             submitDeleteBib() {
                 this.model.bibliography[this.editBib.type + "s"].splice(this.bibIndex, 1)
+                this.calcDiff()
                 this.delBibModal = false
             },
             displayBibliography(bibliography) {
                 let result = []
                 for (let bookBibliography of bibliography['books']) {
                     result.push(bookBibliography.book.name + this.formatPages(bookBibliography.startPage, bookBibliography.endPage, ': ') + '.')
+                }
+                for (let articleBibliography of bibliography['articles']) {
+                    result.push(articleBibliography.article.name + this.formatPages(articleBibliography.startPage, articleBibliography.endPage, ': ') + '.')
                 }
                 return result
             },

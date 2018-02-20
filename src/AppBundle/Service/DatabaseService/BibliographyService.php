@@ -51,34 +51,42 @@ class BibliographyService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getArticleBibliographiesByIds(array $ids): array
+    public function getArticlesByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                reference.idreference as reference_id,
                 article.identity as article_id,
                 article_title.title as article_title,
-                bibrole.idperson as person_id,
+                array_to_json(array_agg(bibrole.idperson order by bibrole.rank)) as person_ids,
                 journal.identity as journal_id,
                 journal_title.title as journal_title,
                 journal.year as journal_year,
                 journal.volume as journal_volume,
                 journal.number as journal_number,
                 document_contains.page_start as article_page_start,
-                document_contains.page_end as article_page_end,
-                reference.page_start,
-                reference.page_end
-            from data.reference
-            inner join data.article on reference.idsource = article.identity
+                document_contains.page_end as article_page_end
+            from data.article
             left join data.bibrole on article.identity = bibrole.iddocument and bibrole.type = \'author\'
             inner join data.document_title as article_title on article.identity = article_title.iddocument
             inner join data.document_contains on article.identity = document_contains.idcontent
             inner join data.journal on journal.identity = document_contains.idcontainer
             inner join data.document_title as journal_title on journal.identity = journal_title.iddocument
-            where reference.idreference in (?)
-            order by article.identity, bibrole.rank',
+            where article.identity in (?)
+            group by
+                article.identity, article_title.title,
+                journal.identity, journal_title.title,
+                document_contains.page_start, document_contains.page_end',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getArticleIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                article.identity as article_id
+            from data.article'
         )->fetchAll();
     }
 

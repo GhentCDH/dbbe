@@ -27,27 +27,19 @@ class ArticleBibliography extends Bibliography
 
     public function getDescription(): string
     {
-        $authorNames = [];
-        foreach ($this->article->getAuthors() as $author) {
-            $authorNames[] = $author->getShortDescription();
-        }
-        return implode(', ', $authorNames)
-            . ' ' . $this->article->getJournal()->getYear()
-            . ', ' . $this->article->getTitle()
-            . ', ' . $this->article->getJournal()->getTitle()
-            . ', ' . $this->article->getJournal()->getVolume()
-            . (
-                !empty($this->article->getJournal()->getNumber())
-                    ? '(' . $this->article->getJournal()->getNumber() . ')'
-                    : ''
-            )
-            . self::formatPages($this->article->getStartPage(), $this->article->getEndPage(), ', ')
-            . self::formatPages($this->startPage, $this->endPage, ': ')
+        return
+            $this->article->getDescription()
+            . $this->formatStartEndPages(': ')
             . '.';
     }
 
     public function getShortJson(): array
     {
-        throw new \Exception('Not implemented');
+        return [
+            'type' => $this->type,
+            'article' => $this->article->getShortJson(),
+            'startPage' => $this->startPage,
+            'endPage' => $this->endPage,
+        ];
     }
 }
