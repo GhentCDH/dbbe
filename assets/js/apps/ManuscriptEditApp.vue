@@ -22,8 +22,8 @@
                 <div class="panel-heading">Persons</div>
                 <div class="panel-body">
                     <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
-                    <template v-if="this.manuscript.occurrencePatrons.length > 0">
-                        Patron(s) provided by occurrences:
+                    <div class="small" v-if="this.manuscript.occurrencePatrons.length > 0">
+                        <p>Patron(s) provided by occurrences:</p>
                         <ul>
                             <li v-for="patron in this.manuscript.occurrencePatrons">
                                 {{ patron.name }}
@@ -34,10 +34,10 @@
                                 </ul>
                             </li>
                         </ul>
-                    </template>
+                    </div>
                     <vue-form-generator :schema="scribesSchema" :model="model" :options="formOptions" ref="scribesForm" @validated="validated()"></vue-form-generator>
-                    <template v-if="this.manuscript.occurrenceScribes.length > 0">
-                        Scribe(s) provided by occurrences:
+                    <div class="small" v-if="this.manuscript.occurrenceScribes.length > 0">
+                        <p>Scribe(s) provided by occurrences:</p>
                         <ul>
                             <li v-for="scribe in this.manuscript.occurrenceScribes">
                                 {{ scribe.name }}
@@ -48,8 +48,11 @@
                                 </ul>
                             </li>
                         </ul>
-                    </template>
+                    </div>
                     <vue-form-generator :schema="relatedPersonsSchema" :model="model" :options="formOptions" ref="relatedPersonsForm" @validated="validated()"></vue-form-generator>
+                    <div class="small">
+                        <p>Related persons are persons that are related to this manuscript but that are not a patron or a scribe of the manuscript or of occurrences related to the manuscript.</p>
+                    </div>
                 </div>
             </div>
             <div class="panel panel-default">
@@ -143,7 +146,7 @@
             <vue-form-generator v-if="this.editBib.type" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <div slot="header">
                 <h4 class="modal-title" v-if="this.editBib.id">Edit bibliography</h4>
-                <h4 class="modal-title" v-if="!this.editBib.id">Add a new bibliography</h4>
+                <h4 class="modal-title" v-if="!this.editBib.id">Add a new bibliography item</h4>
             </div>
             <div slot="footer">
                 <btn @click="editBibModal=false">Cancel</btn>
