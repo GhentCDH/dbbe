@@ -248,7 +248,7 @@ class ManuscriptController extends Controller
         $contents = self::arrayToShortJson($this->get('content_manager')->getAllContents());
         $patrons = self::arrayToShortJson($this->get('person_manager')->getAllPatrons());
         $scribes = self::arrayToShortJson($this->get('person_manager')->getAllSCribes());
-        $relatedPersons = self::arrayToShortJson($this->get('person_manager')->getAllPersons());
+        $relatedPersons = self::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons());
         $origins = self::arrayToShortJson($this->get('location_manager')->getAllOrigins());
         $books = self::arrayToShortJson($this->get('bibliography_manager')->getAllBooks());
 

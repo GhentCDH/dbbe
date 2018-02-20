@@ -90,14 +90,14 @@ class PersonManager extends ObjectManager
         return $this->getBibroles('scribes', ['Scribe']);
     }
 
-    public function getAllPersons(): array
+    public function getAllHistoricalPersons(): array
     {
-        $cache = $this->cache->getItem('persons');
+        $cache = $this->cache->getItem('historical_persons');
         if ($cache->isHit()) {
             return $cache->get();
         }
 
-        $rawIds = $this->dbs->getIds();
+        $rawIds = $this->dbs->getHistoricalIds();
         $ids = self::getUniqueIds($rawIds, 'person_id');
 
         $persons = array_values($this->getPersonsByIds($ids));

@@ -498,6 +498,7 @@
                     // Values will be loaded using a watcher
                     values: [],
                     selectOptions: {
+                        optionsLimit: 10000,
                         customLabel: ({id, name}) => {
                             return name
                         },

@@ -6,12 +6,13 @@ use Doctrine\DBAL\Connection;
 
 class PersonService extends DatabaseService
 {
-    public function getIds(): array
+    public function getHistoricalIds(): array
     {
         return $this->conn->query(
             'SELECT
                 person.identity as person_id
-            from data.person'
+            from data.person
+            where person.is_historical = TRUE'
         )->fetchAll();
     }
 
