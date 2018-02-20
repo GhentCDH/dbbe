@@ -42,21 +42,21 @@ class BookChapter
     public function getDescription(): string
     {
         $authorNames = [];
-        foreach ($this->getAuthors() as $author) {
+        foreach ($this->authors as $author) {
             $authorNames[] = $author->getShortDescription();
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->getBook()->getYear()
+            . ' ' . $this->book->getYear()
             . ', ' . $this->getTitle()
             . ', in '
             . (
-                !empty($this->getBook()->getEditor())
-                    ? $this->getBook()->getEditor() . ' (ed.) '
+                !empty($this->book->getEditor())
+                    ? $this->book->getEditor() . ' (ed.) '
                     : ''
             )
-            . ', ' . $this->getBook()->getTitle()
-            . ', ' . $this->getBook()->getCity()
+            . ', ' . $this->book->getTitle()
+            . ', ' . $this->book->getCity()
             . $this->formatStartEndPages(', ');
     }
 

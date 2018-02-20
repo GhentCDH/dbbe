@@ -39,13 +39,16 @@ class OnlineSourceBibliography extends Bibliography
 
     public function getDescription(): string
     {
-        return $this->onlineSource->getName()
-            . ' (last accessed: ' . $this->onlineSource->getLastAccessed()->format('Y-m-d') . ')'
-            . '.';
+        return $this->onlineSource->getDescription();
     }
 
     public function getShortJson(): array
     {
-        throw new \Exception('Not implemented');
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'onlineSource' => $this->onlineSource->getShortJson(),
+            'relUrl' => $this->relUrl,
+        ];
     }
 }

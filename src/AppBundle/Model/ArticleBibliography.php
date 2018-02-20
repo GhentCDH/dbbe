@@ -36,6 +36,7 @@ class ArticleBibliography extends Bibliography
     public function getShortJson(): array
     {
         return [
+            'id' => $this->id,
             'type' => $this->type,
             'article' => $this->article->getShortJson(),
             'startPage' => $this->startPage,

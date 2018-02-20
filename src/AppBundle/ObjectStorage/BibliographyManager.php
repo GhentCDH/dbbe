@@ -222,7 +222,7 @@ class BibliographyManager extends ObjectManager
         return $articles;
     }
 
-    public function getBookChapterBibliographiesByIds(array $ids)
+    public function getBookChapterBibliographiesByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'book_chapter_bibliography');
         if (empty($ids)) {
@@ -315,29 +315,23 @@ class BibliographyManager extends ObjectManager
         return $bookChapters;
     }
 
-    public function getOnlineSourceBibliographiesByIds(array $ids)
+    public function getOnlineSourceBibliographiesByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'online_source_bibliography');
         if (empty($ids)) {
             return $cached;
         }
 
-        $rawBibliographies = $this->dbs->getOnlineSourceBibliographiesByIds($ids);
+        $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
+
+        $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id');
+        $onlineSources = $this->getOnlineSourcesByIds($onlineSourceIds);
 
         foreach ($rawBibliographies as $rawBibliography) {
             $bibliography = (new OnlineSourceBibliography($rawBibliography['reference_id']))
-                ->setOnlineSource(
-                    new OnlineSource(
-                        $rawBibliography['online_source_id'],
-                        $rawBibliography['base_url'],
-                        $rawBibliography['institution_name'],
-                        $rawBibliography['last_accessed']
-                    )
-                )
+                ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
+                ->addCacheDependency('online_source.' . $rawBibliography['source_id'])
                 ->setRelUrl($rawBibliography['rel_url']);
-
-            $bibliography
-                ->addCacheDependency('online_source.' . $rawBibliography['online_source_id']);
 
             $bibliographies[$bibliography->getId()] = $bibliography;
         }
@@ -345,5 +339,50 @@ class BibliographyManager extends ObjectManager
         $this->setCache($bibliographies, 'online_source_bibliography');
 
         return $cached + $bibliographies;
+    }
+
+    public function getOnlineSourcesByIds(array $ids): array
+    {
+        list($cached, $ids) = $this->getCache($ids, 'online_source');
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $onlineSources = [];
+        $rawOnlineSources = $this->dbs->getOnlineSourcesByIds($ids);
+
+        foreach ($rawOnlineSources as $rawOnlineSource) {
+            $onlineSources[$rawOnlineSource['online_source_id']] = new OnlineSource(
+                $rawOnlineSource['online_source_id'],
+                $rawOnlineSource['url'],
+                $rawOnlineSource['institution_name'],
+                $rawOnlineSource['last_accessed']
+            );
+        }
+
+        $this->setCache($onlineSources, 'online_source');
+
+        return $cached + $onlineSources;
+    }
+
+    public function getAllOnlineSources(): array
+    {
+        $cache = $this->cache->getItem('online_sources');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawIds = $this->dbs->getOnlineSourceIds();
+        $ids = self::getUniqueIds($rawIds, 'online_source_id');
+        $onlineSources = $this->getOnlineSourcesByIds($ids);
+
+        // Sort by description
+        usort($onlineSources, function ($a, $b) {
+            return strcmp($a->getDescription(), $b->getDescription());
+        });
+
+        $cache->tag('online_sources');
+        $this->cache->save($cache->set($onlineSources));
+        return $onlineSources;
     }
 }

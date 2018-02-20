@@ -37,4 +37,20 @@ class OnlineSource
     {
         return $this->lastAccessed;
     }
+
+    public function getDescription(): string
+    {
+        return $this->name
+            . ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')'
+            . '.';
+    }
+
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getDescription(),
+            'url' =>$this->baseUrl,
+        ];
+    }
 }

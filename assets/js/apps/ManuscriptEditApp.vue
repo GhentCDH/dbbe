@@ -100,7 +100,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <btn @click="newBib('book')"><i class="fa fa-plus"></i>&nbsp;Add a new book reference</btn>
+                        <btn @click="newBib('book')"><i class="fa fa-plus"></i>&nbsp;Add a book reference</btn>
                     </div>
                     <div class="pbottom-large">
                         <h3>Articles</h3>
@@ -125,7 +125,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <btn @click="newBib('article')"><i class="fa fa-plus"></i>&nbsp;Add a new article reference</btn>
+                        <btn @click="newBib('article')"><i class="fa fa-plus"></i>&nbsp;Add an article reference</btn>
                     </div>
                     <div class="pbottom-large">
                         <h3>Book chapters</h3>
@@ -150,7 +150,32 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <btn @click="newBib('bookChapter')"><i class="fa fa-plus"></i>&nbsp;Add a new book chapter reference</btn>
+                        <btn @click="newBib('bookChapter')"><i class="fa fa-plus"></i>&nbsp;Add a book chapter reference</btn>
+                    </div>
+                    <div>
+                        <h3>Online sources</h3>
+                        <table v-if="model.bibliography.onlineSources.length > 0" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Online source</th>
+                                    <th>Source link</th>
+                                    <th>Relative link</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in model.bibliography.onlineSources">
+                                    <td>{{ item.onlineSource.name }}</td>
+                                    <td>{{ item.onlineSource.url }}</td>
+                                    <td>{{ item.relUrl }}</td>
+                                    <td>
+                                        <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
+                                        <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <btn @click="newBib('onlineSource')"><i class="fa fa-plus"></i>&nbsp;Add an online source</btn>
                     </div>
                 </div>
             </div>
@@ -205,13 +230,14 @@
             <vue-form-generator v-if="editBib.type === 'book'" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <vue-form-generator v-if="editBib.type === 'article'" :schema="editArticleBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <vue-form-generator v-if="editBib.type === 'bookChapter'" :schema="editBookChapterBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'onlineSource'" :schema="editOnlineSourceSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <div slot="header">
                 <h4 class="modal-title" v-if="editBib.id">Edit bibliography</h4>
                 <h4 class="modal-title" v-if="!editBib.id">Add a new bibliography item</h4>
             </div>
             <div slot="footer">
                 <btn @click="editBibModal=false">Cancel</btn>
-                <btn type="success" @click="submitBib()">{{ editBib.id ? 'Update' : 'Add' }}</btn>
+                <btn type="success" :disabled="!$refs.hasOwnProperty('editBibForm') || $refs.editBibForm.errors.length > 0" @click="submitBib()">{{ editBib.id ? 'Update' : 'Add' }}</btn>
             </div>
         </modal>
         <modal v-model="delBibModal" title="Delete bibliography" auto-focus>
@@ -359,7 +385,7 @@
                 },
                 originSchema: {
                     fields: {
-                        origin: this.createMultiSelect('Origin', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'})
+                        origin: this.createMultiSelect('Origin', {}, {trackBy: 'id'})
                     }
                 },
                 editBookBibSchema: {
@@ -419,6 +445,17 @@
                         }
                     }
                 },
+                editOnlineSourceSchema: {
+                    fields: {
+                        onlineSource: this.createMultiSelect('Online Source', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        relUrl: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Relative link',
+                            validator: VueFormGenerator.validators.string
+                        }
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -451,6 +488,7 @@
                 this.books = JSON.parse(this.initBooks)
                 this.articles = JSON.parse(this.initArticles)
                 this.bookChapters = JSON.parse(this.initBookChapters)
+                this.onlineSources = JSON.parse(this.initOnlineSources)
             })
         },
         watch: {
@@ -499,6 +537,9 @@
                             break
                         case 'bookChapter':
                             this.model.bibliography.bookChapters.push(bib);
+                            break
+                        case 'onlineSource':
+                            this.model.bibliography.onlineSources.push(bib);
                             break
                     }
                 }
@@ -554,6 +595,10 @@
             'bookChapters': function (newValue, oldValue) {
                 this.editBookChapterBibSchema.fields.bookChapter.values = this.bookChapters
                 this.enableField(this.editBookChapterBibSchema.fields.bookChapter)
+            },
+            'onlineSources': function (newValue, oldValue) {
+                this.editOnlineSourceSchema.fields.onlineSource.values = this.onlineSources
+                this.enableField(this.editOnlineSourceSchema.fields.onlineSource)
             },
             'model.city': function (newValue, oldValue) {
                 if (this.model.city == null) {
@@ -688,6 +733,12 @@
                 }
                 this.invalidForms = (
                     !this.$refs.hasOwnProperty('locationForm') || this.$refs.locationForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('contentForm') || this.$refs.contentForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('patronsForm') || this.$refs.patronsForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('scribesForm') || this.$refs.patronsForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('relatedPersonsForm') || this.$refs.relatedPersonsForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('dateForm') || this.$refs.dateForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('originForm') || this.$refs.originForm.errors.length > 0
                 )
 
                 this.calcDiff()
@@ -855,6 +906,9 @@
                 }
                 for (let bookChapterBibliography of bibliography['bookChapters']) {
                     result.push(bookChapterBibliography.bookChapter.name + this.formatPages(bookChapterBibliography.startPage, bookChapterBibliography.endPage, ': ') + '.')
+                }
+                for (let onlineSourceBibliography of bibliography['onlineSources']) {
+                    result.push(onlineSourceBibliography.onlineSource.url + (onlineSourceBibliography.relUrl == null ? '' : onlineSourceBibliography.relUrl) + '.')
                 }
                 return result
             },

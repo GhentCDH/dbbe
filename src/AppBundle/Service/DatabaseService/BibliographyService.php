@@ -136,22 +136,28 @@ class BibliographyService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getOnlineSourceBibliographiesByIds(array $ids): array
+    public function getOnlineSourcesByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                reference.idreference as reference_id,
-                reference.url as rel_url,
                 online_source.identity as online_source_id,
-                online_source.url as base_url,
+                online_source.url,
                 online_source.last_accessed,
                 institution.name as institution_name
-            from data.reference
-            inner join data.online_source on reference.idsource = online_source.identity
+            from data.online_source
             inner join data.institution on online_source.identity = institution.identity
-            where reference.idreference in (?)',
+            where online_source.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getOnlineSourceIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                online_source.identity as online_source_id
+            from data.online_source'
         )->fetchAll();
     }
 }
