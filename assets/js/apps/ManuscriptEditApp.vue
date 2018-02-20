@@ -59,6 +59,13 @@
                 <div class="panel-heading">Date</div>
                 <div class="panel-body">
                     <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated()"></vue-form-generator>
+                    <div v-if="warnEstimate" class="small text-warning">
+                        <p>When indicating an estimate, please add 1 year to the start year to prevent overlap. Examples:</p>
+                        <ul>
+                            <li>1301-1400</li>
+                            <li>1476-1500</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="panel panel-default">
@@ -485,6 +492,14 @@
                 if (this.model.year_from === this.model.year_to && this.model.year_from != null) {
                     this.model.same_year = true
                 }
+            }
+        },
+        computed: {
+            warnEstimate: function() {
+                if (this.model.year_from !== this.model.year_to && this.model.year_from % 25 === 0 && this.model.year_to % 25 ===0) {
+                    return true
+                }
+                return false
             }
         },
         methods: {
