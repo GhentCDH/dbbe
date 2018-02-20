@@ -127,6 +127,31 @@
                         </table>
                         <btn @click="newBib('article')"><i class="fa fa-plus"></i>&nbsp;Add a new article reference</btn>
                     </div>
+                    <div class="pbottom-large">
+                        <h3>Book chapters</h3>
+                        <table v-if="model.bibliography.bookChapters.length > 0" class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book Chapter</th>
+                                    <th>Start page</th>
+                                    <th>End page</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in model.bibliography.bookChapters">
+                                    <td>{{ item.bookChapter.name }}</td>
+                                    <td>{{ item.startPage }}</td>
+                                    <td>{{ item.endPage }}</td>
+                                    <td>
+                                        <a href="#" title="Edit" class="action" @click.prevent="updateBib(item, index)"><i class="fa fa-pencil-square-o"></i></a>
+                                        <a href="#" title="Delete" class="action" @click.prevent="delBib(item, index)"><i class="fa fa-trash-o"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <btn @click="newBib('bookChapter')"><i class="fa fa-plus"></i>&nbsp;Add a new book chapter reference</btn>
+                    </div>
                 </div>
             </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
@@ -148,9 +173,9 @@
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>Field</th>
-                        <th>Previous value</th>
-                        <th>New value</th>
+                        <th class="col-md-2">Field</th>
+                        <th class="col-md-5">Previous value</th>
+                        <th class="col-md-5">New value</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,6 +204,7 @@
         <modal v-model="editBibModal" size="lg" auto-focus>
             <vue-form-generator v-if="editBib.type === 'book'" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <vue-form-generator v-if="editBib.type === 'article'" :schema="editArticleBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'bookChapter'" :schema="editBookChapterBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <div slot="header">
                 <h4 class="modal-title" v-if="editBib.id">Edit bibliography</h4>
                 <h4 class="modal-title" v-if="!editBib.id">Add a new bibliography item</h4>
@@ -374,6 +400,25 @@
                         }
                     }
                 },
+                editBookChapterBibSchema: {
+                    fields: {
+                        bookChapter: this.createMultiSelect('Book Chapter', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        startPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'Start page',
+                            model: 'startPage',
+                            validator: VueFormGenerator.validators.string
+                        },
+                        endPage: {
+                            type: 'input',
+                            inputType: 'text',
+                            label: 'End page',
+                            model: 'endPage',
+                            validator: VueFormGenerator.validators.string
+                        }
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -405,6 +450,7 @@
                 this.origins = JSON.parse(this.initOrigins)
                 this.books = JSON.parse(this.initBooks)
                 this.articles = JSON.parse(this.initArticles)
+                this.bookChapters = JSON.parse(this.initBookChapters)
             })
         },
         watch: {
@@ -450,6 +496,9 @@
                             break
                         case 'article':
                             this.model.bibliography.articles.push(bib);
+                            break
+                        case 'bookChapter':
+                            this.model.bibliography.bookChapters.push(bib);
                             break
                     }
                 }
@@ -501,6 +550,10 @@
             'articles': function (newValue, oldValue) {
                 this.editArticleBibSchema.fields.article.values = this.articles
                 this.enableField(this.editArticleBibSchema.fields.article)
+            },
+            'bookChapters': function (newValue, oldValue) {
+                this.editBookChapterBibSchema.fields.bookChapter.values = this.bookChapters
+                this.enableField(this.editBookChapterBibSchema.fields.bookChapter)
             },
             'model.city': function (newValue, oldValue) {
                 if (this.model.city == null) {
@@ -799,6 +852,9 @@
                 }
                 for (let articleBibliography of bibliography['articles']) {
                     result.push(articleBibliography.article.name + this.formatPages(articleBibliography.startPage, articleBibliography.endPage, ': ') + '.')
+                }
+                for (let bookChapterBibliography of bibliography['bookChapters']) {
+                    result.push(bookChapterBibliography.bookChapter.name + this.formatPages(bookChapterBibliography.startPage, bookChapterBibliography.endPage, ': ') + '.')
                 }
                 return result
             },

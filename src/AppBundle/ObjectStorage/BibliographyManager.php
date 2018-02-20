@@ -146,6 +146,9 @@ class BibliographyManager extends ObjectManager
         $articles = [];
         $rawArticles = $this->dbs->getArticlesByIds($ids);
 
+        $journalIds = self::getUniqueIds($rawArticles, 'journal_id');
+        $journals = $this->getJournalsByIds($journalIds);
+
         $personIds = self::getUniqueIds($rawArticles, 'person_ids');
         $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
 
@@ -153,13 +156,7 @@ class BibliographyManager extends ObjectManager
             $article = (new Article(
                 $rawArticle['article_id'],
                 $rawArticle['article_title'],
-                new Journal(
-                    $rawArticle['journal_id'],
-                    $rawArticle['journal_title'],
-                    $rawArticle['journal_year'],
-                    $rawArticle['journal_volume'],
-                    $rawArticle['journal_number']
-                )
+                $journals[$rawArticle['journal_id']]
             ))
                 ->setStartPage($rawArticle['article_page_start'])
                 ->setEndPage($rawArticle['article_page_end']);
@@ -177,6 +174,31 @@ class BibliographyManager extends ObjectManager
         $this->setCache($articles, 'article');
 
         return $cached + $articles;
+    }
+
+    public function getJournalsByIds(array $ids): array
+    {
+        list($cached, $ids) = $this->getCache($ids, 'journal');
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $journals = [];
+        $rawJournals = $this->dbs->getJournalsByIds($ids);
+
+        foreach ($rawJournals as $rawJournal) {
+            $journals[$rawJournal['journal_id']] = new Journal(
+                $rawJournal['journal_id'],
+                $rawJournal['title'],
+                $rawJournal['year'],
+                $rawJournal['volume'],
+                $rawJournal['number']
+            );
+        }
+
+        $this->setCache($journals, 'journal');
+
+        return $cached + $journals;
     }
 
     public function getAllArticles(): array
@@ -208,52 +230,89 @@ class BibliographyManager extends ObjectManager
         }
 
         $bibliographies = [];
-        $rawBibliographies = $this->dbs->getBookChapterBibliographiesByIds($ids);
+        $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
 
-        $personIds = self::getUniqueIds($rawBibliographies, 'person_id');
-        $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+        $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id');
+        $bookChapters = $this->getBookChaptersByIds($bookChapterIds);
 
-        // The query result can contain multiple rows for each bibliography
-        // if there are multiple authors.
         foreach ($rawBibliographies as $rawBibliography) {
-            if (!array_key_exists($rawBibliography['reference_id'], $bibliographies)) {
-                $bibliographies[$rawBibliography['reference_id']] =
-                    (new BookChapterBibliography($rawBibliography['reference_id']))
-                        ->setBookChapter(
-                            (new BookChapter(
-                                $rawBibliography['book_chapter_id'],
-                                $rawBibliography['book_chapter_title'],
-                                new Book(
-                                    $rawBibliography['book_id'],
-                                    $rawBibliography['book_year'],
-                                    $rawBibliography['book_title'],
-                                    $rawBibliography['book_city'],
-                                    $rawBibliography['book_editor']
-                                )
-                            ))
-                            ->setStartPage($rawBibliography['book_chapter_page_start'])
-                            ->setEndPage($rawBibliography['book_chapter_page_end'])
-                        )
-                        ->setStartPage($rawBibliography['page_start'])
-                        ->setEndPage($rawBibliography['page_end'])
-                        ->addCacheDependency('book_chapter.' . $rawBibliography['book_chapter_id'])
-                        ->addCacheDependency('book.' . $rawBibliography['book_id']);
+            $bibliography =
+                (new BookChapterBibliography($rawBibliography['reference_id']))
+                    ->setBookChapter($bookChapters[$rawBibliography['source_id']])
+                    ->addCacheDependency('book_chapter.' . $rawBibliography['source_id'])
+                    ->setStartPage($rawBibliography['page_start'])
+                    ->setEndPage($rawBibliography['page_end']);
+            foreach ($bookChapters[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
+                $bibliography->addCacheDePendency($cacheDependency);
             }
-            $bibliographies[$rawBibliography['reference_id']]
-                ->addCacheDependency('person.' . $rawBibliography['person_id'])
-                ->getBookChapter()
-                    ->addAuthor($persons[$rawBibliography['person_id']]);
-        }
 
-        // Add authors
-        foreach ($rawBibliographies as $rawBibliography) {
-            foreach ($bibliographies as $bibliography) {
-            }
+            $bibliographies[$bibliography->getId()] = $bibliography;
         }
 
         $this->setCache($bibliographies, 'book_chapter_bibliography');
 
         return $cached + $bibliographies;
+    }
+
+    public function getBookChaptersByIds(array $ids): array
+    {
+        list($cached, $ids) = $this->getCache($ids, 'book_chapter');
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $bookChapters = [];
+        $rawBookChapters = $this->dbs->getBookChaptersByIds($ids);
+
+        $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
+        $books = $this->getBooksByIds($bookIds);
+
+        $personIds = self::getUniqueIds($rawBookChapters, 'person_ids');
+        $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+
+        foreach ($rawBookChapters as $rawBookChapter) {
+            $bookChapter = (new BookChapter(
+                $rawBookChapter['book_chapter_id'],
+                $rawBookChapter['book_chapter_title'],
+                $books[$rawBookChapter['book_id']]
+            ))
+                ->setStartPage($rawBookChapter['book_chapter_page_start'])
+                ->setEndPage($rawBookChapter['book_chapter_page_end']);
+            foreach (json_decode($rawBookChapter['person_ids']) as $personId) {
+                if (!empty($personId)) {
+                    $bookChapter
+                        ->addAuthor($persons[$personId])
+                        ->addCacheDependency('person.' . $personId);
+                }
+            }
+
+            $bookChapters[$rawBookChapter['book_chapter_id']] = $bookChapter;
+        }
+
+        $this->setCache($bookChapters, 'book_chapter');
+
+        return $cached + $bookChapters;
+    }
+
+    public function getAllBookChapters(): array
+    {
+        $cache = $this->cache->getItem('book_chapters');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawIds = $this->dbs->getBookChapterIds();
+        $ids = self::getUniqueIds($rawIds, 'book_chapter_id');
+        $bookChapters = $this->getBookChaptersByIds($ids);
+
+        // Sort by description
+        usort($bookChapters, function ($a, $b) {
+            return strcmp($a->getDescription(), $b->getDescription());
+        });
+
+        $cache->tag('book_chapters');
+        $this->cache->save($cache->set($bookChapters));
+        return $bookChapters;
     }
 
     public function getOnlineSourceBibliographiesByIds(array $ids)

@@ -10,7 +10,7 @@ class BookChapterBibliography extends Bibliography
 
     public function __construct(int $id)
     {
-        parent::__construct($id, 'book_chapter');
+        parent::__construct($id, 'bookChapter');
     }
 
     public function setBookChapter(BookChapter $bookChapter): BookChapterBibliography
@@ -27,28 +27,19 @@ class BookChapterBibliography extends Bibliography
 
     public function getDescription(): string
     {
-        $authorNames = [];
-        foreach ($this->bookChapter->getAuthors() as $author) {
-            $authorNames[] = $author->getShortDescription();
-        }
-        return implode(', ', $authorNames)
-            . ' ' . $this->bookChapter->getBook()->getYear()
-            . ', ' . $this->bookChapter->getTitle()
-            . ', in '
-            . (
-                !empty($this->bookChapter->getBook()->getEditor())
-                    ? $this->bookChapter->getBook()->getEditor() . ' (ed.) '
-                    : ''
-            )
-            . ', ' . $this->bookChapter->getBook()->getTitle()
-            . ', ' . $this->bookChapter->getBook()->getCity()
-            . $this->bookChapter->formatStartEndPages(', ')
+        return
+            $this->bookChapter->getDescription()
             . $this->formatStartEndPages(': ')
             . '.';
     }
 
     public function getShortJson(): array
     {
-        throw new \Exception('Not implemented');
+        return [
+            'type' => $this->type,
+            'bookChapter' => $this->bookChapter->getShortJson(),
+            'startPage' => $this->startPage,
+            'endPage' => $this->endPage,
+        ];
     }
 }

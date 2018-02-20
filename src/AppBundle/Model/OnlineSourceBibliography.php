@@ -9,7 +9,7 @@ class OnlineSourceBibliography extends Bibliography
 
     public function __construct(int $id)
     {
-        parent::__construct($id, 'online_source');
+        parent::__construct($id, 'onlineSource');
     }
 
     public function setOnlineSource(OnlineSource $onlineSource): OnlineSourceBibliography
