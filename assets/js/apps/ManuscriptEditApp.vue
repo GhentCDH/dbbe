@@ -22,10 +22,10 @@
                 <div class="panel-heading">Persons</div>
                 <div class="panel-body">
                     <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
-                    <div class="small" v-if="this.manuscript.occurrencePatrons.length > 0">
+                    <div class="small" v-if="manuscript.occurrencePatrons.length > 0">
                         <p>Patron(s) provided by occurrences:</p>
                         <ul>
-                            <li v-for="patron in this.manuscript.occurrencePatrons">
+                            <li v-for="patron in manuscript.occurrencePatrons">
                                 {{ patron.name }}
                                 <ul>
                                     <li v-for="occurrence in patron.occurrences">
@@ -36,10 +36,10 @@
                         </ul>
                     </div>
                     <vue-form-generator :schema="scribesSchema" :model="model" :options="formOptions" ref="scribesForm" @validated="validated()"></vue-form-generator>
-                    <div class="small" v-if="this.manuscript.occurrenceScribes.length > 0">
+                    <div class="small" v-if="manuscript.occurrenceScribes.length > 0">
                         <p>Scribe(s) provided by occurrences:</p>
                         <ul>
-                            <li v-for="scribe in this.manuscript.occurrenceScribes">
+                            <li v-for="scribe in manuscript.occurrenceScribes">
                                 {{ scribe.name }}
                                 <ul>
                                     <li v-for="occurrence in scribe.occurrences">
@@ -104,7 +104,7 @@
             </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
-            <div class="loading-overlay" v-if="this.openRequests">
+            <div class="loading-overlay" v-if="openRequests">
                 <div class="spinner">
                 </div>
             </div>
@@ -150,14 +150,14 @@
             </div>
         </modal>
         <modal v-model="editBibModal" size="lg" auto-focus>
-            <vue-form-generator v-if="this.editBib.type" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
             <div slot="header">
-                <h4 class="modal-title" v-if="this.editBib.id">Edit bibliography</h4>
-                <h4 class="modal-title" v-if="!this.editBib.id">Add a new bibliography item</h4>
+                <h4 class="modal-title" v-if="editBib.id">Edit bibliography</h4>
+                <h4 class="modal-title" v-if="!editBib.id">Add a new bibliography item</h4>
             </div>
             <div slot="footer">
                 <btn @click="editBibModal=false">Cancel</btn>
-                <btn type="success" @click="submitBib()">{{ this.editBib.id ? 'Update' : 'Add' }}</btn>
+                <btn type="success" @click="submitBib()">{{ editBib.id ? 'Update' : 'Add' }}</btn>
             </div>
         </modal>
         <modal v-model="delBibModal" title="Delete bibliography" auto-focus>
