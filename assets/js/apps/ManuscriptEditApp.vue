@@ -1,7 +1,10 @@
     <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <h2>Edit Manuscript</h2>
+            <h2>
+                Edit Manuscript
+                <a :href="getManuscriptUrl" class="action pull-right" title="View"><i class="fa fa-eye"></i></a>
+            </h2>
             <!--TODO: manage locations outside of manuscripts link-->
             <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
