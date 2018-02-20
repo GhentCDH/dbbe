@@ -12,19 +12,19 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Location</div>
                 <div class="panel-body">
-                    <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="locationSchema" :model="model" :options="formOptions" ref="locationForm" @validated="validated"></vue-form-generator>
                 </div>
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">Content</div>
                 <div class="panel-body">
-                    <vue-form-generator :schema="contentSchema" :model="model" :options="formOptions" ref="contentForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="contentSchema" :model="model" :options="formOptions" ref="contentForm" @validated="validated"></vue-form-generator>
                 </div>
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">Persons</div>
                 <div class="panel-body">
-                    <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="patronsSchema" :model="model" :options="formOptions" ref="patronsForm" @validated="validated"></vue-form-generator>
                     <div class="small" v-if="manuscript.occurrencePatrons.length > 0">
                         <p>Patron(s) provided by occurrences:</p>
                         <ul>
@@ -38,7 +38,7 @@
                             </li>
                         </ul>
                     </div>
-                    <vue-form-generator :schema="scribesSchema" :model="model" :options="formOptions" ref="scribesForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="scribesSchema" :model="model" :options="formOptions" ref="scribesForm" @validated="validated"></vue-form-generator>
                     <div class="small" v-if="manuscript.occurrenceScribes.length > 0">
                         <p>Scribe(s) provided by occurrences:</p>
                         <ul>
@@ -52,7 +52,7 @@
                             </li>
                         </ul>
                     </div>
-                    <vue-form-generator :schema="relatedPersonsSchema" :model="model" :options="formOptions" ref="relatedPersonsForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="relatedPersonsSchema" :model="model" :options="formOptions" ref="relatedPersonsForm" @validated="validated"></vue-form-generator>
                     <div class="small">
                         <p>Related persons are persons that are related to this manuscript but that are not a patron or a scribe of the manuscript or of occurrences related to the manuscript.</p>
                     </div>
@@ -61,7 +61,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Date</div>
                 <div class="panel-body">
-                    <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="dateSchema" :model="model" :options="formOptions" ref="dateForm" @validated="validated"></vue-form-generator>
                     <div v-if="warnEstimate" class="small text-warning">
                         <p>When indicating an estimate, please add 1 year to the start year to prevent overlap. Examples:</p>
                         <ul>
@@ -74,7 +74,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Origin</div>
                 <div class="panel-body">
-                    <vue-form-generator :schema="originSchema" :model="model" :options="formOptions" ref="originForm" @validated="validated()"></vue-form-generator>
+                    <vue-form-generator :schema="originSchema" :model="model" :options="formOptions" ref="originForm" @validated="validated"></vue-form-generator>
                 </div>
             </div>
             <div class="panel panel-default">
@@ -230,21 +230,21 @@
             </div>
         </modal>
         <modal v-model="editBibModal" size="lg" auto-focus>
-            <vue-form-generator v-if="editBib.type === 'book'" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
-            <vue-form-generator v-if="editBib.type === 'article'" :schema="editArticleBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
-            <vue-form-generator v-if="editBib.type === 'bookChapter'" :schema="editBookChapterBibSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
-            <vue-form-generator v-if="editBib.type === 'onlineSource'" :schema="editOnlineSourceSchema" :model="editBib" :options="formOptions" ref="editBibForm"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'book'" :schema="editBookBibSchema" :model="editBib" :options="formOptions" ref="editBibForm" @validated="bibFormValidated"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'article'" :schema="editArticleBibSchema" :model="editBib" :options="formOptions" ref="editBibForm" @validated="bibFormValidated"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'bookChapter'" :schema="editBookChapterBibSchema" :model="editBib" :options="formOptions" ref="editBibForm" @validated="bibFormValidated"></vue-form-generator>
+            <vue-form-generator v-if="editBib.type === 'onlineSource'" :schema="editOnlineSourceSchema" :model="editBib" :options="formOptions" ref="editBibForm" @validated="bibFormValidated"></vue-form-generator>
             <div slot="header">
                 <h4 class="modal-title" v-if="editBib.id">Edit bibliography</h4>
                 <h4 class="modal-title" v-if="!editBib.id">Add a new bibliography item</h4>
             </div>
             <div slot="footer">
                 <btn @click="editBibModal=false">Cancel</btn>
-                <btn type="success" :disabled="!$refs.hasOwnProperty('editBibForm') || $refs.editBibForm.errors.length > 0" @click="submitBib()">{{ editBib.id ? 'Update' : 'Add' }}</btn>
+                <btn type="success" :disabled="invalidBibForm" @click="submitBib()">{{ bibIndex > -1 ? 'Update' : 'Add' }}</btn>
             </div>
         </modal>
         <modal v-model="delBibModal" title="Delete bibliography" auto-focus>
-            Are you sure you want to delete this bibliography?
+            <p>Are you sure you want to delete this bibliography?</p>
             <div slot="footer">
                 <btn @click="delBibModal=false">Cancel</btn>
                 <btn type="danger" @click="submitDeleteBib()">Delete</btn>
@@ -451,10 +451,18 @@
                 editOnlineSourceSchema: {
                     fields: {
                         onlineSource: this.createMultiSelect('Online Source', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                        sourceLink: {
+                            type: 'input',
+                            inputType: 'text',
+                            disabled: 'true',
+                            label: 'Source link',
+                            model: 'onlineSource.url'
+                        },
                         relUrl: {
                             type: 'input',
                             inputType: 'text',
                             label: 'Relative link',
+                            model: 'relUrl',
                             validator: VueFormGenerator.validators.string
                         }
                     }
@@ -476,7 +484,8 @@
                 editBibModal: false,
                 delBibModal: false,
                 bibIndex: null,
-                editBib: {}
+                editBib: {},
+                invalidBibForm: true
             }
         },
         mounted () {
@@ -880,6 +889,9 @@
                     type: type
                 }
                 this.editBibModal = true
+            },
+            bibFormValidated(isValid, errors) {
+                this.invalidBibForm = !isValid
             },
             submitBib() {
                 this.$refs.editBibForm.validate()

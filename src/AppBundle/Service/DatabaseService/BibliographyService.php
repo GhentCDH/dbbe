@@ -22,6 +22,62 @@ class BibliographyService extends DatabaseService
         )->fetchAll();
     }
 
+    public function addBibliography(
+        int $targetId,
+        int $sourceId,
+        string $startPage = null,
+        string $endPage = null,
+        string $url = null
+    ): int {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.reference (idtarget, idsource, page_start, page_end, url)
+            values (?, ?, ?, ?, ?)',
+            [
+                $targetId,
+                $sourceId,
+                $startPage,
+                $endPage,
+                $url,
+            ]
+        );
+    }
+
+    public function updateBibliography(
+        int $referenceId,
+        int $sourceId,
+        string $startPage = null,
+        string $endPage = null,
+        string $url = null
+    ): int {
+        return $this->conn->executeUpdate(
+            'UPDATE data.reference
+            set idsource = ?, page_start = ?, page_end = ?, url = ?
+            where idreference = ?',
+            [
+                $sourceId,
+                $startPage,
+                $endPage,
+                $url,
+                $referenceId,
+            ]
+        );
+    }
+
+    public function delBibliographies(array $ids): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.reference
+            where reference.idreference in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
     public function getBooksByIds(array $ids): array
     {
         return $this->conn->executeQuery(

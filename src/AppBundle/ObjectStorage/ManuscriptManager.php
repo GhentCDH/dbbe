@@ -4,6 +4,7 @@ namespace AppBundle\ObjectStorage;
 
 use stdClass;
 
+use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Institution;
 use AppBundle\Model\Manuscript;
@@ -272,6 +273,9 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'origin')) {
                 $this->updateOrigin($manuscript, $data->origin);
             }
+            if (property_exists($data, 'bibliography')) {
+                $this->updateBibliography($manuscript, $data->bibliography);
+            }
 
             // load new manuscript data
             $this->cache->deleteItem('manuscript_short.' . $id);
@@ -359,6 +363,120 @@ class ManuscriptManager extends ObjectManager
     private function updateOrigin(Manuscript $manuscript, stdClass $origin): void
     {
         $this->dbs->updateOrigin($manuscript->getId(), $origin->id);
+    }
+
+    private function updateBibliography(Manuscript $manuscript, stdClass $bibliography): void
+    {
+        $updateIds = [];
+        $origBibIds = array_keys($manuscript->getBibliographies());
+        // Add and update
+        foreach ($bibliography->books as $bookBib) {
+            if (!property_exists($bookBib, 'id')) {
+                $this->oms['bibliography_manager']->addBookBibliography(
+                    $manuscript->getId(),
+                    $bookBib->book->id,
+                    $bookBib->startPage,
+                    $bookBib->endPage
+                );
+            } elseif (in_array($bookBib->id, $origBibIds)) {
+                $updateIds[] = $bookBib->id;
+                $this->oms['bibliography_manager']->updateBookBibliography(
+                    $bookBib->id,
+                    $bookBib->book->id,
+                    $bookBib->startPage,
+                    $bookBib->endPage
+                );
+            } else {
+                throw new NotFoundInDatabaseException(
+                    'Bibliography with id "' . $bookBib->id . '" not found '
+                    . ' in manuscript with id "' . $manuscript->getId() . '".'
+                );
+            }
+        }
+        foreach ($bibliography->articles as $articleBib) {
+            if (!property_exists($articleBib, 'id')) {
+                $this->oms['bibliography_manager']->addArticleBibliography(
+                    $manuscript->getId(),
+                    $articleBib->article->id,
+                    $articleBib->startPage,
+                    $articleBib->endPage
+                );
+            } elseif (in_array($articleBib->id, $origBibIds)) {
+                $updateIds[] = $articleBib->id;
+                $this->oms['bibliography_manager']->updateArticleBibliography(
+                    $articleBib->id,
+                    $articleBib->article->id,
+                    $articleBib->startPage,
+                    $articleBib->endPage
+                );
+            } else {
+                throw new NotFoundInDatabaseException(
+                    'Bibliography with id "' . $articleBib->id . '" not found '
+                    . ' in manuscript with id "' . $manuscript->getId() . '".'
+                );
+            }
+        }
+        foreach ($bibliography->bookChapters as $bookChapterBib) {
+            if (!property_exists($bookChapterBib, 'id')) {
+                $this->oms['bibliography_manager']->addBookChapterBibliography(
+                    $manuscript->getId(),
+                    $bookChapterBib->bookChapter->id,
+                    $bookChapterBib->startPage,
+                    $bookChapterBib->endPage
+                );
+            } elseif (in_array($bookChapterBib->id, $origBibIds)) {
+                $updateIds[] = $bookChapterBib->id;
+                $this->oms['bibliography_manager']->updateBookChapterBibliography(
+                    $bookChapterBib->id,
+                    $bookChapterBib->bookChapter->id,
+                    $bookChapterBib->startPage,
+                    $bookChapterBib->endPage
+                );
+            } else {
+                throw new NotFoundInDatabaseException(
+                    'Bibliography with id "' . $bookChapterBib->id . '" not found '
+                    . ' in manuscript with id "' . $manuscript->getId() . '".'
+                );
+            }
+        }
+        foreach ($bibliography->onlineSources as $onlineSourceBib) {
+            if (!property_exists($onlineSourceBib, 'id')) {
+                $this->oms['bibliography_manager']->addOnlineSourceBibliography(
+                    $manuscript->getId(),
+                    $onlineSourceBib->onlineSource->id,
+                    $onlineSourceBib->relUrl
+                );
+            } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
+                $updateIds[] = $onlineSourceBib->id;
+                $this->oms['bibliography_manager']->updateOnlineSourceBibliography(
+                    $onlineSourceBib->id,
+                    $onlineSourceBib->onlineSource->id,
+                    $onlineSourceBib->relUrl
+                );
+            } else {
+                throw new NotFoundInDatabaseException(
+                    'Bibliography with id "' . $onlineSourceBib->id . '" not found '
+                    . ' in manuscript with id "' . $manuscript->getId() . '".'
+                );
+            }
+        }
+        // delete
+        $delIds = [];
+        foreach ($origBibIds as $origId) {
+            if (!in_array($origId, $updateIds)) {
+                $delIds[] = $origId;
+            }
+        }
+        if (count($delIds) > 0) {
+            $this->oms['bibliography_manager']->delBibliographies(
+                array_filter(
+                    $manuscript->getBibliographies(),
+                    function ($bibliography) use ($delIds) {
+                        return in_array($bibliography->getId(), $delIds);
+                    }
+                )
+            );
+        }
     }
 
     private function updateModified(Manuscript $old, Manuscript $new): void

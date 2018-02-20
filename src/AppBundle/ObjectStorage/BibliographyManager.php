@@ -104,6 +104,18 @@ class BibliographyManager extends ObjectManager
         return $books;
     }
 
+    public function addBookBibliography(int $documentId, int $bookId, string $startPage, string $endPage): void
+    {
+        $this->dbs->addBibliography($documentId, $bookId, $startPage, $endPage, null);
+    }
+
+    public function updateBookBibliography(int $bibliographyId, int $bookId, string $startPage, string $endPage): void
+    {
+        $this->cache->deleteItem('book_bibliography.' . $bibliographyId);
+        $this->cache->invalidateTags(['book_bibliography.' . $bibliographyId]);
+        $this->dbs->updateBibliography($bibliographyId, $bookId, $startPage, $endPage, null);
+    }
+
     public function getArticleBibliographiesByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'article_bibliography');
@@ -222,6 +234,18 @@ class BibliographyManager extends ObjectManager
         return $articles;
     }
 
+    public function addArticleBibliography(int $documentId, int $articleId, string $startPage, string $endPage): void
+    {
+        $this->dbs->addBibliography($documentId, $articleId, $startPage, $endPage, null);
+    }
+
+    public function updateArticleBibliography(int $bibliographyId, int $articleId, string $startPage, string $endPage): void
+    {
+        $this->cache->deleteItem('article_bibliography.' . $bibliographyId);
+        $this->cache->invalidateTags(['article_bibliography.' . $bibliographyId]);
+        $this->dbs->updateBibliography($bibliographyId, $articleId, $startPage, $endPage, null);
+    }
+
     public function getBookChapterBibliographiesByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'book_chapter_bibliography');
@@ -315,6 +339,18 @@ class BibliographyManager extends ObjectManager
         return $bookChapters;
     }
 
+    public function addBookChapterBibliography(int $documentId, int $bookChapterId, string $startPage, string $endPage): void
+    {
+        $this->dbs->addBibliography($documentId, $bookChapterId, $startPage, $endPage, null);
+    }
+
+    public function updateBookChapterBibliography(int $bibliographyId, int $bookChapterId, string $startPage, string $endPage): void
+    {
+        $this->cache->deleteItem('book_chapter_bibliography.' . $bibliographyId);
+        $this->cache->invalidateTags(['book_chapter_bibliography.' . $bibliographyId]);
+        $this->dbs->updateBibliography($bibliographyId, $bookChapterId, $startPage, $endPage, null);
+    }
+
     public function getOnlineSourceBibliographiesByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'online_source_bibliography');
@@ -384,5 +420,42 @@ class BibliographyManager extends ObjectManager
         $cache->tag('online_sources');
         $this->cache->save($cache->set($onlineSources));
         return $onlineSources;
+    }
+
+    public function addOnlineSourceBibliography(int $documentId, int $onlineSourceId, string $url): void
+    {
+        $this->dbs->addBibliography($documentId, $onlineSourceId, null, null, $url);
+    }
+
+    public function updateOnlineSourceBibliography(int $bibliographyId, int $onlineSourceId, string $url): void
+    {
+        $this->cache->deleteItem('online_source_bibliography.' . $bibliographyId);
+        $this->cache->invalidateTags(['online_source_bibliography.' . $bibliographyId]);
+        $this->dbs->updateBibliography($bibliographyId, $onlineSourceId, null, null, $url);
+    }
+
+    public function delBibliographies(array $bibliographies): void
+    {
+        foreach ($bibliographies as $bibliographyId => $bibliography) {
+            switch ($bibliography->getType()) {
+                case 'book':
+                    $this->cache->deleteItem('book_bibliography.' . $bibliographyId);
+                    $this->cache->invalidateTags(['book_bibliography.' . $bibliographyId]);
+                    break;
+                case 'article':
+                    $this->cache->deleteItem('article_bibliography.' . $bibliographyId);
+                    $this->cache->invalidateTags(['article_bibliography.' . $$bibliographyId]);
+                    break;
+                case 'bookChapter':
+                    $this->cache->deleteItem('book_chapter_bibliography.' . $bibliographyId);
+                    $this->cache->invalidateTags(['book_chapter_bibliography.' . $bibliographyId]);
+                    break;
+                case 'onlineSource':
+                    $this->cache->deleteItem('online_source_bibliography.' . $bibliographyId);
+                    $this->cache->invalidateTags(['online_source_bibliography.' . $bibliographyId]);
+                    break;
+            }
+        }
+        $this->dbs->delBibliographies(array_keys($bibliographies));
     }
 }
