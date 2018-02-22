@@ -382,6 +382,7 @@ class ManuscriptService extends DatabaseService
 
     public function updateOrigin(int $manuscriptId, int $locationId): int
     {
+        // TODO: insert, update on conflict
         return $this->conn->executeUpdate(
             'UPDATE data.factoid
             set idlocation = ?
@@ -393,6 +394,39 @@ class ManuscriptService extends DatabaseService
                 $locationId,
                 $manuscriptId,
             ]
+        );
+    }
+
+    public function upsertDiktyon(int $manuscriptId, int $diktyon): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.global_id (idauthority, idsubject, identifier)
+            values (
+                (
+                    select institution.identity
+                    from data.institution
+                    where institution.name = \'Diktyon\'
+                ),
+                ?,
+                ?
+            )
+            -- primary key constraint on idauthority, idsubject
+            on conflict (idauthority, idsubject) do update
+            set identifier = excluded.identifier',
+            [$manuscriptId, $diktyon]
+        );
+    }
+
+    public function deleteDiktyon(int $manuscriptId): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.global_id
+            using data.institution
+            where global_id.idauthority = institution.identity
+            and institution.name = \'Diktyon\'
+            and global_id.idsubject = ?',
+            [$manuscriptId]
         );
     }
 }

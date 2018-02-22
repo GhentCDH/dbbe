@@ -182,6 +182,12 @@
                     </div>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Diktyon</div>
+                <div class="panel-body">
+                    <vue-form-generator :schema="diktyonSchema" :model="model" :options="formOptions" ref="diktyonForm" @validated="validated"></vue-form-generator>
+                </div>
+            </div>
             <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
             <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
             <div class="loading-overlay" v-if="openRequests">
@@ -321,7 +327,8 @@
                         articles: [],
                         bookChapters: [],
                         onlineSources: [],
-                    }
+                    },
+                    diktyon: null
                 },
                 locationSchema: {
                     fields: {
@@ -467,6 +474,17 @@
                         }
                     }
                 },
+                diktyonSchema: {
+                    fields: {
+                        diktyon: {
+                            type: 'input',
+                            inputType: 'number',
+                            label: 'Diktyon',
+                            model: 'diktyon',
+                            validator: VueFormGenerator.validators.number
+                        }
+                    }
+                },
                 formOptions: {
                     validateAfterLoad: true,
                     validateAfterChanged: true,
@@ -556,6 +574,9 @@
                     }
                 }
 
+                // Diktyon
+                this.model.diktyon = this.manuscript.diktyon
+
                 this.originalModel = JSON.parse(JSON.stringify(this.model))
 
                 if (this.locationSchema.fields.city.values.length === 0) {
@@ -569,6 +590,7 @@
                 this.$refs.relatedPersonsForm.validate()
                 this.$refs.dateForm.validate()
                 this.$refs.originForm.validate()
+                this.$refs.diktyonForm.validate()
             },
             'locations': function (newValue, oldValue)  {
                 this.loadLocationField(this.locationSchema.fields.city)
@@ -728,6 +750,11 @@
                         return
                     }
                 }
+                if (isNaN(this.model.diktyon)) {
+                    this.model.diktyon = null
+                    this.$refs.diktyonForm.validate()
+                    return
+                }
                 // set year min and max values
                 if (!this.model.same_year) {
                     if (this.model.year_from != null) {
@@ -751,6 +778,7 @@
                     || !this.$refs.hasOwnProperty('relatedPersonsForm') || this.$refs.relatedPersonsForm.errors.length > 0
                     || !this.$refs.hasOwnProperty('dateForm') || this.$refs.dateForm.errors.length > 0
                     || !this.$refs.hasOwnProperty('originForm') || this.$refs.originForm.errors.length > 0
+                    || !this.$refs.hasOwnProperty('diktyonForm') || this.$refs.diktyonForm.errors.length > 0
                 )
 
                 this.calcDiff()
@@ -804,7 +832,8 @@
                         bibliography: {
                             label: 'Bibliography'
                         }
-                    }
+                    },
+                    this.diktyonSchema.fields
                 )
                 this.diff = []
                 for (let key of Object.keys(fields)) {
@@ -865,7 +894,8 @@
                 axios.put(this.putManuscriptUrl, this.toSave())
                     .then( (response) => {
                         // redirect to the detail page
-                        window.location = this.getManuscriptUrl
+                        // window.location = this.getManuscriptUrl
+                        this.openRequests--
                     })
                     .catch( (error) => {
                         console.log(error)

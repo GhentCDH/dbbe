@@ -276,6 +276,9 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'bibliography')) {
                 $this->updateBibliography($manuscript, $data->bibliography);
             }
+            if (property_exists($data, 'diktyon')) {
+                $this->updateDiktyon($manuscript, $data->diktyon);
+            }
 
             // load new manuscript data
             $this->cache->deleteItem('manuscript_short.' . $id);
@@ -348,6 +351,7 @@ class ManuscriptManager extends ObjectManager
 
     private function updateDate(Manuscript $manuscript, stdClass $date): void
     {
+        // TODO: allow deletion
         $dbDate = '('
             . (empty($date->floor) ? '-infinity' : "$date->floor-01-01")
             . ', '
@@ -476,6 +480,17 @@ class ManuscriptManager extends ObjectManager
                     }
                 )
             );
+        }
+    }
+
+    private function updateDiktyon(Manuscript $manuscript, int $diktyon = null): void
+    {
+        if (empty($diktyon)) {
+            if (!empty($manuscript->getDiktyon())) {
+                $this->dbs->deleteDiktyon($manuscript->getId());
+            }
+        } else {
+            $this->dbs->upsertDiktyon($manuscript->getId(), $diktyon);
         }
     }
 

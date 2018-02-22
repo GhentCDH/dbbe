@@ -293,9 +293,11 @@ class Manuscript extends Document
         if (isset($this->date)) {
             $result['date'] = $this->date->getJson();
         }
-
         if (isset($this->origin)) {
-            $result['origin'] = $this->getOrigin()->getShortJson();
+            $result['origin'] = $this->origin->getShortJson();
+        }
+        if (isset($this->diktyon)) {
+            $result['diktyon'] = $this->diktyon;
         }
 
         return $result;
