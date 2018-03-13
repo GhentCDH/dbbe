@@ -321,7 +321,7 @@ class Manuscript extends Document
             'shelf' => $this->location->getShelf(),
             'name' => $this->getName(),
         ];
-        if (isset($this->location->getCollection)) {
+        if ($this->location->getCollection() != null) {
             $result['collection'] = $this->location->getCollection()->getJson();
         }
         if (!empty($this->contentsWithParents)) {
