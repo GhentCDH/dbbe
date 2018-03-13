@@ -29,8 +29,22 @@ export default {
                         inputType: 'number',
                         label: 'Diktyon',
                         model: 'diktyon',
-                        validator: VueFormGenerator.validators.number
-                    }
+                        validator: VueFormGenerator.validators.number,
+                    },
+                    publicComment: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Public comment',
+                        model: 'publicComment',
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    privateComment: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Private comment',
+                        model: 'privateComment',
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
         }

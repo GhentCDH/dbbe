@@ -279,6 +279,12 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'diktyon')) {
                 $this->updateDiktyon($manuscript, $data->diktyon);
             }
+            if (property_exists($data, 'publicComment')) {
+                $this->updatePublicComment($manuscript, $data->publicComment);
+            }
+            if (property_exists($data, 'privateComment')) {
+                $this->updatePrivateComment($manuscript, $data->privateComment);
+            }
 
             // load new manuscript data
             $this->cache->deleteItem('manuscript_short.' . $id);
@@ -491,6 +497,28 @@ class ManuscriptManager extends ObjectManager
             }
         } else {
             $this->dbs->upsertDiktyon($manuscript->getId(), $diktyon);
+        }
+    }
+
+    private function updatePublicComment(Manuscript $manuscript, string $publicComment = null): void
+    {
+        if (empty($publicComment)) {
+            if (!empty($manuscript->getPublicComment())) {
+                $this->dbs->updatePublicComment($manuscript->getId(), '');
+            }
+        } else {
+            $this->dbs->updatePublicComment($manuscript->getId(), $publicComment);
+        }
+    }
+
+    private function updatePrivateComment(Manuscript $manuscript, string $privateComment = null): void
+    {
+        if (empty($privateComment)) {
+            if (!empty($manuscript->getPrivateComment())) {
+                $this->dbs->updatePrivateComment($manuscript->getId(), '');
+            }
+        } else {
+            $this->dbs->updatePrivateComment($manuscript->getId(), $privateComment);
         }
     }
 

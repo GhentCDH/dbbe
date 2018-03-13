@@ -299,6 +299,12 @@ class Manuscript extends Document
         if (isset($this->diktyon)) {
             $result['diktyon'] = $this->diktyon;
         }
+        if (isset($this->publicComment)) {
+            $result['publicComment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['privateComment'] = $this->privateComment;
+        }
 
         return $result;
     }

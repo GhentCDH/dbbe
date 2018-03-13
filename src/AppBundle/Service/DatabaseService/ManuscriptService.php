@@ -429,4 +429,24 @@ class ManuscriptService extends DatabaseService
             [$manuscriptId]
         );
     }
+
+    public function updatePublicComment(int $manuscriptId, string $publicComment): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set public_comment = ?
+            where entity.identity = ?',
+            [$publicComment, $manuscriptId]
+        );
+    }
+
+    public function updatePrivateComment(int $manuscriptId, string $privateComment): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set private_comment = ?
+            where entity.identity = ?',
+            [$privateComment, $manuscriptId]
+        );
+    }
 }
