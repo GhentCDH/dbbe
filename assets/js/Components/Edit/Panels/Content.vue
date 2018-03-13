@@ -1,0 +1,50 @@
+<template>
+    <panel :header="header">
+        <vue-form-generator
+            :schema="schema"
+            :model="model"
+            :options="formOptions"
+            @validated="validated" />
+    </panel>
+</template>
+<script>
+import Vue from 'vue'
+import VueFormGenerator from 'vue-form-generator'
+
+import VueMultiselect from 'vue-multiselect'
+import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
+
+import Abstract from '../Abstract'
+import Panel from '../Panel'
+
+Vue.use(VueFormGenerator)
+Vue.component('panel', Panel)
+
+export default {
+    mixins: [ Abstract ],
+    data() {
+        return {
+            schema: {
+                fields: {
+                    content: this.createMultiSelect('Content', {values: this.values}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
+                }
+            }
+        }
+    },
+    watch: {
+        values() {
+            this.enableField(this.schema.fields.content)
+        },
+        model() {
+            this.enableField(this.schema.fields.content)
+        }
+    },
+    methods: {
+        validated(isValid, errors) {
+            this.isValid = isValid
+            this.calcChanges()
+            this.$emit('validated', isValid, this.errors, this)
+        }
+    }
+}
+</script>
