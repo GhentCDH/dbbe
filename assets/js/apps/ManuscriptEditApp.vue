@@ -69,21 +69,44 @@
                 @validated="validated"
                 ref="general" />
 
-            <btn type="warning" :disabled="diff.length === 0" @click="resetModal=true">Reset</btn>
-            <btn type="success" :disabled="(diff.length === 0) || invalidForms" @click="saveModal=true">Save changes</btn>
-            <div class="loading-overlay" v-if="openRequests">
-                <div class="spinner">
-                </div>
+            <btn
+                type="warning"
+                :disabled="diff.length === 0"
+                @click="resetModal=true">
+                Reset
+            </btn>
+            <btn
+                type="success"
+                :disabled="(diff.length === 0) || invalidForms"
+                @click="saveModal=true">
+                Save changes
+            </btn>
+            <div
+                class="loading-overlay"
+                v-if="openRequests">
+                <div class="spinner" />
             </div>
         </article>
-        <modal v-model="resetModal" title="Reset manuscript" auto-focus>
+        <modal
+            v-model="resetModal"
+            title="Reset manuscript"
+            auto-focus>
             <p>Are you sure you want to reset the manuscript information?</p>
             <div slot="footer">
                 <btn @click="resetModal=false">Cancel</btn>
-                <btn type="danger" @click="reset()" data-action="auto-focus">Reset</btn>
+                <btn
+                    type="danger"
+                    @click="reset()"
+                    data-action="auto-focus">
+                    Reset
+                </btn>
             </div>
         </modal>
-        <modal v-model="saveModal" title="Save manuscript" size="lg" auto-focus>
+        <modal
+            v-model="saveModal"
+            title="Save manuscript"
+            size="lg"
+            auto-focus>
             <p>Are you sure you want to save this manuscript information?</p>
             <table class="table table-striped table-hover">
                 <thead>
@@ -94,17 +117,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="row in diff">
+                    <tr
+                        v-for="row in diff"
+                        :key="row.key">
                         <td>{{ row['label'] }}</td>
                         <template v-for="key in ['old', 'new']">
-                            <td v-if="Array.isArray(row[key])">
+                            <td
+                                v-if="Array.isArray(row[key])"
+                                :key="key">
                                 <ul v-if="row[key].length > 0">
-                                    <li v-for="item in row[key]">
+                                    <li
+                                        v-for="(item, index) in row[key]"
+                                        :key="index">
                                         {{ getDisplay(item) }}
                                     </li>
                                 </ul>
                             </td>
-                            <td v-else>
+                            <td
+                                v-else
+                                :key="key">
                                 {{ getDisplay(row[key]) }}
                             </td>
                         </template>
@@ -113,7 +144,12 @@
             </table>
             <div slot="footer">
                 <btn @click="saveModal=false">Cancel</btn>
-                <btn type="success" @click="save()" data-action="auto-focus">Save</btn>
+                <btn
+                    type="success"
+                    @click="save()"
+                    data-action="auto-focus">
+                    Save
+                </btn>
             </div>
         </modal>
     </div>
@@ -144,21 +180,60 @@ for(let key of panelComponents.keys()) {
 
 export default {
     components: components,
-    props: [
-        'getManuscriptUrl',
-        'putManuscriptUrl',
-        'initManuscript',
-        'initLocations',
-        'initContents',
-        'initPatrons',
-        'initScribes',
-        'initRelatedPersons',
-        'initOrigins',
-        'initBooks',
-        'initArticles',
-        'initBookChapters',
-        'initOnlineSources'
-    ],
+    props: {
+        getManuscriptUrl: {
+            type: String,
+            default: ''
+        },
+        putManuscriptUrl: {
+            type: String,
+            default: ''
+        },
+        initManuscript: {
+            type: String,
+            default: ''
+        },
+        initLocations: {
+            type: String,
+            default: ''
+        },
+        initContents: {
+            type: String,
+            default: ''
+        },
+        initPatrons: {
+            type: String,
+            default: ''
+        },
+        initScribes: {
+            type: String,
+            default: ''
+        },
+        initRelatedPersons: {
+            type: String,
+            default: ''
+        },
+        initOrigins: {
+            type: String,
+            default: ''
+        },
+        initBooks: {
+            type: String,
+            default: ''
+        },
+        initArticles: {
+            type: String,
+            default: ''
+        },
+        initBookChapters: {
+            type: String,
+            default: ''
+        },
+        initOnlineSources: {
+            type: String,
+            default: ''
+        },
+    },
     data() {
         return {
             manuscript: JSON.parse(this.initManuscript),
