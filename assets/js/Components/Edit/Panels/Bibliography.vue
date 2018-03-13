@@ -1,173 +1,168 @@
 <template>
     <panel :header="header">
-        <div class="panel panel-default">
-            <div class="panel-heading">Bibliograpy</div>
-            <div class="panel-body">
-                <div class="pbottom-large">
-                    <h3>Books</h3>
-                    <table
-                        v-if="model.books.length > 0"
-                        class="table table-striped table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Book</th>
-                                <th>Start page</th>
-                                <th>End page</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(item, index) in model.books"
-                                :key="index">
-                                <td>{{ item.book.name }}</td>
-                                <td>{{ item.startPage }}</td>
-                                <td>{{ item.endPage }}</td>
-                                <td>
-                                    <a
-                                        href="#"
-                                        title="Edit"
-                                        class="action"
-                                        @click.prevent="updateBib(item, index)">
-                                        <i class="fa fa-pencil-square-o" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        title="Delete"
-                                        class="action"
-                                        @click.prevent="delBib(item, index)">
-                                        <i class="fa fa-trash-o" />
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <btn @click="newBib('book')"><i class="fa fa-plus" />&nbsp;Add a book reference</btn>
-                </div>
-                <div class="pbottom-large">
-                    <h3>Articles</h3>
-                    <table
-                        v-if="model.articles.length > 0"
-                        class="table table-striped table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Article</th>
-                                <th>Start page</th>
-                                <th>End page</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(item, index) in model.articles"
-                                :key="index">
-                                <td>{{ item.article.name }}</td>
-                                <td>{{ item.startPage }}</td>
-                                <td>{{ item.endPage }}</td>
-                                <td>
-                                    <a
-                                        href="#"
-                                        title="Edit"
-                                        class="action"
-                                        @click.prevent="updateBib(item, index)">
-                                        <i class="fa fa-pencil-square-o" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        title="Delete"
-                                        class="action"
-                                        @click.prevent="delBib(item, index)">
-                                        <i class="fa fa-trash-o" />
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <btn @click="newBib('article')"><i class="fa fa-plus" />&nbsp;Add an article reference</btn>
-                </div>
-                <div class="pbottom-large">
-                    <h3>Book chapters</h3>
-                    <table
-                        v-if="model.bookChapters.length > 0"
-                        class="table table-striped table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Book Chapter</th>
-                                <th>Start page</th>
-                                <th>End page</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(item, index) in model.bookChapters"
-                                :key="index">
-                                <td>{{ item.bookChapter.name }}</td>
-                                <td>{{ item.startPage }}</td>
-                                <td>{{ item.endPage }}</td>
-                                <td>
-                                    <a
-                                        href="#"
-                                        title="Edit"
-                                        class="action"
-                                        @click.prevent="updateBib(item, index)">
-                                        <i class="fa fa-pencil-square-o" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        title="Delete"
-                                        class="action"
-                                        @click.prevent="delBib(item, index)">
-                                        <i class="fa fa-trash-o" />
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
-                </div>
-                <div>
-                    <h3>Online sources</h3>
-                    <table
-                        v-if="model.onlineSources.length > 0"
-                        class="table table-striped table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Online source</th>
-                                <th>Source link</th>
-                                <th>Relative link</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(item, index) in model.onlineSources"
-                                :key="index">
-                                <td>{{ item.onlineSource.name }}</td>
-                                <td>{{ item.onlineSource.url }}</td>
-                                <td>{{ item.relUrl }}</td>
-                                <td>
-                                    <a
-                                        href="#"
-                                        title="Edit"
-                                        class="action"
-                                        @click.prevent="updateBib(item, index)">
-                                        <i class="fa fa-pencil-square-o" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        title="Delete"
-                                        class="action"
-                                        @click.prevent="delBib(item, index)">
-                                        <i class="fa fa-trash-o" />
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <btn @click="newBib('onlineSource')"><i class="fa fa-plus" />&nbsp;Add an online source</btn>
-                </div>
-            </div>
+        <div class="pbottom-large">
+            <h3>Books</h3>
+            <table
+                v-if="model.books.length > 0"
+                class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Start page</th>
+                        <th>End page</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, index) in model.books"
+                        :key="index">
+                        <td>{{ item.book.name }}</td>
+                        <td>{{ item.startPage }}</td>
+                        <td>{{ item.endPage }}</td>
+                        <td>
+                            <a
+                                href="#"
+                                title="Edit"
+                                class="action"
+                                @click.prevent="updateBib(item, index)">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                href="#"
+                                title="Delete"
+                                class="action"
+                                @click.prevent="delBib(item, index)">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('book')"><i class="fa fa-plus" />&nbsp;Add a book reference</btn>
+        </div>
+        <div class="pbottom-large">
+            <h3>Articles</h3>
+            <table
+                v-if="model.articles.length > 0"
+                class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Start page</th>
+                        <th>End page</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, index) in model.articles"
+                        :key="index">
+                        <td>{{ item.article.name }}</td>
+                        <td>{{ item.startPage }}</td>
+                        <td>{{ item.endPage }}</td>
+                        <td>
+                            <a
+                                href="#"
+                                title="Edit"
+                                class="action"
+                                @click.prevent="updateBib(item, index)">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                href="#"
+                                title="Delete"
+                                class="action"
+                                @click.prevent="delBib(item, index)">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('article')"><i class="fa fa-plus" />&nbsp;Add an article reference</btn>
+        </div>
+        <div class="pbottom-large">
+            <h3>Book chapters</h3>
+            <table
+                v-if="model.bookChapters.length > 0"
+                class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Book Chapter</th>
+                        <th>Start page</th>
+                        <th>End page</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, index) in model.bookChapters"
+                        :key="index">
+                        <td>{{ item.bookChapter.name }}</td>
+                        <td>{{ item.startPage }}</td>
+                        <td>{{ item.endPage }}</td>
+                        <td>
+                            <a
+                                href="#"
+                                title="Edit"
+                                class="action"
+                                @click.prevent="updateBib(item, index)">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                href="#"
+                                title="Delete"
+                                class="action"
+                                @click.prevent="delBib(item, index)">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
+        </div>
+        <div>
+            <h3>Online sources</h3>
+            <table
+                v-if="model.onlineSources.length > 0"
+                class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Online source</th>
+                        <th>Source link</th>
+                        <th>Relative link</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, index) in model.onlineSources"
+                        :key="index">
+                        <td>{{ item.onlineSource.name }}</td>
+                        <td>{{ item.onlineSource.url }}</td>
+                        <td>{{ item.relUrl }}</td>
+                        <td>
+                            <a
+                                href="#"
+                                title="Edit"
+                                class="action"
+                                @click.prevent="updateBib(item, index)">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                href="#"
+                                title="Delete"
+                                class="action"
+                                @click.prevent="delBib(item, index)">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('onlineSource')"><i class="fa fa-plus" />&nbsp;Add an online source</btn>
         </div>
         <modal
             v-model="editBibModal"
