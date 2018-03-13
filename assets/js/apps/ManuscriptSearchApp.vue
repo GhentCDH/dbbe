@@ -201,6 +201,22 @@ export default {
             return columns
         },
     },
+    watch: {
+        'model.city'() {
+            if (this.model.city == null) {
+                delete this.model.library
+                delete this.model.collection
+                this.disableField(this.schema.fields.library)
+                this.disableField(this.schema.fields.collection)
+            }
+        },
+        'model.library'() {
+            if (this.model.library == null) {
+                delete this.model.collection
+                this.disableField(this.schema.fields.collection)
+            }
+        },
+    },
     mounted () {
         this.$nextTick( () => {
             this.setFilters()
@@ -267,17 +283,6 @@ export default {
             if (this.openFilterRequests > 0) {
                 this.filterCancel('Operation canceled by newer request')
             }
-            for (let fieldName of Object.keys(this.schema.fields)) {
-                if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                    if (
-                        this.model[fieldName] && this.schema.fields[fieldName].dependency
-                        && (this.model[this.schema.fields[fieldName].dependency] == null)
-                    ) {
-                        delete this.model[fieldName]
-                    }
-                    this.disableField(fieldName)
-                }
-            }
             this.openFilterRequests++
             axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
                 cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
@@ -286,7 +291,7 @@ export default {
                     this.openFilterRequests--
                     for (let fieldName of Object.keys(this.schema.fields)) {
                         if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                            this.enableField(fieldName, response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
+                            this.enableField(this.schema.fields[fieldName], response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
                         }
                     }
                 })
@@ -360,35 +365,35 @@ export default {
                 }
             }, timeoutValue)
         },
-        disableField(fieldName) {
-            this.schema.fields[fieldName].disabled = true
-            this.schema.fields[fieldName].placeholder = 'Loading'
-            this.schema.fields[fieldName].selectOptions.loading = true
-            this.schema.fields[fieldName].values = []
+        disableField(field) {
+            field.disabled = true
+            field.placeholder = 'Loading'
+            field.selectOptions.loading = true
+            field.values = []
         },
-        enableField(fieldName, values) {
-            let label = this.schema.fields[fieldName].label.toLowerCase()
-            this.schema.fields[fieldName].selectOptions.loading = false
-            this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
+        enableField(field, values) {
+            let label = field.label.toLowerCase()
+            field.selectOptions.loading = false
+            field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
             // Handle dependencies
-            if (this.schema.fields[fieldName].dependency != null) {
-                let dependency = this.schema.fields[fieldName].dependency
+            if (field.dependency != null) {
+                let dependency = field.dependency
                 if (this.model[dependency] == null) {
-                    this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
+                    field.placeholder = 'Please select a ' + dependency + ' first'
                     return
                 }
             }
             // No results
             if (values.length === 0) {
-                if (this.model[fieldName] != null) {
-                    this.schema.fields[fieldName].disabled = false
+                if (this.model[field.model] != null) {
+                    field.disabled = false
                     return
                 }
                 return
             }
             // Default
-            this.schema.fields[fieldName].disabled = false
-            this.schema.fields[fieldName].values = values
+            field.disabled = false
+            field.values = values
         },
         sortByName(a, b) {
             // Move special filter values to the top
