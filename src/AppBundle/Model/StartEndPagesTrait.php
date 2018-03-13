@@ -33,12 +33,12 @@ trait StartEndPagesTrait
 
     public function formatStartEndPages(string $prefix = ''): string
     {
-        if (empty($this->page_start)) {
+        if (empty($this->startPage)) {
             return '';
         }
-        if (empty($this->page_end)) {
-            return $prefix . $this->page_start;
+        if (empty($this->endPage)) {
+            return $prefix . $this->startPage;
         }
-        return $prefix . $this->page_start . '-' . $this->page_end;
+        return $prefix . $this->startPage . '-' . $this->endPage;
     }
 }
