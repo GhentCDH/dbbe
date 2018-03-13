@@ -444,7 +444,7 @@ class BibliographyManager extends ObjectManager
                     break;
                 case 'article':
                     $this->cache->deleteItem('article_bibliography.' . $bibliographyId);
-                    $this->cache->invalidateTags(['article_bibliography.' . $$bibliographyId]);
+                    $this->cache->invalidateTags(['article_bibliography.' . $bibliographyId]);
                     break;
                 case 'bookChapter':
                     $this->cache->deleteItem('book_chapter_bibliography.' . $bibliographyId);
