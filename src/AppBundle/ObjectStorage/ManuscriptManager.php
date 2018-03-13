@@ -3,6 +3,7 @@
 namespace AppBundle\ObjectStorage;
 
 use stdClass;
+use Exception;
 
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
@@ -388,16 +389,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addBookBibliography(
                     $manuscript->getId(),
                     $bookBib->book->id,
-                    (property_exists($bookBib, 'startPage') ? $bookBib->startPage : ''),
-                    (property_exists($bookBib, 'endPage') ? $bookBib->endPage : '')
+                    self::certainString($bookBib, 'startPage'),
+                    self::certainString($bookBib, 'endPage')
                 );
             } elseif (in_array($bookBib->id, $origBibIds)) {
                 $updateIds[] = $bookBib->id;
                 $this->oms['bibliography_manager']->updateBookBibliography(
                     $bookBib->id,
                     $bookBib->book->id,
-                    (property_exists($bookBib, 'startPage') ? $bookBib->startPage : ''),
-                    (property_exists($bookBib, 'endPage') ? $bookBib->endPage : '')
+                    self::certainString($bookBib, 'startPage'),
+                    self::certainString($bookBib, 'endPage')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -411,16 +412,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addArticleBibliography(
                     $manuscript->getId(),
                     $articleBib->article->id,
-                    (property_exists($articleBib, 'startPage') ? $articleBib->startPage : ''),
-                    (property_exists($articleBib, 'endPage') ? $articleBib->endPage : '')
+                    self::certainString($articleBib, 'startPage'),
+                    self::certainString($articleBib, 'endPage')
                 );
             } elseif (in_array($articleBib->id, $origBibIds)) {
                 $updateIds[] = $articleBib->id;
                 $this->oms['bibliography_manager']->updateArticleBibliography(
                     $articleBib->id,
                     $articleBib->article->id,
-                    (property_exists($articleBib, 'startPage') ? $articleBib->startPage : ''),
-                    (property_exists($articleBib, 'endPage') ? $articleBib->endPage : '')
+                    self::certainString($articleBib, 'startPage'),
+                    self::certainString($articleBib, 'endPage')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -434,16 +435,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addBookChapterBibliography(
                     $manuscript->getId(),
                     $bookChapterBib->bookChapter->id,
-                    (property_exists($bookChapterBib, 'startPage') ? $bookChapterBib->startPage : ''),
-                    (property_exists($bookChapterBib, 'endPage') ? $bookChapterBib->endPage : '')
+                    self::certainString($bookChapterBib, 'startPage'),
+                    self::certainString($bookChapterBib, 'endPage')
                 );
             } elseif (in_array($bookChapterBib->id, $origBibIds)) {
                 $updateIds[] = $bookChapterBib->id;
                 $this->oms['bibliography_manager']->updateBookChapterBibliography(
                     $bookChapterBib->id,
                     $bookChapterBib->bookChapter->id,
-                    (property_exists($bookChapterBib, 'startPage') ? $bookChapterBib->startPage : ''),
-                    (property_exists($bookChapterBib, 'endPage') ? $bookChapterBib->endPage : '')
+                    self::certainString($bookChapterBib, 'startPage'),
+                    self::certainString($bookChapterBib, 'endPage')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -457,14 +458,14 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addOnlineSourceBibliography(
                     $manuscript->getId(),
                     $onlineSourceBib->onlineSource->id,
-                    (property_exists($onlineSourceBib, 'relUrl') ? $onlineSourceBib->relUrl : '')
+                    self::certainString($onlineSourceBib, 'relUrl')
                 );
             } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
                 $updateIds[] = $onlineSourceBib->id;
                 $this->oms['bibliography_manager']->updateOnlineSourceBibliography(
                     $onlineSourceBib->id,
                     $onlineSourceBib->onlineSource->id,
-                    (property_exists($onlineSourceBib, 'relUrl') ? $onlineSourceBib->relUrl : '')
+                    self::certainString($onlineSourceBib, 'relUrl')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -560,5 +561,16 @@ class ManuscriptManager extends ObjectManager
         $addIds = array_diff($newIds, $oldIds);
 
         return [$delIds, $addIds];
+    }
+
+    private static function certainString(stdClass $object, string $property): string
+    {
+        if (!property_exists($object, $property)) {
+            return '';
+        }
+        if (empty($object->$property)) {
+            return '';
+        }
+        return $object->$property;
     }
 }
