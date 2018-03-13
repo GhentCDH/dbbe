@@ -285,6 +285,9 @@ class ManuscriptManager extends ObjectManager
             if (property_exists($data, 'privateComment')) {
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
+            if (property_exists($data, 'illustrated')) {
+                $this->updateIllustrated($manuscript, $data->illustrated);
+            }
 
             // load new manuscript data
             $this->cache->deleteItem('manuscript_short.' . $id);
@@ -509,6 +512,11 @@ class ManuscriptManager extends ObjectManager
         } else {
             $this->dbs->updatePublicComment($manuscript->getId(), $publicComment);
         }
+    }
+
+    private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
+    {
+        $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
     }
 
     private function updatePrivateComment(Manuscript $manuscript, string $privateComment = null): void

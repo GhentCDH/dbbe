@@ -449,4 +449,14 @@ class ManuscriptService extends DatabaseService
             [$privateComment, $manuscriptId]
         );
     }
+
+    public function updateIllustrated(int $manuscriptId, bool $illustrated): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document
+            set is_illustrated = ?
+            where document.identity = ?',
+            [$illustrated ? 'TRUE': 'FALSE', $manuscriptId]
+        );
+    }
 }

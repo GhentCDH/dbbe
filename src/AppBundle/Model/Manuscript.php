@@ -305,6 +305,9 @@ class Manuscript extends Document
         if (isset($this->privateComment)) {
             $result['privateComment'] = $this->privateComment;
         }
+        if (isset($this->illustrated)) {
+            $result['illustrated'] = $this->illustrated;
+        }
 
         return $result;
     }

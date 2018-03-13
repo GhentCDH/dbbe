@@ -351,6 +351,7 @@ export default {
                 diktyon: this.manuscript.diktyon,
                 publicComment: this.manuscript.publicComment,
                 privateComment: this.manuscript.privateComment,
+                illustrated: this.manuscript.illustrated,
             }
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))

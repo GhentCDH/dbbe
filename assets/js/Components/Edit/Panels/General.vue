@@ -45,6 +45,11 @@ export default {
                         model: 'privateComment',
                         validator: VueFormGenerator.validators.string,
                     },
+                    illustrated: {
+                        type: 'checkbox',
+                        label: 'Illustrated',
+                        model: 'illustrated',
+                    }
                 }
             },
         }
