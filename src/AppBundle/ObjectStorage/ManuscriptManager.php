@@ -379,16 +379,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addBookBibliography(
                     $manuscript->getId(),
                     $bookBib->book->id,
-                    $bookBib->startPage,
-                    $bookBib->endPage
+                    (property_exists($bookBib, 'startPage') ? $bookBib->startPage : ''),
+                    (property_exists($bookBib, 'endPage') ? $bookBib->endPage : '')
                 );
             } elseif (in_array($bookBib->id, $origBibIds)) {
                 $updateIds[] = $bookBib->id;
                 $this->oms['bibliography_manager']->updateBookBibliography(
                     $bookBib->id,
                     $bookBib->book->id,
-                    $bookBib->startPage,
-                    $bookBib->endPage
+                    (property_exists($bookBib, 'startPage') ? $bookBib->startPage : ''),
+                    (property_exists($bookBib, 'endPage') ? $bookBib->endPage : '')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -402,16 +402,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addArticleBibliography(
                     $manuscript->getId(),
                     $articleBib->article->id,
-                    $articleBib->startPage,
-                    $articleBib->endPage
+                    (property_exists($articleBib, 'startPage') ? $articleBib->startPage : ''),
+                    (property_exists($articleBib, 'endPage') ? $articleBib->endPage : '')
                 );
             } elseif (in_array($articleBib->id, $origBibIds)) {
                 $updateIds[] = $articleBib->id;
                 $this->oms['bibliography_manager']->updateArticleBibliography(
                     $articleBib->id,
                     $articleBib->article->id,
-                    $articleBib->startPage,
-                    $articleBib->endPage
+                    (property_exists($articleBib, 'startPage') ? $articleBib->startPage : ''),
+                    (property_exists($articleBib, 'endPage') ? $articleBib->endPage : '')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -425,16 +425,16 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addBookChapterBibliography(
                     $manuscript->getId(),
                     $bookChapterBib->bookChapter->id,
-                    $bookChapterBib->startPage,
-                    $bookChapterBib->endPage
+                    (property_exists($bookChapterBib, 'startPage') ? $bookChapterBib->startPage : ''),
+                    (property_exists($bookChapterBib, 'endPage') ? $bookChapterBib->endPage : '')
                 );
             } elseif (in_array($bookChapterBib->id, $origBibIds)) {
                 $updateIds[] = $bookChapterBib->id;
                 $this->oms['bibliography_manager']->updateBookChapterBibliography(
                     $bookChapterBib->id,
                     $bookChapterBib->bookChapter->id,
-                    $bookChapterBib->startPage,
-                    $bookChapterBib->endPage
+                    (property_exists($bookChapterBib, 'startPage') ? $bookChapterBib->startPage : ''),
+                    (property_exists($bookChapterBib, 'endPage') ? $bookChapterBib->endPage : '')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -448,14 +448,14 @@ class ManuscriptManager extends ObjectManager
                 $this->oms['bibliography_manager']->addOnlineSourceBibliography(
                     $manuscript->getId(),
                     $onlineSourceBib->onlineSource->id,
-                    $onlineSourceBib->relUrl
+                    (property_exists($onlineSourceBib, 'relUrl') ? $onlineSourceBib->relUrl : '')
                 );
             } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
                 $updateIds[] = $onlineSourceBib->id;
                 $this->oms['bibliography_manager']->updateOnlineSourceBibliography(
                     $onlineSourceBib->id,
                     $onlineSourceBib->onlineSource->id,
-                    $onlineSourceBib->relUrl
+                    (property_exists($onlineSourceBib, 'relUrl') ? $onlineSourceBib->relUrl : '')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
