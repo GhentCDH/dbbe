@@ -63,376 +63,376 @@
     </div>
 </template>
 <script>
-    window.axios = require('axios')
+window.axios = require('axios')
 
-    import * as uiv from 'uiv'
-    import Vue from 'vue'
-    import VueFormGenerator from 'vue-form-generator'
-    import VueMultiselect from 'vue-multiselect'
-    import VueTables from 'vue-tables-2'
+import * as uiv from 'uiv'
+import Vue from 'vue'
+import VueFormGenerator from 'vue-form-generator'
+import VueMultiselect from 'vue-multiselect'
+import VueTables from 'vue-tables-2'
 
-    import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
+import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
 
-    Vue.use(uiv)
-    Vue.use(VueFormGenerator)
-    Vue.use(VueTables.ServerTable)
+Vue.use(uiv)
+Vue.use(VueFormGenerator)
+Vue.use(VueTables.ServerTable)
 
-    Vue.component('multiselect', VueMultiselect)
-    Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+Vue.component('multiselect', VueMultiselect)
+Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
-    var YEAR_MIN = 1
-    var YEAR_MAX = (new Date()).getFullYear()
+var YEAR_MIN = 1
+var YEAR_MAX = (new Date()).getFullYear()
 
-    export default {
-        props: [
-            'isEditor',
-            'manuscriptsSearchApiUrl',
-            'manuscriptsFiltervaluesUrl',
-            'showManuscriptUrl',
-            'editManuscriptUrl',
-            'delManuscriptUrl'
-        ],
-        data() {
-            return {
-                model: {},
-                schema: {
-                    fields: {
-                        city: this.createMultiSelect('City', {}, {trackBy: 'id'}),
-                        library: this.createMultiSelect('Library', {dependency: 'city'}, {trackBy: 'id'}),
-                        collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}, {trackBy: 'id'}),
-                        shelf: {
-                            type: 'input',
-                            inputType: 'text',
-                            label: 'Shelf Number',
-                            model: 'shelf'
-                        },
-                        year_from: {
-                            type: 'input',
-                            inputType: 'number',
-                            label: 'Year from',
-                            model: 'year_from',
-                            min: YEAR_MIN,
-                            max: YEAR_MAX,
-                            validator: VueFormGenerator.validators.number
-                        },
-                        year_to: {
-                            type: 'input',
-                            inputType: 'number',
-                            label: 'Year to',
-                            model: 'year_to',
-                            min: YEAR_MIN,
-                            max: YEAR_MAX,
-                            validator: VueFormGenerator.validators.number
-                        },
-                        content: this.createMultiSelect('Content', {}, {trackBy: 'id'}),
-                        patron: this.createMultiSelect('Patron', {}, {trackBy: 'id'}),
-                        scribe: this.createMultiSelect('Scribe', {}, {trackBy: 'id'}),
-                        origin: this.createMultiSelect('Origin', {}, {trackBy: 'id'})
-                    }
-                },
-                formOptions: {
-                    validateAfterLoad: true,
-                    validateAfterChanged: true,
-                    validationErrorClass: "has-error",
-                    validationSuccessClass: "success"
-                },
-                tableOptions: {
-                    'filterable': false,
-                    'orderBy': {
-                        'column': 'name'
+export default {
+    props: [
+        'isEditor',
+        'manuscriptsSearchApiUrl',
+        'manuscriptsFiltervaluesUrl',
+        'showManuscriptUrl',
+        'editManuscriptUrl',
+        'delManuscriptUrl'
+    ],
+    data() {
+        return {
+            model: {},
+            schema: {
+                fields: {
+                    city: this.createMultiSelect('City', {}, {trackBy: 'id'}),
+                    library: this.createMultiSelect('Library', {dependency: 'city'}, {trackBy: 'id'}),
+                    collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}, {trackBy: 'id'}),
+                    shelf: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Shelf Number',
+                        model: 'shelf'
                     },
-                    'perPage': 25,
-                    'perPageValues': [25, 50, 100],
-                    'sortable': ['name', 'date'],
-                    customFilters: ['filters'],
-                    requestFunction: function (data) {
-                        if (this.$parent.openTableRequests > 0) {
-                            this.$parent.tableCancel('Operation canceled by newer request')
-                        }
-                        this.$parent.openTableRequests++
-                        return axios.get(this.url, {
-                            params: data,
-                            cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+                    year_from: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Year from',
+                        model: 'year_from',
+                        min: YEAR_MIN,
+                        max: YEAR_MAX,
+                        validator: VueFormGenerator.validators.number
+                    },
+                    year_to: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Year to',
+                        model: 'year_to',
+                        min: YEAR_MIN,
+                        max: YEAR_MAX,
+                        validator: VueFormGenerator.validators.number
+                    },
+                    content: this.createMultiSelect('Content', {}, {trackBy: 'id'}),
+                    patron: this.createMultiSelect('Patron', {}, {trackBy: 'id'}),
+                    scribe: this.createMultiSelect('Scribe', {}, {trackBy: 'id'}),
+                    origin: this.createMultiSelect('Origin', {}, {trackBy: 'id'})
+                }
+            },
+            formOptions: {
+                validateAfterLoad: true,
+                validateAfterChanged: true,
+                validationErrorClass: "has-error",
+                validationSuccessClass: "success"
+            },
+            tableOptions: {
+                'filterable': false,
+                'orderBy': {
+                    'column': 'name'
+                },
+                'perPage': 25,
+                'perPageValues': [25, 50, 100],
+                'sortable': ['name', 'date'],
+                customFilters: ['filters'],
+                requestFunction: function (data) {
+                    if (this.$parent.openTableRequests > 0) {
+                        this.$parent.tableCancel('Operation canceled by newer request')
+                    }
+                    this.$parent.openTableRequests++
+                    return axios.get(this.url, {
+                        params: data,
+                        cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+                    })
+                        .then( (response) => {
+                            this.$parent.openTableRequests--
+                            return response
                         })
-                            .then( (response) => {
-                                this.$parent.openTableRequests--
-                                return response
-                            })
-                            .catch(function (error) {
-                                this.$parent.openTableRequests--
-                                if (axios.isCancel(error)) {
-                                    // Return the current data if the request is cancelled
-                                    return {
-                                        data : {
-                                            data: this.data,
-                                            count: this.count
-                                        }
+                        .catch(function (error) {
+                            this.$parent.openTableRequests--
+                            if (axios.isCancel(error)) {
+                                // Return the current data if the request is cancelled
+                                return {
+                                    data : {
+                                        data: this.data,
+                                        count: this.count
                                     }
                                 }
-                                this.dispatch('error', error)
-                            }.bind(this))
-                    }
-                },
-                oldOrder: {},
-                openFilterRequests: 0,
-                filterCancel: null,
-                openTableRequests: 0,
-                tableCancel: null,
-                // used to set timeout on free input fields
-                lastChangedField: '',
-                // used to only send requests after timeout when inputting free input fields
-                inputCancel: null,
-                // Remove requesting the same data that is already displayed
-                oldFilterValues: this.constructFilterValues(),
-                delManuscript: {
-                    id: 0,
-                    name: ''
-                },
-                delModal: false,
-                alerts: []
-            }
-        },
-        mounted () {
-            this.$nextTick( () => {
-                this.setFilters()
-            })
-        },
-        computed: {
-            tableColumns() {
-                let columns = ['name', 'date', 'content']
-                if (this.isEditor) {
-                    columns.push('actions')
-                }
-                return columns
-            },
-        },
-        methods: {
-            createMultiSelect(label, extra, extraSelectOptions) {
-                let result = {
-                    type: 'multiselectClear',
-                    label: label,
-                    placeholder: 'Loading',
-                    model: label.toLowerCase(),
-                    // Values will be loaded using ajax request
-                    values: [],
-                    selectOptions: {
-                        customLabel: ({id, name}) => {
-                            return name
-                        },
-                        showLabels: false,
-                        loading: true
-                    },
-                    // Will be enabled when list of scribes is loaded
-                    disabled: true
-                }
-                if (extra != null) {
-                    for (let key of Object.keys(extra)) {
-                        result[key] = extra[key]
-                    }
-                }
-                if (extraSelectOptions != null) {
-                    for (let key of Object.keys(extraSelectOptions)) {
-                        result['selectOptions'][key] = extraSelectOptions[key]
-                    }
-                }
-                return result
-            },
-            constructFilterValues() {
-                let result = {
-                    // default values for date
-                    'date': [
-                        1,
-                        2000
-                    ]
-                }
-                if (this.model != null) {
-                    for (let fieldName of Object.keys(this.model)) {
-                        if (this.schema.fields[fieldName].type === 'multiselectClear') {
-                            result[fieldName] = this.model[fieldName]['id']
-                        }
-                        else if (fieldName === 'year_from') {
-                            result['date'][0] = this.model[fieldName]
-                        }
-                        else if (fieldName === 'year_to') {
-                            result['date'][1] = this.model[fieldName]
-                        }
-                        else {
-                            result[fieldName] = this.model[fieldName]
-                        }
-                    }
-                }
-                return result
-            },
-            setFilters(filterValues) {
-                if (this.openFilterRequests > 0) {
-                    this.filterCancel('Operation canceled by newer request')
-                }
-                for (let fieldName of Object.keys(this.schema.fields)) {
-                    if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                        if (
-                            this.model[fieldName] && this.schema.fields[fieldName].dependency
-                            && (this.model[this.schema.fields[fieldName].dependency] == null)
-                        ) {
-                            delete this.model[fieldName]
-                        }
-                        this.disableField(fieldName)
-                    }
-                }
-                this.openFilterRequests++
-                axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
-                    cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
-                })
-                    .then( (response) => {
-                        this.openFilterRequests--
-                        for (let fieldName of Object.keys(this.schema.fields)) {
-                            if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                                this.enableField(fieldName, response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
                             }
-                        }
-                    })
-                    .catch( (error) => {
-                        this.openFilterRequests--
-                        if (!axios.isCancel(error)) {
-                            console.log(error)
-                        }
-                    })
+                            this.dispatch('error', error)
+                        }.bind(this))
+                }
             },
-            modelUpdated(value, fieldName) {
-                this.lastChangedField = fieldName
+            oldOrder: {},
+            openFilterRequests: 0,
+            filterCancel: null,
+            openTableRequests: 0,
+            tableCancel: null,
+            // used to set timeout on free input fields
+            lastChangedField: '',
+            // used to only send requests after timeout when inputting free input fields
+            inputCancel: null,
+            // Remove requesting the same data that is already displayed
+            oldFilterValues: this.constructFilterValues(),
+            delManuscript: {
+                id: 0,
+                name: ''
             },
-            onValidated(isValid, errors) {
-                // do nothin but cancelling requests if invalid
-                if (!isValid) {
-                    if (this.inputCancel !== null) {
-                        window.clearTimeout(this.inputCancel)
-                        this.inputCancel = null
-                    }
-                    return
+            delModal: false,
+            alerts: []
+        }
+    },
+    computed: {
+        tableColumns() {
+            let columns = ['name', 'date', 'content']
+            if (this.isEditor) {
+                columns.push('actions')
+            }
+            return columns
+        },
+    },
+    mounted () {
+        this.$nextTick( () => {
+            this.setFilters()
+        })
+    },
+    methods: {
+        createMultiSelect(label, extra, extraSelectOptions) {
+            let result = {
+                type: 'multiselectClear',
+                label: label,
+                placeholder: 'Loading',
+                model: label.toLowerCase(),
+                // Values will be loaded using ajax request
+                values: [],
+                selectOptions: {
+                    customLabel: ({id, name}) => {
+                        return name
+                    },
+                    showLabels: false,
+                    loading: true
+                },
+                // Will be enabled when list of scribes is loaded
+                disabled: true
+            }
+            if (extra != null) {
+                for (let key of Object.keys(extra)) {
+                    result[key] = extra[key]
                 }
-
-                if (this.model != null) {
-                    for (let fieldName of Object.keys(this.model)) {
-                        if (
-                            this.model[fieldName] === null ||
-                            this.model[fieldName] === '' ||
-                            ((['year_from', 'year_to'].indexOf(fieldName) > -1) && isNaN(this.model[fieldName]))
-                        ) {
-                            delete this.model[fieldName];
+            }
+            if (extraSelectOptions != null) {
+                for (let key of Object.keys(extraSelectOptions)) {
+                    result['selectOptions'][key] = extraSelectOptions[key]
+                }
+            }
+            return result
+        },
+        constructFilterValues() {
+            let result = {
+                // default values for date
+                'date': [
+                    1,
+                    2000
+                ]
+            }
+            if (this.model != null) {
+                for (let fieldName of Object.keys(this.model)) {
+                    if (this.schema.fields[fieldName].type === 'multiselectClear') {
+                        result[fieldName] = this.model[fieldName]['id']
+                    }
+                    else if (fieldName === 'year_from') {
+                        result['date'][0] = this.model[fieldName]
+                    }
+                    else if (fieldName === 'year_to') {
+                        result['date'][1] = this.model[fieldName]
+                    }
+                    else {
+                        result[fieldName] = this.model[fieldName]
+                    }
+                }
+            }
+            return result
+        },
+        setFilters(filterValues) {
+            if (this.openFilterRequests > 0) {
+                this.filterCancel('Operation canceled by newer request')
+            }
+            for (let fieldName of Object.keys(this.schema.fields)) {
+                if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                    if (
+                        this.model[fieldName] && this.schema.fields[fieldName].dependency
+                        && (this.model[this.schema.fields[fieldName].dependency] == null)
+                    ) {
+                        delete this.model[fieldName]
+                    }
+                    this.disableField(fieldName)
+                }
+            }
+            this.openFilterRequests++
+            axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
+                cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
+            })
+                .then( (response) => {
+                    this.openFilterRequests--
+                    for (let fieldName of Object.keys(this.schema.fields)) {
+                        if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                            this.enableField(fieldName, response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
                         }
                     }
-                }
-
-                // set year min and max values
-                if (this.model.year_from != null) {
-                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
-                }
-                else {
-                    this.schema.fields.year_to.min = YEAR_MIN
-                }
-                if (this.model.year_to != null) {
-                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
-                }
-                else {
-                    this.schema.fields.year_from.max = YEAR_MAX
-                }
-
-                // Cancel timeouts caused by input requests not long ago
-                if (this.inputCancel != null) {
+                })
+                .catch( (error) => {
+                    this.openFilterRequests--
+                    if (!axios.isCancel(error)) {
+                        console.log(error)
+                    }
+                })
+        },
+        modelUpdated(value, fieldName) {
+            this.lastChangedField = fieldName
+        },
+        onValidated(isValid, errors) {
+            // do nothin but cancelling requests if invalid
+            if (!isValid) {
+                if (this.inputCancel !== null) {
                     window.clearTimeout(this.inputCancel)
                     this.inputCancel = null
                 }
+                return
+            }
 
-                // Send requests to update filters and result table
-                // Add a delay to requests originated from input field changes to limit the number of requests
-                let timeoutValue = 0
-                if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
-                    timeoutValue = 1000
-                }
-                this.inputCancel = window.setTimeout(() => {
-                    this.inputCancel = null
-                    let filterValues = this.constructFilterValues()
-                    // only send request if the filters have changed
-                    // filters are always in the same order, so we can compare serialization
-                    if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
-                        this.oldFilterValues = filterValues
-                        this.setFilters(filterValues)
-                        VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
-                    }
-                }, timeoutValue)
-            },
-            disableField(fieldName) {
-                this.schema.fields[fieldName].disabled = true
-                this.schema.fields[fieldName].placeholder = 'Loading'
-                this.schema.fields[fieldName].selectOptions.loading = true
-                this.schema.fields[fieldName].values = []
-            },
-            enableField(fieldName, values) {
-                let label = this.schema.fields[fieldName].label.toLowerCase()
-                this.schema.fields[fieldName].selectOptions.loading = false
-                this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
-                // Handle dependencies
-                if (this.schema.fields[fieldName].dependency != null) {
-                    let dependency = this.schema.fields[fieldName].dependency
-                    if (this.model[dependency] == null) {
-                        this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
-                        return
+            if (this.model != null) {
+                for (let fieldName of Object.keys(this.model)) {
+                    if (
+                        this.model[fieldName] === null ||
+                        this.model[fieldName] === '' ||
+                        ((['year_from', 'year_to'].indexOf(fieldName) > -1) && isNaN(this.model[fieldName]))
+                    ) {
+                        delete this.model[fieldName];
                     }
                 }
-                // No results
-                if (values.length === 0) {
-                    if (this.model[fieldName] != null) {
-                        this.schema.fields[fieldName].disabled = false
-                        return
-                    }
+            }
+
+            // set year min and max values
+            if (this.model.year_from != null) {
+                this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+            }
+            else {
+                this.schema.fields.year_to.min = YEAR_MIN
+            }
+            if (this.model.year_to != null) {
+                this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+            }
+            else {
+                this.schema.fields.year_from.max = YEAR_MAX
+            }
+
+            // Cancel timeouts caused by input requests not long ago
+            if (this.inputCancel != null) {
+                window.clearTimeout(this.inputCancel)
+                this.inputCancel = null
+            }
+
+            // Send requests to update filters and result table
+            // Add a delay to requests originated from input field changes to limit the number of requests
+            let timeoutValue = 0
+            if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
+                timeoutValue = 1000
+            }
+            this.inputCancel = window.setTimeout(() => {
+                this.inputCancel = null
+                let filterValues = this.constructFilterValues()
+                // only send request if the filters have changed
+                // filters are always in the same order, so we can compare serialization
+                if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
+                    this.oldFilterValues = filterValues
+                    this.setFilters(filterValues)
+                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                }
+            }, timeoutValue)
+        },
+        disableField(fieldName) {
+            this.schema.fields[fieldName].disabled = true
+            this.schema.fields[fieldName].placeholder = 'Loading'
+            this.schema.fields[fieldName].selectOptions.loading = true
+            this.schema.fields[fieldName].values = []
+        },
+        enableField(fieldName, values) {
+            let label = this.schema.fields[fieldName].label.toLowerCase()
+            this.schema.fields[fieldName].selectOptions.loading = false
+            this.schema.fields[fieldName].placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
+            // Handle dependencies
+            if (this.schema.fields[fieldName].dependency != null) {
+                let dependency = this.schema.fields[fieldName].dependency
+                if (this.model[dependency] == null) {
+                    this.schema.fields[fieldName].placeholder = 'Please select a ' + dependency + ' first'
                     return
                 }
-                // Default
-                this.schema.fields[fieldName].disabled = false
-                this.schema.fields[fieldName].values = values
-            },
-            sortByName(a, b) {
-                // Move special filter values to the top
-                if (a.id === -1) {
-                    return -1
+            }
+            // No results
+            if (values.length === 0) {
+                if (this.model[fieldName] != null) {
+                    this.schema.fields[fieldName].disabled = false
+                    return
                 }
-                if (b.id === -1) {
-                    return 1
-                }
-                if (a.name < b.name) {
-                    return -1
-                }
-                if (a.name > b.name) {
-                    return 1
-                }
-                return 0
-            },
-            resetAllFilters() {
-                this.model = {}
-                this.onValidated(true)
-            },
-            del(row) {
-                this.delManuscript = row
-                this.delModal = true
-            },
-            submitDelete() {
-                this.openTableRequests++
-                this.delModal = false
-                axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
-                    .then( (response) => {
-                        this.$refs.table.refresh()
-                    })
-                    .catch( (error) => {
-                        this.delModal = true
-                        this.openTableRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the manuscript.'})
-                        console.log(error)
-                    })
-            },
-            tableLoaded() {
-                if (this.openTableRequests > 0) {
+                return
+            }
+            // Default
+            this.schema.fields[fieldName].disabled = false
+            this.schema.fields[fieldName].values = values
+        },
+        sortByName(a, b) {
+            // Move special filter values to the top
+            if (a.id === -1) {
+                return -1
+            }
+            if (b.id === -1) {
+                return 1
+            }
+            if (a.name < b.name) {
+                return -1
+            }
+            if (a.name > b.name) {
+                return 1
+            }
+            return 0
+        },
+        resetAllFilters() {
+            this.model = {}
+            this.onValidated(true)
+        },
+        del(row) {
+            this.delManuscript = row
+            this.delModal = true
+        },
+        submitDelete() {
+            this.openTableRequests++
+            this.delModal = false
+            axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
+                .then( (response) => {
+                    this.$refs.table.refresh()
+                })
+                .catch( (error) => {
+                    this.delModal = true
                     this.openTableRequests--
-                }
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the manuscript.'})
+                    console.log(error)
+                })
+        },
+        tableLoaded() {
+            if (this.openTableRequests > 0) {
+                this.openTableRequests--
             }
         }
     }
+}
 </script>
