@@ -335,8 +335,7 @@ export default {
             axios.put(this.putManuscriptUrl, this.toSave())
                 .then( (response) => {
                     // redirect to the detail page
-                    // window.location = this.getManuscriptUrl
-                    this.openRequests--
+                    window.location = this.getManuscriptUrl
                 })
                 .catch( (error) => {
                     console.log(error)
