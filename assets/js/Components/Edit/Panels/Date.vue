@@ -39,6 +39,7 @@ export default {
                     same_year: {
                         type: 'checkbox',
                         label: 'Exact year',
+                        labelClasses: 'control-label',
                         model: 'same_year',
                         default: false
                     },
@@ -46,6 +47,7 @@ export default {
                         type: 'input',
                         inputType: 'number',
                         label: 'Year from',
+                        labelClasses: 'control-label',
                         model: 'floor',
                         min: YEAR_MIN,
                         max: YEAR_MAX,
@@ -55,6 +57,7 @@ export default {
                         type: 'input',
                         inputType: 'number',
                         label: 'Year to',
+                        labelClasses: 'control-label',
                         model: 'ceiling',
                         min: YEAR_MIN,
                         max: YEAR_MAX,

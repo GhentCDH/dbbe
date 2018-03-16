@@ -33,6 +33,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'Shelf Number',
+                        labelClasses: 'control-label',
                         model: 'shelf',
                         required: true,
                         validator: VueFormGenerator.validators.string,

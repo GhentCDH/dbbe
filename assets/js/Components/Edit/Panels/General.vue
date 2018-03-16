@@ -28,6 +28,7 @@ export default {
                         type: 'input',
                         inputType: 'number',
                         label: 'Diktyon',
+                        labelClasses: 'control-label',
                         model: 'diktyon',
                         validator: VueFormGenerator.validators.number,
                     },
@@ -35,19 +36,24 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'Public comment',
+                        labelClasses: 'control-label',
                         model: 'publicComment',
                         validator: VueFormGenerator.validators.string,
                     },
                     privateComment: {
                         type: 'input',
+                        styleClasses: 'has-warning',
                         inputType: 'text',
                         label: 'Private comment',
+                        labelClasses: 'control-label',
                         model: 'privateComment',
                         validator: VueFormGenerator.validators.string,
                     },
                     illustrated: {
                         type: 'checkbox',
+                        styleClasses: 'has-warning',
                         label: 'Illustrated',
+                        labelClasses: 'control-label',
                         model: 'illustrated',
                     }
                 }

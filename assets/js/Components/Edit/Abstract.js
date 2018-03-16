@@ -58,6 +58,7 @@ export default {
             let result = {
                 type: 'multiselectClear',
                 label: label,
+                labelClasses: 'control-label',
                 placeholder: 'Loading',
                 // lowercase first letter + remove spaces
                 model: label.charAt(0).toLowerCase() + label.slice(1).replace(/[ ]/g, ''),

@@ -264,6 +264,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'Start page',
+                        labelClasses: 'control-label',
                         model: 'startPage',
                         validator: VueFormGenerator.validators.string
                     },
@@ -271,6 +272,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'End page',
+                        labelClasses: 'control-label',
                         model: 'endPage',
                         validator: VueFormGenerator.validators.string
                     }
@@ -283,6 +285,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'Start page',
+                        labelClasses: 'control-label',
                         model: 'startPage',
                         validator: VueFormGenerator.validators.string
                     },
@@ -290,6 +293,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'End page',
+                        labelClasses: 'control-label',
                         model: 'endPage',
                         validator: VueFormGenerator.validators.string
                     }
@@ -302,6 +306,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'Start page',
+                        labelClasses: 'control-label',
                         model: 'startPage',
                         validator: VueFormGenerator.validators.string
                     },
@@ -309,6 +314,7 @@ export default {
                         type: 'input',
                         inputType: 'text',
                         label: 'End page',
+                        labelClasses: 'control-label',
                         model: 'endPage',
                         validator: VueFormGenerator.validators.string
                     }
@@ -322,12 +328,14 @@ export default {
                         inputType: 'text',
                         disabled: 'true',
                         label: 'Source link',
+                        labelClasses: 'control-label',
                         model: 'onlineSource.url'
                     },
                     relUrl: {
                         type: 'input',
                         inputType: 'text',
                         label: 'Relative link',
+                        labelClasses: 'control-label',
                         model: 'relUrl',
                         validator: VueFormGenerator.validators.string
                     }
