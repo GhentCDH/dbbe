@@ -380,6 +380,14 @@ export default {
                 .concat(this.$refs.origin.changes)
                 .concat(this.$refs.bibliography.changes)
                 .concat(this.$refs.general.changes)
+
+            if (this.diff.length !== 0) {
+                window.onbeforeunload = function(e) {
+                    let dialogText = 'There are unsaved changes.';
+                    e.returnValue = dialogText;
+                    return dialogText;
+                }
+            }
         },
         getDisplay(item) {
             if (item == null) {
@@ -415,6 +423,7 @@ export default {
             axios.put(this.putManuscriptUrl, this.toSave())
                 .then( (response) => {
                     // redirect to the detail page
+                    window.onbeforeunload = function () {}
                     window.location = this.getManuscriptUrl
                 })
                 .catch( (error) => {
@@ -424,6 +433,7 @@ export default {
                 })
         },
         reload() {
+            window.onbeforeunload = function () {}
             window.location.reload(true)
         },
     }
