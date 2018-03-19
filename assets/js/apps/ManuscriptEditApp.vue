@@ -81,6 +81,11 @@
                 @click="saveModal=true">
                 Save changes
             </btn>
+            <btn
+                :disabled="(diff.length !== 0)"
+                @click="reload()">
+                Refresh all data
+            </btn>
             <div
                 class="loading-overlay"
                 v-if="openRequests">
@@ -329,16 +334,16 @@ export default {
                 bib['id'] = id
                 switch (bib['type']) {
                 case 'book':
-                    this.model.bibliography.books.push(bib);
+                    this.model.bibliography.books.push(bib)
                     break
                 case 'article':
-                    this.model.bibliography.articles.push(bib);
+                    this.model.bibliography.articles.push(bib)
                     break
                 case 'bookChapter':
-                    this.model.bibliography.bookChapters.push(bib);
+                    this.model.bibliography.bookChapters.push(bib)
                     break
                 case 'onlineSource':
-                    this.model.bibliography.onlineSources.push(bib);
+                    this.model.bibliography.onlineSources.push(bib)
                     break
                 }
             }
@@ -417,6 +422,9 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
                     this.openRequests--
                 })
+        },
+        reload() {
+            window.location.reload(true)
         },
     }
 }
