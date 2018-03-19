@@ -14,6 +14,7 @@ class BibliographyService extends DatabaseService
                 reference.idsource as source_id,
                 reference.page_start,
                 reference.page_end,
+                case when reference.page_start is null then reference.temp_page_removeme else null end as raw_pages,
                 reference.url as rel_url
             from data.reference
             where reference.idreference in (?)',
@@ -47,16 +48,18 @@ class BibliographyService extends DatabaseService
         int $sourceId,
         string $startPage = null,
         string $endPage = null,
+        string $rawPages = null,
         string $url = null
     ): int {
         return $this->conn->executeUpdate(
             'UPDATE data.reference
-            set idsource = ?, page_start = ?, page_end = ?, url = ?
+            set idsource = ?, page_start = ?, page_end = ?, temp_page_removeme = ?, url = ?
             where idreference = ?',
             [
                 $sourceId,
                 $startPage,
                 $endPage,
+                $rawPages,
                 $url,
                 $referenceId,
             ]

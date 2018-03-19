@@ -14,7 +14,7 @@ trait StartEndPagesTrait
         return $this;
     }
 
-    public function getStartPage()
+    public function getStartPage(): ?string
     {
         return $this->startPage;
     }
@@ -26,15 +26,19 @@ trait StartEndPagesTrait
         return $this;
     }
 
-    public function getEndPage()
+    public function getEndPage(): ?string
     {
         return $this->endPage;
     }
 
-    public function formatStartEndPages(string $prefix = ''): string
+    public function formatStartEndPages(string $prefix = '', string $raw = null): string
     {
         if (empty($this->startPage)) {
-            return '';
+            if (!empty($raw)) {
+                return $prefix . $raw;
+            } else {
+                return '';
+            }
         }
         if (empty($this->endPage)) {
             return $prefix . $this->startPage;

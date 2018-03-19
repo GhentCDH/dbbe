@@ -398,7 +398,8 @@ class ManuscriptManager extends ObjectManager
                     $bookBib->id,
                     $bookBib->book->id,
                     self::certainString($bookBib, 'startPage'),
-                    self::certainString($bookBib, 'endPage')
+                    self::certainString($bookBib, 'endPage'),
+                    self::certainString($bookBib, 'rawPages')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -421,7 +422,8 @@ class ManuscriptManager extends ObjectManager
                     $articleBib->id,
                     $articleBib->article->id,
                     self::certainString($articleBib, 'startPage'),
-                    self::certainString($articleBib, 'endPage')
+                    self::certainString($articleBib, 'endPage'),
+                    self::certainString($bookBib, 'rawPages')
                 );
             } else {
                 throw new NotFoundInDatabaseException(
@@ -444,7 +446,8 @@ class ManuscriptManager extends ObjectManager
                     $bookChapterBib->id,
                     $bookChapterBib->bookChapter->id,
                     self::certainString($bookChapterBib, 'startPage'),
-                    self::certainString($bookChapterBib, 'endPage')
+                    self::certainString($bookChapterBib, 'endPage'),
+                    self::certainString($bookBib, 'rawPages')
                 );
             } else {
                 throw new NotFoundInDatabaseException(

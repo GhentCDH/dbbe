@@ -4,6 +4,7 @@ namespace AppBundle\Model;
 
 class BookBibliography extends Bibliography
 {
+    use RawPagesTrait;
     use StartEndPagesTrait;
 
     private $book;
@@ -29,7 +30,7 @@ class BookBibliography extends Bibliography
     {
         return
             $this->book->getDescription()
-            . $this->formatStartEndPages(': ')
+            . $this->formatStartEndPages(': ', $this->rawPages)
             . '.';
     }
 
@@ -41,6 +42,7 @@ class BookBibliography extends Bibliography
             'book' => $this->book->getShortJson(),
             'startPage' => $this->startPage,
             'endPage' => $this->endPage,
+            'rawPages' => $this->rawPages,
         ];
     }
 }

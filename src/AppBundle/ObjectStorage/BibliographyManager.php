@@ -33,7 +33,8 @@ class BibliographyManager extends ObjectManager
                     ->setBook($books[$rawBibliography['source_id']])
                     ->addCacheDependency('book.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
-                    ->setEndPage($rawBibliography['page_end']);
+                    ->setEndPage($rawBibliography['page_end'])
+                    ->setRawPages($rawBibliography['raw_pages']);
             foreach ($books[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -109,11 +110,11 @@ class BibliographyManager extends ObjectManager
         $this->dbs->addBibliography($documentId, $bookId, $startPage, $endPage, null);
     }
 
-    public function updateBookBibliography(int $bibliographyId, int $bookId, string $startPage, string $endPage): void
+    public function updateBookBibliography(int $bibliographyId, int $bookId, string $startPage, string $endPage, string $rawPages): void
     {
         $this->cache->deleteItem('book_bibliography.' . $bibliographyId);
         $this->cache->invalidateTags(['book_bibliography.' . $bibliographyId]);
-        $this->dbs->updateBibliography($bibliographyId, $bookId, $startPage, $endPage, null);
+        $this->dbs->updateBibliography($bibliographyId, $bookId, $startPage, $endPage, $rawPages, null);
     }
 
     public function getArticleBibliographiesByIds(array $ids): array
@@ -135,7 +136,8 @@ class BibliographyManager extends ObjectManager
                     ->setArticle($articles[$rawBibliography['source_id']])
                     ->addCacheDependency('article.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
-                    ->setEndPage($rawBibliography['page_end']);
+                    ->setEndPage($rawBibliography['page_end'])
+                    ->setRawPages($rawBibliography['raw_pages']);
             foreach ($articles[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -239,11 +241,11 @@ class BibliographyManager extends ObjectManager
         $this->dbs->addBibliography($documentId, $articleId, $startPage, $endPage, null);
     }
 
-    public function updateArticleBibliography(int $bibliographyId, int $articleId, string $startPage, string $endPage): void
+    public function updateArticleBibliography(int $bibliographyId, int $articleId, string $startPage, string $endPage, string $rawPages): void
     {
         $this->cache->deleteItem('article_bibliography.' . $bibliographyId);
         $this->cache->invalidateTags(['article_bibliography.' . $bibliographyId]);
-        $this->dbs->updateBibliography($bibliographyId, $articleId, $startPage, $endPage, null);
+        $this->dbs->updateBibliography($bibliographyId, $articleId, $startPage, $endPage, $rawPages, null);
     }
 
     public function getBookChapterBibliographiesByIds(array $ids): array
@@ -265,7 +267,8 @@ class BibliographyManager extends ObjectManager
                     ->setBookChapter($bookChapters[$rawBibliography['source_id']])
                     ->addCacheDependency('book_chapter.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
-                    ->setEndPage($rawBibliography['page_end']);
+                    ->setEndPage($rawBibliography['page_end'])
+                    ->setRawPages($rawBibliography['raw_pages']);
             foreach ($bookChapters[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -344,11 +347,11 @@ class BibliographyManager extends ObjectManager
         $this->dbs->addBibliography($documentId, $bookChapterId, $startPage, $endPage, null);
     }
 
-    public function updateBookChapterBibliography(int $bibliographyId, int $bookChapterId, string $startPage, string $endPage): void
+    public function updateBookChapterBibliography(int $bibliographyId, int $bookChapterId, string $startPage, string $endPage, string $rawPages): void
     {
         $this->cache->deleteItem('book_chapter_bibliography.' . $bibliographyId);
         $this->cache->invalidateTags(['book_chapter_bibliography.' . $bibliographyId]);
-        $this->dbs->updateBibliography($bibliographyId, $bookChapterId, $startPage, $endPage, null);
+        $this->dbs->updateBibliography($bibliographyId, $bookChapterId, $startPage, $endPage, $rawPages, null);
     }
 
     public function getOnlineSourceBibliographiesByIds(array $ids): array
@@ -431,7 +434,7 @@ class BibliographyManager extends ObjectManager
     {
         $this->cache->deleteItem('online_source_bibliography.' . $bibliographyId);
         $this->cache->invalidateTags(['online_source_bibliography.' . $bibliographyId]);
-        $this->dbs->updateBibliography($bibliographyId, $onlineSourceId, null, null, $url);
+        $this->dbs->updateBibliography($bibliographyId, $onlineSourceId, null, null, null, $url);
     }
 
     public function delBibliographies(array $bibliographies): void

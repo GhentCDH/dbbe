@@ -10,6 +10,7 @@
                         <th>Book</th>
                         <th>Start page</th>
                         <th>End page</th>
+                        <th>Raw pages</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -20,6 +21,7 @@
                         <td>{{ item.book.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
+                        <td>{{ item.rawPages }}</td>
                         <td>
                             <a
                                 href="#"
@@ -51,6 +53,7 @@
                         <th>Article</th>
                         <th>Start page</th>
                         <th>End page</th>
+                        <th>Raw pages</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -61,6 +64,7 @@
                         <td>{{ item.article.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
+                        <td>{{ item.rawPages }}</td>
                         <td>
                             <a
                                 href="#"
@@ -92,6 +96,7 @@
                         <th>Book Chapter</th>
                         <th>Start page</th>
                         <th>End page</th>
+                        <th>Raw pages</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -102,6 +107,7 @@
                         <td>{{ item.bookChapter.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
+                        <td>{{ item.rawPages }}</td>
                         <td>
                             <a
                                 href="#"
@@ -266,7 +272,7 @@ export default {
                         label: 'Start page',
                         labelClasses: 'control-label',
                         model: 'startPage',
-                        validator: VueFormGenerator.validators.string
+                        validator: VueFormGenerator.validators.string,
                     },
                     endPage: {
                         type: 'input',
@@ -274,8 +280,17 @@ export default {
                         label: 'End page',
                         labelClasses: 'control-label',
                         model: 'endPage',
-                        validator: VueFormGenerator.validators.string
-                    }
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    rawPages: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Raw Pages',
+                        labelClasses: 'control-label',
+                        model: 'rawPages',
+                        disabled: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             editArticleBibSchema: {
@@ -287,7 +302,7 @@ export default {
                         label: 'Start page',
                         labelClasses: 'control-label',
                         model: 'startPage',
-                        validator: VueFormGenerator.validators.string
+                        validator: VueFormGenerator.validators.string,
                     },
                     endPage: {
                         type: 'input',
@@ -295,8 +310,17 @@ export default {
                         label: 'End page',
                         labelClasses: 'control-label',
                         model: 'endPage',
-                        validator: VueFormGenerator.validators.string
-                    }
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    rawPages: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Raw Pages',
+                        labelClasses: 'control-label',
+                        model: 'rawPages',
+                        disabled: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             editBookChapterBibSchema: {
@@ -308,7 +332,7 @@ export default {
                         label: 'Start page',
                         labelClasses: 'control-label',
                         model: 'startPage',
-                        validator: VueFormGenerator.validators.string
+                        validator: VueFormGenerator.validators.string,
                     },
                     endPage: {
                         type: 'input',
@@ -316,8 +340,17 @@ export default {
                         label: 'End page',
                         labelClasses: 'control-label',
                         model: 'endPage',
-                        validator: VueFormGenerator.validators.string
-                    }
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    rawPages: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Raw Pages',
+                        labelClasses: 'control-label',
+                        model: 'rawPages',
+                        disabled: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             editOnlineSourceSchema: {
@@ -329,7 +362,7 @@ export default {
                         disabled: 'true',
                         label: 'Source link',
                         labelClasses: 'control-label',
-                        model: 'onlineSource.url'
+                        model: 'onlineSource.url',
                     },
                     relUrl: {
                         type: 'input',
@@ -337,7 +370,7 @@ export default {
                         label: 'Relative link',
                         labelClasses: 'control-label',
                         model: 'relUrl',
-                        validator: VueFormGenerator.validators.string
+                        validator: VueFormGenerator.validators.string,
                     }
                 }
             },
@@ -416,6 +449,9 @@ export default {
         submitBib() {
             this.$refs.editBibForm.validate()
             if (this.$refs.editBibForm.errors.length == 0) {
+                if (this.editBib.startPage != null) {
+                    this.editBib.rawPages = null
+                }
                 if (this.bibIndex > -1) {
                     this.model[this.editBib.type + "s"][this.bibIndex] = JSON.parse(JSON.stringify(this.editBib))
                 }
@@ -436,27 +472,32 @@ export default {
         displayBibliography(bibliography) {
             let result = []
             for (let bookBibliography of bibliography['books']) {
-                result.push(bookBibliography.book.name + this.formatPages(bookBibliography.startPage, bookBibliography.endPage, ': ') + '.')
+                result.push(bookBibliography.book.name + this.formatPages(bookBibliography.startPage, bookBibliography.endPage, bookBibliography.rawPages, ': ') + '.')
             }
             for (let articleBibliography of bibliography['articles']) {
-                result.push(articleBibliography.article.name + this.formatPages(articleBibliography.startPage, articleBibliography.endPage, ': ') + '.')
+                result.push(articleBibliography.article.name + this.formatPages(articleBibliography.startPage, articleBibliography.endPage, articleBibliography.rawPages, ': ') + '.')
             }
             for (let bookChapterBibliography of bibliography['bookChapters']) {
-                result.push(bookChapterBibliography.bookChapter.name + this.formatPages(bookChapterBibliography.startPage, bookChapterBibliography.endPage, ': ') + '.')
+                result.push(bookChapterBibliography.bookChapter.name + this.formatPages(bookChapterBibliography.startPage, bookChapterBibliography.endPage, bookChapterBibliography.rawPages, ': ') + '.')
             }
             for (let onlineSourceBibliography of bibliography['onlineSources']) {
                 result.push(onlineSourceBibliography.onlineSource.url + (onlineSourceBibliography.relUrl == null ? '' : onlineSourceBibliography.relUrl) + '.')
             }
             return result
         },
-        formatPages(startPage = null, endPage = null, prefix = '') {
+        formatPages(startPage = null, endPage = null, rawPages = null, prefix = '') {
             if (startPage == null) {
-                return '';
+                if (rawPages != null) {
+                    return prefix + rawPages
+                }
+                else {
+                    return ''
+                }
             }
             if (endPage == null) {
-                return prefix + startPage;
+                return prefix + startPage
             }
-            return prefix + startPage + '-' + endPage;
+            return prefix + startPage + '-' + endPage
         },
     }
 }
