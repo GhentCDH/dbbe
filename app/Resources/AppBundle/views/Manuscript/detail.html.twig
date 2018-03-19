@@ -133,5 +133,18 @@
                 </tbody>
             </tbody>
         </table>
+
+        {% if not is_granted('ROLE_VIEW_INTERNAL') %}
+            <div id="feedback-app">
+                <feedback-app
+                    feedback-url="{{ path('feedback') }}" />
+            </div>
+        {% endif %}
+
     </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
 {% endblock %}
