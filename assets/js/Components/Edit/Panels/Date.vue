@@ -36,33 +36,63 @@ export default {
         return {
             schema: {
                 fields: {
-                    same_year: {
+                    exactDate: {
+                        type: 'checkbox',
+                        label: 'Exact date',
+                        labelClasses: 'control-label',
+                        model: 'exactDate',
+                        default: false,
+
+                    },
+                    exactYear: {
                         type: 'checkbox',
                         label: 'Exact year',
                         labelClasses: 'control-label',
-                        model: 'same_year',
-                        default: false
+                        model: 'exactYear',
+                        default: false,
                     },
-                    floor: {
+                    floorYear: {
                         type: 'input',
                         inputType: 'number',
                         label: 'Year from',
                         labelClasses: 'control-label',
-                        model: 'floor',
+                        model: 'floorYear',
+                        required: this.floorDayMonth != null,
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
+                        validator: [VueFormGenerator.validators.number, VueFormGenerator.validators.required],
                     },
-                    ceiling: {
+                    floorDayMonth: {
+                        type: 'input',
+                        inputType: 'string',
+                        label: 'Day from',
+                        labelClasses: 'control-label',
+                        model: 'floorDayMonth',
+                        validator: [VueFormGenerator.validators.regexp],
+                        pattern: '^\\d{2}[/]\\d{2}$',
+                        help: 'Please use the format "DD/MM", e.g. 24/03.',
+                    },
+                    ceilingYear: {
                         type: 'input',
                         inputType: 'number',
                         label: 'Year to',
                         labelClasses: 'control-label',
-                        model: 'ceiling',
+                        model: 'ceilingYear',
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
-                    }
+                        validator: VueFormGenerator.validators.number,
+                    },
+                    ceilingDayMonth: {
+                        type: 'input',
+                        inputType: 'string',
+                        label: 'Day to',
+                        labelClasses: 'control-label',
+                        model: 'ceilingDayMonth',
+                        required: this.ceilingYear != null,
+                        validator: [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required],
+                        pattern: '^\\d{2}[/]\\d{2}$',
+                        help: 'Please use the format "DD/MM", e.g. 24/03.',
+                    },
                 }
             }
         }
@@ -79,55 +109,101 @@ export default {
         }
     },
     watch: {
-        'model.same_year': function (newValue, oldValue) {
-            if (this.model.same_year == null) {
+        'model.exactDate': function (newValue, oldValue) {
+            if (this.model.exactDate == null) {
                 return
             }
 
-            this.schema.fields.ceiling.disabled = this.model.same_year
-            if (this.model.floor == null && this.model.ceiling != null) {
-                this.model.floor = this.model.ceiling
+            // If the date is exact, then the year is exact as well
+            if (this.model.exactDate) {
+                this.model.exactYear = true
+            }
+
+            // Year will be handled by exactYear
+            this.schema.fields.ceilingDayMonth.disabled = this.model.exactDate
+            if (this.model.floorDayMonth == null && this.model.ceilingDayMonth != null) {
+                this.model.floorDayMonth = this.model.ceilingDayMonth
             }
             else {
-                this.model.ceiling = this.model.floor
+                this.model.ceilingDayMonth = this.model.floorDayMonth
             }
-            if (this.model.same_year) {
-                this.schema.fields.ceiling.min = YEAR_MIN
-                this.schema.fields.floor.max = YEAR_MAX
+        },
+        'model.exactYear': function (newValue, oldValue) {
+            if (this.model.exactYear == null) {
+                return
+            }
+
+            this.schema.fields.ceilingYear.disabled = this.model.exactYear
+            if (this.model.floorYear == null && this.model.ceilingYear != null) {
+                this.model.floorYear = this.model.ceilingYear
+            }
+            else {
+                this.model.ceilingYear = this.model.floorYear
+            }
+
+            if (this.model.exactYear) {
+                this.schema.fields.ceilingYear.min = YEAR_MIN
+                this.schema.fields.floorYear.max = YEAR_MAX
                 this.$refs.dateForm.validate()
             }
         },
         'model.floor': function (newValue, oldValue) {
-            if (this.model.floor === this.model.ceiling && this.model.floor != null) {
-                this.model.same_year = true
+            this.updateFieldsFromModel('floor')
+        },
+        'model.floorYear': function (newValue, oldValue) {
+            if (this.model.floorYear === this.model.ceilingYear && this.model.floorYear != null) {
+                this.model.exactYear = true
             }
 
-            if (this.model.same_year) {
-                this.model.ceiling = this.model.floor
+            if (this.model.exactYear) {
+                this.model.ceilingYear = this.model.floorYear
             }
             else {
-                if (this.model.floor != null) {
-                    this.schema.fields.ceiling.min = Math.max(YEAR_MIN, this.model.floor)
+                if (this.model.floorYear != null) {
+                    this.schema.fields.ceilingYear.min = Math.max(YEAR_MIN, this.model.floorYear)
                 }
                 else {
-                    this.schema.fields.ceiling.min = YEAR_MIN
+                    this.schema.fields.ceilingYear.min = YEAR_MIN
                 }
             }
+
+            this.$refs.dateForm.validate()
+        },
+        'model.floorDayMonth': function (newValue, oldValue) {
+            if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
+                this.model.exactDate = true
+            }
+
+            if (this.model.exactDate) {
+                this.model.ceilingDayMonth = this.model.floorDayMonth
+            }
+
             this.$refs.dateForm.validate()
         },
         'model.ceiling': function (newValue, oldValue) {
-            if (this.model.floor === this.model.ceiling && this.model.ceiling != null) {
-                this.model.same_year = true
+            this.updateFieldsFromModel('ceiling')
+        },
+        'model.ceilingYear': function (newValue, oldValue) {
+            if (this.model.floorYear === this.model.ceilingYear && this.model.floorYear != null) {
+                this.model.exactYear = true
             }
 
-            if (!this.model.same_year) {
-                if (this.model.ceiling != null) {
-                    this.schema.fields.floor.max = Math.min(YEAR_MAX, this.model.ceiling)
+            if (!this.model.exactYear) {
+                if (this.model.ceilingYear != null) {
+                    this.schema.fields.floorYear.max = Math.min(YEAR_MAX, this.model.ceilingYear)
                 }
                 else {
-                    this.schema.fields.floor.max = YEAR_MAX
+                    this.schema.fields.floorYear.max = YEAR_MAX
                 }
             }
+
+            this.$refs.dateForm.validate()
+        },
+        'model.ceilingDayMonth': function (newValue, oldValue) {
+            if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
+                this.model.exactDate = true
+            }
+            this.$refs.dateForm.validate()
         },
     },
     // set year min and max values
@@ -140,30 +216,82 @@ export default {
             }
             // If either floor are ceiling are changed, commit both
             if (
-                (JSON.stringify(this.model.floor) !== JSON.stringify(this.originalModel.floor) && !(this.model.floor == null && this.originalModel.floor == null))
-                || (JSON.stringify(this.model.ceiling) !== JSON.stringify(this.originalModel.ceiling) && !(this.model.ceiling == null && this.originalModel.ceiling == null))
+                (JSON.stringify(this.model.floorYear) !== JSON.stringify(this.originalModel.floorYear) && !(this.model.floorYear == null && this.originalModel.floorYear == null))
+                || (JSON.stringify(this.model.ceilingYear) !== JSON.stringify(this.originalModel.ceilingYear) && !(this.model.ceilingYear == null && this.originalModel.ceilingYear == null))
+                || (JSON.stringify(this.model.floorDayMonth) !== JSON.stringify(this.originalModel.floorDayMonth) && !(this.model.floorDayMonth == null && this.originalModel.floorDayMonth == null))
+                || (JSON.stringify(this.model.ceilingDayMonth) !== JSON.stringify(this.originalModel.ceilingDayMonth) && !(this.model.ceilingDayMonth == null && this.originalModel.ceilingDayMonth == null))
             ) {
                 for (let key of ['floor', 'ceiling']) {
                     this.changes.push({
                         'keyGroup': 'date',
                         'key': key,
-                        'label': this.fields[key].label,
-                        'old': this.originalModel[key],
-                        'new': this.model[key],
-                        'value': this.model[key],
+                        'label': {floor: 'Date from', ceiling: 'Date to'}[key],
+                        'old': this.formatDateHuman(this.originalModel[key + 'Year'], this.originalModel[key + 'DayMonth'], key),
+                        'new': this.formatDateHuman(this.model[key + 'Year'], this.model[key + 'DayMonth'], key),
+                        'value': this.formatDateComputer(this.model[key + 'Year'], this.model[key + 'DayMonth'], key),
                     })
                 }
             }
         },
+        formatDateComputer(year, dayMonth, key) {
+            let defaultDayMonth = key === 'floor' ? '01-01' : '12-31'
+            if (dayMonth == null) {
+                return year + '-' + defaultDayMonth
+            }
+            else {
+                return year + '-' + dayMonth.substr(3,2) + '-' + dayMonth.substr(0,2)
+            }
+        },
+        formatDateHuman(year, dayMonth, key) {
+            let defaultDayMonth = key === 'floor' ? '01/01' : '31/12'
+            if (dayMonth == null) {
+                return defaultDayMonth + '/' + year
+            }
+            else {
+                return dayMonth  + '/' + year
+            }
+        },
+        updateFieldsFromModel(key) {
+            if (this.model[key] != null) {
+                // date in format 'YYYY-MM-DDTHH:mm:ss'
+                let dateString = (new Date(this.model[key])).toISOString()
+                this.model[key + 'Year'] = Number(dateString.substr(0, 4))
+                this.model[key + 'DayMonth'] = dateString.substr(8, 2) + '/' + dateString.substr(5, 2)
+            }
+            else {
+                this.model[key + 'Year'] = null
+                this.model[key + 'DayMonth'] = null
+            }
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+        },
         validated(isValid, errors) {
-            // fix NaN
-            for (let field of ['floor', 'ceiling']) {
-                if (isNaN(this.model[field])) {
-                    this.model[field] = null
+            for (let key of ['floor', 'ceiling']) {
+                // fix NaN
+                if (isNaN(this.model[key + 'Year'])) {
+                    this.model[key + 'Year'] = null
                     this.$refs.dateForm.validate()
                     return
                 }
+                // fix empty DayMonth values
+                if (this.model[key + 'DayMonth'] === '') {
+                    this.model[key + 'DayMonth'] = null
+                    this.$refs.dateForm.validate()
+                    return
+                }
+                // check if the complete date actually exists
+                if (isValid && this.model[key + 'DayMonth'] != null) {
+                    let date = new Date(this.model[key + 'Year'] + '-' + this.model[key + 'DayMonth'].substr(3,2) + '-' + this.model[key + 'DayMonth'].substr(0,2))
+                    if (isNaN(date)) {
+                        this.$refs.dateForm.errors.push({
+                            error: 'Invalid date',
+                            field: this.schema.fields[key + 'DayMonth'],
+                        })
+                        this.isValid = false
+                        return
+                    }
+                }
             }
+
             this.isValid = isValid
             this.calcChanges()
             this.$emit('validated', isValid, this.errors, this)

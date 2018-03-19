@@ -60,7 +60,7 @@ class FuzzyDate
             if ($this->ceiling->format('m-d') == '12-31') {
                 return 'before ' . $this->ceiling->format('Y');
             }
-            return 'before ' . $this->ceiling->format('Y-m-d');
+            return 'before ' . $this->ceiling->format('d/m/Y');
         }
 
         // unknown ceiling
@@ -69,7 +69,7 @@ class FuzzyDate
             if ($this->floor->format('m-d') == '01-01') {
                 return 'after ' . $this->floor->format('Y');
             }
-            return 'after ' . $this->floor->format('Y-m-d');
+            return 'after ' . $this->floor->format('d/m/Y');
         }
 
         // exact century or centuries
@@ -106,11 +106,11 @@ class FuzzyDate
 
         // exact date
         if ($this->floor == $this->ceiling) {
-            return $this->floor->format('Y-m-d');
+            return $this->floor->format('d/m/Y');
         }
 
         // default: return all information
-        return $this->floor->format('Y-m-d') . '-' . $this->ceiling->format('Y-m-d');
+        return $this->floor->format('d/m/Y') . '-' . $this->ceiling->format('d/m/Y');
     }
 
     /**

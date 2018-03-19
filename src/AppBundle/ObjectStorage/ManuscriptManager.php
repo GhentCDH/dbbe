@@ -363,9 +363,9 @@ class ManuscriptManager extends ObjectManager
     {
         // TODO: allow deletion
         $dbDate = '('
-            . (empty($date->floor) ? '-infinity' : "$date->floor-01-01")
+            . (empty($date->floor) ? '-infinity' : $date->floor)
             . ', '
-            . (empty($date->ceiling) ? 'infinity' : "$date->ceiling-12-31")
+            . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
             . ')';
         if (empty($manuscript->getDate())) {
             $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);

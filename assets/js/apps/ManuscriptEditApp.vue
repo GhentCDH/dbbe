@@ -302,17 +302,14 @@ export default {
 
             // Date
             this.model.date = {
-                same_year: null,
-                floor: null,
-                ceiling: null,
-            }
-            if (this.manuscript.date != null) {
-                if (this.manuscript.date.floor != null) {
-                    this.model.date.floor = (new Date(this.manuscript.date.floor)).getFullYear()
-                }
-                if (this.manuscript.date.ceiling != null) {
-                    this.model.date.ceiling = (new Date(this.manuscript.date.ceiling)).getFullYear()
-                }
+                floor: this.manuscript.date.floor,
+                ceiling: this.manuscript.date.ceiling,
+                exactDate: null,
+                exactYear: null,
+                floorYear: null,
+                floorDayMonth: null,
+                ceilingYear: null,
+                ceilingDayMonth: null,
             }
 
             // Origin
