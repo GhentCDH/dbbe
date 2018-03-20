@@ -14,8 +14,7 @@
                 ref="resultTable"
                 :url="manuscriptsSearchApiUrl"
                 :columns="tableColumns"
-                :options="tableOptions"
-                @loaded="tableLoaded">
+                :options="tableOptions">
                 <a slot="name" slot-scope="props" :href="showManuscriptUrl.replace('manuscript_id', props.row.id)">
                     {{ props.row.name }}
                 </a>
@@ -433,11 +432,6 @@ export default {
                     console.log(error)
                 })
         },
-        tableLoaded() {
-            if (this.openTableRequests > 0) {
-                this.openTableRequests--
-            }
-        }
     }
 }
 </script>
