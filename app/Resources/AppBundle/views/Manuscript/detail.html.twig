@@ -134,12 +134,10 @@
             </tbody>
         </table>
 
-        {% if not is_granted('ROLE_VIEW_INTERNAL') %}
-            <div id="feedback-app">
-                <feedback-app
-                    feedback-url="{{ path('feedback') }}" />
-            </div>
-        {% endif %}
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}" />
+        </div>
 
     </article>
 {% endblock %}

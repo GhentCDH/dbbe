@@ -102,6 +102,11 @@ services:
         class: AppBundle\Service\DatabaseService\OccurrenceService
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
+    feedback_service:
+        class: AppBundle\Service\DatabaseService\FeedbackService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        public: true
+
     elasticsearch_service:
         class: AppBundle\Service\ElasticSearchService\ElasticSearchService
         arguments: ['%elastic_hosts%', '%elastic_index%']

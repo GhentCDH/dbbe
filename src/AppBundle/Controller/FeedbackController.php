@@ -20,8 +20,14 @@ class FeedbackController extends Controller
      */
     public function postFeedback(Request $request)
     {
+        // sanitize input
         $content = json_decode($request->getContent());
-        if (!property_exists($content, 'email')
+        if (!property_exists($content, 'url')
+            || !is_string($content->url)
+            || empty($content->url)
+            || strlen($content->url) < 1
+            || strlen($content->url) > 3999
+            || !property_exists($content, 'email')
             || !is_string($content->email)
             || empty($content->email)
             || strlen($content->email) < 1
@@ -39,9 +45,43 @@ class FeedbackController extends Controller
             return new JsonResponse(['error' => ['code' => 400, 'message' => 'Invalid request']], 400);
         }
 
-        
+        // Verify captcha
+        $response = RestRequest::post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            null,
+            [
+                'secret' => '6LcTj00UAAAAADTFIIRMWAcROhyEc179x6XVfAd4',
+                'response' => $content->recaptcha,
+            ]
+        );
+        if (!property_exists($response, 'body')
+            || !property_exists($response->body, 'success')
+            || !$response->body->success
+        ) {
+            return new JsonResponse(['error' => ['code' => 400, 'message' => 'Invalid captcha']], 400);
+        }
 
+        // save message in database
+        $this->get('feedback_service')->insertFeedback($content->url, $content->email, $content->message);
 
-        throw new \Exception('Not implemented');
+        // send email
+        $message = (new \Swift_Message('Feedback message from DBBE'))
+            ->setFrom('dbbe@ugent.be')
+            ->setTo('pieterjan.depotter@ugent.be')
+            ->setBody(
+                $this->renderView(
+                    'AppBundle:Feedback:email.txt.twig',
+                    [
+                        'url' => $content->url,
+                        'email' => $content->email,
+                        'message' => $content->message,
+                    ]
+                ),
+                'text/plain'
+            );
+        $this->get('mailer')->send($message);
+
+        // send success response
+        return new JsonResponse(['success']);
     }
 }
