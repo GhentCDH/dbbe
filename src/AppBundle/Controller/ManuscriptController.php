@@ -272,7 +272,7 @@ class ManuscriptController extends Controller
                 'onlineSources' => json_encode($onlineSources),
             ]
         );
-
-        var_dump(json_last_error());
     }
+
+    // TODO: make it possible to create new manuscripts
 }
