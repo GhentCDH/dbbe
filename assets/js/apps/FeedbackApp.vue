@@ -58,7 +58,7 @@ export default {
     props: {
         feedbackUrl: {
             type: String,
-            default: ''
+            default: '',
         },
     },
     data() {

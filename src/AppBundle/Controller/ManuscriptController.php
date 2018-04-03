@@ -12,9 +12,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Helpers\ArrayToJsonTrait;
 
-const M_INDEX = 'documents';
-const M_TYPE = 'manuscript';
-
 class ManuscriptController extends Controller
 {
     use ArrayToJsonTrait;
@@ -72,38 +69,20 @@ class ManuscriptController extends Controller
             }
         }
 
-        $search_result = $this->get('elasticsearch_service')->search(
-            M_INDEX,
-            M_TYPE,
+        $result = $this->get('elasticsearch_service')->search(
+            'documents',
+            'manuscript',
             $es_params
         );
 
-        return new JsonResponse($search_result);
-    }
-
-    /**
-     * @Route("/manuscripts/filtervalues", name="manuscripts_filtervalues")
-     */
-    public function getFilterValues(Request $request)
-    {
-        $filters = [];
-        if (json_decode($request->getContent(), true) !== null) {
-            $filters = self::classifyFilters(json_decode($request->getContent(), true));
-        }
-
-        $result = $this->get('elasticsearch_service')->aggregate(
-            M_INDEX,
-            M_TYPE,
+        $aggregation_result = $this->get('elasticsearch_service')->aggregate(
+            'documents',
+            'manuscript',
             self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin']),
-            $filters
+            !empty($es_params['filters']) ? $es_params['filters'] : []
         );
-        // Make it possible to filter on all manuscripts without collection
-        if (array_key_exists('collection', $result)) {
-            $result['collection'][] = [
-                'id' => -1,
-                'name' => 'No collection',
-            ];
-        }
+
+        $result['aggregation'] = $aggregation_result;
 
         return new JsonResponse($result);
     }
@@ -190,7 +169,6 @@ class ManuscriptController extends Controller
                 return new JsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
             }
             return new JsonResponse(self::arrayToShortJson($manuscripts));
-
         }
         return  new \Exception('Not implemented.');
     }

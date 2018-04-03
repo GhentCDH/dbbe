@@ -214,51 +214,51 @@ export default {
     props: {
         initLocations: {
             type: String,
-            default: ''
+            default: '',
         },
         getLocationsUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         getManuscriptUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         getManuscriptsByLocationUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         getRegionsUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         putRegionUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         postLibrariesUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         deleteLibraryUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         putLibraryUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         postCollectionsUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         putCollectionUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         deleteCollectionUrl: {
             type: String,
-            default: ''
+            default: '',
         },
     },
     data() {

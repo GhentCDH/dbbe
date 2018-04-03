@@ -187,55 +187,55 @@ export default {
     props: {
         getManuscriptUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         putManuscriptUrl: {
             type: String,
-            default: ''
+            default: '',
         },
         initManuscript: {
             type: String,
-            default: ''
+            default: '',
         },
         initLocations: {
             type: String,
-            default: ''
+            default: '',
         },
         initContents: {
             type: String,
-            default: ''
+            default: '',
         },
         initPatrons: {
             type: String,
-            default: ''
+            default: '',
         },
         initScribes: {
             type: String,
-            default: ''
+            default: '',
         },
         initRelatedPersons: {
             type: String,
-            default: ''
+            default: '',
         },
         initOrigins: {
             type: String,
-            default: ''
+            default: '',
         },
         initBooks: {
             type: String,
-            default: ''
+            default: '',
         },
         initArticles: {
             type: String,
-            default: ''
+            default: '',
         },
         initBookChapters: {
             type: String,
-            default: ''
+            default: '',
         },
         initOnlineSources: {
             type: String,
-            default: ''
+            default: '',
         },
     },
     data() {

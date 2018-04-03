@@ -2,10 +2,21 @@
     <div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <div class="form-group" v-if="Object.keys(model).length !== 0">
-                    <button class="btn btn-block" @click="resetAllFilters">Reset all filters</button>
+                <div
+                    v-if="Object.keys(model).length !== 0"
+                    class="form-group">
+                    <button
+                        class="btn btn-block"
+                        @click="resetAllFilters">
+                        Reset all filters
+                    </button>
                 </div>
-                <vue-form-generator :schema="schema" :model="model" :options="formOptions" @model-updated="modelUpdated" @validated="onValidated"></vue-form-generator>
+                <vue-form-generator
+                    :schema="schema"
+                    :model="model"
+                    :options="formOptions"
+                    @model-updated="modelUpdated"
+                    @validated="onValidated" />
             </div>
         </aside>
         <article class="col-sm-9">
@@ -14,11 +25,18 @@
                 ref="resultTable"
                 :url="manuscriptsSearchApiUrl"
                 :columns="tableColumns"
-                :options="tableOptions">
-                <a slot="name" slot-scope="props" :href="showManuscriptUrl.replace('manuscript_id', props.row.id)">
+                :options="tableOptions"
+                @data="onData">
+                <a
+                    slot="name"
+                    slot-scope="props"
+                    :href="showManuscriptUrl.replace('manuscript_id', props.row.id)">
                     {{ props.row.name }}
                 </a>
-                <template slot="date" slot-scope="props" v-if="props.row.date_floor_year && props.row.date_ceiling_year">
+                <template
+                    v-if="props.row.date_floor_year && props.row.date_ceiling_year"
+                    slot="date"
+                    slot-scope="props">
                     <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
                         {{ props.row.date_floor_year }}
                     </template>
@@ -26,39 +44,75 @@
                         {{ props.row.date_floor_year }} - {{ props.row.date_ceiling_year }}
                     </template>
                 </template>
-                <template slot="content" slot-scope="props" v-if="props.row.content">
-                    <template v-for="displayContent in [props.row.content.filter((content) => content['display'])]">
-                        <ul v-if="displayContent.length > 1">
-                            <li v-for="content in displayContent">{{ content.name }}</li>
+                <template
+                    v-if="props.row.content"
+                    slot="content"
+                    slot-scope="props">
+                    <template v-for="(displayContent, index) in [props.row.content.filter((content) => content['display'])]">
+                        <ul
+                            v-if="displayContent.length > 1"
+                            :key="index">
+                            <li
+                                v-for="(content, contentIndex) in displayContent"
+                                :key="contentIndex">
+                                {{ content.name }}
+                            </li>
                         </ul>
                         <template v-else>
                             {{ displayContent[0].name }}
                         </template>
                     </template>
                 </template>
-                <template slot="actions" slot-scope="props">
-                    <a :href="editManuscriptUrl.replace('manuscript_id', props.row.id)" class="action" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
-                    <a href="#" class="action" title="Delete" @click.prevent="del(props.row)"><i class="fa fa-trash-o"></i></a>
+                <template
+                    slot="actions"
+                    slot-scope="props">
+                    <a
+                        :href="editManuscriptUrl.replace('manuscript_id', props.row.id)"
+                        class="action"
+                        title="Edit">
+                        <i class="fa fa-pencil-square-o" />
+                    </a>
+                    <a
+                        href="#"
+                        class="action"
+                        title="Delete"
+                        @click.prevent="del(props.row)">
+                        <i class="fa fa-trash-o" />
+                    </a>
                 </template>
             </v-server-table>
-            <div class="loading-overlay" v-if="this.openTableRequests">
-                <div class="spinner">
-                </div>
-            </div>
         </article>
-        <modal v-model="delModal" auto-focus>
-            <alert v-for="(item, index) in alerts" :key="item.key" :type="item.type" dismissible @dismissed="alerts.splice(index, 1)">
+        <modal
+            v-model="delModal"
+            auto-focus>
+            <alert
+                v-for="(item, index) in alerts"
+                :key="item.key"
+                :type="item.type"
+                dismissible
+                @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
             </alert>
-            Are you sure you want to delete manuscript "{{ this.delManuscript.name }}"?
+            Are you sure you want to delete manuscript "{{ delManuscript.name }}"?
             <div slot="header">
-                <h4 class="modal-title">Delete manuscript "{{ this.delManuscript.name }}"</h4>
+                <h4 class="modal-title">Delete manuscript "{{ delManuscript.name }}"</h4>
             </div>
             <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
-                <btn type="danger" @click="submitDelete()">Delete</btn>
+                <btn @click="delModal=false">
+                    Cancel
+                </btn>
+                <btn
+                    type="danger"
+                    @click="submitDelete()">
+                    Delete
+                </btn>
             </div>
         </modal>
+        <div
+            v-if="openRequests"
+            class="loading-overlay">
+            <div class="spinner" />
+        </div>
     </div>
 </template>
 <script>
@@ -83,14 +137,28 @@ var YEAR_MIN = 1
 var YEAR_MAX = (new Date()).getFullYear()
 
 export default {
-    props: [
-        'isEditor',
-        'manuscriptsSearchApiUrl',
-        'manuscriptsFiltervaluesUrl',
-        'showManuscriptUrl',
-        'editManuscriptUrl',
-        'delManuscriptUrl'
-    ],
+    props: {
+        isEditor: {
+            type: Boolean,
+            default: false,
+        },
+        manuscriptsSearchApiUrl: {
+            type: String,
+            default: '',
+        },
+        showManuscriptUrl: {
+            type: String,
+            default: '',
+        },
+        editManuscriptUrl: {
+            type: String,
+            default: '',
+        },
+        delManuscriptUrl: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         return {
             model: {},
@@ -145,20 +213,20 @@ export default {
                 'sortable': ['name', 'date'],
                 customFilters: ['filters'],
                 requestFunction: function (data) {
-                    if (this.$parent.openTableRequests > 0) {
+                    if (this.$parent.openRequests > 0) {
                         this.$parent.tableCancel('Operation canceled by newer request')
                     }
-                    this.$parent.openTableRequests++
+                    this.$parent.openRequests++
                     return axios.get(this.url, {
                         params: data,
                         cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
                     })
                         .then( (response) => {
-                            this.$parent.openTableRequests--
+                            this.$emit('data', response.data)
                             return response
                         })
                         .catch(function (error) {
-                            this.$parent.openTableRequests--
+                            this.$parent.openRequests--
                             if (axios.isCancel(error)) {
                                 // Return the current data if the request is cancelled
                                 return {
@@ -173,9 +241,8 @@ export default {
                 }
             },
             oldOrder: {},
-            openFilterRequests: 0,
+            openRequests: 0,
             filterCancel: null,
-            openTableRequests: 0,
             tableCancel: null,
             // used to set timeout on free input fields
             lastChangedField: '',
@@ -215,11 +282,6 @@ export default {
                 this.disableField(this.schema.fields.collection)
             }
         },
-    },
-    mounted () {
-        this.$nextTick( () => {
-            this.setFilters()
-        })
     },
     methods: {
         createMultiSelect(label, extra, extraSelectOptions) {
@@ -278,29 +340,29 @@ export default {
             }
             return result
         },
-        setFilters(filterValues) {
-            if (this.openFilterRequests > 0) {
-                this.filterCancel('Operation canceled by newer request')
-            }
-            this.openFilterRequests++
-            axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
-                cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
-            })
-                .then( (response) => {
-                    this.openFilterRequests--
-                    for (let fieldName of Object.keys(this.schema.fields)) {
-                        if (this.schema.fields[fieldName].type == 'multiselectClear') {
-                            this.enableField(this.schema.fields[fieldName], response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
-                        }
-                    }
-                })
-                .catch( (error) => {
-                    this.openFilterRequests--
-                    if (!axios.isCancel(error)) {
-                        console.log(error)
-                    }
-                })
-        },
+        // setFilters(filterValues) {
+        //     if (this.openFilterRequests > 0) {
+        //         this.filterCancel('Operation canceled by newer request')
+        //     }
+        //     this.openFilterRequests++
+        //     axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
+        //         cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
+        //     })
+        //         .then( (response) => {
+        //             this.openFilterRequests--
+        //             for (let fieldName of Object.keys(this.schema.fields)) {
+        //                 if (this.schema.fields[fieldName].type == 'multiselectClear') {
+        //                     this.enableField(this.schema.fields[fieldName], response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
+        //                 }
+        //             }
+        //         })
+        //         .catch( (error) => {
+        //             this.openFilterRequests--
+        //             if (!axios.isCancel(error)) {
+        //                 console.log(error)
+        //             }
+        //         })
+        // },
         modelUpdated(value, fieldName) {
             this.lastChangedField = fieldName
         },
@@ -359,7 +421,7 @@ export default {
                 // filters are always in the same order, so we can compare serialization
                 if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
                     this.oldFilterValues = filterValues
-                    this.setFilters(filterValues)
+                    // this.setFilters(filterValues)
                     VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
                 }
             }, timeoutValue)
@@ -419,19 +481,36 @@ export default {
             this.delModal = true
         },
         submitDelete() {
-            this.openTableRequests++
+            this.openRequests++
             this.delModal = false
             axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
                 .then( (response) => {
                     this.$refs.table.refresh()
+                    this.openRequests--
                 })
                 .catch( (error) => {
                     this.delModal = true
-                    this.openTableRequests--
+                    this.openRequests--
                     this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the manuscript.'})
                     console.log(error)
                 })
         },
+        onData(data) {
+            for (let fieldName of Object.keys(this.schema.fields)) {
+                if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                    let values = data.aggregation[fieldName] == null ? [] : data.aggregation[fieldName].sort(this.sortByName)
+                    // Make it possible to filter on all manuscripts without collection
+                    if (fieldName == 'collection' && values.length > 0) {
+                        values.push({
+                            id: -1,
+                            name: 'No collection',
+                        })
+                    }
+                    this.enableField(this.schema.fields[fieldName], values)
+                }
+            }
+            this.openRequests--
+        }
     }
 }
 </script>
