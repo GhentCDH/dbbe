@@ -2,7 +2,11 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Exception;
+
 use Psr\Cache\CacheItemPoolInterface;
+use AppBundle\Model\IdJsonInterface;
+
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
@@ -81,5 +85,27 @@ class ObjectManager
             }
             $this->cache->save($cache->set($item));
         }
+    }
+
+    /**
+     * Update entity modified date and create a revision
+     * @param IdJsonInterface|null $old Old values, null in case of an inserted object
+     * @param IdJsonInterface|null $new New values, null in case of a deleted object
+     */
+    protected function updateModified(IdJsonInterface $old = null, IdJsonInterface $new = null): void
+    {
+        if ($old == null && $new == null) {
+            throw new Exception('The old and new value cannot both be null.');
+        }
+        if ($old == null && $new != null) {
+            $this->dbs->updateModified($new->getId());
+        }
+        $this->dbs->createRevision(
+            $old == null ? get_class($new) : get_class($old),
+            $old == null ? $new->getId() : $old->getId(),
+            $this->ts->getToken()->getUser()->getId(),
+            $old == null ? null : json_encode($old->getJson()),
+            $new == null ? null : json_encode($new->getJson())
+        );
     }
 }

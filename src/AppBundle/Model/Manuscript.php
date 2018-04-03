@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 use AppBundle\Helpers\ArrayToJsonTrait;
 
-class Manuscript extends Document
+class Manuscript extends Document implements IdJsonInterface
 {
     use CacheDependenciesTrait;
     use ArrayToJsonTrait;
@@ -273,6 +273,14 @@ class Manuscript extends Document
     public function getIllustrated(): ?bool
     {
         return $this->illustrated;
+    }
+
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getName(),
+        ];
     }
 
     public function getJson(): array

@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Helpers\ArrayToJsonTrait;
 
@@ -151,27 +152,12 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/cities", name="manuscript_cities")
-     */
-    public function getManuscriptCities()
-    {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        return new JsonResponse($this->get('manuscript_service')->getAllCities());
-    }
-
-    /**
      * @Route("/manuscripts/{id}", name="manuscript_show")
      * @Method("GET")
+     * @param  int    $id manuscript id
+     * @param Request $request
      */
     public function getManuscript(int $id, Request $request)
-    {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return $this->getManuscriptJSON($id);
-        }
-        return $this->getManuscriptHTML($id);
-    }
-
-    public function getManuscriptHTML(int $id)
     {
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
 
@@ -179,21 +165,34 @@ class ManuscriptController extends Controller
             throw $this->createNotFoundException('There is no manuscript with the requested id.');
         }
 
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return new JsonResponse($manuscript->getJson());
+        }
         return $this->render(
             'AppBundle:Manuscript:detail.html.twig',
             ['manuscript' => $manuscript]
         );
     }
 
-    public function getManuscriptJSON(int $id)
+    /**
+     * @Route("/manuscripts/location", name="manuscripts_by_location")
+     * @Method("POST")
+     * @param Request $request
+     */
+    public function getManuscriptsByLocation(Request $request)
     {
-        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $manuscripts = $this
+                    ->get('manuscript_manager')
+                    ->getManuscriptsByLocation(json_decode($request->getContent()));
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
+            }
+            return new JsonResponse(self::arrayToShortJson($manuscripts));
 
-        if (empty($manuscript)) {
-            throw $this->createNotFoundException('There is no manuscript with the requested id.');
         }
-
-        return new JsonResponse($manuscript->getJson());
+        return  new \Exception('Not implemented.');
     }
 
     /**

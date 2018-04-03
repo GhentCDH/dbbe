@@ -10,7 +10,6 @@
                     <i class="fa fa-eye" />
                 </a>
             </h2>
-            <!--TODO: manage locations outside of manuscripts link-->
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -180,7 +179,7 @@ let panelComponents = require.context('../Components/Edit/Panels', false, /[.]vu
 let components = {}
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    components[compName.toLowerCase() + 'Panel'] = panelComponents(key).default
+    components[compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel'] = panelComponents(key).default
 }
 
 export default {

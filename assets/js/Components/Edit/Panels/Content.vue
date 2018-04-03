@@ -15,13 +15,14 @@ import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
 import Abstract from '../Abstract'
+import Fields from '../../Fields'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [ Abstract ],
+    mixins: [ Abstract, Fields ],
     data() {
         return {
             schema: {

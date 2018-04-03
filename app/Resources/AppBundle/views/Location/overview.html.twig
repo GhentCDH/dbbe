@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="locations-edit-app">
+        <locations-edit-app
+            init-locations="{{ locations }}"
+            get-locations-url="{{ path('locations_get') }}"
+            get-manuscripts-by-location-url="{{ path('manuscripts_by_location') }}"
+            get-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
+            get-regions-url="{{ path('regions_get') }}"
+            put-region-url="{{ path('region_put', {'id': 'region_id'}) }}"
+            post-libraries-url="{{ path('libraries_post') }}"
+            put-library-url="{{ path('library_put', {'id': 'library_id'}) }}"
+            delete-library-url="{{ path('library_delete', {'id': 'library_id'}) }}"
+            post-collections-url="{{ path('collections_post') }}"
+            put-collection-url="{{ path('collection_put', {'id': 'collection_id'}) }}"
+            delete-collection-url="{{ path('collection_delete', {'id': 'collection_id'}) }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/locationsedit.js") }}"></script>
+{% endblock %}

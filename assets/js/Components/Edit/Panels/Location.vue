@@ -15,13 +15,14 @@ import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
 import Abstract from '../Abstract'
+import Fields from '../../Fields'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [ Abstract ],
+    mixins: [ Abstract, Fields ],
     data() {
         return {
             schema: {
@@ -72,24 +73,6 @@ export default {
         initFields() {
             this.loadLocationField(this.schema.fields.city)
             this.enableField(this.schema.fields.city)
-            this.loadLocationField(this.schema.fields.library)
-        },
-        loadLocationField(field) {
-            let locations = Object.values(this.values)
-            // filter dependency
-            if (field.hasOwnProperty('dependency') && this.model[field.dependency] != null) {
-                locations = locations.filter((location) => location[field.dependency + '_id'] === this.model[field.dependency]['id'])
-            }
-            // filter null values
-            locations = locations.filter((location) => location[field.model + '_id'] != null)
-
-            let values = locations
-                // get the requested field information
-                .map((location) => {return {'id': location[field.model + '_id'], 'name': location[field.model + '_name']}})
-                // remove duplicates
-                .filter((location, index, self) => index === self.findIndex((l) => l.id === location.id))
-
-            field.values = values
         },
         validated(isValid, errors) {
             this.isValid = isValid

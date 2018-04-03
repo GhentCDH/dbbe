@@ -54,7 +54,7 @@ class LocationManager extends ObjectManager
         $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
 
         $cache->tag('regions');
-        $cache->tag('institutions');
+        $cache->tag('libraries');
         $cache->tag('collections');
         $this->cache->save($cache->set($citiesLibrariesCollections));
         return $citiesLibrariesCollections;
@@ -84,7 +84,7 @@ class LocationManager extends ObjectManager
         }
 
         $cache->tag('regions');
-        $cache->tag('institutions');
+        $cache->tag('libraries');
         $this->cache->save($cache->set($origins));
         return $origins;
     }

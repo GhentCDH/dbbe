@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-class IdNameObject
+class IdNameObject implements IdJsonInterface
 {
     protected $id;
     protected $name;

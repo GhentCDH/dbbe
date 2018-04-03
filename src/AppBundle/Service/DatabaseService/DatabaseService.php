@@ -61,15 +61,16 @@ class DatabaseService implements DatabaseServiceInterface
     }
 
     public function createRevision(
-        int $entityId,
+        string $type,
+        int $id,
         int $userId,
-        string $oldValue,
-        string $newValue
+        string $oldValue = null,
+        string $newValue = null
     ): int {
         return $this->conn->executeUpdate(
-            'INSERT INTO logic.revision (identity, created, iduser, old_value, new_value)
-            values (?, DEFAULT, ?, ?, ?)',
-            [$entityId, $userId, $oldValue, $newValue]
+            'INSERT INTO logic.revision (type, identity, created, iduser, old_value, new_value)
+            values (?, ?, DEFAULT, ?, ?, ?)',
+            [$type, $id, $userId, $oldValue, $newValue]
         );
     }
 }

@@ -50,4 +50,28 @@ class RegionService extends DatabaseService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getRegionsByIds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                region.identity as region_id,
+                region.name,
+                region.historical_name
+            from data.region
+            where region.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function updateName(int $regionId, string $name): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.region
+            set name = ?
+            where region.identity = ?',
+            [$name, $regionId]
+        );
+    }
 }

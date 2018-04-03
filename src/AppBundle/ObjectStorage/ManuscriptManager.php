@@ -3,7 +3,8 @@
 namespace AppBundle\ObjectStorage;
 
 use stdClass;
-use Exception;
+
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
@@ -232,6 +233,29 @@ class ManuscriptManager extends ObjectManager
         $this->setCache([$manuscript->getId() => $manuscript], 'manuscript');
 
         return $manuscript;
+    }
+
+    public function getManuscriptsByLocation(stdClass $data): array
+    {
+        if (property_exists($data, 'type')
+            && $data->type == 'collection'
+            && property_exists($data, 'collection')
+            && property_exists($data->collection, 'id')
+            && is_numeric($data->collection->id)
+        ) {
+            $rawIds = $this->dbs->getIdsByCollectionId($data->collection->id);
+            return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        } elseif (property_exists($data, 'type')
+            && $data->type == 'library'
+            && property_exists($data, 'library')
+            && property_exists($data->library, 'id')
+            && is_numeric($data->library->id)
+        ) {
+            $rawIds = $this->dbs->getIdsByLibraryId($data->library->id);
+            return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        } else {
+            throw new BadRequestHttpException('Incorrect data.');
+        }
     }
 
     public function updateManuscript(int $id, stdClass $data): ?Manuscript
@@ -532,17 +556,6 @@ class ManuscriptManager extends ObjectManager
         } else {
             $this->dbs->updatePrivateComment($manuscript->getId(), $privateComment);
         }
-    }
-
-    private function updateModified(Manuscript $old, Manuscript $new): void
-    {
-        $this->dbs->updateModified($new->getId());
-        $this->dbs->createRevision(
-            $new->getId(),
-            $this->ts->getToken()->getUser()->getId(),
-            json_encode($old->getJson()),
-            json_encode($new->getJson())
-        );
     }
 
     private static function calcDiff(array $newJsonArray, array $oldObjectArray): array

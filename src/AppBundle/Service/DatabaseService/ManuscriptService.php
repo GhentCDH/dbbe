@@ -17,6 +17,32 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getIdsByCollectionId(int $id): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.located_at on manuscript.identity = located_at.iddocument
+            inner join data.location on located_at.idlocation = location.idlocation
+            where location.idfund = ?',
+            [$id]
+        )->fetchAll();
+    }
+
+    public function getIdsByLibraryId(int $id): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.located_at on manuscript.identity = located_at.iddocument
+            inner join data.location on located_at.idlocation = location.idlocation
+            where location.idinstitution = ?',
+            [$id]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(

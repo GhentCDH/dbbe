@@ -63,11 +63,22 @@ services:
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
-        arguments: ['@region_service', '@cache.app', {}, null, null]
+        arguments: ['@region_service', '@cache.app', {}, null, '@security.token_storage']
+        public: true
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
         arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null, null]
+        public: true
+
+    library_manager:
+        class: AppBundle\ObjectStorage\LibraryManager
+        arguments: ['@library_service', '@cache.app', {}, null, '@security.token_storage']
+        public: true
+
+    collection_manager:
+        class: AppBundle\ObjectStorage\CollectionManager
+        arguments: ['@collection_service', '@cache.app', {}, null, '@security.token_storage']
         public: true
 
     occurrence_manager:
@@ -100,6 +111,14 @@ services:
 
     occurrence_service:
         class: AppBundle\Service\DatabaseService\OccurrenceService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    library_service:
+        class: AppBundle\Service\DatabaseService\LibraryService
+        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+
+    collection_service:
+        class: AppBundle\Service\DatabaseService\CollectionService
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
     feedback_service:
