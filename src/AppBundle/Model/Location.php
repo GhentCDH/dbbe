@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use stdClass;
+
 class Location
 {
     use CacheDependenciesTrait;
@@ -111,8 +113,8 @@ class Location
 
     public static function sortByName(Location $a, Location $b): int
     {
-        if ($a->getCity()->getName() === $b->getCity()->getName()) {
-            if ($a->getLibrary()->getName() === $b->getLibrary()->getName()) {
+        if ($a->getCity()->getName() == $b->getCity()->getName()) {
+            if ($a->getLibrary()->getName() == $b->getLibrary()->getName()) {
                 if (!empty($a->getCollection()) && !empty($b->getCollection())) {
                     return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
                 }
@@ -127,5 +129,25 @@ class Location
             return strcmp($a->getLibrary()->getName(), $b->getLibrary()->getName());
         }
         return strcmp($a->getCity()->getName(), $b->getCity()->getName());
+    }
+
+    public static function sortRaw(array $a, array $b): int
+    {
+        if ($a['city_name'] == $b['city_name']) {
+            if ($a['library_name'] == $b['library_name']) {
+                if (!empty($a['collection_name']) && !empty($b['collection_name'])) {
+                    return strcmp($a['collection_name'], $b['collection_name']);
+                }
+                if (!empty($a['collection_name'])) {
+                    return -1;
+                }
+                if (!empty($b['collection_name'])) {
+                    return 1;
+                }
+                return 0;
+            }
+            return strcmp($a['library_name'], $b['library_name']);
+        }
+        return strcmp($a['city_name'], $b['city_name']);
     }
 }

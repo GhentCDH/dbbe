@@ -52,6 +52,18 @@ class LocationManager extends ObjectManager
         }
 
         $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
+        $regionIds = self::getUniqueIds($citiesLibrariesCollections, 'city_id');
+        $regionsWithParents = $this->oms['region_manager']->getRegionsWithParentsByIds($regionIds);
+
+        foreach ($citiesLibrariesCollections as $key => $value) {
+            $citiesLibrariesCollections[$key]['city_name'] = $regionsWithParents[$value['city_id']]->getName();
+            // Remove cities with no name
+            if ($citiesLibrariesCollections[$key]['city_name'] == '') {
+                unset($citiesLibrariesCollections[$key]);
+            }
+        }
+
+        usort($citiesLibrariesCollections, ['AppBundle\Model\Location', 'sortRaw']);
 
         $cache->tag('regions');
         $cache->tag('libraries');

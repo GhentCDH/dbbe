@@ -29,8 +29,8 @@ class RegionService extends DatabaseService
                     r.name,
                     r.historical_name,
                     rec.ids || \':\' || r.identity::text AS ids,
-                    rec.names || \':\' || r.name AS names,
-                    rec.historical_names || \':\' || r.historical_name AS historical_names,
+                    rec.names || \':\' || COALESCE(r.name, \'\') AS names,
+                    rec.historical_names || \':\' || COALESCE(r.historical_name, \'\') AS historical_names,
                     rec.depth + 1
 
                 FROM rec

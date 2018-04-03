@@ -65,7 +65,6 @@ class LocationService extends DatabaseService
             '(
                 SELECT
                     region.identity AS city_id,
-                    region.name AS city_name,
                     institution.identity AS library_id,
                     institution.name AS library_name,
                     fund.idfund AS collection_id,
@@ -79,7 +78,6 @@ class LocationService extends DatabaseService
 
                 SELECT
                     region.identity AS city_id,
-                    region.name AS city_name,
                     institution.identity AS library_id,
                     institution.name AS library_name,
                     NULL AS collection_id,
@@ -88,8 +86,7 @@ class LocationService extends DatabaseService
                 INNER JOIN data.institution ON location.idinstitution = institution.identity
                 INNER JOIN data.region ON institution.idregion = region.identity
                 WHERE location.idfund is NULL
-            )
-            ORDER BY city_name, library_name, collection_name'
+            )'
         )->fetchAll();
     }
 
