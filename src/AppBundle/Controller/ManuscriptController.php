@@ -113,12 +113,17 @@ class ManuscriptController extends Controller
                         $result['text'][$key] = $value;
                         break;
                     case 'date':
-                        $result['date_range'][] = [
+                        $date_result = [
                             'floorField' => 'date_floor_year',
                             'ceilingField' => 'date_ceiling_year',
-                            'startDate' => $value[0],
-                            'endDate' => $value[1],
                         ];
+                        if (array_key_exists('from', $value)) {
+                            $date_result['startDate'] = $value['from'];
+                        }
+                        if (array_key_exists('to', $value)) {
+                            $date_result['endDate'] = $value['to'];
+                        }
+                        $result['date_range'][] = $date_result;
                         break;
                     case 'content':
                     case 'patron':

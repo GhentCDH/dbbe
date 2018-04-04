@@ -318,23 +318,23 @@ export default {
             return result
         },
         constructFilterValues() {
-            let result = {
-                // default values for date
-                'date': [
-                    1,
-                    2000
-                ]
-            }
+            let result = {}
             if (this.model != null) {
                 for (let fieldName of Object.keys(this.model)) {
                     if (this.schema.fields[fieldName].type === 'multiselectClear') {
                         result[fieldName] = this.model[fieldName]['id']
                     }
                     else if (fieldName === 'year_from') {
-                        result['date'][0] = this.model[fieldName]
+                        if (!('date' in result)) {
+                            result['date'] = {}
+                        }
+                        result['date']['from'] = this.model[fieldName]
                     }
                     else if (fieldName === 'year_to') {
-                        result['date'][1] = this.model[fieldName]
+                        if (!('date' in result)) {
+                            result['date'] = {}
+                        }
+                        result['date']['to'] = this.model[fieldName]
                     }
                     else {
                         result[fieldName] = this.model[fieldName]

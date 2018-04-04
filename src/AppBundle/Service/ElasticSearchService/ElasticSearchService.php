@@ -219,10 +219,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
                         if ($value == -1) {
-                            $filterQuery->addMustNot(new Query\Exists($key));
+                            $filterQuery->addMustNot(
+                                new Query\Exists($key)
+                            );
                         } else {
                             $filterQuery->addMust(
-                                (new Query\Match($key . '.id', $value))
+                                new Query\Match($key . '.id', $value)
                             );
                         }
                     }
@@ -231,26 +233,34 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($filterValues as $value) {
                         // floor or ceiling must be within range, or range must be between floor and ceiling
                         // the value in this case will be a two-dimentsional array with
-                        // * in the first row the floor and ceiling field names
-                        // * in the second row the range min and max values
-                        $filterQuery->addMust(
-                            (new Query\BoolQuery())
-                                // floor
-                                ->addShould(
-                                    (new Query\Range())
-                                        ->addField(
-                                            $value['floorField'],
-                                            ['gte' => $value['startDate'], 'lte' => $value['endDate']]
-                                        )
-                                )
-                                // ceiling
-                                ->addShould(
-                                    (new Query\Range())
-                                        ->addField(
-                                            $value['ceilingField'],
-                                            ['gte' => $value['startDate'], 'lte' => $value['endDate']]
-                                        )
-                                )
+                        // * in the first row the floor and/or ceiling field names
+                        // * in the second row the range min and/or max values
+                        $args = [];
+                        if (isset($value['startDate'])) {
+                            $args['gte'] = $value['startDate'];
+                        }
+                        if (isset($value['endDate'])) {
+                            $args['lte'] = $value['endDate'];
+                        }
+                        $subQuery = (new Query\BoolQuery())
+                            // floor
+                            ->addShould(
+                                (new Query\Range())
+                                    ->addField(
+                                        $value['floorField'],
+                                        $args
+                                    )
+                            )
+                            // ceiling
+                            ->addShould(
+                                (new Query\Range())
+                                    ->addField(
+                                        $value['ceilingField'],
+                                        $args
+                                    )
+                            );
+                        if (isset($value['startDate']) && isset($value['endDate'])) {
+                            $subQuery
                                 // between floor and ceiling
                                 ->addShould(
                                     (new Query\BoolQuery())
@@ -262,7 +272,10 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                             (new Query\Range())
                                                 ->addField($value['ceilingField'], ['gte' => $value['endDate']])
                                         )
-                                )
+                                );
+                        }
+                        $filterQuery->addMust(
+                            $subQuery
                         );
                     }
                     break;
