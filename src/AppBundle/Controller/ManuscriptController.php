@@ -62,11 +62,17 @@ class ManuscriptController extends Controller
         }
 
         // Filtering
+        $filters = [];
         if (isset($params['filters'])) {
             $filters = json_decode($params['filters'], true);
-            if (isset($filters) && is_array($filters)) {
-                $es_params['filters'] = self::classifyFilters($filters);
-            }
+        }
+
+        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            $filters['public'] = true;
+        }
+
+        if (isset($filters) && is_array($filters)) {
+            $es_params['filters'] = self::classifyFilters($filters);
         }
 
         $result = $this->get('elasticsearch_service')->search(
@@ -124,6 +130,8 @@ class ManuscriptController extends Controller
                             $result['nested'][$key] = $value;
                         }
                         break;
+                    case 'public':
+                        $result['boolean'][$key] = $value;
                 }
             }
         }

@@ -238,7 +238,10 @@ export default {
                             }
                             this.dispatch('error', error)
                         }.bind(this))
-                }
+                },
+                rowClassCallback: function(row) {
+                    return row.public ? '' : 'warning'
+                },
             },
             oldOrder: {},
             openRequests: 0,

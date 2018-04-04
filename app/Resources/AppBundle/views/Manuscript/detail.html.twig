@@ -2,8 +2,11 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2>
+        <h2 {% if not manuscript.getPublic() %}class="text-danger"{% endif %}>
             Manuscript "{{ manuscript.getName() }}"
+            {% if not manuscript.getPublic() %}
+                - Not Public
+            {% endif %}
             {% if is_granted('ROLE_EDITOR') %}
                 <a href="{{ path('manuscript_edit', {'id': manuscript.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
@@ -127,6 +130,12 @@
                         <tr class="warning">
                             <td>Illustrated</td>
                             <td>{{ manuscript.getIllustrated() ? 'Yes': 'No' }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if manuscript.getPublic() is defined %}
+                        <tr class="danger">
+                            <td>Publication state</td>
+                            <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
                         </tr>
                     {% endif %}
                 {% endif %}

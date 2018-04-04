@@ -56,7 +56,14 @@ export default {
                         label: 'Illustrated',
                         labelClasses: 'control-label',
                         model: 'illustrated',
-                    }
+                    },
+                    public: {
+                        type: 'checkbox',
+                        styleClasses: 'has-error',
+                        label: 'Public',
+                        labelClasses: 'control-label',
+                        model: 'public',
+                    },
                 }
             },
         }

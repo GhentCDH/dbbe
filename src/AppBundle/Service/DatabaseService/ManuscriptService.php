@@ -266,6 +266,19 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getPublics(array $ids = null): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                entity.identity as manuscript_id,
+                entity.public
+            from data.entity
+            where entity.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function delContents(int $manuscriptId, array $contentIds): int
     {
         return $this->conn->executeUpdate(
@@ -439,7 +452,10 @@ class ManuscriptService extends DatabaseService
             -- primary key constraint on idauthority, idsubject
             on conflict (idauthority, idsubject) do update
             set identifier = excluded.identifier',
-            [$manuscriptId, $diktyon]
+            [
+                $manuscriptId,
+                $diktyon,
+            ]
         );
     }
 
@@ -452,7 +468,9 @@ class ManuscriptService extends DatabaseService
             where global_id.idauthority = institution.identity
             and institution.name = \'Diktyon\'
             and global_id.idsubject = ?',
-            [$manuscriptId]
+            [
+                $manuscriptId,
+            ]
         );
     }
 
@@ -462,7 +480,10 @@ class ManuscriptService extends DatabaseService
             'UPDATE data.entity
             set public_comment = ?
             where entity.identity = ?',
-            [$publicComment, $manuscriptId]
+            [
+                $publicComment,
+                $manuscriptId,
+            ]
         );
     }
 
@@ -472,7 +493,10 @@ class ManuscriptService extends DatabaseService
             'UPDATE data.entity
             set private_comment = ?
             where entity.identity = ?',
-            [$privateComment, $manuscriptId]
+            [
+                $privateComment,
+                $manuscriptId,
+            ]
         );
     }
 
@@ -482,7 +506,23 @@ class ManuscriptService extends DatabaseService
             'UPDATE data.document
             set is_illustrated = ?
             where document.identity = ?',
-            [$illustrated ? 'TRUE': 'FALSE', $manuscriptId]
+            [
+                $illustrated ? 'TRUE': 'FALSE',
+                $manuscriptId,
+            ]
+        );
+    }
+
+    public function updatePublic(int $manuscriptId, bool $public): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set public = ?
+            where entity.identity = ?',
+            [
+                $public ? 'TRUE': 'FALSE',
+                $manuscriptId,
+            ]
         );
     }
 }

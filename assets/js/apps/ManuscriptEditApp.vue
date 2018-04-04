@@ -353,6 +353,7 @@ export default {
                 publicComment: this.manuscript.publicComment,
                 privateComment: this.manuscript.privateComment,
                 illustrated: this.manuscript.illustrated,
+                public: this.manuscript.public,
             }
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))

@@ -152,6 +152,14 @@ class ManuscriptManager extends ObjectManager
             }
         }
 
+        // Public state
+        $rawPublics = $this->dbs->getPublics($ids);
+        foreach ($rawPublics as $rawPublic) {
+            $manuscripts[$rawPublic['manuscript_id']]
+                // default: true (if no value is set in the database)
+                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
+        }
+
         $this->setCache($manuscripts, 'manuscript_short');
 
         return $cached_short + $cached + $manuscripts;
@@ -312,6 +320,9 @@ class ManuscriptManager extends ObjectManager
             }
             if (property_exists($data, 'illustrated')) {
                 $this->updateIllustrated($manuscript, $data->illustrated);
+            }
+            if (property_exists($data, 'public')) {
+                $this->updatePublic($manuscript, $data->public);
             }
 
             // load new manuscript data
@@ -545,6 +556,11 @@ class ManuscriptManager extends ObjectManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
+    }
+
+    private function updatePublic(Manuscript $manuscript, bool $public): void
+    {
+        $this->dbs->updatePublic($manuscript->getId(), $public);
     }
 
     private function updatePrivateComment(Manuscript $manuscript, string $privateComment = null): void

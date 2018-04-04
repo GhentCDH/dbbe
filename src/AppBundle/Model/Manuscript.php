@@ -32,6 +32,7 @@ class Manuscript extends Document implements IdJsonInterface
     private $publicComment;
     private $privateComment;
     private $illustrated;
+    private $public;
 
     public function __construct()
     {
@@ -275,6 +276,18 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->illustrated;
     }
 
+    public function setPublic(bool $public): Manuscript
+    {
+        $this->public = $public;
+
+        return $this;
+    }
+
+    public function getPublic(): ?bool
+    {
+        return $this->public;
+    }
+
     public function getShortJson(): array
     {
         return [
@@ -296,6 +309,7 @@ class Manuscript extends Document implements IdJsonInterface
             'relatedPersons' => self::arrayToShortJson(array_values($this->relatedPersons)),
             'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
             'bibliography' => self::arrayToShortJson($this->getBibliographies()),
+            'public' => $this->getPublic(),
         ];
 
         if (isset($this->date)) {
@@ -328,6 +342,7 @@ class Manuscript extends Document implements IdJsonInterface
             'library' => $this->location->getLibrary()->getJson(),
             'shelf' => $this->location->getShelf(),
             'name' => $this->getName(),
+            'public' => $this->getPublic(),
         ];
         if ($this->location->getCollection() != null) {
             $result['collection'] = $this->location->getCollection()->getJson();

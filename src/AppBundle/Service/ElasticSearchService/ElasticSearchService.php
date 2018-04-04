@@ -289,6 +289,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'boolean':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
+                            (new Query\Match($key, $value))
+                        );
+                    }
+                    break;
             }
         }
         return $filterQuery;
