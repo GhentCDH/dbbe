@@ -12,6 +12,7 @@
                     </button>
                 </div>
                 <vue-form-generator
+                    ref="form"
                     :schema="schema"
                     :model="model"
                     :options="formOptions"
@@ -160,7 +161,7 @@ export default {
         },
     },
     data() {
-        return {
+        let data = {
             model: {},
             schema: {
                 fields: {
@@ -260,6 +261,19 @@ export default {
             delModal: false,
             alerts: []
         }
+        if (this.isEditor) {
+            data.schema.fields['public'] = this.createMultiSelect(
+                'Public',
+                {},
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Public only' : 'Internal only'
+                    },
+                    trackBy: 'id',
+                }
+            )
+        }
+        return data
     },
     computed: {
         tableColumns() {

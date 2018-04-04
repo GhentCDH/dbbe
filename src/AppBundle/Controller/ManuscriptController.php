@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use Ev;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -84,7 +86,7 @@ class ManuscriptController extends Controller
         $aggregation_result = $this->get('elasticsearch_service')->aggregate(
             'documents',
             'manuscript',
-            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin']),
+            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin', 'public']),
             !empty($es_params['filters']) ? $es_params['filters'] : []
         );
 
@@ -98,7 +100,7 @@ class ManuscriptController extends Controller
         // $filters can be a sequential (aggregation) or an associative (query) array
         $result = [];
         foreach ($filters as $key => $value) {
-            if (isset($value) && $value != '') {
+            if (isset($value) && $value !== '') {
                 switch (is_int($key) ? $value : $key) {
                     case 'city':
                     case 'library':
@@ -136,7 +138,12 @@ class ManuscriptController extends Controller
                         }
                         break;
                     case 'public':
-                        $result['boolean'][$key] = $value;
+                        if (is_int($key)) {
+                            $result['boolean'][] = $value;
+                        } else {
+                            $result['boolean'][$key] = ($value === 1);
+                        }
+                        break;
                 }
             }
         }

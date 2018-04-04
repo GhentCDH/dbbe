@@ -176,6 +176,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'boolean':
+                    foreach ($fieldNames as $fieldName) {
+                        $query->addAggregation(
+                            (new Aggregation\Terms($fieldName))
+                                ->setSize(MAX)
+                                ->setField($fieldName)
+                        );
+                    }
+                    break;
             }
         }
 
@@ -200,6 +209,17 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
                                 'name' => $result['name']['buckets'][0]['key'],
+                            ];
+                        }
+                    }
+                    break;
+                case 'boolean':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        foreach ($aggregation['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['key_as_string'],
                             ];
                         }
                     }
