@@ -340,29 +340,6 @@ export default {
             }
             return result
         },
-        // setFilters(filterValues) {
-        //     if (this.openFilterRequests > 0) {
-        //         this.filterCancel('Operation canceled by newer request')
-        //     }
-        //     this.openFilterRequests++
-        //     axios.post(this.manuscriptsFiltervaluesUrl, filterValues, {
-        //         cancelToken: new axios.CancelToken((c) => {this.filterCancel = c})
-        //     })
-        //         .then( (response) => {
-        //             this.openFilterRequests--
-        //             for (let fieldName of Object.keys(this.schema.fields)) {
-        //                 if (this.schema.fields[fieldName].type == 'multiselectClear') {
-        //                     this.enableField(this.schema.fields[fieldName], response.data[fieldName] == null ? [] : response.data[fieldName].sort(this.sortByName))
-        //                 }
-        //             }
-        //         })
-        //         .catch( (error) => {
-        //             this.openFilterRequests--
-        //             if (!axios.isCancel(error)) {
-        //                 console.log(error)
-        //             }
-        //         })
-        // },
         modelUpdated(value, fieldName) {
             this.lastChangedField = fieldName
         },
