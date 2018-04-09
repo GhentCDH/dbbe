@@ -211,12 +211,16 @@ class ManuscriptService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 manuscript.identity as manuscript_id,
-                global_id.identifier as diktyon_id
+                diktyon.identifier as diktyon_id
             from data.manuscript
-            inner join data.global_id on manuscript.identity = global_id.idsubject
-            inner join data.institution on global_id.idauthority = institution.identity
-            where manuscript.identity in (?)
-            and institution.name = \'Diktyon\'',
+            left join (
+                select global_id.idsubject, global_id.identifier
+                from data.global_id
+                inner join data.institution
+                    on global_id.idauthority = institution.identity
+                    and institution.name = \'Diktyon\'
+            ) as diktyon on manuscript.identity = diktyon.idsubject
+            where manuscript.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

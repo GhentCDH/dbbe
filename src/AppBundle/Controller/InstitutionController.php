@@ -14,13 +14,13 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class InstitutionController extends Controller
 {
     /**
-     * @Route("/institutions/", name="institutions_post")
+     * @Route("/institutions/", name="institution_post")
      * @Method("POST")
      * @param Request $request
      * @param bool $library Indicates whether the institution is a library
      * @return JsonResponse
      */
-    public function postInstitutions(Request $request, bool $library = false)
+    public function postInstitution(Request $request, bool $library = false)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
@@ -39,12 +39,12 @@ class InstitutionController extends Controller
     }
 
     /**
-     * @Route("/libraries/", name="libraries_post")
+     * @Route("/libraries/", name="library_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postLibraries(Request $request)
+    public function postLibrary(Request $request)
     {
         return $this->postInstitutions($request, true);
     }

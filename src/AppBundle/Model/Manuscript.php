@@ -216,7 +216,7 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->bibliographies;
     }
 
-    public function setDiktyon(int $diktyon): Manuscript
+    public function setDiktyon(int $diktyon = null): Manuscript
     {
         $this->diktyon = $diktyon;
 

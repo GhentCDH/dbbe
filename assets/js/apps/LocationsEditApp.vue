@@ -236,7 +236,7 @@ export default {
             type: String,
             default: '',
         },
-        postLibrariesUrl: {
+        postLibraryUrl: {
             type: String,
             default: '',
         },
@@ -248,7 +248,7 @@ export default {
             type: String,
             default: '',
         },
-        postCollectionsUrl: {
+        postCollectionUrl: {
             type: String,
             default: '',
         },
