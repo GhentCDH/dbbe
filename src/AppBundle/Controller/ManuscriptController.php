@@ -70,7 +70,7 @@ class ManuscriptController extends Controller
         }
 
         if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            $filters['public'] = true;
+            $filters['public'] = 1;
         }
 
         if (isset($filters) && is_array($filters)) {
