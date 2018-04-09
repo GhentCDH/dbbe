@@ -6,13 +6,13 @@ use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
 
-class LibraryService extends DatabaseService
+class InstitutionService extends DatabaseService
 {
-    public function getLibrariesByIds(array $ids): array
+    public function getInstitutionsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                institution.identity as library_id,
+                institution.identity as institution_id,
                 institution.name
             from data.institution
             where institution.identity in (?)',
@@ -21,7 +21,7 @@ class LibraryService extends DatabaseService
         )->fetchAll();
     }
 
-    public function insert(string $name, int $regionId): int
+    public function insert(string $name, int $regionId, bool $library = false): int
     {
         // Set search_path for trigger ensure_institution_has_location
         $this->conn->exec('SET SEARCH_PATH TO data');
@@ -33,65 +33,67 @@ class LibraryService extends DatabaseService
                 $regionId,
             ]
         );
-        $libraryId = $this->conn->executeQuery(
+        $institutionId = $this->conn->executeQuery(
             'SELECT
-                institution.identity as library_id
+                institution.identity as institution_id
             from data.institution
             order by identity desc
             limit 1'
-        )->fetch()['library_id'];
-        $this->conn->executeUpdate(
-            'INSERT INTO data.library (identity)
-            values (?)',
-            [
-                $libraryId,
-            ]
-        );
-        return $libraryId;
+        )->fetch()['institution_id'];
+        if ($library) {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.library (identity)
+                values (?)',
+                [
+                    $institutionId,
+                ]
+            );
+        }
+        return $institutionId;
     }
 
-    public function updateName(int $libraryId, string $name): int
+    public function updateName(int $institutionId, string $name): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.institution
             set name = ?
             where institution.identity = ?',
-            [$name, $libraryId]
+            [$name, $institutionId]
         );
     }
 
-    public function updateRegion(int $libraryId, int $regionId): int
+    public function updateRegion(int $institutionId, int $regionId): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.institution
             set idregion = ?
             where institution.identity = ?',
-            [$regionId, $libraryId]
+            [$regionId, $institutionId]
         );
     }
 
-    public function delete(int $libraryId): int
+    public function delete(int $institutionId): int
     {
-        // don't delete if this library is used in fund
+        // don't delete if this institution is used in fund
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.fund
             where fund.idlibrary = ?',
-            [$libraryId]
+            [$institutionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This library has dependencies.');
+            throw new DependencyException('This institution has dependencies.');
         }
-        // don't delete if this library is used in located_at
+        // don't delete if this institution is used in located_at
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.located_at
             inner join data.location on located_at.idlocation = location.idlocation
             where location.idinstitution = ?',
-            [$libraryId]
+            [$institutionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This library has dependencies.');
+            throw new DependencyException('This institution has dependencies.');
         }
         // Set search_path for trigger delete_entity
         $this->conn->exec('SET SEARCH_PATH TO data');
@@ -99,7 +101,7 @@ class LibraryService extends DatabaseService
             'DELETE from data.institution
             where institution.identity = ?',
             [
-                $libraryId,
+                $institutionId,
             ]
         );
     }

@@ -30,7 +30,7 @@ class LocationManager extends ObjectManager
                 ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null)
                 ->addCacheDependency('region.' . $rawLocation['city_id'])
                 ->setLibrary(new Library($rawLocation['library_id'], $rawLocation['library_name']))
-                ->addCacheDependency('library.' . $rawLocation['library_id'])
+                ->addCacheDependency('institution.' . $rawLocation['library_id'])
                 ->setShelf($rawLocation['shelf']);
             if (isset($rawLocation['collection_id'])) {
                 $locations[$rawLocation['location_id']]
@@ -66,7 +66,7 @@ class LocationManager extends ObjectManager
         usort($citiesLibrariesCollections, ['AppBundle\Model\Location', 'sortRaw']);
 
         $cache->tag('regions');
-        $cache->tag('libraries');
+        $cache->tag('institutions');
         $cache->tag('collections');
         $this->cache->save($cache->set($citiesLibrariesCollections));
         return $citiesLibrariesCollections;
@@ -96,7 +96,7 @@ class LocationManager extends ObjectManager
         }
 
         $cache->tag('regions');
-        $cache->tag('libraries');
+        $cache->tag('institutions');
         $this->cache->save($cache->set($origins));
         return $origins;
     }

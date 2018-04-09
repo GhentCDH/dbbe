@@ -71,9 +71,9 @@ services:
         arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null, null]
         public: true
 
-    library_manager:
-        class: AppBundle\ObjectStorage\LibraryManager
-        arguments: ['@library_service', '@cache.app', {}, null, '@security.token_storage']
+    institution_manager:
+        class: AppBundle\ObjectStorage\InstitutionManager
+        arguments: ['@institution_service', '@cache.app', {}, null, '@security.token_storage']
         public: true
 
     collection_manager:
@@ -113,8 +113,8 @@ services:
         class: AppBundle\Service\DatabaseService\OccurrenceService
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
-    library_service:
-        class: AppBundle\Service\DatabaseService\LibraryService
+    institution_service:
+        class: AppBundle\Service\DatabaseService\InstitutionService
         arguments: ['@doctrine.orm.entity_manager', '@cache.app']
 
     collection_service:
