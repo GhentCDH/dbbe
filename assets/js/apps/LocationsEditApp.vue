@@ -488,9 +488,12 @@ export default {
                 }
                 else {
                     url = this.putLibraryUrl.replace('library_id', this.submitModel.library.id)
-                    data = {
-                        name: this.submitModel.library.name,
-                        city: {
+                    data = {}
+                    if (this.submitModel.library.name !== this.originalSubmitModel.library.name) {
+                        data.name = this.submitModel.library.name
+                    }
+                    if (this.submitModel.city.id !== this.originalSubmitModel.city.id) {
+                        data.city = {
                             id: this.submitModel.city.id
                         }
                     }
