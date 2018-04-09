@@ -60,6 +60,16 @@ class LibraryService extends DatabaseService
         );
     }
 
+    public function updateRegion(int $libraryId, int $regionId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.institution
+            set idregion = ?
+            where institution.identity = ?',
+            [$regionId, $libraryId]
+        );
+    }
+
     public function delete(int $libraryId): int
     {
         // don't delete if this library is used in fund

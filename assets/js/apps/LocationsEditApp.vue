@@ -490,6 +490,9 @@ export default {
                     url = this.putLibraryUrl.replace('library_id', this.submitModel.library.id)
                     data = {
                         name: this.submitModel.library.name,
+                        city: {
+                            id: this.submitModel.city.id
+                        }
                     }
                 }
                 break
