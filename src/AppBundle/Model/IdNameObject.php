@@ -23,12 +23,17 @@ class IdNameObject implements IdJsonInterface
         return $this->name;
     }
 
-    public function getJson(): array
+    public function getShortJson(): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
         ];
+    }
+
+    public function getJson(): array
+    {
+        return $this->getShortJson();
     }
 
     public function getElastic(): array

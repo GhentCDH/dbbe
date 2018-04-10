@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use Exception;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -11,8 +13,28 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+use AppBundle\Helpers\ArrayToJsonTrait;
+
 class InstitutionController extends Controller
 {
+    use ArrayToJsonTrait;
+
+    /**
+     * @Route("/institutions/regions/{id}", name="institutions_by_region")
+     * @param int $id The region id
+     * @param Request $request
+     */
+    public function getInstitutionsByRegion(int $id, Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $institutions = $this
+                ->get('institution_manager')
+                ->getInstitutionsByRegion($id);
+            return new JsonResponse(self::arrayToShortJson($institutions));
+        }
+        throw new Exception('Not implemented.');
+    }
+
     /**
      * @Route("/institutions/", name="institution_post")
      * @Method("POST")

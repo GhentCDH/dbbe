@@ -283,12 +283,12 @@ export default {
             delModal: false,
             editCitySchema: {
                 fields: {
-                    name: {
+                    individualName: {
                         type: 'input',
                         inputType: 'text',
                         label: 'City name',
                         labelClasses: 'control-label',
-                        model: 'city.name',
+                        model: 'city.individualName',
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     }
@@ -473,7 +473,7 @@ export default {
                 // Not possible to add cities
                 url = this.putRegionUrl.replace('region_id', this.submitModel.city.id)
                 data = {
-                    name: this.submitModel.city.name,
+                    individualName: this.submitModel.city.individualName,
                 }
                 break
             case 'library':

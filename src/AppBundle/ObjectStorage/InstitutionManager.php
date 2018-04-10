@@ -35,6 +35,13 @@ class InstitutionManager extends ObjectManager
         return $cached + $institutions;
     }
 
+    public function getInstitutionsByRegion(int $regionId): array
+    {
+        $rawInstitutions = $this->dbs->getInstitutionsByRegion($regionId);
+        $institutionIds = self::getUniqueIds($rawInstitutions, 'institution_id');
+        return $this->getInstitutionsByIds($institutionIds);
+    }
+
     public function addInstitution(stdClass $data, bool $library = false): Institution
     {
         $this->dbs->beginTransaction();

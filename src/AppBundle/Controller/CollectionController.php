@@ -14,12 +14,12 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class CollectionController extends Controller
 {
     /**
-     * @Route("/collections/", name="collections_post")
+     * @Route("/collections/", name="collection_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postCollections(Request $request)
+    public function postCollection(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 

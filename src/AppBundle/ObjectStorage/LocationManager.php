@@ -27,7 +27,7 @@ class LocationManager extends ObjectManager
         foreach ($rawLocations as $rawLocation) {
             $locations[$rawLocation['location_id']] = (new Location())
                 ->setId($rawLocation['location_id'])
-                ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null)
+                ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null, null, null)
                 ->addCacheDependency('region.' . $rawLocation['city_id'])
                 ->setLibrary(new Library($rawLocation['library_id'], $rawLocation['library_name']))
                 ->addCacheDependency('institution.' . $rawLocation['library_id'])
@@ -57,6 +57,7 @@ class LocationManager extends ObjectManager
 
         foreach ($citiesLibrariesCollections as $key => $value) {
             $citiesLibrariesCollections[$key]['city_name'] = $regionsWithParents[$value['city_id']]->getName();
+            $citiesLibrariesCollections[$key]['city_individualName'] = $regionsWithParents[$value['city_id']]->getIndividualName();
             // Remove cities with no name
             if ($citiesLibrariesCollections[$key]['city_name'] == '') {
                 unset($citiesLibrariesCollections[$key]);
@@ -99,6 +100,13 @@ class LocationManager extends ObjectManager
         $cache->tag('institutions');
         $this->cache->save($cache->set($origins));
         return $origins;
+    }
+
+    public function getLocationsByRegion(int $regionId): array
+    {
+        $rawLocations = $this->dbs->getLocationsByRegion($regionId);
+        $locationIds = self::getUniqueIds($rawLocations, 'location_id');
+        return $this->getLocationsByIds($locationIds);
     }
 
     public function updateLibrary(Document $document, stdClass $libary): void

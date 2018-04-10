@@ -21,6 +21,17 @@ class InstitutionService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getInstitutionsByRegion(int $regionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                institution.identity as institution_id
+            from data.institution
+            where institution.idregion = ?',
+            [$regionId]
+        )->fetchAll();
+    }
+
     public function insert(string $name, int $regionId, bool $library = false): int
     {
         // Set search_path for trigger ensure_institution_has_location

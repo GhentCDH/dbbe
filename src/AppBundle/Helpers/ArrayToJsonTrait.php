@@ -13,4 +13,14 @@ trait ArrayToJsonTrait
             $array
         );
     }
+
+    public static function arrayToJson(array $array): array
+    {
+        return array_map(
+            function ($item) {
+                return $item->getJson();
+            },
+            $array
+        );
+    }
 }

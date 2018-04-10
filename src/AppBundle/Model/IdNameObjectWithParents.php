@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-class IdNameObjectWithParents
+class IdNameObjectWithParents implements IdJsonInterface
 {
     use CacheDependenciesTrait;
 
@@ -15,9 +15,7 @@ class IdNameObjectWithParents
 
     public function getId(): int
     {
-        $child = end($this->array);
-        reset($this->array);
-        return $child->getId();
+        return $this->getLastChild()->getId();
     }
 
     public function getName(): string
@@ -27,6 +25,19 @@ class IdNameObjectWithParents
             $names[] = $content->getName();
         }
         return implode(' > ', $names);
+    }
+
+    public function getIndividualName(): string
+    {
+        return $this->getLastChild()->getName();
+    }
+
+    public function getParent(): ?IdNameObject
+    {
+        if (count($this->array) < 2) {
+            return null;
+        }
+        return $this->array[count($this->array) -2];
     }
 
     public function getArray(): array
@@ -40,6 +51,11 @@ class IdNameObjectWithParents
             'id' => $this->getId(),
             'name' => $this->getName(),
         ];
+    }
+
+    public function getJson(): array
+    {
+        return $this->getShortJson();
     }
 
     public function getElastic(): array
@@ -61,5 +77,12 @@ class IdNameObjectWithParents
             array_pop($array);
         }
         return $result;
+    }
+
+    protected function getLastChild(): IdNameObject
+    {
+        $child = end($this->array);
+        reset($this->array);
+        return $child;
     }
 }

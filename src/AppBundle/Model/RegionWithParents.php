@@ -13,6 +13,34 @@ class RegionWithParents extends IdNameObjectWithParents
         return implode(' > ', $names);
     }
 
+    public function getIndividualHistoricalName(): string
+    {
+        return $this->getLastChild()->getHistoricalName();
+    }
+
+    public function getIsCity(): bool
+    {
+        return $this->getLastChild()->getIsCity();
+    }
+
+    public function getPleiades(): ?int
+    {
+        return $this->getLastChild()->getPleiades();
+    }
+
+    public function getJson(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName() ? $this->getName() : '[' . $this->getHistoricalName() . ']',
+            'parent' => $this->getParent() ? $this->getParent()->getShortJson() : null,
+            'individualName' => $this->getIndividualName(),
+            'individualHistoricalName' => $this->getIndividualHistoricalName(),
+            'isCity' => $this->getIsCity(),
+            'pleiades' => $this->getPleiades(),
+        ];
+    }
+
     public function getHistoricalElastic(): array
     {
         $result = [];

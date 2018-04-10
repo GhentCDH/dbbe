@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="regions-edit-app">
+        <regions-edit-app
+            init-regions="{{ regions }}"
+            get-regions-url="{{ path('regions_get') }}"
+            get-locations-by-region-url="{{ path('locations_by_region', {'id': 'region_id'}) }}"
+            get-institutions-by-region-url="{{ path('institutions_by_region', {'id': 'region_id'}) }}"
+            get-regions-by-region-url="{{ path('regions_by_region', {'id': 'region_id'}) }}"
+            post-region-url="{{ path('region_post') }}"
+            put-region-url="{{ path('region_put', {'id': 'region_id'}) }}"
+            delete-region-url="{{ path('region_delete', {'id': 'region_id'}) }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/regionsedit.js") }}"></script>
+{% endblock %}

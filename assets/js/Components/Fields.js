@@ -95,7 +95,16 @@ export default {
 
             let values = locations
                 // get the requested field information
-                .map((location) => {return {'id': location[field.model + '_id'], 'name': location[field.model + '_name']}})
+                .map((location) => {
+                    let fieldInfo = {
+                        id: location[field.model + '_id'],
+                        name: location[field.model + '_name']
+                    }
+                    if (location[field.model + '_individualName'] != null) {
+                        fieldInfo.individualName = location[field.model + '_individualName']
+                    }
+                    return fieldInfo
+                })
                 // remove duplicates
                 .filter((location, index, self) => index === self.findIndex((l) => l.id === location.id))
 

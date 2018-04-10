@@ -17,6 +17,7 @@ Encore
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
     .addEntry('manuscriptedit', './assets/js/main/manuscriptedit.js')
+    .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('users', './assets/js/main/users.js')
     .addEntry('main', './assets/js/main/main.js')
 
