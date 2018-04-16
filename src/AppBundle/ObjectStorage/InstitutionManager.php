@@ -107,7 +107,7 @@ class InstitutionManager extends ObjectManager
             }
 
             // load new institution data
-            $this->cache->invalidateTags(['institutions']);
+            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
             $this->cache->deleteItem('institution.' . $institutionId);
             $newInstitution = $this->getInstitutionsByIds([$institutionId])[$institutionId];
 
@@ -115,6 +115,10 @@ class InstitutionManager extends ObjectManager
 
             // update cache
             $this->setCache([$newInstitution->getId() => $newInstitution], 'institution');
+
+            // update Elastic manuscripts
+            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByInstitution($institutionId);
+            $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction
             $this->dbs->commit();
@@ -139,7 +143,7 @@ class InstitutionManager extends ObjectManager
             $this->dbs->delete($institutionId);
 
             // load new institution data
-            $this->cache->invalidateTags(['institutions']);
+            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
             $this->cache->deleteItem('institution.' . $institutionId);
 
             $this->updateModified($institution, null);

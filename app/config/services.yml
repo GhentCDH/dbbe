@@ -31,59 +31,48 @@ services:
 
     manuscript_manager:
         class: AppBundle\ObjectStorage\ManuscriptManager
-        arguments: ['@manuscript_service',
-            '@cache.app',
-            {'location_manager': '@location_manager',
-            'content_manager': '@content_manager',
-            'person_manager': '@person_manager',
-            'region_manager': '@region_manager',
-            'bibliography_manager': '@bibliography_manager',
-            'occurrence_manager': '@occurrence_manager'},
-            '@elasticsearch_service',
-            '@security.token_storage']
+        arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage']
         public: true
 
     location_manager:
         class: AppBundle\ObjectStorage\LocationManager
-        arguments: ['@location_service',
-            '@cache.app',
-            {'region_manager': '@region_manager'},
-            null]
+        arguments: ['@location_service', '@cache.app', '@service_container', null, null]
         public: true
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
-        arguments: ['@content_service', '@cache.app', {}, null, null]
+        arguments: ['@content_service', '@cache.app', '@service_container', null, null]
         public: true
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager
-        arguments: ['@person_service', '@cache.app', {}, null, null]
+        arguments: ['@person_service', '@cache.app', '@service_container', null, null]
         public: true
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
-        arguments: ['@region_service', '@cache.app', {}, null, '@security.token_storage']
+        arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
-        arguments: ['@bilbiography_service', '@cache.app', {'person_manager': '@person_manager'}, null, null]
+        arguments: ['@bilbiography_service', '@cache.app', '@service_container', null, null]
         public: true
 
     institution_manager:
         class: AppBundle\ObjectStorage\InstitutionManager
-        arguments: ['@institution_service', '@cache.app', {}, null, '@security.token_storage']
+        arguments: ['@institution_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     collection_manager:
         class: AppBundle\ObjectStorage\CollectionManager
-        arguments: ['@collection_service', '@cache.app', {}, null, '@security.token_storage']
+        arguments: ['@collection_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager
-        arguments: ['@occurrence_service', '@cache.app', {}, null, null]
+        arguments: ['@occurrence_service', '@cache.app', '@service_container', null, null]
+        public: true
 
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
@@ -128,5 +117,10 @@ services:
 
     elasticsearch_service:
         class: AppBundle\Service\ElasticSearchService\ElasticSearchService
+        arguments: ['%elastic_hosts%', '%elastic_index%']
+        public: true
+
+    manuscript_elastic_service:
+        class: AppBundle\Service\ElasticSearchService\ElasticManuscriptService
         arguments: ['%elastic_hosts%', '%elastic_index%']
         public: true

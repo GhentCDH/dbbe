@@ -68,7 +68,7 @@ class InstitutionController extends Controller
      */
     public function postLibrary(Request $request)
     {
-        return $this->postInstitutions($request, true);
+        return $this->postInstitution($request, true);
     }
 
     /**

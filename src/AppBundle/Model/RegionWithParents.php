@@ -33,6 +33,7 @@ class RegionWithParents extends IdNameObjectWithParents
         return [
             'id' => $this->getId(),
             'name' => $this->getName() ? $this->getName() : '[' . $this->getHistoricalName() . ']',
+            'historicalName' => $this->getHistoricalName(),
             'parent' => $this->getParent() ? $this->getParent()->getShortJson() : null,
             'individualName' => $this->getIndividualName(),
             'individualHistoricalName' => $this->getIndividualHistoricalName(),

@@ -106,7 +106,7 @@ class LocationService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getLocationsByRegion(int $regionId): array
+    public function getLocationByRegion(int $regionId): int
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -114,7 +114,7 @@ class LocationService extends DatabaseService
             from data.location
             where location.idregion = ?',
             [$regionId]
-        )->fetchAll();
+        )->fetchAll()[0]['location_id'];
     }
 
     public function updateLibraryId(int $documentId, int $libraryId): int

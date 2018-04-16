@@ -53,7 +53,7 @@ class LocationManager extends ObjectManager
 
         $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
         $regionIds = self::getUniqueIds($citiesLibrariesCollections, 'city_id');
-        $regionsWithParents = $this->oms['region_manager']->getRegionsWithParentsByIds($regionIds);
+        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
 
         foreach ($citiesLibrariesCollections as $key => $value) {
             $citiesLibrariesCollections[$key]['city_name'] = $regionsWithParents[$value['city_id']]->getName();
@@ -66,9 +66,7 @@ class LocationManager extends ObjectManager
 
         usort($citiesLibrariesCollections, ['AppBundle\Model\Location', 'sortRaw']);
 
-        $cache->tag('regions');
-        $cache->tag('institutions');
-        $cache->tag('collections');
+        $cache->tag(['regions', 'institutions', 'collections']);
         $this->cache->save($cache->set($citiesLibrariesCollections));
         return $citiesLibrariesCollections;
     }
@@ -82,7 +80,7 @@ class LocationManager extends ObjectManager
 
         $rawOrigins = $this->dbs->getAllOrigins();
         $regionIds = self::getUniqueIds($rawOrigins, 'region_id');
-        $regionsWithParents = $this->oms['region_manager']->getRegionsWithParentsByIds($regionIds);
+        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
         $origins = [];
         foreach ($rawOrigins as $rawOrigin) {
             $origin = (new Origin())
@@ -102,11 +100,9 @@ class LocationManager extends ObjectManager
         return $origins;
     }
 
-    public function getLocationsByRegion(int $regionId): array
+    public function getLocationByRegion(int $regionId): int
     {
-        $rawLocations = $this->dbs->getLocationsByRegion($regionId);
-        $locationIds = self::getUniqueIds($rawLocations, 'location_id');
-        return $this->getLocationsByIds($locationIds);
+        return $this->dbs->getLocationByRegion($regionId);
     }
 
     public function updateLibrary(Document $document, stdClass $libary): void

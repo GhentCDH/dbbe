@@ -224,7 +224,11 @@ export default {
             type: String,
             default: '',
         },
-        getManuscriptsByLocationUrl: {
+        getManuscriptDepsByInstitutionUrl: {
+            type: String,
+            default: '',
+        },
+        getManuscriptDepsByCollectionUrl: {
             type: String,
             default: '',
         },
@@ -431,7 +435,9 @@ export default {
             }
 
             this.loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
+            this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
             this.enableField(this.editCollectionSchema.fields.city, this.submitModel)
+            this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -445,7 +451,14 @@ export default {
         },
         deleteDependencies() {
             this.openRequests++
-            axios.post(this.getManuscriptsByLocationUrl, this.submitModel)
+            let url = ''
+            if (this.submitModel.type === 'library') {
+                url = this.getManuscriptDepsByInstitutionUrl.replace('institution_id', this.submitModel.library.id)
+            }
+            else {
+                url = this.getManuscriptDepsByCollectionUrl.replace('collection_id', this.submitModel.collection.id)
+            }
+            axios.get(url)
                 .then( (response) => {
                     this.delDependencies = response.data
                     this.delModal = true
@@ -478,7 +491,7 @@ export default {
                 break
             case 'library':
                 if (this.submitModel.library.id == null) {
-                    url = this.postLibrariesUrl
+                    url = this.postLibraryUrl
                     data = {
                         name: this.submitModel.library.name,
                         city: {
@@ -501,7 +514,7 @@ export default {
                 break
             case 'collection':
                 if (this.submitModel.collection.id == null) {
-                    url = this.postCollectionsUrl
+                    url = this.postCollectionUrl
                     data = {
                         name: this.submitModel.collection.name,
                         library: {
@@ -588,13 +601,13 @@ export default {
                 .then( (response) => {
                     switch(this.submitModel.type) {
                     case 'library':
-                        this.model.library = null
+                        this.submitModel.library = null
                         break
                     case 'collection':
                         this.submitModel.collection = null
                         break
                     }
-                    this.alerts.push({type: 'success', message: 'Delete successful.'})
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
                     this.openRequests--
                 })
@@ -612,23 +625,23 @@ export default {
                     switch(this.submitModel.type) {
                     case 'city':
                         this.model.city = this.submitModel.city
-                        this.loadLocationField(this.citySchema.fields.city)
+                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         break
                     case 'library':
                         this.model.city = this.submitModel.city
                         this.model.library = this.submitModel.library
-                        this.loadLocationField(this.citySchema.fields.city)
-                        this.loadLocationField(this.librarySchema.fields.library)
-                        this.enableField(this.librarySchema.fields.library)
+                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
+                        this.enableField(this.librarySchema.fields.library, this.submitModel)
                         break
                     case 'collection':
                         this.model.city = this.submitModel.city
                         this.model.library = this.submitModel.library
                         this.model.collection = this.submitModel.collection
-                        this.loadLocationField(this.citySchema.fields.city)
-                        this.loadLocationField(this.librarySchema.fields.library)
-                        this.loadLocationField(this.collectionSchema.fields.collection)
-                        this.enableField(this.collectionSchema.fields.collection)
+                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
+                        this.loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
+                        this.enableField(this.collectionSchema.fields.collection, this.submitModel)
                         break
                     }
                     this.openRequests--

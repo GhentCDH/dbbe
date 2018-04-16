@@ -10,7 +10,7 @@ class Region extends IdNameObject implements IdJsonInterface
 
     public function __construct(
         int $id,
-        string $name,
+        string $name = null,
         string $historicalName = null,
         bool $isCity = null,
         int $pleiades = null

@@ -1,9 +1,6 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <h2>
-                Edit regions
-            </h2>
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -13,44 +10,78 @@
                 {{ item.message }}
             </alert>
 
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="regionSchema"
-                        :model="model" />
+            <div class="panel panel-default">
+                <div class="panel-heading">Edit region</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="regionSchema"
+                                :model="model" />
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                href="#"
+                                class="action"
+                                title="Add a new region"
+                                @click.prevent="editRegion(true)">
+                                <i class="fa fa-plus" />
+                            </a>
+                            <a
+                                v-if="model.region"
+                                href="#"
+                                class="action"
+                                title="Edit the selected region"
+                                @click.prevent="editRegion()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                v-if="model.region"
+                                href="#"
+                                class="action"
+                                title="Merge the selected region with another region"
+                                @click.prevent="mergeRegion()">
+                                <i class="fa fa-compress" />
+                            </a>
+                            <a
+                                v-if="model.region"
+                                href="#"
+                                class="action"
+                                title="Delete the selected region"
+                                @click.prevent="delRegion()">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-xs-2 ptop-default">
-                    <a
-                        href="#"
-                        class="action"
-                        title="Add a new region"
-                        @click.prevent="editRegion(true)">
-                        <i class="fa fa-plus" />
-                    </a>
-                    <a
-                        v-if="model.region"
-                        href="#"
-                        class="action"
-                        title="Edit the selected region"
-                        @click.prevent="editRegion()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        v-if="model.region"
-                        href="#"
-                        class="action"
-                        title="Merge the selected region with another region"
-                        @click.prevent="mergeRegion()">
-                        <i class="fa fa-merge" />
-                    </a>
-                    <a
-                        v-if="model.region"
-                        href="#"
-                        class="action"
-                        title="Delete the selected region"
-                        @click.prevent="delRegion()">
-                        <i class="fa fa-trash-o" />
-                    </a>
+            </div>
+            <div
+                v-if="model.region"
+                class="panel panel-default">
+                <div class="panel-heading">Additional region information</div>
+                <div class="panel-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Historical name</td>
+                                <td>{{ model.region.historicalName }}</td>
+                            </tr>
+                            <tr>
+                                <td>Pleiades</td>
+                                <td>{{ model.region.pleiades }}</td>
+                            </tr>
+                            <tr>
+                                <td>Is city</td>
+                                <td>{{ model.region.isCity ? 'Yes' : 'No' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div
@@ -70,9 +101,9 @@
                 @validated="editFormValidated" />
             <div slot="header">
                 <h4
-                    v-if="editModel.id"
+                    v-if="editModel && editModel.id"
                     class="modal-title">
-                    Edit region
+                    Edit region {{ editModal.name }}
                 </h4>
                 <h4
                     v-else
@@ -93,7 +124,71 @@
                     type="success"
                     :disabled="invalidEditForm || JSON.stringify(editModel) === JSON.stringify(originalEditModel)"
                     @click="submitEdit()">
-                    {{ editModel.id ? 'Update' : 'Add' }}
+                    {{ (editModel.id) ? 'Update' : 'Add' }}
+                </btn>
+            </div>
+        </modal>
+        <modal
+            v-model="mergeModal"
+            size="lg"
+            auto-focus>
+            <vue-form-generator
+                :schema="mergeRegionSchema"
+                :model="mergeModel"
+                :options="formOptions"
+                @validated="mergeFormValidated" />
+            <div
+                v-if="mergeModel.primary && mergeModel.secondary"
+                class="panel panel-default">
+                <div class="panel-heading">Preview of the merge</div>
+                <div class="panel-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Name</td>
+                                <td>{{ mergeModel.primary.name || mergeModel.secondary.name }}</td>
+                            </tr>
+                            <tr>
+                                <td>Historical name</td>
+                                <td>{{ mergeHistoricalName }}</td>
+                            </tr>
+                            <tr>
+                                <td>Pleiades</td>
+                                <td>{{ mergeModel.primary.pleiades || mergeModel.secondary.pleiades }}</td>
+                            </tr>
+                            <tr>
+                                <td>Is city</td>
+                                <td>{{ mergeModel.primary.isCity ? 'Yes' : 'No' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div slot="header">
+                <h4 class="modal-title">
+                    Merge regions
+                </h4>
+            </div>
+            <div slot="footer">
+                <btn @click="mergeModal=false">Cancel</btn>
+                <btn
+                    :disabled="JSON.stringify(mergeModel) === JSON.stringify(originalMergeModel)"
+                    type="warning"
+                    @click="resetMerge()">
+                    Reset
+                </btn>
+                <btn
+                    v-if="editModel"
+                    type="success"
+                    :disabled="invalidMergeForm"
+                    @click="submitMerge()">
+                    Merge
                 </btn>
             </div>
         </modal>
@@ -101,34 +196,37 @@
             v-model="delModal"
             size="lg"
             auto-focus>
-            <div v-if="delDependencies.locations.length !== 0 || delDependencies.institutions.length !== 0 || delDependencies.regions.length !== 0">
+            <div v-if="Object.keys(delDependencies).length !== 0">
                 <p>This region has following dependencies that need to be resolved first:</p>
                 <ul>
                     <li
-                        v-for="dependency in delDependencies.locations"
+                        v-for="dependency in delDependencies.manuscripts"
                         :key="dependency.id">
-                        <!-- <a :href="getLocationUrl.replace('location_id', dependency.id)">{{ dependency.name }}</a> -->
-                        {{ dependency.name }}
+                        Manuscript
+                        <a :href="getManuscriptUrl.replace('manuscript_id', dependency.id)">{{ dependency.name }}</a>
                     </li>
                     <li
                         v-for="dependency in delDependencies.institutions"
                         :key="dependency.id">
+                        Institution
                         <!-- <a :href="getInstitutionUrl.replace('institution_id', dependency.id)">{{ dependency.name }}</a> -->
                         {{ dependency.name }}
                     </li>
                     <li
                         v-for="dependency in delDependencies.regions"
                         :key="dependency.id">
+                        Region
                         <!-- <a :href="getRegionUrl.replace('region_id', dependency.id)">{{ dependency.name }}</a> -->
                         {{ dependency.name }}
                     </li>
                 </ul>
             </div>
-            <div>
+            <div v-else-if="delModel">
                 <p>Are you sure you want to delete region "{{ delModel.name }}"?</p>
             </div>
             <div slot="header">
                 <h4
+                    v-if="delModel"
                     class="modal-title">
                     Delete region {{ delModel.name }}
                 </h4>
@@ -137,7 +235,7 @@
                 <btn @click="delModal=false">Cancel</btn>
                 <btn
                     type="danger"
-                    :disabled="delDependencies.locations.length !== 0 || delDependencies.institutions.length !== 0 || delDependencies.regions.length !== 0"
+                    :disabled="Object.keys(delDependencies).length !== 0"
                     @click="submitDelete()">
                     Delete
                 </btn>
@@ -175,7 +273,11 @@ export default {
             type: String,
             default: '',
         },
-        getLocationsByRegionUrl: {
+        getManuscriptDepsByRegionUrl: {
+            type: String,
+            default: '',
+        },
+        getManuscriptUrl: {
             type: String,
             default: '',
         },
@@ -195,6 +297,10 @@ export default {
             type: String,
             default: '',
         },
+        putRegionMergeUrl: {
+            type: String,
+            default: '',
+        },
         deleteRegionUrl: {
             type: String,
             default: '',
@@ -203,11 +309,7 @@ export default {
     data() {
         return {
             alerts: [],
-            delDependencies: {
-                locations: [],
-                institutions: [],
-                regions: [],
-            },
+            delDependencies: {},
             delModal: false,
             delModel: {
                 region: null,
@@ -223,7 +325,7 @@ export default {
             },
             editRegionSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    parent: this.createMultiSelect('Parent', {}, {trackBy: 'id'}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
@@ -256,7 +358,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'isCity',
                     },
-                }
+                },
             },
             formOptions: {
                 validateAfterChanged: true,
@@ -264,17 +366,49 @@ export default {
                 validationSuccessClass: "success"
             },
             invalidEditForm: true,
+            invalidMergeForm: true,
+            mergeModal: false,
+            mergeModel: {
+                primary: null,
+                secondary: null,
+            },
+            mergeRegionSchema: {
+                fields: {
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                },
+            },
             model: {
                 region: null,
             },
             openRequests: 0,
             originalEditModel: {},
+            originalMergeModel: {},
             regionSchema: {
                 fields: {
                     region: this.createMultiSelect('Region', {}, {trackBy: 'id'}),
-                }
+                },
             },
             regionValues: JSON.parse(this.initRegions),
+        }
+    },
+    computed: {
+        mergeHistoricalName: function () {
+            if (
+                (this.mergeModel.primary.individualHistoricalName != null && this.mergeModel.primary.individualHistoricalName !== '')
+                || (this.mergeModel.secondary.individualHistoricalName == null || this.mergeModel.secondary.individualHistoricalName === '')
+            ) {
+                return this.mergeModel.primary.historicalName
+            }
+            else {
+                let historicalParent = this.mergeModel.primary.historicalName.substring(0, this.mergeModel.primary.historicalName.lastIndexOf('>'))
+                if (historicalParent !== '') {
+                    return this.mergeModel.primary.historicalName.substring(0, this.mergeModel.primary.historicalName.lastIndexOf('>')) + '> ' + this.mergeModel.secondary.individualHistoricalName
+                }
+                else {
+                    return this.mergeModel.secondary.individualHistoricalName
+                }
+            }
         }
     },
     mounted () {
@@ -308,6 +442,28 @@ export default {
             this.originalEditModel = JSON.parse(JSON.stringify(this.editModel))
             this.editModal = true
         },
+        editFormValidated(isValid, errors) {
+            this.invalidEditForm = !isValid
+        },
+        resetEdit() {
+            this.editModel = JSON.parse(JSON.stringify(this.originalEditModel))
+        },
+        mergeRegion() {
+            this.mergeModel.primary = this.model.region
+            this.mergeModel.secondary = null
+            this.mergeRegionSchema.fields.primary.values = this.regionValues
+            this.mergeRegionSchema.fields.secondary.values = this.regionValues
+            this.enableField(this.mergeRegionSchema.fields.primary)
+            this.enableField(this.mergeRegionSchema.fields.secondary)
+            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
+            this.mergeModal = true
+        },
+        mergeFormValidated(isValid, errors) {
+            this.invalidMergeForm = !isValid
+        },
+        resetMerge() {
+            this.mergeModel = JSON.parse(JSON.stringify(this.originalMergeModel))
+        },
         delRegion() {
             this.delModel = this.model.region
             this.deleteDependencies()
@@ -315,15 +471,20 @@ export default {
         deleteDependencies() {
             this.openRequests++
             axios.all([
-                axios.get(this.getLocationsByRegionUrl.replace('region_id', this.delModel.id)),
+                axios.get(this.getManuscriptDepsByRegionUrl.replace('region_id', this.delModel.id)),
                 axios.get(this.getInstitutionsByRegionUrl.replace('region_id', this.delModel.id)),
                 axios.get(this.getRegionsByRegionUrl.replace('region_id', this.delModel.id)),
             ])
                 .then((results) => {
-                    this.delDependencies = {
-                        locations: results[0].data,
-                        institutions: results[1].data,
-                        regions: results[2].data,
+                    this.delDependencies = {}
+                    if (results[0].data.length > 0) {
+                        this.delDependencies.manuscripts = results[0].data
+                    }
+                    if (results[1].data.length > 0) {
+                        this.delDependencies.institutions = results[1].data
+                    }
+                    if (results[2].data.length > 0) {
+                        this.delDependencies.regions = results[2].data
                     }
                     this.delModal = true
                     this.openRequests--
@@ -334,18 +495,12 @@ export default {
                     console.log(error)
                 })
         },
-        editFormValidated(isValid, errors) {
-            this.invalidEditForm = !isValid
-        },
-        resetEdit() {
-            this.editModel = JSON.parse(JSON.stringify(this.originalEditModel))
-        },
         submitEdit() {
             this.editModal = false
             this.openRequests++
             if (this.editModel.id == null) {
                 axios.post(this.postRegionsUrl, {
-                    parent: {
+                    parent: this.editModel.parent == null ? null : {
                         id: this.editModel.parent.id,
                     },
                     individualName: this.editModel.individualName,
@@ -368,8 +523,13 @@ export default {
             else {
                 let data = {}
                 if (JSON.stringify(this.editModel.parent) !== JSON.stringify(this.originalEditModel.parent)) {
-                    data.parent = {
-                        id: this.editModel.parent.id
+                    if (this.editModel.parent == null) {
+                        data.parent = null
+                    }
+                    else {
+                        data.parent = {
+                            id: this.editModel.parent.id
+                        }
                     }
                 }
                 if (this.editModel.individualName !== this.originalEditModel.individualName) {
@@ -398,13 +558,30 @@ export default {
                     })
             }
         },
+        submitMerge() {
+            this.mergeModal = false
+            this.openRequests++
+            axios.put(this.putRegionMergeUrl.replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
+                .then( (response) => {
+                    this.editModel = response.data
+                    this.update()
+                    this.alerts.push({type: 'success', message: 'Merge successful.'})
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the region.'})
+                    console.log(error)
+                })
+        },
         submitDelete() {
             this.delModal = false
             this.openRequests++
             axios.delete(this.deleteRegionUrl.replace('region_id', this.delModel.id))
                 .then( (response) => {
-                    this.model.region = null
-                    this.alerts.push({type: 'success', message: 'Delete successful.'})
+                    this.delModel = null
+                    this.editModel = null
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
                     this.openRequests--
                 })

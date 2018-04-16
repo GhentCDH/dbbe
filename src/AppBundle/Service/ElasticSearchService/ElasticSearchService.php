@@ -8,8 +8,6 @@ use Elastica\Document;
 use Elastica\Type;
 use Elastica\Query;
 
-use AppBundle\Model\Manuscript;
-
 const MAX = 2147483647;
 
 class ElasticSearchService implements ElasticSearchServiceInterface
@@ -55,37 +53,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     {
         $document = new Document($indexingContent['id'], $indexingContent);
         $type->addDocument($document);
-    }
-
-    public function addManuscripts(array $manuscripts)
-    {
-        $type = $this->getIndex('documents')->getType('manuscript');
-
-        $mapping = new Type\Mapping;
-        $mapping->setType($type);
-
-        $mapping->setProperties(
-            [
-                'content' => ['type' => 'nested'],
-                'patron' => ['type' => 'nested'],
-                'scribe' => ['type' => 'nested'],
-                'origin' => ['type' => 'nested'],
-            ]
-        );
-        $mapping->send();
-
-        $manuscriptsElastic = [];
-        foreach ($manuscripts as $manuscript) {
-            $manuscriptsElastic [] = $manuscript->getElastic();
-        }
-
-        $this->bulkAdd($type, $manuscriptsElastic);
-    }
-
-    public function addManuscript(Manuscript $manuscript)
-    {
-        $type = $this->getIndex('documents')->getType('manuscript');
-        $this->add($type, $manuscript->getElastic());
     }
 
     public function search(string $indexName, string $typeName, array $params = null): array

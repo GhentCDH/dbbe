@@ -22,12 +22,13 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         // Get database and elasticsearch clients
         $manuscriptManager = $this->getContainer()->get('manuscript_manager');
 
-        $elasticSearchService = $this->getContainer()->get('elasticsearch_service');
+        $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
 
         // Index all types
         // (Re)index manuscripts
         $elasticSearchService->resetIndex('documents');
         $manuscripts = $manuscriptManager->getAllManuscripts();
-        $elasticSearchService->addManuscripts($manuscripts);
+        $manuscriptElasticService->setupManuscripts();
+        $manuscriptElasticService->addManuscripts($manuscripts);
     }
 }

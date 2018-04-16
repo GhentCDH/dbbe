@@ -106,6 +106,17 @@ class InstitutionService extends DatabaseService
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }
+        // don't delete if this institution is used in factoid
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.factoid
+            inner join data.location on factoid.idlocation = location.idlocation
+            where location.idinstitution = ?',
+            [$institutionId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This institution has dependencies.');
+        }
         // Set search_path for trigger delete_entity
         $this->conn->exec('SET SEARCH_PATH TO data');
         return $this->conn->executeUpdate(

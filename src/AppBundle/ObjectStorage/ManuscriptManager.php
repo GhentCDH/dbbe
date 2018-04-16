@@ -16,18 +16,17 @@ class ManuscriptManager extends ObjectManager
 {
     public function getManuscriptsByIds(array $ids): array
     {
-        list($cached_short, $ids) = $this->getCache($ids, 'manuscript_short');
-        list($cached, $ids) = $this->getCache($ids, 'manuscript');
+        list($cached, $ids) = $this->getCache($ids, 'manuscript_short');
         if (empty($ids)) {
-            return $cached_short + $cached;
+            return $cached;
         }
 
         $manuscripts = [];
         // Locations
         // locations are identifiedd by document ids
-        $locations = $this->oms['location_manager']->getLocationsByIds($ids);
+        $locations = $this->container->get('location_manager')->getLocationsByIds($ids);
         if (count($locations) == 0) {
-            return $cached_short + $cached;
+            return $cached;
         }
         foreach ($locations as $location) {
             $manuscripts[$location->getId()] = (new Manuscript())
@@ -46,7 +45,7 @@ class ManuscriptManager extends ObjectManager
         $rawContents = $this->dbs->getContents($ids);
         if (count($rawContents) > 0) {
             $contentIds = self::getUniqueIds($rawContents, 'genre_id');
-            $contentsWithParents = $this->oms['content_manager']->getContentsWithParentsByIds($contentIds);
+            $contentsWithParents = $this->container->get('content_manager')->getContentsWithParentsByIds($contentIds);
             foreach ($rawContents as $rawContent) {
                 $contentWithParents = $contentsWithParents[$rawContent['genre_id']];
                 $manuscripts[$rawContent['manuscript_id']]
@@ -76,12 +75,12 @@ class ManuscriptManager extends ObjectManager
         $personIds = array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds);
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
         }
 
         $occurrences = [];
         if (count($occurrenceIds) > 0) {
-            $occurrences = $this->oms['occurrence_manager']->getOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesByIds($occurrenceIds);
         }
 
         foreach (array_merge($rawBibroles, $rawOccurrenceBibroles, $rawRelatedPersons) as $rawPerson) {
@@ -129,7 +128,7 @@ class ManuscriptManager extends ObjectManager
         $rawOrigins = $this->dbs->getOrigins($ids);
         if (count($rawOrigins) > 0) {
             $originIds = self::getUniqueIds($rawOrigins, 'region_id');
-            $regionsWithParents = $this->oms['region_manager']->getRegionsWithParentsByIds($originIds);
+            $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($originIds);
             foreach ($rawOrigins as $rawOrigin) {
                 $regionWithParents = $regionsWithParents[$rawOrigin['region_id']];
                 $origin = (new Origin())
@@ -162,7 +161,7 @@ class ManuscriptManager extends ObjectManager
 
         $this->setCache($manuscripts, 'manuscript_short');
 
-        return $cached_short + $cached + $manuscripts;
+        return $cached + $manuscripts;
     }
 
     public function getAllManuscripts(): array
@@ -192,10 +191,10 @@ class ManuscriptManager extends ObjectManager
         $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
         $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
         $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
-        $bookBibliographies = $this->oms['bibliography_manager']->getBookBibliographiesByIds($bookIds);
-        $articleBibliographies = $this->oms['bibliography_manager']->getArticleBibliographiesByIds($articleIds);
-        $bookChapterBibliographies = $this->oms['bibliography_manager']->getBookChapterBibliographiesByIds($bookChapterIds);
-        $onlineSourceBibliographies = $this->oms['bibliography_manager']->getOnlineSourceBibliographiesByIds($onlineSourceIds);
+        $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
+        $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
+        $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
+        $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
         $bibliographies =
             $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
         foreach ($bibliographies as $bibliography) {
@@ -225,7 +224,7 @@ class ManuscriptManager extends ObjectManager
         $rawOccurrences = $this->dbs->getOccurrences([$id]);
         if (count($rawOccurrences) > 0) {
             $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-            $occurrences = $this->oms['occurrence_manager']->getOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesByIds($occurrenceIds);
             foreach ($occurrences as $occurrence) {
                 $manuscript->addCacheDependency('occurrence.' . $occurrence->getId());
             }
@@ -243,27 +242,22 @@ class ManuscriptManager extends ObjectManager
         return $manuscript;
     }
 
-    public function getManuscriptsByLocation(stdClass $data): array
+    public function getManuscriptsDependenciesByRegion(int $regionId): array
     {
-        if (property_exists($data, 'type')
-            && $data->type == 'collection'
-            && property_exists($data, 'collection')
-            && property_exists($data->collection, 'id')
-            && is_numeric($data->collection->id)
-        ) {
-            $rawIds = $this->dbs->getIdsByCollectionId($data->collection->id);
-            return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
-        } elseif (property_exists($data, 'type')
-            && $data->type == 'library'
-            && property_exists($data, 'library')
-            && property_exists($data->library, 'id')
-            && is_numeric($data->library->id)
-        ) {
-            $rawIds = $this->dbs->getIdsByLibraryId($data->library->id);
-            return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
-        } else {
-            throw new BadRequestHttpException('Incorrect data.');
-        }
+        $rawIds = $this->dbs->getDepIdsByRegionId($regionId);
+        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
+    public function getManuscriptsDependenciesByInstitution(int $institutionId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByInstitutionId($institutionId);
+        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
+    public function getManuscriptsDependenciesByCollection(int $collectionId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByCollectionId($collectionId);
+        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function updateManuscript(int $id, stdClass $data): ?Manuscript
@@ -276,17 +270,18 @@ class ManuscriptManager extends ObjectManager
                 return null;
             }
 
+            // TODO: sanitize data
             // update manuscript data
             if (property_exists($data, 'library')
                 && !(property_exists($data, 'collection') && !empty($data->collection))
             ) {
-                $this->oms['location_manager']->updateLibrary($manuscript, $data->library);
+                $this->container->get('location_manager')->updateLibrary($manuscript, $data->library);
             }
             if (property_exists($data, 'collection') && !empty($data->collection)) {
-                $this->oms['location_manager']->updateCollection($manuscript, $data->collection);
+                $this->container->get('location_manager')->updateCollection($manuscript, $data->collection);
             }
             if (property_exists($data, 'shelf')) {
-                $this->oms['location_manager']->updateShelf($manuscript, $data->shelf);
+                $this->container->get('location_manager')->updateShelf($manuscript, $data->shelf);
             }
             if (property_exists($data, 'content')) {
                 $this->updateContent($manuscript, $data->content);
@@ -421,7 +416,7 @@ class ManuscriptManager extends ObjectManager
         // Add and update
         foreach ($bibliography->books as $bookBib) {
             if (!property_exists($bookBib, 'id')) {
-                $this->oms['bibliography_manager']->addBookBibliography(
+                $this->container->get('bibliography_manager')->addBookBibliography(
                     $manuscript->getId(),
                     $bookBib->book->id,
                     self::certainString($bookBib, 'startPage'),
@@ -429,7 +424,7 @@ class ManuscriptManager extends ObjectManager
                 );
             } elseif (in_array($bookBib->id, $origBibIds)) {
                 $updateIds[] = $bookBib->id;
-                $this->oms['bibliography_manager']->updateBookBibliography(
+                $this->container->get('bibliography_manager')->updateBookBibliography(
                     $bookBib->id,
                     $bookBib->book->id,
                     self::certainString($bookBib, 'startPage'),
@@ -445,7 +440,7 @@ class ManuscriptManager extends ObjectManager
         }
         foreach ($bibliography->articles as $articleBib) {
             if (!property_exists($articleBib, 'id')) {
-                $this->oms['bibliography_manager']->addArticleBibliography(
+                $this->container->get('bibliography_manager')->addArticleBibliography(
                     $manuscript->getId(),
                     $articleBib->article->id,
                     self::certainString($articleBib, 'startPage'),
@@ -453,7 +448,7 @@ class ManuscriptManager extends ObjectManager
                 );
             } elseif (in_array($articleBib->id, $origBibIds)) {
                 $updateIds[] = $articleBib->id;
-                $this->oms['bibliography_manager']->updateArticleBibliography(
+                $this->container->get('bibliography_manager')->updateArticleBibliography(
                     $articleBib->id,
                     $articleBib->article->id,
                     self::certainString($articleBib, 'startPage'),
@@ -469,7 +464,7 @@ class ManuscriptManager extends ObjectManager
         }
         foreach ($bibliography->bookChapters as $bookChapterBib) {
             if (!property_exists($bookChapterBib, 'id')) {
-                $this->oms['bibliography_manager']->addBookChapterBibliography(
+                $this->container->get('bibliography_manager')->addBookChapterBibliography(
                     $manuscript->getId(),
                     $bookChapterBib->bookChapter->id,
                     self::certainString($bookChapterBib, 'startPage'),
@@ -477,7 +472,7 @@ class ManuscriptManager extends ObjectManager
                 );
             } elseif (in_array($bookChapterBib->id, $origBibIds)) {
                 $updateIds[] = $bookChapterBib->id;
-                $this->oms['bibliography_manager']->updateBookChapterBibliography(
+                $this->container->get('bibliography_manager')->updateBookChapterBibliography(
                     $bookChapterBib->id,
                     $bookChapterBib->bookChapter->id,
                     self::certainString($bookChapterBib, 'startPage'),
@@ -493,14 +488,14 @@ class ManuscriptManager extends ObjectManager
         }
         foreach ($bibliography->onlineSources as $onlineSourceBib) {
             if (!property_exists($onlineSourceBib, 'id')) {
-                $this->oms['bibliography_manager']->addOnlineSourceBibliography(
+                $this->container->get('bibliography_manager')->addOnlineSourceBibliography(
                     $manuscript->getId(),
                     $onlineSourceBib->onlineSource->id,
                     self::certainString($onlineSourceBib, 'relUrl')
                 );
             } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
                 $updateIds[] = $onlineSourceBib->id;
-                $this->oms['bibliography_manager']->updateOnlineSourceBibliography(
+                $this->container->get('bibliography_manager')->updateOnlineSourceBibliography(
                     $onlineSourceBib->id,
                     $onlineSourceBib->onlineSource->id,
                     self::certainString($onlineSourceBib, 'relUrl')
@@ -520,7 +515,7 @@ class ManuscriptManager extends ObjectManager
             }
         }
         if (count($delIds) > 0) {
-            $this->oms['bibliography_manager']->delBibliographies(
+            $this->container->get('bibliography_manager')->delBibliographies(
                 array_filter(
                     $manuscript->getBibliographies(),
                     function ($bibliography) use ($delIds) {
@@ -572,6 +567,11 @@ class ManuscriptManager extends ObjectManager
         } else {
             $this->dbs->updatePrivateComment($manuscript->getId(), $privateComment);
         }
+    }
+
+    public function elasticIndex(array $manuscripts): void
+    {
+        $this->ess->addManuscripts($manuscripts);
     }
 
     private static function calcDiff(array $newJsonArray, array $oldObjectArray): array

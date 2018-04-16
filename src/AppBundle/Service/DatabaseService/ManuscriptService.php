@@ -17,29 +17,90 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getIdsByCollectionId(int $id): array
+    public function getDepIdsByRegionId(int $regionId): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 manuscript.identity as manuscript_id
             from data.manuscript
             inner join data.located_at on manuscript.identity = located_at.iddocument
+            inner join data.location on location.idlocation = located_at.idlocation
+            where location.idregion = ?
+
+            union
+
+            SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.located_at on manuscript.identity = located_at.iddocument
             inner join data.location on located_at.idlocation = location.idlocation
-            where location.idfund = ?',
-            [$id]
+            inner join data.institution on institution.identity = location.idinstitution
+            where institution.idregion = ?
+
+            union
+
+            SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.located_at on manuscript.identity = located_at.iddocument
+            inner join data.location on located_at.idlocation = location.idlocation
+            inner join data.fund on fund.idfund = location.idfund
+            inner join data.institution on institution.identity = fund.idlibrary
+            where institution.idregion = ?
+
+            union
+
+            select
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.factoid on manuscript.identity = factoid.subject_identity
+            inner join data.location on location.idlocation = factoid.idlocation
+            where location.idregion = ?',
+            [$regionId, $regionId, $regionId, $regionId]
         )->fetchAll();
     }
 
-    public function getIdsByLibraryId(int $id): array
+    public function getDepIdsByInstitutionId(int $institutionId): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 manuscript.identity as manuscript_id
             from data.manuscript
             inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on located_at.idlocation = location.idlocation
+            inner join data.location on location.idlocation = located_at.idlocation
+            where location.idinstitution = ?
+
+            union
+
+            select
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.factoid on manuscript.identity = factoid.subject_identity
+            inner join data.location on location.idlocation = factoid.idlocation
             where location.idinstitution = ?',
-            [$id]
+            [$institutionId, $institutionId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByCollectionId(int $collectionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.located_at on manuscript.identity = located_at.iddocument
+            inner join data.location on location.idlocation = located_at.idlocation
+            where location.idfund = ?
+
+            union
+
+            select
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.factoid on manuscript.identity = factoid.subject_identity
+            inner join data.location on location.idlocation = factoid.idlocation
+            where location.idfund = ?',
+            [$collectionId, $collectionId]
         )->fetchAll();
     }
 

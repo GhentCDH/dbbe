@@ -44,24 +44,20 @@ class RegionController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $regions = array_values(
-            self::arrayToJson(
-                $this->get('region_manager')->getAllRegionsWithParents()
-            )
-        );
+        $regionsWithParents = self::arrayToJson($this->get('region_manager')->getAllRegionsWithParents());
 
         // sort on name
-        usort($regions, function ($a, $b) {
+        usort($regionsWithParents, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse($regions);
+            return new JsonResponse($regionsWithParents);
         }
         return $this->render(
             'AppBundle:Region:overview.html.twig',
             [
-                'regions' => json_encode($regions),
+                'regions' => json_encode($regionsWithParents),
             ]
         );
     }
@@ -77,7 +73,7 @@ class RegionController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $region = $this
+            $regionWithParents = $this
                 ->get('region_manager')
                 ->addRegionWithParents(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
@@ -87,7 +83,32 @@ class RegionController extends Controller
             );
         }
 
-        return new JsonResponse($region->getJson());
+        return new JsonResponse($regionWithParents->getJson());
+    }
+
+    /**
+     * @Route("/regions/{primary}/{secondary}", name="region_merge")
+     * @Method("PUT")
+     * @param  int    $primary first region id (will stay)
+     * @param  int    $secondary second region id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function mergeRegions(int $primary, int $secondary, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        try {
+            $regionWithParents = $this
+                ->get('region_manager')
+                ->mergeRegionsWithParents($primary, $secondary);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        return new JsonResponse($regionWithParents->getJson());
     }
 
     /**
@@ -101,15 +122,18 @@ class RegionController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $region = $this
-            ->get('region_manager')
-            ->updateRegionWithParents($id, json_decode($request->getContent()));
-
-        if (empty($region)) {
-            throw $this->createNotFoundException('There is no region with the requested id.');
+        try {
+            $regionWithParents = $this
+                ->get('region_manager')
+                ->updateRegionWithParents($id, json_decode($request->getContent()));
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
         }
 
-        return new JsonResponse($region->getJson());
+        return new JsonResponse($regionWithParents->getJson());
     }
 
     /**

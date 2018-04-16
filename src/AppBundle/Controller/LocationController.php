@@ -2,7 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,21 +32,5 @@ class LocationController extends Controller
                 'locations' => json_encode($locations),
             ]
         );
-    }
-
-    /**
-     * @Route("/locations/region/{id}", name="locations_by_region")
-     * @param int $id The region id
-     * @param Request $request
-     * */
-    public function getLocationsByRegion(int $id, Request $request)
-    {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $locations = $this
-                ->get('location_manager')
-                ->getLocationsByRegion($id);
-            return new JsonResponse(self::arrayToShortJson($locations));
-        }
-        throw new Exception('Not implemented.');
     }
 }

@@ -109,7 +109,7 @@ class RegionService extends DatabaseService
     }
 
     public function insert(
-        int $parentId,
+        int $parentId = null,
         string $name,
         string $historicalName = null,
         bool $isCity = false
@@ -136,7 +136,7 @@ class RegionService extends DatabaseService
         return $regionId;
     }
 
-    public function updateParent(int $regionId, int $parentId): int
+    public function updateParent(int $regionId, int $parentId = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.region
@@ -213,11 +213,22 @@ class RegionService extends DatabaseService
 
     public function delete(int $regionId): int
     {
-        // don't delete if this region is used in location
+        // don't delete if this region is used in located_at
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.located_at
-            inner join data.location on location. idlocation = located_at.idlocation
+            inner join data.location on located_at.idlocation = location.idlocation
+            where location.idregion = ?',
+            [$regionId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This region has dependencies.');
+        }
+        // don't delete if this region is used in factoid
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.factoid
+            inner join data.location on factoid.idlocation = location.idlocation
             where location.idregion = ?',
             [$regionId]
         )->fetchColumn(0);

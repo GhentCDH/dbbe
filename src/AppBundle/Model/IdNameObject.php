@@ -7,7 +7,7 @@ class IdNameObject implements IdJsonInterface
     protected $id;
     protected $name;
 
-    public function __construct(int $id, string $name)
+    public function __construct(int $id, string $name = null)
     {
         $this->id = $id;
         $this->name = $name;

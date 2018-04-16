@@ -98,11 +98,15 @@ class RegionManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            if (property_exists($data, 'parent')
-                && property_exists($data->parent, 'id')
-                && is_numeric($data->parent->id)
-                && property_exists($data, 'individualName')
+            if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
+                && !(
+                    property_exists($data, 'parent')
+                    && !(
+                        $data->parent == null
+                        || (property_exists($data->parent, 'id') && is_numeric($data->parent->id))
+                    )
+                )
                 && !(
                     property_exists($data, 'individualHistoricalName')
                     && !($data->individualHistoricalName == null || is_string($data->individualHistoricalName))
@@ -117,9 +121,9 @@ class RegionManager extends ObjectManager
                 )
             ) {
                 $regionId = $this->dbs->insert(
-                    $data->parent->id,
+                    (property_exists($data, 'parent') && $data->parent != null) ? $data->parent->id : null,
                     $data->individualName,
-                    property_exists($data, 'historicalName') ? $data->historicalName : null,
+                    property_exists($data, 'individualHistoricalName') ? $data->individualHistoricalName : null,
                     (property_exists($data, 'isCity') && is_bool($data->isCity)) ? $data->isCity : false
                 );
                 if (property_exists($data, 'pleiades') && is_numeric($data->pleiades)) {
@@ -148,49 +152,56 @@ class RegionManager extends ObjectManager
         return $newRegionWithParents;
     }
 
-    public function updateRegionWithParents(int $id, stdClass $data): RegionWithParents
+    public function updateRegionWithParents(int $regionId, stdClass $data): RegionWithParents
     {
         $this->dbs->beginTransaction();
         try {
-            $regionsWithParents = $this->getRegionsWithParentsByIds([$id]);
+            $regionsWithParents = $this->getRegionsWithParentsByIds([$regionId]);
             if (count($regionsWithParents) == 0) {
                 $this->dbs->rollBack();
-                return null;
+                throw new NotFoundHttpException('Region with id ' . $regionId .' not found.');
             }
-            $regionWithParents = $regionsWithParents[$id];
+            $regionWithParents = $regionsWithParents[$regionId];
 
             // update region data
             $correct = false;
             if (property_exists($data, 'parent')
+                && $data->parent == null
+            ) {
+                $correct = true;
+                $this->dbs->updateParent($regionId, null);
+            }
+            if (property_exists($data, 'parent')
+                && $data->parent != null
                 && property_exists($data->parent, 'id')
                 && is_numeric($data->parent->id)
             ) {
                 $correct = true;
-                $this->dbs->updateParent($id, $data->parent->id);
+                $this->dbs->updateParent($regionId, $data->parent->id);
             }
             if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
             ) {
                 $correct = true;
-                $this->dbs->updateName($id, $data->individualName);
+                $this->dbs->updateName($regionId, $data->individualName);
             }
             if (property_exists($data, 'individualHistoricalName')
                 && is_string($data->individualHistoricalName)
             ) {
                 $correct = true;
-                $this->dbs->updateHistoricalName($id, $data->individualHistoricalName);
+                $this->dbs->updateHistoricalName($regionId, $data->individualHistoricalName);
             }
             if (property_exists($data, 'pleiades')
                 && is_numeric($data->pleiades)
             ) {
                 $correct = true;
-                $this->dbs->upsertPleiades($id, $data->pleiades);
+                $this->dbs->upsertPleiades($regionId, $data->pleiades);
             }
             if (property_exists($data, 'isCity')
                 && is_bool($data->isCity)
             ) {
                 $correct = true;
-                $this->dbs->updateIsCity($id, $data->isCity);
+                $this->dbs->updateIsCity($regionId, $data->isCity);
             }
 
             if (!$correct) {
@@ -198,15 +209,19 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->cache->invalidateTags(['regions']);
-            $this->cache->deleteItem('region.' . $id);
-            $this->cache->deleteItem('region_with_parents.' . $id);
-            $newRegionWithParents = $this->getRegionsWithParentsByIds([$id])[$id];
+            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId, 'regions']);
+            $this->cache->deleteItem('region.' . $regionId);
+            $this->cache->deleteItem('region_with_parents.' . $regionId);
+            $newRegionWithParents = $this->getRegionsWithParentsByIds([$regionId])[$regionId];
 
             $this->updateModified($regionWithParents, $newRegionWithParents);
 
             // update cache
             $this->setCache([$newRegionWithParents->getId() => $newRegionWithParents], 'region_with_parents');
+
+            // update Elastic manuscripts
+            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($regionId);
+            $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction
             $this->dbs->commit();
@@ -216,6 +231,86 @@ class RegionManager extends ObjectManager
         }
 
         return $newRegionWithParents;
+    }
+
+    public function mergeRegionsWithParents(int $primaryId, int $secondaryId): RegionWithParents
+    {
+        $regionsWithParents = $this->getRegionsWithParentsByIds([$primaryId, $secondaryId]);
+        if (count($regionsWithParents) != 2) {
+            if (!array_key_exists($primaryId, $regionsWithParents)) {
+                throw new NotFoundHttpException('Region with id ' . $primaryId .' not found.');
+            }
+            if (!array_key_exists($secondaryId, $regionsWithParents)) {
+                throw new NotFoundHttpException('Region with id ' . $secondaryId .' not found.');
+            }
+        }
+        list($primary, $secondary) = array_values($regionsWithParents);
+        $updates = [];
+        if (empty($primary->getIndividualName()) && !empty($secondary->getIndividualName())) {
+            $updates['individualName'] = $secondary->getIndividualName();
+        }
+        if (empty($primary->getIndividualHistoricalName()) && !empty($secondary->getIndividualHistoricalName())) {
+            $updates['individualHistoricalName'] = $secondary->getIndividualHistoricalName();
+        }
+        if (empty($primary->getPleiades()) && !empty($secondary->getPleiades())) {
+            $updates['pleiades'] = $secondary->getPleiades();
+        }
+
+        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($secondaryId);
+        $manuscripts = array_filter($manuscripts, function ($manuscript) use ($secondaryId) {
+            if (!empty($manuscript->getOrigin())
+                && $manuscript->getOrigin()->getId() == $this->container->get('location_manager')->getLocationByRegion($secondaryId)
+            ) {
+                return true;
+            }
+            return false;
+        });
+        $institutions = $this->container->get('institution_manager')->getInstitutionsByRegion($secondaryId);
+        $regions = $this->getRegionsWithParentsByRegion($secondaryId);
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($updates)) {
+                $primary = $this->updateRegionWithParents($primaryId, json_decode(json_encode($updates)));
+            }
+            if (!empty($manuscripts)) {
+                foreach ($manuscripts as $manuscript) {
+                    $this->container->get('manuscript_manager')->updateManuscript(
+                        $manuscript->getId(),
+                        json_decode(json_encode([
+                            'origin' => [
+                                'id' => $this->container->get('location_manager')->getLocationByRegion($primaryId)
+                            ]
+                        ]))
+                    );
+                }
+            }
+            if (!empty($institutions)) {
+                foreach ($institutions as $institution) {
+                    $this->container->get('institution_manager')->updateInstitution(
+                        $institution->getId(),
+                        json_decode(json_encode(['city' => ['id' => $primaryId]]))
+                    );
+                }
+            }
+            if (!empty($regions)) {
+                foreach ($regions as $region) {
+                    $this->updateRegionWithParents(
+                        $region->getId(),
+                        json_decode(json_encode(['parent' => ['id' => $primaryId]]))
+                    );
+                }
+            }
+            $this->delRegion($secondaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $primary;
     }
 
     public function delRegion(int $regionId): void
@@ -231,7 +326,7 @@ class RegionManager extends ObjectManager
             $this->dbs->delete($regionId);
 
             // load new region data
-            $this->cache->invalidateTags(['regions']);
+            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId, 'regions']);
             $this->cache->deleteItem('region.' . $regionId);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
 

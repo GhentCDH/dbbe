@@ -172,20 +172,57 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/location", name="manuscripts_by_location")
-     * @Method("POST")
+     * Get all manuscripts that have a dependency on a region
+     * (located_at / factoid)
+     * @Route("/manuscripts/regions/{id}", name="manuscript_deps_by_region")
+     * @Method("GET")
+     * @param  int    $id region id
      * @param Request $request
      */
-    public function getManuscriptsByLocation(Request $request)
+    public function getManuscriptDepsByRegion(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $manuscripts = $this
-                    ->get('manuscript_manager')
-                    ->getManuscriptsByLocation(json_decode($request->getContent()));
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(['error' => ['code' => 400, 'message' => $e->getMessage()]], 400);
-            }
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByRegion($id);
+            return new JsonResponse(self::arrayToShortJson($manuscripts));
+        }
+        return  new \Exception('Not implemented.');
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on an institution
+     * (located_at / factoid)
+     * @Route("/manuscripts/institutions/{id}", name="manuscript_deps_by_institution")
+     * @Method("GET")
+     * @param  int    $id institution id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByInstitution(int $id, Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByInstitution($id);
+            return new JsonResponse(self::arrayToShortJson($manuscripts));
+        }
+        return  new \Exception('Not implemented.');
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on a collection
+     * (located_at / factoid)
+     * @Route("/manuscripts/collections/{id}", name="manuscript_deps_by_collection")
+     * @Method("GET")
+     * @param  int    $id collection id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByCollection(int $id, Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByCollection($id);
             return new JsonResponse(self::arrayToShortJson($manuscripts));
         }
         return  new \Exception('Not implemented.');

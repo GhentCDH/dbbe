@@ -58,7 +58,7 @@ class BibliographyManager extends ObjectManager
         $rawBooks = $this->dbs->getBooksByIds($ids);
 
         $personIds = self::getUniqueIds($rawBooks, 'person_ids');
-        $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+        $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
 
         foreach ($rawBooks as $rawBook) {
             $book = new Book(
@@ -164,7 +164,7 @@ class BibliographyManager extends ObjectManager
         $journals = $this->getJournalsByIds($journalIds);
 
         $personIds = self::getUniqueIds($rawArticles, 'person_ids');
-        $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+        $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
 
         foreach ($rawArticles as $rawArticle) {
             $article = (new Article(
@@ -295,7 +295,7 @@ class BibliographyManager extends ObjectManager
         $books = $this->getBooksByIds($bookIds);
 
         $personIds = self::getUniqueIds($rawBookChapters, 'person_ids');
-        $persons = $this->oms['person_manager']->getPersonsByIds($personIds);
+        $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
 
         foreach ($rawBookChapters as $rawBookChapter) {
             $bookChapter = (new BookChapter(

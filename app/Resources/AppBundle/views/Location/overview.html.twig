@@ -5,7 +5,8 @@
         <locations-edit-app
             init-locations="{{ locations }}"
             get-locations-url="{{ path('locations_get') }}"
-            get-manuscripts-by-location-url="{{ path('manuscripts_by_location') }}"
+            get-manuscript-deps-by-institution-url="{{ path('manuscript_deps_by_institution', {'id': 'institution_id'}) }}"
+            get-manuscript-deps-by-collection-url="{{ path('manuscript_deps_by_collection', {'id': 'collection_id'}) }}"
             get-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
             get-regions-url="{{ path('regions_get') }}"
             put-region-url="{{ path('region_put', {'id': 'region_id'}) }}"

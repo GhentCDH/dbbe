@@ -5,10 +5,11 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 
 use Psr\Cache\CacheItemPoolInterface;
-use AppBundle\Model\IdJsonInterface;
 
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Model\IdJsonInterface;
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -17,20 +18,20 @@ class ObjectManager
 {
     protected $dbs;
     protected $cache;
-    protected $oms;
+    protected $container;
     protected $ess;
     protected $ts;
 
     public function __construct(
         DatabaseServiceInterface $databaseService,
         CacheItemPoolInterface $cacheItemPool,
-        array $objectManagers,
+        ContainerInterface $container,
         ElasticSearchServiceInterface $elasticSearchService = null,
         TokenStorageInterface $tokenStorage = null
     ) {
         $this->dbs = $databaseService;
         $this->cache = new TagAwareAdapter($cacheItemPool);
-        $this->oms = $objectManagers;
+        $this->container = $container;
         $this->ess = $elasticSearchService;
         $this->ts = $tokenStorage;
     }
@@ -79,9 +80,7 @@ class ObjectManager
         foreach ($items as $id => $item) {
             $cache = $this->cache->getItem($cacheKey . '.' . $id);
             if (method_exists($item, 'getCacheDependencies')) {
-                foreach ($item->getCacheDependencies() as $cacheDependency) {
-                    $cache->tag($cacheDependency);
-                }
+                $cache->tag($item->getCacheDependencies());
             }
             $this->cache->save($cache->set($item));
         }

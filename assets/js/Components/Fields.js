@@ -100,8 +100,8 @@ export default {
                         id: location[field.model + '_id'],
                         name: location[field.model + '_name']
                     }
-                    if (location[field.model + '_individualName'] != null) {
-                        fieldInfo.individualName = location[field.model + '_individualName']
+                    if (field.model === 'city') {
+                        fieldInfo.individualName = location.city_individualName
                     }
                     return fieldInfo
                 })
