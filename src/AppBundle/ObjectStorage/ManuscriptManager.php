@@ -246,6 +246,12 @@ class ManuscriptManager extends ObjectManager
         return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
+    public function getManuscriptsDependenciesByContent(int $contentId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByContentId($contentId);
+        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
     public function updateManuscript(int $id, stdClass $data): ?Manuscript
     {
         $this->dbs->beginTransaction();
@@ -340,6 +346,16 @@ class ManuscriptManager extends ObjectManager
 
     private function updateContent(Manuscript $manuscript, array $contents): void
     {
+        if (!is_array($contents)) {
+            throw new BadRequestHttpException('Incorrect data.');
+        }
+        foreach ($contents as $content) {
+            if (!property_exists($content, 'id')
+                && !is_numeric($content->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+        }
         list($delIds, $addIds) = self::calcDiff($contents, $manuscript->getContentsWithParents());
 
         if (count($delIds) > 0) {

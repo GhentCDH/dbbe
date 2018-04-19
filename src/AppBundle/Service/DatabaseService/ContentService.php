@@ -4,6 +4,8 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 
+use AppBundle\Exceptions\DependencyException;
+
 class ContentService extends DatabaseService
 {
     public function getContentIds(): array
@@ -56,5 +58,98 @@ class ContentService extends DatabaseService
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
+    }
+
+    public function getContentsByContent(int $contentId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                genre.idgenre as content_id
+            from data.genre
+            where genre.idparentgenre = ?',
+            [$contentId]
+        )->fetchAll();
+    }
+
+    public function insert(
+        int $parentId = null,
+        string $name
+    ): int {
+        // Set search_path for trigger ensure_entity_presence
+        $this->conn->exec('SET SEARCH_PATH TO data');
+        $this->conn->executeUpdate(
+            'INSERT INTO data.genre (idparentgenre, genre, is_content)
+            values (?, ?, TRUE)',
+            [
+                $parentId,
+                $name
+            ]
+        );
+        $contentId = $this->conn->executeQuery(
+            'SELECT
+                genre.idgenre as content_id
+            from data.genre
+            order by idgenre desc
+            limit 1'
+        )->fetch()['content_id'];
+        return $contentId;
+    }
+
+    public function updateParent(int $contentId, int $parentId = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.genre
+            set idparentgenre = ?
+            where genre.idgenre = ?',
+            [
+                $parentId,
+                $contentId,
+            ]
+        );
+    }
+
+    public function updateName(int $contentId, string $name): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.genre
+            set genre = ?
+            where genre.idgenre = ?',
+            [
+                $name,
+                $contentId,
+            ]
+        );
+    }
+
+    public function delete(int $contentId): int
+    {
+        // don't delete if this content is used in document_genre
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.document_genre
+            where document_genre.idgenre = ?',
+            [$contentId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This content has dependencies.');
+        }
+        // don't delete if this content is used in content (as parent)
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.genre
+            where genre.idparentgenre = ?',
+            [$contentId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This content has dependencies.');
+        }
+        // Set search_path for trigger delete_entity
+        // Pleiades id is deleted by foreign key constraint
+        $this->conn->exec('SET SEARCH_PATH TO data');
+        return $this->conn->executeUpdate(
+            'DELETE from data.genre
+            where genre.idgenre = ?',
+            [$contentId]
+        );
     }
 }

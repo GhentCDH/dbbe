@@ -228,6 +228,25 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * Get all manuscripts that have a dependency on a content
+     * (document_genre)
+     * @Route("/manuscripts/contents/{id}", name="manuscript_deps_by_content")
+     * @Method("GET")
+     * @param  int    $id content id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByContent(int $id, Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByContent($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        }
+        return  new \Exception('Not implemented.');
+    }
+
+    /**
      * @Route("/manuscripts/{id}", name="manuscript_put")
      * @Method("PUT")
      * @param  int    $id manuscript id

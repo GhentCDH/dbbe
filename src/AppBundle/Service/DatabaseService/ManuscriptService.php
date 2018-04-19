@@ -21,8 +21,8 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manloc.manuscript_id
-             from (
+                manreg.manuscript_id
+            from (
                 select
                     manuscript.identity as manuscript_id,
                     region.identity as region_id
@@ -43,8 +43,8 @@ class ManuscriptService extends DatabaseService
                 inner join data.location on factoid.idlocation = location.idlocation
                 left join data.institution on location.idinstitution = institution.identity
                 inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
-            ) as manloc
-            where manloc.region_id = ?',
+            ) as manreg
+            where manreg.region_id = ?',
             [$regionId]
         )->fetchAll();
     }
@@ -53,21 +53,29 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on location.idlocation = located_at.idlocation
-            where location.idinstitution = ?
+                maninst.manuscript_id
+            from (
+                select
+                    manuscript.identity as manuscript_id,
+                    institution.identity as institution_id
+                from data.manuscript
+                inner join data.located_at on manuscript.identity = located_at.iddocument
+                inner join data.location on located_at.idlocation = location.idlocation
+                left join data.fund on location.idfund = fund.idfund
+                inner join data.institution on coalesce(location.idinstitution, fund.idlibrary) = institution.identity
 
-            union
+                union
 
-            select
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.factoid on manuscript.identity = factoid.subject_identity
-            inner join data.location on location.idlocation = factoid.idlocation
-            where location.idinstitution = ?',
-            [$institutionId, $institutionId]
+                select
+                    manuscript.identity as manuscript_id,
+                    institution.identity as institution_id
+                from data.manuscript
+                inner join data.factoid on manuscript.identity = factoid.subject_identity
+                inner join data.location on location.idlocation = factoid.idlocation
+                inner join data.institution on location.idinstitution = institution.identity
+            ) as maninst
+            where maninst.institution_id = ?',
+            [$institutionId]
         )->fetchAll();
     }
 
@@ -75,21 +83,38 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on location.idlocation = located_at.idlocation
-            where location.idfund = ?
+                mancoll.manuscript_id
+            from (
+                select
+                    manuscript.identity as manuscript_id,
+                    location.idfund as collection_id
+                from data.manuscript
+                inner join data.located_at on manuscript.identity = located_at.iddocument
+                inner join data.location on location.idlocation = located_at.idlocation
 
-            union
+                union
 
-            select
-                manuscript.identity as manuscript_id
+                select
+                    manuscript.identity as manuscript_id,
+                    location.idfund as collection_id
+                from data.manuscript
+                inner join data.factoid on manuscript.identity = factoid.subject_identity
+                inner join data.location on location.idlocation = factoid.idlocation
+            ) as mancoll
+            where mancoll.collection_id = ?',
+            [$collectionId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByContentId(int $contentId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity
             from data.manuscript
-            inner join data.factoid on manuscript.identity = factoid.subject_identity
-            inner join data.location on location.idlocation = factoid.idlocation
-            where location.idfund = ?',
-            [$collectionId, $collectionId]
+            inner join data.document_genre on manuscript.identity = document_genre.iddocument
+            where document_genre.idgenre = ?',
+            [$contentId]
         )->fetchAll();
     }
 

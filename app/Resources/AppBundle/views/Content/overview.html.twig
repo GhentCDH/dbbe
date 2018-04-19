@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="contents-edit-app">
+        <contents-edit-app
+            init-contents="{{ contents }}"
+            get-contents-url="{{ path('contents_get') }}"
+            get-manuscript-deps-by-content-url="{{ path('manuscript_deps_by_content', {'id': 'content_id'}) }}"
+            get-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
+            get-contents-by-content-url="{{ path('contents_by_content', {'id': 'content_id'}) }}"
+            post-content-url="{{ path('content_post') }}"
+            put-content-merge-url="{{ path('content_merge', {'primary': 'primary_id', 'secondary': 'secondary_id'})}}"
+            put-content-url="{{ path('content_put', {'id': 'content_id'}) }}"
+            delete-content-url="{{ path('content_delete', {'id': 'content_id'}) }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/contentsedit.js") }}"></script>
+{% endblock %}

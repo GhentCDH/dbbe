@@ -46,7 +46,7 @@ services:
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
-        arguments: ['@content_service', '@cache.app', '@service_container', null, null]
+        arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     person_manager:

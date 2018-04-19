@@ -13,6 +13,7 @@ Encore
 
     // Add javascripts
     .autoProvidejQuery()
+    .addEntry('contentsedit', './assets/js/main/contentsedit.js')
     .addEntry('feedback', './assets/js/main/feedback.js')
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')

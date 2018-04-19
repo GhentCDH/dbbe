@@ -55,7 +55,12 @@ class IdNameObjectWithParents implements IdJsonInterface
 
     public function getJson(): array
     {
-        return $this->getShortJson();
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'parent' => $this->getParent() ? $this->getParent()->getShortJson() : null,
+            'individualName' => $this->getIndividualName(),
+        ];
     }
 
     public function getIndividualJson(): array

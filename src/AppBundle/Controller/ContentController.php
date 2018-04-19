@@ -15,60 +15,60 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class RegionController extends Controller
+class ContentController extends Controller
 {
     /**
-     * @Route("/regions/regions/{id}", name="regions_by_region")
-     * @param int $id The region id
+     * @Route("/contents/contents/{id}", name="contents_by_content")
+     * @param int $id The content id
      * @param Request $request
      */
-    public function getRegionByRegion(int $id, Request $request)
+    public function getContentsByContent(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $regionsWithParents = $this
-                ->get('region_manager')
-                ->getRegionsWithParentsByRegion($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($regionsWithParents));
+            $contentsWithParents = $this
+                ->get('content_manager')
+                ->getContentsWithParentsByContent($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($contentsWithParents));
         }
         throw new Exception('Not implemented.');
     }
 
     /**
-     * @Route("/regions", name="regions_get")
+     * @Route("/contents", name="contents_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function getRegions(Request $request)
+    public function getContents(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $regionsWithParents = $this->get('region_manager')->getAllRegionsWithParents();
+        $contentsWithParents = $this->get('content_manager')->getAllContentsWithParents();
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(ArrayToJson::arrayToJson($regionsWithParents));
+            return new JsonResponse(ArrayToJson::arrayToJson($contentsWithParents));
         }
         return $this->render(
-            'AppBundle:Region:overview.html.twig',
+            'AppBundle:Content:overview.html.twig',
             [
-                'regions' => json_encode(ArrayToJson::arrayToJson($regionsWithParents)),
+                'contents' => json_encode(ArrayToJson::arrayToJson($contentsWithParents)),
             ]
         );
     }
 
     /**
-     * @Route("/regions", name="region_post")
+     * @Route("/contents", name="content_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postRegion(Request $request)
+    public function postContent(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $regionWithParents = $this
-                ->get('region_manager')
-                ->addRegionWithParents(json_decode($request->getContent()));
+            $contentWithParents = $this
+                ->get('content_manager')
+                ->addContentWithParents(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -76,49 +76,49 @@ class RegionController extends Controller
             );
         }
 
-        return new JsonResponse($regionWithParents->getJson());
+        return new JsonResponse($contentWithParents->getJson());
     }
 
     /**
-     * @Route("/regions/{primary}/{secondary}", name="region_merge")
+     * @Route("/contents/{primary}/{secondary}", name="content_merge")
      * @Method("PUT")
-     * @param  int    $primary first region id (will stay)
-     * @param  int    $secondary second region id (will be deleted)
+     * @param  int    $primary first content id (will stay)
+     * @param  int    $secondary second content id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function mergeRegions(int $primary, int $secondary, Request $request)
+    public function mergeContents(int $primary, int $secondary, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $regionWithParents = $this
-                ->get('region_manager')
-                ->mergeRegionsWithParents($primary, $secondary);
+            $contentWithParents = $this
+                ->get('content_manager')
+                ->mergeContentsWithParents($primary, $secondary);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
                 Response::HTTP_NOT_FOUND
             );
         }
-        return new JsonResponse($regionWithParents->getJson());
+        return new JsonResponse($contentWithParents->getJson());
     }
 
     /**
-     * @Route("/regions/{id}", name="region_put")
+     * @Route("/contents/{id}", name="content_put")
      * @Method("PUT")
-     * @param  int    $id region id
+     * @param  int    $id content id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putRegion(int $id, Request $request)
+    public function putContent(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $regionWithParents = $this
-                ->get('region_manager')
-                ->updateRegionWithParents($id, json_decode($request->getContent()));
+            $contentWithParents = $this
+                ->get('content_manager')
+                ->updateContentWithParents($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -126,23 +126,23 @@ class RegionController extends Controller
             );
         }
 
-        return new JsonResponse($regionWithParents->getJson());
+        return new JsonResponse($contentWithParents->getJson());
     }
 
     /**
-     * @Route("/regions/{id}", name="region_delete")
+     * @Route("/contents/{id}", name="content_delete")
      * @Method("DELETE")
-     * @param  int    $id region id
+     * @param  int    $id content id
      * @return JsonResponse
      */
-    public function deleteRegion(int $id)
+    public function deleteContent(int $id)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
             $this
-                ->get('region_manager')
-                ->delRegion($id);
+                ->get('content_manager')
+                ->delContent($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

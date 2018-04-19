@@ -66,7 +66,12 @@ class RegionManager extends ObjectManager
     {
         $rawIds = $this->dbs->getRegionsByRegion($regionId);
         $ids = self::getUniqueIds($rawIds, 'region_id');
-        return $this->getRegionsWithParentsByIds($ids);
+        $regionsWithParents = $this->getRegionsWithParentsByIds($ids);
+
+        // Sort by name
+        usort($regionsWithParents, ['AppBundle\Model\RegionWithParents', 'sortByNameHistoricalName']);
+
+        return $regionsWithParents;
     }
 
     public function getRegionsByIds(array $ids): array
@@ -254,6 +259,8 @@ class RegionManager extends ObjectManager
         }
 
         $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($secondaryId);
+        // Only keep dependencies based on origin
+        // Locations of the manuscripts themselves never are regions
         $manuscripts = array_filter($manuscripts, function ($manuscript) use ($secondaryId) {
             if (!empty($manuscript->getOrigin())
                 && $manuscript->getOrigin()->getId() == $this->container->get('location_manager')->getLocationByRegion($secondaryId)
