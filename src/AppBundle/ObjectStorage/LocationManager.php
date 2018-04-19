@@ -44,38 +44,22 @@ class LocationManager extends ObjectManager
 
     public function getLocationsForManuscripts(): array
     {
-        $cache = $this->cache->getItem('locations_for_manuscripts');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
         $rawLocationsForManuscripts = $this->dbs->getLocationIdsForManuscripts();
         $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
         $locationsForManuscripts = $this->getLocationsByIds($locationIds);
 
         usort($locationsForManuscripts, ['AppBundle\Model\Location', 'sortByName']);
 
-        $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($locationsForManuscripts));
-
         return $locationsForManuscripts;
     }
 
     public function getLocationsForLocations(): array
     {
-        $cache = $this->cache->getItem('locations_for_locations');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
         $rawLocationsForLocations = $this->dbs->getLocationIdsForLocations();
         $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
         $locationsForLocations = $this->getLocationsByIds($locationIds);
 
         usort($locationsForLocations, ['AppBundle\Model\Location', 'sortByName']);
-
-        $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($locationsForLocations));
 
         return $locationsForLocations;
     }

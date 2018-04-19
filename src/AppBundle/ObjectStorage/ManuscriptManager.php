@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ManuscriptManager extends ObjectManager
 {
-    public function getManuscriptsByIds(array $ids): array
+    public function getShortManuscriptsByIds(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'manuscript_short');
         if (empty($ids)) {
@@ -154,10 +154,10 @@ class ManuscriptManager extends ObjectManager
     {
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, 'manuscript_id');
-        return $this->getManuscriptsByIds($ids);
+        return $this->getShortManuscriptsByIds($ids);
     }
 
-    public function getManuscriptById($id): Manuscript
+    public function getManuscriptById(int $id): Manuscript
     {
         $cache = $this->cache->getItem('manuscript.' . $id);
         if ($cache->isHit()) {
@@ -165,7 +165,7 @@ class ManuscriptManager extends ObjectManager
         }
 
         // Get basic manuscript information
-        $manuscripts= $this->getManuscriptsByIds([$id]);
+        $manuscripts= $this->getShortManuscriptsByIds([$id]);
         if (count($manuscripts) == 0) {
             return null;
         }
@@ -231,19 +231,19 @@ class ManuscriptManager extends ObjectManager
     public function getManuscriptsDependenciesByRegion(int $regionId): array
     {
         $rawIds = $this->dbs->getDepIdsByRegionId($regionId);
-        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function getManuscriptsDependenciesByInstitution(int $institutionId): array
     {
         $rawIds = $this->dbs->getDepIdsByInstitutionId($institutionId);
-        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function getManuscriptsDependenciesByCollection(int $collectionId): array
     {
         $rawIds = $this->dbs->getDepIdsByCollectionId($collectionId);
-        return $this->getManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function updateManuscript(int $id, stdClass $data): ?Manuscript

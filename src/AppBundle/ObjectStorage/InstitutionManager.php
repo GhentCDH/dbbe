@@ -107,7 +107,7 @@ class InstitutionManager extends ObjectManager
             }
 
             // load new institution data
-            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
+            $this->cache->invalidateTags(['institution.' . $institutionId]);
             $this->cache->deleteItem('institution.' . $institutionId);
             $newInstitution = $this->getInstitutionsByIds([$institutionId])[$institutionId];
 
@@ -142,8 +142,8 @@ class InstitutionManager extends ObjectManager
 
             $this->dbs->delete($institutionId);
 
-            // load new institution data
-            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
+            // clear cache
+            $this->cache->invalidateTags(['institution.' . $institutionId]);
             $this->cache->deleteItem('institution.' . $institutionId);
 
             $this->updateModified($institution, null);

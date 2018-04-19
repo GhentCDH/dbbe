@@ -51,8 +51,6 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
-            $this->cache->deleteItem('collection.' . $collectionId);
             $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
 
             // update Elastic manuscripts
@@ -105,7 +103,7 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $this->cache->invalidateTags(['collections']);
+            $this->cache->invalidateTags(['collection.' . $collectionId]);
             $this->cache->deleteItem('collection.' . $collectionId);
             $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
 
@@ -136,8 +134,8 @@ class CollectionManager extends ObjectManager
 
             $this->dbs->delete($collectionId);
 
-            // load new collection data
-            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
+            // clear cache
+            $this->cache->invalidateTags(['collection.' . $collectionId]);
             $this->cache->deleteItem('collection.' . $collectionId);
 
             $this->updateModified($collection, null);

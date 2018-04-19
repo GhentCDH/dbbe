@@ -53,13 +53,8 @@ class PersonManager extends ObjectManager
         return $cached + $persons;
     }
 
-    private function getBibroles(string $cacheKey, array $occupations): array
+    private function getBibroles(array $occupations): array
     {
-        $cache = $this->cache->getItem($cacheKey);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
         $persons = [];
         $personIds = [];
         $personsByOccupations = array_merge($this->getPersonsByOccupations($occupations));
@@ -74,20 +69,17 @@ class PersonManager extends ObjectManager
 
         usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
-        $cache->tag('persons');
-        $cache->tag('occupations');
-        $this->cache->save($cache->set($persons));
         return $persons;
     }
 
     public function getAllPatrons(): array
     {
-        return $this->getBibroles('patrons', ['Sponsor', 'Owner']);
+        return $this->getBibroles(['Sponsor', 'Owner']);
     }
 
     public function getAllScribes(): array
     {
-        return $this->getBibroles('scribes', ['Scribe']);
+        return $this->getBibroles(['Scribe']);
     }
 
     public function getAllHistoricalPersons(): array
@@ -110,11 +102,6 @@ class PersonManager extends ObjectManager
 
     private function getPersonsByOccupations(array $occupations): array
     {
-        list($cached, $occupations) = $this->getCache($occupations, 'persons_by_occupation');
-        if (empty($occupations)) {
-            return $cached;
-        }
-
         $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
         $personIds = self::getUniqueIds($rawOccupationPersons, 'person_id');
         $persons = $this->getPersonsByIds($personIds);
@@ -124,8 +111,6 @@ class PersonManager extends ObjectManager
             $occupationPersons[$rawOccupationPerson['occupation']][] = $persons[$rawOccupationPerson['person_id']];
         }
 
-        $this->setCache($occupationPersons, 'persons_by_occupation');
-
-        return $cached + $occupationPersons;
+        return $occupationPersons;
     }
 }

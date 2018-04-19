@@ -284,7 +284,7 @@ class ManuscriptController extends Controller
 
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
         $locations = ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts());
-        $contents = ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContents());
+        $contents = ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents());
         $patrons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons());
         $scribes = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes());
         $relatedPersons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons());

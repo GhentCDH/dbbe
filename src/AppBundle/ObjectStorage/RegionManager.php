@@ -134,7 +134,6 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->cache->invalidateTags(['regions']);
             $newRegionWithParents = $this->getRegionsWithParentsByIds([$regionId])[$regionId];
 
             $this->updateModified(null, $newRegionWithParents);
@@ -175,6 +174,7 @@ class RegionManager extends ObjectManager
                 && $data->parent != null
                 && property_exists($data->parent, 'id')
                 && is_numeric($data->parent->id)
+                && $data->parent->id != $regionId
             ) {
                 $correct = true;
                 $this->dbs->updateParent($regionId, $data->parent->id);
@@ -209,7 +209,7 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId, 'regions']);
+            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId]);
             $this->cache->deleteItem('region.' . $regionId);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
             $newRegionWithParents = $this->getRegionsWithParentsByIds([$regionId])[$regionId];
@@ -323,7 +323,7 @@ class RegionManager extends ObjectManager
             $this->dbs->delete($regionId);
 
             // empty cache
-            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId, 'regions']);
+            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId]);
             $this->cache->deleteItem('region.' . $regionId);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
 

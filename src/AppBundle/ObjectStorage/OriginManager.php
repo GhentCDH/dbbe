@@ -8,13 +8,6 @@ class OriginManager extends ObjectManager
 {
     public function getAllOrigins(): array
     {
-        // TODO: debug cache issue when editing the city name of one origin and then the city name of another origin
-        // (after cache clear)
-        $cache = $this->cache->getItem('origins');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
         $origins = [];
         $rawOrigins = $this->dbs->getOriginIds();
         $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
@@ -25,8 +18,6 @@ class OriginManager extends ObjectManager
 
         usort($origins, ['AppBundle\Model\Location', 'sortByHistoricalName']);
 
-        $cache->tag(['regions', 'institutions']);
-        $this->cache->save($cache->set($origins));
         return $origins;
     }
 }
