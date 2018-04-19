@@ -308,10 +308,10 @@ class Manuscript extends Document implements IdJsonInterface
             'name' => $this->getName(),
             'content' => ArrayToJson::arrayToShortJson($this->contentsWithParents),
             'patrons' => ArrayToJson::arrayToShortJson($this->patrons),
-            'occurrencePatrons' => ArrayToJson::getOccurrencePersonsJson($this->occurrencePatrons),
+            'occurrencePatrons' => self::getOccurrencePersonsJson($this->occurrencePatrons),
             'scribes' => ArrayToJson::arrayToShortJson($this->scribes),
             'relatedPersons' => ArrayToJson::arrayToShortJson($this->relatedPersons),
-            'occurrenceScribes' => ArrayToJson::getOccurrencePersonsJson($this->occurrenceScribes),
+            'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
             'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
             'public' => $this->getPublic(),
         ];
