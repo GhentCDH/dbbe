@@ -4,7 +4,8 @@
             :schema="schema"
             :model="model"
             :options="formOptions"
-            @validated="validated" />
+            @validated="validated"
+            ref="form" />
     </panel>
 </template>
 <script>
@@ -23,22 +24,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [ Abstract, Fields ],
-    props: {
-        location: {
-            type: Object,
-            default: function () {
-                return {
-                    regionWithParents: {},
-                    institution: {},
-                    collection: {},
-                }
-            },
-        },
-        shelf: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
         return {
             schema: {
@@ -67,6 +52,9 @@ export default {
             this.initFields()
         },
         'model.location.regionWithParents'() {
+            if (this.model.location.regionWithParents.locationId != null) {
+                this.model.location.id = null
+            }
             if (this.model.location.regionWithParents == null) {
                 this.dependencyField(this.schema.fields.library)
             }
@@ -74,9 +62,12 @@ export default {
                 this.loadLocationField(this.schema.fields.library, this.model.location)
                 this.enableField(this.schema.fields.library)
             }
+            this.$refs.form.validate()
         },
         'model.location.institution'() {
-            this.model.location.id = this.model.location.institution.locationId
+            if (this.model.location.institution.locationId != null) {
+                this.model.location.id = this.model.location.institution.locationId
+            }
             if (this.model.location.institution == null) {
                 this.dependencyField(this.schema.fields.collection)
             }
@@ -84,9 +75,13 @@ export default {
                 this.loadLocationField(this.schema.fields.collection, this.model.location)
                 this.enableField(this.schema.fields.collection)
             }
+            this.$refs.form.validate()
         },
         'model.location.collection'() {
-            this.model.location.id = this.model.location.collection.locationId
+            if (this.model.location.collection.locationId != null) {
+                this.model.location.id = this.model.location.collection.locationId
+            }
+            this.$refs.form.validate()
         },
     },
     methods: {
@@ -114,7 +109,7 @@ export default {
                     value: this.model.shelf,
                 })
             }
-            if (JSON.stringify(this.model.location) !== JSON.stringify(this.originalModel.location) && !(this.model.location == null && this.originalModel.location == null)) {
+            if (this.model.location.id !== this.originalModel.location.id && !(this.model.location.id == null && this.originalModel.location.id == null)) {
                 this.changes.push({
                     key: 'location',
                     keyGroup: 'locatedAt',
