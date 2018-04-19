@@ -98,7 +98,7 @@ export default {
                     patrons: this.createMultiSelect(
                         'Patrons',
                         {values: this.values.patrons},
-                        {multiple: true, closeOnSelect: false, trackBy: 'id'}
+                        {multiple: true, closeOnSelect: false}
                     ),
                 }
             },
@@ -107,7 +107,7 @@ export default {
                     scribes: this.createMultiSelect(
                         'Scribes',
                         {values: this.values.scribes},
-                        {multiple: true, closeOnSelect: false, trackBy: 'id'}
+                        {multiple: true, closeOnSelect: false}
                     ),
                 }
             },
@@ -116,7 +116,7 @@ export default {
                     relatedPersons: this.createMultiSelect(
                         'Related Persons',
                         {values: this.values.relatedPersons},
-                        {multiple: true, closeOnSelect: false, trackBy: 'id'}
+                        {multiple: true, closeOnSelect: false}
                     ),
                 }
             },

@@ -1,8 +1,8 @@
 <?php
 
-namespace AppBundle\Helpers;
+namespace AppBundle\Utils;
 
-trait ArrayToJsonTrait
+class ArrayToJson
 {
     public static function arrayToShortJson(array $array): array
     {

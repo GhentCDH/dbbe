@@ -2,55 +2,15 @@
 
 namespace AppBundle\Model;
 
-class Origin
+class Origin extends Location
 {
-    private $id;
-    private $institution;
-    private $regionWithParents;
-
-    public function __construct()
-    {
-        return $this;
-    }
-
-    public function setId(int $id): Origin
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function setInstitution(Institution $institution): Origin
-    {
-        $this->institution = $institution;
-
-        return $this;
-    }
-
-    public function setRegionWithParents(RegionWithParents $regionWithParents): Origin
-    {
-        $this->regionWithParents = $regionWithParents;
-
-        return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    private function getFullRegion(): RegionWithParents
-    {
-        $array = $this->regionWithParents->getArray();
-        if (isset($this->institution)) {
-            $array = array_merge($array, [$this->institution]);
-        }
-        return new RegionWithParents($array);
-    }
-
     public function getName(): string
     {
-        return $this->getFullRegion()->getHistoricalName();
+        $names = [$this->regionWithParents->getHistoricalName()];
+        if (isset($this->institution)) {
+            $names[] = $this->institution->getName();
+        }
+        return implode(' > ', $names);
     }
 
     public function getShortJson(): array
@@ -65,6 +25,28 @@ class Origin
     {
         // add all parent regions as well
         // use the ids of the regions / institution
-        return $this->getFullRegion()->getHistoricalElastic();
+        $array = $this->regionWithParents->getArray();
+        if (isset($this->institution)) {
+            $result = $this->regionWithParents->getHistoricalElastic(false);
+            $result[] = [
+                'id' => $this->institution->getId(),
+                'name' => $this->getName(),
+                'display' => true,
+            ];
+        } else {
+            $result = $this->regionWithParents->getHistoricalElastic();
+        }
+        return $result;
+    }
+
+    public static function fromLocation(Location $location)
+    {
+        $origin = new Origin;
+        $origin->setId($location->getId());
+        $origin->setRegionWithParents($location->getRegionWithParents());
+        if ($location->getInstitution() != null) {
+            $origin->setInstitution($location->getInstitution());
+        }
+        return $origin;
     }
 }

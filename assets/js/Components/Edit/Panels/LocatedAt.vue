@@ -1,0 +1,137 @@
+<template>
+    <panel :header="header">
+        <vue-form-generator
+            :schema="schema"
+            :model="model"
+            :options="formOptions"
+            @validated="validated" />
+    </panel>
+</template>
+<script>
+import Vue from 'vue'
+import VueFormGenerator from 'vue-form-generator'
+
+import VueMultiselect from 'vue-multiselect'
+import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
+
+import Abstract from '../Abstract'
+import Fields from '../../Fields'
+import Panel from '../Panel'
+
+Vue.use(VueFormGenerator)
+Vue.component('panel', Panel)
+
+export default {
+    mixins: [ Abstract, Fields ],
+    props: {
+        location: {
+            type: Object,
+            default: function () {
+                return {
+                    regionWithParents: {},
+                    institution: {},
+                    collection: {},
+                }
+            },
+        },
+        shelf: {
+            type: String,
+            default: '',
+        },
+    },
+    data() {
+        return {
+            schema: {
+                fields: {
+                    city: this.createMultiSelect('City', {model: 'location.regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    library: this.createMultiSelect('Library', {model: 'location.institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents'}),
+                    collection: this.createMultiSelect('Collection', {model: 'location.collection', dependency: 'institution'}),
+                    shelf: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Shelf Number',
+                        labelClasses: 'control-label',
+                        model: 'shelf',
+                        required: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
+                }
+            }
+        }
+    },
+    watch: {
+        values() {
+            this.initFields()
+        },
+        model() {
+            this.initFields()
+        },
+        'model.location.regionWithParents'() {
+            if (this.model.location.regionWithParents == null) {
+                this.dependencyField(this.schema.fields.library)
+            }
+            else {
+                this.loadLocationField(this.schema.fields.library, this.model.location)
+                this.enableField(this.schema.fields.library)
+            }
+        },
+        'model.location.institution'() {
+            this.model.location.id = this.model.location.institution.locationId
+            if (this.model.location.institution == null) {
+                this.dependencyField(this.schema.fields.collection)
+            }
+            else {
+                this.loadLocationField(this.schema.fields.collection, this.model.location)
+                this.enableField(this.schema.fields.collection)
+            }
+        },
+        'model.location.collection'() {
+            this.model.location.id = this.model.location.collection.locationId
+        },
+    },
+    methods: {
+        initFields() {
+            this.loadLocationField(this.schema.fields.city, this.model.location)
+            this.enableField(this.schema.fields.city)
+        },
+        validated(isValid, errors) {
+            this.isValid = isValid
+            this.calcChanges()
+            this.$emit('validated', isValid, this.errors, this)
+        },
+        calcChanges() {
+            this.changes = []
+            if (this.originalModel == null) {
+                return
+            }
+            if (this.model.shelf !== this.originalModel.shelf && !(this.model.shelf == null && this.originalModel.shelf == null)) {
+                this.changes.push({
+                    key: 'shelf',
+                    keyGroup: 'locatedAt',
+                    label: 'Shelf',
+                    old: this.originalModel.shelf,
+                    new: this.model.shelf,
+                    value: this.model.shelf,
+                })
+            }
+            if (JSON.stringify(this.model.location) !== JSON.stringify(this.originalModel.location) && !(this.model.location == null && this.originalModel.location == null)) {
+                this.changes.push({
+                    key: 'location',
+                    keyGroup: 'locatedAt',
+                    label: 'Location',
+                    old: this.formatLocation(this.originalModel.location),
+                    new: this.formatLocation(this.model.location),
+                    value: this.model.location,
+                })
+            }
+        },
+        formatLocation(location) {
+            let result = location.regionWithParents.name + ' - ' + location.institution.name
+            if (location.collection != null) {
+                result += ' - ' + location.collection.name
+            }
+            return result
+        },
+    }
+}
+</script>

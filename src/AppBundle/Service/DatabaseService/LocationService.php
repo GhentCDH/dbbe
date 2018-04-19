@@ -19,90 +19,93 @@ class LocationService extends DatabaseService
     public function getLocationsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
-            'SELECT
-                -- iddocument is the unique identifier in the located_at table
-                located_at.iddocument as location_id,
-                region.identity as city_id,
-                region.name as city_name,
-                institution.identity as library_id,
-                institution.name as library_name,
-                fund.idfund as collection_id,
-                fund.name as collection_name,
-                located_at.identification as shelf
-            from data.located_at
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.fund on location.idfund = fund.idfund
-            inner join data.institution on fund.idlibrary = institution.identity
-            inner join data.region on institution.idregion = region.identity
-            where located_at.iddocument in (?)
+            'SELECT * from (
+                SELECT
+                    location.idlocation as location_id,
+                    location.idregion as region_id,
+                    null::integer as institution_id,
+                    null as institution_name,
+                    null::integer as collection_id,
+                    null as collection_name
+                from data.location
+                where location.idregion is not null
 
-            union
+                union
 
-            select
-                -- iddocument is the unique identifier in the located_at table
-                located_at.iddocument as location_id,
-                region.identity as city_id,
-                region.name as city_name,
-                institution.identity as library_id,
-                institution.name as library_name,
-                null as collection_id,
-                null as collection_name,
-                located_at.identification as shelf
-            from data.located_at
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.institution on location.idinstitution = institution.identity
-            inner join data.region on institution.idregion = region.identity
-            where located_at.iddocument in (?)
-            and location.idfund is null',
-            [$ids, $ids],
-            [Connection::PARAM_INT_ARRAY, Connection::PARAM_INT_ARRAY]
+                select
+                    location.idlocation as location_id,
+                    institution.idregion as region_id,
+                    institution.identity as institution_id,
+                    institution.name as institution_name,
+                    null::integer as collection_id,
+                    null as collection_name
+                from data.location
+                inner join data.institution on location.idinstitution = institution.identity
+                where location.idinstitution is not null
+
+                union
+
+                select
+                    location.idlocation as location_id,
+                    institution.idregion as region_id,
+                    institution.identity as institution_id,
+                    institution.name as institution_name,
+                    fund.idfund as collection_id,
+                    fund.name as collection_name
+                from data.location
+                inner join data.fund on location.idfund = fund.idfund
+                inner join data.institution on fund.idlibrary = institution.identity
+                where location.idfund is not null
+            ) as locations
+            where locations.location_id in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getAllCitiesLibrariesCollections(): array
-    {
-        return $this->conn->query(
-            '(
-                SELECT
-                    region.identity AS city_id,
-                    institution.identity AS library_id,
-                    institution.name AS library_name,
-                    fund.idfund AS collection_id,
-                    fund.name AS collection_name
-                FROM data.location
-                INNER JOIN data.fund ON location.idfund = fund.idfund
-                INNER JOIN data.institution ON fund.idlibrary = institution.identity
-                INNER JOIN data.region ON institution.idregion = region.identity
-
-                UNION
-
-                SELECT
-                    region.identity AS city_id,
-                    institution.identity AS library_id,
-                    institution.name AS library_name,
-                    NULL AS collection_id,
-                    NULL AS collection_name
-                FROM data.location
-                INNER JOIN data.institution ON location.idinstitution = institution.identity
-                INNER JOIN data.region ON institution.idregion = region.identity
-                WHERE location.idfund is NULL
-            )'
-        )->fetchAll();
-    }
-
-    public function getAllOrigins(): array
+    /**
+     * Locations that can be used with locatedAt in a manuscript
+     * * need an institution or fund
+     * * institution needs to be a library
+     * * need a region with a name (not historical name)
+     * @return array
+     */
+    public function getLocationIdsForManuscripts(): array
     {
         return $this->conn->query(
             'SELECT
-                location.idlocation as origin_id,
-                coalesce(institution.idregion, location.idregion) as region_id,
-                institution.identity as institution_id,
-                institution.name as institution_name
+                location.idlocation as location_id
             from data.location
-            left join data.institution on location.idinstitution = institution.identity
-            inner join data.region on coalesce(institution.idregion, location.idregion) = region.identity
-            where region.historical_name is not null
-            order by region.historical_name, institution.name'
+            left join data.fund on location.idfund = fund.idfund
+            inner join data.institution on coalesce(location.idinstitution, fund.idlibrary) = institution.identity
+            inner join data.library on institution.identity = library.identity
+            inner join data.region on institution.idregion = region.identity
+            and region.name is not null'
+        )->fetchAll();
+    }
+
+    /**
+     * Locations for editing locations (all regions have a location)
+     * * institution needs to be a library
+     * * need a region with a name (not historical name)
+     * @return array
+     */
+    public function getLocationIdsForLocations(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                location.idlocation as location_id
+            from data.location
+            left join data.fund on location.idfund = fund.idfund
+            left join (
+                select
+                    institution.identity,
+                    institution.idregion
+                from data.institution
+                inner join data.library on institution.identity = library.identity
+            ) as instlib on coalesce(location.idinstitution, fund.idlibrary) = instlib.identity
+            inner join data.region on coalesce(location.idregion, instlib.idregion) = region.identity
+            and region.name is not null'
         )->fetchAll();
     }
 
@@ -115,35 +118,5 @@ class LocationService extends DatabaseService
             where location.idregion = ?',
             [$regionId]
         )->fetchAll()[0]['location_id'];
-    }
-
-    public function updateLibraryId(int $documentId, int $libraryId): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.located_at
-            set idlocation = (select location.idlocation from data.location where location.idinstitution = ?)
-            where located_at.iddocument = ?',
-            [$libraryId, $documentId]
-        );
-    }
-
-    public function updateCollectionId(int $documentId, int $collectionId): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.located_at
-            set idlocation = (select location.idlocation from data.location where location.idfund = ?)
-            where located_at.iddocument = ?',
-            [$collectionId, $documentId]
-        );
-    }
-
-    public function updateShelf(int $documentId, string $shelf): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.located_at
-            set identification = ?
-            where located_at.iddocument = ?',
-            [$shelf, $documentId]
-        );
     }
 }

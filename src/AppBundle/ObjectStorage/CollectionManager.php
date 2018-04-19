@@ -41,11 +41,11 @@ class CollectionManager extends ObjectManager
         try {
             if (property_exists($data, 'name')
                 && is_string($data->name)
-                && property_exists($data, 'library')
-                && property_exists($data->library, 'id')
-                && is_numeric($data->library->id)
+                && property_exists($data, 'institution')
+                && property_exists($data->institution, 'id')
+                && is_numeric($data->institution->id)
             ) {
-                $collectionId = $this->dbs->insert($data->name, $data->library->id);
+                $collectionId = $this->dbs->insert($data->name, $data->institution->id);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }
@@ -92,12 +92,12 @@ class CollectionManager extends ObjectManager
                 $correct = true;
                 $this->dbs->updateName($collectionId, $data->name);
             }
-            if (property_exists($data, 'library')
-                && property_exists($data->library, 'id')
-                && is_numeric($data->library->id)
+            if (property_exists($data, 'institution')
+                && property_exists($data->institution, 'id')
+                && is_numeric($data->institution->id)
             ) {
                 $correct = true;
-                $this->dbs->updateLibrary($collectionId, $data->library->id);
+                $this->dbs->updateInstitution($collectionId, $data->institution->id);
             }
 
             if (!$correct) {

@@ -13,12 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Helpers\ArrayToJsonTrait;
+use AppBundle\Utils\ArrayToJson;
 
 class RegionController extends Controller
 {
-    use ArrayToJsonTrait;
-
     /**
      * @Route("/regions/regions/{id}", name="regions_by_region")
      * @param int $id The region id
@@ -30,7 +28,7 @@ class RegionController extends Controller
             $regionsWithParents = $this
                 ->get('region_manager')
                 ->getRegionsWithParentsByRegion($id);
-            return new JsonResponse(self::arrayToShortJson($regionsWithParents));
+            return new JsonResponse(ArrayToJson::arrayToShortJson($regionsWithParents));
         }
         throw new Exception('Not implemented.');
     }
@@ -44,20 +42,18 @@ class RegionController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $regionsWithParents = self::arrayToJson($this->get('region_manager')->getAllRegionsWithParents());
+        $regionsWithParents = $this->get('region_manager')->getAllRegionsWithParents();
 
         // sort on name
-        usort($regionsWithParents, function ($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
+        usort($regionsWithParents, ['AppBundle\Model\RegionWithParents', 'sortByNameHistoricalName']);
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse($regionsWithParents);
+            return new JsonResponse(ArrayToJson::arrayToJson($regionsWithParents));
         }
         return $this->render(
             'AppBundle:Region:overview.html.twig',
             [
-                'regions' => json_encode($regionsWithParents),
+                'regions' => json_encode(ArrayToJson::arrayToJson($regionsWithParents)),
             ]
         );
     }

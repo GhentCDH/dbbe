@@ -8,14 +8,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Helpers\ArrayToJsonTrait;
+use AppBundle\Utils\ArrayToJson;
 
 class ManuscriptController extends Controller
 {
-    use ArrayToJsonTrait;
-
     /**
      * @Route("/manuscripts/")
      */
@@ -185,7 +184,7 @@ class ManuscriptController extends Controller
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByRegion($id);
-            return new JsonResponse(self::arrayToShortJson($manuscripts));
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         }
         return  new \Exception('Not implemented.');
     }
@@ -204,7 +203,7 @@ class ManuscriptController extends Controller
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByInstitution($id);
-            return new JsonResponse(self::arrayToShortJson($manuscripts));
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         }
         return  new \Exception('Not implemented.');
     }
@@ -223,7 +222,7 @@ class ManuscriptController extends Controller
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByCollection($id);
-            return new JsonResponse(self::arrayToShortJson($manuscripts));
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         }
         return  new \Exception('Not implemented.');
     }
@@ -235,16 +234,24 @@ class ManuscriptController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateManuscript(int $id, Request $request)
+    public function putManuscript(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $manuscript = $this
-            ->get('manuscript_manager')
-            ->updateManuscript($id, json_decode($request->getContent()));
-
-        if (empty($manuscript)) {
-            throw $this->createNotFoundException('There is no manuscript with the requested id.');
+        try {
+            $manuscript = $this
+                ->get('manuscript_manager')
+                ->updateManuscript($id, json_decode($request->getContent()));
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         $this->addFlash('success', 'Manuscript data successfully saved.');
@@ -276,16 +283,16 @@ class ManuscriptController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
-        $locations = $this->get('location_manager')->getAllCitiesLibrariesCollections();
-        $contents = self::arrayToShortJson($this->get('content_manager')->getAllContents());
-        $patrons = self::arrayToShortJson($this->get('person_manager')->getAllPatrons());
-        $scribes = self::arrayToShortJson($this->get('person_manager')->getAllSCribes());
-        $relatedPersons = self::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons());
-        $origins = self::arrayToShortJson($this->get('location_manager')->getAllOrigins());
-        $books = self::arrayToShortJson($this->get('bibliography_manager')->getAllBooks());
-        $articles = self::arrayToShortJson($this->get('bibliography_manager')->getAllArticles());
-        $bookChapters = self::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters());
-        $onlineSources = self::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources());
+        $locations = ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts());
+        $contents = ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContents());
+        $patrons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons());
+        $scribes = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes());
+        $relatedPersons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons());
+        $origins = ArrayToJson::arrayToJson($this->get('origin_manager')->getAllOrigins());
+        $books = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks());
+        $articles = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles());
+        $bookChapters = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters());
+        $onlineSources = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources());
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',

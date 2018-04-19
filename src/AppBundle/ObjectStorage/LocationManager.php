@@ -5,12 +5,8 @@ namespace AppBundle\ObjectStorage;
 use stdClass;
 
 use AppBundle\Model\Collection;
-use AppBundle\Model\Document;
 use AppBundle\Model\Institution;
-use AppBundle\Model\Library;
 use AppBundle\Model\Location;
-use AppBundle\Model\Origin;
-use AppBundle\Model\Region;
 
 class LocationManager extends ObjectManager
 {
@@ -23,106 +19,69 @@ class LocationManager extends ObjectManager
 
         $locations = [];
         $rawLocations = $this->dbs->getLocationsByIds($ids);
+        $regionIds = self::getUniqueIds($rawLocations, 'region_id');
+        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
 
         foreach ($rawLocations as $rawLocation) {
-            $locations[$rawLocation['location_id']] = (new Location())
+             $location = (new Location())
                 ->setId($rawLocation['location_id'])
-                ->setCity(new Region($rawLocation['city_id'], $rawLocation['city_name']), null, null, null)
-                ->addCacheDependency('region.' . $rawLocation['city_id'])
-                ->setLibrary(new Library($rawLocation['library_id'], $rawLocation['library_name']))
-                ->addCacheDependency('institution.' . $rawLocation['library_id'])
-                ->setShelf($rawLocation['shelf']);
-            if (isset($rawLocation['collection_id'])) {
-                $locations[$rawLocation['location_id']]
-                    ->setCollection(new Collection($rawLocation['collection_id'], $rawLocation['collection_name']))
-                    ->addCacheDependency('collection.' . $rawLocation['collection_id']);
+                ->setRegionWithParents($regionsWithParents[$rawLocation['region_id']]);
+
+            if (isset($rawLocation['institution_id'])) {
+                $location->setInstitution(new Institution($rawLocation['institution_id'], $rawLocation['institution_name']));
             }
+            if (isset($rawLocation['collection_id'])) {
+                $location->setCollection(new Collection($rawLocation['collection_id'], $rawLocation['collection_name']));
+            }
+
+            $locations[$rawLocation['location_id']] = $location;
         }
 
         $this->setCache($locations, 'location');
 
-        return $locations;
+        return $cached + $locations;
     }
 
-    public function getAllCitiesLibrariesCollections(): array
+    public function getLocationsForManuscripts(): array
     {
-        $cache = $this->cache->getItem('citiesLibrariesCollections');
+        $cache = $this->cache->getItem('locations_for_manuscripts');
         if ($cache->isHit()) {
             return $cache->get();
         }
 
-        $citiesLibrariesCollections = $this->dbs->getAllCitiesLibrariesCollections();
-        $regionIds = self::getUniqueIds($citiesLibrariesCollections, 'city_id');
-        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
+        $rawLocationsForManuscripts = $this->dbs->getLocationIdsForManuscripts();
+        $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
+        $locationsForManuscripts = $this->getLocationsByIds($locationIds);
 
-        foreach ($citiesLibrariesCollections as $key => $value) {
-            $citiesLibrariesCollections[$key]['city_name'] = $regionsWithParents[$value['city_id']]->getName();
-            $citiesLibrariesCollections[$key]['city_individualName'] = $regionsWithParents[$value['city_id']]->getIndividualName();
-            // Remove cities with no name
-            if ($citiesLibrariesCollections[$key]['city_name'] == '') {
-                unset($citiesLibrariesCollections[$key]);
-            }
-        }
-
-        usort($citiesLibrariesCollections, ['AppBundle\Model\Location', 'sortRaw']);
+        usort($locationsForManuscripts, ['AppBundle\Model\Location', 'sortByName']);
 
         $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($citiesLibrariesCollections));
-        return $citiesLibrariesCollections;
+        $this->cache->save($cache->set($locationsForManuscripts));
+
+        return $locationsForManuscripts;
     }
 
-    public function getAllOrigins(): array
+    public function getLocationsForLocations(): array
     {
-        $cache = $this->cache->getItem('origins');
+        $cache = $this->cache->getItem('locations_for_locations');
         if ($cache->isHit()) {
             return $cache->get();
         }
 
-        $rawOrigins = $this->dbs->getAllOrigins();
-        $regionIds = self::getUniqueIds($rawOrigins, 'region_id');
-        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
-        $origins = [];
-        foreach ($rawOrigins as $rawOrigin) {
-            $origin = (new Origin())
-                ->setId($rawOrigin['origin_id'])
-                ->setRegionWithParents($regionsWithParents[$rawOrigin['region_id']]);
-            if (isset($rawOrigin['institution_id'])) {
-                $origin->setInstitution(
-                    new Institution($rawOrigin['institution_id'], $rawOrigin['institution_name'])
-                );
-            }
-            $origins[] = $origin;
-        }
+        $rawLocationsForLocations = $this->dbs->getLocationIdsForLocations();
+        $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
+        $locationsForLocations = $this->getLocationsByIds($locationIds);
 
-        $cache->tag('regions');
-        $cache->tag('institutions');
-        $this->cache->save($cache->set($origins));
-        return $origins;
+        usort($locationsForLocations, ['AppBundle\Model\Location', 'sortByName']);
+
+        $cache->tag(['regions', 'institutions', 'collections']);
+        $this->cache->save($cache->set($locationsForLocations));
+
+        return $locationsForLocations;
     }
 
     public function getLocationByRegion(int $regionId): int
     {
         return $this->dbs->getLocationByRegion($regionId);
-    }
-
-    public function updateLibrary(Document $document, stdClass $libary): void
-    {
-        $this->cache->deleteItem('location.' . $document->getId());
-        $this->cache->invalidateTags(['location.' . $document->getId()]);
-        $this->dbs->updateLibraryId($document->getId(), $libary->id);
-    }
-
-    public function updateCollection(Document $document, stdClass $collection): void
-    {
-        $this->cache->deleteItem('location.' . $document->getId());
-        $this->cache->invalidateTags(['location.' . $document->getId()]);
-        $this->dbs->updateCollectionId($document->getId(), $collection->id);
-    }
-
-    public function updateShelf(Document $document, string $shelf): void
-    {
-        $this->cache->deleteItem('location.' . $document->getId());
-        $this->cache->invalidateTags(['location.' . $document->getId()]);
-        $this->dbs->updateShelf($document->getId(), $shelf);
     }
 }

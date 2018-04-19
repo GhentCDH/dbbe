@@ -9,14 +9,12 @@ class Location
     use CacheDependenciesTrait;
 
     /**
-     * Location id is actually the document id, since it is the unique column in this table
      * @var int
      */
-    private $id;
-    private $city;
-    private $library;
-    private $collection;
-    private $shelf;
+    protected $id;
+    protected $regionWithParents;
+    protected $institution;
+    protected $collection;
 
     public function __construct()
     {
@@ -35,33 +33,39 @@ class Location
         return $this->id;
     }
 
-    public function setCity(Region $city): Location
+    public function setRegionWithParents(RegionWithParents $regionWithParents): Location
     {
-        $this->city = $city;
+        $this->regionWithParents = $regionWithParents;
+        $this->addCacheDependency('region_with_parents.' . $regionWithParents->getId());
+        foreach ($regionWithParents->getCacheDependencies() as $cacheDependency) {
+            $this->addCacheDependency($cacheDependency);
+        }
 
         return $this;
     }
 
-    public function getCity(): Region
+    public function getRegionWithParents(): RegionWithParents
     {
-        return $this->city;
+        return $this->regionWithParents;
     }
 
-    public function setLibrary(Library $library): Location
+    public function setInstitution(Institution $institution): Location
     {
-        $this->library = $library;
+        $this->institution = $institution;
+        $this->addCacheDependency('institution.' . $institution->getId());
 
         return $this;
     }
 
-    public function getLibrary(): Library
+    public function getInstitution(): ?Institution
     {
-        return $this->library;
+        return $this->institution;
     }
 
-    public function setCollection(Collection $collection = null): Location
+    public function setCollection(Collection $collection): Location
     {
         $this->collection = $collection;
+        $this->addCacheDependency('collection.' . $collection->getId());
 
         return $this;
     }
@@ -71,83 +75,91 @@ class Location
         return $this->collection;
     }
 
-    public function setShelf(string $shelf): Location
+    public function getShortJson(): array
     {
-        $this->shelf = $shelf;
-
-        return $this;
-    }
-
-    public function getShelf(): string
-    {
-        return $this->shelf;
-    }
-
-    public function getName(): string
-    {
-        $name = strtoupper($this->city->getName());
-        $name .= ' - ' . $this->library->getName();
-        if (!empty($this->collection)) {
-            $name .= ' - ' . $this->collection->getName();
+        $result = [
+            'id' => $this->id,
+            'regionWithParents' => $this->regionWithParents->getShortJson(),
+        ];
+        if (isset($this->institution)) {
+            $result['institution'] = $this->institution->getShortJson();
         }
-        $name .= ' ' . $this->shelf;
-
-        return $name;
+        if (isset($this->collection)) {
+            $result['collection'] = $this->collection->getShortJson();
+        }
+        return $result;
     }
 
     public function getJson(): array
     {
         $result = [
             'id' => $this->id,
-            'city' => $this->city->getJson(),
-            'library' => $this->library->getJson(),
-            'shelf' => $this->shelf,
+            'regionWithParents' => $this->regionWithParents->getJson(),
         ];
-
-        if (!empty($this->collection)) {
+        if (isset($this->institution)) {
+            $result['institution'] = $this->institution->getJson();
+        }
+        if (isset($this->collection)) {
             $result['collection'] = $this->collection->getJson();
         }
-
         return $result;
     }
 
     public static function sortByName(Location $a, Location $b): int
     {
-        if ($a->getCity()->getName() == $b->getCity()->getName()) {
-            if ($a->getLibrary()->getName() == $b->getLibrary()->getName()) {
-                if (!empty($a->getCollection()) && !empty($b->getCollection())) {
-                    return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
+        if ($a->getRegionWithParents()->getName() == $b->getRegionWithParents()->getName()) {
+            if (!empty($a->getInstitution()) && !empty($b->getInstitution())) {
+                if ($a->getInstitution()->getName() == $b->getInstitution()->getName()) {
+                    if (!empty($a->getCollection()) && !empty($b->getCollection())) {
+                        return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
+                    }
+                    if (!empty($a->getCollection())) {
+                        return -1;
+                    }
+                    if (!empty($b->getCollection())) {
+                        return 1;
+                    }
+                    return 0;
                 }
-                if (!empty($a->getCollection())) {
-                    return -1;
-                }
-                if (!empty($b->getCollection())) {
-                    return 1;
-                }
-                return 0;
+                return strcmp($a->getInstitution()->getName(), $b->getInstitution()->getName());
             }
-            return strcmp($a->getLibrary()->getName(), $b->getLibrary()->getName());
+            if (!empty($a->getInstitution())) {
+                return -1;
+            }
+            if (!empty($b->getInstitution())) {
+                return 1;
+            }
+            return 0;
         }
-        return strcmp($a->getCity()->getName(), $b->getCity()->getName());
+        return strcmp($a->getRegionWithParents()->getName(), $b->getRegionWithParents()->getName());
     }
 
-    public static function sortRaw(array $a, array $b): int
+    public static function sortByHistoricalName(Location $a, Location $b): int
     {
-        if ($a['city_name'] == $b['city_name']) {
-            if ($a['library_name'] == $b['library_name']) {
-                if (!empty($a['collection_name']) && !empty($b['collection_name'])) {
-                    return strcmp($a['collection_name'], $b['collection_name']);
+        if ($a->getRegionWithParents()->getHistoricalName() == $b->getRegionWithParents()->getHistoricalName()) {
+            if (!empty($a->getInstitution()) && !empty($b->getInstitution())) {
+                if ($a->getInstitution()->getName() == $b->getInstitution()->getName()) {
+                    if (!empty($a->getCollection()) && !empty($b->getCollection())) {
+                        return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
+                    }
+                    if (!empty($a->getCollection())) {
+                        return -1;
+                    }
+                    if (!empty($b->getCollection())) {
+                        return 1;
+                    }
+                    return 0;
                 }
-                if (!empty($a['collection_name'])) {
-                    return -1;
-                }
-                if (!empty($b['collection_name'])) {
-                    return 1;
-                }
-                return 0;
+                return strcmp($a->getInstitution()->getName(), $b->getInstitution()->getName());
             }
-            return strcmp($a['library_name'], $b['library_name']);
+            if (!empty($a->getInstitution())) {
+                return -1;
+            }
+            if (!empty($b->getInstitution())) {
+                return 1;
+            }
+            return 0;
         }
-        return strcmp($a['city_name'], $b['city_name']);
+        return strcmp($a->getRegionWithParents()->getHistoricalName(), $b->getRegionWithParents()->getHistoricalName());
     }
 }

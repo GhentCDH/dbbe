@@ -266,7 +266,7 @@ export default {
         return {
             editBookBibSchema: {
                 fields: {
-                    book: this.createMultiSelect('Book', {values: this.values.books, required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    book: this.createMultiSelect('Book', {values: this.values.books, required: true, validator: VueFormGenerator.validators.required}),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -296,7 +296,7 @@ export default {
             },
             editArticleBibSchema: {
                 fields: {
-                    article: this.createMultiSelect('Article', {values: this.values.articles, required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    article: this.createMultiSelect('Article', {values: this.values.articles, required: true, validator: VueFormGenerator.validators.required}),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -326,7 +326,7 @@ export default {
             },
             editBookChapterBibSchema: {
                 fields: {
-                    bookChapter: this.createMultiSelect('Book Chapter', {values: this.values.bookChapters, required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    bookChapter: this.createMultiSelect('Book Chapter', {values: this.values.bookChapters, required: true, validator: VueFormGenerator.validators.required}),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -356,7 +356,7 @@ export default {
             },
             editOnlineSourceSchema: {
                 fields: {
-                    onlineSource: this.createMultiSelect('Online Source', {values: this.values.onlineSources, required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    onlineSource: this.createMultiSelect('Online Source', {values: this.values.onlineSources, required: true, validator: VueFormGenerator.validators.required}),
                     sourceLink: {
                         type: 'input',
                         inputType: 'text',

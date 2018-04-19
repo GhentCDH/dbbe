@@ -6,12 +6,26 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Helpers\ArrayToJsonTrait;
+use AppBundle\Utils\ArrayToJson;
 
 class LocationController extends Controller
 {
-    use ArrayToJsonTrait;
+    /**
+     * @Route("/locations/manuscripts", name="locations_manuscripts_get")
+     * @param Request $request
+     */
+    public function getLocationsForManuscripts(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return new JsonResponse(
+                ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts())
+            );
+        }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
+    }
 
     /**
      * @Route("/locations", name="locations_get")
@@ -21,7 +35,9 @@ class LocationController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $locations = $this->get('location_manager')->getAllCitiesLibrariesCollections();
+        $locations = ArrayToJson::arrayToJson(
+            $this->get('location_manager')->getLocationsForLocations()
+        );
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse($locations);

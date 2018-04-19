@@ -1,6 +1,6 @@
 export default {
     methods: {
-        createMultiSelect(label, extra, extraSelectOptions) {
+        createMultiSelect(label, extra = null, extraSelectOptions = null) {
             let result = {
                 type: 'multiselectClear',
                 label: label,
@@ -16,7 +16,8 @@ export default {
                         return name
                     },
                     showLabels: false,
-                    loading: true
+                    loading: true,
+                    trackBy: 'id',
                 },
                 // Will be enabled when list of scribes is loaded
                 disabled: true
@@ -85,23 +86,55 @@ export default {
             if (model == null) {
                 model = this.model
             }
-            let locations = Object.values(this.values)
+            let locations = this.values
+
             // filter dependency
-            if (field.hasOwnProperty('dependency') && model[field.dependency] != null) {
-                locations = locations.filter((location) => location[field.dependency + '_id'] === model[field.dependency]['id'])
+            if (field.hasOwnProperty('dependency')) {
+                switch (field.dependency) {
+                case 'regionWithParents':
+                    locations = locations.filter((location) => location.regionWithParents.id === model.regionWithParents.id)
+                    break
+                case 'institution':
+                    locations = locations.filter((location) => ( location.institution != null && location.institution.id === model.institution.id))
+                    break
+                }
             }
+
+            // get everything after last '.'
+            let modelName = field.model.split('.').pop()
+
             // filter null values
-            locations = locations.filter((location) => location[field.model + '_id'] != null)
+            switch (modelName) {
+            case 'institution':
+                locations = locations.filter((location) => location.institution != null)
+                break
+            case 'collection':
+                locations = locations.filter((location) => location.collection != null)
+                break
+            }
 
             let values = locations
                 // get the requested field information
                 .map((location) => {
                     let fieldInfo = {
-                        id: location[field.model + '_id'],
-                        name: location[field.model + '_name']
+                        locationId: location.id
                     }
-                    if (field.model === 'city') {
-                        fieldInfo.individualName = location.city_individualName
+                    switch (modelName) {
+                    case 'regionWithParents':
+                        fieldInfo.id = location.regionWithParents.id
+                        fieldInfo.name = location.regionWithParents.name
+                        fieldInfo.individualName = location.regionWithParents.individualName
+                        fieldInfo.historicalName = location.regionWithParents.historicalName
+                        fieldInfo.individualHistoricalName = location.regionWithParents.individualHistoricalName
+                        break
+                    case 'institution':
+                        fieldInfo.id = location.institution.id
+                        fieldInfo.name = location.institution.name
+                        break
+                    case 'collection':
+                        fieldInfo.id = location.collection.id
+                        fieldInfo.name = location.collection.name
+                        break
                     }
                     return fieldInfo
                 })

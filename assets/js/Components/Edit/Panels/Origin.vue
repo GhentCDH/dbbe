@@ -27,7 +27,7 @@ export default {
         return {
             schema: {
                 fields: {
-                    origin: this.createMultiSelect('Origin', {values: this.values}, {trackBy: 'id'}),
+                    origin: this.createMultiSelect('Origin', {values: this.values}),
                 }
             }
         }

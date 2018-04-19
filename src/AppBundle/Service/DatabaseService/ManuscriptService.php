@@ -21,42 +21,31 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on location.idlocation = located_at.idlocation
-            where location.idregion = ?
+                manloc.manuscript_id
+             from (
+                select
+                    manuscript.identity as manuscript_id,
+                    region.identity as region_id
+                from data.manuscript
+                inner join data.located_at on manuscript.identity = located_at.iddocument
+                inner join data.location on located_at.idlocation = location.idlocation
+                left join data.fund on location.idfund = fund.idfund
+                left join data.institution on coalesce(location.idinstitution, fund.idlibrary) = institution.identity
+                inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
 
-            union
+                union
 
-            SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.institution on institution.identity = location.idinstitution
-            where institution.idregion = ?
-
-            union
-
-            SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.located_at on manuscript.identity = located_at.iddocument
-            inner join data.location on located_at.idlocation = location.idlocation
-            inner join data.fund on fund.idfund = location.idfund
-            inner join data.institution on institution.identity = fund.idlibrary
-            where institution.idregion = ?
-
-            union
-
-            select
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.factoid on manuscript.identity = factoid.subject_identity
-            inner join data.location on location.idlocation = factoid.idlocation
-            where location.idregion = ?',
-            [$regionId, $regionId, $regionId, $regionId]
+                select
+                    manuscript.identity as manuscript_id,
+                    region.identity as region_id
+                from data.manuscript
+                inner join data.factoid on manuscript.identity = factoid.subject_identity
+                inner join data.location on factoid.idlocation = location.idlocation
+                left join data.institution on location.idinstitution = institution.identity
+                inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
+            ) as manloc
+            where manloc.region_id = ?',
+            [$regionId]
         )->fetchAll();
     }
 
@@ -208,15 +197,10 @@ class ManuscriptService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 manuscript.identity as manuscript_id,
-                location.idinstitution as institution_id,
-                location.idlocation as location_id,
-                coalesce(institution.idregion, location.idregion) as region_id,
-                institution.name as institution_name
+                factoid.idlocation as location_id
             from data.manuscript
             inner join data.factoid on manuscript.identity = factoid.subject_identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
-            inner join data.location on factoid.idlocation = location.idlocation
-            left join data.institution on location.idinstitution = institution.identity
             where manuscript.identity in (?)
             and factoid_type.type = \'written\'',
             [$ids],

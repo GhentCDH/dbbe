@@ -216,9 +216,6 @@ class RegionManager extends ObjectManager
 
             $this->updateModified($regionWithParents, $newRegionWithParents);
 
-            // update cache
-            $this->setCache([$newRegionWithParents->getId() => $newRegionWithParents], 'region_with_parents');
-
             // update Elastic manuscripts
             $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($regionId);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
@@ -325,7 +322,7 @@ class RegionManager extends ObjectManager
 
             $this->dbs->delete($regionId);
 
-            // load new region data
+            // empty cache
             $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId, 'regions']);
             $this->cache->deleteItem('region.' . $regionId);
             $this->cache->deleteItem('region_with_parents.' . $regionId);

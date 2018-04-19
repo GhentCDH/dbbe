@@ -325,7 +325,7 @@ export default {
             },
             editRegionSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent', {}, {trackBy: 'id'}),
+                    parent: this.createMultiSelect('Parent', null, {customLabel: this.formatNameHistoricalName}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
@@ -374,8 +374,8 @@ export default {
             },
             mergeRegionSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}, {trackBy: 'id'}),
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
                 },
             },
             model: {
@@ -386,7 +386,7 @@ export default {
             originalMergeModel: {},
             regionSchema: {
                 fields: {
-                    region: this.createMultiSelect('Region', {}, {trackBy: 'id'}),
+                    region: this.createMultiSelect('Region', null, {customLabel: this.formatNameHistoricalName}),
                 },
             },
             regionValues: JSON.parse(this.initRegions),
@@ -411,6 +411,12 @@ export default {
             }
         }
     },
+    watch: {
+        'model.region'() {
+            // set full parent, so the name can be formatted correctly
+            this.model.region.parent = this.regionValues.filter((regionWithParents) => regionWithParents.id === this.model.region.parent.id)[0]
+        },
+    },
     mounted () {
         this.regionSchema.fields.region.values = this.regionValues
         this.enableField(this.regionSchema.fields.region)
@@ -434,10 +440,6 @@ export default {
             }
             this.editRegionSchema.fields.parent.values = this.regionValues
                 .filter(region => region.id != this.editModel.id) // Remove current region
-                .map(region => {return {
-                    id: region.id,
-                    name: region.individualName,
-                }}) // Map from RegionWithParents to Region (short Json)
             this.enableField(this.editRegionSchema.fields.parent)
             this.originalEditModel = JSON.parse(JSON.stringify(this.editModel))
             this.editModal = true
@@ -605,6 +607,9 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the region data.'})
                     console.log(error)
                 })
+        },
+        formatNameHistoricalName(regionWithParents) {
+            return regionWithParents.name !== '' ? regionWithParents.name : '[' + regionWithParents.historicalName + ']'
         },
     }
 }

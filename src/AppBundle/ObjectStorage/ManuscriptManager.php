@@ -4,13 +4,13 @@ namespace AppBundle\ObjectStorage;
 
 use stdClass;
 
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
-use AppBundle\Model\Institution;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ManuscriptManager extends ObjectManager
 {
@@ -22,21 +22,18 @@ class ManuscriptManager extends ObjectManager
         }
 
         $manuscripts = [];
-        // Locations
-        // locations are identifiedd by document ids
-        $locations = $this->container->get('location_manager')->getLocationsByIds($ids);
-        if (count($locations) == 0) {
+        // LocatedAts
+        // locatedAts are identifiedd by document ids
+        $locatedAts = $this->container->get('located_at_manager')->getLocatedAtsByIds($ids);
+        if (count($locatedAts) == 0) {
             return $cached;
         }
-        foreach ($locations as $location) {
-            $manuscripts[$location->getId()] = (new Manuscript())
-                ->setId($location->getId())
-                ->setLocation($location)
-                ->addCacheDependency('location.' . $location->getId());
-            foreach ($location->getCacheDependencies() as $cacheDependency) {
-                $manuscripts[$location->getId()]
-                    ->addCacheDependency($cacheDependency);
-            }
+        foreach ($locatedAts as $locatedAt) {
+             $manuscript = (new Manuscript())
+                ->setId($locatedAt->getId())
+                ->setLocatedAt($locatedAt);
+
+            $manuscripts[$manuscript->getId()] = $manuscript;
         }
 
         $ids = array_keys($manuscripts);
@@ -127,27 +124,16 @@ class ManuscriptManager extends ObjectManager
         // Origin
         $rawOrigins = $this->dbs->getOrigins($ids);
         if (count($rawOrigins) > 0) {
-            $originIds = self::getUniqueIds($rawOrigins, 'region_id');
-            $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($originIds);
+            $locationIds = self::getUniqueIds($rawOrigins, 'location_id');
+            $locations = $this->container->get('location_manager')->getLocationsByIds($locationIds);
+
             foreach ($rawOrigins as $rawOrigin) {
-                $regionWithParents = $regionsWithParents[$rawOrigin['region_id']];
-                $origin = (new Origin())
-                    ->setId($rawOrigin['location_id'])
-                    ->setRegionWithParents($regionWithParents);
-                foreach ($regionWithParents->getCacheDependencies() as $cacheDependency) {
-                    $manuscripts[$rawOrigin['manuscript_id']]
-                        ->addCacheDependency($cacheDependency);
-                }
-                if (isset($rawOrigin['institution_id'])) {
-                    $origin
-                        ->setInstitution(
-                            new Institution($rawOrigin['institution_id'], $rawOrigin['institution_name'])
-                        );
-                    $manuscripts[$rawOrigin['manuscript_id']]
-                        ->addCacheDependency('institution.' . $rawOrigin['institution_id']);
-                }
                 $manuscripts[$rawOrigin['manuscript_id']]
-                    ->setOrigin($origin);
+                    ->setOrigin(Origin::fromLocation($locations[$rawOrigin['location_id']]));
+
+                foreach ($manuscripts[$rawOrigin['manuscript_id']]->getOrigin()->getCacheDependencies() as $cacheDependency) {
+                    $manuscripts[$rawOrigin['manuscript_id']]->addCacheDependency($cacheDependency);
+                }
             }
         }
 
@@ -266,58 +252,70 @@ class ManuscriptManager extends ObjectManager
         try {
             $manuscript = $this->getManuscriptById($id);
             if ($manuscript == null) {
-                $this->dbs->rollBack();
-                return null;
+                throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
             }
 
             // TODO: sanitize data
             // update manuscript data
-            if (property_exists($data, 'library')
-                && !(property_exists($data, 'collection') && !empty($data->collection))
-            ) {
-                $this->container->get('location_manager')->updateLibrary($manuscript, $data->library);
-            }
-            if (property_exists($data, 'collection') && !empty($data->collection)) {
-                $this->container->get('location_manager')->updateCollection($manuscript, $data->collection);
-            }
-            if (property_exists($data, 'shelf')) {
-                $this->container->get('location_manager')->updateShelf($manuscript, $data->shelf);
+            $correct = false;
+            if (property_exists($data, 'locatedAt')) {
+                $correct = true;
+                $this->container->get('located_at_manager')->updateLocatedAt(
+                    $manuscript->getLocatedAt()->getId(),
+                    $data->locatedAt
+                );
             }
             if (property_exists($data, 'content')) {
+                $correct = true;
                 $this->updateContent($manuscript, $data->content);
             }
             if (property_exists($data, 'patrons')) {
+                $correct = true;
                 $this->updatePatrons($manuscript, $data->patrons);
             }
             if (property_exists($data, 'scribes')) {
+                $correct = true;
                 $this->updateScribes($manuscript, $data->scribes);
             }
             if (property_exists($data, 'relatedPersons')) {
+                $correct = true;
                 $this->updateRelatedPersons($manuscript, $data->relatedPersons);
             }
             if (property_exists($data, 'date')) {
+                $correct = true;
                 $this->updateDate($manuscript, $data->date);
             }
             if (property_exists($data, 'origin')) {
+                $correct = true;
                 $this->updateOrigin($manuscript, $data->origin);
             }
             if (property_exists($data, 'bibliography')) {
+                $correct = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
             }
             if (property_exists($data, 'diktyon')) {
+                $correct = true;
                 $this->updateDiktyon($manuscript, $data->diktyon);
             }
             if (property_exists($data, 'publicComment')) {
+                $correct = true;
                 $this->updatePublicComment($manuscript, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
+                $correct = true;
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
             if (property_exists($data, 'illustrated')) {
+                $correct = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
             }
             if (property_exists($data, 'public')) {
+                $correct = true;
                 $this->updatePublic($manuscript, $data->public);
+            }
+
+            if (!$correct) {
+                throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new manuscript data
@@ -329,9 +327,6 @@ class ManuscriptManager extends ObjectManager
 
             // re-index in elastic search
             $this->ess->addManuscript($newManuscript);
-
-            // update cache
-            $this->setCache([$newManuscript->getId() => $newManuscript], 'manuscript');
 
             // commit transaction
             $this->dbs->commit();

@@ -27,7 +27,7 @@ export default {
         return {
             schema: {
                 fields: {
-                    content: this.createMultiSelect('Content', {values: this.values}, {multiple: true, closeOnSelect: false, trackBy: 'id'}),
+                    content: this.createMultiSelect('Content', {values: this.values}, {multiple: true, closeOnSelect: false}),
                 }
             }
         }

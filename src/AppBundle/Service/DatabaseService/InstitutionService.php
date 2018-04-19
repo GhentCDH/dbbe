@@ -32,7 +32,7 @@ class InstitutionService extends DatabaseService
         )->fetchAll();
     }
 
-    public function insert(string $name, int $regionId, bool $library = false): int
+    public function insert(string $name, int $regionId, bool $library = false, bool $monastery = false): int
     {
         // Set search_path for trigger ensure_institution_has_location
         $this->conn->exec('SET SEARCH_PATH TO data');
@@ -54,6 +54,15 @@ class InstitutionService extends DatabaseService
         if ($library) {
             $this->conn->executeUpdate(
                 'INSERT INTO data.library (identity)
+                values (?)',
+                [
+                    $institutionId,
+                ]
+            );
+        }
+        if ($monastery) {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.monastery (identity)
                 values (?)',
                 [
                     $institutionId,

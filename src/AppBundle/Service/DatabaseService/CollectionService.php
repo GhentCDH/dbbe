@@ -69,14 +69,14 @@ class CollectionService extends DatabaseService
         );
     }
 
-    public function updateLibrary(int $collectionId, int $libraryId): int
+    public function updateInstitution(int $collectionId, int $institutionId): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.fund
             set idlibrary = ?, modified = ?
             where fund.idfund = ?',
             [
-                $libraryId,
+                $institutionId,
                 new DateTime(),
                 $collectionId,
             ],

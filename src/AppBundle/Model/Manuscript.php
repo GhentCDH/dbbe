@@ -2,15 +2,14 @@
 
 namespace AppBundle\Model;
 
-use AppBundle\Helpers\ArrayToJsonTrait;
+use AppBundle\Utils\ArrayToJson;
 
 class Manuscript extends Document implements IdJsonInterface
 {
     use CacheDependenciesTrait;
-    use ArrayToJsonTrait;
 
     private $diktyon;
-    private $location;
+    private $locatedAt;
     private $date;
     private $contentsWithParents;
     private $origin;
@@ -46,21 +45,25 @@ class Manuscript extends Document implements IdJsonInterface
         return $this;
     }
 
-    public function setLocation(Location $location): Manuscript
+    public function setLocatedAt(LocatedAt $locatedAt): Manuscript
     {
-        $this->location = $location;
+        $this->locatedAt = $locatedAt;
+        $this->addCacheDependency('located_at.' . $locatedAt->getId());
+        foreach ($locatedAt->getCacheDependencies() as $cacheDependency) {
+            $this->addCacheDependency($cacheDependency);
+        }
 
         return $this;
     }
 
-    public function getLocation(): Location
+    public function getLocatedAt(): LocatedAt
     {
-        return $this->location;
+        return $this->locatedAt;
     }
 
     public function getName(): string
     {
-        return $this->location->getName();
+        return $this->locatedAt->getName();
     }
 
     public function addContentWithParents(ContentWithParents $contentWithParents): Manuscript
@@ -195,6 +198,7 @@ class Manuscript extends Document implements IdJsonInterface
     public function setOrigin(Origin $origin): Manuscript
     {
         $this->origin = $origin;
+        $this->addCacheDependency('location.' . $origin->getId());
 
         return $this;
     }
@@ -300,15 +304,15 @@ class Manuscript extends Document implements IdJsonInterface
     {
         $result = [
             'id' => $this->id,
-            'location' => $this->location->getJson(),
+            'locatedAt' => $this->locatedAt->getJson(),
             'name' => $this->getName(),
-            'content' => self::arrayToShortJson($this->contentsWithParents),
-            'patrons' => self::arrayToShortJson($this->patrons),
-            'occurrencePatrons' => self::getOccurrencePersonsJson($this->occurrencePatrons),
-            'scribes' => self::arrayToShortJson($this->scribes),
-            'relatedPersons' => self::arrayToShortJson($this->relatedPersons),
-            'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
-            'bibliography' => self::arrayToShortJson($this->getBibliographies()),
+            'content' => ArrayToJson::arrayToShortJson($this->contentsWithParents),
+            'patrons' => ArrayToJson::arrayToShortJson($this->patrons),
+            'occurrencePatrons' => ArrayToJson::getOccurrencePersonsJson($this->occurrencePatrons),
+            'scribes' => ArrayToJson::arrayToShortJson($this->scribes),
+            'relatedPersons' => ArrayToJson::arrayToShortJson($this->relatedPersons),
+            'occurrenceScribes' => ArrayToJson::getOccurrencePersonsJson($this->occurrenceScribes),
+            'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
             'public' => $this->getPublic(),
         ];
 
@@ -338,14 +342,14 @@ class Manuscript extends Document implements IdJsonInterface
     {
         $result = [
             'id' => $this->id,
-            'city' => $this->location->getCity()->getJson(),
-            'library' => $this->location->getLibrary()->getJson(),
-            'shelf' => $this->location->getShelf(),
+            'city' => $this->locatedAt->getLocation()->getRegionWithParents()->getIndividualJson(),
+            'library' => $this->locatedAt->getLocation()->getInstitution()->getJson(),
+            'shelf' => $this->locatedAt->getShelf(),
             'name' => $this->getName(),
             'public' => $this->getPublic(),
         ];
-        if ($this->location->getCollection() != null) {
-            $result['collection'] = $this->location->getCollection()->getJson();
+        if ($this->locatedAt->getLocation()->getCollection() != null) {
+            $result['collection'] = $this->locatedAt->getLocation()->getCollection()->getJson();
         }
         if (!empty($this->contentsWithParents)) {
             $contents = [];

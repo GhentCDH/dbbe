@@ -58,6 +58,11 @@ class IdNameObjectWithParents implements IdJsonInterface
         return $this->getShortJson();
     }
 
+    public function getIndividualJson(): array
+    {
+        return $this->getLastChild()->getJson();
+    }
+
     public function getElastic(): array
     {
         $result = [];

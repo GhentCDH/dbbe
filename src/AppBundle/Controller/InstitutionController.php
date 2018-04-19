@@ -13,12 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Helpers\ArrayToJsonTrait;
+use AppBundle\Utils\ArrayToJson;
 
 class InstitutionController extends Controller
 {
-    use ArrayToJsonTrait;
-
     /**
      * @Route("/institutions/regions/{id}", name="institutions_by_region")
      * @param int $id The region id
@@ -30,9 +28,9 @@ class InstitutionController extends Controller
             $institutions = $this
                 ->get('institution_manager')
                 ->getInstitutionsByRegion($id);
-            return new JsonResponse(self::arrayToShortJson($institutions));
+            return new JsonResponse(ArrayToJson::arrayToShortJson($institutions));
         }
-        throw new Exception('Not implemented.');
+        throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
     /**
@@ -40,9 +38,10 @@ class InstitutionController extends Controller
      * @Method("POST")
      * @param Request $request
      * @param bool $library Indicates whether the institution is a library
+     * @param bool $monastery Indicates whether the institution is a library
      * @return JsonResponse
      */
-    public function postInstitution(Request $request, bool $library = false)
+    public function postInstitution(Request $request, bool $library = false, bool $monastery = false)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
@@ -69,6 +68,17 @@ class InstitutionController extends Controller
     public function postLibrary(Request $request)
     {
         return $this->postInstitution($request, true);
+    }
+
+    /**
+     * @Route("/monasteries/", name="monastery_post")
+     * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postMonastery(Request $request)
+    {
+        return $this->postInstitution($request, false, true);
     }
 
     /**
@@ -108,7 +118,19 @@ class InstitutionController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function pubLibrary(int $id, Request $request)
+    public function putLibrary(int $id, Request $request)
+    {
+        return $this->putInstitution($id, $request);
+    }
+
+    /**
+     * @Route("/monasteries/{id}", name="monastery_put")
+     * @Method("PUT")
+     * @param  int    $id monastery id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function putMonastery(int $id, Request $request)
     {
         return $this->putInstitution($id, $request);
     }
@@ -149,6 +171,17 @@ class InstitutionController extends Controller
      * @return JsonResponse
      */
     public function deleteLibrary(int $id)
+    {
+        return $this->deleteInstitution($id);
+    }
+
+    /**
+     * @Route("/monasteries/{id}", name="monastery_delete")
+     * @Method("DELETE")
+     * @param  int    $id monastery id
+     * @return JsonResponse
+     */
+    public function deleteMonastery(int $id)
     {
         return $this->deleteInstitution($id);
     }

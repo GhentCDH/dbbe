@@ -32,7 +32,7 @@ class RegionWithParents extends IdNameObjectWithParents
     {
         return [
             'id' => $this->getId(),
-            'name' => $this->getName() ? $this->getName() : '[' . $this->getHistoricalName() . ']',
+            'name' => $this->getName(),
             'historicalName' => $this->getHistoricalName(),
             'parent' => $this->getParent() ? $this->getParent()->getShortJson() : null,
             'individualName' => $this->getIndividualName(),
@@ -42,24 +42,37 @@ class RegionWithParents extends IdNameObjectWithParents
         ];
     }
 
-    public function getHistoricalElastic(): array
+    public function getHistoricalElastic(bool $display = true): array
     {
         $result = [];
         $array = $this->array;
-        $last = true;
         while (count($array) > 0) {
             $object = new RegionWithParents($array);
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getHistoricalName(),
             ];
-            if ($last) {
-                $last = false;
+            if ($display) {
+                $display = false;
                 $entry['display'] = true;
             }
             $result[] = $entry;
             array_pop($array);
         }
         return $result;
+    }
+
+    public static function sortByNameHistoricalName(RegionWithParents $a, RegionWithParents $b): int
+    {
+        if (!empty($a->getName()) && !empty($b->getName())) {
+            return strcmp($a->getName(), $b->getName());
+        }
+        if (!empty($a->getName())) {
+            return -1;
+        }
+        if (!empty($b->getName())) {
+            return 1;
+        }
+        return strcmp($a->getHistoricalName(), $b->getHistoricalName());
     }
 }

@@ -19,12 +19,12 @@
                 {{ item.message }}
             </alert>
 
-            <locationPanel
+            <locatedAtPanel
                 header="Location"
-                :model="model.location"
+                :model="model.locatedAt"
                 :values="locations"
                 @validated="validated"
-                ref="location" />
+                ref="locatedAt" />
 
             <contentPanel
                 header="Content"
@@ -256,7 +256,7 @@ export default {
                 onlineSources: JSON.parse(this.initOnlineSources),
             },
             model: {
-                location: null,
+                locatedAt: null,
                 content: null,
                 person: null,
                 date: null,
@@ -294,7 +294,7 @@ export default {
     },
     methods: {
         loadManuscript() {
-            this.model.location = this.manuscript.location
+            this.model.locatedAt = this.manuscript.locatedAt
             this.model.content = {
                 content: this.manuscript.content,
             }
@@ -360,7 +360,7 @@ export default {
         },
         validated(isValid, errors) {
             this.invalidForms = (
-                !this.$refs.location.isValid
+                !this.$refs.locatedAt.isValid
                 || !this.$refs.content.isValid
                 || !this.$refs.persons.isValid
                 || !this.$refs.date.isValid
@@ -373,7 +373,7 @@ export default {
         },
         calcDiff() {
             this.diff = []
-                .concat(this.$refs.location.changes)
+                .concat(this.$refs.locatedAt.changes)
                 .concat(this.$refs.content.changes)
                 .concat(this.$refs.persons.changes)
                 .concat(this.$refs.date.changes)
@@ -422,8 +422,8 @@ export default {
             this.saveModal = false
             axios.put(this.putManuscriptUrl, this.toSave())
                 .then( (response) => {
-                    // redirect to the detail page
                     window.onbeforeunload = function () {}
+                    // redirect to the detail page
                     window.location = this.getManuscriptUrl
                 })
                 .catch( (error) => {

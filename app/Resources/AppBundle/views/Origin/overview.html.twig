@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div id="origins-edit-app">
+        <origins-edit-app
+            init-origins="{{ origins }}"
+            get-origins-url="{{ path('origins_get') }}"
+            get-manuscript-deps-by-institution-url="{{ path('manuscript_deps_by_institution', {'id': 'institution_id'}) }}"
+            get-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
+            get-regions-url="{{ path('regions_get') }}"
+            put-region-url="{{ path('region_put', {'id': 'region_id'}) }}"
+            post-monastery-url="{{ path('monastery_post') }}"
+            put-monastery-url="{{ path('monastery_put', {'id': 'monastery_id'}) }}"
+            delete-monastery-url="{{ path('monastery_delete', {'id': 'monastery_id'}) }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/originsedit.js") }}"></script>
+{% endblock %}

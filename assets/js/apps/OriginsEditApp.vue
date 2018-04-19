@@ -2,7 +2,7 @@
     <div>
         <article class="col-sm-9 mbottom-large">
             <h2>
-                Edit Locations
+                Edit Origins
             </h2>
             <alert
                 v-for="(item, index) in alerts"
@@ -34,7 +34,7 @@
             <div class="row">
                 <div class="col-xs-10">
                     <vue-form-generator
-                        :schema="librarySchema"
+                        :schema="monasterySchema"
                         :model="model"/>
                 </div>
                 <div class="col-xs-2 ptop-default">
@@ -42,57 +42,24 @@
                         v-if="model.regionWithParents"
                         href="#"
                         class="action"
-                        title="Add a new library"
-                        @click.prevent="editLibrary(true)">
+                        title="Add a new monastery"
+                        @click.prevent="editMonastery(true)">
                         <i class="fa fa-plus" />
                     </a>
                     <a
                         v-if="model.institution"
                         href="#"
                         class="action"
-                        title="Edit the selected library"
-                        @click.prevent="editLibrary()">
+                        title="Edit the selected monastery"
+                        @click.prevent="editMonastery()">
                         <i class="fa fa-pencil-square-o" />
                     </a>
-                    <a
-                        v-if="model.institution && collectionSchema.fields.collection.values.length === 0"
-                        href="#"
-                        class="action"
-                        title="Delete the selected library"
-                        @click.prevent="delLibrary()">
-                        <i class="fa fa-trash-o" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="collectionSchema"
-                        :model="model"/>
-                </div>
-                <div class="col-xs-2 ptop-default">
                     <a
                         v-if="model.institution"
                         href="#"
                         class="action"
-                        title="Add a new collection"
-                        @click.prevent="editCollection(true)">
-                        <i class="fa fa-plus" />
-                    </a>
-                    <a
-                        v-if="model.collection"
-                        href="#"
-                        class="action"
-                        title="Edit the selected collection"
-                        @click.prevent="editCollection()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        v-if="model.collection"
-                        href="#"
-                        class="action"
-                        title="Delete the selected collection"
-                        @click.prevent="delCollection()">
+                        title="Delete the selected monastery"
+                        @click.prevent="delMonastery()">
                         <i class="fa fa-trash-o" />
                     </a>
                 </div>
@@ -116,13 +83,7 @@
                 @validated="editFormValidated" />
             <vue-form-generator
                 v-if="submitModel.type === 'institution'"
-                :schema="editLibrarySchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <vue-form-generator
-                v-if="submitModel.type === 'collection'"
-                :schema="editCollectionSchema"
+                :schema="editMonasterySchema"
                 :model="submitModel"
                 :options="formOptions"
                 @validated="editFormValidated" />
@@ -159,7 +120,7 @@
             size="lg"
             auto-focus>
             <div v-if="delDependencies.length !== 0">
-                <p>This location has following dependencies that need to be resolved first:</p>
+                <p>This origin has following dependencies that need to be resolved first:</p>
                 <ul>
                     <li
                         v-for="dependency in delDependencies"
@@ -212,11 +173,11 @@ Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 export default {
     mixins: [ Fields ],
     props: {
-        initLocations: {
+        initOrigins: {
             type: String,
             default: '',
         },
-        getLocationsUrl: {
+        getOriginsUrl: {
             type: String,
             default: '',
         },
@@ -228,10 +189,6 @@ export default {
             type: String,
             default: '',
         },
-        getManuscriptDepsByCollectionUrl: {
-            type: String,
-            default: '',
-        },
         getRegionsUrl: {
             type: String,
             default: '',
@@ -240,27 +197,15 @@ export default {
             type: String,
             default: '',
         },
-        postLibraryUrl: {
+        postMonasteryUrl: {
             type: String,
             default: '',
         },
-        deleteLibraryUrl: {
+        deleteMonasteryUrl: {
             type: String,
             default: '',
         },
-        putLibraryUrl: {
-            type: String,
-            default: '',
-        },
-        postCollectionUrl: {
-            type: String,
-            default: '',
-        },
-        putCollectionUrl: {
-            type: String,
-            default: '',
-        },
-        deleteCollectionUrl: {
+        putMonasteryUrl: {
             type: String,
             default: '',
         },
@@ -270,58 +215,38 @@ export default {
             alerts: [],
             citySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents'}),
+                    city: this.createMultiSelect('City', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
                 }
             },
-            librarySchema: {
+            monasterySchema: {
                 fields: {
-                    library: this.createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents'}),
-                }
-            },
-            collectionSchema: {
-                fields: {
-                    collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution'}),
+                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents'}),
                 }
             },
             delDependencies: [],
             delModal: false,
             editCitySchema: {
                 fields: {
-                    individualName: {
+                    individualHistoricalName: {
                         type: 'input',
                         inputType: 'text',
                         label: 'City name',
                         labelClasses: 'control-label',
-                        model: 'regionWithParents.individualName',
+                        model: 'regionWithParents.individualHistoricalName',
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     }
                 }
             },
-            editLibrarySchema: {
+            editMonasterySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
                     name: {
                         type: 'input',
                         inputType: 'text',
-                        label: 'Library name',
+                        label: 'Monastery name',
                         labelClasses: 'control-label',
                         model: 'institution.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    }
-                }
-            },
-            editCollectionSchema: {
-                fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents'}),
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Collection name',
-                        labelClasses: 'control-label',
-                        model: 'collection.name',
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     }
@@ -339,53 +264,30 @@ export default {
             model: {
                 regionWithParents: null,
                 institution: null,
-                collection: null,
             },
             submitModel: {
                 type: null,
                 regionWithParents: null,
                 institution: null,
-                collection: null,
             },
-            values: JSON.parse(this.initLocations),
+            values: JSON.parse(this.initOrigins),
         }
     },
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                this.dependencyField(this.librarySchema.fields.library)
+                this.dependencyField(this.monasterySchema.fields.monastery)
             }
             else {
-                this.loadLocationField(this.librarySchema.fields.library, this.model)
-                this.enableField(this.librarySchema.fields.library)
-            }
-        },
-        'submitModel.regionWithParents'() {
-            if (this.submitModel.type === 'collection') {
-                if (this.submitModel.regionWithParents == null) {
-                    this.dependencyField(this.editCollectionSchema.fields.library, this.submitModel)
-                }
-                else {
-                    this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-                    this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
-                }
-            }
-        },
-        'model.institution'() {
-            if (this.model.institution == null) {
-                this.dependencyField(this.collectionSchema.fields.collection)
-            }
-            else {
-                this.loadLocationField(this.collectionSchema.fields.collection)
-                this.enableField(this.collectionSchema.fields.collection)
+                this.loadLocationField(this.monasterySchema.fields.monastery, this.model)
+                this.enableField(this.monasterySchema.fields.monastery)
             }
         },
     },
     mounted () {
         this.loadLocationField(this.citySchema.fields.city)
         this.enableField(this.citySchema.fields.city)
-        this.dependencyField(this.librarySchema.fields.library)
-        this.dependencyField(this.collectionSchema.fields.collection)
+        this.dependencyField(this.monasterySchema.fields.monastery)
     },
     methods: {
         editCity() {
@@ -394,7 +296,7 @@ export default {
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
-        editLibrary(add = false) {
+        editMonastery(add = false) {
             // TODO: check if name already exists
             this.submitModel.type = 'institution'
             this.submitModel.regionWithParents = this.model.regionWithParents
@@ -408,57 +310,21 @@ export default {
                 this.submitModel.institution = this.model.institution
             }
 
-            this.loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
-            this.enableField(this.editLibrarySchema.fields.city, this.submitModel)
+            this.loadLocationField(this.editMonasterySchema.fields.city, this.submitModel)
+            this.enableField(this.editMonasterySchema.fields.city, this.submitModel)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
-        delLibrary() {
+        delMonastery() {
             this.submitModel.type = 'institution'
             this.submitModel.regionWithParents = this.model.regionWithParents
             this.submitModel.institution = this.model.institution
             this.deleteDependencies()
         },
-        editCollection(add = false) {
-            this.submitModel.type = 'collection'
-            this.submitModel.regionWithParents = this.model.regionWithParents
-            this.submitModel.institution = this.model.institution
-            if (add) {
-                this.submitModel.collection = {
-                    id: null,
-                    name: '',
-                }
-            }
-            else {
-                this.submitModel.collection = this.model.collection
-            }
-
-            this.loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
-
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
-            this.editModal = true
-        },
-        delCollection() {
-            this.submitModel.type = 'collection'
-            this.submitModel.regionWithParents = this.model.regionWithParents
-            this.submitModel.institution = this.model.institution
-            this.submitModel.collection = this.model.collection
-            this.deleteDependencies()
-        },
         deleteDependencies() {
             this.openRequests++
-            let url = ''
-            if (this.submitModel.type === 'institution') {
-                url = this.getManuscriptDepsByInstitutionUrl.replace('institution_id', this.submitModel.institution.id)
-            }
-            else {
-                url = this.getManuscriptDepsByCollectionUrl.replace('collection_id', this.submitModel.collection.id)
-            }
-            axios.get(url)
+            axios.get(this.getManuscriptDepsByInstitutionUrl.replace('institution_id', this.submitModel.institution.id))
                 .then( (response) => {
                     this.delDependencies = response.data
                     this.delModal = true
@@ -486,12 +352,12 @@ export default {
                 // Not possible to add cities
                 url = this.putRegionUrl.replace('region_id', this.submitModel.regionWithParents.id)
                 data = {
-                    individualName: this.submitModel.regionWithParents.individualName,
+                    individualHistoricalName: this.submitModel.regionWithParents.individualHistoricalName,
                 }
                 break
             case 'institution':
                 if (this.submitModel.institution.id == null) {
-                    url = this.postLibraryUrl
+                    url = this.postMonasteryUrl
                     data = {
                         name: this.submitModel.institution.name,
                         regionWithParents: {
@@ -500,7 +366,7 @@ export default {
                     }
                 }
                 else {
-                    url = this.putLibraryUrl.replace('library_id', this.submitModel.institution.id)
+                    url = this.putMonasteryUrl.replace('monastery_id', this.submitModel.institution.id)
                     data = {}
                     if (this.submitModel.institution.name !== this.originalSubmitModel.institution.name) {
                         data.name = this.submitModel.institution.name
@@ -508,29 +374,6 @@ export default {
                     if (this.submitModel.regionWithParents.id !== this.originalSubmitModel.regionWithParents.id) {
                         data.regionWithParents = {
                             id: this.submitModel.regionWithParents.id
-                        }
-                    }
-                }
-                break
-            case 'collection':
-                if (this.submitModel.collection.id == null) {
-                    url = this.postCollectionUrl
-                    data = {
-                        name: this.submitModel.collection.name,
-                        institution: {
-                            id: this.submitModel.institution.id,
-                        },
-                    }
-                }
-                else {
-                    url = this.putCollectionUrl.replace('collection_id', this.submitModel.collection.id)
-                    data = {}
-                    if (this.submitModel.collection.name !== this.originalSubmitModel.collection.name) {
-                        data.name = this.submitModel.collection.name
-                    }
-                    if (this.submitModel.institution.id !== this.originalSubmitModel.institution.id) {
-                        data.institution = {
-                            id: this.submitModel.institution.id
                         }
                     }
                 }
@@ -545,9 +388,6 @@ export default {
                             break
                         case 'institution':
                             this.submitModel.institution = response.data
-                            break
-                        case 'collection':
-                            this.submitModel.collection = response.data
                             break
                         }
                         this.update()
@@ -570,9 +410,6 @@ export default {
                         case 'institution':
                             this.submitModel.institution = response.data
                             break
-                        case 'collection':
-                            this.submitModel.collection = response.data
-                            break
                         }
                         this.update()
                         this.alerts.push({type: 'success', message: 'Update successful.'})
@@ -588,25 +425,9 @@ export default {
         submitDelete() {
             this.delModal = false
             this.openRequests++
-            let url = ''
-            switch(this.submitModel.type) {
-            case 'institution':
-                url = this.deleteLibraryUrl.replace('library_id', this.submitModel.institution.id)
-                break
-            case 'collection':
-                url = this.deleteCollectionUrl.replace('collection_id', this.submitModel.collection.id)
-                break
-            }
-            axios.delete(url)
+            axios.delete(this.deleteMonasteryUrl.replace('monastery_id', this.submitModel.institution.id))
                 .then( (response) => {
-                    switch(this.submitModel.type) {
-                    case 'institution':
-                        this.submitModel.institution = null
-                        break
-                    case 'collection':
-                        this.submitModel.collection = null
-                        break
-                    }
+                    this.submitModel.institution = null
                     this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
                     this.openRequests--
@@ -619,7 +440,7 @@ export default {
         },
         update() {
             this.openRequests++
-            axios.get(this.getLocationsUrl)
+            axios.get(this.getOriginsUrl)
                 .then( (response) => {
                     this.values = response.data
                     switch(this.submitModel.type) {
@@ -631,24 +452,15 @@ export default {
                         this.model.regionWithParents = this.submitModel.regionWithParents
                         this.model.institution = this.submitModel.institution
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.enableField(this.librarySchema.fields.library, this.submitModel)
-                        break
-                    case 'collection':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
-                        this.model.institution = this.submitModel.institution
-                        this.model.collection = this.submitModel.collection
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
-                        this.enableField(this.collectionSchema.fields.collection, this.submitModel)
+                        this.loadLocationField(this.monasterySchema.fields.monastery, this.submitModel)
+                        this.enableField(this.monasterySchema.fields.monastery, this.submitModel)
                         break
                     }
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the location data.'})
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the origin data.'})
                     console.log(error)
                 })
         },
@@ -657,11 +469,14 @@ export default {
                 return 'city'
             }
             if (type === 'institution') {
-                return 'library'
+                return 'monastery'
             }
             else {
                 return type
             }
+        },
+        formatHistoricalName(regionWithParents) {
+            return regionWithParents.historicalName
         },
     }
 }

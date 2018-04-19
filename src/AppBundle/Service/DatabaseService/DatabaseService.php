@@ -4,7 +4,6 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * The DatabaseService is the parent database service class.
@@ -19,20 +18,12 @@ class DatabaseService implements DatabaseServiceInterface
     protected $conn;
 
     /**
-     * The cache to store database query results.
-     * @var \Symfony\Component\Cache\Adapter\ApcuAdapter
-     */
-    protected $cache;
-
-    /**
      * Creates a new DatabaseService that operates on the given entity manager
      * @param EntityManagerInterface $entityManager
-     * @param CacheItemPoolInterface $cacheItemPool
      */
-    public function __construct(EntityManagerInterface $entityManager, CacheItemPoolInterface $cacheItemPool)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->conn = $entityManager->getConnection();
-        $this->cache = $cacheItemPool;
     }
 
     public function beginTransaction(): void

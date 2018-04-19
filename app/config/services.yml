@@ -34,6 +34,11 @@ services:
         arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage']
         public: true
 
+    located_at_manager:
+        class: AppBundle\ObjectStorage\LocatedAtManager
+        arguments: ['@located_at_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     location_manager:
         class: AppBundle\ObjectStorage\LocationManager
         arguments: ['@location_service', '@cache.app', '@service_container', null, null]
@@ -74,45 +79,58 @@ services:
         arguments: ['@occurrence_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    origin_manager:
+        class: AppBundle\ObjectStorage\OriginManager
+        arguments: ['@origin_service', '@cache.app', '@service_container', null, null]
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
+
+    located_at_service:
+        class: AppBundle\Service\DatabaseService\LocatedAtService
+        arguments: ['@doctrine.orm.entity_manager']
 
     location_service:
         class: AppBundle\Service\DatabaseService\LocationService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     content_service:
         class: AppBundle\Service\DatabaseService\ContentService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     person_service:
         class: AppBundle\Service\DatabaseService\PersonService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     region_service:
         class: AppBundle\Service\DatabaseService\RegionService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     bilbiography_service:
         class: AppBundle\Service\DatabaseService\BibliographyService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     occurrence_service:
         class: AppBundle\Service\DatabaseService\OccurrenceService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     institution_service:
         class: AppBundle\Service\DatabaseService\InstitutionService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
 
     collection_service:
         class: AppBundle\Service\DatabaseService\CollectionService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
+
+    origin_service:
+        class: AppBundle\Service\DatabaseService\OriginService
+        arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:
         class: AppBundle\Service\DatabaseService\FeedbackService
-        arguments: ['@doctrine.orm.entity_manager', '@cache.app']
+        arguments: ['@doctrine.orm.entity_manager']
         public: true
 
     elasticsearch_service:

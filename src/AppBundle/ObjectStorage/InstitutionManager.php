@@ -42,17 +42,17 @@ class InstitutionManager extends ObjectManager
         return $this->getInstitutionsByIds($institutionIds);
     }
 
-    public function addInstitution(stdClass $data, bool $library = false): Institution
+    public function addInstitution(stdClass $data, bool $library = false, bool $monastery = false): Institution
     {
         $this->dbs->beginTransaction();
         try {
             if (property_exists($data, 'name')
                 && is_string($data->name)
-                && property_exists($data, 'city')
-                && property_exists($data->city, 'id')
-                && is_numeric($data->city->id)
+                && property_exists($data, 'regionWithParents')
+                && property_exists($data->regionWithParents, 'id')
+                && is_numeric($data->regionWithParents->id)
             ) {
-                $institutionId = $this->dbs->insert($data->name, $data->city->id, $library);
+                $institutionId = $this->dbs->insert($data->name, $data->regionWithParents->id, $library, $monastery);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }
@@ -94,12 +94,12 @@ class InstitutionManager extends ObjectManager
                 $correct = true;
                 $this->dbs->updateName($institutionId, $data->name);
             }
-            if (property_exists($data, 'city')
-                && property_exists($data->city, 'id')
-                && is_numeric($data->city->id)
+            if (property_exists($data, 'regionWithParents')
+                && property_exists($data->regionWithParents, 'id')
+                && is_numeric($data->regionWithParents->id)
             ) {
                 $correct = true;
-                $this->dbs->updateRegion($institutionId, $data->city->id);
+                $this->dbs->updateRegion($institutionId, $data->regionWithParents->id);
             }
 
             if (!$correct) {

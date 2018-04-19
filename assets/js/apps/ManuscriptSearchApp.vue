@@ -165,9 +165,9 @@ export default {
             model: {},
             schema: {
                 fields: {
-                    city: this.createMultiSelect('City', {}, {trackBy: 'id'}),
-                    library: this.createMultiSelect('Library', {dependency: 'city'}, {trackBy: 'id'}),
-                    collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}, {trackBy: 'id'}),
+                    city: this.createMultiSelect('City'),
+                    library: this.createMultiSelect('Library', {dependency: 'city'}),
+                    collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}),
                     shelf: {
                         type: 'input',
                         inputType: 'text',
@@ -192,10 +192,10 @@ export default {
                         max: YEAR_MAX,
                         validator: VueFormGenerator.validators.number
                     },
-                    content: this.createMultiSelect('Content', {}, {trackBy: 'id'}),
-                    patron: this.createMultiSelect('Patron', {}, {trackBy: 'id'}),
-                    scribe: this.createMultiSelect('Scribe', {}, {trackBy: 'id'}),
-                    origin: this.createMultiSelect('Origin', {}, {trackBy: 'id'})
+                    content: this.createMultiSelect('Content'),
+                    patron: this.createMultiSelect('Patron'),
+                    scribe: this.createMultiSelect('Scribe'),
+                    origin: this.createMultiSelect('Origin')
                 }
             },
             formOptions: {
@@ -264,12 +264,11 @@ export default {
         if (this.isEditor) {
             data.schema.fields['public'] = this.createMultiSelect(
                 'Public',
-                {},
+                null,
                 {
                     customLabel: ({id, name}) => {
                         return name === 'true' ? 'Public only' : 'Internal only'
                     },
-                    trackBy: 'id',
                 }
             )
         }
@@ -301,6 +300,7 @@ export default {
         },
     },
     methods: {
+        // TODO: use Fields.js
         createMultiSelect(label, extra, extraSelectOptions) {
             let result = {
                 type: 'multiselectClear',
