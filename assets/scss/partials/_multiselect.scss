@@ -177,6 +177,15 @@ fieldset {
   padding: 8px 40px 0 8px;
 }
 
+.has-error {
+  .multiselect__tags {
+    // @include form-control-validation($state-danger-text, $state-danger-text, $state-danger-bg);
+    @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+    border-color: $state-danger-text;
+    border-width: 3px;
+  }
+}
+
 .multiselect__tag {
   background: $brand-primary;
   color: $white;
