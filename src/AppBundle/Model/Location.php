@@ -75,6 +75,18 @@ class Location
         return $this->collection;
     }
 
+    public function getName(): string
+    {
+        $names = [$this->regionWithParents->getName()];
+        if (isset($this->institution)) {
+            $names[] = $this->institution->getName();
+        }
+        if (isset($this->collection)) {
+            $names[] = $this->collection->getName();
+        }
+        return implode(' > ', $names);
+    }
+
     public function getShortJson(): array
     {
         $result = [
@@ -103,63 +115,5 @@ class Location
             $result['collection'] = $this->collection->getJson();
         }
         return $result;
-    }
-
-    public static function sortByName(Location $a, Location $b): int
-    {
-        if ($a->getRegionWithParents()->getName() == $b->getRegionWithParents()->getName()) {
-            if (!empty($a->getInstitution()) && !empty($b->getInstitution())) {
-                if ($a->getInstitution()->getName() == $b->getInstitution()->getName()) {
-                    if (!empty($a->getCollection()) && !empty($b->getCollection())) {
-                        return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
-                    }
-                    if (!empty($a->getCollection())) {
-                        return -1;
-                    }
-                    if (!empty($b->getCollection())) {
-                        return 1;
-                    }
-                    return 0;
-                }
-                return strcmp($a->getInstitution()->getName(), $b->getInstitution()->getName());
-            }
-            if (!empty($a->getInstitution())) {
-                return -1;
-            }
-            if (!empty($b->getInstitution())) {
-                return 1;
-            }
-            return 0;
-        }
-        return strcmp($a->getRegionWithParents()->getName(), $b->getRegionWithParents()->getName());
-    }
-
-    public static function sortByHistoricalName(Location $a, Location $b): int
-    {
-        if ($a->getRegionWithParents()->getHistoricalName() == $b->getRegionWithParents()->getHistoricalName()) {
-            if (!empty($a->getInstitution()) && !empty($b->getInstitution())) {
-                if ($a->getInstitution()->getName() == $b->getInstitution()->getName()) {
-                    if (!empty($a->getCollection()) && !empty($b->getCollection())) {
-                        return strcmp($a->getCollection()->getName(), $b->getCollection()->getName());
-                    }
-                    if (!empty($a->getCollection())) {
-                        return -1;
-                    }
-                    if (!empty($b->getCollection())) {
-                        return 1;
-                    }
-                    return 0;
-                }
-                return strcmp($a->getInstitution()->getName(), $b->getInstitution()->getName());
-            }
-            if (!empty($a->getInstitution())) {
-                return -1;
-            }
-            if (!empty($b->getInstitution())) {
-                return 1;
-            }
-            return 0;
-        }
-        return strcmp($a->getRegionWithParents()->getHistoricalName(), $b->getRegionWithParents()->getHistoricalName());
     }
 }

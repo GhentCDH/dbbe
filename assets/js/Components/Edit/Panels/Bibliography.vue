@@ -395,13 +395,20 @@ export default {
     },
     watch: {
         values() {
-            this.enableFields()
+            this.init()
         },
         model() {
-            this.enableFields()
+            this.init()
         }
     },
+    mounted () {
+        this.init()
+    },
     methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableFields()
+        },
         enableFields() {
             this.enableField(this.editBookBibSchema.fields.book)
             this.enableField(this.editArticleBibSchema.fields.article)
@@ -410,9 +417,6 @@ export default {
         },
         calcChanges() {
             this.changes = []
-            if (this.originalModel == null) {
-                return
-            }
             for (let key of Object.keys(this.model)) {
                 if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
                     // bibliography is regarded as a single item

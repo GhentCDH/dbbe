@@ -21,7 +21,10 @@ class OriginManager extends ObjectManager
             $origins[$location->getId()] = Origin::fromLocation($location);
         }
 
-        usort($origins, ['AppBundle\Model\Location', 'sortByHistoricalName']);
+        // Sort by name
+        usort($origins, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
         $cache->tag(['regions', 'institutions']);
         $this->cache->save($cache->set($origins));

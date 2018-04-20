@@ -21,10 +21,21 @@ class LocatedAtService extends DatabaseService
         )->fetchAll();
     }
 
+    public function insert(int $documentId, int $locationId, string $shelf): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.located_at (iddocument, idlocation, identification)
+            values (?, ?, ?)',
+            [
+                $documentId,
+                $locationId,
+                $shelf,
+            ]
+        );
+    }
+
     public function updateLocation(int $locatedAtId, int $locationId): int
     {
-        var_dump($locatedAtId);
-        var_dump($locationId);
         return $this->conn->executeUpdate(
             'UPDATE data.located_at
             set idlocation = ?

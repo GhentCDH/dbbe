@@ -1,7 +1,7 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <h2>
+            <h2 v-if="manuscript">
                 Edit Manuscript
                 <a
                     :href="getManuscriptUrl"
@@ -9,6 +9,9 @@
                     title="View">
                     <i class="fa fa-eye" />
                 </a>
+            </h2>
+            <h2 v-else>
+                Add Manuscript
             </h2>
             <alert
                 v-for="(item, index) in alerts"
@@ -39,8 +42,8 @@
                 :values="persons"
                 @validated="validated"
                 ref="persons"
-                :occurrence-patrons="manuscript.occurrencePatrons"
-                :occurrence-scribes="manuscript.occurrenceScribes" />
+                :occurrence-patrons="manuscript ? manuscript.occurrencePatrons : []"
+                :occurrence-scribes="manuscript ? manuscript.occurrenceScribes : []" />
 
             <datePanel
                 header="Date"
@@ -75,10 +78,18 @@
                 Reset
             </btn>
             <btn
+                v-if="manuscript"
                 type="success"
-                :disabled="(diff.length === 0) || invalidForms"
-                @click="saveModal=true">
+                :disabled="(diff.length === 0)"
+                @click="saveButton()">
                 Save changes
+            </btn>
+            <btn
+                v-else
+                type="success"
+                :disabled="(diff.length === 0)"
+                @click="saveButton()">
+                Save
             </btn>
             <btn
                 :disabled="(diff.length !== 0)"
@@ -103,6 +114,19 @@
                     @click="reset()"
                     data-action="auto-focus">
                     Reset
+                </btn>
+            </div>
+        </modal>
+        <modal
+            v-model="invalidModal"
+            title="Invalid fields"
+            auto-focus>
+            <p>There are invalid input fields. Please correct them.</p>
+            <div slot="footer">
+                <btn
+                    @click="invalidModal=false"
+                    data-action="auto-focus">
+                    OK
                 </btn>
             </div>
         </modal>
@@ -189,6 +213,10 @@ export default {
             type: String,
             default: '',
         },
+        postManuscriptUrl: {
+            type: String,
+            default: '',
+        },
         putManuscriptUrl: {
             type: String,
             default: '',
@@ -240,7 +268,7 @@ export default {
     },
     data() {
         return {
-            manuscript: JSON.parse(this.initManuscript),
+            manuscript: this.initManuscript ? JSON.parse(this.initManuscript) : null,
             locations: JSON.parse(this.initLocations),
             contents: JSON.parse(this.initContents),
             persons: {
@@ -256,21 +284,47 @@ export default {
                 onlineSources: JSON.parse(this.initOnlineSources),
             },
             model: {
-                locatedAt: null,
-                content: null,
-                person: null,
-                date: null,
-                origin: null,
+                locatedAt: {
+                    location: {
+                        id: null,
+                        regionWithParents: null,
+                        institution: null,
+                        collection: null,
+                    },
+                    shelf: null,
+                },
+                content: {content: null},
+                person: {
+                    patrons: [],
+                    scribes: [],
+                    relatedPersons: [],
+                },
+                date: {
+                    floor: null,
+                    ceiling: null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                },
+                origin: {origin: null},
                 bibliography: {
                     books: [],
                     articles: [],
                     bookChapters: [],
                     onlineSources: [],
                 },
-                general: null
+                general: {
+                    diktyon: null,
+                    publicComment: null,
+                    privateComment: null,
+                    illustrated: null,
+                    public: null,
+                },
             },
             formOptions: {
-                validateAfterLoad: true,
                 validateAfterChanged: true,
                 validationErrorClass: "has-error",
                 validationSuccessClass: "success"
@@ -280,6 +334,7 @@ export default {
             originalModel: {},
             diff:[],
             resetModal: false,
+            invalidModal: false,
             saveModal: false,
             invalidForms: false,
         }
@@ -294,69 +349,79 @@ export default {
     },
     methods: {
         loadManuscript() {
-            this.model.locatedAt = this.manuscript.locatedAt
-            this.model.content = {
-                content: this.manuscript.content,
-            }
-            this.model.person = {
-                patrons: this.manuscript.patrons,
-                scribes: this.manuscript.scribes,
-                relatedPersons: this.manuscript.relatedPersons,
-            }
+            if (this.manuscript != null) {
+                this.model.locatedAt = this.manuscript.locatedAt
+                this.model.content = {
+                    content: this.manuscript.content,
+                }
+                this.model.person = {
+                    patrons: this.manuscript.patrons,
+                    scribes: this.manuscript.scribes,
+                    relatedPersons: this.manuscript.relatedPersons,
+                }
 
-            // Date
-            this.model.date = {
-                floor: this.manuscript.date.floor,
-                ceiling: this.manuscript.date.ceiling,
-                exactDate: null,
-                exactYear: null,
-                floorYear: null,
-                floorDayMonth: null,
-                ceilingYear: null,
-                ceilingDayMonth: null,
-            }
+                // Date
+                this.model.date = {
+                    floor: this.manuscript.date != null ? this.manuscript.date.floor : null,
+                    ceiling: this.manuscript.date != null ? this.manuscript.date.ceiling : null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                }
 
-            // Origin
-            this.model.origin = {
-                origin: this.manuscript.origin,
-            }
+                // Origin
+                this.model.origin = {
+                    origin: this.manuscript.origin,
+                }
 
-            // Bibliography
-            this.model.bibliography = {
-                books: [],
-                articles: [],
-                bookChapters: [],
-                onlineSources: [],
-            }
-            for (let id of Object.keys(this.manuscript.bibliography)) {
-                let bib = this.manuscript.bibliography[id]
-                bib['id'] = id
-                switch (bib['type']) {
-                case 'book':
-                    this.model.bibliography.books.push(bib)
-                    break
-                case 'article':
-                    this.model.bibliography.articles.push(bib)
-                    break
-                case 'bookChapter':
-                    this.model.bibliography.bookChapters.push(bib)
-                    break
-                case 'onlineSource':
-                    this.model.bibliography.onlineSources.push(bib)
-                    break
+                // Bibliography
+                this.model.bibliography = {
+                    books: [],
+                    articles: [],
+                    bookChapters: [],
+                    onlineSources: [],
+                }
+                for (let id of Object.keys(this.manuscript.bibliography)) {
+                    let bib = this.manuscript.bibliography[id]
+                    bib['id'] = id
+                    switch (bib['type']) {
+                    case 'book':
+                        this.model.bibliography.books.push(bib)
+                        break
+                    case 'article':
+                        this.model.bibliography.articles.push(bib)
+                        break
+                    case 'bookChapter':
+                        this.model.bibliography.bookChapters.push(bib)
+                        break
+                    case 'onlineSource':
+                        this.model.bibliography.onlineSources.push(bib)
+                        break
+                    }
+                }
+
+                // General
+                this.model.general = {
+                    diktyon: this.manuscript.diktyon,
+                    publicComment: this.manuscript.publicComment,
+                    privateComment: this.manuscript.privateComment,
+                    illustrated: this.manuscript.illustrated,
+                    public: this.manuscript.public,
                 }
             }
 
-            // General
-            this.model.general = {
-                diktyon: this.manuscript.diktyon,
-                publicComment: this.manuscript.publicComment,
-                privateComment: this.manuscript.privateComment,
-                illustrated: this.manuscript.illustrated,
-                public: this.manuscript.public,
-            }
-
             this.originalModel = JSON.parse(JSON.stringify(this.model))
+        },
+        validateForms() {
+            this.$refs.locatedAt.validate()
+            this.$refs.content.validate()
+            this.$refs.persons.validate()
+            this.$refs.date.validate()
+            this.$refs.origin.validate()
+            this.$refs.general.validate()
         },
         validated(isValid, errors) {
             this.invalidForms = (
@@ -383,9 +448,9 @@ export default {
 
             if (this.diff.length !== 0) {
                 window.onbeforeunload = function(e) {
-                    let dialogText = 'There are unsaved changes.';
-                    e.returnValue = dialogText;
-                    return dialogText;
+                    let dialogText = 'There are unsaved changes.'
+                    e.returnValue = dialogText
+                    return dialogText
                 }
             }
         },
@@ -411,6 +476,7 @@ export default {
                     result[diff.key] = diff.value
                 }
             }
+            console.log(result)
             return result
         },
         reset() {
@@ -420,17 +486,41 @@ export default {
         save() {
             this.openRequests++
             this.saveModal = false
-            axios.put(this.putManuscriptUrl, this.toSave())
-                .then( (response) => {
-                    window.onbeforeunload = function () {}
-                    // redirect to the detail page
-                    window.location = this.getManuscriptUrl
-                })
-                .catch( (error) => {
-                    console.log(error)
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
-                    this.openRequests--
-                })
+            if (this.manuscript == null) {
+                axios.post(this.postManuscriptUrl, this.toSave())
+                    .then( (response) => {
+                        window.onbeforeunload = function () {}
+                        // redirect to the detail page
+                        window.location = this.getManuscriptUrl.replace('manuscript_id', response.data.id)
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.openRequests--
+                    })
+            }
+            else {
+                axios.put(this.putManuscriptUrl, this.toSave())
+                    .then( (response) => {
+                        window.onbeforeunload = function () {}
+                        // redirect to the detail page
+                        window.location = this.getManuscriptUrl
+                    })
+                    .catch( (error) => {
+                        console.log(error)
+                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.openRequests--
+                    })
+            }
+        },
+        saveButton() {
+            this.validateForms()
+            if (this.invalidForms) {
+                this.invalidModal = true
+            }
+            else {
+                this.saveModal = true
+            }
         },
         reload() {
             window.onbeforeunload = function () {}

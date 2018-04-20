@@ -52,7 +52,10 @@ class LocationManager extends ObjectManager
         $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
         $locationsForManuscripts = $this->getLocationsByIds($locationIds);
 
-        usort($locationsForManuscripts, ['AppBundle\Model\Location', 'sortByName']);
+        // Sort by name
+        usort($locationsForManuscripts, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
         $cache->tag(['regions', 'institutions', 'collections']);
         $this->cache->save($cache->set($locationsForManuscripts));
@@ -70,7 +73,10 @@ class LocationManager extends ObjectManager
         $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
         $locationsForLocations = $this->getLocationsByIds($locationIds);
 
-        usort($locationsForLocations, ['AppBundle\Model\Location', 'sortByName']);
+        // Sort by name
+        usort($locationsForLocations, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
         $cache->tag(['regions', 'institutions', 'collections']);
         $this->cache->save($cache->set($locationsForManuscripts));

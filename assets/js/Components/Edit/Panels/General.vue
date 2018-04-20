@@ -69,6 +69,9 @@ export default {
         }
     },
     methods: {
+        validate() {
+            this.$refs.generalForm.validate()
+        },
         validated(isValid, errors) {
             // fix NaN
             if (isNaN(this.model.diktyon)) {

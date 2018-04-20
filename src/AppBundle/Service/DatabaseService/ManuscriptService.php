@@ -353,6 +353,23 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
+    public function insert(): int
+    {
+        // Set search_path for trigger ensure_manuscript_has_document
+        $this->conn->exec('SET SEARCH_PATH TO data');
+        $this->conn->executeUpdate(
+            'INSERT INTO data.manuscript default values'
+        );
+        $manuscriptId = $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            order by identity desc
+            limit 1'
+        )->fetch()['manuscript_id'];
+        return $manuscriptId;
+    }
+
     public function delContents(int $manuscriptId, array $contentIds): int
     {
         return $this->conn->executeUpdate(

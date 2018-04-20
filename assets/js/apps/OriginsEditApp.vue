@@ -220,7 +220,7 @@ export default {
             },
             monasterySchema: {
                 fields: {
-                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents'}),
+                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
                 }
             },
             delDependencies: [],

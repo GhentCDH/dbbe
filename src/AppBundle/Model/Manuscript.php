@@ -268,9 +268,9 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->occurrences;
     }
 
-    public function setIllustrated(bool $illustrated): Manuscript
+    public function setIllustrated(bool $illustrated = null): Manuscript
     {
-        $this->illustrated = $illustrated;
+        $this->illustrated = empty($illustrated) ? false : $illustrated;
 
         return $this;
     }

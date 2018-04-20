@@ -4,7 +4,8 @@
             :schema="schema"
             :model="model"
             :options="formOptions"
-            @validated="validated" />
+            @validated="validated"
+            ref="form" />
     </panel>
 </template>
 <script>
@@ -34,13 +35,22 @@ export default {
     },
     watch: {
         values() {
-            this.enableField(this.schema.fields.origin)
+            this.init()
         },
         model() {
-            this.enableField(this.schema.fields.origin)
+            this.init()
         }
     },
+    mounted () {
+        this.init()
+    },
     methods: {
+        init() {
+            this.enableField(this.schema.fields.origin)
+        },
+        validate() {
+            this.$refs.form.validate()
+        },
         validated(isValid, errors) {
             this.isValid = isValid
             this.calcChanges()

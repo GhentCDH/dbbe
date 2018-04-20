@@ -134,17 +134,29 @@ export default {
     },
     watch: {
         values() {
-            this.enableFields()
+            this.init()
         },
         model() {
-            this.enableFields()
+            this.init()
         }
     },
+    mounted () {
+        this.init()
+    },
     methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableFields()
+        },
         enableFields() {
             this.enableField(this.patronsSchema.fields.patrons)
             this.enableField(this.scribesSchema.fields.scribes)
             this.enableField(this.relatedPersonsSchema.fields.relatedPersons)
+        },
+        validate() {
+            this.$refs.patronsForm.validate()
+            this.$refs.scribesForm.validate()
+            this.$refs.relatedPersonsForm.validate()
         },
         validated(isValid, errors) {
             this.isValid = isValid

@@ -5,6 +5,7 @@
         <manuscript-search-app
             :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
             manuscripts-search-api-url="{{ path('manuscripts_search_api') }}"
+            add-manuscript-url="{{ path('manuscript_add') }}"
             show-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
             edit-manuscript-url="{{ path('manuscript_edit', {'id': 'manuscript_id'}) }}"
             del-manuscript-url="{{ path('manuscript_delete', {'id': 'manuscript_id'}) }}"

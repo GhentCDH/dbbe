@@ -28,6 +28,11 @@ class RegionWithParents extends IdNameObjectWithParents
         return $this->getLastChild()->getPleiades();
     }
 
+    public function getNameHistoricalName(): string
+    {
+        return !empty($this->getName()) ? $this->getName() : $this->getHistoricalName();
+    }
+
     public function getJson(): array
     {
         return [
@@ -60,19 +65,5 @@ class RegionWithParents extends IdNameObjectWithParents
             array_pop($array);
         }
         return $result;
-    }
-
-    public static function sortByNameHistoricalName(RegionWithParents $a, RegionWithParents $b): int
-    {
-        if (!empty($a->getName()) && !empty($b->getName())) {
-            return strcmp($a->getName(), $b->getName());
-        }
-        if (!empty($a->getName())) {
-            return -1;
-        }
-        if (!empty($b->getName())) {
-            return 1;
-        }
-        return strcmp($a->getHistoricalName(), $b->getHistoricalName());
     }
 }

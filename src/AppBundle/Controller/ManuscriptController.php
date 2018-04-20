@@ -148,6 +148,18 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * @Route("/manuscripts/add", name="manuscript_add")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function addManuscript(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        return $this->editManuscript(null, $request);
+    }
+
+    /**
      * @Route("/manuscripts/{id}", name="manuscript_show")
      * @Method("GET")
      * @param  int    $id manuscript id
@@ -247,6 +259,32 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * @Route("/manuscripts", name="manuscript_post")
+     * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postManuscript(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        try {
+            $manuscript = $this
+                ->get('manuscript_manager')
+                ->addManuscript(json_decode($request->getContent()));
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $this->addFlash('success', 'Manuscript added successfully.');
+
+        return new JsonResponse($manuscript->getJson());
+    }
+
+    /**
      * @Route("/manuscripts/{id}", name="manuscript_put")
      * @Method("PUT")
      * @param  int    $id manuscript id
@@ -296,41 +334,52 @@ class ManuscriptController extends Controller
 
     /**
      * @Route("/manuscripts/{id}/edit", name="manuscript_edit")
+     * @param  int|null $id manuscript id
+     * @param Request $request
+     * @return Response
      */
-    public function editManuscript(int $id)
+    public function editManuscript(int $id = null, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
-        $locations = ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts());
-        $contents = ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents());
-        $patrons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons());
-        $scribes = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes());
-        $relatedPersons = ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons());
-        $origins = ArrayToJson::arrayToJson($this->get('origin_manager')->getAllOrigins());
-        $books = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks());
-        $articles = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles());
-        $bookChapters = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters());
-        $onlineSources = ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources());
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
             [
                 'id' => $id,
-                'manuscript' => json_encode($manuscript->getJson()),
-                'locations' => json_encode($locations),
-                'contents' => json_encode($contents),
-                'patrons' => json_encode($patrons),
-                'scribes' => json_encode($scribes),
-                'relatedPersons' => json_encode($relatedPersons),
-                'origins' => json_encode($origins),
-                'books' => json_encode($books),
-                'articles' => json_encode($articles),
-                'bookChapters' => json_encode($bookChapters),
-                'onlineSources' => json_encode($onlineSources),
+                'manuscript' => empty($id)
+                    ? null
+                    : json_encode($this->get('manuscript_manager')->getManuscriptById($id)->getJson()),
+                'locations' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts())
+                ),
+                'contents' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents())
+                ),
+                'patrons' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons())
+                ),
+                'scribes' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes())
+                ),
+                'relatedPersons' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons())
+                ),
+                'origins' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins())
+                ),
+                'books' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks())
+                ),
+                'articles' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles())
+                ),
+                'bookChapters' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters())
+                ),
+                'onlineSources' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources())
+                ),
             ]
         );
     }
-
-    // TODO: make it possible to create new manuscripts
 }

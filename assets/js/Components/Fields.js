@@ -54,7 +54,7 @@ export default {
             model[modelName] = null
             field.disabled = true
             field.selectOptions.loading = false
-            field.placeholder = 'Please select a ' + field.dependency + ' first'
+            field.placeholder = 'Please select a ' + (field.dependencyName ? field.dependencyName : field.dependency) + ' first'
         },
         enableField(field, model = null) {
             if (model == null) {

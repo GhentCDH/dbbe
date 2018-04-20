@@ -219,7 +219,7 @@ class ManuscriptManager extends ObjectManager
 
         // Illustrated
         $rawIllustrateds = $this->dbs->getIllustrateds([$id]);
-        if (count($rawComments) == 1) {
+        if (count($rawIllustrateds) == 1) {
             $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
         }
 
@@ -252,7 +252,38 @@ class ManuscriptManager extends ObjectManager
         return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
-    public function updateManuscript(int $id, stdClass $data): ?Manuscript
+    public function addManuscript(stdClass $data): Manuscript
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // locatedAt is mandatory
+            if (!property_exists($data, 'locatedAt')) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+            $manuscriptId = $this->dbs->insert();
+            $this->container->get('located_at_manager')->addLocatedAt(
+                $manuscriptId,
+                $data->locatedAt
+            );
+
+            unset($data->locatedAt);
+            if (!property_exists($data, 'public')) {
+                $data->public = false;
+            }
+
+            $newManuscript = $this->updateManuscript($manuscriptId, $data, true);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newManuscript;
+    }
+
+    public function updateManuscript(int $id, stdClass $data, bool $new = false): Manuscript
     {
         $this->dbs->beginTransaction();
         try {
@@ -263,7 +294,7 @@ class ManuscriptManager extends ObjectManager
 
             // TODO: sanitize data
             // update manuscript data
-            $correct = false;
+            $correct = $new;
             if (property_exists($data, 'locatedAt')) {
                 $correct = true;
                 $this->container->get('located_at_manager')->updateLocatedAt(
@@ -329,7 +360,7 @@ class ManuscriptManager extends ObjectManager
             $this->cache->deleteItem('manuscript.' . $id);
             $newManuscript = $this->getManuscriptById($id);
 
-            $this->updateModified($manuscript, $newManuscript);
+            $this->updateModified($new ? null : $manuscript, $newManuscript);
 
             // re-index in elastic search
             $this->ess->addManuscript($newManuscript);

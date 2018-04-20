@@ -56,9 +56,23 @@ class RegionManager extends ObjectManager
 
     public function getAllRegionsWithParents(): array
     {
+        $cache = $this->cache->getItem('regions');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, 'region_id');
-        return $this->getRegionsWithParentsByIds($ids);
+        $regionsWithParents = $this->getRegionsWithParentsByIds($ids);
+
+        // Sort by name
+        usort($regionsWithParents, function ($a, $b) {
+            return strcmp($a->getNameHistoricalName(), $b->getNameHistoricalName());
+        });
+
+        $cache->tag(['regions']);
+        $this->cache->save($cache->set($regionsWithParents));
+        return $regionsWithParents;
     }
 
     public function getRegionsWithParentsByRegion(int $regionId): array
@@ -68,7 +82,9 @@ class RegionManager extends ObjectManager
         $regionsWithParents = $this->getRegionsWithParentsByIds($ids);
 
         // Sort by name
-        usort($regionsWithParents, ['AppBundle\Model\RegionWithParents', 'sortByNameHistoricalName']);
+        usort($regionsWithParents, function ($a, $b) {
+            return strcmp($a->getNameHistoricalName(), $b->getNameHistoricalName());
+        });
 
         return $regionsWithParents;
     }

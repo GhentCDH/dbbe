@@ -100,10 +100,10 @@ export default {
     },
     computed: {
         warnEstimate: function() {
-            if (this.model == null || this.model.floor == null || this.model.ceiling == null) {
+            if (this.model == null || this.model.floorYear == null || this.model.ceilingYear == null) {
                 return false
             }
-            if (this.model.floor !== this.model.ceiling && this.model.floor % 25 === 0 && this.model.ceiling % 25 === 0) {
+            if (this.model.floorYear !== this.model.ceilingYear && this.model.floorYear % 25 === 0 && this.model.ceilingYear % 25 === 0) {
                 return true
             }
             return false
@@ -264,6 +264,9 @@ export default {
                 this.model[key + 'DayMonth'] = null
             }
             this.originalModel = JSON.parse(JSON.stringify(this.model))
+        },
+        validate() {
+            this.$refs.dateForm.validate()
         },
         validated(isValid, errors) {
             for (let key of ['floor', 'ceiling']) {

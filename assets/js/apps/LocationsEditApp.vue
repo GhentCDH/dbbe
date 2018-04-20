@@ -275,12 +275,12 @@ export default {
             },
             librarySchema: {
                 fields: {
-                    library: this.createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents'}),
+                    library: this.createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
                 }
             },
             collectionSchema: {
                 fields: {
-                    collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution'}),
+                    collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
                 }
             },
             delDependencies: [],
@@ -315,7 +315,7 @@ export default {
             editCollectionSchema: {
                 fields: {
                     city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents'}),
+                    library: this.createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
                     name: {
                         type: 'input',
                         inputType: 'text',

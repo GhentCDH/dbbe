@@ -29,8 +29,8 @@ export default {
             schema: {
                 fields: {
                     city: this.createMultiSelect('City', {model: 'location.regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'location.institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents'}),
-                    collection: this.createMultiSelect('Collection', {model: 'location.collection', dependency: 'institution'}),
+                    library: this.createMultiSelect('Library', {model: 'location.institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
+                    collection: this.createMultiSelect('Collection', {model: 'location.collection', dependency: 'institution', dependencyName: 'library'}),
                     shelf: {
                         type: 'input',
                         inputType: 'text',
@@ -46,17 +46,17 @@ export default {
     },
     watch: {
         values() {
-            this.initFields()
+            this.init()
         },
         model() {
-            this.initFields()
+            this.init()
         },
         'model.location.regionWithParents'() {
-            if (this.model.location.regionWithParents.locationId != null) {
+            if (!this.model.location.regionWithParents || this.model.location.regionWithParents.locationId != null) {
                 this.model.location.id = null
             }
             if (this.model.location.regionWithParents == null) {
-                this.dependencyField(this.schema.fields.library)
+                this.dependencyField(this.schema.fields.library, this.model.location)
             }
             else {
                 this.loadLocationField(this.schema.fields.library, this.model.location)
@@ -66,7 +66,7 @@ export default {
         },
         'model.location.institution'() {
             if (this.model.location.institution == null) {
-                this.dependencyField(this.schema.fields.collection)
+                this.dependencyField(this.schema.fields.collection, this.model.location)
             }
             else {
                 this.loadLocationField(this.schema.fields.collection, this.model.location)
@@ -84,10 +84,19 @@ export default {
             this.$refs.form.validate()
         },
     },
+    mounted () {
+        this.init()
+    },
     methods: {
-        initFields() {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.dependencyField(this.schema.fields.library, this.model.location)
+            this.dependencyField(this.schema.fields.collection, this.model.location)
             this.loadLocationField(this.schema.fields.city, this.model.location)
             this.enableField(this.schema.fields.city, this.model.location)
+        },
+        validate() {
+            this.$refs.form.validate()
         },
         validated(isValid, errors) {
             this.isValid = isValid

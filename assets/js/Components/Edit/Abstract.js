@@ -17,7 +17,6 @@ export default {
         return {
             changes: [],
             formOptions: {
-                validateAfterLoad: true,
                 validateAfterChanged: true,
                 validationErrorClass: "has-error",
                 validationSuccessClass: "success"

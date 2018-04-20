@@ -36,6 +36,39 @@ class LocatedAtManager extends ObjectManager
         return $locatedAts;
     }
 
+    public function addLocatedAt(int $locatedAtId, stdClass $data): LocatedAt
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // add locatedAt data
+            if (property_exists($data, 'location')
+                && property_exists($data->location, 'id')
+                && is_numeric($data->location->id)
+                && property_exists($data, 'shelf')
+                && is_string($data->shelf)
+            ) {
+                $this->dbs->insert($locatedAtId, $data->location->id, $data->shelf);
+            } else {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+
+            // load new locationAt data
+            $newLocatedAt = $this->getLocatedAtsByIds([$locatedAtId])[$locatedAtId];
+            $this->updateModified(null, $newLocatedAt);
+
+            // update cache
+            $this->setCache([$newLocatedAt->getId() => $newLocatedAt], 'located_at');
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newLocatedAt;
+    }
+
     public function updateLocatedAt(int $locatedAtId, stdClass $data): LocatedAt
     {
         $this->dbs->beginTransaction();
