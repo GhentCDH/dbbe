@@ -74,29 +74,6 @@ class RegionService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getRegionsByIds(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                region.identity as region_id,
-                region.name,
-                region.historical_name,
-                region.is_city,
-                pleiades.identifier as pleiades_id
-            from data.region
-            left join (
-                select global_id.idsubject, global_id.identifier
-                from data.global_id
-                inner join data.institution
-                    on global_id.idauthority = institution.identity
-                    and institution.name = \'Pleiades\'
-            ) as pleiades on region.identity = pleiades.idsubject
-            where region.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getRegionsByRegion(int $regionId): array
     {
         return $this->conn->executeQuery(

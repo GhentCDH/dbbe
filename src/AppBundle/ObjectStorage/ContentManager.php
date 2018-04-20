@@ -3,11 +3,14 @@
 namespace AppBundle\ObjectStorage;
 
 use stdClass;
+use Exception;
 
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Content;
 use AppBundle\Model\ContentWithParents;
-
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ContentManager extends ObjectManager
 {
@@ -45,6 +48,11 @@ class ContentManager extends ObjectManager
 
     public function getAllContentsWithParents(): array
     {
+        $cache = $this->cache->getItem('contents_with_parents');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getContentIds();
         $ids = self::getUniqueIds($rawIds, 'content_id');
         $contentsWithParents = $this->getContentsWithParentsByIds($ids);
@@ -54,6 +62,8 @@ class ContentManager extends ObjectManager
             return strcmp($a->getName(), $b->getName());
         });
 
+        $cache->tag(['contents']);
+        $this->cache->save($cache->set($contentsWithParents));
         return $contentsWithParents;
     }
 
@@ -92,6 +102,7 @@ class ContentManager extends ObjectManager
             $this->updateModified(null, $newContentWithParents);
 
             // update cache
+            $this->cache->invalidateTags(['collections']);
             $this->setCache([$newContentWithParents->getId() => $newContentWithParents], 'content_with_parents');
 
             // commit transaction
@@ -144,8 +155,7 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $this->cache->invalidateTags(['content.' . $contentId, 'content_with_parents.' . $contentId]);
-            $this->cache->deleteItem('content.' . $contentId);
+            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'contents']);
             $this->cache->deleteItem('content_with_parents.' . $contentId);
             $newContentWithParents = $this->getContentsWithParentsByIds([$contentId])[$contentId];
 
@@ -224,8 +234,7 @@ class ContentManager extends ObjectManager
             $this->dbs->delete($contentId);
 
             // empty cache
-            $this->cache->invalidateTags(['content.' . $contentId, 'content_with_parents.' . $contentId]);
-            $this->cache->deleteItem('content.' . $contentId);
+            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'contents']);
             $this->cache->deleteItem('content_with_parents.' . $contentId);
 
             $this->updateModified($contentWithParents, null);

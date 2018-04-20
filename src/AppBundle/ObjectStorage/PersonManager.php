@@ -74,12 +74,30 @@ class PersonManager extends ObjectManager
 
     public function getAllPatrons(): array
     {
-        return $this->getBibroles(['Sponsor', 'Owner']);
+        $cache = $this->cache->getItem('patrons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $patrons = $this->getBibroles(['Sponsor', 'Owner']);
+
+        $cache->tag(['persons']);
+        $this->cache->save($cache->set($patrons));
+        return $patrons;
     }
 
     public function getAllScribes(): array
     {
-        return $this->getBibroles(['Scribe']);
+        $cache = $this->cache->getItem('scribes');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $scribes = $this->getBibroles(['Scribe']);
+
+        $cache->tag(['persons']);
+        $this->cache->save($cache->set($scribes));
+        return $scribes;
     }
 
     public function getAllHistoricalPersons(): array
@@ -96,6 +114,7 @@ class PersonManager extends ObjectManager
 
         usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
+        $cache->tag(['persons']);
         $this->cache->save($cache->set($persons));
         return $persons;
     }

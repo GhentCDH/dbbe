@@ -51,7 +51,6 @@ class RegionManager extends ObjectManager
         }
 
         $this->setCache($regionsWithParents, 'region_with_parents');
-
         return $cached + $regionsWithParents;
     }
 
@@ -72,31 +71,6 @@ class RegionManager extends ObjectManager
         usort($regionsWithParents, ['AppBundle\Model\RegionWithParents', 'sortByNameHistoricalName']);
 
         return $regionsWithParents;
-    }
-
-    public function getRegionsByIds(array $ids): array
-    {
-        list($cached, $ids) = $this->getCache($ids, 'region');
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $regions = [];
-        $rawRegions = $this->dbs->getRegionsByIds($ids);
-
-        foreach ($rawRegions as $rawRegion) {
-            $regions[$rawRegion['region_id']] = new Region(
-                $rawRegion['region_id'],
-                $rawRegion['name'],
-                $rawRegion['historical_name'],
-                $rawRegion['is_city'],
-                $rawRegion['pleiades_id']
-            );
-        }
-
-        $this->setCache($regions, 'region');
-
-        return $cached + $regions;
     }
 
     public function addRegionWithParents(stdClass $data): RegionWithParents
@@ -144,6 +118,7 @@ class RegionManager extends ObjectManager
             $this->updateModified(null, $newRegionWithParents);
 
             // update cache
+            $this->cache->invalidateTags(['regions']);
             $this->setCache([$newRegionWithParents->getId() => $newRegionWithParents], 'region_with_parents');
 
             // commit transaction
@@ -214,8 +189,7 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId]);
-            $this->cache->deleteItem('region.' . $regionId);
+            $this->cache->invalidateTags(['region_with_parents.' . $regionId, 'regions']);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
             $newRegionWithParents = $this->getRegionsWithParentsByIds([$regionId])[$regionId];
 
@@ -330,8 +304,7 @@ class RegionManager extends ObjectManager
             $this->dbs->delete($regionId);
 
             // empty cache
-            $this->cache->invalidateTags(['region.' . $regionId, 'region_with_parents.' . $regionId]);
-            $this->cache->deleteItem('region.' . $regionId);
+            $this->cache->invalidateTags(['region_with_parents.' . $regionId, 'regions']);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
 
             $this->updateModified($regionWithParents, null);

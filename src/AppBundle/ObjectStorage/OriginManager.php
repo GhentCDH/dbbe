@@ -8,6 +8,11 @@ class OriginManager extends ObjectManager
 {
     public function getAllOrigins(): array
     {
+        $cache = $this->cache->getItem('origins');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $origins = [];
         $rawOrigins = $this->dbs->getOriginIds();
         $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
@@ -18,6 +23,8 @@ class OriginManager extends ObjectManager
 
         usort($origins, ['AppBundle\Model\Location', 'sortByHistoricalName']);
 
+        $cache->tag(['regions', 'institutions']);
+        $this->cache->save($cache->set($origins));
         return $origins;
     }
 }

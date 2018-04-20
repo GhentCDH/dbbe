@@ -86,6 +86,11 @@ class BibliographyManager extends ObjectManager
 
     public function getAllBooks(): array
     {
+        $cache = $this->cache->getItem('books');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getBookIds();
         $ids = self::getUniqueIds($rawIds, 'book_id');
         $books = $this->getBooksByIds($ids);
@@ -95,6 +100,8 @@ class BibliographyManager extends ObjectManager
             return strcmp($a->getDescription(), $b->getDescription());
         });
 
+        $cache->tag(['books']);
+        $this->cache->save($cache->set($books));
         return $books;
     }
 
@@ -210,6 +217,11 @@ class BibliographyManager extends ObjectManager
 
     public function getAllArticles(): array
     {
+        $cache = $this->cache->getItem('articles');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getArticleIds();
         $ids = self::getUniqueIds($rawIds, 'article_id');
         $articles = $this->getArticlesByIds($ids);
@@ -219,6 +231,8 @@ class BibliographyManager extends ObjectManager
             return strcmp($a->getDescription(), $b->getDescription());
         });
 
+        $cache->tag(['articles']);
+        $this->cache->save($cache->set($articles));
         return $articles;
     }
 
@@ -309,6 +323,11 @@ class BibliographyManager extends ObjectManager
 
     public function getAllBookChapters(): array
     {
+        $cache = $this->cache->getItem('book_chapters');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getBookChapterIds();
         $ids = self::getUniqueIds($rawIds, 'book_chapter_id');
         $bookChapters = $this->getBookChaptersByIds($ids);
@@ -318,6 +337,8 @@ class BibliographyManager extends ObjectManager
             return strcmp($a->getDescription(), $b->getDescription());
         });
 
+        $cache->tag(['book_chapters']);
+        $this->cache->save($cache->set($bookChapters));
         return $bookChapters;
     }
 
@@ -385,6 +406,11 @@ class BibliographyManager extends ObjectManager
 
     public function getAllOnlineSources(): array
     {
+        $cache = $this->cache->getItem('online_sources');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getOnlineSourceIds();
         $ids = self::getUniqueIds($rawIds, 'online_source_id');
         $onlineSources = $this->getOnlineSourcesByIds($ids);
@@ -394,6 +420,8 @@ class BibliographyManager extends ObjectManager
             return strcmp($a->getDescription(), $b->getDescription());
         });
 
+        $cache->tag(['online_sources']);
+        $this->cache->save($cache->set($onlineSources));
         return $onlineSources;
     }
 

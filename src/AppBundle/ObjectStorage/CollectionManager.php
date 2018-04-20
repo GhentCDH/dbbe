@@ -60,6 +60,7 @@ class CollectionManager extends ObjectManager
             $this->updateModified(null, $newCollection);
 
             // update cache
+            $this->cache->invalidateTags(['collections']);
             $this->setCache([$newCollection->getId() => $newCollection], 'collection');
 
             // commit transaction
@@ -103,7 +104,7 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $this->cache->invalidateTags(['collection.' . $collectionId]);
+            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
             $this->cache->deleteItem('collection.' . $collectionId);
             $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
 
@@ -135,7 +136,7 @@ class CollectionManager extends ObjectManager
             $this->dbs->delete($collectionId);
 
             // clear cache
-            $this->cache->invalidateTags(['collection.' . $collectionId]);
+            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
             $this->cache->deleteItem('collection.' . $collectionId);
 
             $this->updateModified($collection, null);
