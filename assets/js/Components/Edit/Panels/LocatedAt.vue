@@ -60,25 +60,25 @@ export default {
             }
             else {
                 this.loadLocationField(this.schema.fields.library, this.model.location)
-                this.enableField(this.schema.fields.library)
+                this.enableField(this.schema.fields.library, this.model.location)
             }
             this.$refs.form.validate()
         },
         'model.location.institution'() {
-            if (this.model.location.institution.locationId != null) {
-                this.model.location.id = this.model.location.institution.locationId
-            }
             if (this.model.location.institution == null) {
                 this.dependencyField(this.schema.fields.collection)
             }
             else {
                 this.loadLocationField(this.schema.fields.collection, this.model.location)
-                this.enableField(this.schema.fields.collection)
+                this.enableField(this.schema.fields.collection, this.model.location)
+                if (this.model.location.institution.locationId != null && this.model.location.collection == null) {
+                    this.model.location.id = this.model.location.institution.locationId
+                }
             }
             this.$refs.form.validate()
         },
         'model.location.collection'() {
-            if (this.model.location.collection.locationId != null) {
+            if (this.model.location.collection != null && this.model.location.collection.locationId != null) {
                 this.model.location.id = this.model.location.collection.locationId
             }
             this.$refs.form.validate()
@@ -87,7 +87,7 @@ export default {
     methods: {
         initFields() {
             this.loadLocationField(this.schema.fields.city, this.model.location)
-            this.enableField(this.schema.fields.city)
+            this.enableField(this.schema.fields.city, this.model.location)
         },
         validated(isValid, errors) {
             this.isValid = isValid
@@ -121,6 +121,9 @@ export default {
             }
         },
         formatLocation(location) {
+            if (location.regionWithParents == null || location.institution == null) {
+                return ''
+            }
             let result = location.regionWithParents.name + ' - ' + location.institution.name
             if (location.collection != null) {
                 result += ' - ' + location.collection.name

@@ -47,7 +47,11 @@ export default {
             if (model == null) {
                 model = this.model
             }
-            model[field.model] = null
+
+            // get everything after last '.'
+            let modelName = field.model.split('.').pop()
+
+            model[modelName] = null
             field.disabled = true
             field.selectOptions.loading = false
             field.placeholder = 'Please select a ' + field.dependency + ' first'
@@ -57,22 +61,25 @@ export default {
                 model = this.model
             }
             if (field.values.length === 0) {
-                return this.noValuesField(field)
+                return this.noValuesField(field, model)
             }
 
+            // get everything after last '.'
+            let modelName = field.model.split('.').pop()
+
             // only keep current value(s) if it is in the list of possible values
-            if (model[field.model] != null) {
-                if (Array.isArray(model[field.model])) {
+            if (model[modelName] != null) {
+                if (Array.isArray(model[modelName])) {
                     let newValues = []
-                    for (let index of model[field.model].keys()) {
-                        if ((field.values.filter(v => v.id === model[field.model][index].id)).length !== 0) {
-                            newValues.push(model[field.model][index])
+                    for (let index of model[modelName].keys()) {
+                        if ((field.values.filter(v => v.id === model[modelName][index].id)).length !== 0) {
+                            newValues.push(model[modelName][index])
                         }
                     }
-                    model[field.model] = newValues
+                    model[modelName] = newValues
                 }
-                else if ((field.values.filter(v => v.id === model[field.model].id)).length === 0) {
-                    model[field.model] = null
+                else if ((field.values.filter(v => v.id === model[modelName].id)).length === 0) {
+                    model[modelName] = null
                 }
             }
 
@@ -147,7 +154,11 @@ export default {
             if (model == null) {
                 model = this.model
             }
-            model[field.model] = null
+
+            // get everything after last '.'
+            let modelName = field.model.split('.').pop()
+
+            model[modelName] = null
             field.disabled = true
             field.selectOptions.loading = false
             field.placeholder = 'No ' + field.label.toLowerCase() + 's available'
