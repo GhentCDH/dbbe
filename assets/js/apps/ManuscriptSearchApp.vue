@@ -21,12 +21,6 @@
             </div>
         </aside>
         <article class="col-sm-9">
-            <h2>Search Manuscripts</h2>
-            <a
-                :href="addManuscriptUrl"
-                class="action pull-right">
-                <i class="fa fa-plus" /> Add a new manuscript
-            </a>
             <v-server-table
                 ref="resultTable"
                 :url="manuscriptsSearchApiUrl"

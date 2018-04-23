@@ -1,11 +1,23 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
+    <div class="col-sm-12 ">
+        <h2 class="h1">Search Manuscripts</h2>
+        {% if is_granted('ROLE_EDITOR') %}
+        <div class="pbottom-default">
+            <a
+                href="{{ path('manuscript_add') }}"
+                class="action">
+                <i class="fa fa-plus"></i> Add a new manuscript
+            </a>
+        </div>
+        {% endif %}
+    </div>
     <div id="manuscript-search-app">
         <manuscript-search-app
             :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
             manuscripts-search-api-url="{{ path('manuscripts_search_api') }}"
-            add-manuscript-url="{{ path('manuscript_add') }}"
+            add-manuscript-url=""
             show-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
             edit-manuscript-url="{{ path('manuscript_edit', {'id': 'manuscript_id'}) }}"
             del-manuscript-url="{{ path('manuscript_delete', {'id': 'manuscript_id'}) }}"

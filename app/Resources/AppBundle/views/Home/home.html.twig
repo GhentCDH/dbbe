@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div id="fb-root"></div>
+<div class="col-sm-12">
+    <h2 class="h1">Welcome to the Database of Byzantyne Book Epigrams</h1>
+</div>
+<article class="col-sm-9 mbottom-large">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="bg-primary padding-default">
+                <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing project that makes available textual and contextual data of book epigrams (or: metrical paratexts) from medieval Greek manuscripts (seventh to fifteenth century). We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found. They record, react to, or motivate the production, the contents and the use of the book. Further explanation of this definition is to be found on the Help page.</p>
+                <p><a class="pull-right">Read more</a></p>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="padding-default">
+                <a href="/occurrences">
+                    <h2>Occurrences</h2>
+                    <p class="text-muted">Epigrams as they occur in one specific manuscript. Currently, more than the half of the data collected here is the result of manuscript consultation carefully conducted by members of our team. The remainder is compiled from descriptive catalogues and other related publications, such as articles, editions, etc.</p>
+                </a>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="padding-default">
+                <a href="{{ path('manuscripts_search') }}">
+                    <h2>Manuscripts</h2>
+                    <p class="text-muted">Manuscript identifications are given according to city, library, name of the collection, shelf number: it basically follows the system of the Pinakes database.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</article>
+<aside class="col-sm-3 mbottom-large">
+    <div class="fb-page" data-href="https://www.facebook.com/byzantinebookepigrams/" data-tabs="timeline" data-small-header="false" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true">
+        <blockquote cite="https://www.facebook.com/byzantinebookepigrams/" class="fb-xfbml-parse-ignore">
+            <a href="https://www.facebook.com/byzantinebookepigrams/">Database of Byzantine Book Epigrams</a>
+        </blockquote>
+    </div>
+</aside>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script>
+        (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.12';
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+{% endblock %}
