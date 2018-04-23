@@ -4,6 +4,10 @@ export default {
             type: String,
             default: ''
         },
+        link: {
+            type: Object,
+            default: () => {return {}}
+        },
         model: {
             type: Object,
             default: () => {return {}}

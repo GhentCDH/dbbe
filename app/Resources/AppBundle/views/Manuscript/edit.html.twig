@@ -1,11 +1,31 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
+    <div class="col-xs-9">
+        <h2 class="h1">
+            {% if id is not empty %}
+                Edit Manuscript
+                <span class="small">
+                    <a
+                        href="{{ path('manuscript_show', {'id': id}) }}"
+                        class="action pull-right"
+                        title="View the manuscript">
+                        <i class="fa fa-eye"></i>
+                    </a>
+                </span>
+            {% else %}
+                Add Manuscript
+            {% endif %}
+        </h2>
+    </div>
     <div id="manuscript-edit-app">
         <manuscript-edit-app
             get-manuscript-url="{{ (id is not empty) ? path('manuscript_show', {'id': id}) : path('manuscript_show', {'id': 'manuscript_id'}) }}"
             post-manuscript-url="{{ path('manuscript_post') }}"
             put-manuscript-url="{{ (id is not empty) ? path('manuscript_put', {'id': id}) : '' }}"
+            get-locations-url="{{ path('locations_get') }}"
+            get-contents-url="{{ path('contents_get') }}"
+            get-origins-url="{{ path('origins_get') }}"
             init-manuscript="{{ manuscript }}"
             init-locations="{{ locations }}"
             init-contents="{{ contents }}"

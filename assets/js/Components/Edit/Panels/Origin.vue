@@ -1,5 +1,7 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :link="link">
         <vue-form-generator
             :schema="schema"
             :model="model"

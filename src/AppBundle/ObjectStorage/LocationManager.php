@@ -79,7 +79,7 @@ class LocationManager extends ObjectManager
         });
 
         $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($locationsForManuscripts));
+        $this->cache->save($cache->set($locationsForLocations));
         return $locationsForLocations;
     }
 

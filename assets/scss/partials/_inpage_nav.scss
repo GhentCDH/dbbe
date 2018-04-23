@@ -1,0 +1,8 @@
+.linklist {
+  .active {
+    & > a {
+      border-bottom: 1px solid $brand-primary;
+      color: $brand-primary;
+    }
+  }
+}

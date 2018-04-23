@@ -1,18 +1,8 @@
 <template>
     <div>
-        <article class="col-sm-9 mbottom-large">
-            <h2 v-if="manuscript">
-                Edit Manuscript
-                <a
-                    :href="getManuscriptUrl"
-                    class="action pull-right"
-                    title="View">
-                    <i class="fa fa-eye" />
-                </a>
-            </h2>
-            <h2 v-else>
-                Add Manuscript
-            </h2>
+        <article
+            class="col-sm-9 mbottom-large"
+            ref="target">
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -23,20 +13,25 @@
             </alert>
 
             <locatedAtPanel
+                id="location"
                 header="Location"
+                :link="{url: getLocationsUrl, text: 'Edit locations'}"
                 :model="model.locatedAt"
                 :values="locations"
                 @validated="validated"
                 ref="locatedAt" />
 
             <contentPanel
+                id="content"
                 header="Content"
+                :link="{url: getContentsUrl, text: 'Edit contents'}"
                 :model="model.content"
                 :values="contents"
                 @validated="validated"
                 ref="content" />
 
             <personPanel
+                id="persons"
                 header="Persons"
                 :model="model.person"
                 :values="persons"
@@ -46,19 +41,23 @@
                 :occurrence-scribes="manuscript ? manuscript.occurrenceScribes : []" />
 
             <datePanel
+                id="date"
                 header="Date"
                 :model="model.date"
                 @validated="validated"
                 ref="date" />
 
             <originPanel
+                id="origin"
                 header="Origin"
+                :link="{url: getOriginsUrl, text: 'Edit origins'}"
                 :model="model.origin"
                 :values="origins"
                 @validated="validated"
                 ref="origin" />
 
             <bibliographyPanel
+                id="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
@@ -66,12 +65,14 @@
                 ref="bibliography" />
 
             <generalPanel
+                id="general"
                 header="General"
                 :model="model.general"
                 @validated="validated"
                 ref="general" />
 
             <btn
+                id="buttons"
                 type="warning"
                 :disabled="diff.length === 0"
                 @click="resetModal=true">
@@ -102,6 +103,26 @@
                 <div class="spinner" />
             </div>
         </article>
+        <aside class="col-sm-3 inpage-nav-container xs-hide">
+            <div ref="anchor" />
+            <nav
+                v-scrollspy
+                role="navigation"
+                :class="this.isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
+                :style="stickyStyle">
+                <h2>Quick navigation</h2>
+                <ul class="linklist linklist-dark">
+                    <li><a href="#location">Location</a></li>
+                    <li><a href="#content">Content</a></li>
+                    <li><a href="#persons">Persons</a></li>
+                    <li><a href="#date">Date</a></li>
+                    <li><a href="#origin">Origin</a></li>
+                    <li><a href="#bibliography">Bibliography</a></li>
+                    <li><a href="#general">General</a></li>
+                    <li><a href="#buttons">Buttons</a></li>
+                </ul>
+            </nav>
+        </aside>
         <modal
             v-model="resetModal"
             title="Reset manuscript"
@@ -221,6 +242,18 @@ export default {
             type: String,
             default: '',
         },
+        getLocationsUrl: {
+            type: String,
+            default: '',
+        },
+        getContentsUrl: {
+            type: String,
+            default: '',
+        },
+        getOriginsUrl: {
+            type: String,
+            default: '',
+        },
         initManuscript: {
             type: String,
             default: '',
@@ -337,15 +370,34 @@ export default {
             invalidModal: false,
             saveModal: false,
             invalidForms: false,
+            scrollY: null,
+            isSticky: false,
+            stickyStyle: {},
         }
     },
     watch: {
         'manuscript': function (newValue, oldValue) {
             this.loadManuscript()
         },
+        scrollY(newValue) {
+            let anchor = this.$refs.anchor.getBoundingClientRect()
+            if (anchor.top < 30) {
+                this.isSticky = true
+                this.stickyStyle = {
+                    width: anchor.width + 'px',
+                }
+            }
+            else {
+                this.isSticky = false
+                this.stickyStyle = {}
+            }
+        },
     },
     mounted () {
         this.loadManuscript()
+        window.addEventListener('scroll', (event) => {
+            this.scrollY = Math.round(window.scrollY)
+        })
     },
     methods: {
         loadManuscript() {

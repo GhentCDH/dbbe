@@ -1,9 +1,6 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <h2>
-                Edit Locations
-            </h2>
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -13,88 +10,100 @@
                 {{ item.message }}
             </alert>
 
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="citySchema"
-                        :model="model" />
-                    <p><span class="small">Cities can be added and deleted on the <a :href="getRegionsUrl">edit regions page</a>.</span></p>
-                </div>
-                <div class="col-xs-2 ptop-default">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Edit locations
                     <a
-                        v-if="model.regionWithParents"
-                        href="#"
-                        class="action"
-                        title="Edit the selected city"
-                        @click.prevent="editCity()">
-                        <i class="fa fa-pencil-square-o" />
+                        class="action pull-right"
+                        :href="getRegionsUrl">
+                        <i class="fa fa-edit" />
+                        Add, edit or delete cities (regions)
                     </a>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="librarySchema"
-                        :model="model"/>
-                </div>
-                <div class="col-xs-2 ptop-default">
-                    <a
-                        v-if="model.regionWithParents"
-                        href="#"
-                        class="action"
-                        title="Add a new library"
-                        @click.prevent="editLibrary(true)">
-                        <i class="fa fa-plus" />
-                    </a>
-                    <a
-                        v-if="model.institution"
-                        href="#"
-                        class="action"
-                        title="Edit the selected library"
-                        @click.prevent="editLibrary()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        v-if="model.institution && collectionSchema.fields.collection.values.length === 0"
-                        href="#"
-                        class="action"
-                        title="Delete the selected library"
-                        @click.prevent="delLibrary()">
-                        <i class="fa fa-trash-o" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="collectionSchema"
-                        :model="model"/>
-                </div>
-                <div class="col-xs-2 ptop-default">
-                    <a
-                        v-if="model.institution"
-                        href="#"
-                        class="action"
-                        title="Add a new collection"
-                        @click.prevent="editCollection(true)">
-                        <i class="fa fa-plus" />
-                    </a>
-                    <a
-                        v-if="model.collection"
-                        href="#"
-                        class="action"
-                        title="Edit the selected collection"
-                        @click.prevent="editCollection()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        v-if="model.collection"
-                        href="#"
-                        class="action"
-                        title="Delete the selected collection"
-                        @click.prevent="delCollection()">
-                        <i class="fa fa-trash-o" />
-                    </a>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="citySchema"
+                                :model="model" />
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                v-if="model.regionWithParents"
+                                href="#"
+                                class="action"
+                                title="Edit the name of the selected city"
+                                @click.prevent="editCity()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="librarySchema"
+                                :model="model"/>
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                v-if="model.regionWithParents"
+                                href="#"
+                                class="action"
+                                title="Add a new library"
+                                @click.prevent="editLibrary(true)">
+                                <i class="fa fa-plus" />
+                            </a>
+                            <a
+                                v-if="model.institution"
+                                href="#"
+                                class="action"
+                                title="Edit the selected library"
+                                @click.prevent="editLibrary()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                v-if="model.institution && collectionSchema.fields.collection.values.length === 0"
+                                href="#"
+                                class="action"
+                                title="Delete the selected library"
+                                @click.prevent="delLibrary()">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="collectionSchema"
+                                :model="model"/>
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                v-if="model.institution"
+                                href="#"
+                                class="action"
+                                title="Add a new collection"
+                                @click.prevent="editCollection(true)">
+                                <i class="fa fa-plus" />
+                            </a>
+                            <a
+                                v-if="model.collection"
+                                href="#"
+                                class="action"
+                                title="Edit the selected collection"
+                                @click.prevent="editCollection()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                v-if="model.collection"
+                                href="#"
+                                class="action"
+                                title="Delete the selected collection"
+                                @click.prevent="delCollection()">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,9 +1,6 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <h2>
-                Edit Origins
-            </h2>
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -13,55 +10,60 @@
                 {{ item.message }}
             </alert>
 
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="citySchema"
-                        :model="model" />
-                    <p><span class="small">Cities can be added and deleted on the <a :href="getRegionsUrl">edit regions page</a>.</span></p>
-                </div>
-                <div class="col-xs-2 ptop-default">
-                    <a
-                        v-if="model.regionWithParents"
-                        href="#"
-                        class="action"
-                        title="Edit the selected city"
-                        @click.prevent="editCity()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-10">
-                    <vue-form-generator
-                        :schema="monasterySchema"
-                        :model="model"/>
-                </div>
-                <div class="col-xs-2 ptop-default">
-                    <a
-                        v-if="model.regionWithParents"
-                        href="#"
-                        class="action"
-                        title="Add a new monastery"
-                        @click.prevent="editMonastery(true)">
-                        <i class="fa fa-plus" />
-                    </a>
-                    <a
-                        v-if="model.institution"
-                        href="#"
-                        class="action"
-                        title="Edit the selected monastery"
-                        @click.prevent="editMonastery()">
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        v-if="model.institution"
-                        href="#"
-                        class="action"
-                        title="Delete the selected monastery"
-                        @click.prevent="delMonastery()">
-                        <i class="fa fa-trash-o" />
-                    </a>
+            <div class="panel panel-default">
+                <div class="panel-heading">Edit region</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="citySchema"
+                                :model="model" />
+                            <p><span class="small">Cities can be added and deleted on the <a :href="getRegionsUrl">edit regions page</a>.</span></p>
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                v-if="model.regionWithParents"
+                                href="#"
+                                class="action"
+                                title="Edit the selected city"
+                                @click.prevent="editCity()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <vue-form-generator
+                                :schema="monasterySchema"
+                                :model="model"/>
+                        </div>
+                        <div class="col-xs-2 ptop-default">
+                            <a
+                                v-if="model.regionWithParents"
+                                href="#"
+                                class="action"
+                                title="Add a new monastery"
+                                @click.prevent="editMonastery(true)">
+                                <i class="fa fa-plus" />
+                            </a>
+                            <a
+                                v-if="model.institution"
+                                href="#"
+                                class="action"
+                                title="Edit the selected monastery"
+                                @click.prevent="editMonastery()">
+                                <i class="fa fa-pencil-square-o" />
+                            </a>
+                            <a
+                                v-if="model.institution"
+                                href="#"
+                                class="action"
+                                title="Delete the selected monastery"
+                                @click.prevent="delMonastery()">
+                                <i class="fa fa-trash-o" />
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
