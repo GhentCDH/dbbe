@@ -132,6 +132,15 @@
                     </div>
                 </header>
             </div>
+            {% if app.environment != 'prod' %}
+            <div class="row">
+                <div class="col-xs-12">
+                    <h2 class="text-danger text-center">
+                        This is a test environment, no real data.
+                    </h2>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="fluid-container">
