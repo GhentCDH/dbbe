@@ -8,7 +8,7 @@ export default {
                 placeholder: 'Loading',
                 // lowercase first letter + remove spaces
                 model: label.charAt(0).toLowerCase() + label.slice(1).replace(/[ ]/g, ''),
-                // Values will be loaded using a watcher
+                // Values will be loaded using a watcher or Ajax request
                 values: [],
                 selectOptions: {
                     optionsLimit: 10000,

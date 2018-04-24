@@ -141,6 +141,8 @@ import VueTables from 'vue-tables-2'
 
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
 
+import Fields from '../Components/Fields'
+
 Vue.use(uiv)
 Vue.use(VueFormGenerator)
 Vue.use(VueTables.ServerTable)
@@ -152,6 +154,7 @@ var YEAR_MIN = 1
 var YEAR_MAX = (new Date()).getFullYear()
 
 export default {
+    mixins: [ Fields ],
     props: {
         isEditor: {
             type: Boolean,
@@ -306,54 +309,7 @@ export default {
             return columns
         },
     },
-    watch: {
-        'model.city'() {
-            if (this.model.city == null) {
-                delete this.model.library
-                delete this.model.collection
-                this.disableField(this.schema.fields.library)
-                this.disableField(this.schema.fields.collection)
-            }
-        },
-        'model.library'() {
-            if (this.model.library == null) {
-                delete this.model.collection
-                this.disableField(this.schema.fields.collection)
-            }
-        },
-    },
     methods: {
-        // TODO: use Fields.js
-        createMultiSelect(label, extra, extraSelectOptions) {
-            let result = {
-                type: 'multiselectClear',
-                label: label,
-                placeholder: 'Loading',
-                model: label.toLowerCase(),
-                // Values will be loaded using ajax request
-                values: [],
-                selectOptions: {
-                    customLabel: ({id, name}) => {
-                        return name
-                    },
-                    showLabels: false,
-                    loading: true
-                },
-                // Will be enabled when list of scribes is loaded
-                disabled: true
-            }
-            if (extra != null) {
-                for (let key of Object.keys(extra)) {
-                    result[key] = extra[key]
-                }
-            }
-            if (extraSelectOptions != null) {
-                for (let key of Object.keys(extraSelectOptions)) {
-                    result['selectOptions'][key] = extraSelectOptions[key]
-                }
-            }
-            return result
-        },
         constructFilterValues() {
             let result = {}
             if (this.model != null) {
@@ -402,6 +358,10 @@ export default {
                     ) {
                         delete this.model[fieldName]
                     }
+                    let field = this.schema.fields[fieldName]
+                    if (field.dependency != null && this.model[field.dependency] == null) {
+                        delete this.model[fieldName]
+                    }
                 }
             }
 
@@ -442,36 +402,6 @@ export default {
                     VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
                 }
             }, timeoutValue)
-        },
-        disableField(field) {
-            field.disabled = true
-            field.placeholder = 'Loading'
-            field.selectOptions.loading = true
-            field.values = []
-        },
-        enableField(field, values) {
-            let label = field.label.toLowerCase()
-            field.selectOptions.loading = false
-            field.placeholder = (['origin'].indexOf(label) < 0 ? 'Select a ' : 'Select an ') + label
-            // Handle dependencies
-            if (field.dependency != null) {
-                let dependency = field.dependency
-                if (this.model[dependency] == null) {
-                    field.placeholder = 'Please select a ' + dependency + ' first'
-                    return
-                }
-            }
-            // No results
-            if (values.length === 0) {
-                if (this.model[field.model] != null) {
-                    field.disabled = false
-                    return
-                }
-                return
-            }
-            // Default
-            field.disabled = false
-            field.values = values
         },
         sortByName(a, b) {
             // Move special filter values to the top
@@ -528,7 +458,8 @@ export default {
         },
         onData(data) {
             for (let fieldName of Object.keys(this.schema.fields)) {
-                if (this.schema.fields[fieldName].type == 'multiselectClear') {
+                let field = this.schema.fields[fieldName]
+                if (field.type == 'multiselectClear') {
                     let values = data.aggregation[fieldName] == null ? [] : data.aggregation[fieldName].sort(this.sortByName)
                     // Make it possible to filter on all manuscripts without collection
                     if (fieldName == 'collection' && values.length > 0) {
@@ -537,7 +468,13 @@ export default {
                             name: 'No collection',
                         })
                     }
-                    this.enableField(this.schema.fields[fieldName], values)
+                    field.values = values
+                    if (field.dependency != null && this.model[field.dependency] == null) {
+                        this.dependencyField(field)
+                    }
+                    else {
+                        this.enableField(field)
+                    }
                 }
             }
             this.openRequests--
