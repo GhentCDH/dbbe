@@ -79,11 +79,7 @@
                                                             </li>
                                                         {% else %}
                                                             <li>
-                                                                <a href="{{
-                                                                    path('fos_user_security_login')
-                                                                    ~ '?_target_path='
-                                                                    ~ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params'))
-                                                                    }}">
+                                                                <a href="{{ path('fos_user_security_login') }}">
                                                                     {{ 'layout.login'|trans({}, 'FOSUserBundle') }}
                                                                 </a>
                                                             </li>
