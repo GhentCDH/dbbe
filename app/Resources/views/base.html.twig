@@ -93,25 +93,43 @@
                                 <div class="row menu">
                                     <div class="col-xs-12">
                                         <ul class="nav-primary nav navbar-nav">
-                                            <li class="active">
-                                                <a href="/">
+                                            <li class="{{ app.request.get('_route') == 'homepage' ? 'active' }}">
+                                                <a href="{{ path('homepage') }}">
                                                     <span>Home</span>
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="/about">
-                                                    <span>About</span>
+                                            <li class="{{ app.request.get('_route') == 'occurrences_search' ? 'active' }}">
+                                                <a href="{{ path('occurrences_search') }}">
+                                                    <span>Occurrences</span>
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="/help">
-                                                    <span>Help</span>
+                                            <li class="{{ app.request.get('_route') == 'manuscripts_search' ? 'active' }}">
+                                                <a href="{{ path('manuscripts_search') }}">
+                                                    <span>Manuscripts</span>
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="/contact">
-                                                    <span>Contact</span>
+                                            <li class="dropdown">
+                                                <a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                                    <span>Info</span>
+                                                    <i class="fa fa-caret-down"></i>
                                                 </a>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                      <a href="{{ path('about') }}">
+                                                        <span>About</span>
+                                                      </a>
+                                                    </li>
+                                                    <li>
+                                                      <a href="{{ path('help') }}">
+                                                        <span>Help</span>
+                                                      </a>
+                                                    </li>
+                                                    <li>
+                                                      <a href="{{ path('contact') }}">
+                                                        <span>Contact</span>
+                                                      </a>
+                                                    </li>
+                                                </ul>
                                             </li>
                                         </ul>
                                     </div>

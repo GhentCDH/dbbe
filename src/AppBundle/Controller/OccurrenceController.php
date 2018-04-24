@@ -14,6 +14,14 @@ use AppBundle\Utils\ArrayToJson;
 class OccurrenceController extends Controller
 {
     /**
+     * @Route("/occurrences/", name="occurrences_search")
+     */
+    public function searchOccurrences(Request $request)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    /**
      * @Route("/occurrences/{id}", name="occurrence_show")
      */
     public function getOccurrence(int $id, Request $request)

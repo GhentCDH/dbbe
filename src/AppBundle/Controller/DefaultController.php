@@ -12,11 +12,38 @@ class DefaultController extends Controller
      * @Route("/", name="homepage")
      * @param  Request $request
      */
-    public function indexAction(Request $request)
+    public function home(Request $request)
     {
         return $this->render(
             'AppBundle:Home:home.html.twig'
         );
+    }
+
+    /**
+     * @Route("/about", name="about")
+     * @param  Request $request
+     */
+    public function about(Request $request)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    /**
+     * @Route("/help", name="help")
+     * @param  Request $request
+     */
+    public function help(Request $request)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    /**
+     * @Route("/contact", name="contact")
+     * @param  Request $request
+     */
+    public function contact(Request $request)
+    {
+        throw new \Exception('Not implemented');
     }
 
     /**
