@@ -1,5 +1,15 @@
 <template>
     <div>
+        <div class="col-xs-12">
+            <alert
+                v-for="(item, index) in alerts"
+                :key="index"
+                :type="item.type"
+                dismissible
+                @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
+        </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
@@ -85,15 +95,19 @@
         <modal
             v-model="delModal"
             auto-focus>
-            <alert
-                v-for="(item, index) in alerts"
-                :key="item.key"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
-            Are you sure you want to delete manuscript "{{ delManuscript.name }}"?
+            <div v-if="delDependencies.length !== 0">
+                <p>This manuscript has following dependencies that need to be resolved first:</p>
+                <ul>
+                    <li
+                        v-for="dependency in delDependencies"
+                        :key="dependency.id">
+                        <a :href="getOccurrenceUrl.replace('occurrence_id', dependency.id)">{{ dependency.name }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div v-else>
+                <p>Are you sure you want to delete manuscript "{{ delManuscript.name }}"?</p>
+            </div>
             <div slot="header">
                 <h4 class="modal-title">Delete manuscript "{{ delManuscript.name }}"</h4>
             </div>
@@ -103,6 +117,7 @@
                 </btn>
                 <btn
                     type="danger"
+                    :disabled="delDependencies.length !== 0"
                     @click="submitDelete()">
                     Delete
                 </btn>
@@ -146,11 +161,15 @@ export default {
             type: String,
             default: '',
         },
-        showManuscriptUrl: {
+        getOccurrenceDepsByManuscriptUrl: {
             type: String,
             default: '',
         },
-        addManuscriptUrl: {
+        getOccurrenceUrl: {
+            type: String,
+            default: '',
+        },
+        showManuscriptUrl: {
             type: String,
             default: '',
         },
@@ -262,6 +281,7 @@ export default {
                 name: ''
             },
             delModal: false,
+            delDependencies: [],
             alerts: []
         }
         if (this.isEditor) {
@@ -475,18 +495,32 @@ export default {
         },
         del(row) {
             this.delManuscript = row
-            this.delModal = true
+            this.deleteDependencies()
+        },
+        deleteDependencies() {
+            this.openRequests++
+            axios.get(this.getOccurrenceDepsByManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
+                .then((response) => {
+                    this.delDependencies = response.data
+                    this.delModal = true
+                    this.openRequests--
+                })
+                .catch((error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
+                    console.log(error)
+                })
         },
         submitDelete() {
             this.openRequests++
             this.delModal = false
             axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
-                .then( (response) => {
-                    this.$refs.table.refresh()
+                .then((response) => {
+                    this.$refs.resultTable.refresh()
                     this.openRequests--
+                    this.alerts.push({type: 'success', message: 'Manuscript deleted successfully.'})
                 })
-                .catch( (error) => {
-                    this.delModal = true
+                .catch((error) => {
                     this.openRequests--
                     this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the manuscript.'})
                     console.log(error)

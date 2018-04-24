@@ -616,4 +616,31 @@ class ManuscriptService extends DatabaseService
             ]
         );
     }
+
+    public function delete(int $manuscriptId): int
+    {
+        // don't delete if this region is used in document_contains
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.document_contains
+            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+            where manuscript.identity = ?',
+            [$manuscriptId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This manuscript has dependencies.');
+        }
+        // Set search_path for triggers
+        $this->conn->exec('SET SEARCH_PATH TO data');
+        $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            where factoid.subject_identity = ?',
+            [$manuscriptId]
+        );
+        return $this->conn->executeUpdate(
+            'DELETE from data.manuscript
+            where manuscript.identity = ?',
+            [$manuscriptId]
+        );
+    }
 }

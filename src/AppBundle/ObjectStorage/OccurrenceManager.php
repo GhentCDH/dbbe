@@ -31,4 +31,10 @@ class OccurrenceManager extends ObjectManager
 
         return $cached + $occurrences;
     }
+
+    public function getOccurrencesDependenciesByManuscript(int $manuscriptId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByManuscriptId($manuscriptId);
+        return $this->getOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+    }
 }

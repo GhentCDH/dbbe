@@ -17,7 +17,8 @@
         <manuscript-search-app
             :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
             manuscripts-search-api-url="{{ path('manuscripts_search_api') }}"
-            add-manuscript-url=""
+            get-occurrence-deps-by-manuscript-url="{{ path('occurrence_deps_by_manuscript', {'id': 'manuscript_id'}) }}"
+            get-occurrence-url="{{ path('occurrence_show', {'id': 'occurrence_id'}) }}"
             show-manuscript-url="{{ path('manuscript_show', {'id': 'manuscript_id'}) }}"
             edit-manuscript-url="{{ path('manuscript_edit', {'id': 'manuscript_id'}) }}"
             del-manuscript-url="{{ path('manuscript_delete', {'id': 'manuscript_id'}) }}"
@@ -26,5 +27,6 @@
 {% endblock %}
 
 {% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
     <script type="text/javascript" src="{{ asset("/build/manuscriptsearch.js") }}"></script>
 {% endblock %}

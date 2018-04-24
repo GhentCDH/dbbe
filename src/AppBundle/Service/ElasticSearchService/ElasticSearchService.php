@@ -55,6 +55,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $type->addDocument($document);
     }
 
+    protected function del(Type $type, int $id)
+    {
+        $document = new Document($id, []);
+        $type->deleteDocument($document);
+    }
+
     public function search(string $indexName, string $typeName, array $params = null): array
     {
         $type = $this->getIndex($indexName)->getType($typeName);

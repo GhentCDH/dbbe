@@ -2,15 +2,17 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Exception;
 use stdClass;
 
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
-
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ManuscriptManager extends ObjectManager
 {
@@ -167,7 +169,7 @@ class ManuscriptManager extends ObjectManager
         // Get basic manuscript information
         $manuscripts= $this->getShortManuscriptsByIds([$id]);
         if (count($manuscripts) == 0) {
-            return null;
+            throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
         }
         $manuscript = $manuscripts[$id];
 
@@ -614,6 +616,42 @@ class ManuscriptManager extends ObjectManager
     public function elasticIndex(array $manuscripts): void
     {
         $this->ess->addManuscripts($manuscripts);
+    }
+
+    public function delManuscript(int $manuscriptId): void
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // Throws NotFoundException if not found
+            $manuscript = $this->getManuscriptById($manuscriptId);
+
+            $this->dbs->delete($manuscriptId);
+
+            // empty cache
+            $this->cache->invalidateTags([
+                'manuscript_short.' . $manuscriptId,
+                'manuscript.' . $manuscriptId,
+                'manuscripts'
+            ]);
+            $this->cache->deleteItem('manuscript_short.' . $manuscriptId);
+            $this->cache->deleteItem('manuscript.' . $manuscriptId);
+
+            $this->updateModified($manuscript, null);
+
+            // delete from elastic search
+            $this->ess->delManuscript($manuscript);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (DependencyException $e) {
+            $this->dbs->rollBack();
+            throw new BadRequestHttpException($e->getMessage());
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return;
     }
 
     private static function calcDiff(array $newJsonArray, array $oldObjectArray): array

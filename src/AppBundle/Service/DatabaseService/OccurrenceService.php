@@ -25,4 +25,17 @@ class OccurrenceService extends DatabaseService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getDepIdsByManuscriptId(int $manuscriptId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.document_contains on original_poem.identity = document_contains.idcontent
+            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+            where manuscript.identity = ?',
+            [$manuscriptId]
+        )->fetchAll();
+    }
 }

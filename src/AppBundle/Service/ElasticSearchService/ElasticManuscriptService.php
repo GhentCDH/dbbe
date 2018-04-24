@@ -43,4 +43,10 @@ class ElasticManuscriptService extends ElasticSearchService
         $type = $this->getIndex('documents')->getType('manuscript');
         $this->add($type, $manuscript->getElastic());
     }
+
+    public function delManuscript(Manuscript $manuscript): void
+    {
+        $type = $this->getIndex('documents')->getType('manuscript');
+        $this->del($type, $manuscript->getId());
+    }
 }

@@ -93,6 +93,14 @@ class Occurrence
         return $result;
     }
 
+    public function getShortJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->getDescription(),
+        ];
+    }
+
     private static function formatRecto(bool $recto = null): string
     {
         if (empty($recto)) {

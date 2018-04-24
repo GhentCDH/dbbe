@@ -167,19 +167,28 @@ class ManuscriptController extends Controller
      */
     public function getManuscript(int $id, Request $request)
     {
-        $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
-
-        if (empty($manuscript)) {
-            throw $this->createNotFoundException('There is no manuscript with the requested id.');
-        }
-
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $this->denyAccessUnlessGranted('ROLE_EDITOR');
+            try {
+                $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            }
             return new JsonResponse($manuscript->getJson());
+        } else {
+            // Let the 404 page handle the not found exception
+            $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+            if (!$manuscript->getPublic()) {
+                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
+            }
+            return $this->render(
+                'AppBundle:Manuscript:detail.html.twig',
+                ['manuscript' => $manuscript]
+            );
         }
-        return $this->render(
-            'AppBundle:Manuscript:detail.html.twig',
-            ['manuscript' => $manuscript]
-        );
     }
 
     /**
@@ -192,13 +201,15 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByRegion(int $id, Request $request)
     {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByRegion($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new NotFoundHttpException();
         }
-        return  new \Exception('Not implemented.');
     }
 
     /**
@@ -211,13 +222,15 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByInstitution(int $id, Request $request)
     {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByInstitution($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new NotFoundHttpException();
         }
-        return  new \Exception('Not implemented.');
     }
 
     /**
@@ -230,13 +243,15 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByCollection(int $id, Request $request)
     {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByCollection($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new NotFoundHttpException();
         }
-        return  new \Exception('Not implemented.');
     }
 
     /**
@@ -249,13 +264,15 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByContent(int $id, Request $request)
     {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByContent($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new NotFoundHttpException();
         }
-        return  new \Exception('Not implemented.');
     }
 
     /**
@@ -267,21 +284,24 @@ class ManuscriptController extends Controller
     public function postManuscript(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $manuscript = $this
+                    ->get('manuscript_manager')
+                    ->addManuscript(json_decode($request->getContent()));
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
 
-        try {
-            $manuscript = $this
-                ->get('manuscript_manager')
-                ->addManuscript(json_decode($request->getContent()));
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
+            $this->addFlash('success', 'Manuscript added successfully.');
+
+            return new JsonResponse($manuscript->getJson());
+        } else {
+            throw new NotFoundHttpException();
         }
-
-        $this->addFlash('success', 'Manuscript added successfully.');
-
-        return new JsonResponse($manuscript->getJson());
     }
 
     /**
@@ -294,26 +314,29 @@ class ManuscriptController extends Controller
     public function putManuscript(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $manuscript = $this
+                    ->get('manuscript_manager')
+                    ->updateManuscript($id, json_decode($request->getContent()));
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
 
-        try {
-            $manuscript = $this
-                ->get('manuscript_manager')
-                ->updateManuscript($id, json_decode($request->getContent()));
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
+            $this->addFlash('success', 'Manuscript data successfully saved.');
+
+            return new JsonResponse($manuscript->getJson());
+        } else {
+            throw new NotFoundHttpException();
         }
-
-        $this->addFlash('success', 'Manuscript data successfully saved.');
-
-        return new JsonResponse($manuscript->getJson());
     }
 
     /**
@@ -326,10 +349,27 @@ class ManuscriptController extends Controller
     public function deleteManuscript(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $manuscript = $this
+                    ->get('manuscript_manager')
+                    ->delManuscript($id);
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
 
-        throw new \Exception('Not implemented');
-
-        return new Response(null, 204);
+            return new Response(null, 204);
+        } else {
+            throw new NotFoundHttpException();
+        }
     }
 
     /**
