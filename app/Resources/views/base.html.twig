@@ -63,25 +63,16 @@
                                                         <li class="last-child" id="siteaction-home_ugent">
                                                             <a href="https://www.ugent.be/en" title="Home Ghent University">Home Ghent University</a>
                                                         </li>
-                                                        {% if is_granted("IS_AUTHENTICATED_REMEMBERED") %}
+                                                        {% if is_granted("ROLE_USER") %}
                                                             <li>
                                                                 <span><i class="fa fa-key"></i>&nbsp;{{ app.user.fullName }}</span>
                                                             </li>
                                                             <li>
-                                                                <a href="{{ path('fos_user_change_password') }}">
-                                                                    {{ 'change_password.submit'|trans({}, 'FOSUserBundle') }}
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="{{ path('fos_user_security_logout') }}">
-                                                                    {{ 'layout.logout'|trans({}, 'FOSUserBundle') }}
-                                                                </a>
+                                                                <a href="{{ path('logout') }}">Log out</a>
                                                             </li>
                                                         {% else %}
                                                             <li>
-                                                                <a href="{{ path('fos_user_security_login') }}">
-                                                                    {{ 'layout.login'|trans({}, 'FOSUserBundle') }}
-                                                                </a>
+                                                                <a href="{{ path('login') }}">Login</a>
                                                             </li>
                                                         {% endif %}
                                                     </ul>

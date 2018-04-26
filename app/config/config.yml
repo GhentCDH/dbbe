@@ -72,3 +72,11 @@ fos_user:
     from_email:
         address: "%mailer_user%"
         sender_name: "%mailer_user%"
+
+l3_cas:
+    host: login.ugent.be      # Cas Server
+    path: ~                   # App path if not in root (eg. cas.test.com/cas)
+    port: 443                 # Server port
+    ca: false                 # SSL Certificate
+    handleLogoutRequest: true # Single sign out activation (default: false)
+    force: false               # Allows cas check mode and not force, user : __NO_USER__ if not connected (If force false, Single sign out cant work).

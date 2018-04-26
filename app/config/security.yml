@@ -4,11 +4,17 @@ security:
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-        fos_userbundle:
-            id: fos_user.user_provider.username
-
+        chain_provider:
+            chain:
+                providers: [in_memory, user_provider]
         in_memory:
-            memory: ~
+            memory:
+                users:
+                    __NO_USER__:
+                        password:
+                        roles: ROLE_ANO
+        user_provider:
+            id: user_provider
 
 
     firewalls:
@@ -18,12 +24,9 @@ security:
             security: false
 
         main:
+            cas: true
             pattern: ^/
-            form_login:
-                provider: fos_userbundle
-                csrf_token_generator: security.csrf.token_manager
-
-            logout:       true
+            provider: chain_provider
             logout_on_user_change: true
             anonymous:    true
 
@@ -31,12 +34,10 @@ security:
         FOS\UserBundle\Model\UserInterface: bcrypt
 
     role_hierarchy:
-        ROLE_ADMIN:       ROLE_USER
-        ROLE_SUPER_ADMIN: ROLE_ADMIN
+        ROLE_VIEW_INTERNAL: ROLE_USER
+        ROLE_ADMIN:         ROLE_VIEW_INTERNAL
+        ROLE_SUPER_ADMIN:   ROLE_ADMIN
 
     access_control:
-        - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/resetting, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin/users, role: ROLE_SUPER_ADMIN }
         - { path: ^/admin, role: ROLE_ADMIN }
