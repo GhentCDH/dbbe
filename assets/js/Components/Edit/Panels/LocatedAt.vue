@@ -54,6 +54,27 @@ export default {
             this.init()
         },
         'model.location.regionWithParents'() {
+            this.cityChange()
+        },
+        'model.location.institution'() {
+            this.libraryChange()
+        },
+        'model.location.collection'() {
+            this.collectionChange()
+        },
+    },
+    mounted() {
+        this.init()
+    },
+    methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.loadLocationField(this.schema.fields.city, this.model.location)
+            this.enableField(this.schema.fields.city, this.model.location)
+            this.cityChange()
+            this.libraryChange()
+        },
+        cityChange() {
             if (!this.model.location.regionWithParents || this.model.location.regionWithParents.locationId != null) {
                 this.model.location.id = null
             }
@@ -66,7 +87,7 @@ export default {
             }
             this.$refs.form.validate()
         },
-        'model.location.institution'() {
+        libraryChange() {
             if (this.model.location.institution == null) {
                 this.dependencyField(this.schema.fields.collection, this.model.location)
             }
@@ -79,23 +100,11 @@ export default {
             }
             this.$refs.form.validate()
         },
-        'model.location.collection'() {
+        collectionChange() {
             if (this.model.location.collection != null && this.model.location.collection.locationId != null) {
                 this.model.location.id = this.model.location.collection.locationId
             }
             this.$refs.form.validate()
-        },
-    },
-    mounted () {
-        this.init()
-    },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.dependencyField(this.schema.fields.library, this.model.location)
-            this.dependencyField(this.schema.fields.collection, this.model.location)
-            this.loadLocationField(this.schema.fields.city, this.model.location)
-            this.enableField(this.schema.fields.city, this.model.location)
         },
         validate() {
             this.$refs.form.validate()
