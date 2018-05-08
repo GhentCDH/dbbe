@@ -24,14 +24,6 @@ class ElasticOccurrenceService extends ElasticSearchService
         $index->create([
             'analysis' => [
                 'filter' => [
-                    'greek_lowercase' => [
-                        'type' => 'lowercase',
-                        'language' => 'greek',
-                    ],
-                    'greek_stop' => [
-                        'type' => 'stop',
-                        'stopwords' => '_greek_',
-                    ],
                     'greek_stemmer' => [
                         'type' => 'stemmer',
                         'language' => 'greek',
@@ -52,13 +44,13 @@ class ElasticOccurrenceService extends ElasticSearchService
                 ],
                 'analyzer' => [
                     'custom_greek' => [
-                        'tokenizer' => 'standard',
+                        'tokenizer' => 'icu_tokenizer',
                         'char_filter' => [
                             'remove_par_brackets_filter'
                         ],
                         'filter' => [
-                            'greek_lowercase',
-                            'greek_stop',
+                            'icu_folding',
+                            'lowercase',
                             'greek_stemmer',
                         ],
                     ],
