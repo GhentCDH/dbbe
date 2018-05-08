@@ -70,6 +70,10 @@ class OccurrenceController extends Controller
         }
 
         if (isset($filters) && is_array($filters)) {
+            // sanitize text_type
+            if (!(isset($filters['text_type']) && in_array($filters['text_type'], ['any', 'all', 'phrase']))) {
+                $filters['text_type'] = 'any';
+            }
             $es_params['filters'] = $filters;
         }
 

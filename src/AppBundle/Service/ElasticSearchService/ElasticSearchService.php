@@ -5,7 +5,6 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Document;
-use Elastica\Type;
 use Elastica\Query;
 
 const MAX = 2147483647;
@@ -285,9 +284,20 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'text':
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(
-                            (new Query\Match($key, $value))
-                        );
+                        switch ($value['type']) {
+                            case 'any':
+                                $matchQuery = new Query\Match($key, $value['text']);
+                                break;
+                            case 'all':
+                                $matchQuery = (new Query\Match())
+                                    ->setFieldQuery($key, $value['text'])
+                                    ->setFieldOperator($key, Query\Match::OPERATOR_AND);
+                                break;
+                            case 'phrase':
+                                $matchQuery = (new Query\MatchPhrase($key, $value['text']));
+                                break;
+                        }
+                        $filterQuery->addMust($matchQuery);
                     }
                     break;
                 case 'exact_text':
@@ -336,6 +346,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         foreach ($lines as $line) {
             // Remove \r
             $line = trim($line);
+            // TODO: concatenate lines till </mark>
             if (strpos($line, '<mark>') !== false) {
                 $result[] = $line;
             }

@@ -13,7 +13,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
-                    v-if="Object.keys(model).length !== 0"
+                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group">
                     <button
                         class="btn btn-block"
@@ -53,13 +53,11 @@
                         <li
                             v-for="(item, index) in props.row.text"
                             :key="index"
-                            v-html="item">
-                        </li>
+                            v-html="item" />
                     </ul>
                     <span
                         v-else
-                        v-html="props.row.text[0]">
-                    </span>
+                        v-html="props.row.text[0]" />
                 </template>
                 <template
                     slot="actions"
@@ -128,6 +126,7 @@ import VueMultiselect from 'vue-multiselect'
 import VueTables from 'vue-tables-2'
 
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
+import fieldRadio from '../Components/FormFields/fieldRadio'
 
 import Fields from '../Components/Fields'
 
@@ -137,6 +136,7 @@ Vue.use(VueTables.ServerTable)
 
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+Vue.component('fieldRadio', fieldRadio)
 
 var YEAR_MIN = 1
 var YEAR_MAX = (new Date()).getFullYear()
@@ -175,14 +175,27 @@ export default {
     },
     data() {
         let data = {
-            model: {},
+            model: {
+                text_type: 'any',
+            },
+            originalModel: {},
             schema: {
                 fields: {
                     text: {
                         type: 'input',
                         inputType: 'text',
                         label: 'Text',
-                        model: 'text'
+                        model: 'text',
+                    },
+                    text_type: {
+                        type: 'radio',
+                        label: 'Text search options:',
+                        model: 'text_type',
+                        values: [
+                            { value: 'any', name: 'Match any words' },
+                            { value: 'all', name: 'Match all words' },
+                            { value: 'phrase', name: 'Match all words in correct order' },
+                        ],
                     },
                     meter: this.createMultiSelect('Meter'),
                     subject: this.createMultiSelect('Subject'),
@@ -196,7 +209,7 @@ export default {
                         model: 'year_from',
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
+                        validator: VueFormGenerator.validators.number,
                     },
                     year_to: {
                         type: 'input',
@@ -205,7 +218,7 @@ export default {
                         model: 'year_to',
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
+                        validator: VueFormGenerator.validators.number,
                     },
                     genre: this.createMultiSelect('Genre'),
                 }
@@ -303,6 +316,9 @@ export default {
             return columns
         },
     },
+    mounted() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model))
+    },
     methods: {
         constructFilterValues() {
             let result = {}
@@ -389,11 +405,14 @@ export default {
                 this.inputCancel = null
                 let filterValues = this.constructFilterValues()
                 // only send request if the filters have changed
+                // in the case a text checkbox was used, only send request if text is not null
                 // filters are always in the same order, so we can compare serialization
                 if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
                     this.oldFilterValues = filterValues
-                    // this.setFilters(filterValues)
-                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                    if (!(this.lastChangedField == 'text_type' && (this.model.text == null || this.model.text == ''))) {
+                        // TODO: prevent initial duplicate request
+                        VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
+                    }
                 }
             }, timeoutValue)
         },
@@ -414,7 +433,7 @@ export default {
             return 0
         },
         resetAllFilters() {
-            this.model = {}
+            this.model = JSON.parse(JSON.stringify(this.originalModel))
             this.onValidated(true)
         },
         del(row) {

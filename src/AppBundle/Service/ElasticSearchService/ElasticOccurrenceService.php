@@ -125,7 +125,10 @@ class ElasticOccurrenceService extends ElasticSearchService
                 // $filters can be a sequential (aggregation) or an associative (query) array
                 switch (is_int($key) ? $value : $key) {
                     case 'text':
-                        $result['text'][$key] = $value;
+                        $result['text'][$key] = [
+                            'text' => $value,
+                            'type' => $filters['text_type'],
+                        ];
                         break;
                     case 'meter':
                     case 'manuscript':
