@@ -102,7 +102,7 @@ class ContentManager extends ObjectManager
             $this->updateModified(null, $newContentWithParents);
 
             // update cache
-            $this->cache->invalidateTags(['collections']);
+            $this->cache->invalidateTags(['contents']);
             $this->setCache([$newContentWithParents->getId() => $newContentWithParents], 'content_with_parents');
 
             // commit transaction
@@ -155,8 +155,9 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'contents']);
+            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'content.' . $contentId, 'contents']);
             $this->cache->deleteItem('content_with_parents.' . $contentId);
+            $this->cache->deleteItem('content.' . $contentId);
             $newContentWithParents = $this->getContentsWithParentsByIds([$contentId])[$contentId];
 
             $this->updateModified($contentWithParents, $newContentWithParents);

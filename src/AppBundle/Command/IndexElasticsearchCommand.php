@@ -10,7 +10,6 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
-        //TODO: add argument (person / congres / organisation)
         $this
             ->setName('app:elasticsearch:index')
             ->setDescription('Drops the old elasticsearch index and recreates it.')
@@ -21,15 +20,21 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
     {
         // Get database and elasticsearch clients
         $manuscriptManager = $this->getContainer()->get('manuscript_manager');
+        $occurrenceManager = $this->getContainer()->get('occurrence_manager');
 
         $elasticSearchService = $this->getContainer()->get('elasticsearch_service');
         $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
+        $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
 
         // Index all types
         // (Re)index manuscripts
-        $elasticSearchService->resetIndex('documents');
-        $manuscripts = $manuscriptManager->getAllManuscripts();
         $manuscriptElasticService->setupManuscripts();
+        $manuscripts = $manuscriptManager->getAllManuscripts();
         $manuscriptElasticService->addManuscripts($manuscripts);
+
+        // (Re)index occurrences
+        $occurrenceElasticService->setupOccurrences();
+        $occurrences = $occurrenceManager->getAllOccurrences();
+        $occurrenceElasticService->addOccurrences($occurrences);
     }
 }

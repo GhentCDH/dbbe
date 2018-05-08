@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-class Person
+class Person implements SubjectInterface
 {
     private $id;
     private $firstName;

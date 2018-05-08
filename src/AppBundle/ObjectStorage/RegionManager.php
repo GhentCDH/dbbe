@@ -205,8 +205,9 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->cache->invalidateTags(['region_with_parents.' . $regionId, 'regions']);
+            $this->cache->invalidateTags(['region_with_parents.' . $regionId, 'region.' . $regionId, 'regions']);
             $this->cache->deleteItem('region_with_parents.' . $regionId);
+            $this->cache->deleteItem('region.' . $regionId);
             $newRegionWithParents = $this->getRegionsWithParentsByIds([$regionId])[$regionId];
 
             $this->updateModified($regionWithParents, $newRegionWithParents);

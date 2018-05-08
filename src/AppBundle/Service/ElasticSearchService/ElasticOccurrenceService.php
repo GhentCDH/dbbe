@@ -4,55 +4,102 @@ namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Type;
 
-use AppBundle\Model\Manuscript;
+use AppBundle\Model\Occurrence;
 
-class ElasticManuscriptService extends ElasticSearchService
+class ElasticOccurrenceService extends ElasticSearchService
 {
     public function __construct(array $config, string $indexPrefix)
     {
         parent::__construct($config, $indexPrefix);
-        $this->type = $this->getIndex('manuscripts')->getType('manuscript');
+        $this->type = $this->getIndex('occurrences')->getType('occurrence');
     }
 
-    public function setupManuscripts(): void
+    public function setupOccurrences(): void
     {
-        $index = $this->getIndex('manuscripts');
+        $index = $this->getIndex('occurrences');
         if ($index->exists()) {
             $index->delete();
         }
-        $index->create();
-
+        // Configure analysis: remove parentheses and square brackets
+        $index->create([
+            'analysis' => [
+                'filter' => [
+                    'greek_lowercase' => [
+                        'type' => 'lowercase',
+                        'language' => 'greek',
+                    ],
+                    'greek_stop' => [
+                        'type' => 'stop',
+                        'stopwords' => '_greek_',
+                    ],
+                    'greek_stemmer' => [
+                        'type' => 'stemmer',
+                        'language' => 'greek',
+                    ],
+                ],
+                'char_filter' => [
+                    'remove_par_brackets_filter' => [
+                        'type' => 'mapping',
+                        'mappings' => [
+                            '( =>',
+                            ') =>',
+                            '[ =>',
+                            '] =>',
+                            '< =>',
+                            '> =>',
+                        ],
+                    ],
+                ],
+                'analyzer' => [
+                    'custom_greek' => [
+                        'tokenizer' => 'standard',
+                        'char_filter' => [
+                            'remove_par_brackets_filter'
+                        ],
+                        'filter' => [
+                            'greek_lowercase',
+                            'greek_stop',
+                            'greek_stemmer',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $mapping->setProperties(
             [
-                'content' => ['type' => 'nested'],
+                'text' => [
+                    'type' => 'text',
+                    'analyzer' => 'custom_greek',
+                ],
+                'subject' => ['type' => 'nested'],
+                'manuscript_content' => ['type' => 'nested'],
                 'patron' => ['type' => 'nested'],
                 'scribe' => ['type' => 'nested'],
-                'origin' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
     }
 
-    public function addManuscripts(array $manuscripts): void
+    public function addOccurrences(array $occurrences): void
     {
-        $manuscriptsElastic = [];
-        foreach ($manuscripts as $manuscript) {
-            $manuscriptsElastic [] = $manuscript->getElastic();
+        $occurrencesElastic = [];
+        foreach ($occurrences as $occurrence) {
+            $occurrencesElastic [] = $occurrence->getElastic();
         }
 
-        $this->bulkAdd($manuscriptsElastic);
+        $this->bulkAdd($occurrencesElastic);
     }
 
-    public function addManuscript(Manuscript $manuscript): void
+    public function addOccurrence(Occurrence $occurrence): void
     {
-        $this->add($manuscript->getElastic());
+        $this->add($occurrence->getElastic());
     }
 
-    public function delManuscript(Manuscript $manuscript): void
+    public function delOccurrence(Occurrence $occurrence): void
     {
-        $this->del($manuscript->getId());
+        $this->del($occurrence->getId());
     }
 
     public function searchAndAggregate(array $params): array
@@ -64,7 +111,7 @@ class ElasticManuscriptService extends ElasticSearchService
         $result = $this->search($params);
 
         $aggregation_result = $this->aggregate(
-            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin', 'public']),
+            self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -85,17 +132,17 @@ class ElasticManuscriptService extends ElasticSearchService
             if (isset($value) && $value !== '') {
                 // $filters can be a sequential (aggregation) or an associative (query) array
                 switch (is_int($key) ? $value : $key) {
-                    case 'city':
-                    case 'library':
-                    case 'collection':
+                    case 'text':
+                        $result['text'][$key] = $value;
+                        break;
+                    case 'meter':
+                    case 'manuscript':
+                    case 'genre':
                         if (is_int($key)) {
                             $result['object'][] = $value;
                         } else {
                             $result['object'][$key] = $value;
                         }
-                        break;
-                    case 'shelf':
-                        $result['exact_text'][$key] = $value;
                         break;
                     case 'date':
                         $date_result = [
@@ -110,10 +157,10 @@ class ElasticManuscriptService extends ElasticSearchService
                         }
                         $result['date_range'][] = $date_result;
                         break;
-                    case 'content':
+                    case 'subject':
+                    case 'manuscript_content':
                     case 'patron':
                     case 'scribe':
-                    case 'origin':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

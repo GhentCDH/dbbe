@@ -16,9 +16,14 @@ use AppBundle\Model\Origin;
 
 class ManuscriptManager extends ObjectManager
 {
-    public function getShortManuscriptsByIds(array $ids): array
+    /**
+     * Get manuscripts with enough information to get an id and a name
+     * @param  array $ids
+     * @return array
+     */
+    public function getMiniManuscriptsByIds(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'manuscript_short');
+        list($cached, $ids) = $this->getCache($ids, 'manuscript_mini');
         if (empty($ids)) {
             return $cached;
         }
@@ -38,6 +43,21 @@ class ManuscriptManager extends ObjectManager
             $manuscripts[$manuscript->getId()] = $manuscript;
         }
 
+        $this->setCache($manuscripts, 'manuscript_mini');
+
+        return $cached + $manuscripts;
+    }
+
+    public function getShortManuscriptsByIds(array $ids): array
+    {
+        list($cached, $ids) = $this->getCache($ids, 'manuscript_short');
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $manuscripts = $this->getMiniManuscriptsByIds($ids);
+
+        // Remove all ids that did not match above
         $ids = array_keys($manuscripts);
 
         // Contents
@@ -79,7 +99,7 @@ class ManuscriptManager extends ObjectManager
 
         $occurrences = [];
         if (count($occurrenceIds) > 0) {
-            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
         }
 
         foreach (array_merge($rawBibroles, $rawOccurrenceBibroles, $rawRelatedPersons) as $rawPerson) {
@@ -90,11 +110,13 @@ class ManuscriptManager extends ObjectManager
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
+                            // TODO: switch to cachedependencies of persons and occurrences
                             ->addCacheDependency('person.' . $person->getId())
                             ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
+                            // TODO: switch to cachedependencies of persons and occurrences
                             ->addCacheDependency('person.' . $person->getId())
                             ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
                     }
@@ -102,16 +124,19 @@ class ManuscriptManager extends ObjectManager
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addPatron($person)
+                            // TODO: switch to cachedependencies of persons
                             ->addCacheDependency('person.' . $person->getId());
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addScribe($person)
+                            // TODO: switch to cachedependencies of persons
                             ->addCacheDependency('person.' . $person->getId());
                     }
                 }
             } else {
                 $manuscripts[$rawPerson['manuscript_id']]
                     ->addRelatedPerson($person)
+                    // TODO: switch to cachedependencies of persons
                     ->addCacheDependency('person.' . $person->getId());
             }
         }
@@ -212,7 +237,7 @@ class ManuscriptManager extends ObjectManager
         $rawOccurrences = $this->dbs->getOccurrences([$id]);
         if (count($rawOccurrences) > 0) {
             $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
             foreach ($occurrences as $occurrence) {
                 $manuscript->addCacheDependency('occurrence.' . $occurrence->getId());
             }
@@ -233,25 +258,25 @@ class ManuscriptManager extends ObjectManager
     public function getManuscriptsDependenciesByRegion(int $regionId): array
     {
         $rawIds = $this->dbs->getDepIdsByRegionId($regionId);
-        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function getManuscriptsDependenciesByInstitution(int $institutionId): array
     {
         $rawIds = $this->dbs->getDepIdsByInstitutionId($institutionId);
-        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function getManuscriptsDependenciesByCollection(int $collectionId): array
     {
         $rawIds = $this->dbs->getDepIdsByCollectionId($collectionId);
-        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function getManuscriptsDependenciesByContent(int $contentId): array
     {
         $rawIds = $this->dbs->getDepIdsByContentId($contentId);
-        return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
     public function addManuscript(stdClass $data): Manuscript
@@ -613,9 +638,15 @@ class ManuscriptManager extends ObjectManager
         }
     }
 
-    public function elasticIndex(array $manuscripts): void
+    public function elasticIndex(array $miniManuscripts): void
     {
-        $this->ess->addManuscripts($manuscripts);
+        $manuscriptIds = array_map(
+            function ($miniManuscript) {
+                return $miniManuscript->getId();
+            },
+            $miniManuscripts
+        );
+        $this->ess->addManuscripts($this->getShortManuscriptsByIds($manuscriptIds));
     }
 
     public function delManuscript(int $manuscriptId): void

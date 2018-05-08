@@ -110,7 +110,7 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manuscript.identity
+                manuscript.identity as manuscript_id
             from data.manuscript
             inner join data.document_genre on manuscript.identity = document_genre.iddocument
             where document_genre.idgenre = ?',
@@ -344,9 +344,10 @@ class ManuscriptService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                entity.identity as manuscript_id,
+                manuscript.identity as manuscript_id,
                 entity.public
-            from data.entity
+            from data.manuscript
+            inner join data.entity on manuscript.identity = entity.identity
             where entity.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]

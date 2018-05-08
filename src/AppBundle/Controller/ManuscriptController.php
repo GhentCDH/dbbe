@@ -71,80 +71,14 @@ class ManuscriptController extends Controller
         }
 
         if (isset($filters) && is_array($filters)) {
-            $es_params['filters'] = self::classifyFilters($filters);
+            $es_params['filters'] = $filters;
         }
 
-        $result = $this->get('elasticsearch_service')->search(
-            'documents',
-            'manuscript',
+        $result = $this->get('manuscript_elastic_service')->searchAndAggregate(
             $es_params
         );
 
-        $aggregation_result = $this->get('elasticsearch_service')->aggregate(
-            'documents',
-            'manuscript',
-            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin', 'public']),
-            !empty($es_params['filters']) ? $es_params['filters'] : []
-        );
-
-        $result['aggregation'] = $aggregation_result;
-
         return new JsonResponse($result);
-    }
-
-    private static function classifyFilters(array $filters): array
-    {
-        // $filters can be a sequential (aggregation) or an associative (query) array
-        $result = [];
-        foreach ($filters as $key => $value) {
-            if (isset($value) && $value !== '') {
-                switch (is_int($key) ? $value : $key) {
-                    case 'city':
-                    case 'library':
-                    case 'collection':
-                        if (is_int($key)) {
-                            $result['object'][] = $value;
-                        } else {
-                            $result['object'][$key] = $value;
-                        }
-                        break;
-                    case 'shelf':
-                        $result['text'][$key] = $value;
-                        break;
-                    case 'date':
-                        $date_result = [
-                            'floorField' => 'date_floor_year',
-                            'ceilingField' => 'date_ceiling_year',
-                        ];
-                        if (array_key_exists('from', $value)) {
-                            $date_result['startDate'] = $value['from'];
-                        }
-                        if (array_key_exists('to', $value)) {
-                            $date_result['endDate'] = $value['to'];
-                        }
-                        $result['date_range'][] = $date_result;
-                        break;
-                    case 'content':
-                    case 'patron':
-                    case 'scribe':
-                    case 'origin':
-                        if (is_int($key)) {
-                            $result['nested'][] = $value;
-                        } else {
-                            $result['nested'][$key] = $value;
-                        }
-                        break;
-                    case 'public':
-                        if (is_int($key)) {
-                            $result['boolean'][] = $value;
-                        } else {
-                            $result['boolean'][$key] = ($value === 1);
-                        }
-                        break;
-                }
-            }
-        }
-        return $result;
     }
 
     /**

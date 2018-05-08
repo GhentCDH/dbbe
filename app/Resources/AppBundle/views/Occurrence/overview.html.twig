@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-sm-12 ">
+        <h2 class="h1">Search Occurrences</h2>
+        {% if is_granted('ROLE_EDITOR') %}
+        <div class="pbottom-default">
+            <a
+                href="{{ path('occurrence_add') }}"
+                class="action">
+                <i class="fa fa-plus"></i> Add a new occurrence
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div id="occurrence-search-app">
+        <occurrence-search-app
+            :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
+            occurrences-search-api-url="{{ path('occurrences_search_api') }}"
+            show-occurrence-url="{{ path('occurrence_show', {'id': 'occurrence_id'}) }}"
+            edit-occurrence-url="{{ path('occurrence_edit', {'id': 'occurrence_id'}) }}"
+            del-occurrence-url="{{ path('occurrence_delete', {'id': 'occurrence_id'}) }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/occurrencesearch.js") }}"></script>
+{% endblock %}

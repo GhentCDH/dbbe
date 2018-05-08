@@ -14,6 +14,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 {
     private $client;
     private $indexPrefix;
+    protected $type;
 
     public function __construct(array $config, string $indexPrefix)
     {
@@ -26,16 +27,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         return $this->client->getIndex($this->indexPrefix . '_'. $indexName);
     }
 
-    public function resetIndex($indexName)
-    {
-        $index = $this->getIndex($indexName);
-        if ($index->exists()) {
-            $index->delete();
-        }
-        $index->create();
-    }
-
-    protected function bulkAdd(Type $type, array $indexingContents)
+    protected function bulkAdd(array $indexingContents)
     {
         $bulk_documents = [];
         while (count($indexingContents) > 0) {
@@ -43,28 +35,26 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             foreach ($bulk_contents as $bc) {
                 $bulk_documents[] = new Document($bc['id'], $bc);
             }
-            $type->addDocuments($bulk_documents);
+            $this->type->addDocuments($bulk_documents);
             $bulk_documents = [];
         }
-        $type->getIndex()->refresh();
+        $this->type->getIndex()->refresh();
     }
 
-    protected function add(Type $type, array $indexingContent)
+    protected function add(array $indexingContent)
     {
         $document = new Document($indexingContent['id'], $indexingContent);
-        $type->addDocument($document);
+        $this->type->addDocument($document);
     }
 
-    protected function del(Type $type, int $id)
+    protected function del(int $id)
     {
         $document = new Document($id, []);
-        $type->deleteDocument($document);
+        $this->type->deleteDocument($document);
     }
 
-    public function search(string $indexName, string $typeName, array $params = null): array
+    public function search(array $params = null): array
     {
-        $type = $this->getIndex($indexName)->getType($typeName);
-
         // Construct query
         $query = new Query();
         // Number of results
@@ -96,9 +86,10 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         // Filtering
         if (isset($params['filters'])) {
             $query->setQuery(self::createQuery($params['filters']));
+            $query->setHighlight(self::createHighlight($params['filters']));
         }
 
-        $data = $type->search($query)->getResponse()->getData();
+        $data = $this->type->search($query)->getResponse()->getData();
 
         // Format response
         $response = [
@@ -106,15 +97,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             'data' => []
         ];
         foreach ($data['hits']['hits'] as $result) {
-            $response['data'][] = $result['_source'];
+            $part = $result['_source'];
+            if (isset($result['highlight'])) {
+                foreach ($result['highlight'] as $key => $value) {
+                    $part[$key] = self::formatHighlight($value[0]);
+                }
+            }
+            $response['data'][] = $part;
         }
         return $response;
     }
 
-    public function aggregate(string $indexName, string $typeName, array $fieldTypes, array $filterValues): array
+    public function aggregate(array $fieldTypes, array $filterValues): array
     {
-        $type = $this->getIndex($indexName)->getType($typeName);
-
         $query = (new Query())
             ->setQuery(self::createQuery($filterValues));
 
@@ -166,7 +161,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             switch ($fieldType) {
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -177,7 +172,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'nested':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
                         foreach ($aggregation['id']['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -188,7 +183,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'boolean':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $type->search($query)->getAggregation($fieldName);
+                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -291,6 +286,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'text':
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addMust(
+                            (new Query\Match($key, $value))
+                        );
+                    }
+                    break;
+                case 'exact_text':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
                             (new Query\Match($key . '.keyword', $value))
                         );
                     }
@@ -305,5 +307,39 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
         return $filterQuery;
+    }
+
+    private static function createHighlight(array $filterTypes): array
+    {
+        $highlights = [
+            'number_of_fragments' => 0,
+            'pre_tags' => ['<mark>'],
+            'post_tags' => ['</mark>'],
+            'fields' => [],
+        ];
+        foreach ($filterTypes as $filterType => $filterValues) {
+            switch ($filterType) {
+                case 'text':
+                    foreach ($filterValues as $key => $value) {
+                        $highlights['fields'][$key] = new \stdClass();
+                    }
+                    break;
+            }
+        }
+        return $highlights;
+    }
+
+    private static function formatHighlight(string $highlight): array
+    {
+        $lines = explode(PHP_EOL, html_entity_decode($highlight));
+        $result = [];
+        foreach ($lines as $line) {
+            // Remove \r
+            $line = trim($line);
+            if (strpos($line, '<mark>') !== false) {
+                $result[] = $line;
+            }
+        }
+        return $result;
     }
 }
