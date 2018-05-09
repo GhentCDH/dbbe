@@ -245,14 +245,24 @@ export default {
                     text: 'Text (matching verses only)',
                 },
                 filterable: false,
-                // orderBy: {
-                //     'column': 'name'
-                // },
+                orderBy: {
+                    'column': 'incipit'
+                },
                 perPage: 25,
                 perPageValues: [25, 50, 100],
-                sortable: [],
+                sortable: ['incipit', 'manuscript', 'date'],
                 customFilters: ['filters'],
                 requestFunction: function (data) {
+                    if (!this.$parent.actualRequest) {
+                        return new Promise((resolve, reject) => {
+                            resolve({
+                                data : {
+                                    data: this.data,
+                                    count: this.count
+                                }
+                            })
+                        })
+                    }
                     if (this.$parent.openRequests > 0) {
                         this.$parent.tableCancel('Operation canceled by newer request')
                     }
@@ -301,6 +311,7 @@ export default {
             delDependencies: [],
             alerts: [],
             textSearch: false,
+            actualRequest: false,
         }
         if (this.isEditor) {
             data.schema.fields['public'] = this.createMultiSelect(
@@ -329,6 +340,7 @@ export default {
     },
     mounted() {
         this.originalModel = JSON.parse(JSON.stringify(this.model))
+        this.actualRequest = true
     },
     methods: {
         constructFilterValues() {
@@ -412,6 +424,13 @@ export default {
             if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
                 timeoutValue = 1000
             }
+
+            // Remove column ordering if text is searched
+            if (this.lastChangedField == 'text' || this.lastChangedField == 'text_type') {
+                this.actualRequest = false
+                this.$refs.resultTable.setOrder(null)
+            }
+
             this.inputCancel = window.setTimeout(() => {
                 this.inputCancel = null
                 let filterValues = this.constructFilterValues()
@@ -422,6 +441,7 @@ export default {
                     this.oldFilterValues = filterValues
                     if (!(this.lastChangedField == 'text_type' && (this.model.text == null || this.model.text == ''))) {
                         // TODO: prevent initial duplicate request
+                        this.actualRequest = true
                         VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
                     }
                 }

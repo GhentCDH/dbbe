@@ -47,8 +47,10 @@ class OccurrenceController extends Controller
             if (isset($params['ascending']) && is_numeric($params['ascending'])) {
                 $es_params['ascending'] = $params['ascending'];
             }
-            if (($params['orderBy']) == 'name') {
-                $es_params['orderBy'] = ['name.keyword'];
+            if (($params['orderBy']) == 'incipit') {
+                $es_params['orderBy'] = ['incipit.keyword'];
+            } elseif (($params['orderBy']) == 'manuscript') {
+                $es_params['orderBy'] = ['manuscript.name.keyword'];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if (isset($params['ascending']) && $params['ascending'] == 0) {
