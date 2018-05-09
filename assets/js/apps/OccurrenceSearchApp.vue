@@ -37,15 +37,6 @@
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData">
-                <a
-                    slot="incipit"
-                    slot-scope="props"
-                    :href="showOccurrenceUrl.replace('occurrence_id', props.row.id)"
-                    v-html="props.row.incipit" />
-                <span
-                    slot="manuscript"
-                    slot-scope="props"
-                    v-html="props.row.manuscript.name" />
                 <template
                     slot="text"
                     slot-scope="props">
@@ -58,6 +49,26 @@
                     <span
                         v-else
                         v-html="props.row.text[0]" />
+                </template>
+                <a
+                    slot="incipit"
+                    slot-scope="props"
+                    :href="showOccurrenceUrl.replace('occurrence_id', props.row.id)"
+                    v-html="props.row.incipit" />
+                <span
+                    slot="manuscript"
+                    slot-scope="props"
+                    v-html="props.row.manuscript.name" />
+                <template
+                    v-if="props.row.date_floor_year && props.row.date_ceiling_year"
+                    slot="date"
+                    slot-scope="props">
+                    <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
+                        {{ props.row.date_floor_year }}
+                    </template>
+                    <template v-else>
+                        {{ props.row.date_floor_year }} - {{ props.row.date_ceiling_year }}
+                    </template>
                 </template>
                 <template
                     slot="actions"
@@ -306,9 +317,9 @@ export default {
     },
     computed: {
         tableColumns() {
-            let columns = ['incipit', 'manuscript']
+            let columns = ['incipit', 'manuscript', 'date']
             if (this.textSearch) {
-                columns.push('text')
+                columns.unshift('text')
             }
             if (this.isEditor) {
                 columns.push('actions')
