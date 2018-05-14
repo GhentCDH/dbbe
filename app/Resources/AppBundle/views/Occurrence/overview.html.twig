@@ -16,6 +16,7 @@
     <div id="occurrence-search-app">
         <occurrence-search-app
             :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
+            init-data="{{ data }}"
             occurrences-search-api-url="{{ path('occurrences_search_api') }}"
             show-occurrence-url="{{ path('occurrence_show', {'id': 'occurrence_id'}) }}"
             edit-occurrence-url="{{ path('occurrence_edit', {'id': 'occurrence_id'}) }}"

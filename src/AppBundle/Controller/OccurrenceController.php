@@ -15,72 +15,38 @@ use AppBundle\Utils\ArrayToJson;
 class OccurrenceController extends Controller
 {
     /**
-     * @Route("/occurrences/", name="occurrences_search")
+     * @Route("/occurrences", name="occurrences_search")
      */
     public function searchOccurrences(Request $request)
     {
+        $params = $request->query->all();
+        if (empty($params)) {
+            $params = [
+                'limit' => 25,
+                'page' => 1,
+                'ascending' => 1,
+                'orderBy' => 'incipit',
+            ];
+        }
         return $this->render(
-            'AppBundle:Occurrence:overview.html.twig'
+            'AppBundle:Occurrence:overview.html.twig',
+            [
+                'data' => json_encode(
+                    $this->get('occurrence_elastic_service')->searchAndAggregate(
+                        $this->sanitize($params)
+                    )
+                ),
+            ]
         );
     }
 
     /**
-     * @Route("/occurrences/search_api/", name="occurrences_search_api")
+     * @Route("/occurrences/search_api", name="occurrences_search_api")
      */
     public function searchOccurrencesAPI(Request $request)
     {
-        $params = $request->query->all();
-
-        $es_params = [];
-
-        // Pagination
-        if (isset($params['limit']) && is_numeric($params['limit'])) {
-            $es_params['limit'] = $params['limit'];
-        }
-        if (isset($params['page']) && is_numeric($params['page'])) {
-            $es_params['page'] = $params['page'];
-        }
-
-
-        // Sorting
-        if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
-                $es_params['ascending'] = $params['ascending'];
-            }
-            if (($params['orderBy']) == 'incipit') {
-                $es_params['orderBy'] = ['incipit.keyword'];
-            } elseif (($params['orderBy']) == 'manuscript') {
-                $es_params['orderBy'] = ['manuscript.name.keyword'];
-            } elseif (($params['orderBy']) == 'date') {
-                // when sorting in descending order => sort by ceiling, else: sort by floor
-                if (isset($params['ascending']) && $params['ascending'] == 0) {
-                    $es_params['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
-                } else {
-                    $es_params['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
-                }
-            }
-        }
-
-        // Filtering
-        $filters = [];
-        if (isset($params['filters'])) {
-            $filters = json_decode($params['filters'], true);
-        }
-
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            $filters['public'] = 1;
-        }
-
-        if (isset($filters) && is_array($filters)) {
-            // sanitize text_type
-            if (!(isset($filters['text_type']) && in_array($filters['text_type'], ['any', 'all', 'phrase']))) {
-                $filters['text_type'] = 'any';
-            }
-            $es_params['filters'] = $filters;
-        }
-
         $result = $this->get('occurrence_elastic_service')->searchAndAggregate(
-            $es_params
+            $this->sanitize($request->query->all())
         );
 
         return new JsonResponse($result);
@@ -148,5 +114,59 @@ class OccurrenceController extends Controller
     public function editOccurrence(int $id = null, Request $request)
     {
         throw new \Exception('Not implemented');
+    }
+
+    private function sanitize(array $params): array
+    {
+        $es_params = [];
+
+        // Pagination
+        if (isset($params['limit']) && is_numeric($params['limit'])) {
+            $es_params['limit'] = $params['limit'];
+        }
+        if (isset($params['page']) && is_numeric($params['page'])) {
+            $es_params['page'] = $params['page'];
+        }
+
+
+        // Sorting
+        if (isset($params['orderBy']) && is_string($params['orderBy'])) {
+            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
+                $es_params['ascending'] = $params['ascending'];
+            }
+            if (($params['orderBy']) == 'incipit') {
+                $es_params['orderBy'] = ['incipit.keyword'];
+            } elseif (($params['orderBy']) == 'manuscript') {
+                $es_params['orderBy'] = ['manuscript.name.keyword'];
+            } elseif (($params['orderBy']) == 'date') {
+                // when sorting in descending order => sort by ceiling, else: sort by floor
+                if (isset($params['ascending']) && $params['ascending'] == 0) {
+                    $es_params['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
+                } else {
+                    $es_params['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
+                }
+            }
+        }
+
+        // Filtering
+        $filters = [];
+        if (isset($params['filters']) && is_array($params['filters'])) {
+            $filters = $params['filters'];
+        }
+
+        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            $filters['public'] = 1;
+        }
+
+        if (isset($filters)) {
+            // sanitize text_type
+            if (!(isset($filters['text_type']) && in_array($filters['text_type'], ['any', 'all', 'phrase']))) {
+                $filters['text_type'] = 'any';
+            }
+
+            $es_params['filters'] = $filters;
+        }
+
+        return $es_params;
     }
 }

@@ -16,7 +16,7 @@ use AppBundle\Utils\ArrayToJson;
 class ManuscriptController extends Controller
 {
     /**
-     * @Route("/manuscripts/", name="manuscripts_search")
+     * @Route("/manuscripts", name="manuscripts_search")
      */
     public function searchManuscripts(Request $request)
     {
@@ -26,7 +26,7 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/search_api/", name="manuscripts_search_api")
+     * @Route("/manuscripts/search_api", name="manuscripts_search_api")
      */
     public function searchManuscriptsAPI(Request $request)
     {

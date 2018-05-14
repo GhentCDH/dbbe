@@ -36,7 +36,8 @@
                 :url="occurrencesSearchApiUrl"
                 :columns="tableColumns"
                 :options="tableOptions"
-                @data="onData">
+                @data="onData"
+                @loaded="onLoaded">
                 <template
                     slot="text"
                     slot-scope="props">
@@ -129,6 +130,7 @@
 </template>
 <script>
 window.axios = require('axios')
+import qs from 'qs'
 
 import * as uiv from 'uiv'
 import Vue from 'vue'
@@ -158,6 +160,10 @@ export default {
         isEditor: {
             type: Boolean,
             default: false,
+        },
+        initData: {
+            type: String,
+            default: '',
         },
         occurrencesSearchApiUrl: {
             type: String,
@@ -257,6 +263,19 @@ export default {
                 sortable: ['incipit', 'manuscript', 'date'],
                 customFilters: ['filters'],
                 requestFunction: function (data) {
+                    this.$parent.openRequests++
+                    if (!this.$parent.initialized) {
+                        return new Promise((resolve, reject) => {
+                            let parsedData = JSON.parse(this.$parent.initData)
+                            this.$emit('data', parsedData)
+                            resolve({
+                                data : {
+                                    data: parsedData.data,
+                                    count: parsedData.count
+                                }
+                            })
+                        })
+                    }
                     if (!this.$parent.actualRequest) {
                         return new Promise((resolve, reject) => {
                             resolve({
@@ -265,14 +284,42 @@ export default {
                                     count: this.count
                                 }
                             })
+                            this.$parent.openRequests--
                         })
                     }
-                    if (this.$parent.openRequests > 0) {
+                    if (this.$parent.historyRequest) {
+                        if (this.$parent.openRequests > 1) {
+                            this.$parent.tableCancel('Operation canceled by newer request')
+                        }
+                        return axios.get(this.url + '?' + this.$parent.historyRequest, {
+                            cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+                        })
+                            .then( (response) => {
+                                this.$emit('data', response.data)
+                                return response
+                            })
+                            .catch(function (error) {
+                                this.$parent.historyRequest = false
+                                this.$parent.openRequests--
+                                if (axios.isCancel(error)) {
+                                    // Return the current data if the request is cancelled
+                                    return {
+                                        data : {
+                                            data: this.data,
+                                            count: this.count
+                                        }
+                                    }
+                                }
+                                this.dispatch('error', error)
+                            }.bind(this))
+                    }
+                    this.$parent.pushHistory(data)
+                    if (this.$parent.openRequests > 1) {
                         this.$parent.tableCancel('Operation canceled by newer request')
                     }
-                    this.$parent.openRequests++
                     return axios.get(this.url, {
                         params: data,
+                        paramsSerializer: qs.stringify,
                         cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
                     })
                         .then( (response) => {
@@ -316,6 +363,8 @@ export default {
             alerts: [],
             textSearch: false,
             actualRequest: false,
+            initialized: false,
+            historyRequest: false,
         }
         if (this.isEditor) {
             data.schema.fields['public'] = this.createMultiSelect(
@@ -344,7 +393,8 @@ export default {
     },
     mounted() {
         this.originalModel = JSON.parse(JSON.stringify(this.model))
-        this.actualRequest = true
+        this.init(JSON.parse(this.initData))
+        window.onpopstate = ((event) => {this.popHistory(event)})
     },
     methods: {
         constructFilterValues() {
@@ -365,6 +415,9 @@ export default {
                             result['date'] = {}
                         }
                         result['date']['to'] = this.model[fieldName]
+                    }
+                    else if (fieldName === 'text') {
+                        result[fieldName] = this.model[fieldName].trim()
                     }
                     else {
                         result[fieldName] = this.model[fieldName]
@@ -430,24 +483,32 @@ export default {
             }
 
             // Remove column ordering if text is searched
+            // Do not refresh twice
             if (this.lastChangedField == 'text' || this.lastChangedField == 'text_type') {
                 this.actualRequest = false
                 this.$refs.resultTable.setOrder(null)
+            }
+
+            // Don't get new data if last changed field is text_type and text is null or empty
+            if (this.lastChangedField == 'text_type' && (this.model.text == null || this.model.text == '')) {
+                this.actualRequest = false
+            } else {
+                this.actualRequest = true
+            }
+
+            // Don't get new data if history is being popped
+            if (this.historyRequest) {
+                this.actualRequest = false
             }
 
             this.inputCancel = window.setTimeout(() => {
                 this.inputCancel = null
                 let filterValues = this.constructFilterValues()
                 // only send request if the filters have changed
-                // in the case a text checkbox was used, only send request if text is not null
                 // filters are always in the same order, so we can compare serialization
                 if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
                     this.oldFilterValues = filterValues
-                    if (!(this.lastChangedField == 'text_type' && (this.model.text == null || this.model.text == ''))) {
-                        // TODO: prevent initial duplicate request
-                        this.actualRequest = true
-                        VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
-                    }
+                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
                 }
             }, timeoutValue)
         },
@@ -506,7 +567,7 @@ export default {
         },
         onData(data) {
             // Check whether column 'text' should be displayed
-            if (this.model.text != null && this.model.text != '') {
+            if (this.model.text != null && this.model.text !== '') {
                 this.textSearch = true
             }
             else {
@@ -515,7 +576,7 @@ export default {
             // Update aggregation fields
             for (let fieldName of Object.keys(this.schema.fields)) {
                 let field = this.schema.fields[fieldName]
-                if (field.type == 'multiselectClear') {
+                if (field.type === 'multiselectClear') {
                     let values = data.aggregation[fieldName] == null ? [] : data.aggregation[fieldName].sort(this.sortByName)
                     field.values = values
                     if (field.dependency != null && this.model[field.dependency] == null) {
@@ -526,8 +587,66 @@ export default {
                     }
                 }
             }
+
+            if (this.historyRequest) {
+                this.init(data)
+                this.historyRequest = false
+            }
+
             this.openRequests--
-        }
+        },
+        onLoaded() {
+            this.initialized = true
+        },
+        pushHistory(data) {
+            history.pushState(data, document.title, window.location.href.split('?')[0] + '?' + qs.stringify(data))
+        },
+        popHistory(event) {
+            // set querystring
+            this.historyRequest = window.location.href.split('?', 2)[1]
+            this.$refs.resultTable.refresh()
+        },
+        init(data) {
+            // set model
+            let params = qs.parse(window.location.href.split('?', 2)[1])
+            let model = JSON.parse(JSON.stringify(this.originalModel))
+            if (params.hasOwnProperty('filters')) {
+                Object.keys(params['filters']).forEach((key) => {
+                    if (key === 'date') {
+                        if (params['filters']['date'].hasOwnProperty('from')) {
+                            model['year_from'] = Number(params['filters']['date']['from'])
+                        }
+                        if (params['filters']['date'].hasOwnProperty('to')) {
+                            model['year_to'] = Number(params['filters']['date']['to'])
+                        }
+                    }
+                    else if (this.schema.fields.hasOwnProperty(key)) {
+                        if (this.schema.fields[key].type === 'multiselectClear') {
+                            model[key] = data.aggregation[key].filter(v => v.id === Number(params['filters'][key]))[0]
+                        }
+                        else {
+                            model[key] = params['filters'][key]
+                        }
+                    }
+                }, this)
+                if (model.hasOwnProperty('text') && model['text'] !== '') {
+                    this.textSearch = true
+                }
+            }
+            this.model = model
+
+            // set oldFilterValues
+            this.oldFilterValues = this.constructFilterValues()
+
+            // set table ordering
+            if (!params.hasOwnProperty('orderBy')) {
+                this.$refs.resultTable.setOrder(null)
+            }
+            else {
+                let asc = (params.hasOwnProperty('ascending') && params['ascending'])
+                this.$refs.resultTable.setOrder(params['orderBy'], asc)
+            }
+        },
     }
 }
 </script>
