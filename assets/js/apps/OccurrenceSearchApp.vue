@@ -55,10 +55,12 @@
                     slot-scope="props"
                     :href="showOccurrenceUrl.replace('occurrence_id', props.row.id)"
                     v-html="props.row.incipit" />
-                <span
+                <a
                     slot="manuscript"
                     slot-scope="props"
-                    v-html="props.row.manuscript.name" />
+                    :href="showManuscriptUrl.replace('manuscript_id', props.row.manuscript.id)">
+                    {{ props.row.manuscript.name }}
+                </a>
                 <template
                     v-if="props.row.date_floor_year && props.row.date_ceiling_year"
                     slot="date"
@@ -180,6 +182,10 @@ export default {
             default: '',
         },
         delOccurrenceUrl: {
+            type: String,
+            default: '',
+        },
+        showManuscriptUrl: {
             type: String,
             default: '',
         },
