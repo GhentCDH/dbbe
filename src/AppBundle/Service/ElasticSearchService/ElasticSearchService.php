@@ -343,12 +343,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     {
         $lines = explode(PHP_EOL, html_entity_decode($highlight));
         $result = [];
-        foreach ($lines as $line) {
+        foreach ($lines as $number => $line) {
             // Remove \r
             $line = trim($line);
-            // TODO: concatenate lines till </mark>
+            // Each word is marked separately, so we only need the lines with <mark> in them
             if (strpos($line, '<mark>') !== false) {
-                $result[] = $line;
+                $result[] = [$number => $line];
             }
         }
         return $result;

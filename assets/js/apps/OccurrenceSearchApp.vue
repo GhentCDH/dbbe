@@ -40,15 +40,13 @@
                 <template
                     slot="text"
                     slot-scope="props">
-                    <ul v-if="props.row.text.length > 1">
+                    <ol>
                         <li
                             v-for="(item, index) in props.row.text"
                             :key="index"
-                            v-html="item" />
-                    </ul>
-                    <span
-                        v-else
-                        v-html="props.row.text[0]" />
+                            :value="Number(Object.keys(item)[0]) + 1"
+                            v-html="Object.values(item)[0]" />
+                    </ol>
                 </template>
                 <a
                     slot="incipit"
