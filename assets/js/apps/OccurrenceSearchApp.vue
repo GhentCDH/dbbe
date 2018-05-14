@@ -401,7 +401,7 @@ export default {
             let result = {}
             if (this.model != null) {
                 for (let fieldName of Object.keys(this.model)) {
-                    if (this.schema.fields[fieldName].type === 'multiselectClear') {
+                    if (this.schema.fields[fieldName].type === 'multiselectClear' && this.model[fieldName] != null) {
                         result[fieldName] = this.model[fieldName]['id']
                     }
                     else if (fieldName === 'year_from') {
