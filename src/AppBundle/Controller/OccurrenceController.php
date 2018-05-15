@@ -19,21 +19,12 @@ class OccurrenceController extends Controller
      */
     public function searchOccurrences(Request $request)
     {
-        $params = $request->query->all();
-        if (empty($params)) {
-            $params = [
-                'limit' => 25,
-                'page' => 1,
-                'ascending' => 1,
-                'orderBy' => 'incipit',
-            ];
-        }
         return $this->render(
             'AppBundle:Occurrence:overview.html.twig',
             [
                 'data' => json_encode(
                     $this->get('occurrence_elastic_service')->searchAndAggregate(
-                        $this->sanitize($params)
+                        $this->sanitize($request->query->all())
                     )
                 ),
             ]
@@ -118,6 +109,14 @@ class OccurrenceController extends Controller
 
     private function sanitize(array $params): array
     {
+        if (empty($params)) {
+            $params = [
+                'limit' => 25,
+                'page' => 1,
+                'ascending' => 1,
+                'orderBy' => 'incipit',
+            ];
+        }
         $es_params = [];
 
         // Pagination

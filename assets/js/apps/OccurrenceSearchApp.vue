@@ -263,6 +263,12 @@ export default {
                 sortable: ['incipit', 'manuscript', 'date'],
                 customFilters: ['filters'],
                 requestFunction: function (data) {
+                    // Remove unused parameters
+                    delete data['query']
+                    delete data['byColumn']
+                    if (!data.hasOwnProperty('orderBy')) {
+                        delete data['ascending']
+                    }
                     this.$parent.openRequests++
                     if (!this.$parent.initialized) {
                         return new Promise((resolve, reject) => {
@@ -291,7 +297,11 @@ export default {
                         if (this.$parent.openRequests > 1) {
                             this.$parent.tableCancel('Operation canceled by newer request')
                         }
-                        return axios.get(this.url + '?' + this.$parent.historyRequest, {
+                        let url = this.url
+                        if (this.$parent.historyRequest !== 'init') {
+                            url += '?' + this.$parent.historyRequest
+                        }
+                        return axios.get(url, {
                             cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
                         })
                             .then( (response) => {
@@ -393,7 +403,7 @@ export default {
     },
     mounted() {
         this.originalModel = JSON.parse(JSON.stringify(this.model))
-        this.init(JSON.parse(this.initData))
+        this.init(JSON.parse(this.initData), true)
         window.onpopstate = ((event) => {this.popHistory(event)})
     },
     methods: {
@@ -589,7 +599,7 @@ export default {
             }
 
             if (this.historyRequest) {
-                this.init(data)
+                this.init(data, this.historyRequest === 'init')
                 this.historyRequest = false
             }
 
@@ -599,14 +609,19 @@ export default {
             this.initialized = true
         },
         pushHistory(data) {
-            history.pushState(data, document.title, window.location.href.split('?')[0] + '?' + qs.stringify(data))
+            history.pushState(data, document.title, document.location.href.split('?')[0] + '?' + qs.stringify(data))
         },
         popHistory(event) {
             // set querystring
-            this.historyRequest = window.location.href.split('?', 2)[1]
+            if (event.state == null) {
+                this.historyRequest = 'init'
+            }
+            else {
+                this.historyRequest = window.location.href.split('?', 2)[1]
+            }
             this.$refs.resultTable.refresh()
         },
-        init(data) {
+        init(data, initial) {
             // set model
             let params = qs.parse(window.location.href.split('?', 2)[1])
             let model = JSON.parse(JSON.stringify(this.originalModel))
@@ -639,12 +654,20 @@ export default {
             this.oldFilterValues = this.constructFilterValues()
 
             // set table ordering
-            if (!params.hasOwnProperty('orderBy')) {
-                this.$refs.resultTable.setOrder(null)
+            // Initial load
+            this.actualRequest = false
+            if (initial) {
+                this.$refs.resultTable.setOrder('incipit', true)
             }
+            // History load
             else {
-                let asc = (params.hasOwnProperty('ascending') && params['ascending'])
-                this.$refs.resultTable.setOrder(params['orderBy'], asc)
+                if (!params.hasOwnProperty('orderBy')) {
+                    this.$refs.resultTable.setOrder(null)
+                }
+                else {
+                    let asc = (params.hasOwnProperty('ascending') && params['ascending'])
+                    this.$refs.resultTable.setOrder(params['orderBy'], asc)
+                }
             }
         },
     }
