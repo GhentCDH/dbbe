@@ -348,7 +348,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             $line = trim($line);
             // Each word is marked separately, so we only need the lines with <mark> in them
             if (strpos($line, '<mark>') !== false) {
-                $result[] = [$number => $line];
+                $result[$number] = $line;
             }
         }
         return $result;
