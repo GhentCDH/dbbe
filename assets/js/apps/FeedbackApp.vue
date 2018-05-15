@@ -23,6 +23,7 @@
                         @validated="validated" />
                     <recaptcha
                         ref="recaptcha"
+                        :site-key="siteKey"
                         @verify="validated" />
                     <btn
                         :disabled="invalid"
@@ -56,6 +57,10 @@ export default {
         Recaptcha,
     },
     props: {
+        siteKey: {
+            type: String,
+            default: '',
+        },
         feedbackUrl: {
             type: String,
             default: '',

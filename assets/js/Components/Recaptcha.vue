@@ -6,9 +6,14 @@
 
 <script>
 export default {
+    props: {
+        siteKey: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         return {
-            sitekey: '6LcTj00UAAAAACh6C5LhuQ5-oAtqpV8AhKWyuuMi',
             widgetId: 0
         }
     },
@@ -23,7 +28,7 @@ export default {
         render() {
             if (window.grecaptcha) {
                 this.widgetId = window.grecaptcha.render('g-recaptcha', {
-                    sitekey: this.sitekey,
+                    sitekey: this.siteKey,
                     // the callback executed when the user solve the recaptcha
                     callback: (response) => {
                         // emit an event called verify with the response as payload

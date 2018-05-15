@@ -50,7 +50,7 @@ class FeedbackController extends Controller
             'https://www.google.com/recaptcha/api/siteverify',
             null,
             [
-                'secret' => '6LcTj00UAAAAADTFIIRMWAcROhyEc179x6XVfAd4',
+                'secret' => $this->getParameter('secretKey'),
                 'response' => $content->recaptcha,
             ]
         );

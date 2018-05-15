@@ -7,8 +7,6 @@ parameters:
     database_name: symfony
     database_user: root
     database_password: ~
-    # You should uncomment this if you want to use pdo_sqlite
-    #database_path: '%kernel.project_dir%/var/data/data.sqlite'
 
     elastic_hosts: []
     elastic_index: index
@@ -20,3 +18,7 @@ parameters:
 
     # A secret key that's used to generate certain security-related tokens
     secret: ThisTokenIsNotSoSecretChangeIt
+
+    # Google captcha siteKey
+    siteKey: ~
+    secretKey: ~
