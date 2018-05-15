@@ -36,7 +36,8 @@
                 :url="manuscriptsSearchApiUrl"
                 :columns="tableColumns"
                 :options="tableOptions"
-                @data="onData">
+                @data="onData"
+                @loaded="onLoaded">
                 <a
                     slot="name"
                     slot-scope="props"
@@ -142,6 +143,7 @@ import VueTables from 'vue-tables-2'
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
 
 import Fields from '../Components/Fields'
+import Search from '../Components/Search'
 
 Vue.use(uiv)
 Vue.use(VueFormGenerator)
@@ -150,16 +152,12 @@ Vue.use(VueTables.ServerTable)
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
-var YEAR_MIN = 1
-var YEAR_MAX = (new Date()).getFullYear()
-
 export default {
-    mixins: [ Fields ],
+    mixins: [
+        Fields,
+        Search,
+    ],
     props: {
-        isEditor: {
-            type: Boolean,
-            default: false,
-        },
         manuscriptsSearchApiUrl: {
             type: String,
             default: '',
@@ -187,7 +185,6 @@ export default {
     },
     data() {
         let data = {
-            model: {},
             schema: {
                 fields: {
                     city: this.createMultiSelect('City'),
@@ -204,8 +201,8 @@ export default {
                         inputType: 'number',
                         label: 'Year from',
                         model: 'year_from',
-                        min: YEAR_MIN,
-                        max: YEAR_MAX,
+                        min: Search.YEAR_MIN,
+                        max: Search.YEAR_MAX,
                         validator: VueFormGenerator.validators.number
                     },
                     year_to: {
@@ -213,8 +210,8 @@ export default {
                         inputType: 'number',
                         label: 'Year to',
                         model: 'year_to',
-                        min: YEAR_MIN,
-                        max: YEAR_MAX,
+                        min: Search.YEAR_MIN,
+                        max: Search.YEAR_MAX,
                         validator: VueFormGenerator.validators.number
                     },
                     content: this.createMultiSelect('Content'),
@@ -222,12 +219,6 @@ export default {
                     scribe: this.createMultiSelect('Scribe'),
                     origin: this.createMultiSelect('Origin')
                 }
-            },
-            formOptions: {
-                validateAfterLoad: true,
-                validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
             },
             tableOptions: {
                 'filterable': false,
@@ -238,54 +229,16 @@ export default {
                 'perPageValues': [25, 50, 100],
                 'sortable': ['name', 'date'],
                 customFilters: ['filters'],
-                requestFunction: function (data) {
-                    if (this.$parent.openRequests > 0) {
-                        this.$parent.tableCancel('Operation canceled by newer request')
-                    }
-                    this.$parent.openRequests++
-                    return axios.get(this.url, {
-                        params: data,
-                        cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
-                    })
-                        .then( (response) => {
-                            this.$emit('data', response.data)
-                            return response
-                        })
-                        .catch(function (error) {
-                            this.$parent.openRequests--
-                            if (axios.isCancel(error)) {
-                                // Return the current data if the request is cancelled
-                                return {
-                                    data : {
-                                        data: this.data,
-                                        count: this.count
-                                    }
-                                }
-                            }
-                            this.dispatch('error', error)
-                        }.bind(this))
-                },
+                requestFunction: Search.requestFunction,
                 rowClassCallback: function(row) {
                     return row.public ? '' : 'warning'
                 },
             },
-            oldOrder: {},
-            openRequests: 0,
-            filterCancel: null,
-            tableCancel: null,
-            // used to set timeout on free input fields
-            lastChangedField: '',
-            // used to only send requests after timeout when inputting free input fields
-            inputCancel: null,
-            // Remove requesting the same data that is already displayed
-            oldFilterValues: this.constructFilterValues(),
             delManuscript: {
                 id: 0,
                 name: ''
             },
-            delModal: false,
-            delDependencies: [],
-            alerts: []
+            defaultOrdering: 'name',
         }
         if (this.isEditor) {
             data.schema.fields['public'] = this.createMultiSelect(
@@ -310,119 +263,6 @@ export default {
         },
     },
     methods: {
-        constructFilterValues() {
-            let result = {}
-            if (this.model != null) {
-                for (let fieldName of Object.keys(this.model)) {
-                    if (this.schema.fields[fieldName].type === 'multiselectClear') {
-                        result[fieldName] = this.model[fieldName]['id']
-                    }
-                    else if (fieldName === 'year_from') {
-                        if (!('date' in result)) {
-                            result['date'] = {}
-                        }
-                        result['date']['from'] = this.model[fieldName]
-                    }
-                    else if (fieldName === 'year_to') {
-                        if (!('date' in result)) {
-                            result['date'] = {}
-                        }
-                        result['date']['to'] = this.model[fieldName]
-                    }
-                    else {
-                        result[fieldName] = this.model[fieldName]
-                    }
-                }
-            }
-            return result
-        },
-        modelUpdated(value, fieldName) {
-            this.lastChangedField = fieldName
-        },
-        onValidated(isValid, errors) {
-            // do nothin but cancelling requests if invalid
-            if (!isValid) {
-                if (this.inputCancel !== null) {
-                    window.clearTimeout(this.inputCancel)
-                    this.inputCancel = null
-                }
-                return
-            }
-
-            if (this.model != null) {
-                for (let fieldName of Object.keys(this.model)) {
-                    if (
-                        this.model[fieldName] === null ||
-                        this.model[fieldName] === '' ||
-                        ((['year_from', 'year_to'].indexOf(fieldName) > -1) && isNaN(this.model[fieldName]))
-                    ) {
-                        delete this.model[fieldName]
-                    }
-                    let field = this.schema.fields[fieldName]
-                    if (field.dependency != null && this.model[field.dependency] == null) {
-                        delete this.model[fieldName]
-                    }
-                }
-            }
-
-            // set year min and max values
-            if (this.model.year_from != null) {
-                this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
-            }
-            else {
-                this.schema.fields.year_to.min = YEAR_MIN
-            }
-            if (this.model.year_to != null) {
-                this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
-            }
-            else {
-                this.schema.fields.year_from.max = YEAR_MAX
-            }
-
-            // Cancel timeouts caused by input requests not long ago
-            if (this.inputCancel != null) {
-                window.clearTimeout(this.inputCancel)
-                this.inputCancel = null
-            }
-
-            // Send requests to update filters and result table
-            // Add a delay to requests originated from input field changes to limit the number of requests
-            let timeoutValue = 0
-            if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
-                timeoutValue = 1000
-            }
-            this.inputCancel = window.setTimeout(() => {
-                this.inputCancel = null
-                let filterValues = this.constructFilterValues()
-                // only send request if the filters have changed
-                // filters are always in the same order, so we can compare serialization
-                if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
-                    this.oldFilterValues = filterValues
-                    // this.setFilters(filterValues)
-                    VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
-                }
-            }, timeoutValue)
-        },
-        sortByName(a, b) {
-            // Move special filter values to the top
-            if (a.id === -1) {
-                return -1
-            }
-            if (b.id === -1) {
-                return 1
-            }
-            if (a.name < b.name) {
-                return -1
-            }
-            if (a.name > b.name) {
-                return 1
-            }
-            return 0
-        },
-        resetAllFilters() {
-            this.model = {}
-            this.onValidated(true)
-        },
         del(row) {
             this.delManuscript = row
             this.deleteDependencies()
@@ -456,29 +296,6 @@ export default {
                     console.log(error)
                 })
         },
-        onData(data) {
-            for (let fieldName of Object.keys(this.schema.fields)) {
-                let field = this.schema.fields[fieldName]
-                if (field.type == 'multiselectClear') {
-                    let values = data.aggregation[fieldName] == null ? [] : data.aggregation[fieldName].sort(this.sortByName)
-                    // Make it possible to filter on all manuscripts without collection
-                    if (fieldName == 'collection' && values.length > 0) {
-                        values.push({
-                            id: -1,
-                            name: 'No collection',
-                        })
-                    }
-                    field.values = values
-                    if (field.dependency != null && this.model[field.dependency] == null) {
-                        this.dependencyField(field)
-                    }
-                    else {
-                        this.enableField(field)
-                    }
-                }
-            }
-            this.openRequests--
-        }
     }
 }
 </script>

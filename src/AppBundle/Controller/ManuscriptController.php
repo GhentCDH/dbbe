@@ -21,7 +21,14 @@ class ManuscriptController extends Controller
     public function searchManuscripts(Request $request)
     {
         return $this->render(
-            'AppBundle:Manuscript:overview.html.twig'
+            'AppBundle:Manuscript:overview.html.twig',
+            [
+                'data' => json_encode(
+                    $this->get('manuscript_elastic_service')->searchAndAggregate(
+                        $this->sanitize($request->query->all())
+                    )
+                ),
+            ]
         );
     }
 
@@ -30,52 +37,8 @@ class ManuscriptController extends Controller
      */
     public function searchManuscriptsAPI(Request $request)
     {
-        $params = $request->query->all();
-
-        $es_params = [];
-
-        // Pagination
-        if (isset($params['limit']) && is_numeric($params['limit'])) {
-            $es_params['limit'] = $params['limit'];
-        }
-        if (isset($params['page']) && is_numeric($params['page'])) {
-            $es_params['page'] = $params['page'];
-        }
-
-
-        // Sorting
-        if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
-                $es_params['ascending'] = $params['ascending'];
-            }
-            if (($params['orderBy']) == 'name') {
-                $es_params['orderBy'] = ['name.keyword'];
-            } elseif (($params['orderBy']) == 'date') {
-                // when sorting in descending order => sort by ceiling, else: sort by floor
-                if (isset($params['ascending']) && $params['ascending'] == 0) {
-                    $es_params['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
-                } else {
-                    $es_params['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
-                }
-            }
-        }
-
-        // Filtering
-        $filters = [];
-        if (isset($params['filters'])) {
-            $filters = json_decode($params['filters'], true);
-        }
-
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            $filters['public'] = 1;
-        }
-
-        if (isset($filters) && is_array($filters)) {
-            $es_params['filters'] = $filters;
-        }
-
         $result = $this->get('manuscript_elastic_service')->searchAndAggregate(
-            $es_params
+            $this->sanitize($request->query->all())
         );
 
         return new JsonResponse($result);
@@ -355,5 +318,61 @@ class ManuscriptController extends Controller
                 ),
             ]
         );
+    }
+
+    private function sanitize(array $params): array
+    {
+        if (empty($params)) {
+            $params = [
+                'limit' => 25,
+                'page' => 1,
+                'ascending' => 1,
+                'orderBy' => 'name',
+            ];
+        }
+        $esParams = [];
+
+        // Pagination
+        if (isset($params['limit']) && is_numeric($params['limit'])) {
+            $esParams['limit'] = $params['limit'];
+        }
+        if (isset($params['page']) && is_numeric($params['page'])) {
+            $esParams['page'] = $params['page'];
+        }
+
+
+        // Sorting
+        if (isset($params['orderBy'])) {
+            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
+                $esParams['ascending'] = $params['ascending'];
+            }
+            if (($params['orderBy']) == 'name') {
+                $esParams['orderBy'] = ['name.keyword'];
+            } elseif (($params['orderBy']) == 'date') {
+                // when sorting in descending order => sort by ceiling, else: sort by floor
+                if (isset($params['ascending']) && $params['ascending'] == 0) {
+                    $esParams['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
+                } else {
+                    $esParams['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
+                }
+            }
+        }
+
+        // Filtering
+        $filters = [];
+        if (isset($params['filters'])) {
+            // TODO: detailed sanitation?
+            $filters = $params['filters'];
+        }
+
+        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            $filters['public'] = 1;
+        }
+
+        if (isset($filters) && is_array($filters)) {
+            $esParams['filters'] = $filters;
+        }
+
+        return $esParams;
     }
 }

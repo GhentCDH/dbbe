@@ -152,7 +152,10 @@ Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('fieldRadio', fieldRadio)
 
 export default {
-    mixins: [ Fields, Search ],
+    mixins: [
+        Fields,
+        Search,
+    ],
     props: {
         occurrencesSearchApiUrl: {
             type: String,
@@ -188,7 +191,6 @@ export default {
             model: {
                 text_type: 'any',
             },
-            originalModel: {},
             schema: {
                 fields: {
                     text: {

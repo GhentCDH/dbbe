@@ -17,6 +17,8 @@ export default {
     },
     data () {
         return {
+            model: {},
+            originalModel: {},
             formOptions: {
                 validateAfterLoad: true,
                 validateAfterChanged: true,
@@ -33,7 +35,7 @@ export default {
             // used to only send requests after timeout when inputting free input fields
             inputCancel: null,
             // Remove requesting the same data that is already displayed
-            oldFilterValues: this.constructFilterValues(),
+            oldFilterValues: {},
             delModal: false,
             delDependencies: [],
             alerts: [],
@@ -50,8 +52,10 @@ export default {
             let result = {}
             if (this.model != null) {
                 for (let fieldName of Object.keys(this.model)) {
-                    if (this.schema.fields[fieldName].type === 'multiselectClear' && this.model[fieldName] != null) {
-                        result[fieldName] = this.model[fieldName]['id']
+                    if (this.schema.fields[fieldName].type === 'multiselectClear') {
+                        if (this.model[fieldName] != null) {
+                            result[fieldName] = this.model[fieldName]['id']
+                        }
                     }
                     else if (fieldName === 'year_from') {
                         if (!('date' in result)) {
@@ -149,6 +153,7 @@ export default {
             if (this.historyRequest) {
                 this.actualRequest = false
             }
+
 
             this.inputCancel = window.setTimeout(() => {
                 this.inputCancel = null

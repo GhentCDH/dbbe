@@ -117,32 +117,32 @@ class OccurrenceController extends Controller
                 'orderBy' => 'incipit',
             ];
         }
-        $es_params = [];
+        $esParams = [];
 
         // Pagination
         if (isset($params['limit']) && is_numeric($params['limit'])) {
-            $es_params['limit'] = $params['limit'];
+            $esParams['limit'] = $params['limit'];
         }
         if (isset($params['page']) && is_numeric($params['page'])) {
-            $es_params['page'] = $params['page'];
+            $esParams['page'] = $params['page'];
         }
 
 
         // Sorting
         if (isset($params['orderBy']) && is_string($params['orderBy'])) {
             if (isset($params['ascending']) && is_numeric($params['ascending'])) {
-                $es_params['ascending'] = $params['ascending'];
+                $esParams['ascending'] = $params['ascending'];
             }
             if (($params['orderBy']) == 'incipit') {
-                $es_params['orderBy'] = ['incipit.keyword'];
+                $esParams['orderBy'] = ['incipit.keyword'];
             } elseif (($params['orderBy']) == 'manuscript') {
-                $es_params['orderBy'] = ['manuscript.name.keyword'];
+                $esParams['orderBy'] = ['manuscript.name.keyword'];
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if (isset($params['ascending']) && $params['ascending'] == 0) {
-                    $es_params['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
+                    $esParams['orderBy'] = ['date_ceiling_year', 'date_floor_year'];
                 } else {
-                    $es_params['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
+                    $esParams['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
                 }
             }
         }
@@ -150,6 +150,7 @@ class OccurrenceController extends Controller
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
+            // TODO: detailed sanitation?
             $filters = $params['filters'];
         }
 
@@ -163,9 +164,9 @@ class OccurrenceController extends Controller
                 $filters['text_type'] = 'any';
             }
 
-            $es_params['filters'] = $filters;
+            $esParams['filters'] = $filters;
         }
 
-        return $es_params;
+        return $esParams;
     }
 }
