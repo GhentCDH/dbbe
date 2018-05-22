@@ -93,6 +93,11 @@ services:
         arguments: ['@keyword_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    status_manager:
+        class: AppBundle\ObjectStorage\StatusManager
+        arguments: ['@status_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
         arguments: ['@doctrine.orm.entity_manager']
@@ -139,6 +144,10 @@ services:
 
     keyword_service:
         class: AppBundle\Service\DatabaseService\KeywordService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    status_service:
+        class: AppBundle\Service\DatabaseService\StatusService
         arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:

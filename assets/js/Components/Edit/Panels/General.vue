@@ -50,6 +50,7 @@ export default {
                         model: 'privateComment',
                         validator: VueFormGenerator.validators.string,
                     },
+                    status: this.createMultiSelect('Status', {values: this.values}, {}),
                     illustrated: {
                         type: 'checkbox',
                         styleClasses: 'has-warning',
@@ -68,7 +69,22 @@ export default {
             },
         }
     },
+    watch: {
+        values() {
+            this.init()
+        },
+        model() {
+            this.init()
+        }
+    },
+    mounted () {
+        this.init()
+    },
     methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableField(this.schema.fields.status)
+        },
         validate() {
             this.$refs.generalForm.validate()
         },

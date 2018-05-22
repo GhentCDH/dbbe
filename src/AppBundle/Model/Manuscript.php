@@ -28,17 +28,20 @@ class Manuscript extends Document implements IdJsonInterface
     private $occurrences;
     private $publicComment;
     private $privateComment;
+    private $status;
     private $illustrated;
 
     public function __construct()
     {
         parent::__construct();
+
         $this->contentsWithParents = [];
         $this->patrons = [];
         $this->occurrencePatrons = [];
         $this->scribes = [];
         $this->occurrenceScribes = [];
         $this->relatedPersons = [];
+
         return $this;
     }
 
@@ -217,6 +220,18 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->occurrences;
     }
 
+    public function setStatus(Status $status): Manuscript
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+
     public function setIllustrated(bool $illustrated = null): Manuscript
     {
         $this->illustrated = empty($illustrated) ? false : $illustrated;
@@ -267,6 +282,9 @@ class Manuscript extends Document implements IdJsonInterface
         }
         if (isset($this->privateComment)) {
             $result['privateComment'] = $this->privateComment;
+        }
+        if (isset($this->status)) {
+            $result['status'] = $this->status->getShortJson();
         }
         if (isset($this->illustrated)) {
             $result['illustrated'] = $this->illustrated;

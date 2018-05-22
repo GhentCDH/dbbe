@@ -12,6 +12,7 @@ class Document
     public function __construct()
     {
         $this->bibliographies = [];
+
         return $this;
     }
 

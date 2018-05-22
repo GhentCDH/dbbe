@@ -118,6 +118,12 @@
                             <td>{{ manuscript.getPrivateComment() }}</td>
                         </tr>
                     {% endif %}
+                    {% if manuscript.getStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Status</td>
+                            <td>{{ manuscript.getStatus() }}</td>
+                        </tr>
+                    {% endif %}
                     {% if manuscript.getIllustrated() is defined %}
                         <tr class="warning">
                             <td>Illustrated</td>

@@ -246,7 +246,7 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getOccurrences(array $ids = null): array
+    public function getOccurrences(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -261,7 +261,23 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getIllustrateds(array $ids = null): array
+    public function getStatuses(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                document_status.iddocument as manuscript_id,
+                status.idstatus as status_id,
+                status.status as status_name
+            from data.document_status
+            inner join data.status on document_status.idstatus = status.idstatus
+            where document_status.iddocument in (?)
+            and status.type = \'manuscript\'',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getIllustrateds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -270,20 +286,6 @@ class ManuscriptService extends DocumentService
             from data.manuscript
             inner join data.document on manuscript.identity = document.identity
             where manuscript.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getPublics(array $ids = null): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                entity.public
-            from data.manuscript
-            inner join data.entity on manuscript.identity = entity.identity
-            where entity.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

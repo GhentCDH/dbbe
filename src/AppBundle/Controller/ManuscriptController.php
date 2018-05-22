@@ -316,6 +316,9 @@ class ManuscriptController extends Controller
                 'onlineSources' => json_encode(
                     ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources())
                 ),
+                'statuses' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses())
+                ),
             ]
         );
     }

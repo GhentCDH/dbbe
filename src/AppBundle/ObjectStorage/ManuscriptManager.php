@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use AppBundle\Model\Status;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -157,13 +159,7 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
-        // Public state
-        $rawPublics = $this->dbs->getPublics($ids);
-        foreach ($rawPublics as $rawPublic) {
-            $manuscripts[$rawPublic['manuscript_id']]
-                // default: true (if no value is set in the database)
-                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
-        }
+        $this->setPublics($manuscripts, $ids);
 
         $this->setCache($manuscripts, 'manuscript_short');
 
@@ -215,6 +211,14 @@ class ManuscriptManager extends DocumentManager
                 $manuscript->addCacheDependency('occurrence.' . $occurrence->getId());
             }
             $manuscript->setOccurrences($occurrences);
+        }
+
+        // status
+        $rawStatuses = $this->dbs->getStatuses([$id]);
+        if (count($rawStatuses) == 1) {
+            $manuscript
+                ->setStatus(new Status($rawStatuses[0]['status_id'], $rawStatuses[0]['status_name']))
+                ->addCacheDependency('status.' . $rawStatuses[0]['status_id']);
         }
 
         // Illustrated

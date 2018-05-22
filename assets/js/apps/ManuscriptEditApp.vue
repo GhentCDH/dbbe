@@ -68,11 +68,12 @@
                 id="general"
                 header="General"
                 :model="model.general"
+                :values="statuses"
                 @validated="validated"
                 ref="general" />
 
             <btn
-                id="buttons"
+                id="actions"
                 type="warning"
                 :disabled="diff.length === 0"
                 @click="resetModal=true">
@@ -108,7 +109,7 @@
             <nav
                 v-scrollspy
                 role="navigation"
-                :class="this.isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
+                :class="isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
                 :style="stickyStyle">
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
@@ -119,7 +120,7 @@
                     <li><a href="#origin">Origin</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
-                    <li><a href="#buttons">Buttons</a></li>
+                    <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
@@ -298,6 +299,10 @@ export default {
             type: String,
             default: '',
         },
+        initStatuses: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
@@ -316,6 +321,7 @@ export default {
                 bookChapters: JSON.parse(this.initBookChapters),
                 onlineSources: JSON.parse(this.initOnlineSources),
             },
+            statuses: JSON.parse(this.initStatuses),
             model: {
                 locatedAt: {
                     location: {
@@ -354,6 +360,7 @@ export default {
                     publicComment: null,
                     privateComment: null,
                     illustrated: null,
+                    status: null,
                     public: null,
                 },
             },
@@ -460,6 +467,7 @@ export default {
                     diktyon: this.manuscript.diktyon,
                     publicComment: this.manuscript.publicComment,
                     privateComment: this.manuscript.privateComment,
+                    status: this.manuscript.status,
                     illustrated: this.manuscript.illustrated,
                     public: this.manuscript.public,
                 }
