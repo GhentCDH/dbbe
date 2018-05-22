@@ -1,0 +1,9 @@
+{% if item.getType() == 'book' %}
+    <a href="{{ path('bibliography_show', {'id': item.getBook().getId()}) }}">{{ item.getDescription() }}</a>
+{% elseif item.getType() == 'article' %}
+    <a href="{{ path('bibliography_show', {'id': item.getArticle().getId()}) }}">{{ item.getDescription() }}</a>
+{% elseif item.getType() == 'bookChapter' %}
+    <a href="{{ path('bibliography_show', {'id': item.getBookChapter().getId()}) }}">{{ item.getDescription() }}</a>
+{% elseif item.getType() == 'onlineSource' %}
+    <a href="{{ item.getUrl() }}">{{ item.getDescription() }} <i class="fa fa-external-link"></i></a>
+{% endif %}

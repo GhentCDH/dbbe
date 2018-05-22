@@ -26,7 +26,8 @@ export default {
             window.grecaptcha.execute(this.widgetId)
         },
         render() {
-            if (window.grecaptcha) {
+            // check if recaptcha is loaded
+            if (window.grecaptcha && window.grecaptcha.render) {
                 this.widgetId = window.grecaptcha.render('g-recaptcha', {
                     sitekey: this.siteKey,
                     // the callback executed when the user solve the recaptcha
@@ -35,6 +36,9 @@ export default {
                         this.$emit('verify', response)
                     }
                 })
+            }
+            else {
+                setTimeout(this.render, 1)
             }
         },
     },

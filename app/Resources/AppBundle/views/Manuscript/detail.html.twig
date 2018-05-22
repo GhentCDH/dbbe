@@ -17,7 +17,7 @@
                     <tr>
                         <td>Content</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
                                 {% block renderItem %}
                                     {{ item.getName() }}
                                 {% endblock %}
@@ -29,7 +29,7 @@
                     <tr>
                         <td>Patron(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getAllPatrons()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getAllPatrons()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
@@ -41,7 +41,7 @@
                     <tr>
                         <td>Scribe(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getAllScribes()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getAllScribes()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
@@ -53,7 +53,7 @@
                     <tr>
                         <td>Person(s)</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getOnlyRelatedPersons()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getOnlyRelatedPersons()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
                                 {% endblock %}
@@ -77,17 +77,9 @@
                     <tr>
                         <td>Bibliography</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getBibliographies()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getBibliographies()} only %}
                                 {% block renderItem %}
-                                    {% if item.getType() == 'book' %}
-                                        <a href="{{ path('bibliography_show', {'id': item.getBook().getId()}) }}">{{ item.getDescription() }}</a>
-                                    {% elseif item.getType() == 'article' %}
-                                        <a href="{{ path('bibliography_show', {'id': item.getArticle().getId()}) }}">{{ item.getDescription() }}</a>
-                                    {% elseif item.getType() == 'bookChapter' %}
-                                        <a href="{{ path('bibliography_show', {'id': item.getBookChapter().getId()}) }}">{{ item.getDescription() }}</a>
-                                    {% elseif item.getType() == 'onlineSource' %}
-                                        <a href="{{ item.getUrl() }}">{{ item.getDescription() }} <i class="fa fa-external-link"></i></a>
-                                    {% endif %}
+                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -111,7 +103,7 @@
                     <tr>
                         <td>Occurrences</td>
                         <td>
-                            {% embed '@App/renderList.html.twig' with {'list': manuscript.getOccurrences()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getOccurrences()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('occurrence_show', {'id': item.getId()}) }}">{{ item.getDescription() }}</a>
                                 {% endblock %}
@@ -139,7 +131,6 @@
                         </tr>
                     {% endif %}
                 {% endif %}
-                </tbody>
             </tbody>
         </table>
 
@@ -153,7 +144,7 @@
 {% endblock %}
 
 {% block javascript %}
-    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
     <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
     <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
 {% endblock %}
