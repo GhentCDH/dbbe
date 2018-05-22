@@ -200,23 +200,33 @@ class ManuscriptManager extends ObjectManager
 
         // Bibliography
         $rawBibliographies = $this->dbs->getBibliographies([$id]);
-        $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
-        $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
-        $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
-        $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
-        $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
-        $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
-        $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
-        $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
-        $bibliographies =
-            $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
-        foreach ($bibliographies as $bibliography) {
-            foreach ($bibliography->getCacheDependencies() as $cacheDependency) {
-                $manuscript->addCacheDependency($cacheDependency);
+        if (!empty($rawBibliographies)) {
+            $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
+            $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
+            $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
+            $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
+            $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
+            $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
+            $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
+            $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
+            $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
+            foreach ($bookBibliographies as $bibliography) {
+                $manuscript->addCacheDependency('book_bibliography.' . $bibliography->getId());
             }
-            $manuscript->addCacheDependency('book_bibliography.' . $bibliography->getId());
-        }
-        if (!empty($bibliographies)) {
+            foreach ($articleBibliographies as $bibliography) {
+                $manuscript->addCacheDependency('article_bibliography.' . $bibliography->getId());
+            }
+            foreach ($bookChapterBibliographies as $bibliography) {
+                $manuscript->addCacheDependency('book_chapter_bibliography.' . $bibliography->getId());
+            }
+            foreach ($onlineSourceBibliographies as $bibliography) {
+                $manuscript->addCacheDependency('online_source_bibliography.' . $bibliography->getId());
+            }
+            foreach ($bibliographies as $bibliography) {
+                foreach ($bibliography->getCacheDependencies() as $cacheDependency) {
+                    $manuscript->addCacheDependency($cacheDependency);
+                }
+            }
             $manuscript->setBibliographies($bibliographies);
         }
 
