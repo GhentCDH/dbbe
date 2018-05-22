@@ -4,6 +4,8 @@ namespace AppBundle\Model;
 
 class Person implements SubjectInterface
 {
+    use CacheDependenciesTrait;
+
     private $id;
     private $firstName;
     private $lastName;
