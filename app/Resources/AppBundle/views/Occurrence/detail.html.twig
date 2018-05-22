@@ -22,6 +22,12 @@
                         <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getTextStatus() %}
+                    <tr>
+                        <td>Text status</td>
+                        <td>{{ occurrence.getTextStatus() }}</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

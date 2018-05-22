@@ -28,6 +28,19 @@ class DocumentService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getPublics(array $ids = null): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                entity.identity as document_id,
+                entity.public
+            from data.entity
+            where entity.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getBibliographies(array $ids): array
     {
         return $this->conn->executeQuery(

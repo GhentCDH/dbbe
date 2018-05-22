@@ -22,13 +22,17 @@ class Occurrence extends Document
     private $subjects;
     private $patrons;
     private $scribes;
+    private $textStatus;
+    private $recordStatus;
 
     public function __construct()
     {
         parent::__construct();
+
         $this->subjects = [];
         $this->patrons = [];
         $this->scribes = [];
+
         return $this;
     }
 
@@ -135,6 +139,30 @@ class Occurrence extends Document
             return reset($textSources);
         }
         return null;
+    }
+
+    public function setTextStatus(Status $textStatus = null): Occurrence
+    {
+        $this->textStatus = $textStatus;
+
+        return $this;
+    }
+
+    public function getTextStatus(): ?Status
+    {
+        return $this->textStatus;
+    }
+
+    public function setRecordStatus(Status $recordStatus = null): Occurrence
+    {
+        $this->recordStatus = $recordStatus;
+
+        return $this;
+    }
+
+    public function getRecordStatus(): ?Status
+    {
+        return $this->recordStatus;
     }
 
     public function getDescription(): string

@@ -16,6 +16,16 @@ class DocumentManager extends ObjectManager
         }
     }
 
+    protected function setPublics(array &$documents, array $ids): void
+    {
+        $rawPublics = $this->dbs->getPublics($ids);
+        foreach ($rawPublics as $rawPublic) {
+            $documents[$rawPublic['document_id']]
+                // default: true (if no value is set in the database)
+                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
+        }
+    }
+
     protected function setBibliographies(Document &$document, int $id): void
     {
         // Bibliography

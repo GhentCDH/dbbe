@@ -4,6 +4,7 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Genre;
 use AppBundle\Model\Meter;
+use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -166,13 +167,7 @@ class OccurrenceManager extends DocumentManager
                 ->addCacheDependency('genre.' . $rawGenre['genre_id']);
         }
 
-        // Public state
-        $rawPublics = $this->dbs->getPublics($ids);
-        foreach ($rawPublics as $rawPublic) {
-            $occurrences[$rawPublic['occurrence_id']]
-                // default: true (if no value is set in the database)
-                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
-        }
+        $this->setPublics($occurrences, $ids);
 
         $this->setCache($occurrences, 'occurrence_short');
 
@@ -201,6 +196,14 @@ class OccurrenceManager extends DocumentManager
         $occurrence = $occurrences[$id];
 
         $this->setBibliographies($occurrence, $id);
+
+        // text status
+        $rawTextStatuses = $this->dbs->getTextStatuses([$id]);
+        if (count($rawTextStatuses) == 1) {
+            $occurrence
+                ->setTextStatus(new Status($rawTextStatuses[0]['status_id'], $rawTextStatuses[0]['status_name']))
+                ->addCacheDependency('status.' . $rawTextStatuses[0]['status_id']);
+        }
 
         $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
 

@@ -148,15 +148,17 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function getPublics(array $ids = null): array
+    public function getTextStatuses(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                original_poem.identity as occurrence_id,
-                entity.public
-            from data.original_poem
-            inner join data.entity on original_poem.identity = entity.identity
-            where entity.identity in (?)',
+                document_status.iddocument as occurrence_id,
+                status.idstatus as status_id,
+                status.status as status_name
+            from data.document_status
+            inner join data.status on document_status.idstatus = status.idstatus
+            where document_status.iddocument in (?)
+            and status.type = \'occurrence_text\'',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
