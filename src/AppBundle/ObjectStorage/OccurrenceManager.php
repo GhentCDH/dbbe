@@ -4,10 +4,11 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Genre;
 use AppBundle\Model\Meter;
-use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Occurrence;
 
-class OccurrenceManager extends ObjectManager
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+class OccurrenceManager extends DocumentManager
 {
     /**
      * Get occurrences with enough information to get an id and a description
@@ -110,14 +111,17 @@ class OccurrenceManager extends ObjectManager
         }
         foreach ($rawSubjects as $rawSubject) {
             if (isset($rawSubject['person_id'])) {
+                foreach ($persons[$rawBibrole['person_id']]->getCacheDependencies() as $cacheDependency) {
+                    $occurrences[$rawBibrole['occurrence_id']]
+                        ->addCacheDependency($cacheDependency);
+                }
                 $occurrences[$rawSubject['occurrence_id']]
                     ->addSubject($persons[$rawSubject['person_id']])
-                    // TODO: switch to cachedependencies of persons
                     ->addCacheDependency('person.' . $rawSubject['person_id']);
-                // foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
-                //     $occurrences[$rawSubject['occurrence_id']]
-                //         ->addCacheDependency($cacheDependency);
-                // }
+                foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
+                    $occurrences[$rawSubject['occurrence_id']]
+                        ->addCacheDependency($cacheDependency);
+                }
             } elseif (isset($rawSubject['keyword_id'])) {
                 $occurrences[$rawSubject['occurrence_id']]
                     ->addSubject($keywords[$rawSubject['keyword_id']])
@@ -140,22 +144,19 @@ class OccurrenceManager extends ObjectManager
             if ($rawBibrole['type'] == 'patron') {
                 $occurrences[$rawBibrole['occurrence_id']]
                     ->addPatron($person)
-                    // TODO: switch to cachedependencies of persons
                     ->addCacheDependency('person.' . $person->getId());
             } elseif ($rawBibrole['type'] == 'scribe') {
                 $occurrences[$rawBibrole['occurrence_id']]
                     ->addScribe($person)
-                    // TODO: switch to cachedependencies of persons
                     ->addCacheDependency('person.' . $person->getId());
+            }
+            foreach ($persons[$rawBibrole['person_id']]->getCacheDependencies() as $cacheDependency) {
+                $occurrences[$rawBibrole['occurrence_id']]
+                    ->addCacheDependency($cacheDependency);
             }
         }
 
-        // Date
-        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
-        foreach ($rawCompletionDates as $rawCompletionDate) {
-            $occurrences[$rawCompletionDate['occurrence_id']]
-                ->setDate(new FuzzyDate($rawCompletionDate['completion_date']));
-        }
+        $this->setDates($occurrences, $ids);
 
         // Genre
         $rawGenres = $this->dbs->getGenres($ids);
@@ -183,6 +184,27 @@ class OccurrenceManager extends ObjectManager
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, 'occurrence_id');
         return $this->getShortOccurrencesByIds($ids);
+    }
+
+    public function getOccurrenceById(int $id): Occurrence
+    {
+        $cache = $this->cache->getItem('occurrence.' . $id);
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        // Get basic occurrence information
+        $occurrences= $this->getShortOccurrencesByIds([$id]);
+        if (count($occurrences) == 0) {
+            throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
+        }
+        $occurrence = $occurrences[$id];
+
+        $this->setBibliographies($occurrence, $id);
+
+        $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
+
+        return $occurrence;
     }
 
     public function getOccurrencesDependenciesByManuscript(int $manuscriptId): array

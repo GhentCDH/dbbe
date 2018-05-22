@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 {% if not occurrence.getPublic() %}class="text-danger"{% endif %}>
+            Occurrence "{{ occurrence.getIncipit() }}"
+            {% if not occurrence.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR') %}
+                <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        {% if occurrence.getText() %}
+             {% include '@App/Helpers/renderLineNumbers.html.twig' with {'text': occurrence.getText()} only %}
+        {% endif %}
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% if occurrence.getTextSource() %}
+                    <tr>
+                        <td>Text source</td>
+                        <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

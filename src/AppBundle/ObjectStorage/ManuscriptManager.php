@@ -10,11 +10,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Exceptions\NotFoundInDatabaseException;
-use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
 
-class ManuscriptManager extends ObjectManager
+class ManuscriptManager extends DocumentManager
 {
     /**
      * Get manuscripts with enough information to get an id and a name
@@ -110,13 +109,11 @@ class ManuscriptManager extends ObjectManager
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
-                            // TODO: switch to cachedependencies of persons and occurrences
                             ->addCacheDependency('person.' . $person->getId())
                             ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
-                            // TODO: switch to cachedependencies of persons and occurrences
                             ->addCacheDependency('person.' . $person->getId())
                             ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
                     }
@@ -124,29 +121,25 @@ class ManuscriptManager extends ObjectManager
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addPatron($person)
-                            // TODO: switch to cachedependencies of persons
                             ->addCacheDependency('person.' . $person->getId());
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addScribe($person)
-                            // TODO: switch to cachedependencies of persons
                             ->addCacheDependency('person.' . $person->getId());
                     }
                 }
             } else {
                 $manuscripts[$rawPerson['manuscript_id']]
                     ->addRelatedPerson($person)
-                    // TODO: switch to cachedependencies of persons
                     ->addCacheDependency('person.' . $person->getId());
+            }
+            foreach ($person->getCacheDependencies() as $cacheDependency) {
+                $manuscripts[$rawPerson['manuscript_id']]
+                    ->addCacheDependency($cacheDependency);
             }
         }
 
-        // Date
-        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
-        foreach ($rawCompletionDates as $rawCompletionDate) {
-            $manuscripts[$rawCompletionDate['manuscript_id']]
-                ->setDate(new FuzzyDate($rawCompletionDate['completion_date']));
-        }
+        $this->setDates($manuscripts, $ids);
 
         // Origin
         $rawOrigins = $this->dbs->getOrigins($ids);
@@ -198,37 +191,7 @@ class ManuscriptManager extends ObjectManager
         }
         $manuscript = $manuscripts[$id];
 
-        // Bibliography
-        $rawBibliographies = $this->dbs->getBibliographies([$id]);
-        if (!empty($rawBibliographies)) {
-            $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
-            $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
-            $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
-            $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
-            $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
-            $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
-            $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
-            $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
-            $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
-            foreach ($bookBibliographies as $bibliography) {
-                $manuscript->addCacheDependency('book_bibliography.' . $bibliography->getId());
-            }
-            foreach ($articleBibliographies as $bibliography) {
-                $manuscript->addCacheDependency('article_bibliography.' . $bibliography->getId());
-            }
-            foreach ($bookChapterBibliographies as $bibliography) {
-                $manuscript->addCacheDependency('book_chapter_bibliography.' . $bibliography->getId());
-            }
-            foreach ($onlineSourceBibliographies as $bibliography) {
-                $manuscript->addCacheDependency('online_source_bibliography.' . $bibliography->getId());
-            }
-            foreach ($bibliographies as $bibliography) {
-                foreach ($bibliography->getCacheDependencies() as $cacheDependency) {
-                    $manuscript->addCacheDependency($cacheDependency);
-                }
-            }
-            $manuscript->setBibliographies($bibliographies);
-        }
+        $this->setBibliographies($manuscript, $id);
 
         // Diktyon
         $rawDiktyons = $this->dbs->getDiktyons([$id]);

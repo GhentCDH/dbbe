@@ -60,7 +60,28 @@ class OccurrenceController extends Controller
      */
     public function getOccurrence(int $id, Request $request)
     {
-        throw new \Exception('Not implemented');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $this->denyAccessUnlessGranted('ROLE_EDITOR');
+            try {
+                $occurrence = $this->get('occurrence_manager')->getOccurrenceById($id);
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            }
+            return new JsonResponse($occurrence->getJson());
+        } else {
+            // Let the 404 page handle the not found exception
+            $occurrence = $this->get('occurrence_manager')->getOccurrenceById($id);
+            if (!$occurrence->getPublic()) {
+                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
+            }
+            return $this->render(
+                'AppBundle:Occurrence:detail.html.twig',
+                ['occurrence' => $occurrence]
+            );
+        }
     }
 
     /**

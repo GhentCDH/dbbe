@@ -1,0 +1,27 @@
+.line-numbers {
+  background: none;
+  border: 0;
+  counter-reset: linenumbers;
+  margin: 0;
+  padding: 1em 0 1em 3.8em;
+
+  code {
+    position: relative;
+  }
+}
+
+.line-numbers-rows {
+  border-right: 1px solid $border-color;
+  left: -3.8em;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 3em;
+
+  span {
+    color: $border-color;
+    display: block;
+    padding-right: .8em;
+    text-align: right;
+  }
+}

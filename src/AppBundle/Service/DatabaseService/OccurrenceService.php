@@ -4,7 +4,7 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 
-class OccurrenceService extends DatabaseService
+class OccurrenceService extends DocumentService
 {
     public function getIds(): array
     {
@@ -129,28 +129,6 @@ class OccurrenceService extends DatabaseService
                 Connection::PARAM_INT_ARRAY,
                 Connection::PARAM_STR_ARRAY,
             ]
-        )->fetchAll();
-    }
-
-    public function getCompletionDates(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                factoid_merge.factoid_date as completion_date
-            from data.original_poem
-            inner join (
-                select
-                    factoid.subject_identity as factoid_identity,
-                    factoid.date as factoid_date
-                from data.factoid
-                inner join data.factoid_type
-                    on factoid.idfactoid_type = factoid_type.idfactoid_type
-                        and factoid_type.type = \'completed at\'
-            ) factoid_merge on original_poem.identity = factoid_merge.factoid_identity
-            where original_poem.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 

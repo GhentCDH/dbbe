@@ -34,7 +34,8 @@ class BibliographyManager extends ObjectManager
                     ->addCacheDependency('book.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
                     ->setEndPage($rawBibliography['page_end'])
-                    ->setRawPages($rawBibliography['raw_pages']);
+                    ->setRawPages($rawBibliography['raw_pages'])
+                    ->setRefType($rawBibliography['type']);
             foreach ($books[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -137,7 +138,8 @@ class BibliographyManager extends ObjectManager
                     ->addCacheDependency('article.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
                     ->setEndPage($rawBibliography['page_end'])
-                    ->setRawPages($rawBibliography['raw_pages']);
+                    ->setRawPages($rawBibliography['raw_pages'])
+                    ->setRefType($rawBibliography['type']);
             foreach ($articles[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -268,7 +270,8 @@ class BibliographyManager extends ObjectManager
                     ->addCacheDependency('book_chapter.' . $rawBibliography['source_id'])
                     ->setStartPage($rawBibliography['page_start'])
                     ->setEndPage($rawBibliography['page_end'])
-                    ->setRawPages($rawBibliography['raw_pages']);
+                    ->setRawPages($rawBibliography['raw_pages'])
+                    ->setRefType($rawBibliography['type']);
             foreach ($bookChapters[$rawBibliography['source_id']]->getCacheDependencies() as $cacheDependency) {
                 $bibliography->addCacheDePendency($cacheDependency);
             }
@@ -370,7 +373,8 @@ class BibliographyManager extends ObjectManager
             $bibliography = (new OnlineSourceBibliography($rawBibliography['reference_id']))
                 ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
                 ->addCacheDependency('online_source.' . $rawBibliography['source_id'])
-                ->setRelUrl($rawBibliography['rel_url']);
+                ->setRelUrl($rawBibliography['rel_url'])
+                ->setRefType($rawBibliography['type']);
 
             $bibliographies[$bibliography->getId()] = $bibliography;
         }

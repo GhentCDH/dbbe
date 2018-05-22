@@ -15,8 +15,10 @@ class BibliographyService extends DatabaseService
                 reference.page_start,
                 reference.page_end,
                 case when reference.page_start is null then reference.temp_page_removeme else null end as raw_pages,
-                reference.url as rel_url
+                reference.url as rel_url,
+                reference_type.type
             from data.reference
+            left join data.reference_type on reference.idreference_type = reference_type.idreference_type
             where reference.idreference in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]

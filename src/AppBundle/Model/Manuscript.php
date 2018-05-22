@@ -10,7 +10,6 @@ class Manuscript extends Document implements IdJsonInterface
 
     private $diktyon;
     private $locatedAt;
-    private $date;
     private $contentsWithParents;
     private $origin;
     private $patrons;
@@ -26,22 +25,20 @@ class Manuscript extends Document implements IdJsonInterface
      */
     private $occurrenceScribes;
     private $relatedPersons;
-    private $bibliographies;
     private $occurrences;
     private $publicComment;
     private $privateComment;
     private $illustrated;
-    private $public;
 
     public function __construct()
     {
+        parent::__construct();
         $this->contentsWithParents = [];
         $this->patrons = [];
         $this->occurrencePatrons = [];
         $this->scribes = [];
         $this->occurrenceScribes = [];
         $this->relatedPersons = [];
-        $this->bibliographies = [];
         return $this;
     }
 
@@ -78,18 +75,6 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->contentsWithParents;
     }
 
-    public function addPatron(Person $person): Manuscript
-    {
-        $this->patrons[$person->getId()] = $person;
-
-        return $this;
-    }
-
-    public function getPatrons(): array
-    {
-        return $this->patrons;
-    }
-
     public function addOccurrencePatron(Person $person, Occurrence $occurrence): Manuscript
     {
         if (isset($this->occurrencePatrons[$person->getId()])) {
@@ -115,18 +100,6 @@ class Manuscript extends Document implements IdJsonInterface
             }
         }
         return $patrons;
-    }
-
-    public function addScribe(Person $person): Manuscript
-    {
-        $this->scribes[$person->getId()] = $person;
-
-        return $this;
-    }
-
-    public function getScribes(): array
-    {
-        return $this->scribes;
     }
 
     public function addOccurrenceScribe(Person $person, Occurrence $occurrence): Manuscript
@@ -183,18 +156,6 @@ class Manuscript extends Document implements IdJsonInterface
         return $persons;
     }
 
-    public function setDate(FuzzyDate $date): Manuscript
-    {
-        $this->date = $date;
-
-        return $this;
-    }
-
-    public function getDate(): ?FuzzyDate
-    {
-        return $this->date;
-    }
-
     public function setOrigin(Origin $origin): Manuscript
     {
         $this->origin = $origin;
@@ -206,18 +167,6 @@ class Manuscript extends Document implements IdJsonInterface
     public function getOrigin(): ?Origin
     {
         return $this->origin;
-    }
-
-    public function setBibliographies(array $bibliographies): Manuscript
-    {
-        $this->bibliographies = $bibliographies;
-
-        return $this;
-    }
-
-    public function getBibliographies(): array
-    {
-        return $this->bibliographies;
     }
 
     public function setDiktyon(int $diktyon = null): Manuscript
@@ -278,18 +227,6 @@ class Manuscript extends Document implements IdJsonInterface
     public function getIllustrated(): ?bool
     {
         return $this->illustrated;
-    }
-
-    public function setPublic(bool $public): Manuscript
-    {
-        $this->public = $public;
-
-        return $this;
-    }
-
-    public function getPublic(): ?bool
-    {
-        return $this->public;
     }
 
     public function getShortJson(): array

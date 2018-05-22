@@ -8,6 +8,7 @@ abstract class Bibliography
 
     protected $id;
     protected $type;
+    protected $refType;
 
     public function __construct(int $id, string $type)
     {
@@ -23,6 +24,17 @@ abstract class Bibliography
     public function getType(): string
     {
         return $this->type;
+    }
+
+    public function setRefType(string $refType = null): Bibliography
+    {
+        $this->refType = $refType;
+        return $this;
+    }
+
+    public function getRefType(): ?string
+    {
+        return $this->refType;
     }
 
     abstract public function getDescription(): string;

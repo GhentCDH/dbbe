@@ -4,11 +4,10 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Occurrence
+class Occurrence extends Document
 {
     use CacheDependenciesTrait;
 
-    private $id;
     private $foliumStart;
     private $foliumStartRecto;
     private $foliumEnd;
@@ -23,27 +22,14 @@ class Occurrence
     private $subjects;
     private $patrons;
     private $scribes;
-    private $date;
-    private $public;
 
     public function __construct()
     {
+        parent::__construct();
         $this->subjects = [];
         $this->patrons = [];
         $this->scribes = [];
         return $this;
-    }
-
-    public function setId(int $id): Occurrence
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
     }
 
     public function setFoliumStart(string $foliumStart = null): Occurrence
@@ -95,11 +81,21 @@ class Occurrence
         return $this;
     }
 
+    public function getIncipit(): string
+    {
+        return $this->incipit;
+    }
+
     public function setIncipit(string $incipit = null): Occurrence
     {
         $this->incipit = $incipit;
 
         return $this;
+    }
+
+    public function getText(): string
+    {
+        return $this->text;
     }
 
     public function setText(string $text = null): Occurrence
@@ -130,37 +126,15 @@ class Occurrence
         return $this;
     }
 
-    public function addPatron(Person $person): Occurrence
+    public function getTextSource(): ?Bibliography
     {
-        $this->patrons[$person->getId()] = $person;
-
-        return $this;
-    }
-
-    public function addScribe(Person $person): Occurrence
-    {
-        $this->scribes[$person->getId()] = $person;
-
-        return $this;
-    }
-
-    public function setDate(FuzzyDate $date): Occurrence
-    {
-        $this->date = $date;
-
-        return $this;
-    }
-
-    public function setPublic(bool $public): Occurrence
-    {
-        $this->public = $public;
-
-        return $this;
-    }
-
-    public function getPublic(): ?bool
-    {
-        return $this->public;
+        $textSources = array_filter($this->bibliographies, function ($bibliography) {
+            return $bibliography->getRefType() == 'Text source';
+        });
+        if (count($textSources) == 1) {
+            return reset($textSources);
+        }
+        return null;
     }
 
     public function getDescription(): string
@@ -169,18 +143,18 @@ class Occurrence
         if (!empty($this->foliumStart)) {
             if (!empty($this->foliumEnd)) {
                 $result .= '(f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
-                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto) . ') ';
+                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto) . ')';
             } else {
-                $result .= '(f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto) . ') ';
+                $result .= '(f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto) . ')';
             }
         }
 
         if (!empty($this->generalLocation)) {
-            $result .= '(' . $this->generalLocation . ') ';
+            $result .= '(' . $this->generalLocation . ')';
         }
 
         if (!empty($this->incipit)) {
-            $result .= $this->incipit;
+            $result .= ' ' . $this->incipit;
         }
         return $result;
     }

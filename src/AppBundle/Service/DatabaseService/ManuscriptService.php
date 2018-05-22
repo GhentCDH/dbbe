@@ -4,9 +4,9 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 
-use AppBundle\Service\DatabaseService\DatabaseService;
+use AppBundle\Exceptions\DependencyException;
 
-class ManuscriptService extends DatabaseService
+class ManuscriptService extends DocumentService
 {
     public function getIds(): array
     {
@@ -195,28 +195,6 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getCompletionDates(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                factoid_merge.factoid_date as completion_date
-            from data.manuscript
-            inner join (
-                select
-                    factoid.subject_identity as factoid_identity,
-                    factoid.date as factoid_date
-                from data.factoid
-                inner join data.factoid_type
-                    on factoid.idfactoid_type = factoid_type.idfactoid_type
-                        and factoid_type.type = \'completed at\'
-            ) factoid_merge on manuscript.identity = factoid_merge.factoid_identity
-            where manuscript.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getOrigins(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -233,49 +211,6 @@ class ManuscriptService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getBibliographies(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-            	manuscript.identity as manuscript_id,
-                reference.idreference as reference_id,
-	            coalesce(
-                    book_merge.type::text,
-                    article_merge.type::text,
-                    book_chapter_merge.type::text,
-                    online_source_merge.type::text
-                ) as type
-            from data.manuscript
-            inner join data.reference on manuscript.identity = reference.idtarget
-            left join (
-            	select
-            		book.identity as biblio_id,
-            		\'book\' as type
-            	from data.book
-            ) book_merge on reference.idsource = book_merge.biblio_id
-            left join (
-            	select
-            		article.identity as biblio_id,
-            		\'article\' as type
-            	from data.article
-            ) article_merge on reference.idsource = article_merge.biblio_id
-            left join (
-            	select
-            		bookchapter.identity as biblio_id,
-            		\'book_chapter\' as type
-            	from data.bookchapter
-            ) book_chapter_merge on reference.idsource = book_chapter_merge.biblio_id
-            left join (
-            	select
-            		online_source.identity as biblio_id,
-            		\'online_source\' as type
-            	from data.online_source
-            ) online_source_merge on reference.idsource = online_source_merge.biblio_id
-            where manuscript.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
     public function getDiktyons(array $ids): array
     {
         return $this->conn->executeQuery(
