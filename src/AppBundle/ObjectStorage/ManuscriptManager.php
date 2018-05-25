@@ -256,6 +256,12 @@ class ManuscriptManager extends DocumentManager
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
+    public function getManuscriptsDependenciesByStatus(int $statusId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByStatusId($statusId);
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
     public function addManuscript(stdClass $data): Manuscript
     {
         $this->dbs->beginTransaction();

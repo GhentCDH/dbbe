@@ -173,6 +173,27 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * Get all manuscripts that have a dependency on a status
+     * (document_status)
+     * @Route("/manuscripts/statuses/{id}", name="manuscript_deps_by_status")
+     * @Method("GET")
+     * @param  int    $id status id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByStatus(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByStatus($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new NotFoundHttpException();
+        }
+    }
+
+    /**
      * @Route("/manuscripts", name="manuscript_post")
      * @Method("POST")
      * @param Request $request

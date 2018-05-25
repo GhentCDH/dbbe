@@ -216,7 +216,7 @@ export default {
             type: String,
             default: '',
         },
-        postContentsUrl: {
+        postContentUrl: {
             type: String,
             default: '',
         },
@@ -296,7 +296,9 @@ export default {
     watch: {
         'model.content'() {
             // set full parent, so the name can be formatted correctly
-            this.model.content.parent = this.contentValues.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
+            if (this.model.content != null && this.model.content.parent != null) {
+                this.model.content.parent = this.contentValues.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
+            }
         },
     },
     mounted () {
@@ -376,7 +378,7 @@ export default {
             this.editModal = false
             this.openRequests++
             if (this.editModel.id == null) {
-                axios.post(this.postContentsUrl, {
+                axios.post(this.postContentUrl, {
                     parent: this.editModel.parent == null ? null : {
                         id: this.editModel.parent.id,
                     },

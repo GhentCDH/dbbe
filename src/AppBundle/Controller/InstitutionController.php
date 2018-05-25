@@ -48,7 +48,7 @@ class InstitutionController extends Controller
         try {
             $institution = $this
                 ->get('institution_manager')
-                ->addInstitution(json_decode($request->getContent()), $library);
+                ->addInstitution(json_decode($request->getContent()), $library, $monastery);
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
