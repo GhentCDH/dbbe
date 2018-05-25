@@ -346,6 +346,10 @@ class ManuscriptManager extends DocumentManager
                 $correct = true;
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
+            if (property_exists($data, 'status')) {
+                $correct = true;
+                $this->updateStatus($manuscript, $data);
+            }
             if (property_exists($data, 'illustrated')) {
                 $correct = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
@@ -385,8 +389,9 @@ class ManuscriptManager extends DocumentManager
             throw new BadRequestHttpException('Incorrect data.');
         }
         foreach ($contents as $content) {
-            if (!property_exists($content, 'id')
-                && !is_numeric($content->id)
+            if (!is_object($content)
+                || !property_exists($content, 'id')
+                || !is_numeric($content->id)
             ) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
@@ -591,6 +596,20 @@ class ManuscriptManager extends DocumentManager
             }
         } else {
             $this->dbs->updatePublicComment($manuscript->getId(), $publicComment);
+        }
+    }
+
+    private function updateStatus(Manuscript $manuscript, stdClass $data): void
+    {
+        if ($data->status == null) {
+            $this->dbs->deleteStatus($manuscript->getId());
+        } elseif (!is_object($data->status)
+            || !property_exists($data->status, 'id')
+            || !is_numeric($data->status->id)
+        ) {
+            throw new BadRequestHttpException('Incorrect status data.');
+        } else {
+            $this->dbs->upsertStatus($manuscript->getId(), $data->status->id);
         }
     }
 
