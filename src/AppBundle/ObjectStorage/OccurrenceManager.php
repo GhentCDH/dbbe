@@ -116,8 +116,8 @@ class OccurrenceManager extends DocumentManager
         }
         foreach ($rawSubjects as $rawSubject) {
             if (isset($rawSubject['person_id'])) {
-                foreach ($persons[$rawBibrole['person_id']]->getCacheDependencies() as $cacheDependency) {
-                    $occurrences[$rawBibrole['occurrence_id']]
+                foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
+                    $occurrences[$rawSubject['occurrence_id']]
                         ->addCacheDependency($cacheDependency);
                 }
                 $occurrences[$rawSubject['occurrence_id']]
@@ -214,6 +214,27 @@ class OccurrenceManager extends DocumentManager
             $occurrence
                 ->setType($type)
                 ->addCacheDependency('type.' . $rawTypes[0]['type_id']);
+        }
+
+        // paleographical information
+        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
+        if (count($rawPaleographicalInfos) == 1) {
+            $occurrence
+                ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
+        }
+
+        // contextual information
+        $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
+        if (count($rawContextualInfos) == 1) {
+            $occurrence
+                ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
+        }
+
+        // verses
+        $rawVerses = $this->dbs->getVerses([$id]);
+        if (count($rawContextualInfos) == 1) {
+            $occurrence
+                ->setVerses($rawVerses[0]['verses']);
         }
 
         $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');

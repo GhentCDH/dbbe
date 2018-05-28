@@ -25,57 +25,40 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getAllPatrons(is_granted('ROLE_VIEW_INTERNAL')) is not empty %}
+                {% set patrons = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getAllPatrons() : manuscript.getAllPatrons()|public %}
+                {% if patrons is not empty %}
                     <tr>
                         <td>Patron(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getAllPatrons(is_granted('ROLE_VIEW_INTERNAL'))} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': patrons} only %}
                                 {% block renderItem %}
-                                    {% if not item.getPublic() %}
-                                        {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                            <a href="{{ path('person_show', {'id': item.getId()}) }}">
-                                                <span class="bg-warning">{{ item.getFullDescriptionWithOccupations() }}</span>
-                                            </a>
-                                        {% endif %}
-                                    {% else %}
-                                        <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
-                                    {% endif %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getAllScribes(is_granted('ROLE_VIEW_INTERNAL')) is not empty %}
+                {% set scribes = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getAllScribes() : manuscript.getAllScribes()|public %}
+                {% if scribes is not empty %}
                     <tr>
                         <td>Scribe(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getAllScribes(is_granted('ROLE_VIEW_INTERNAL'))} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': scribes} only %}
                                 {% block renderItem %}
-                                    {% if not item.getPublic() %}
-                                        {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                            <a class="bg-warning"href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
-                                        {% endif %}
-                                    {% else %}
-                                        <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
-                                    {% endif %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getOnlyRelatedPersons(is_granted('ROLE_VIEW_INTERNAL')) is not empty %}
+                {% set relatedPersons = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getOnlyRelatedPersons() : manuscript.getOnlyRelatedPersons()|public %}
+                {% if relatedPersons is not empty %}
                     <tr>
                         <td>Person(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getOnlyRelatedPersons(is_granted('ROLE_VIEW_INTERNAL'))} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedPersons} only %}
                                 {% block renderItem %}
-                                    {% if not item.getPublic() %}
-                                        {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                            <a class="bg-warning"href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
-                                        {% endif %}
-                                    {% else %}
-                                        <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
-                                    {% endif %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -119,19 +102,14 @@
                         <td>{{ manuscript.getPublicComment() }}</td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getOccurrences(is_granted('ROLE_VIEW_INTERNAL')) is not empty %}
+                {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getOccurrences() : manuscript.getOccurrences()|public %}
+                {% if occurrences is not empty %}
                     <tr>
                         <td>Occurrences</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getOccurrences(is_granted('ROLE_VIEW_INTERNAL'))} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences} only %}
                                 {% block renderItem %}
-                                    {% if not item.getPublic() %}
-                                        {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                            <a class="bg-warning"href="{{ path('occurrence_show', {'id': item.getId()}) }}">{{ item.getDescription() }}</a>
-                                        {% endif %}
-                                    {% else %}
-                                        <a href="{{ path('occurrence_show', {'id': item.getId()}) }}">{{ item.getDescription() }}</a>
-                                    {% endif %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_show','display': item.getDescription()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -150,13 +128,13 @@
                             <td>{{ manuscript.getStatus() }}</td>
                         </tr>
                     {% endif %}
-                    {% if manuscript.getIllustrated() is defined %}
+                    {% if manuscript.getIllustrated()|default is not null %}
                         <tr class="warning">
                             <td>Illustrated</td>
                             <td>{{ manuscript.getIllustrated() ? 'Yes': 'No' }}</td>
                         </tr>
                     {% endif %}
-                    {% if manuscript.getPublic() is defined %}
+                    {% if manuscript.getPublic()|default is not null %}
                         <tr class="danger">
                             <td>Publication state</td>
                             <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>

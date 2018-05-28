@@ -22,14 +22,15 @@ class Occurrence extends Document
     private $subjects;
     private $textStatus;
     private $recordStatus;
+    private $paleographicalInfo;
+    private $contextualInfo;
+    private $verses;
 
     public function __construct()
     {
         parent::__construct();
 
         $this->subjects = [];
-        $this->patrons = [];
-        $this->scribes = [];
 
         return $this;
     }
@@ -69,6 +70,25 @@ class Occurrence extends Document
         return $this;
     }
 
+    public function getLocation(): ?string
+    {
+        $result = '';
+        if (!empty($this->foliumStart)) {
+            if (!empty($this->foliumEnd)) {
+                $result .= 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
+                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto);
+            } else {
+                $result .= 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto);
+            }
+        }
+
+        if (!empty($this->generalLocation)) {
+            $result .= $this->generalLocation;
+        }
+
+        return $result;
+    }
+
     public function setType(Type $type = null): Occurrence
     {
         $this->type = $type;
@@ -76,12 +96,9 @@ class Occurrence extends Document
         return $this;
     }
 
-    public function getType(bool $allowNonPublic = false): ?Type
+    public function getType(): ?Type
     {
-        if ($allowNonPublic) {
-            return $this->type;
-        }
-        return $this->type->getPublic() ? $this->type : null;
+        return $this->type;
     }
 
     public function setManuscript(Manuscript $manuscript = null): Occurrence
@@ -89,6 +106,11 @@ class Occurrence extends Document
         $this->manuscript = $manuscript;
 
         return $this;
+    }
+
+    public function getManuscript(): ?Manuscript
+    {
+        return $this->manuscript;
     }
 
     public function setIncipit(string $incipit): Occurrence
@@ -122,6 +144,11 @@ class Occurrence extends Document
         return $this;
     }
 
+    public function getMeter(): ?Meter
+    {
+        return $this->meter;
+    }
+
     public function setGenre(Genre $genre): Occurrence
     {
         $this->genre = $genre;
@@ -129,11 +156,21 @@ class Occurrence extends Document
         return $this;
     }
 
+    public function getGenre(): Genre
+    {
+        return $this->genre;
+    }
+
     public function addSubject(SubjectInterface $subject): Occurrence
     {
         $this->subjects[$subject->getId()] = $subject;
 
         return $this;
+    }
+
+    public function getSubjects(): array
+    {
+        return $this->subjects;
     }
 
     public function getTextSource(): ?Bibliography
@@ -171,20 +208,47 @@ class Occurrence extends Document
         return $this->recordStatus;
     }
 
+    public function setPaleographicalInfo(string $paleographicalInfo = null): Occurrence
+    {
+        $this->paleographicalInfo = $paleographicalInfo;
+
+        return $this;
+    }
+
+    public function getPaleographicalInfo(): ?string
+    {
+        return $this->paleographicalInfo;
+    }
+
+    public function setContextualInfo(string $contextualInfo = null): Occurrence
+    {
+        $this->contextualInfo = $contextualInfo;
+
+        return $this;
+    }
+
+    public function getContextualInfo(): ?string
+    {
+        return $this->contextualInfo;
+    }
+
+    public function setVerses(int $verses = null): Occurrence
+    {
+        $this->verses = $verses;
+
+        return $this;
+    }
+
+    public function getVerses(): ?int
+    {
+        return $this->verses;
+    }
+
     public function getDescription(): string
     {
         $result = '';
-        if (!empty($this->foliumStart)) {
-            if (!empty($this->foliumEnd)) {
-                $result .= '(f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
-                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto) . ')';
-            } else {
-                $result .= '(f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto) . ')';
-            }
-        }
-
-        if (!empty($this->generalLocation)) {
-            $result .= '(' . $this->generalLocation . ')';
+        if (!empty($this->getLocation())) {
+            $result .= '(' . $this->getLocation() . ')';
         }
 
         if (!empty($this->incipit)) {

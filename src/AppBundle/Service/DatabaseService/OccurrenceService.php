@@ -179,4 +179,45 @@ class OccurrenceService extends DocumentService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getPaleographicalInfos(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                original_poem.paleographical_info
+            from data.original_poem
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getContextualInfos(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                document_contains.contextual_info
+            from data.original_poem
+            inner join data.document_contains on original_poem.identity = document_contains.idcontent
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getVerses(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                poem.verses
+            from data.original_poem
+            inner join data.poem on original_poem.identity = poem.identity
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
 }

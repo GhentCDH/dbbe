@@ -16,23 +16,118 @@
         {% endif %}
         <table class="table table-hover table-bordered">
             <tbody>
-                {% if occurrence.getTextSource() %}
+                {% if occurrence.getTextSource() is not empty %}
                     <tr>
                         <td>Text source</td>
                         <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getTextStatus() %}
+                {% if occurrence.getTextStatus() is not empty %}
                     <tr>
                         <td>Text status</td>
                         <td>{{ occurrence.getTextStatus() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getType() %}
+                {% set type = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getType() : occurrence.getType()|public %}
+                {% if type is not empty %}
                     <tr>
                         <td>Type</td>
                         <td>
-                            <a href="{{ path('type_show', {'id': occurrence.getType().getId()}) }}">{{ occurrence.getType().getDescription() }}</a>
+                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': type, 'path': 'type_show','display': type.getDescription()} only %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getGenre() is not empty %}
+                    <tr>
+                        <td>Genre</td>
+                        <td>{{ occurrence.getGenre().getName() }}</td>
+                    </tr>
+                {% endif %}
+                {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
+                {% if manuscript is not empty %}
+                    <tr>
+                        <td>Manuscript</td>
+                        <td>
+                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': manuscript, 'path': 'manuscript_show','display': manuscript.getName()} only %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getLocation() is defined %}
+                    <tr>
+                        <td>Place in Manuscript</td>
+                        <td>{{ occurrence.getLocation() }}</td>
+                    </tr>
+                {% endif %}
+                {% set patrons = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPatrons() : occurrence.getPatrons()|public %}
+                {% if patrons is not empty %}
+                    <tr>
+                        <td>Patron(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': patrons} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set scribes = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getScribes() : occurrence.getScribes()|public %}
+                {% if scribes is not empty %}
+                    <tr>
+                        <td>Scribe(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': scribes} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getDate() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ occurrence.getDate() }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getPaleographicalInfo() is not empty %}
+                    <tr>
+                        <td>Paleographical information</td>
+                        <td>{{ occurrence.getPaleographicalInfo() }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getContextualInfo() is not empty %}
+                    <tr>
+                        <td>Contextual information</td>
+                        <td>{{ occurrence.getContextualInfo() }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getMeter() is not empty %}
+                    <tr>
+                        <td>Meter</td>
+                        <td>{{ occurrence.getMeter().getName() }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getVerses() is not empty %}
+                    <tr>
+                        <td>Verses</td>
+                        <td>{{ occurrence.getVerses() }}</td>
+                    </tr>
+                {% endif %}
+                {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}
+                {% if subjects is not empty %}
+                    <tr>
+                        <td>Subjects</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': subjects} only %}
+                                {% block renderItem %}
+                                    {% if item is person %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                    {% else %}
+                                        {{ item.getName() }}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
                         </td>
                     </tr>
                 {% endif %}

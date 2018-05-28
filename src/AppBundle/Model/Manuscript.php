@@ -89,7 +89,7 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->occurrencePatrons;
     }
 
-    public function getAllPatrons(bool $allowNonPublic = false): array
+    public function getAllPatrons(): array
     {
         $patrons = $this->patrons;
         foreach ($this->occurrencePatrons as $occurrencePatron) {
@@ -110,12 +110,7 @@ class Manuscript extends Document implements IdJsonInterface
                 }
             }
         }
-        if ($allowNonPublic) {
-            return $patrons;
-        }
-        return array_filter($patrons, function ($person) {
-            return $person->getPublic();
-        });
+        return $patrons;
     }
 
     public function addOccurrenceScribe(Person $person, Occurrence $occurrence): Manuscript
@@ -133,7 +128,7 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->occurrenceScribes;
     }
 
-    public function getAllSCribes(bool $allowNonPublic = false): array
+    public function getAllSCribes(): array
     {
         $scribes = $this->scribes;
         foreach ($this->occurrenceScribes as $occurrenceScribe) {
@@ -155,12 +150,7 @@ class Manuscript extends Document implements IdJsonInterface
                 $scribes[$occurrenceScribePerson->getId()] = $occurrenceScribePerson;
             }
         }
-        if ($allowNonPublic) {
-            return $scribes;
-        }
-        return array_filter($scribes, function ($person) {
-            return $person->getPublic();
-        });
+        return $scribes;
     }
 
     public function addRelatedPerson(Person $person): Manuscript
@@ -175,7 +165,7 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->relatedPersons;
     }
 
-    public function getOnlyRelatedPersons(bool $allowNonPublic = false): array
+    public function getOnlyRelatedPersons(): array
     {
         $persons = [];
         $allPatrons = $this->getAllPatrons();
@@ -187,12 +177,7 @@ class Manuscript extends Document implements IdJsonInterface
                 $persons[$relatedPerson->getId()] = $relatedPerson;
             }
         }
-        if ($allowNonPublic) {
-            return $persons;
-        }
-        return array_filter($persons, function ($person) {
-            return $person->getPublic();
-        });
+        return $persons;
     }
 
     public function setOrigin(Origin $origin): Manuscript
@@ -251,14 +236,9 @@ class Manuscript extends Document implements IdJsonInterface
         return $this;
     }
 
-    public function getOccurrences(bool $allowNonPublic = false): ?array
+    public function getOccurrences(): ?array
     {
-        if ($allowNonPublic) {
-            return $this->occurrences;
-        }
-        return array_filter($this->occurrences, function ($occurrence) {
-            return $occurrence->getPublic();
-        });
+        return $this->occurrences;
     }
 
     public function setStatus(Status $status): Manuscript

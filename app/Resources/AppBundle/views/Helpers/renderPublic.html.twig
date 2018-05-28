@@ -1,0 +1,9 @@
+{% if not item.getPublic() %}
+    {% if is_granted('ROLE_VIEW_INTERNAL') %}
+        <a href="{{ path(path, {'id': item.getId()}) }}">
+            <span class="bg-warning">{{ display }}</span>
+        </a>
+    {% endif %}
+{% else %}
+    <a href="{{ path(path, {'id': item.getId()}) }}">{{ display }}</a>
+{% endif %}
