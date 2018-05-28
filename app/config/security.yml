@@ -16,7 +16,6 @@ security:
         user_provider:
             id: user_provider
 
-
     firewalls:
         # disables authentication for assets and the profiler, adapt it according to your needs
         dev:
@@ -29,9 +28,6 @@ security:
             provider: chain_provider
             logout_on_user_change: true
             anonymous:    true
-
-    encoders:
-        FOS\UserBundle\Model\UserInterface: bcrypt
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER
