@@ -44,6 +44,8 @@ class ManuscriptManager extends DocumentManager
             $manuscripts[$manuscript->getId()] = $manuscript;
         }
 
+        $this->setPublics($manuscripts, $ids);
+
         $this->setCache($manuscripts, 'manuscript_mini');
 
         return $cached + $manuscripts;
@@ -158,8 +160,6 @@ class ManuscriptManager extends DocumentManager
                 }
             }
         }
-
-        $this->setPublics($manuscripts, $ids);
 
         $this->setCache($manuscripts, 'manuscript_short');
 
@@ -304,74 +304,89 @@ class ManuscriptManager extends DocumentManager
 
             // TODO: sanitize data
             // update manuscript data
-            $correct = $new;
+            $cacheReload = [
+                'mini' => $new,
+                'short' => $new,
+                'extended' => $new,
+            ];
             if (property_exists($data, 'locatedAt')) {
-                $correct = true;
+                $cacheReload['mini'] = true;
                 $this->container->get('located_at_manager')->updateLocatedAt(
                     $manuscript->getLocatedAt()->getId(),
                     $data->locatedAt
                 );
             }
             if (property_exists($data, 'content')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updateContent($manuscript, $data->content);
             }
             if (property_exists($data, 'patrons')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updatePatrons($manuscript, $data->patrons);
             }
             if (property_exists($data, 'scribes')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updateScribes($manuscript, $data->scribes);
             }
             if (property_exists($data, 'relatedPersons')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updateRelatedPersons($manuscript, $data->relatedPersons);
             }
             if (property_exists($data, 'date')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updateDate($manuscript, $data->date);
             }
             if (property_exists($data, 'origin')) {
-                $correct = true;
+                $cacheReload['short'] = true;
                 $this->updateOrigin($manuscript, $data->origin);
             }
             if (property_exists($data, 'bibliography')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
             }
             if (property_exists($data, 'diktyon')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updateDiktyon($manuscript, $data->diktyon);
             }
             if (property_exists($data, 'publicComment')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updatePublicComment($manuscript, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
             if (property_exists($data, 'status')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updateStatus($manuscript, $data);
             }
             if (property_exists($data, 'illustrated')) {
-                $correct = true;
+                $cacheReload['extended'] = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
             }
             if (property_exists($data, 'public')) {
-                $correct = true;
+                $cacheReload['mini'] = true;
                 $this->updatePublic($manuscript, $data->public);
             }
 
-            if (!$correct) {
+            // Throw error if none of above matched
+            if (!in_array(true, $cacheReload)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new manuscript data
-            $this->cache->deleteItem('manuscript_short.' . $id);
-            $this->cache->deleteItem('manuscript.' . $id);
+            if ($cacheReload['mini']) {
+                $this->cache->deleteItem('manuscript_mini.' . $id);
+                $this->cache->deleteItem('manuscript_short.' . $id);
+                $this->cache->deleteItem('manuscript.' . $id);
+            }
+            if ($cacheReload['short']) {
+                $this->cache->deleteItem('manuscript_short.' . $id);
+                $this->cache->deleteItem('manuscript.' . $id);
+            }
+            if ($cacheReload['extended']) {
+                $this->cache->deleteItem('manuscript.' . $id);
+            }
             $newManuscript = $this->getManuscriptById($id);
 
             $this->updateModified($new ? null : $manuscript, $newManuscript);

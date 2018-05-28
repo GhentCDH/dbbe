@@ -83,6 +83,11 @@ services:
         arguments: ['@occurrence_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    type_manager:
+        class: AppBundle\ObjectStorage\TypeManager
+        arguments: ['@type_service', '@cache.app', '@service_container', null, null]
+        public: true
+
     origin_manager:
         class: AppBundle\ObjectStorage\OriginManager
         arguments: ['@origin_service', '@cache.app', '@service_container', null, null]
@@ -128,6 +133,10 @@ services:
 
     occurrence_service:
         class: AppBundle\Service\DatabaseService\OccurrenceService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    type_service:
+        class: AppBundle\Service\DatabaseService\TypeService
         arguments: ['@doctrine.orm.entity_manager']
 
     institution_service:

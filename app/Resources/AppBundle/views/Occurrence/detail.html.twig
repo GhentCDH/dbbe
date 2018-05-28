@@ -28,6 +28,14 @@
                         <td>{{ occurrence.getTextStatus() }}</td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getType() %}
+                    <tr>
+                        <td>Type</td>
+                        <td>
+                            <a href="{{ path('type_show', {'id': occurrence.getType().getId()}) }}">{{ occurrence.getType().getDescription() }}</a>
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

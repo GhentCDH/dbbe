@@ -20,8 +20,6 @@ class Occurrence extends Document
     private $meter;
     private $genre;
     private $subjects;
-    private $patrons;
-    private $scribes;
     private $textStatus;
     private $recordStatus;
 
@@ -78,9 +76,24 @@ class Occurrence extends Document
         return $this;
     }
 
+    public function getType(bool $allowNonPublic = false): ?Type
+    {
+        if ($allowNonPublic) {
+            return $this->type;
+        }
+        return $this->type->getPublic() ? $this->type : null;
+    }
+
     public function setManuscript(Manuscript $manuscript = null): Occurrence
     {
         $this->manuscript = $manuscript;
+
+        return $this;
+    }
+
+    public function setIncipit(string $incipit): Occurrence
+    {
+        $this->incipit = $incipit;
 
         return $this;
     }
@@ -90,9 +103,9 @@ class Occurrence extends Document
         return $this->incipit;
     }
 
-    public function setIncipit(string $incipit = null): Occurrence
+    public function setText(string $text = null): Occurrence
     {
-        $this->incipit = $incipit;
+        $this->text = $text;
 
         return $this;
     }
@@ -100,13 +113,6 @@ class Occurrence extends Document
     public function getText(): string
     {
         return $this->text;
-    }
-
-    public function setText(string $text = null): Occurrence
-    {
-        $this->text = $text;
-
-        return $this;
     }
 
     public function setMeter(Meter $meter = null): Occurrence

@@ -17,6 +17,7 @@ class Person implements SubjectInterface
     private $VGK;
     private $PBW;
     private $occupations;
+    private $public;
 
     public function __construct()
     {
@@ -104,6 +105,21 @@ class Person implements SubjectInterface
         $this->occupations = $occupations;
 
         return $this;
+    }
+
+    public function setPublic(bool $public): Person
+    {
+        $this->public = $public;
+
+        return $this;
+    }
+
+    public function getPublic(): bool
+    {
+        if (isset($this->public)) {
+            return $this->public;
+        }
+        return true;
     }
 
     public function getFullDescription(): string

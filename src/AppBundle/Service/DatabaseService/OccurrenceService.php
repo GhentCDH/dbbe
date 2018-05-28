@@ -47,7 +47,7 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function getIncipit(array $ids): array
+    public function getIncipits(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -159,6 +159,22 @@ class OccurrenceService extends DocumentService
             inner join data.status on document_status.idstatus = status.idstatus
             where document_status.iddocument in (?)
             and status.type = \'occurrence_text\'',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getTypes(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                factoid.object_identity as type_id
+            from data.original_poem
+            inner join data.factoid on original_poem.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            where original_poem.identity in (?)
+            and factoid_type.type = \'reconstruction of\'',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

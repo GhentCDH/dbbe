@@ -6,11 +6,15 @@ class Document
 {
     protected $id;
     protected $date;
+    protected $patrons;
+    protected $scribes;
     protected $bibliographies;
     protected $public;
 
     public function __construct()
     {
+        $this->patrons = [];
+        $this->scribes = [];
         $this->bibliographies = [];
 
         return $this;

@@ -41,13 +41,15 @@ class OccurrenceManager extends DocumentManager
         // Remove all ids that did not match above
         $ids = array_keys($occurrences);
 
-        $rawIncipits = $this->dbs->getIncipit($ids);
+        $rawIncipits = $this->dbs->getIncipits($ids);
         if (count($rawIncipits) > 0) {
             foreach ($rawIncipits as $rawIncipit) {
                 $occurrences[$rawIncipit['occurrence_id']]
                     ->setIncipit($rawIncipit['incipit']);
             }
         }
+
+        $this->setPublics($occurrences, $ids);
 
         $this->setCache($occurrences, 'occurrence_mini');
 
@@ -167,8 +169,6 @@ class OccurrenceManager extends DocumentManager
                 ->addCacheDependency('genre.' . $rawGenre['genre_id']);
         }
 
-        $this->setPublics($occurrences, $ids);
-
         $this->setCache($occurrences, 'occurrence_short');
 
         return $cached + $occurrences;
@@ -203,6 +203,15 @@ class OccurrenceManager extends DocumentManager
             $occurrence
                 ->setTextStatus(new Status($rawTextStatuses[0]['status_id'], $rawTextStatuses[0]['status_name']))
                 ->addCacheDependency('status.' . $rawTextStatuses[0]['status_id']);
+        }
+
+        // type
+        $rawTypes = $this->dbs->getTypes([$id]);
+        if (count($rawTypes) == 1) {
+            $type = $this->container->get('type_manager')->getMiniTypesByIds([$rawTypes[0]['type_id']])[$rawTypes[0]['type_id']];
+            $occurrence
+                ->setType($type)
+                ->addCacheDependency('type.' . $rawTypes[0]['type_id']);
         }
 
         $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
