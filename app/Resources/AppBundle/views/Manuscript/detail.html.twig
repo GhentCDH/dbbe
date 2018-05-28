@@ -36,8 +36,6 @@
                                             <a href="{{ path('person_show', {'id': item.getId()}) }}">
                                                 <span class="bg-warning">{{ item.getFullDescriptionWithOccupations() }}</span>
                                             </a>
-                                        {% else %}
-                                            <span class="danger">{{ item.getId() }}</span>
                                         {% endif %}
                                     {% else %}
                                         <a href="{{ path('person_show', {'id': item.getId()}) }}">{{ item.getFullDescriptionWithOccupations() }}</a>
