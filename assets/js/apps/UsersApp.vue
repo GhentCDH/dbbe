@@ -7,7 +7,7 @@
                 @click="create">
                 <i class="fa fa-user-plus" /> Add a new user
             </btn>
-            <p>Emails and passwords will be automatically completed at the first login.</p>
+            <p>Emails and full names will be automatically completed at the first login.</p>
             <v-server-table
                 url="/admin/users"
                 ref="table"
@@ -59,7 +59,7 @@
                 @dismissed="alerts.splice(index, 1)">
                 {{ item.message }}
             </alert>
-            <p>Emails and passwords will be automatically completed at the first login.</p>
+            <p>Emails and full names will be automatically completed at the first login.</p>
             <vue-form-generator
                 :schema="schema"
                 :model="model"
