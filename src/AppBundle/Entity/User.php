@@ -120,6 +120,9 @@ class User extends BaseUser
             $this->password = $data->username;
         }
 
+        if (!isset($data->roles)) {
+            $data->roles = [];
+        }
         $addRoles = array_diff($data->roles, $this->getRoles());
         $removeRoles = array_diff($this->getRoles(), $data->roles);
         foreach ($addRoles as $role) {
