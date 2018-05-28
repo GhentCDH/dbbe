@@ -161,7 +161,7 @@ class OccurrenceManager extends DocumentManager
             }
         }
 
-        $this->setDates($occurrences, $ids);
+        $this->setDates($occurrences);
 
         // Genre
         $rawGenres = $this->dbs->getGenres($ids);
@@ -197,7 +197,7 @@ class OccurrenceManager extends DocumentManager
         }
         $occurrence = $occurrences[$id];
 
-        $this->setBibliographies($occurrence, $id);
+        $this->setBibliographies($occurrence);
 
         // text status
         $rawTextStatuses = $this->dbs->getTextStatuses([$id]);
@@ -236,6 +236,8 @@ class OccurrenceManager extends DocumentManager
             $occurrence
                 ->setVerses($rawVerses[0]['verses']);
         }
+
+        $this->setComments($occurrence);
 
         $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
 

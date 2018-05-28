@@ -84,4 +84,19 @@ class DocumentService extends DatabaseService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getComments(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                document.identity as document_id,
+                entity.public_comment,
+                entity.private_comment
+            from data.document
+            inner join data.entity on document.identity = entity.identity
+            where document.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
 }

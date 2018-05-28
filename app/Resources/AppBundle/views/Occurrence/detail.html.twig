@@ -131,6 +131,12 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ occurrence.getPublicComment() }}</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

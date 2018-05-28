@@ -243,21 +243,6 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getComments(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                entity.public_comment,
-                entity.private_comment
-            from data.manuscript
-            inner join data.entity on manuscript.identity = entity.identity
-            where manuscript.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getOccurrences(array $ids): array
     {
         return $this->conn->executeQuery(

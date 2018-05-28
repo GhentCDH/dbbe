@@ -143,7 +143,7 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
-        $this->setDates($manuscripts, $ids);
+        $this->setDates($manuscripts);
 
         // Origin
         $rawOrigins = $this->dbs->getOrigins($ids);
@@ -187,7 +187,7 @@ class ManuscriptManager extends DocumentManager
         }
         $manuscript = $manuscripts[$id];
 
-        $this->setBibliographies($manuscript, $id);
+        $this->setBibliographies($manuscript);
 
         // Diktyon
         $rawDiktyons = $this->dbs->getDiktyons([$id]);
@@ -195,12 +195,7 @@ class ManuscriptManager extends DocumentManager
             $manuscript->setDiktyon($rawDiktyons[0]['diktyon_id']);
         }
 
-        // Comments
-        $rawComments = $this->dbs->getComments([$id]);
-        if (count($rawComments) == 1) {
-            $manuscript->setPublicComment($rawComments[0]['public_comment']);
-            $manuscript->setPrivateComment($rawComments[0]['private_comment']);
-        }
+        $this->setComments($manuscript);
 
         // Occurrences
         $rawOccurrences = $this->dbs->getOccurrences([$id]);

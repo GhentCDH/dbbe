@@ -9,6 +9,8 @@ class Document
     protected $patrons;
     protected $scribes;
     protected $bibliographies;
+    protected $publicComment;
+    protected $privateComment;
     protected $public;
 
     public function __construct()
@@ -77,6 +79,30 @@ class Document
     public function getBibliographies(): array
     {
         return $this->bibliographies;
+    }
+
+    public function setPublicComment(string $publicComment = null): Document
+    {
+        $this->publicComment = $publicComment;
+
+        return $this;
+    }
+
+    public function getPublicComment(): ?string
+    {
+        return $this->publicComment;
+    }
+
+    public function setPrivateComment(string $privateComment = null): Document
+    {
+        $this->privateComment = $privateComment;
+
+        return $this;
+    }
+
+    public function getPrivateComment(): ?string
+    {
+        return $this->privateComment;
     }
 
     public function setPublic(bool $public): Document

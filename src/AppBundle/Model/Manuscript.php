@@ -24,8 +24,6 @@ class Manuscript extends Document implements IdJsonInterface
     private $occurrenceScribes;
     private $relatedPersons;
     private $occurrences;
-    private $publicComment;
-    private $privateComment;
     private $status;
     private $illustrated;
 
@@ -203,30 +201,6 @@ class Manuscript extends Document implements IdJsonInterface
     public function getDiktyon(): ?int
     {
         return $this->diktyon;
-    }
-
-    public function setPublicComment(string $publicComment = null): Manuscript
-    {
-        $this->publicComment = $publicComment;
-
-        return $this;
-    }
-
-    public function getPublicComment(): ?string
-    {
-        return $this->publicComment;
-    }
-
-    public function setPrivateComment(string $privateComment = null): Manuscript
-    {
-        $this->privateComment = $privateComment;
-
-        return $this;
-    }
-
-    public function getPrivateComment(): ?string
-    {
-        return $this->privateComment;
     }
 
     public function setOccurrences(array $occurrences): Manuscript

@@ -7,8 +7,11 @@ use AppBundle\Model\FuzzyDate;
 
 class DocumentManager extends ObjectManager
 {
-    protected function setDates(array &$documents, array $ids): void
+    protected function setDates(array &$documents): void
     {
+        $ids = array_map(function ($document) {
+            return $document->getId();
+        }, $documents);
         $rawCompletionDates = $this->dbs->getCompletionDates($ids);
         foreach ($rawCompletionDates as $rawCompletionDate) {
             $documents[$rawCompletionDate['document_id']]
@@ -29,10 +32,9 @@ class DocumentManager extends ObjectManager
         }
     }
 
-    protected function setBibliographies(Document &$document, int $id): void
+    protected function setBibliographies(Document &$document): void
     {
-        // Bibliography
-        $rawBibliographies = $this->dbs->getBibliographies([$id]);
+        $rawBibliographies = $this->dbs->getBibliographies([$document->getId()]);
         if (!empty($rawBibliographies)) {
             $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
             $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
@@ -61,6 +63,16 @@ class DocumentManager extends ObjectManager
                 }
             }
             $document->setBibliographies($bibliographies);
+        }
+    }
+
+    protected function setComments(Document &$document): void
+    {
+        // Comments
+        $rawComments = $this->dbs->getComments([$document->getId()]);
+        if (count($rawComments) == 1) {
+            $document->setPublicComment($rawComments[0]['public_comment']);
+            $document->setPrivateComment($rawComments[0]['private_comment']);
         }
     }
 }
