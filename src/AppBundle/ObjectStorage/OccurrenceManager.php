@@ -49,7 +49,7 @@ class OccurrenceManager extends DocumentManager
             }
         }
 
-        $this->setPublics($occurrences, $ids);
+        $this->setPublics($occurrences);
 
         $this->setCache($occurrences, 'occurrence_mini');
 
@@ -76,12 +76,14 @@ class OccurrenceManager extends DocumentManager
         $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
         $manuscripts = $this->container->get('manuscript_manager')->getShortManuscriptsByIds($manuscriptIds);
         foreach ($rawLocations as $rawLocation) {
-            $manuscript = $manuscripts[$rawLocation['manuscript_id']];
-            $occurrences[$rawLocation['occurrence_id']]
-                ->setManuscript($manuscript);
-            foreach ($manuscript->getCacheDependencies() as $cacheDependency) {
+            if (isset($manuscripts[$rawLocation['manuscript_id']])) {
+                $manuscript = $manuscripts[$rawLocation['manuscript_id']];
                 $occurrences[$rawLocation['occurrence_id']]
-                    ->addCacheDependency($cacheDependency);
+                    ->setManuscript($manuscript);
+                foreach ($manuscript->getCacheDependencies() as $cacheDependency) {
+                    $occurrences[$rawLocation['occurrence_id']]
+                        ->addCacheDependency($cacheDependency);
+                }
             }
         }
 

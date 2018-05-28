@@ -29,7 +29,7 @@ class TypeManager extends DocumentManager
                 ->setIncipit($rawIncipit['incipit']);
         }
 
-        $this->setPublics($types, $ids);
+        $this->setPublics($types);
 
         $this->setCache($types, 'type_mini');
 

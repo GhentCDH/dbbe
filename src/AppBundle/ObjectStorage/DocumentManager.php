@@ -16,8 +16,11 @@ class DocumentManager extends ObjectManager
         }
     }
 
-    protected function setPublics(array &$documents, array $ids): void
+    protected function setPublics(array &$documents): void
     {
+        $ids = array_map(function ($document) {
+            return $document->getId();
+        }, $documents);
         $rawPublics = $this->dbs->getPublics($ids);
         foreach ($rawPublics as $rawPublic) {
             $documents[$rawPublic['document_id']]

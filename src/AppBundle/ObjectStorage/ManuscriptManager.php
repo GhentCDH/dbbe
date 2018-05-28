@@ -44,7 +44,7 @@ class ManuscriptManager extends DocumentManager
             $manuscripts[$manuscript->getId()] = $manuscript;
         }
 
-        $this->setPublics($manuscripts, $ids);
+        $this->setPublics($manuscripts);
 
         $this->setCache($manuscripts, 'manuscript_mini');
 
