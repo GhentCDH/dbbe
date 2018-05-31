@@ -297,6 +297,12 @@ export default {
         if (!data.hasOwnProperty('orderBy')) {
             delete data['ascending']
         }
+        // Add filter values if necessary
+        if (!data.hasOwnProperty('filters') || data['filters'] == null || data['filters'] === '') {
+            if (this.$parent.model != this.$parent.originalModel) {
+                data['filters'] = this.$parent.constructFilterValues()
+            }
+        }
         this.$parent.openRequests++
         if (!this.$parent.initialized) {
             return new Promise((resolve, reject) => {
