@@ -3,6 +3,7 @@
 namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Genre;
+use AppBundle\Model\Image;
 use AppBundle\Model\Meter;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
@@ -238,6 +239,18 @@ class OccurrenceManager extends DocumentManager
         }
 
         $this->setComments($occurrence);
+
+        // images
+        $rawImages = $this->dbs->getImages([$id]);
+        foreach ($rawImages as $rawImage) {
+            if (strpos($rawImage['url'], 'http') === 0) {
+                $occurrence
+                    ->addImageLink(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+            } else {
+                $occurrence
+                    ->addImage(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+            }
+        }
 
         $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
 

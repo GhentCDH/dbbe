@@ -220,4 +220,21 @@ class OccurrenceService extends DocumentService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getImages(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                image.idimage as image_id,
+                image.url,
+                image.is_private
+            from data.original_poem
+            inner join data.document_image on original_poem.identity = document_image.iddocument
+            inner join data.image on document_image.idimage = image.idimage
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
 }

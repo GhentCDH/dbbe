@@ -103,6 +103,11 @@ services:
         arguments: ['@status_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    image_manager:
+        class: AppBundle\ObjectStorage\ImageManager
+        arguments: ['@image_service', '@cache.app', '@service_container', null, null]
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
         arguments: ['@doctrine.orm.entity_manager']
@@ -157,6 +162,10 @@ services:
 
     status_service:
         class: AppBundle\Service\DatabaseService\StatusService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    image_service:
+        class: AppBundle\Service\DatabaseService\ImageService
         arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:

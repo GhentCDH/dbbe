@@ -21,8 +21,10 @@ Encore
     .addEntry('occurrencesearch', './assets/js/main/occurrencesearch.js')
     .addEntry('originsedit', './assets/js/main/originsedit.js')
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
+    .addEntry('statusesedit', './assets/js/main/statusesedit.js')
     .addEntry('users', './assets/js/main/users.js')
     .addEntry('main', './assets/js/main/main.js')
+    .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
 
     // allow sass/scss files to be processed
     .enableSassLoader()

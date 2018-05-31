@@ -25,12 +25,18 @@ class Occurrence extends Document
     private $paleographicalInfo;
     private $contextualInfo;
     private $verses;
+    // Links to images on the server itself
+    private $images;
+    // Link to images hosted externally
+    private $imageLinks;
 
     public function __construct()
     {
         parent::__construct();
 
         $this->subjects = [];
+        $this->images = [];
+        $this->imageLinks = [];
 
         return $this;
     }
@@ -242,6 +248,30 @@ class Occurrence extends Document
     public function getVerses(): ?int
     {
         return $this->verses;
+    }
+
+    public function addImage(Image $image): Occurrence
+    {
+        $this->images[$image->getId()] = $image;
+
+        return $this;
+    }
+
+    public function getImages(): array
+    {
+        return $this->images;
+    }
+
+    public function addImageLink(Image $image): Occurrence
+    {
+        $this->imageLinks[$image->getId()] = $image;
+
+        return $this;
+    }
+
+    public function getImageLinks(): array
+    {
+        return $this->imageLinks;
     }
 
     public function getDescription(): string
