@@ -21,7 +21,7 @@ class AppExtension extends \Twig_Extension
         return [
             new \Twig_SimpleFilter('public', function ($object) {
                 if (is_array($object)) {
-                    return $array_filter($array, function ($item) {
+                    return array_filter($object, function ($item) {
                         return $item->getPublic();
                     });
                 } else {
