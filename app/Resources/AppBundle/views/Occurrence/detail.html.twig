@@ -11,17 +11,29 @@
                 <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
         </h2>
-        {% if occurrence.getText() %}
-             {% include '@App/Helpers/renderLineNumbers.html.twig' with {'text': occurrence.getText()} only %}
-        {% endif %}
-        {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
-        {% if images is not empty %}
-            {% for image in images %}
-                <a href="{{ path('image_show', {'url': image.getUrl()}) }}" data-toggle="lightbox">
-                    <img src="{{ path('image_show', {'url': image.getUrl()}) }}">
-                </a>
-            {% endfor %}
-        {% endif %}
+        <div class="row pbottom-default">
+            <div class="col-md-8">
+                {% if occurrence.getText() %}
+                     {% include '@App/Helpers/renderLineNumbers.html.twig' with {'text': occurrence.getText()} only %}
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
+                {% if images is not empty %}
+                    <div class="row">
+                        {% for image in images %}
+                            <div class="{{ images|length == 1 ? 'col-xs-12' : 'col-md-6' }}">
+                                <div class="thumbnail hidden">
+                                    <a href="{{ path('image_show', {'url': image.getUrl()}) }}" data-type="image" data-gallery="gallery" data-toggle="lightbox" data-title="{{ image.getUrl() }}">
+                                        <img src="{{ path('image_show', {'url': image.getUrl()}) }}" alt="{{ image.getUrl() }}">
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
         <table class="table table-hover table-bordered">
             <tbody>
                 {% if occurrence.getTextSource() is not empty %}
@@ -182,11 +194,4 @@
     <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
     <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
     <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("/build/lightbox.js") }}"></script>
-    <script type="text/javascript">
-        $(document).on('click', '[data-toggle="lightbox"]', function(event) {
-            event.preventDefault();
-            $(this).ekkoLightbox();
-        });
-    </script>
 {% endblock %}

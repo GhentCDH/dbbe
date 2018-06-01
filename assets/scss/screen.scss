@@ -7,6 +7,8 @@
 @import 'settings';
 
 // external
+@import '../websites/bower_components/ekko-lightbox/dist/ekko-lightbox';
+@import '../websites/bower_components/bootstrap-grid-ms/scss/bootstrap-grid-ms';
 @import '../websites/bower_components/font-awesome/scss/font-awesome';
 
 //base
@@ -65,7 +67,7 @@
 // Bootstrap overwrites
 @import '../websites/sass/partials/thumbnail';
 @import '../websites/sass/partials/alert';
-@import '../websites/sass/partials/bootstrap-overwrites';
+// @import '../websites/sass/partials/bootstrap-overwrites';
 @import '../websites/sass/partials/print-overwrites';
 @import '../websites/sass/partials/tooltip';
 
@@ -75,6 +77,7 @@
 @import 'partials/icons';
 @import 'partials/line-numbers';
 @import 'partials/loading';
+@import 'partials/lightbox';
 @import 'partials/multiselect';
 @import 'partials/inpage_nav';
 @import 'partials/required';
