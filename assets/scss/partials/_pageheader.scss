@@ -1,0 +1,16 @@
+.pageheader {
+  .navbar-default {
+    .nav-primary {
+      >li.dropdown {
+        >a {
+          padding-right: 34px;
+        }
+        .dropdown-toggle {
+          i {
+            right: 16px;
+          }
+        }
+      }
+    }
+  }
+}
