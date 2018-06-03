@@ -7,6 +7,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ImageController extends Controller
 {
@@ -23,6 +25,10 @@ class ImageController extends Controller
         if (!$image->getPublic()) {
             $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
         }
-        return new BinaryFileResponse($this->get('kernel')->getRootDir() . '/../images/' . $image->getUrl());
+        try {
+            return new BinaryFileResponse($this->get('kernel')->getRootDir() . '/../images/' . $image->getUrl());
+        } catch (FileNotFoundException $e) {
+            throw new NotFoundHttpException('Image with url "' . $image->getUrl()  . '" not found');
+        }
     }
 }
