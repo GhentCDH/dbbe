@@ -67,6 +67,7 @@
             <generalPanel
                 id="general"
                 header="General"
+                :link="{url: getStatusesUrl, text: 'Edit statuses'}"
                 :model="model.general"
                 :values="statuses"
                 @validated="validated"
@@ -252,6 +253,10 @@ export default {
             default: '',
         },
         getOriginsUrl: {
+            type: String,
+            default: '',
+        },
+        getStatusesUrl: {
             type: String,
             default: '',
         },
