@@ -13,7 +13,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
-                    v-if="Object.keys(model).length !== 0"
+                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group">
                     <button
                         class="btn btn-block"

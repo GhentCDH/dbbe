@@ -51,7 +51,7 @@ export default {
             // get everything after last '.'
             let modelName = field.model.split('.').pop()
 
-            model[modelName] = null
+            delete model[modelName]
             field.disabled = true
             field.selectOptions.loading = false
             field.placeholder = 'Please select a ' + (field.dependencyName ? field.dependencyName : field.dependency) + ' first'
