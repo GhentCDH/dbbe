@@ -68,6 +68,21 @@ class ElasticManuscriptService extends ElasticSearchService
             !empty($params['filters']) ? $params['filters'] : []
         );
 
+        // Add 'No collection' when necessary
+        if (array_key_exists('collection', $aggregation_result)
+            || (
+                !empty($params['filters'])
+                && array_key_exists('object', $params['filters'])
+                && array_key_exists('collection', $params['filters']['object'])
+                && $params['filters']['object']['collection'] == -1
+            )
+        ) {
+            $aggregation_result['collection'][] = [
+                'id' => -1,
+                'name' => 'No collection',
+            ];
+        }
+
         $result['aggregation'] = $aggregation_result;
 
         return $result;
