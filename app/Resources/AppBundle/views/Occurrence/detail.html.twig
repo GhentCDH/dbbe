@@ -17,9 +17,9 @@
                      {% include '@App/Helpers/renderLineNumbers.html.twig' with {'text': occurrence.getText()} only %}
                 {% endif %}
             </div>
-            <div class="col-md-4">
-                {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
-                {% if images is not empty %}
+            {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
+            {% if images is not empty %}
+                <div class="col-md-4">
                     <div class="row">
                         {% for image in images %}
                             <div class="{{ images|length == 1 ? 'col-xs-12' : 'col-md-6' }}">
@@ -31,8 +31,8 @@
                             </div>
                         {% endfor %}
                     </div>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
         <table class="table table-hover table-bordered">
             <tbody>
