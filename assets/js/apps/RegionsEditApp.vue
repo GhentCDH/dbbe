@@ -414,7 +414,9 @@ export default {
     watch: {
         'model.region'() {
             // set full parent, so the name can be formatted correctly
-            this.model.region.parent = this.regionValues.filter((regionWithParents) => regionWithParents.id === this.model.region.parent.id)[0]
+            if (this.model.region != null && this.model.region.parent != null) {
+                this.model.region.parent = this.regionValues.filter((regionWithParents) => regionWithParents.id === this.model.region.parent.id)[0]
+            }
         },
     },
     mounted () {
