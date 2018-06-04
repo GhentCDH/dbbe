@@ -259,7 +259,7 @@ export default {
                     }
                     else if (this.schema.fields.hasOwnProperty(key)) {
                         if (this.schema.fields[key].type === 'multiselectClear') {
-                            model[key] = this.aggregation[key].filter(v => v.id === Number(params['filters'][key]))[0]
+                            model[key] = this.aggregation[key].filter(v => String(v.id) === params['filters'][key])[0]
                         }
                         else {
                             model[key] = params['filters'][key]

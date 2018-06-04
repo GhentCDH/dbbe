@@ -64,7 +64,7 @@ class ElasticManuscriptService extends ElasticSearchService
         $result = $this->search($params);
 
         $aggregation_result = $this->aggregate(
-            self::classifyFilters(['city', 'library', 'collection', 'content', 'patron', 'scribe', 'origin', 'public']),
+            self::classifyFilters(['city', 'library', 'collection', 'shelf', 'content', 'patron', 'scribe', 'origin', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -110,7 +110,11 @@ class ElasticManuscriptService extends ElasticSearchService
                         }
                         break;
                     case 'shelf':
-                        $result['exact_text'][$key] = $value;
+                        if (is_int($key)) {
+                            $result['exact_text'][] = $value;
+                        } else {
+                            $result['exact_text'][$key] = $value;
+                        }
                         break;
                     case 'date':
                         $date_result = [

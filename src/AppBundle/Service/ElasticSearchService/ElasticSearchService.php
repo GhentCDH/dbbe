@@ -127,6 +127,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'exact_text':
+                    foreach ($fieldNames as $fieldName) {
+                        $query->addAggregation(
+                            (new Aggregation\Terms($fieldName))
+                                ->setSize(MAX)
+                                ->setField($fieldName . '.keyword')
+                        );
+                    }
+                    break;
                 case 'nested':
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
@@ -155,12 +164,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
 
+        $searchResult = $this->type->search($query);
         $results = [];
         foreach ($fieldTypes as $fieldType => $fieldNames) {
             switch ($fieldType) {
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName);
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -169,9 +179,20 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
+                case 'exact_text':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $searchResult->getAggregation($fieldName);
+                        foreach ($aggregation['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['key'],
+                            ];
+                        }
+                    }
+                    break;
                 case 'nested':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName);
                         foreach ($aggregation['id']['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -182,7 +203,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'boolean':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $this->type->search($query)->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName);
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
