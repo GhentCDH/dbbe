@@ -11,7 +11,7 @@
             </alert>
 
             <div class="panel panel-default">
-                <div class="panel-heading">Edit region</div>
+                <div class="panel-heading">Edit origin</div>
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-xs-10">
