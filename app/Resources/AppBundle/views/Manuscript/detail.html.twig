@@ -99,7 +99,7 @@
                 {% if manuscript.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>
-                        <td>{{ manuscript.getPublicComment() }}</td>
+                        <td>{{ manuscript.getPublicComment()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getOccurrences() : manuscript.getOccurrences()|public %}
@@ -119,7 +119,7 @@
                     {% if manuscript.getPrivateComment() is not empty %}
                         <tr class="warning">
                             <td>Internal comment</td>
-                            <td>{{ manuscript.getPrivateComment() }}</td>
+                            <td>{{ manuscript.getPrivateComment()|nl2br }}</td>
                         </tr>
                     {% endif %}
                     {% if manuscript.getStatus() is not empty %}

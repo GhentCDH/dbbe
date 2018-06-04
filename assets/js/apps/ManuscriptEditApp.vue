@@ -478,6 +478,10 @@ export default {
                 }
             }
 
+            else {
+                this.model.general.public = true
+            }
+
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         validateForms() {

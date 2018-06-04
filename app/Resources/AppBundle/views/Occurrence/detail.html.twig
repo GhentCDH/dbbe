@@ -154,7 +154,7 @@
                 {% if occurrence.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>
-                        <td>{{ occurrence.getPublicComment() }}</td>
+                        <td>{{ occurrence.getPublicComment()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% set imageLinks = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImageLinks() : occurrence.getImageLinks()|public %}
