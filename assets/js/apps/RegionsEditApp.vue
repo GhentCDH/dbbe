@@ -574,7 +574,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the region.'})
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while merging the regions.'})
                     console.log(error)
                 })
         },

@@ -284,7 +284,7 @@ class RegionManager extends ObjectManager
                 foreach ($institutions as $institution) {
                     $this->container->get('institution_manager')->updateInstitution(
                         $institution->getId(),
-                        json_decode(json_encode(['city' => ['id' => $primaryId]]))
+                        json_decode(json_encode(['regionWithParents' => ['id' => $primaryId]]))
                     );
                 }
             }
