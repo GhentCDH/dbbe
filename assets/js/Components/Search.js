@@ -212,10 +212,10 @@ export default {
         onData(data) {
             this.aggregation = data.aggregation
 
-            // Check whether column 'text' should be displayed
+            // Check whether column 'title/text' should be displayed
             if (
                 data.data.length > 0
-                && data.data[0].hasOwnProperty('text')
+                && (data.data[0].hasOwnProperty('text') || data.data[0].hasOwnProperty('title'))
             ) {
                 this.textSearch = true
             }
@@ -263,15 +263,16 @@ export default {
             this.openRequests--
         },
         pushHistory(data) {
+            console.log(data)
             history.pushState(data, document.title, document.location.href.split('?')[0] + '?' + qs.stringify(data))
         },
         popHistory(event) {
             // set querystring
-            if (event.state == null) {
-                this.historyRequest = 'init'
+            if (window.location.href.split('?', 2).length > 1) {
+                this.historyRequest = window.location.href.split('?', 2)[1]
             }
             else {
-                this.historyRequest = window.location.href.split('?', 2)[1]
+                this.historyRequest = 'init'
             }
             this.$refs.resultTable.refresh()
         },
@@ -305,24 +306,27 @@ export default {
             this.oldFilterValues = this.constructFilterValues()
 
             // set table ordering
-            // Initial load
             this.actualRequest = false
-            if (initial) {
-                this.$refs.resultTable.setOrder(this.defaultOrdering, true)
+            if (params.hasOwnProperty('orderBy')) {
+                let asc = (params.hasOwnProperty('ascending') && params['ascending'])
+                this.$refs.resultTable.setOrder(params['orderBy'], asc)
             }
-            // History load
+            else if (
+                params.hasOwnProperty('filters')
+                && (
+                (params['filters'].hasOwnProperty('text') && params['filters']['text'] != null && params['filters']['text'] != '')
+                || (params['filters'].hasOwnProperty('comment') && params['filters']['comment'] != null && params['filters']['comment'] != '')
+                )
+            ) {
+                this.$refs.resultTable.setOrder(null)
+            }
             else {
-                if (!params.hasOwnProperty('orderBy')) {
-                    this.$refs.resultTable.setOrder(null)
-                }
-                else {
-                    let asc = (params.hasOwnProperty('ascending') && params['ascending'])
-                    this.$refs.resultTable.setOrder(params['orderBy'], asc)
-                }
+                this.$refs.resultTable.setOrder(this.defaultOrdering, true)
             }
         },
     },
     requestFunction (data) {
+        console.log(this.$parent.historyRequest)
         // Remove unused parameters
         delete data['query']
         delete data['byColumn']
@@ -330,10 +334,9 @@ export default {
             delete data['ascending']
         }
         // Add filter values if necessary
-        if (!data.hasOwnProperty('filters') || data['filters'] == null || data['filters'] === '') {
-            if (this.$parent.model != this.$parent.originalModel) {
-                data['filters'] = this.$parent.constructFilterValues()
-            }
+        data['filters'] = this.$parent.constructFilterValues()
+        if (data['filters'] == null || data['filters'] == '') {
+            delete data['filters']
         }
         this.$parent.openRequests++
         if (!this.$parent.initialized) {

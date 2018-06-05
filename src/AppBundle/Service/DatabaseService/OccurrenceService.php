@@ -61,6 +61,20 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getTitles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                document_title.title
+            from data.original_poem
+            inner join data.document_title on original_poem.identity = document_title.iddocument
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getTexts(array $ids): array
     {
         return $this->conn->executeQuery(

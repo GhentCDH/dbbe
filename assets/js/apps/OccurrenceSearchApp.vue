@@ -41,13 +41,24 @@
                 <template
                     slot="text"
                     slot-scope="props">
-                    <ol>
-                        <li
-                            v-for="(item, index) in props.row.text"
-                            :key="index"
-                            :value="Number(index) + 1"
-                            v-html="item" />
-                    </ol>
+                    <template v-if="props.row.title">
+                        <ol type="A">
+                            <li
+                                v-for="(item, index) in props.row.title"
+                                :key="index"
+                                value="20"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                    <template v-if="props.row.text">
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.text"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
                 </template>
                 <template
                     slot="comment"
@@ -268,7 +279,7 @@ export default {
             },
             tableOptions: {
                 headings: {
-                    text: 'Text (matching verses only)',
+                    text: 'Title (T.) / text (matching verses only)',
                     comment: 'Comment (matching lines only)',
                 },
                 filterable: false,

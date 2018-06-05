@@ -42,6 +42,12 @@
                         <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getTitle() is not empty %}
+                    <tr>
+                        <td>Title</td>
+                        <td>{{ occurrence.getTitle() }}</td>
+                    </tr>
+                {% endif %}
                 {% if occurrence.getTextStatus() is not empty %}
                     <tr>
                         <td>Text status</td>

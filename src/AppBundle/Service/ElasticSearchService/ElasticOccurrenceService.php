@@ -111,9 +111,12 @@ class ElasticOccurrenceService extends ElasticSearchService
             unset($result['data'][$key]['scribe']);
             unset($result['data'][$key]['subject']);
 
-            // Keep text if there was a search, then this will be an array
+            // Keep text / title if there was a search, then these will be an array
             if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
                 unset($result['data'][$key]['text']);
+            }
+            if (isset($result['data'][$key]['title']) && is_string($result['data'][$key]['title'])) {
+                unset($result['data'][$key]['title']);
             }
 
             // Keep comments if there was a search, then these will be an array
@@ -148,9 +151,15 @@ class ElasticOccurrenceService extends ElasticSearchService
                 // $filters can be a sequential (aggregation) or an associative (query) array
                 switch (is_int($key) ? $value : $key) {
                     case 'text':
-                        $result['text'][$key] = [
-                            'text' => $value,
-                            'type' => $filters['text_type'],
+                        $result['multiple_text'][$key] = [
+                            'text' => [
+                                'text' => $value,
+                                'type' => $filters['text_type'],
+                            ],
+                            'title' => [
+                                'text' => $value,
+                                'type' => $filters['text_type'],
+                            ],
                         ];
                         break;
                     case 'meter':

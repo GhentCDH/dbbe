@@ -16,6 +16,7 @@ class Occurrence extends Document
     private $type;
     private $manuscript;
     private $incipit;
+    private $title;
     private $text;
     private $meter;
     private $genre;
@@ -129,6 +130,18 @@ class Occurrence extends Document
     public function getIncipit(): string
     {
         return $this->incipit;
+    }
+
+    public function setTitle(string $title = null): Occurrence
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
     }
 
     public function setText(string $text = null): Occurrence
@@ -304,6 +317,9 @@ class Occurrence extends Document
 
         if (isset($this->incipit)) {
             $result['incipit'] = $this->incipit;
+        }
+        if (isset($this->title)) {
+            $result['title'] = $this->title;
         }
         if (isset($this->text)) {
             $result['text'] = $this->text;

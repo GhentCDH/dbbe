@@ -88,6 +88,13 @@ class OccurrenceManager extends DocumentManager
             }
         }
 
+        // Title
+        $rawTitles = $this->dbs->getTitles($ids);
+        foreach ($rawTitles as $rawTitle) {
+            $occurrences[$rawTitle['occurrence_id']]
+                ->setTitle($rawTitle['title']);
+        }
+
         // Text
         $rawTexts = $this->dbs->getTexts($ids);
         foreach ($rawTexts as $rawText) {
