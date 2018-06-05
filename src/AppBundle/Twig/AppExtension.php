@@ -22,10 +22,10 @@ class AppExtension extends \Twig_Extension
             new \Twig_SimpleFilter('public', function ($object) {
                 if (is_array($object)) {
                     return array_filter($object, function ($item) {
-                        return $item->getPublic();
+                        return !method_exists($item, 'getPublic') || $item->getPublic();
                     });
                 } else {
-                    if ($object->getPublic()) {
+                    if (!method_exists($object, 'getPublic') || $object->getPublic()) {
                         return $object;
                     } else {
                         return null;
