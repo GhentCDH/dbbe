@@ -11,7 +11,9 @@ trait CacheDependenciesTrait
         if (!isset($this->cacheDependencies)) {
             $this->cacheDependencies = [];
         }
-        $this->cacheDependencies[] = $cacheDependency;
+        if (!in_array($cacheDependency, $this->cacheDependencies)) {
+            $this->cacheDependencies[] = $cacheDependency;
+        }
 
         return $this;
     }

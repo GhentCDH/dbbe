@@ -82,8 +82,11 @@ class OccurrenceManager extends DocumentManager
                 $occurrences[$rawLocation['occurrence_id']]
                     ->setManuscript($manuscript);
                 foreach ($manuscript->getCacheDependencies() as $cacheDependency) {
-                    $occurrences[$rawLocation['occurrence_id']]
-                        ->addCacheDependency($cacheDependency);
+                    // prevent self reference
+                    if ($cacheDependency != 'occurrence.' . $rawLocation['occurrence_id']) {
+                        $occurrences[$rawLocation['occurrence_id']]
+                            ->addCacheDependency($cacheDependency);
+                    }
                 }
             }
         }
