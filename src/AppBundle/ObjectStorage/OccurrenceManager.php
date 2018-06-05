@@ -172,6 +172,8 @@ class OccurrenceManager extends DocumentManager
                 ->addCacheDependency('genre.' . $rawGenre['genre_id']);
         }
 
+        $this->setComments($occurrences);
+
         $this->setCache($occurrences, 'occurrence_short');
 
         return $cached + $occurrences;
@@ -237,8 +239,6 @@ class OccurrenceManager extends DocumentManager
             $occurrence
                 ->setVerses($rawVerses[0]['verses']);
         }
-
-        $this->setComments($occurrence);
 
         // images
         $rawImages = $this->dbs->getImages([$id]);

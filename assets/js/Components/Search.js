@@ -40,7 +40,9 @@ export default {
             delDependencies: [],
             alerts: [],
             textSearch: false,
+            commentSearch: false,
             aggregation: {},
+            lastOrder: null,
         }
     },
     mounted() {
@@ -69,7 +71,7 @@ export default {
                         }
                         result['date']['to'] = this.model[fieldName]
                     }
-                    else if (fieldName === 'text') {
+                    else if (fieldName === 'text' || fieldName === 'comment') {
                         result[fieldName] = this.model[fieldName].trim()
                     }
                     else {
@@ -135,17 +137,38 @@ export default {
                 timeoutValue = 1000
             }
 
-            // Remove column ordering if text is searched
+            // Remove column ordering if text or comment is searched, reset when no value is provided
             // Do not refresh twice
-            if (this.lastChangedField == 'text' || this.lastChangedField == 'text_type') {
+            if (this.lastChangedField == 'text' || this.lastChangedField == 'comment') {
                 this.actualRequest = false
-                this.$refs.resultTable.setOrder(null)
+                if (this.model[this.lastChangedField] == null || this.model[this.lastChangedField == '']) {
+                    if (this.lastOrder == null) {
+                        this.$refs.resultTable.setOrder(this.defaultOrdering, true)
+                    }
+                    else {
+                        let asc = (this.lastOrder.hasOwnProperty('ascending') && this.lastOrder['ascending'])
+                        this.$refs.resultTable.setOrder(this.lastOrder.column, asc)
+                    }
+                }
+                else {
+                    this.lastOrder = JSON.parse(JSON.stringify(this.$refs.resultTable.orderBy))
+                    this.$refs.resultTable.setOrder(null)
+                }
             }
 
             // Don't get new data if last changed field is text_type and text is null or empty
-            if (this.lastChangedField == 'text_type' && (this.model.text == null || this.model.text == '')) {
-                this.actualRequest = false
-            } else {
+            // else: remove column ordering
+            if (this.lastChangedField == 'text_type') {
+                if (this.model.text == null || this.model.text == '') {
+                    this.actualRequest = false
+                }
+                else {
+                    this.actualRequest = false
+                    this.$refs.resultTable.setOrder(null)
+                    this.actualRequest = true
+                }
+            }
+            else {
                 this.actualRequest = true
             }
 
@@ -190,16 +213,25 @@ export default {
             this.aggregation = data.aggregation
 
             // Check whether column 'text' should be displayed
-            // If there was a text search, the text data will be an object
             if (
                 data.data.length > 0
                 && data.data[0].hasOwnProperty('text')
-                && typeof data.data[0]['text'] === 'object'
             ) {
                 this.textSearch = true
             }
             else {
                 this.textSearch = false
+            }
+
+            // Check whether comment column(s) should be displayed
+            if (
+                data.data.length > 0
+                && (data.data[0].hasOwnProperty('public_comment') || data.data[0].hasOwnProperty('private_comment'))
+            ) {
+                this.commentSearch = true
+            }
+            else {
+                this.commentSearch = false
             }
         },
         onLoaded(data) {
@@ -370,7 +402,6 @@ export default {
                 return response
             })
             .catch(function (error) {
-                this.$parent.openRequests--
                 if (axios.isCancel(error)) {
                     // Return the current data if the request is cancelled
                     return {

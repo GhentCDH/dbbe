@@ -102,6 +102,29 @@ class ElasticOccurrenceService extends ElasticSearchService
 
         $result = $this->search($params);
 
+        // Filter out unnecessary results
+        foreach ($result['data'] as $key => $value) {
+            unset($result['data'][$key]['manuscript_content']);
+            unset($result['data'][$key]['genre']);
+            unset($result['data'][$key]['meter']);
+            unset($result['data'][$key]['patron']);
+            unset($result['data'][$key]['scribe']);
+            unset($result['data'][$key]['subject']);
+
+            // Keep text if there was a search, then this will be an array
+            if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
+                unset($result['data'][$key]['text']);
+            }
+
+            // Keep comments if there was a search, then these will be an array
+            if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
+                unset($result['data'][$key]['public_comment']);
+            }
+            if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
+                unset($result['data'][$key]['private_comment']);
+            }
+        }
+
         $aggregation_result = $this->aggregate(
             self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
@@ -161,6 +184,24 @@ class ElasticOccurrenceService extends ElasticSearchService
                         } else {
                             $result['nested'][$key] = $value;
                         }
+                        break;
+                    case 'public_comment':
+                        $result['text'][$key] = [
+                            'text' => $value,
+                            'type' => 'any',
+                        ];
+                        break;
+                    case 'comment':
+                        $result['multiple_text'][$key] = [
+                            'public_comment'=> [
+                                'text' => $value,
+                                'type' => 'any',
+                            ],
+                            'private_comment'=> [
+                                'text' => $value,
+                                'type' => 'any',
+                            ],
+                        ];
                         break;
                     case 'public':
                         if (is_int($key)) {

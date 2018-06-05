@@ -161,6 +161,8 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        $this->setComments($manuscripts);
+
         $this->setCache($manuscripts, 'manuscript_short');
 
         return $cached + $manuscripts;
@@ -194,8 +196,6 @@ class ManuscriptManager extends DocumentManager
         if (count($rawDiktyons) == 1) {
             $manuscript->setDiktyon($rawDiktyons[0]['diktyon_id']);
         }
-
-        $this->setComments($manuscript);
 
         // Occurrences
         $rawOccurrences = $this->dbs->getOccurrences([$id]);
@@ -311,6 +311,10 @@ class ManuscriptManager extends DocumentManager
                     $data->locatedAt
                 );
             }
+            if (property_exists($data, 'public')) {
+                $cacheReload['mini'] = true;
+                $this->updatePublic($manuscript, $data->public);
+            }
             if (property_exists($data, 'content')) {
                 $cacheReload['short'] = true;
                 $this->updateContent($manuscript, $data->content);
@@ -335,6 +339,14 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateOrigin($manuscript, $data->origin);
             }
+            if (property_exists($data, 'publicComment')) {
+                $cacheReload['short'] = true;
+                $this->updatePublicComment($manuscript, $data->publicComment);
+            }
+            if (property_exists($data, 'privateComment')) {
+                $cacheReload['short'] = true;
+                $this->updatePrivateComment($manuscript, $data->privateComment);
+            }
             if (property_exists($data, 'bibliography')) {
                 $cacheReload['extended'] = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
@@ -343,14 +355,6 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['extended'] = true;
                 $this->updateDiktyon($manuscript, $data->diktyon);
             }
-            if (property_exists($data, 'publicComment')) {
-                $cacheReload['extended'] = true;
-                $this->updatePublicComment($manuscript, $data->publicComment);
-            }
-            if (property_exists($data, 'privateComment')) {
-                $cacheReload['extended'] = true;
-                $this->updatePrivateComment($manuscript, $data->privateComment);
-            }
             if (property_exists($data, 'status')) {
                 $cacheReload['extended'] = true;
                 $this->updateStatus($manuscript, $data);
@@ -358,10 +362,6 @@ class ManuscriptManager extends DocumentManager
             if (property_exists($data, 'illustrated')) {
                 $cacheReload['extended'] = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
-            }
-            if (property_exists($data, 'public')) {
-                $cacheReload['mini'] = true;
-                $this->updatePublic($manuscript, $data->public);
             }
 
             // Throw error if none of above matched

@@ -40,6 +40,14 @@ class OccurrenceController extends Controller
             $this->sanitize($request->query->all())
         );
 
+        // Remove non public fields if no access rights
+        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            unset($result['aggregation']['public']);
+            foreach ($result['data'] as $key => $value) {
+                unset($result['data'][$key]['public']);
+            }
+        }
+
         return new JsonResponse($result);
     }
 
@@ -175,8 +183,17 @@ class OccurrenceController extends Controller
             $filters = $params['filters'];
         }
 
+        // limit results to public if no access rights
         if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
             $filters['public'] = 1;
+        }
+
+        // set which comments should be searched
+        if (isset($filters['comment'])) {
+            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+                $filters['publicComment'] = $filters['comment'];
+                unset($filters['comment']);
+            }
         }
 
         if (isset($filters)) {

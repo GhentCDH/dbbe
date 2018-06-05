@@ -321,6 +321,28 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         $filterQuery->addMust($matchQuery);
                     }
                     break;
+                case 'multiple_text':
+                    foreach ($filterValues as $field => $options) {
+                        $subQuery = new Query\BoolQuery();
+                        foreach ($options as $key => $value) {
+                            switch ($value['type']) {
+                                case 'any':
+                                    $matchQuery = new Query\Match($key, $value['text']);
+                                    break;
+                                case 'all':
+                                    $matchQuery = (new Query\Match())
+                                        ->setFieldQuery($key, $value['text'])
+                                        ->setFieldOperator($key, Query\Match::OPERATOR_AND);
+                                    break;
+                                case 'phrase':
+                                    $matchQuery = (new Query\MatchPhrase($key, $value['text']));
+                                    break;
+                            }
+                            $subQuery->addShould($matchQuery);
+                        }
+                        $filterQuery->addMust($subQuery);
+                    }
+                    break;
                 case 'exact_text':
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addMust(
@@ -353,6 +375,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'text':
                     foreach ($filterValues as $key => $value) {
                         $highlights['fields'][$key] = new \stdClass();
+                    }
+                    break;
+                case 'multiple_text':
+                    foreach ($filterValues as $options) {
+                        foreach ($options as $key => $value) {
+                            $highlights['fields'][$key] = new \stdClass();
+                        }
                     }
                     break;
             }

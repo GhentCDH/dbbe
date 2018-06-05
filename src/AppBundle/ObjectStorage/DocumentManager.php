@@ -7,6 +7,19 @@ use AppBundle\Model\FuzzyDate;
 
 class DocumentManager extends ObjectManager
 {
+    protected function setPublics(array &$documents): void
+    {
+        $ids = array_map(function ($document) {
+            return $document->getId();
+        }, $documents);
+        $rawPublics = $this->dbs->getPublics($ids);
+        foreach ($rawPublics as $rawPublic) {
+            $documents[$rawPublic['document_id']]
+                // default: true (if no value is set in the database)
+                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
+        }
+    }
+
     protected function setDates(array &$documents): void
     {
         $ids = array_map(function ($document) {
@@ -19,16 +32,16 @@ class DocumentManager extends ObjectManager
         }
     }
 
-    protected function setPublics(array &$documents): void
+    protected function setComments(array &$documents): void
     {
         $ids = array_map(function ($document) {
             return $document->getId();
         }, $documents);
-        $rawPublics = $this->dbs->getPublics($ids);
-        foreach ($rawPublics as $rawPublic) {
-            $documents[$rawPublic['document_id']]
-                // default: true (if no value is set in the database)
-                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
+        $rawComments = $this->dbs->getComments($ids);
+        foreach ($rawComments as $rawComment) {
+            $documents[$rawComment['document_id']]
+                ->setPublicComment($rawComment['public_comment'])
+                ->setPrivateComment($rawComment['private_comment']);
         }
     }
 
@@ -63,16 +76,6 @@ class DocumentManager extends ObjectManager
                 }
             }
             $document->setBibliographies($bibliographies);
-        }
-    }
-
-    protected function setComments(Document &$document): void
-    {
-        // Comments
-        $rawComments = $this->dbs->getComments([$document->getId()]);
-        if (count($rawComments) == 1) {
-            $document->setPublicComment($rawComments[0]['public_comment']);
-            $document->setPrivateComment($rawComments[0]['private_comment']);
         }
     }
 }

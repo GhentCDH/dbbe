@@ -329,6 +329,12 @@ class Manuscript extends Document implements IdJsonInterface
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getElastic();
         }
+        if (isset($this->publicComment)) {
+            $result['public_comment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['private_comment'] = $this->privateComment;
+        }
 
         return $result;
     }

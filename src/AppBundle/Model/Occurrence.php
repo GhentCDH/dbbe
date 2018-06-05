@@ -345,6 +345,12 @@ class Occurrence extends Document
         if (isset($this->genre)) {
             $result['genre'] = $this->genre->getShortJson();
         }
+        if (isset($this->publicComment)) {
+            $result['public_comment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['private_comment'] = $this->privateComment;
+        }
 
         return $result;
     }

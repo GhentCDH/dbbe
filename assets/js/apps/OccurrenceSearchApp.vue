@@ -49,6 +49,30 @@
                             v-html="item" />
                     </ol>
                 </template>
+                <template
+                    slot="comment"
+                    slot-scope="props">
+                    <template v-if="props.row.public_comment">
+                        <em v-if="isEditor">Public</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.public_comment"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                    <template v-if="props.row.private_comment">
+                        <em>Private</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.private_comment"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                </template>
                 <a
                     slot="incipit"
                     slot-scope="props"
@@ -233,11 +257,19 @@ export default {
                         validator: VueFormGenerator.validators.number,
                     },
                     genre: this.createMultiSelect('Genre'),
+                    comment: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Comment',
+                        model: 'comment',
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             tableOptions: {
                 headings: {
                     text: 'Text (matching verses only)',
+                    comment: 'Comment (matching lines only)',
                 },
                 filterable: false,
                 orderBy: {
@@ -249,7 +281,7 @@ export default {
                 customFilters: ['filters'],
                 requestFunction: Search.requestFunction,
                 rowClassCallback: function(row) {
-                    return row.public ? '' : 'warning'
+                    return (row.public == null || row.public) ? '' : 'warning'
                 },
             },
             delOccurrence: {
@@ -276,6 +308,9 @@ export default {
             let columns = ['incipit', 'manuscript', 'date']
             if (this.textSearch) {
                 columns.unshift('text')
+            }
+            if (this.commentSearch) {
+                columns.unshift('comment')
             }
             if (this.isEditor) {
                 columns.push('actions')

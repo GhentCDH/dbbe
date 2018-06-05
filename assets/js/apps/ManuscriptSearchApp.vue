@@ -38,6 +38,30 @@
                 :options="tableOptions"
                 @data="onData"
                 @loaded="onLoaded">
+                <template
+                    slot="comment"
+                    slot-scope="props">
+                    <template v-if="props.row.public_comment">
+                        <em v-if="isEditor">Public</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.public_comment"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                    <template v-if="props.row.private_comment">
+                        <em>Private</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.private_comment"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                </template>
                 <a
                     slot="name"
                     slot-scope="props"
@@ -198,7 +222,7 @@ export default {
                         model: 'year_from',
                         min: Search.YEAR_MIN,
                         max: Search.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
+                        validator: VueFormGenerator.validators.number,
                     },
                     year_to: {
                         type: 'input',
@@ -207,15 +231,25 @@ export default {
                         model: 'year_to',
                         min: Search.YEAR_MIN,
                         max: Search.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number
+                        validator: VueFormGenerator.validators.number,
                     },
                     content: this.createMultiSelect('Content'),
                     patron: this.createMultiSelect('Patron'),
                     scribe: this.createMultiSelect('Scribe'),
-                    origin: this.createMultiSelect('Origin')
+                    origin: this.createMultiSelect('Origin'),
+                    comment: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Comment',
+                        model: 'comment',
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             tableOptions: {
+                headings: {
+                    comment: 'Comment (matching lines only)',
+                },
                 'filterable': false,
                 'orderBy': {
                     'column': 'name'
@@ -226,7 +260,7 @@ export default {
                 customFilters: ['filters'],
                 requestFunction: Search.requestFunction,
                 rowClassCallback: function(row) {
-                    return row.public ? '' : 'warning'
+                    return (row.public == null || row.public) ? '' : 'warning'
                 },
             },
             delManuscript: {
@@ -251,6 +285,9 @@ export default {
     computed: {
         tableColumns() {
             let columns = ['name', 'date', 'content']
+            if (this.commentSearch) {
+                columns.unshift('comment')
+            }
             if (this.isEditor) {
                 columns.push('actions')
             }
