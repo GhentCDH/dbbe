@@ -184,6 +184,49 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% if occurrence.getBibliographies()|primary is not empty %}
+                                <p><em>Primary</em></p>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographies()|primary} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                            {% if occurrence.getBibliographies()|secondary is not empty %}
+                                <p><em>Secondary</em></p>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographies()|secondary} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if occurrence.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ occurrence.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if occurrence.getRecordStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Record Status</td>
+                            <td>{{ occurrence.getRecordStatus() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if occurrence.getPublic()|default is not null %}
+                        <tr class="danger">
+                            <td>Publication state</td>
+                            <td>{{ occurrence.getPublic() ? 'Public': 'Not public' }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
             </tbody>
         </table>
 

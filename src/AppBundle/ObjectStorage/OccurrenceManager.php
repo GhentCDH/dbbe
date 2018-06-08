@@ -212,12 +212,23 @@ class OccurrenceManager extends DocumentManager
 
         $this->setBibliographies($occurrence);
 
-        // text status
-        $rawTextStatuses = $this->dbs->getTextStatuses([$id]);
+        // text and record status
+        $rawStatuses = $this->dbs->getStatuses([$id]);
+        $rawTextStatuses = array_values(array_filter($rawStatuses, function ($rawStatus) {
+            return $rawStatus['type'] == 'occurrence_text';
+        }));
+        $rawRecordStatuses = array_values(array_filter($rawStatuses, function ($rawStatus) {
+            return $rawStatus['type'] == 'occurrence_record';
+        }));
         if (count($rawTextStatuses) == 1) {
             $occurrence
                 ->setTextStatus(new Status($rawTextStatuses[0]['status_id'], $rawTextStatuses[0]['status_name']))
                 ->addCacheDependency('status.' . $rawTextStatuses[0]['status_id']);
+        }
+        if (count($rawRecordStatuses) == 1) {
+            $occurrence
+                ->setRecordStatus(new Status($rawRecordStatuses[0]['status_id'], $rawRecordStatuses[0]['status_name']))
+                ->addCacheDependency('status.' . $rawRecordStatuses[0]['status_id']);
         }
 
         // type
