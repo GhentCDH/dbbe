@@ -236,6 +236,9 @@ class RegionManager extends ObjectManager
             if (!array_key_exists($secondaryId, $regionsWithParents)) {
                 throw new NotFoundHttpException('Region with id ' . $secondaryId .' not found.');
             }
+            throw new BadRequestHttpException(
+                'Regions with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
+            );
         }
         list($primary, $secondary) = array_values($regionsWithParents);
         $updates = [];
@@ -298,10 +301,13 @@ class RegionManager extends ObjectManager
             }
             $this->delRegion($secondaryId);
 
+            $this->cache->invalidateTags(['regions']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
+            // TODO: invalidate caches and revert elasticsearch updates when rolling back, because part of them can be updated
             throw $e;
         }
 

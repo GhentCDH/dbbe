@@ -401,9 +401,6 @@ class ManuscriptManager extends DocumentManager
 
     private function updateContent(Manuscript $manuscript, array $contents): void
     {
-        if (!is_array($contents)) {
-            throw new BadRequestHttpException('Incorrect data.');
-        }
         foreach ($contents as $content) {
             if (!is_object($content)
                 || !property_exists($content, 'id')

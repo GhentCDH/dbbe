@@ -56,7 +56,7 @@ class StatusService extends DatabaseService
     {
         return $this->conn->executeUpdate(
             'UPDATE data.status
-            set name = ?
+            set status = ?
             where status.idstatus = ?',
             [$name, $statusId]
         );

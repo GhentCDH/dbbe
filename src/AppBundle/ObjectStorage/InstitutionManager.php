@@ -112,6 +112,7 @@ class InstitutionManager extends ObjectManager
             $this->cache->deleteItem('institution.' . $institutionId);
             $newInstitution = $this->getInstitutionsByIds([$institutionId])[$institutionId];
 
+            // TODO: make sure parent edits are logged
             $this->updateModified($institution, $newInstitution);
 
             // update cache

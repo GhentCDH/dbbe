@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use stdClass;
 use Exception;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -186,19 +188,32 @@ class ContentManager extends ObjectManager
             if (!array_key_exists($secondaryId, $contentsWithParents)) {
                 throw new NotFoundHttpException('Content with id ' . $secondaryId .' not found.');
             }
+            throw new BadRequestHttpException(
+                'Contents with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
+            );
         }
         list($primary, $secondary) = array_values($contentsWithParents);
 
-        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByContent($secondaryId);
+        $miniManuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByContent($secondaryId);
+        $shortManuscripts = $this->container->get('manuscript_manager')->getShortManuscriptsByIds(
+            array_map(function ($miniManuscript) {
+                return $miniManuscript->getId();
+            }, $miniManuscripts)
+        );
         $contents = $this->getContentsWithParentsByContent($secondaryId);
 
         $this->dbs->beginTransaction();
         try {
-            if (!empty($manuscripts)) {
-                foreach ($manuscripts as $manuscript) {
+            if (!empty($shortManuscripts)) {
+                foreach ($shortManuscripts as $manuscript) {
+                    $contentArray = ArrayToJson::arrayToShortJson($manuscript->getContentsWithParents());
+                    $contentArray = array_values(array_filter($contentArray, function ($contentItem) use ($secondaryId) {
+                        return $contentItem['id'] !== $secondaryId;
+                    }));
+                    $contentArray[] = ['id' => $primaryId];
                     $this->container->get('manuscript_manager')->updateManuscript(
                         $manuscript->getId(),
-                        json_decode(json_encode(['content' => ['id' => $primaryId]]))
+                        json_decode(json_encode(['content' => $contentArray]))
                     );
                 }
             }
@@ -212,10 +227,13 @@ class ContentManager extends ObjectManager
             }
             $this->delContent($secondaryId);
 
+            $this->cache->invalidateTags(['contents']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
+            // TODO: invalidate caches and revert elasticsearch updates when rolling back, because part of them can be updated
             throw $e;
         }
 

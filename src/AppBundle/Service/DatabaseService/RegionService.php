@@ -199,7 +199,7 @@ class RegionService extends DatabaseService
             [$regionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This region has dependencies.');
+            throw new DependencyException('This region has located_at dependencies.');
         }
         // don't delete if this region is used in factoid
         $count = $this->conn->executeQuery(
@@ -210,7 +210,7 @@ class RegionService extends DatabaseService
             [$regionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This region has dependencies.');
+            throw new DependencyException('This region has factoid dependencies.');
         }
         // don't delete if this region is used in institution
         $count = $this->conn->executeQuery(
@@ -220,7 +220,7 @@ class RegionService extends DatabaseService
             [$regionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This region has dependencies.');
+            throw new DependencyException('This region has institution dependencies.');
         }
         // don't delete if this region is used in region (as parent)
         $count = $this->conn->executeQuery(
@@ -230,7 +230,7 @@ class RegionService extends DatabaseService
             [$regionId]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This region has dependencies.');
+            throw new DependencyException('This region has region dependencies.');
         }
         // Set search_path for trigger delete_entity
         // Pleiades id is deleted by foreign key constraint
