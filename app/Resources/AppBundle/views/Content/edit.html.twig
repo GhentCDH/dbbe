@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-12">
+        <h2 class="h1">
+            Edit contents
+        </h2>
+    </div>
+    <div id="contents-edit-app">
+        <contents-edit-app
+            init-urls="{{ urls }}"
+            init-data="{{ contents }}"            
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/contentsedit.js") }}"></script>
+{% endblock %}

@@ -36,7 +36,7 @@ export default {
             inputCancel: null,
             // Remove requesting the same data that is already displayed
             oldFilterValues: {},
-            delModal: false,
+            deleteModal: false,
             delDependencies: [],
             alerts: [],
             textSearch: false,
@@ -263,7 +263,6 @@ export default {
             this.openRequests--
         },
         pushHistory(data) {
-            console.log(data)
             history.pushState(data, document.title, document.location.href.split('?')[0] + '?' + qs.stringify(data))
         },
         popHistory(event) {
@@ -326,7 +325,6 @@ export default {
         },
     },
     requestFunction (data) {
-        console.log(this.$parent.historyRequest)
         // Remove unused parameters
         delete data['query']
         delete data['byColumn']

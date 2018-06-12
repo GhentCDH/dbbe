@@ -42,15 +42,43 @@ class ContentController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $contentsWithParents = $this->get('content_manager')->getAllContentsWithParents();
-
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(ArrayToJson::arrayToJson($contentsWithParents));
+            return new JsonResponse(
+                ArrayToJson::arrayToJson(
+                    $this->get('content_manager')->getAllContentsWithParents()
+                )
+            );
         }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
+    }
+
+    /**
+     * @Route("/contents/edit", name="contents_edit")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function editContents(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
         return $this->render(
-            'AppBundle:Content:overview.html.twig',
+            'AppBundle:Content:edit.html.twig',
             [
-                'contents' => json_encode(ArrayToJson::arrayToJson($contentsWithParents)),
+                'urls' => json_encode([
+                    'contents_get' => $this->generateUrl('contents_get'),
+                    'manuscript_deps_by_content' => $this->generateUrl('manuscript_deps_by_content', ['id' => 'content_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'contents_by_content' => $this->generateUrl('contents_by_content', ['id' => 'content_id']),
+                    'content_post' => $this->generateUrl('content_post'),
+                    'content_merge' => $this->generateUrl('content_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'content_put' => $this->generateUrl('content_put', ['id' => 'content_id']),
+                    'content_delete' => $this->generateUrl('content_delete', ['id' => 'content_id']),
+                ]),
+                'contents' => json_encode(
+                    ArrayToJson::arrayToJson(
+                        $this->get('content_manager')->getAllContentsWithParents()
+                    )
+                ),
             ]
         );
     }

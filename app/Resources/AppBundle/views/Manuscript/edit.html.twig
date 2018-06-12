@@ -7,7 +7,7 @@
                 Edit Manuscript
                 <span class="small">
                     <a
-                        href="{{ path('manuscript_show', {'id': id}) }}"
+                        href="{{ path('manuscript_get', {'id': id}) }}"
                         class="action pull-right"
                         title="View the manuscript">
                         <i class="fa fa-eye"></i>
@@ -20,29 +20,13 @@
     </div>
     <div id="manuscript-edit-app">
         <manuscript-edit-app
-            get-manuscript-url="{{ (id is not empty) ? path('manuscript_show', {'id': id}) : path('manuscript_show', {'id': 'manuscript_id'}) }}"
-            post-manuscript-url="{{ path('manuscript_post') }}"
-            put-manuscript-url="{{ (id is not empty) ? path('manuscript_put', {'id': id}) : '' }}"
-            get-locations-url="{{ path('locations_get') }}"
-            get-contents-url="{{ path('contents_get') }}"
-            get-origins-url="{{ path('origins_get') }}"
-            get-statuses-url="{{ path('statuses_get') }}"
-            init-manuscript="{{ manuscript }}"
-            init-locations="{{ locations }}"
-            init-contents="{{ contents }}"
-            init-patrons="{{ patrons }}"
-            init-scribes="{{ scribes }}"
-            init-related-persons="{{ relatedPersons }}"
-            init-origins="{{ origins }}"
-            init-books="{{ books }}"
-            init-articles="{{ articles }}"
-            init-book-chapters="{{ bookChapters }}"
-            init-online-sources="{{ onlineSources }}"
-            init-statuses="{{ statuses }}"
+            init-urls = "{{ urls }}"
+            init-data="{{ data }}"
         />
     </div>
 {% endblock %}
 
 {% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
     <script type="text/javascript" src="{{ asset("/build/manuscriptedit.js") }}"></script>
 {% endblock %}

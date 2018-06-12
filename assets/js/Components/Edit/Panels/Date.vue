@@ -21,8 +21,8 @@
 import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
 
-import Abstract from '../Abstract'
-import Fields from '../../Fields'
+import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -32,7 +32,10 @@ var YEAR_MIN = 1
 var YEAR_MAX = (new Date()).getFullYear()
 
 export default {
-    mixins: [ Abstract, Fields ],
+    mixins: [
+        AbstractField,
+        AbstractPanelForm,
+    ],
     data() {
         return {
             schema: {

@@ -65,7 +65,7 @@ class ManuscriptController extends Controller
     }
 
     /**
-     * @Route("/manuscripts/{id}", name="manuscript_show")
+     * @Route("/manuscripts/{id}", name="manuscript_get")
      * @Method("GET")
      * @param  int    $id manuscript id
      * @param Request $request
@@ -312,42 +312,31 @@ class ManuscriptController extends Controller
             'AppBundle:Manuscript:edit.html.twig',
             [
                 'id' => $id,
-                'manuscript' => empty($id)
-                    ? null
-                    : json_encode($this->get('manuscript_manager')->getManuscriptById($id)->getJson()),
-                'locations' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts())
-                ),
-                'contents' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents())
-                ),
-                'patrons' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons())
-                ),
-                'scribes' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes())
-                ),
-                'relatedPersons' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons())
-                ),
-                'origins' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins())
-                ),
-                'books' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks())
-                ),
-                'articles' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles())
-                ),
-                'bookChapters' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters())
-                ),
-                'onlineSources' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources())
-                ),
-                'statuses' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses())
-                ),
+                'urls' => json_encode([
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => $id == null ? 'manuscript_id' : $id]),
+                    'manuscript_post' => $this->generateUrl('manuscript_post'),
+                    'manuscript_put' => $this->generateUrl('manuscript_put', ['id' => $id]),
+                    'locations_edit' => $this->generateUrl('locations_edit'),
+                    'contents_edit' => $this->generateUrl('contents_edit'),
+                    'origins_edit' => $this->generateUrl('origins_edit'),
+                    'statuses_edit' => $this->generateUrl('statuses_edit'),
+                ]),
+                'data' => json_encode([
+                    'manuscript' => empty($id)
+                        ? null
+                        : $this->get('manuscript_manager')->getManuscriptById($id)->getJson(),
+                    'locations' => ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts()),
+                    'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
+                    'patrons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons()),
+                    'scribes' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes()),
+                    'relatedPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
+                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
+                    'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),
+                    'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
+                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
+                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
+                    'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),
+                ]),
             ]
         );
     }

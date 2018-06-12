@@ -218,7 +218,7 @@
                 <btn @click="editBibModal=false">Cancel</btn>
                 <btn
                     type="success"
-                    :disabled="invalidBibForm"
+                    :disabled="!isValid"
                     @click="submitBib()">
                     {{ bibIndex > -1 ? 'Update' : 'Add' }}
                 </btn>
@@ -247,15 +247,18 @@ import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
-import Abstract from '../Abstract'
-import Fields from '../../Fields'
+import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [ Abstract, Fields ],
+    mixins: [
+        AbstractField,
+        AbstractPanelForm,
+    ],
     props: {
         values: {
             type: Object,
@@ -379,7 +382,6 @@ export default {
             delBibModal: false,
             bibIndex: null,
             editBib: {},
-            invalidBibForm: true,
         }
     },
     computed: {
@@ -415,6 +417,7 @@ export default {
             this.enableField(this.editBookChapterBibSchema.fields.bookChapter)
             this.enableField(this.editOnlineSourceSchema.fields.onlineSource)
         },
+        validate() {},
         calcChanges() {
             this.changes = []
             for (let key of Object.keys(this.model)) {
@@ -449,7 +452,7 @@ export default {
             this.editBibModal = true
         },
         bibFormValidated(isValid, errors) {
-            this.invalidBibForm = !isValid
+            this.isValid = isValid
         },
         submitBib() {
             this.$refs.editBibForm.validate()

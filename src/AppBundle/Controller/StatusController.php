@@ -23,17 +23,40 @@ class StatusController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $statuses = ArrayToJson::arrayToJson(
-            $this->get('status_manager')->getAllStatuses()
-        );
-
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse($statuses);
+            return new JsonResponse(
+                ArrayToJson::arrayToJson(
+                    $this->get('status_manager')->getAllStatuses()
+                )
+            );
         }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
+    }
+
+    /**
+     * @Route("/statuses/edit", name="statuses_edit")
+     * @param Request $request
+     */
+    public function editStatuses(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
         return $this->render(
-            'AppBundle:Status:overview.html.twig',
+            'AppBundle:Status:edit.html.twig',
             [
-                'statuses' => json_encode($statuses),
+                'urls' => json_encode([
+                    'statuses_get' => $this->generateUrl('statuses_get'),
+                    'manuscript_deps_by_status' => $this->generateUrl('manuscript_deps_by_status', ['id' => 'status_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'status_post' => $this->generateUrl('status_post'),
+                    'status_put' => $this->generateUrl('status_put', ['id' => 'status_id']),
+                    'status_delete' => $this->generateUrl('status_delete', ['id' => 'status_id']),
+                ]),
+                'statuses' => json_encode(
+                    ArrayToJson::arrayToJson(
+                        $this->get('status_manager')->getAllStatuses()
+                    )
+                ),
             ]
         );
     }

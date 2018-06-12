@@ -1,277 +1,105 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">Edit content</div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="contentSchema"
-                                :model="model" />
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                href="#"
-                                class="action"
-                                title="Add a new content"
-                                @click.prevent="editContent(true)">
-                                <i class="fa fa-plus" />
-                            </a>
-                            <a
-                                v-if="model.content"
-                                href="#"
-                                class="action"
-                                title="Edit the selected content"
-                                @click.prevent="editContent()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                v-if="model.content"
-                                href="#"
-                                class="action"
-                                title="Merge the selected content with another content"
-                                @click.prevent="mergeContent()">
-                                <i class="fa fa-compress" />
-                            </a>
-                            <a
-                                v-if="model.content"
-                                href="#"
-                                class="action"
-                                title="Delete the selected content"
-                                @click.prevent="delContent()">
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
+            <panel header="Edit contents">
+                <editListRow
+                    :schema="contentSchema"
+                    :model="model"
+                    name="content"
+                    :conditions="{
+                        add: true,
+                        edit: model.content,
+                        merge: model.content,
+                        del: model.content,
+                    }"
+                    @add="editContent(true)"
+                    @edit="editContent()"
+                    @merge="mergeContent()"
+                    @del="delContent()" />
+            </panel>
             <div
                 class="loading-overlay"
                 v-if="openRequests">
                 <div class="spinner" />
             </div>
         </article>
-        <modal
-            v-model="editModal"
-            size="lg"
-            auto-focus>
-            <vue-form-generator
-                :schema="editContentSchema"
-                :model="editModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <div slot="header">
-                <h4
-                    v-if="editModel && editModel.id"
-                    class="modal-title">
-                    Edit content {{ editModal.name }}
-                </h4>
-                <h4
-                    v-else
-                    class="modal-title">
-                    Add a new content
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="editModal=false">Cancel</btn>
-                <btn
-                    :disabled="JSON.stringify(editModel) === JSON.stringify(originalEditModel)"
-                    type="warning"
-                    @click="resetEdit()">
-                    Reset
-                </btn>
-                <btn
-                    v-if="editModel"
-                    type="success"
-                    :disabled="invalidEditForm || JSON.stringify(editModel) === JSON.stringify(originalEditModel)"
-                    @click="submitEdit()">
-                    {{ (editModel.id) ? 'Update' : 'Add' }}
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="mergeModal"
-            size="lg"
-            auto-focus>
-            <vue-form-generator
-                :schema="mergeContentSchema"
-                :model="mergeModel"
-                :options="formOptions"
-                @validated="mergeFormValidated" />
-            <div slot="header">
-                <h4 class="modal-title">
-                    Merge content
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="mergeModal=false">Cancel</btn>
-                <btn
-                    :disabled="JSON.stringify(mergeModel) === JSON.stringify(originalMergeModel)"
-                    type="warning"
-                    @click="resetMerge()">
-                    Reset
-                </btn>
-                <btn
-                    v-if="editModel"
-                    type="success"
-                    :disabled="invalidMergeForm"
-                    @click="submitMerge()">
-                    Merge
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="delModal"
-            size="lg"
-            auto-focus>
-            <div v-if="Object.keys(delDependencies).length !== 0">
-                <p>This content has following dependencies that need to be resolved first:</p>
-                <ul>
-                    <li
-                        v-for="dependency in delDependencies.manuscripts"
-                        :key="dependency.id">
-                        Manuscript
-                        <a :href="getManuscriptUrl.replace('manuscript_id', dependency.id)">{{ dependency.name }}</a>
-                    </li>
-                    <li
-                        v-for="dependency in delDependencies.contents"
-                        :key="dependency.id">
-                        Content
-                        <!-- <a :href="getContentUrl.replace('content_id', dependency.id)">{{ dependency.name }}</a> -->
-                        {{ dependency.name }}
-                    </li>
-                </ul>
-            </div>
-            <div v-else-if="delModel">
-                <p>Are you sure you want to delete content "{{ delModel.name }}"?</p>
-            </div>
-            <div slot="header">
-                <h4
-                    v-if="delModel"
-                    class="modal-title">
-                    Delete content {{ delModel.name }}
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
-                <btn
-                    type="danger"
-                    :disabled="Object.keys(delDependencies).length !== 0"
-                    @click="submitDelete()">
-                    Delete
-                </btn>
-            </div>
-        </modal>
+        <editModal
+            :show="editModal"
+            :schema="editContentSchema"
+            :submit-model="submitModel"
+            :original-submit-model="originalSubmitModel"
+            @cancel="editModal=false"
+            @reset="resetEdit()"
+            @confirm="submitEdit()" />
+        <mergeModal
+            :show="mergeModal"
+            :schema="mergeContentSchema"
+            :merge-model="mergeModel"
+            :original-merge-model="originalMergeModel"
+            @cancel="mergeModal=false"
+            @reset="resetMerge()"
+            @confirm="submitMerge()">
+            <table
+                v-if="mergeModel.primary && mergeModel.secondary"
+                slot="preview"
+                class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ mergeModel.primary.name || mergeModel.secondary.name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </mergeModal>
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()" />
     </div>
 </template>
 
 <script>
-window.axios = require('axios')
-
-import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import * as uiv from 'uiv'
-import VueMultiselect from 'vue-multiselect'
 
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
-
-import Fields from '../Components/Fields'
-
-Vue.use(VueFormGenerator)
-Vue.use(uiv)
-
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+import AbstractField from '../Components/FormFields/AbstractField'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 export default {
-    mixins: [ Fields ],
-    props: {
-        initContents: {
-            type: String,
-            default: '',
-        },
-        getContentsUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptDepsByContentUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        getContentsByContentUrl: {
-            type: String,
-            default: '',
-        },
-        postContentUrl: {
-            type: String,
-            default: '',
-        },
-        putContentUrl: {
-            type: String,
-            default: '',
-        },
-        putContentMergeUrl: {
-            type: String,
-            default: '',
-        },
-        deleteContentUrl: {
-            type: String,
-            default: '',
-        },
-    },
+    mixins: [
+        AbstractField,
+        AbstractListEdit,
+    ],
     data() {
         return {
-            alerts: [],
-            delDependencies: {},
-            delModal: false,
-            delModel: {
-                content: null,
-            },
-            editModal: false,
-            editModel: {
-                id: null,
-                parent: null,
-                name: null,
+            contentSchema: {
+                fields: {
+                    content: this.createMultiSelect('Content'),
+                },
             },
             editContentSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent'),
+                    parent: this.createMultiSelect('Parent', {model: 'content.parent'}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
                         label: 'Content name',
                         labelClasses: 'control-label',
-                        model: 'individualName',
+                        model: 'content.individualName',
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
                 },
-            },
-            formOptions: {
-                validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
-            },
-            invalidEditForm: true,
-            invalidMergeForm: true,
-            mergeModal: false,
-            mergeModel: {
-                primary: null,
-                secondary: null,
             },
             mergeContentSchema: {
                 fields: {
@@ -282,34 +110,52 @@ export default {
             model: {
                 content: null,
             },
-            openRequests: 0,
-            originalEditModel: {},
-            originalMergeModel: {},
-            contentSchema: {
-                fields: {
-                    content: this.createMultiSelect('Content'),
-                },
+            submitModel: {
+                type: 'content',
+                content: {
+                    id: null,
+                    parent: null,
+                    name: null,
+                }
             },
-            contentValues: JSON.parse(this.initContents),
+            mergeModel: {
+                type: 'contents',
+                primary: null,
+                secondary: null,
+            },
         }
+    },
+    computed: {
+        depUrls: function () {
+            return {
+                'Manuscripts': {
+                    depUrl: this.urls['manuscript_deps_by_content'].replace('content_id', this.submitModel.content.id),
+                    url: this.urls['manuscript_get'],
+                    urlIdentifier: 'manuscript_id',
+                },
+                'Contents': {
+                    depUrl: this.urls['contents_by_content'].replace('content_id', this.submitModel.content.id),
+                },
+            }
+        },
     },
     watch: {
         'model.content'() {
             // set full parent, so the name can be formatted correctly
             if (this.model.content != null && this.model.content.parent != null) {
-                this.model.content.parent = this.contentValues.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
+                this.model.content.parent = this.values.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
             }
         },
     },
     mounted () {
-        this.contentSchema.fields.content.values = this.contentValues
+        this.contentSchema.fields.content.values = this.values
         this.enableField(this.contentSchema.fields.content)
     },
     methods: {
         editContent(add = false) {
             // TODO: check if name already exists
             if (add) {
-                this.editModel =  {
+                this.submitModel.content =  {
                     id: null,
                     name: null,
                     parent: this.model.content,
@@ -317,75 +163,40 @@ export default {
                 }
             }
             else {
-                this.editModel = this.model.content
+                this.submitModel.content = this.model.content
             }
-            this.editContentSchema.fields.parent.values = this.contentValues
-                .filter(content => content.id != this.editModel.id) // Remove current content
+            this.editContentSchema.fields.parent.values = this.values
+                .filter(content => content.id != this.submitModel.content.id) // Remove current content
             this.enableField(this.editContentSchema.fields.parent)
-            this.originalEditModel = JSON.parse(JSON.stringify(this.editModel))
+            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
-        },
-        editFormValidated(isValid, errors) {
-            this.invalidEditForm = !isValid
-        },
-        resetEdit() {
-            this.editModel = JSON.parse(JSON.stringify(this.originalEditModel))
         },
         mergeContent() {
             this.mergeModel.primary = this.model.content
             this.mergeModel.secondary = null
-            this.mergeContentSchema.fields.primary.values = this.contentValues
-            this.mergeContentSchema.fields.secondary.values = this.contentValues
+            this.mergeContentSchema.fields.primary.values = this.values
+            this.mergeContentSchema.fields.secondary.values = this.values
             this.enableField(this.mergeContentSchema.fields.primary)
             this.enableField(this.mergeContentSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },
-        mergeFormValidated(isValid, errors) {
-            this.invalidMergeForm = !isValid
-        },
-        resetMerge() {
-            this.mergeModel = JSON.parse(JSON.stringify(this.originalMergeModel))
-        },
         delContent() {
-            this.delModel = this.model.content
+            this.submitModel.content = this.model.content
             this.deleteDependencies()
-        },
-        deleteDependencies() {
-            this.openRequests++
-            axios.all([
-                axios.get(this.getManuscriptDepsByContentUrl.replace('content_id', this.delModel.id)),
-                axios.get(this.getContentsByContentUrl.replace('content_id', this.delModel.id)),
-            ])
-                .then((results) => {
-                    this.delDependencies = {}
-                    if (results[0].data.length > 0) {
-                        this.delDependencies.manuscripts = results[0].data
-                    }
-                    if (results[1].data.length > 0) {
-                        this.delDependencies.contents = results[1].data
-                    }
-                    this.delModal = true
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
-                    console.log(error)
-                })
         },
         submitEdit() {
             this.editModal = false
             this.openRequests++
-            if (this.editModel.id == null) {
-                axios.post(this.postContentUrl, {
-                    parent: this.editModel.parent == null ? null : {
-                        id: this.editModel.parent.id,
+            if (this.submitModel.content.id == null) {
+                axios.post(this.urls['content_post'], {
+                    parent: this.submitModel.content.parent == null ? null : {
+                        id: this.submitModel.content.parent.id,
                     },
-                    individualName: this.editModel.individualName,
+                    individualName: this.submitModel.content.individualName,
                 })
                     .then( (response) => {
-                        this.editModel = response.data
+                        this.submitModel.content = response.data
                         this.update()
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
@@ -398,31 +209,31 @@ export default {
             }
             else {
                 let data = {}
-                if (JSON.stringify(this.editModel.parent) !== JSON.stringify(this.originalEditModel.parent)) {
-                    if (this.editModel.parent == null) {
+                if (JSON.stringify(this.submitModel.content.parent) !== JSON.stringify(this.originalSubmitModel.content.parent)) {
+                    if (this.submitModel.content.parent == null) {
                         data.parent = null
                     }
                     else {
                         data.parent = {
-                            id: this.editModel.parent.id
+                            id: this.submitModel.content.parent.id
                         }
                     }
                 }
-                if (this.editModel.individualName !== this.originalEditModel.individualName) {
-                    data.individualName = this.editModel.individualName
+                if (this.submitModel.content.individualName !== this.originalSubmitModel.content.individualName) {
+                    data.individualName = this.submitModel.content.individualName
                 }
-                if (this.editModel.individualHistoricalName !== this.originalEditModel.individualHistoricalName) {
-                    data.individualHistoricalName = this.editModel.individualHistoricalName
+                if (this.submitModel.content.individualHistoricalName !== this.originalSubmitModel.content.individualHistoricalName) {
+                    data.individualHistoricalName = this.submitModel.content.individualHistoricalName
                 }
-                if (this.editModel.pleiades !== this.originalEditModel.pleiades) {
-                    data.pleiades = this.editModel.pleiades
+                if (this.submitModel.content.pleiades !== this.originalSubmitModel.content.pleiades) {
+                    data.pleiades = this.submitModel.content.pleiades
                 }
-                if (this.editModel.isCity !== this.originalEditModel.isCity) {
-                    data.isCity = this.editModel.isCity
+                if (this.submitModel.content.isCity !== this.originalSubmitModel.content.isCity) {
+                    data.isCity = this.submitModel.content.isCity
                 }
-                axios.put(this.putContentUrl.replace('content_id', this.editModel.id), data)
+                axios.put(this.urls['content_put'].replace('content_id', this.submitModel.content.id), data)
                     .then( (response) => {
-                        this.editModel = response.data
+                        this.submitModel.content = response.data
                         this.update()
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
@@ -437,26 +248,26 @@ export default {
         submitMerge() {
             this.mergeModal = false
             this.openRequests++
-            axios.put(this.putContentMergeUrl.replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
+            axios.put(this.urls['content_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
                 .then( (response) => {
-                    this.editModel = response.data
+                    this.submitModel.content = response.data
                     this.update()
                     this.alerts.push({type: 'success', message: 'Merge successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the content.'})
+                    this.alerts.push({type: 'error', message: 'Something whent wrong while merging the content.'})
                     console.log(error)
                 })
         },
         submitDelete() {
-            this.delModal = false
+            this.deleteModal = false
             this.openRequests++
-            axios.delete(this.deleteContentUrl.replace('content_id', this.delModel.id))
+            axios.delete(this.urls['content_delete'].replace('content_id', this.submitModel.content.id))
                 .then( (response) => {
-                    this.delModel = null
-                    this.editModel = null
+                    this.submitModel.content = null
+                    this.submitModel.content = null
                     this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
                     this.openRequests--
@@ -469,11 +280,11 @@ export default {
         },
         update() {
             this.openRequests++
-            axios.get(this.getContentsUrl)
+            axios.get(this.urls['contents_get'])
                 .then( (response) => {
-                    this.contentValues = response.data
-                    this.contentSchema.fields.content.values = this.contentValues
-                    this.model.content = this.editModel
+                    this.values = response.data
+                    this.contentSchema.fields.content.values = this.values
+                    this.model.content = this.submitModel.content
                     this.openRequests--
                 })
                 .catch( (error) => {

@@ -68,15 +68,18 @@ import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
-import Abstract from '../Abstract'
-import Fields from '../../Fields'
+import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [ Abstract, Fields ],
+    mixins: [
+        AbstractField,
+        AbstractPanelForm,
+    ],
     props: {
         occurrencePatrons: {
             type: Array,

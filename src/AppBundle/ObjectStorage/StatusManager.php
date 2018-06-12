@@ -66,6 +66,20 @@ class StatusManager extends ObjectManager
         });
     }
 
+    public function getAllOccurrenceTextStatuses(): array
+    {
+        return array_filter($this->getAllStatuses(), function ($status) {
+            return $status->getType() == 'occurrence_text';
+        });
+    }
+
+    public function getAllOccurrenceRecordStatuses(): array
+    {
+        return array_filter($this->getAllStatuses(), function ($status) {
+            return $status->getType() == 'occurrence_record';
+        });
+    }
+
     public function addStatus(stdClass $data): Status
     {
         $this->dbs->beginTransaction();

@@ -126,7 +126,7 @@
             </v-server-table>
         </article>
         <modal
-            v-model="delModal"
+            v-model="deleteModal"
             auto-focus>
             <!-- <div v-if="delDependencies.length !== 0">
                 <p>This occurrence has following dependencies that need to be resolved first:</p>
@@ -145,7 +145,7 @@
                 <h4 class="modal-title">Delete occurrence "{{ delOccurrence.name }}"</h4>
             </div>
             <div slot="footer">
-                <btn @click="delModal=false">
+                <btn @click="deleteModal=false">
                     Cancel
                 </btn>
                 <btn
@@ -175,8 +175,8 @@ import VueTables from 'vue-tables-2'
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
 import fieldRadio from '../Components/FormFields/fieldRadio'
 
-import Fields from '../Components/Fields'
-import Search from '../Components/Search'
+import AbstractField from '../Components/FormFields/AbstractField'
+import AbstractSearch from '../Components/Search/AbstractSearch'
 
 Vue.use(uiv)
 Vue.use(VueFormGenerator)
@@ -188,8 +188,8 @@ Vue.component('fieldRadio', fieldRadio)
 
 export default {
     mixins: [
-        Fields,
-        Search,
+        AbstractField,
+        AbstractSearch,
     ],
     props: {
         occurrencesSearchApiUrl: {
@@ -254,8 +254,8 @@ export default {
                         inputType: 'number',
                         label: 'Year from',
                         model: 'year_from',
-                        min: Search.YEAR_MIN,
-                        max: Search.YEAR_MAX,
+                        min: AbstractSearch.YEAR_MIN,
+                        max: AbstractSearch.YEAR_MAX,
                         validator: VueFormGenerator.validators.number,
                     },
                     year_to: {
@@ -263,8 +263,8 @@ export default {
                         inputType: 'number',
                         label: 'Year to',
                         model: 'year_to',
-                        min: Search.YEAR_MIN,
-                        max: Search.YEAR_MAX,
+                        min: AbstractSearch.YEAR_MIN,
+                        max: AbstractSearch.YEAR_MAX,
                         validator: VueFormGenerator.validators.number,
                     },
                     genre: this.createMultiSelect('Genre'),
@@ -290,7 +290,7 @@ export default {
                 perPageValues: [25, 50, 100],
                 sortable: ['incipit', 'manuscript', 'date'],
                 customFilters: ['filters'],
-                requestFunction: Search.requestFunction,
+                requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {
                     return (row.public == null || row.public) ? '' : 'warning'
                 },
@@ -339,7 +339,7 @@ export default {
             axios.get(this.getOccurrenceDepsByOccurrenceUrl.replace('occurrence_id', this.delOccurrence.id))
                 .then((response) => {
                     this.delDependencies = response.data
-                    this.delModal = true
+                    this.deleteModal = true
                     this.openRequests--
                 })
                 .catch((error) => {
@@ -350,7 +350,7 @@ export default {
         },
         submitDelete() {
             this.openRequests++
-            this.delModal = false
+            this.deleteModal = false
             axios.delete(this.delOccurrenceUrl.replace('occurrence_id', this.delOccurrence.id))
                 .then((response) => {
                     this.$refs.resultTable.refresh()

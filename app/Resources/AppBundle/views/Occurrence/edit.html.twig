@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-9">
+        <h2 class="h1">
+            {% if id is not empty %}
+                Edit Occurrence
+                <span class="small">
+                    <a
+                        href="{{ path('occurrence_show', {'id': id}) }}"
+                        class="action pull-right"
+                        title="View the occurrence">
+                        <i class="fa fa-eye"></i>
+                    </a>
+                </span>
+            {% else %}
+                Add Occurrence
+            {% endif %}
+        </h2>
+    </div>
+    <div id="occurrence-edit-app">
+        <occurrence-edit-app
+            get-occurrence-url="{{ (id is not empty) ? path('occurrence_show', {'id': id}) : path('occurrence_show', {'id': 'occurrence_id'}) }}"
+            post-occurrence-url="{{ path('occurrence_post') }}"
+            put-occurrence-url="{{ (id is not empty) ? path('occurrence_put', {'id': id}) : '' }}"
+            get-statuses-url="{{ path('statuses_get') }}"
+            init-patrons="{{ patrons }}"
+            init-scribes="{{ scribes }}"
+            init-books="{{ books }}"
+            init-articles="{{ articles }}"
+            init-book-chapters="{{ bookChapters }}"
+            init-online-sources="{{ onlineSources }}"
+            init-text-statuses="{{ textStatuses }}"
+            init-record-statuses="{{ recordStatuses }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/occurrenceedit.js") }}"></script>
+{% endblock %}

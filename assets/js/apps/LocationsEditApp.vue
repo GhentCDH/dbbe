@@ -1,111 +1,50 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    Edit locations
-                    <a
-                        class="action pull-right"
-                        :href="getRegionsUrl">
-                        <i class="fa fa-edit" />
-                        Add, edit or delete cities (regions)
-                    </a>
-                </div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="citySchema"
-                                :model="model" />
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                v-if="model.regionWithParents"
-                                href="#"
-                                class="action"
-                                title="Edit the name of the selected city"
-                                @click.prevent="editCity()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="librarySchema"
-                                :model="model"/>
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                v-if="model.regionWithParents"
-                                href="#"
-                                class="action"
-                                title="Add a new library"
-                                @click.prevent="editLibrary(true)">
-                                <i class="fa fa-plus" />
-                            </a>
-                            <a
-                                v-if="model.institution"
-                                href="#"
-                                class="action"
-                                title="Edit the selected library"
-                                @click.prevent="editLibrary()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                v-if="model.institution && collectionSchema.fields.collection.values.length === 0"
-                                href="#"
-                                class="action"
-                                title="Delete the selected library"
-                                @click.prevent="delLibrary()">
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="collectionSchema"
-                                :model="model"/>
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                v-if="model.institution"
-                                href="#"
-                                class="action"
-                                title="Add a new collection"
-                                @click.prevent="editCollection(true)">
-                                <i class="fa fa-plus" />
-                            </a>
-                            <a
-                                v-if="model.collection"
-                                href="#"
-                                class="action"
-                                title="Edit the selected collection"
-                                @click.prevent="editCollection()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                v-if="model.collection"
-                                href="#"
-                                class="action"
-                                title="Delete the selected collection"
-                                @click.prevent="delCollection()">
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
+            <panel
+                header="Edit Locations"
+                :link="{
+                    url: urls['regions_edit'],
+                    text: 'Add, edit or delete cities (regions)',
+                }"
+            >
+                <editListRow
+                    :schema="citySchema"
+                    :model="model"
+                    name="city"
+                    :conditions="{
+                        edit: model.regionWithParents,
+                    }"
+                    :titles="{edit: 'Edit the name of the selected city'}"
+                    @edit="editCity()" />
+                <editListRow
+                    :schema="librarySchema"
+                    :model="model"
+                    name="library"
+                    :conditions="{
+                        add: model.regionWithParents,
+                        edit: model.institution,
+                        del: model.institution && collectionSchema.fields.collection.values.length === 0,
+                    }"
+                    @add="editLibrary(true)"
+                    @edit="editLibrary()"
+                    @del="delLibrary()" />
+                <editListRow
+                    :schema="collectionSchema"
+                    :model="model"
+                    name="collection"
+                    :conditions="{
+                        add: model.institution,
+                        edit: model.collection,
+                        del: model.collection,
+                    }"
+                    @add="editCollection(true)"
+                    @edit="editCollection()"
+                    @del="delCollection()" />
+            </panel>
 
             <div
                 class="loading-overlay"
@@ -113,170 +52,38 @@
                 <div class="spinner" />
             </div>
         </article>
-        <modal
-            v-model="editModal"
-            size="lg"
-            auto-focus>
-            <vue-form-generator
-                v-if="submitModel.type === 'regionWithParents'"
-                :schema="editCitySchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <vue-form-generator
-                v-if="submitModel.type === 'institution'"
-                :schema="editLibrarySchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <vue-form-generator
-                v-if="submitModel.type === 'collection'"
-                :schema="editCollectionSchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <div slot="header">
-                <h4
-                    v-if="submitModel[submitModel.type] && submitModel[submitModel.type].id"
-                    class="modal-title">
-                    Edit {{ formatType(submitModel.type) }}
-                </h4>
-                <h4
-                    v-else
-                    class="modal-title">
-                    Add a new {{ formatType(submitModel.type) }}
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="editModal=false">Cancel</btn>
-                <btn
-                    :disabled="JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                    type="warning"
-                    @click="reset()">
-                    Reset
-                </btn>
-                <btn
-                    type="success"
-                    :disabled="invalidEditForm || JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                    @click="submit()">
-                    {{ submitModel[submitModel.type] && submitModel[submitModel.type].id ? 'Update' : 'Add' }}
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="delModal"
-            size="lg"
-            auto-focus>
-            <div v-if="delDependencies.length !== 0">
-                <p>This location has following dependencies that need to be resolved first:</p>
-                <ul>
-                    <li
-                        v-for="dependency in delDependencies"
-                        :key="dependency.id">
-                        <a :href="getManuscriptUrl.replace('manuscript_id', dependency.id)">{{ dependency.name }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div v-else-if="submitModel[submitModel.type] != null">
-                <p>Are you sure you want to delete {{ formatType(submitModel.type) }} "{{ submitModel[submitModel.type].name }}"?</p>
-            </div>
-            <div slot="header">
-                <h4
-                    v-if="submitModel[submitModel.type] != null"
-                    class="modal-title">
-                    Delete {{ formatType(submitModel.type) }} {{ submitModel[submitModel.type].name }}
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
-                <btn
-                    type="danger"
-                    :disabled="delDependencies.length !== 0"
-                    @click="submitDelete()">
-                    Delete
-                </btn>
-            </div>
-        </modal>
+        <editModal
+            :show="editModal"
+            :schema="editSchema"
+            :submit-model="submitModel"
+            :original-submit-model="originalSubmitModel"
+            :format-type="formatType"
+            @cancel="editModal=false"
+            @reset="resetEdit()"
+            @confirm="submitEdit()" />
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            :format-type="formatType"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()" />
     </div>
 </template>
 
 <script>
-window.axios = require('axios')
-
-import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import * as uiv from 'uiv'
-import VueMultiselect from 'vue-multiselect'
 
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
-
-import Fields from '../Components/Fields'
-
-Vue.use(VueFormGenerator)
-Vue.use(uiv)
-
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+import AbstractField from '../Components/FormFields/AbstractField'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 export default {
-    mixins: [ Fields ],
-    props: {
-        initLocations: {
-            type: String,
-            default: '',
-        },
-        getLocationsUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptDepsByInstitutionUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptDepsByCollectionUrl: {
-            type: String,
-            default: '',
-        },
-        getRegionsUrl: {
-            type: String,
-            default: '',
-        },
-        putRegionUrl: {
-            type: String,
-            default: '',
-        },
-        postLibraryUrl: {
-            type: String,
-            default: '',
-        },
-        deleteLibraryUrl: {
-            type: String,
-            default: '',
-        },
-        putLibraryUrl: {
-            type: String,
-            default: '',
-        },
-        postCollectionUrl: {
-            type: String,
-            default: '',
-        },
-        putCollectionUrl: {
-            type: String,
-            default: '',
-        },
-        deleteCollectionUrl: {
-            type: String,
-            default: '',
-        },
-    },
+    mixins: [
+        AbstractField,
+        AbstractListEdit,
+    ],
     data() {
         return {
-            alerts: [],
             citySchema: {
                 fields: {
                     city: this.createMultiSelect('City', {model: 'regionWithParents'}),
@@ -292,8 +99,6 @@ export default {
                     collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
                 }
             },
-            delDependencies: [],
-            delModal: false,
             editCitySchema: {
                 fields: {
                     individualName: {
@@ -336,15 +141,6 @@ export default {
                     }
                 }
             },
-            editModal: false,
-            formOptions: {
-                validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
-            },
-            invalidEditForm: true,
-            openRequests: 0,
-            originalSubmitModel: {},
             model: {
                 regionWithParents: null,
                 institution: null,
@@ -356,8 +152,36 @@ export default {
                 institution: null,
                 collection: null,
             },
-            values: JSON.parse(this.initLocations),
         }
+    },
+    computed: {
+        editSchema: function() {
+            switch (this.submitModel.type) {
+            case 'regionWithParents':
+                return this.editCitySchema
+                break;
+            case 'institution':
+                return this.editLibrarySchema
+                break;
+            default:
+                return this.editCollectionSchema
+            }
+        },
+        depUrls: function() {
+            let depUrls = {
+                'Manuscripts': {
+                    url: this.urls['manuscript_get'],
+                    urlIdentifier: 'manuscript_id',
+                }
+            }
+            if (this.submitModel.type === 'institution') {
+                depUrls['Manuscripts']['depUrl'] = this.urls['manuscript_deps_by_institution'].replace('institution_id', this.submitModel.institution.id)
+            }
+            else {
+                depUrls['Manuscripts']['depUrl'] = this.urls['manuscript_deps_by_collection'].replace('collection_id', this.submitModel.collection.id)
+            }
+            return depUrls
+        },
     },
     watch: {
         'model.regionWithParents'() {
@@ -458,34 +282,7 @@ export default {
             this.submitModel.collection = this.model.collection
             this.deleteDependencies()
         },
-        deleteDependencies() {
-            this.openRequests++
-            let url = ''
-            if (this.submitModel.type === 'institution') {
-                url = this.getManuscriptDepsByInstitutionUrl.replace('institution_id', this.submitModel.institution.id)
-            }
-            else {
-                url = this.getManuscriptDepsByCollectionUrl.replace('collection_id', this.submitModel.collection.id)
-            }
-            axios.get(url)
-                .then( (response) => {
-                    this.delDependencies = response.data
-                    this.delModal = true
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
-                    console.log(error)
-                })
-        },
-        editFormValidated(isValid, errors) {
-            this.invalidEditForm = !isValid
-        },
-        reset() {
-            this.submitModel = JSON.parse(JSON.stringify(this.originalSubmitModel))
-        },
-        submit() {
+        submitEdit() {
             this.editModal = false
             this.openRequests++
             let url = ''
@@ -493,14 +290,14 @@ export default {
             switch(this.submitModel.type) {
             case 'regionWithParents':
                 // Not possible to add cities
-                url = this.putRegionUrl.replace('region_id', this.submitModel.regionWithParents.id)
+                url = this.urls['region_put'].replace('region_id', this.submitModel.regionWithParents.id)
                 data = {
                     individualName: this.submitModel.regionWithParents.individualName,
                 }
                 break
             case 'institution':
                 if (this.submitModel.institution.id == null) {
-                    url = this.postLibraryUrl
+                    url = this.urls['library_post']
                     data = {
                         name: this.submitModel.institution.name,
                         regionWithParents: {
@@ -509,7 +306,7 @@ export default {
                     }
                 }
                 else {
-                    url = this.putLibraryUrl.replace('library_id', this.submitModel.institution.id)
+                    url = this.urls['library_put'].replace('library_id', this.submitModel.institution.id)
                     data = {}
                     if (this.submitModel.institution.name !== this.originalSubmitModel.institution.name) {
                         data.name = this.submitModel.institution.name
@@ -523,7 +320,7 @@ export default {
                 break
             case 'collection':
                 if (this.submitModel.collection.id == null) {
-                    url = this.postCollectionUrl
+                    url = this.urls['collection_post']
                     data = {
                         name: this.submitModel.collection.name,
                         institution: {
@@ -532,7 +329,7 @@ export default {
                     }
                 }
                 else {
-                    url = this.putCollectionUrl.replace('collection_id', this.submitModel.collection.id)
+                    url = this.urls['collection_put'].replace('collection_id', this.submitModel.collection.id)
                     data = {}
                     if (this.submitModel.collection.name !== this.originalSubmitModel.collection.name) {
                         data.name = this.submitModel.collection.name
@@ -595,15 +392,15 @@ export default {
             }
         },
         submitDelete() {
-            this.delModal = false
+            this.deleteModal = false
             this.openRequests++
             let url = ''
             switch(this.submitModel.type) {
             case 'institution':
-                url = this.deleteLibraryUrl.replace('library_id', this.submitModel.institution.id)
+                url = this.urls['library_delete'].replace('library_id', this.submitModel.institution.id)
                 break
             case 'collection':
-                url = this.deleteCollectionUrl.replace('collection_id', this.submitModel.collection.id)
+                url = this.urls['collection_delete'].replace('collection_id', this.submitModel.collection.id)
                 break
             }
             axios.delete(url)
@@ -628,7 +425,7 @@ export default {
         },
         update() {
             this.openRequests++
-            axios.get(this.getLocationsUrl)
+            axios.get(this.urls['locations_get'])
                 .then( (response) => {
                     this.values = response.data
                     switch(this.submitModel.type) {

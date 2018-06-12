@@ -133,7 +133,41 @@ class OccurrenceController extends Controller
      */
     public function editOccurrence(int $id = null, Request $request)
     {
-        throw new \Exception('Not implemented');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        return $this->render(
+            'AppBundle:Occurrence:edit.html.twig',
+            [
+                'id' => $id,
+                'occurrence' => empty($id)
+                    ? null
+                    : json_encode($this->get('occurrence_manager')->getOccurrenceById($id)->getJson()),
+                'patrons' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons())
+                ),
+                'scribes' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes())
+                ),
+                'books' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks())
+                ),
+                'articles' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles())
+                ),
+                'bookChapters' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters())
+                ),
+                'onlineSources' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources())
+                ),
+                'textStatuses' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses())
+                ),
+                'recordStatuses' => json_encode(
+                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses())
+                ),
+            ]
+        );
     }
 
     private function sanitize(array $params): array

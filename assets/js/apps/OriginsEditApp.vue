@@ -1,220 +1,75 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">Edit origin</div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="citySchema"
-                                :model="model" />
-                            <p><span class="small">Cities can be added and deleted on the <a :href="getRegionsUrl">edit regions page</a>.</span></p>
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                v-if="model.regionWithParents"
-                                href="#"
-                                class="action"
-                                title="Edit the selected city"
-                                @click.prevent="editCity()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10">
-                            <vue-form-generator
-                                :schema="monasterySchema"
-                                :model="model"/>
-                        </div>
-                        <div class="col-xs-2 ptop-default">
-                            <a
-                                v-if="model.regionWithParents"
-                                href="#"
-                                class="action"
-                                title="Add a new monastery"
-                                @click.prevent="editMonastery(true)">
-                                <i class="fa fa-plus" />
-                            </a>
-                            <a
-                                v-if="model.institution"
-                                href="#"
-                                class="action"
-                                title="Edit the selected monastery"
-                                @click.prevent="editMonastery()">
-                                <i class="fa fa-pencil-square-o" />
-                            </a>
-                            <a
-                                v-if="model.institution"
-                                href="#"
-                                class="action"
-                                title="Delete the selected monastery"
-                                @click.prevent="delMonastery()">
-                                <i class="fa fa-trash-o" />
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
+            <panel
+                header="Edit origins"
+                :link="{
+                    url: urls['regions_edit'],
+                    text: 'Add, edit or delete cities (regions)',
+                }"
+            >
+                <editListRow
+                    :schema="citySchema"
+                    :model="model"
+                    name="origin"
+                    :conditions="{
+                        edit: model.regionWithParents,
+                    }"
+                    @edit="editCity()" />
+                <editListRow
+                    :schema="monasterySchema"
+                    :model="model"
+                    name="origin"
+                    :conditions="{
+                        add: model.regionWithParents,
+                        edit: model.institution,
+                        del: model.institution,
+                    }"
+                    @add="editMonastery(true)"
+                    @edit="editMonastery()"
+                    @del="delMonastery()" />
+            </panel>
             <div
                 class="loading-overlay"
                 v-if="openRequests">
                 <div class="spinner" />
             </div>
         </article>
-        <modal
-            v-model="editModal"
-            size="lg"
-            auto-focus>
-            <vue-form-generator
-                v-if="submitModel.type === 'regionWithParents'"
-                :schema="editCitySchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <vue-form-generator
-                v-if="submitModel.type === 'institution'"
-                :schema="editMonasterySchema"
-                :model="submitModel"
-                :options="formOptions"
-                @validated="editFormValidated" />
-            <div slot="header">
-                <h4
-                    v-if="submitModel[submitModel.type] && submitModel[submitModel.type].id"
-                    class="modal-title">
-                    Edit {{ formatType(submitModel.type) }}
-                </h4>
-                <h4
-                    v-else
-                    class="modal-title">
-                    Add a new {{ formatType(submitModel.type) }}
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="editModal=false">Cancel</btn>
-                <btn
-                    :disabled="JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                    type="warning"
-                    @click="reset()">
-                    Reset
-                </btn>
-                <btn
-                    type="success"
-                    :disabled="invalidEditForm || JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                    @click="submit()">
-                    {{ submitModel[submitModel.type] && submitModel[submitModel.type].id ? 'Update' : 'Add' }}
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="delModal"
-            size="lg"
-            auto-focus>
-            <div v-if="delDependencies.length !== 0">
-                <p>This origin has following dependencies that need to be resolved first:</p>
-                <ul>
-                    <li
-                        v-for="dependency in delDependencies"
-                        :key="dependency.id">
-                        <a :href="getManuscriptUrl.replace('manuscript_id', dependency.id)">{{ dependency.name }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div v-else-if="submitModel[submitModel.type] != null">
-                <p>Are you sure you want to delete {{ formatType(submitModel.type) }} "{{ submitModel[submitModel.type].name }}"?</p>
-            </div>
-            <div slot="header">
-                <h4
-                    v-if="submitModel[submitModel.type] != null"
-                    class="modal-title">
-                    Delete {{ formatType(submitModel.type) }} {{ submitModel[submitModel.type].name }}
-                </h4>
-            </div>
-            <div slot="footer">
-                <btn @click="delModal=false">Cancel</btn>
-                <btn
-                    type="danger"
-                    :disabled="delDependencies.length !== 0"
-                    @click="submitDelete()">
-                    Delete
-                </btn>
-            </div>
-        </modal>
+        <editModal
+            :show="editModal"
+            :schema="editSchema"
+            :submit-model="submitModel"
+            :original-submit-model="originalSubmitModel"
+            :format-type="formatType"
+            @cancel="editModal=false"
+            @reset="resetEdit()"
+            @confirm="submitEdit()" />
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            :format-type="formatType"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()" />
     </div>
 </template>
 
 <script>
-window.axios = require('axios')
-
-import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import * as uiv from 'uiv'
-import VueMultiselect from 'vue-multiselect'
 
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
-
-import Fields from '../Components/Fields'
-
-Vue.use(VueFormGenerator)
-Vue.use(uiv)
-
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+import AbstractField from '../Components/FormFields/AbstractField'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 export default {
-    mixins: [ Fields ],
-    props: {
-        initOrigins: {
-            type: String,
-            default: '',
-        },
-        getOriginsUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        getManuscriptDepsByInstitutionUrl: {
-            type: String,
-            default: '',
-        },
-        getRegionsUrl: {
-            type: String,
-            default: '',
-        },
-        putRegionUrl: {
-            type: String,
-            default: '',
-        },
-        postMonasteryUrl: {
-            type: String,
-            default: '',
-        },
-        deleteMonasteryUrl: {
-            type: String,
-            default: '',
-        },
-        putMonasteryUrl: {
-            type: String,
-            default: '',
-        },
-    },
+    mixins: [
+        AbstractField,
+        AbstractListEdit,
+    ],
     data() {
         return {
-            alerts: [],
             citySchema: {
                 fields: {
                     city: this.createMultiSelect('City', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
@@ -225,8 +80,6 @@ export default {
                     monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
                 }
             },
-            delDependencies: [],
-            delModal: false,
             editCitySchema: {
                 fields: {
                     individualHistoricalName: {
@@ -254,15 +107,6 @@ export default {
                     }
                 }
             },
-            editModal: false,
-            formOptions: {
-                validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
-            },
-            invalidEditForm: true,
-            openRequests: 0,
-            originalSubmitModel: {},
             model: {
                 regionWithParents: null,
                 institution: null,
@@ -272,8 +116,27 @@ export default {
                 regionWithParents: null,
                 institution: null,
             },
-            values: JSON.parse(this.initOrigins),
         }
+    },
+    computed: {
+        editSchema: function() {
+            switch (this.submitModel.type) {
+            case 'regionWithParents':
+                return this.editCitySchema
+                break;
+            default:
+                return this.editMonasterySchema
+            }
+        },
+        depUrls: function() {
+            return {
+                'Manuscripts': {
+                    depUrl: this.urls['manuscript_deps_by_institution'].replace('institution_id', this.submitModel.institution.id),
+                    url: this.urls['manuscript_get'],
+                    urlIdentifier: 'manuscript_id',
+                }
+            }
+        },
     },
     watch: {
         'model.regionWithParents'() {
@@ -324,27 +187,7 @@ export default {
             this.submitModel.institution = this.model.institution
             this.deleteDependencies()
         },
-        deleteDependencies() {
-            this.openRequests++
-            axios.get(this.getManuscriptDepsByInstitutionUrl.replace('institution_id', this.submitModel.institution.id))
-                .then( (response) => {
-                    this.delDependencies = response.data
-                    this.delModal = true
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
-                    console.log(error)
-                })
-        },
-        editFormValidated(isValid, errors) {
-            this.invalidEditForm = !isValid
-        },
-        reset() {
-            this.submitModel = JSON.parse(JSON.stringify(this.originalSubmitModel))
-        },
-        submit() {
+        submitEdit() {
             this.editModal = false
             this.openRequests++
             let url = ''
@@ -352,14 +195,14 @@ export default {
             switch(this.submitModel.type) {
             case 'regionWithParents':
                 // Not possible to add cities
-                url = this.putRegionUrl.replace('region_id', this.submitModel.regionWithParents.id)
+                url = this.urls['region_put'].replace('region_id', this.submitModel.regionWithParents.id)
                 data = {
                     individualHistoricalName: this.submitModel.regionWithParents.individualHistoricalName,
                 }
                 break
             case 'institution':
                 if (this.submitModel.institution.id == null) {
-                    url = this.postMonasteryUrl
+                    url = this.urls['monastery_post']
                     data = {
                         name: this.submitModel.institution.name,
                         regionWithParents: {
@@ -368,7 +211,7 @@ export default {
                     }
                 }
                 else {
-                    url = this.putMonasteryUrl.replace('monastery_id', this.submitModel.institution.id)
+                    url = this.urls['monastery_put'].replace('monastery_id', this.submitModel.institution.id)
                     data = {}
                     if (this.submitModel.institution.name !== this.originalSubmitModel.institution.name) {
                         data.name = this.submitModel.institution.name
@@ -425,9 +268,9 @@ export default {
             }
         },
         submitDelete() {
-            this.delModal = false
+            this.deleteModal = false
             this.openRequests++
-            axios.delete(this.deleteMonasteryUrl.replace('monastery_id', this.submitModel.institution.id))
+            axios.delete(this.urls['monastery_delete'].replace('monastery_id', this.submitModel.institution.id))
                 .then( (response) => {
                     this.submitModel.institution = null
                     this.alerts.push({type: 'success', message: 'Deletion successful.'})
@@ -442,7 +285,7 @@ export default {
         },
         update() {
             this.openRequests++
-            axios.get(this.getOriginsUrl)
+            axios.get(this.urls['origins_get'])
                 .then( (response) => {
                     this.values = response.data
                     switch(this.submitModel.type) {

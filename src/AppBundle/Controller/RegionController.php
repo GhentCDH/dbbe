@@ -42,15 +42,44 @@ class RegionController extends Controller
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
-        $regionsWithParents = $this->get('region_manager')->getAllRegionsWithParents();
-
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(ArrayToJson::arrayToJson($regionsWithParents));
+            return new JsonResponse(
+                ArrayToJson::arrayToJson(
+                    $this->get('region_manager')->getAllRegionsWithParents()
+                )
+            );
         }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
+    }
+
+    /**
+     * @Route("/regions/edit", name="regions_edit")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function editRegions(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
         return $this->render(
-            'AppBundle:Region:overview.html.twig',
+            'AppBundle:Region:edit.html.twig',
             [
-                'regions' => json_encode(ArrayToJson::arrayToJson($regionsWithParents)),
+                'urls' => json_encode([
+                    'regions_get' => $this->generateUrl('regions_get'),
+                    'manuscript_deps_by_region' => $this->generateUrl('manuscript_deps_by_region', ['id' => 'region_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'institutions_by_region' => $this->generateUrl('institutions_by_region', ['id' => 'region_id']),
+                    'regions_by_region' => $this->generateUrl('regions_by_region', ['id' => 'region_id']),
+                    'region_post' => $this->generateUrl('region_post'),
+                    'region_merge' => $this->generateUrl('region_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'region_put' => $this->generateUrl('region_put', ['id' => 'region_id']),
+                    'region_delete' => $this->generateUrl('region_delete', ['id' => 'region_id']),
+                ]),
+                'regions' => json_encode(
+                    ArrayToJson::arrayToJson(
+                        $this->get('region_manager')->getAllRegionsWithParents()
+                    )
+                ),
             ]
         );
     }

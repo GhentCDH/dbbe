@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-12">
+        <h2 class="h1">
+            Edit regions
+        </h2>
+    </div>
+    <div id="regions-edit-app">
+        <regions-edit-app
+            init-urls="{{ urls }}"
+            init-data="{{ regions }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/regionsedit.js") }}"></script>
+{% endblock %}
