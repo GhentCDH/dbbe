@@ -596,7 +596,7 @@ class ManuscriptService extends DocumentService
 
     public function delete(int $manuscriptId): int
     {
-        // don't delete if this region is used in document_contains
+        // don't delete if this manuscript is used in document_contains
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.document_contains
@@ -609,6 +609,11 @@ class ManuscriptService extends DocumentService
         }
         // Set search_path for triggers
         $this->conn->exec('SET SEARCH_PATH TO data');
+        $this->conn->executeUpdate(
+            'DELETE from data.document_title
+            where document_title.iddocument = ?',
+            [$manuscriptId]
+        );
         $this->conn->executeUpdate(
             'DELETE from data.factoid
             where factoid.subject_identity = ?',
