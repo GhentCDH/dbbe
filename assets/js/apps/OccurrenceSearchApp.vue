@@ -85,6 +85,7 @@
                     :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
                     v-html="props.row.incipit" />
                 <a
+                    v-if="props.row.manuscript"
                     slot="manuscript"
                     slot-scope="props"
                     :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)">
