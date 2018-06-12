@@ -59,7 +59,7 @@ class ManuscriptController extends Controller
      */
     public function addManuscript(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->editManuscript(null, $request);
     }
@@ -73,7 +73,7 @@ class ManuscriptController extends Controller
     public function getManuscript(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR');
+            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
                 $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
             } catch (NotFoundHttpException $e) {
@@ -106,7 +106,7 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByRegion(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
@@ -127,7 +127,7 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByInstitution(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
@@ -148,7 +148,7 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByCollection(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
@@ -169,7 +169,7 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByContent(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
@@ -190,7 +190,7 @@ class ManuscriptController extends Controller
      */
     public function getManuscriptDepsByStatus(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
@@ -306,7 +306,7 @@ class ManuscriptController extends Controller
      */
     public function editManuscript(int $id = null, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',

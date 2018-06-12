@@ -30,7 +30,7 @@ class RegionController extends Controller
                 ->getRegionsWithParentsByRegion($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($regionsWithParents));
         }
-        throw new Exception('Not implemented.');
+        throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
     /**
@@ -40,7 +40,7 @@ class RegionController extends Controller
      */
     public function getRegions(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
@@ -59,7 +59,7 @@ class RegionController extends Controller
      */
     public function editRegions(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Region:edit.html.twig',

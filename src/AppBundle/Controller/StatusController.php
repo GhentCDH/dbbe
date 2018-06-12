@@ -21,7 +21,7 @@ class StatusController extends Controller
      */
     public function getStatuses(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
@@ -39,7 +39,7 @@ class StatusController extends Controller
      */
     public function editStatuses(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Status:edit.html.twig',

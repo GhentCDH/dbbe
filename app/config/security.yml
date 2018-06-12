@@ -31,9 +31,10 @@ security:
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER
-        ROLE_ADMIN:         ROLE_VIEW_INTERNAL
+        ROLE_EDITOR_VIEW:   ROLE_VIEW_INTERNAL
+        ROLE_EDITOR:        ROLE_EDITOR_VIEW
+        ROLE_ADMIN:         ROLE_EDITOR
         ROLE_SUPER_ADMIN:   ROLE_ADMIN
 
     access_control:
-        - { path: ^/admin/users, role: ROLE_SUPER_ADMIN }
         - { path: ^/admin, role: ROLE_ADMIN }

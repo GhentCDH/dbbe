@@ -3,7 +3,7 @@
 {% block content %}
     <div class="col-sm-12 ">
         <h2 class="h1">Search Manuscripts</h2>
-        {% if is_granted('ROLE_EDITOR') %}
+        {% if is_granted('ROLE_EDITOR_VIEW') %}
         <div class="pbottom-default">
             <a
                 href="{{ path('manuscript_add') }}"
@@ -15,7 +15,7 @@
     </div>
     <div id="manuscript-search-app">
         <manuscript-search-app
-            :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
+            :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
             init-data="{{ data }}"
             manuscripts-search-api-url="{{ path('manuscripts_search_api') }}"
             get-occurrence-deps-by-manuscript-url="{{ path('occurrence_deps_by_manuscript', {'id': 'manuscript_id'}) }}"

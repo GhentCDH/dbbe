@@ -3,7 +3,7 @@
 {% block content %}
     <div class="col-sm-12 ">
         <h2 class="h1">Search Occurrences</h2>
-        {% if is_granted('ROLE_EDITOR') %}
+        {% if is_granted('ROLE_EDITOR_VIEW') %}
         <div class="pbottom-default">
             <a
                 href="{{ path('occurrence_add') }}"
@@ -15,7 +15,7 @@
     </div>
     <div id="occurrence-search-app">
         <occurrence-search-app
-            :is-editor="{{ is_granted('ROLE_EDITOR') ? 'true' : 'false' }}"
+            :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
             init-data="{{ data }}"
             occurrences-search-api-url="{{ path('occurrences_search_api') }}"
             show-occurrence-url="{{ path('occurrence_show', {'id': 'occurrence_id'}) }}"

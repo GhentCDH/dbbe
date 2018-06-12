@@ -7,7 +7,7 @@
             {% if not manuscript.getPublic() %}
                 - Not Public
             {% endif %}
-            {% if is_granted('ROLE_EDITOR') %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
                 <a href="{{ path('manuscript_edit', {'id': manuscript.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
         </h2>

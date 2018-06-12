@@ -40,7 +40,7 @@ class ContentController extends Controller
      */
     public function getContents(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
@@ -59,7 +59,7 @@ class ContentController extends Controller
      */
     public function editContents(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Content:edit.html.twig',

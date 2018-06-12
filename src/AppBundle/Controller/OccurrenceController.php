@@ -58,7 +58,7 @@ class OccurrenceController extends Controller
      */
     public function addOccurrence(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->editOccurrence(null, $request);
     }
@@ -69,7 +69,7 @@ class OccurrenceController extends Controller
     public function getOccurrence(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR');
+            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
                 $occurrence = $this->get('occurrence_manager')->getOccurrenceById($id);
             } catch (NotFoundHttpException $e) {
@@ -102,7 +102,7 @@ class OccurrenceController extends Controller
      */
     public function getOccurrenceDepsByManuscript(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $occurrences = $this
                 ->get('occurrence_manager')
@@ -133,7 +133,7 @@ class OccurrenceController extends Controller
      */
     public function editOccurrence(int $id = null, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Occurrence:edit.html.twig',
