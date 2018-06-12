@@ -1,14 +1,37 @@
-import qs from 'qs'
-import VueTables from 'vue-tables-2'
+window.axios = require('axios')
 
-var YEAR_MIN = 1
-var YEAR_MAX = (new Date()).getFullYear()
+import qs from 'qs'
+
+import Vue from 'vue'
+import VueFormGenerator from 'vue-form-generator'
+import VueMultiselect from 'vue-multiselect'
+import VueTables from 'vue-tables-2'
+import * as uiv from 'uiv'
+
+import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
+import Alerts from '../Alerts'
+import Delete from '../Edit/Modals/Delete'
+
+Vue.use(uiv)
+Vue.use(VueFormGenerator)
+Vue.use(VueTables.ServerTable)
+
+Vue.component('multiselect', VueMultiselect)
+Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+Vue.component('deleteModal', Delete)
+
+const YEAR_MIN = 1
+const YEAR_MAX = (new Date()).getFullYear()
 
 export default {
     props: {
         isEditor: {
             type: Boolean,
             default: false,
+        },
+        initUrls: {
+            type: String,
+            default: '',
         },
         initData: {
             type: String,
@@ -17,6 +40,7 @@ export default {
     },
     data () {
         return {
+            urls: JSON.parse(this.initUrls),
             model: {},
             originalModel: {},
             formOptions: {
@@ -37,7 +61,7 @@ export default {
             // Remove requesting the same data that is already displayed
             oldFilterValues: {},
             deleteModal: false,
-            delDependencies: [],
+            delDependencies: {},
             alerts: [],
             textSearch: false,
             commentSearch: false,
@@ -46,6 +70,17 @@ export default {
         }
     },
     mounted() {
+        if (this.isEditor) {
+            this.$refs.form.schema.fields['public'] = this.createMultiSelect(
+                'Public',
+                null,
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Public only' : 'Internal only'
+                    },
+                }
+            )
+        }
         this.originalModel = JSON.parse(JSON.stringify(this.model))
         window.onpopstate = ((event) => {this.popHistory(event)})
     },

@@ -23,6 +23,14 @@ class ManuscriptController extends Controller
         return $this->render(
             'AppBundle:Manuscript:overview.html.twig',
             [
+                'urls' => json_encode([
+                    'manuscripts_search_api' => $this->generateUrl('manuscripts_search_api'),
+                    'occurrence_deps_by_manuscript' => $this->generateUrl('occurrence_deps_by_manuscript', ['id' => 'manuscript_id']),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'manuscript_edit' => $this->generateUrl('manuscript_edit', ['id' => 'manuscript_id']),
+                    'manuscript_delete' => $this->generateUrl('manuscript_delete', ['id' => 'manuscript_id']),
+                ]),
                 'data' => json_encode(
                     $this->get('manuscript_elastic_service')->searchAndAggregate(
                         $this->sanitize($request->query->all())

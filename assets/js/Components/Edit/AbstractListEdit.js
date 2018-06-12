@@ -2,8 +2,8 @@ window.axios = require('axios')
 
 import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import * as uiv from 'uiv'
 import VueMultiselect from 'vue-multiselect'
+import * as uiv from 'uiv'
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
 import Alerts from '../Alerts'

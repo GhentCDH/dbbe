@@ -1,14 +1,9 @@
 <template>
     <div>
         <div class="col-xs-12">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
@@ -33,7 +28,7 @@
         <article class="col-sm-9">
             <v-server-table
                 ref="resultTable"
-                :url="manuscriptsSearchApiUrl"
+                :url="urls['manuscripts_search_api']"
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData"
@@ -65,7 +60,7 @@
                 <a
                     slot="name"
                     slot-scope="props"
-                    :href="showManuscriptUrl.replace('manuscript_id', props.row.id)">
+                    :href="urls['manuscript_get'].replace('manuscript_id', props.row.id)">
                     {{ props.row.name }}
                 </a>
                 <template
@@ -102,7 +97,7 @@
                     slot="actions"
                     slot-scope="props">
                     <a
-                        :href="editManuscriptUrl.replace('manuscript_id', props.row.id)"
+                        :href="urls['manuscript_edit'].replace('manuscript_id', props.row.id)"
                         class="action"
                         title="Edit">
                         <i class="fa fa-pencil-square-o" />
@@ -117,37 +112,12 @@
                 </template>
             </v-server-table>
         </article>
-        <modal
-            v-model="deleteModal"
-            auto-focus>
-            <div v-if="delDependencies.length !== 0">
-                <p>This manuscript has following dependencies that need to be resolved first:</p>
-                <ul>
-                    <li
-                        v-for="dependency in delDependencies"
-                        :key="dependency.id">
-                        <a :href="getOccurrenceUrl.replace('occurrence_id', dependency.id)">{{ dependency.name }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div v-else>
-                <p>Are you sure you want to delete manuscript "{{ delManuscript.name }}"?</p>
-            </div>
-            <div slot="header">
-                <h4 class="modal-title">Delete manuscript "{{ delManuscript.name }}"</h4>
-            </div>
-            <div slot="footer">
-                <btn @click="deleteModal=false">
-                    Cancel
-                </btn>
-                <btn
-                    type="danger"
-                    :disabled="delDependencies.length !== 0"
-                    @click="submitDelete()">
-                    Delete
-                </btn>
-            </div>
-        </modal>
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()" />
         <div
             v-if="openRequests"
             class="loading-overlay">
@@ -156,59 +126,20 @@
     </div>
 </template>
 <script>
-window.axios = require('axios')
-
-import * as uiv from 'uiv'
-import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import VueMultiselect from 'vue-multiselect'
-import VueTables from 'vue-tables-2'
-
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractSearch from '../Components/Search/AbstractSearch'
 
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
-Vue.use(VueTables.ServerTable)
-
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
+import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 export default {
     mixins: [
         AbstractField,
         AbstractSearch,
     ],
-    props: {
-        manuscriptsSearchApiUrl: {
-            type: String,
-            default: '',
-        },
-        getOccurrenceDepsByManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        getOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        showManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        editManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        delManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
-        let data = {
+        return {
             schema: {
                 fields: {
                     city: this.createMultiSelect('City'),
@@ -263,26 +194,23 @@ export default {
                     return (row.public == null || row.public) ? '' : 'warning'
                 },
             },
-            delManuscript: {
-                id: 0,
-                name: ''
+            submitModel: {
+                type: 'manuscript',
+                manuscript: {},
             },
             defaultOrdering: 'name',
         }
-        if (this.isEditor) {
-            data.schema.fields['public'] = this.createMultiSelect(
-                'Public',
-                null,
-                {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Public only' : 'Internal only'
-                    },
-                }
-            )
-        }
-        return data
     },
     computed: {
+        depUrls: function () {
+            return {
+                'Occurrences': {
+                    depUrl: this.urls['occurrence_deps_by_manuscript'].replace('manuscript_id', this.submitModel.manuscript.id),
+                    url: this.urls['occurrence_get'],
+                    urlIdentifier: 'occurrence_id',
+                },
+            }
+        },
         tableColumns() {
             let columns = ['name', 'date', 'content']
             if (this.commentSearch) {
@@ -296,27 +224,13 @@ export default {
     },
     methods: {
         del(row) {
-            this.delManuscript = row
-            this.deleteDependencies()
-        },
-        deleteDependencies() {
-            this.openRequests++
-            axios.get(this.getOccurrenceDepsByManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
-                .then((response) => {
-                    this.delDependencies = response.data
-                    this.deleteModal = true
-                    this.openRequests--
-                })
-                .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
-                    console.log(error)
-                })
+            this.submitModel.manuscript = row
+            AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
             this.openRequests++
             this.deleteModal = false
-            axios.delete(this.delManuscriptUrl.replace('manuscript_id', this.delManuscript.id))
+            axios.delete(this.urls['manuscript_delete'].replace('manuscript_id', this.submitModel.manuscript.id))
                 .then((response) => {
                     this.$refs.resultTable.refresh()
                     this.openRequests--

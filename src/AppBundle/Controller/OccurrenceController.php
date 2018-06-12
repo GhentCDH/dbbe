@@ -22,6 +22,13 @@ class OccurrenceController extends Controller
         return $this->render(
             'AppBundle:Occurrence:overview.html.twig',
             [
+                'urls' => json_encode([
+                    'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'occurrence_edit' => $this->generateUrl('occurrence_edit', ['id' => 'occurrence_id']),
+                    'occurrence_delete' => $this->generateUrl('occurrence_delete', ['id' => 'occurrence_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                ]),
                 'data' => json_encode(
                     $this->get('occurrence_elastic_service')->searchAndAggregate(
                         $this->sanitize($request->query->all())
@@ -64,7 +71,10 @@ class OccurrenceController extends Controller
     }
 
     /**
-     * @Route("/occurrences/{id}", name="occurrence_show")
+     * @Route("/occurrences/{id}", name="occurrence_get")
+     * @Method("GET")
+     * @param  int    $id occurrence id
+     * @param Request $request
      */
     public function getOccurrence(int $id, Request $request)
     {

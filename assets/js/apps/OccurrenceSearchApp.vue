@@ -1,14 +1,9 @@
 <template>
     <div>
         <div class="col-xs-12">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
@@ -33,7 +28,7 @@
         <article class="col-sm-9">
             <v-server-table
                 ref="resultTable"
-                :url="occurrencesSearchApiUrl"
+                :url="urls['occurrences_search_api']"
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData"
@@ -87,12 +82,12 @@
                 <a
                     slot="incipit"
                     slot-scope="props"
-                    :href="showOccurrenceUrl.replace('occurrence_id', props.row.id)"
+                    :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
                     v-html="props.row.incipit" />
                 <a
                     slot="manuscript"
                     slot-scope="props"
-                    :href="showManuscriptUrl.replace('manuscript_id', props.row.manuscript.id)">
+                    :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)">
                     {{ props.row.manuscript.name }}
                 </a>
                 <template
@@ -110,7 +105,7 @@
                     slot="actions"
                     slot-scope="props">
                     <a
-                        :href="editOccurrenceUrl.replace('occurrence_id', props.row.id)"
+                        :href="urls['occurrence_edit'].replace('occurrence_id', props.row.id)"
                         class="action"
                         title="Edit">
                         <i class="fa fa-pencil-square-o" />
@@ -125,37 +120,12 @@
                 </template>
             </v-server-table>
         </article>
-        <modal
-            v-model="deleteModal"
-            auto-focus>
-            <!-- <div v-if="delDependencies.length !== 0">
-                <p>This occurrence has following dependencies that need to be resolved first:</p>
-                <ul>
-                    <li
-                        v-for="dependency in delDependencies"
-                        :key="dependency.id">
-                        <a :href="getOccurrenceUrl.replace('occurrence_id', dependency.id)">{{ dependency.name }}</a>
-                    </li>
-                </ul>
-            </div> -->
-            <!-- <div v-else> -->
-                <p>Are you sure you want to delete occurrence "{{ delOccurrence.name }}"?</p>
-            <!-- </div> -->
-            <div slot="header">
-                <h4 class="modal-title">Delete occurrence "{{ delOccurrence.name }}"</h4>
-            </div>
-            <div slot="footer">
-                <btn @click="deleteModal=false">
-                    Cancel
-                </btn>
-                <btn
-                    type="danger"
-                    :disabled="delDependencies.length !== 0"
-                    @click="submitDelete()">
-                    Delete
-                </btn>
-            </div>
-        </modal>
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()" />
         <div
             v-if="openRequests"
             class="loading-overlay">
@@ -164,26 +134,16 @@
     </div>
 </template>
 <script>
-window.axios = require('axios')
-
-import * as uiv from 'uiv'
 import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-import VueMultiselect from 'vue-multiselect'
-import VueTables from 'vue-tables-2'
-
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
-import fieldRadio from '../Components/FormFields/fieldRadio'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractSearch from '../Components/Search/AbstractSearch'
+// used for deleteDependencies
+import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
-Vue.use(VueTables.ServerTable)
+import fieldRadio from '../Components/FormFields/fieldRadio'
 
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('fieldRadio', fieldRadio)
 
 export default {
@@ -191,38 +151,8 @@ export default {
         AbstractField,
         AbstractSearch,
     ],
-    props: {
-        occurrencesSearchApiUrl: {
-            type: String,
-            default: '',
-        },
-        getOccurrenceDepsByOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        getOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        showOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        editOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        delOccurrenceUrl: {
-            type: String,
-            default: '',
-        },
-        showManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
-        let data = {
+        return {
             model: {
                 text_type: 'any',
             },
@@ -295,26 +225,18 @@ export default {
                     return (row.public == null || row.public) ? '' : 'warning'
                 },
             },
-            delOccurrence: {
-                id: 0,
-                name: ''
+            submitModel: {
+                type: 'occurrence',
+                occurrence: {},
             },
             defaultOrdering: 'incipit',
         }
-        if (this.isEditor) {
-            data.schema.fields['public'] = this.createMultiSelect(
-                'Public',
-                null,
-                {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Public only' : 'Internal only'
-                    },
-                }
-            )
-        }
-        return data
     },
     computed: {
+        depUrls: function () {
+            return {
+            }
+        },
         tableColumns() {
             let columns = ['incipit', 'manuscript', 'date']
             if (this.textSearch) {
@@ -331,27 +253,16 @@ export default {
     },
     methods: {
         del(row) {
-            this.delOccurrence = row
-            this.deleteDependencies()
-        },
-        deleteDependencies() {
-            this.openRequests++
-            axios.get(this.getOccurrenceDepsByOccurrenceUrl.replace('occurrence_id', this.delOccurrence.id))
-                .then((response) => {
-                    this.delDependencies = response.data
-                    this.deleteModal = true
-                    this.openRequests--
-                })
-                .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
-                    console.log(error)
-                })
+            this.submitModel.occurrence = {
+                id: row.id,
+                name: row.incipit,
+            }
+            AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
             this.openRequests++
             this.deleteModal = false
-            axios.delete(this.delOccurrenceUrl.replace('occurrence_id', this.delOccurrence.id))
+            axios.delete(this.urls['occurrence_delete'].replace('occurrence_id', this.submitModel.occurrence.id))
                 .then((response) => {
                     this.$refs.resultTable.refresh()
                     this.openRequests--
