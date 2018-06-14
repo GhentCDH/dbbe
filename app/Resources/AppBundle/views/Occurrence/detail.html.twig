@@ -61,7 +61,7 @@
                 {% if occurrence.getGenre() is not empty %}
                     <tr>
                         <td>Genre</td>
-                        <td>{{ occurrence.getGenre().getName() }}</td>
+                        <td><a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ occurrence.getGenre.getId() }}" title="List all occurrences with this genre">{{ occurrence.getGenre().getName() }}</a></td>
                     </tr>
                 {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
