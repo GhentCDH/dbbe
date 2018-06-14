@@ -5,6 +5,7 @@ namespace AppBundle\Model;
 class Document
 {
     protected $id;
+    protected $prevId;
     protected $date;
     protected $patrons;
     protected $scribes;
@@ -32,6 +33,18 @@ class Document
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function setPrevId(int $prevId): Occurrence
+    {
+        $this->prevId = $prevId;
+
+        return $this;
+    }
+
+    public function getPrevId(): ?int
+    {
+        return $this->prevId;
     }
 
     public function setDate(FuzzyDate $date): Document

@@ -204,11 +204,13 @@ class OccurrenceManager extends DocumentManager
         }
 
         // Get basic occurrence information
-        $occurrences= $this->getShortOccurrencesByIds([$id]);
+        $occurrences = $this->getShortOccurrencesByIds([$id]);
         if (count($occurrences) == 0) {
             throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
         }
         $occurrence = $occurrences[$id];
+
+        $this->setPrevId($occurrence);
 
         $this->setBibliographies($occurrence);
 

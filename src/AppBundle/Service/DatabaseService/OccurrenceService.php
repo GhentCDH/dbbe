@@ -162,6 +162,18 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getPrevIds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                occurrence_to_entity.old_id as prev_id
+            from migration.occurrence_to_entity
+            where occurrence_to_entity.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getStatuses(array $ids): array
     {
         return $this->conn->executeQuery(

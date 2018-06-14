@@ -3,7 +3,8 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 {% if not occurrence.getPublic() %}class="text-danger"{% endif %}>
-            Occurrence "{{ occurrence.getIncipit() }}"
+            Occurrence {{ occurrence.getId() }}
+            {% if occurrence.getPrevId() is not empty %}<small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
             {% if not occurrence.getPublic() %}
                 - Not Public
             {% endif %}

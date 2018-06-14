@@ -45,6 +45,15 @@ class DocumentManager extends ObjectManager
         }
     }
 
+    protected function setPrevId(Document &$document): void
+    {
+        $rawPrevIds = $this->dbs->getPrevIds([$document->getId()]);
+        if (count($rawPrevIds) == 1) {
+            $document
+                ->setPrevId($rawPrevIds[0]['prev_id']);
+        }
+    }
+
     protected function setBibliographies(Document &$document): void
     {
         $rawBibliographies = $this->dbs->getBibliographies([$document->getId()]);
