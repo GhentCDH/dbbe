@@ -222,6 +222,10 @@
                         </tr>
                     {% endif %}
                 {% endif %}
+                <tr>
+                    <td>Permalink</td>
+                    <td><a href="{{ path('occurrence_get', {'id': occurrence.getId()}) }}">{{ absolute_url(path('occurrence_get', {'id': occurrence.getId()})) }}</a></td>
+                </tr>
             </tbody>
         </table>
 
