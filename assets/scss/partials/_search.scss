@@ -1,0 +1,20 @@
+.search-page {
+  .count-records {
+    margin-top: .75em;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+  }
+
+  .VueTables {
+    .row:first-child {
+      .col-md-12:first-child {
+        min-height: 3.667em;
+      }
+    }
+  }
+
+  .VuePagination__count {
+    display: none;
+  }
+}

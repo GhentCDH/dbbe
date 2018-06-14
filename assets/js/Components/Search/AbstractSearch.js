@@ -67,6 +67,7 @@ export default {
             commentSearch: false,
             aggregation: {},
             lastOrder: null,
+            countRecords: '',
         }
     },
     mounted() {
@@ -83,6 +84,7 @@ export default {
         }
         this.originalModel = JSON.parse(JSON.stringify(this.model))
         window.onpopstate = ((event) => {this.popHistory(event)})
+        this.updateCountRecords()
     },
     methods: {
         constructFilterValues() {
@@ -295,6 +297,9 @@ export default {
                 }
             }
 
+            // Update number of records text
+            this.updateCountRecords()
+
             this.openRequests--
         },
         pushHistory(data) {
@@ -357,6 +362,24 @@ export default {
             else {
                 this.$refs.resultTable.setOrder(this.defaultOrdering, true)
             }
+        },
+        updateCountRecords() {
+            let table = this.$refs.resultTable
+            if (!table.count) {
+                this.countRecords = ''
+                return
+            }
+            let perPage = parseInt(table.limit)
+
+            let from = ((table.Page-1) * perPage) + 1
+            let to = table.Page==table.totalPages?table.count:from + perPage - 1
+
+            let parts = table.opts.texts.count.split('|')
+            let i = Math.min(table.count==1?2:table.totalPages==1?1:0, parts.length-1)
+
+            this.countRecords = parts[i].replace('{count}', table.count)
+                .replace('{from}', from)
+                .replace('{to}', to)
         },
     },
     requestFunction (data) {

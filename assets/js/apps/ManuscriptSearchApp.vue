@@ -25,7 +25,12 @@
                     @validated="onValidated" />
             </div>
         </aside>
-        <article class="col-sm-9">
+        <article class="col-sm-9 search-page">
+            <div
+                v-if="countRecords"
+                class="count-records">
+                <h6>{{ countRecords }}</h6>
+            </div>
             <v-server-table
                 ref="resultTable"
                 :url="urls['manuscripts_search_api']"
