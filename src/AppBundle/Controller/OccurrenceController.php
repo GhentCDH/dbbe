@@ -182,29 +182,33 @@ class OccurrenceController extends Controller
 
     private function sanitize(array $params): array
     {
-        if (empty($params)) {
-            $params = [
-                'limit' => 25,
-                'page' => 1,
-                'ascending' => 1,
-                'orderBy' => 'incipit',
-            ];
-        }
+        $defaults = [
+            'limit' => 25,
+            'page' => 1,
+            'ascending' => 1,
+            'orderBy' => ['incipit.keyword'],
+        ];
         $esParams = [];
 
         // Pagination
         if (isset($params['limit']) && is_numeric($params['limit'])) {
             $esParams['limit'] = $params['limit'];
+        } else {
+            $esParams['limit'] = $defaults['limit'];
         }
         if (isset($params['page']) && is_numeric($params['page'])) {
             $esParams['page'] = $params['page'];
+        } else {
+            $esParams['page'] = $defaults['page'];
         }
 
 
         // Sorting
         if (isset($params['orderBy']) && is_string($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
+            if (isset($params['ascending']) && is_numeric($params['ascending']) && $params['ascending'] === 0) {
                 $esParams['ascending'] = $params['ascending'];
+            } else {
+                $esParams['ascending'] = $defaults['ascending'];
             }
             if (($params['orderBy']) == 'incipit') {
                 $esParams['orderBy'] = ['incipit.keyword'];
@@ -217,7 +221,11 @@ class OccurrenceController extends Controller
                 } else {
                     $esParams['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
                 }
+            } else {
+                $esParams['orderBy'] = $defaults['orderBy'];
             }
+        } else {
+            $esParams['orderBy'] = $defaults['orderBy'];
         }
 
         // Filtering
