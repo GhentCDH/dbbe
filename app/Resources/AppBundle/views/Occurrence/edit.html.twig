@@ -7,7 +7,7 @@
                 Edit Occurrence
                 <span class="small">
                     <a
-                        href="{{ path('occurrence_show', {'id': id}) }}"
+                        href="{{ path('occurrence_get', {'id': id}) }}"
                         class="action pull-right"
                         title="View the occurrence">
                         <i class="fa fa-eye"></i>
@@ -20,7 +20,7 @@
     </div>
     <div id="occurrence-edit-app">
         <occurrence-edit-app
-            get-occurrence-url="{{ (id is not empty) ? path('occurrence_show', {'id': id}) : path('occurrence_show', {'id': 'occurrence_id'}) }}"
+            get-occurrence-url="{{ (id is not empty) ? path('occurrence_get', {'id': id}) : path('occurrence_get', {'id': 'occurrence_id'}) }}"
             post-occurrence-url="{{ path('occurrence_post') }}"
             put-occurrence-url="{{ (id is not empty) ? path('occurrence_put', {'id': id}) : '' }}"
             get-statuses-url="{{ path('statuses_get') }}"

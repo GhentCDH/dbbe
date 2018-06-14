@@ -109,7 +109,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences} only %}
                                 {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_show','display': item.getDescription()} only %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get','display': item.getDescription()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
