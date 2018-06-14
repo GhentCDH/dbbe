@@ -13,8 +13,8 @@
         </h2>
         <div class="row pbottom-default">
             <div class="col-md-8">
-                {% if occurrence.getText() %}
-                     {% include '@App/Helpers/renderLineNumbers.html.twig' with {'text': occurrence.getText()} only %}
+                {% if (occurrence.getTitle() or occurrence.getText()) %}
+                     {% include '@App/Helpers/renderLineNumbers.html.twig' with {'title': occurrence.getTitle(), 'text': occurrence.getText()} only %}
                 {% endif %}
             </div>
             {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
@@ -40,12 +40,6 @@
                     <tr>
                         <td>Text source</td>
                         <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
-                    </tr>
-                {% endif %}
-                {% if occurrence.getTitle() is not empty %}
-                    <tr>
-                        <td>Title</td>
-                        <td>{{ occurrence.getTitle() }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getTextStatus() is not empty %}
