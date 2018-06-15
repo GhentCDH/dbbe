@@ -23,6 +23,10 @@ class Manuscript extends Document implements IdJsonInterface
      */
     private $occurrenceScribes;
     private $relatedPersons;
+    /**
+     * Array of occurrences, in order
+     * @var array
+     */
     private $occurrences;
     private $status;
     private $illustrated;
@@ -203,9 +207,9 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->diktyon;
     }
 
-    public function setOccurrences(array $occurrences): Manuscript
+    public function addOccurrence(Occurrence $occurrence): Manuscript
     {
-        $this->occurrences = $occurrences;
+        $this->occurrences[] = $occurrence;
 
         return $this;
     }

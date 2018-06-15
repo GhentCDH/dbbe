@@ -252,7 +252,14 @@ class ManuscriptService extends DocumentService
             from data.manuscript
             inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
-            where manuscript.identity in (?)',
+            where manuscript.identity in (?)
+            -- order by order,
+            -- then folium start (sort as if it where numbers, but it is actually a text column),
+            -- then folium start recto
+            order by document_contains.order,
+                NULLIF(regexp_replace(document_contains.folium_start, \'\\D\', \'\', \'g\'), \'\')::int,
+                document_contains.folium_start_recto
+            ',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

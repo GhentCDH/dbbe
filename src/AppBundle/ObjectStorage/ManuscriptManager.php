@@ -204,10 +204,11 @@ class ManuscriptManager extends DocumentManager
         if (count($rawOccurrences) > 0) {
             $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
             $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
-            foreach ($occurrences as $occurrence) {
-                $manuscript->addCacheDependency('occurrence.' . $occurrence->getId());
+            foreach ($rawOccurrences as $rawOccurrence) {
+                $manuscript
+                    ->addOccurrence($occurrences[$rawOccurrence['occurrence_id']])
+                    ->addCacheDependency('occurrence.' . $rawOccurrence['occurrence_id']);
             }
-            $manuscript->setOccurrences($occurrences);
         }
 
         // status
