@@ -110,6 +110,8 @@ class ElasticOccurrenceService extends ElasticSearchService
             unset($result['data'][$key]['patron']);
             unset($result['data'][$key]['scribe']);
             unset($result['data'][$key]['subject']);
+            unset($result['data'][$key]['dbbe']);
+            unset($result['data'][$key]['text_status']);
 
             // Keep text / title if there was a search, then these will be an array
             if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
@@ -129,9 +131,24 @@ class ElasticOccurrenceService extends ElasticSearchService
         }
 
         $aggregation_result = $this->aggregate(
-            self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'public']),
+            self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status']),
             !empty($params['filters']) ? $params['filters'] : []
         );
+
+        // Add 'No genre' when necessary
+        if (array_key_exists('genre', $aggregation_result)
+            || (
+                !empty($params['filters'])
+                && array_key_exists('object', $params['filters'])
+                && array_key_exists('genre', $params['filters']['object'])
+                && $params['filters']['object']['genre'] == -1
+            )
+        ) {
+            $aggregation_result['genre'][] = [
+                'id' => -1,
+                'name' => 'No genre',
+            ];
+        }
 
         $result['aggregation'] = $aggregation_result;
 
@@ -165,6 +182,7 @@ class ElasticOccurrenceService extends ElasticSearchService
                     case 'meter':
                     case 'manuscript':
                     case 'genre':
+                    case 'text_status':
                         if (is_int($key)) {
                             $result['object'][] = $value;
                         } else {
@@ -213,10 +231,11 @@ class ElasticOccurrenceService extends ElasticSearchService
                         ];
                         break;
                     case 'public':
+                    case 'dbbe':
                         if (is_int($key)) {
                             $result['boolean'][] = $value;
                         } else {
-                            $result['boolean'][$key] = ($value === 1);
+                            $result['boolean'][$key] = ($value === '1');
                         }
                         break;
                 }

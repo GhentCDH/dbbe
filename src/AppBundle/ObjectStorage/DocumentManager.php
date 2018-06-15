@@ -45,46 +45,67 @@ class DocumentManager extends ObjectManager
         }
     }
 
-    protected function setPrevId(Document &$document): void
+    protected function setPrevIds(array &$documents): void
     {
-        $rawPrevIds = $this->dbs->getPrevIds([$document->getId()]);
-        if (count($rawPrevIds) == 1) {
-            $document
-                ->setPrevId($rawPrevIds[0]['prev_id']);
+        $ids = array_map(function ($document) {
+            return $document->getId();
+        }, $documents);
+        $rawPrevIds = $this->dbs->getPrevIds($ids);
+        foreach ($rawPrevIds as $rawPrevId) {
+            $documents[$rawPrevId['document_id']]
+                ->setPrevId($rawPrevId['prev_id']);
         }
     }
 
-    protected function setBibliographies(Document &$document): void
+    protected function setBibliographies(array &$documents): void
     {
-        $rawBibliographies = $this->dbs->getBibliographies([$document->getId()]);
+        $ids = array_map(function ($document) {
+            return $document->getId();
+        }, $documents);
+        $rawBibliographies = $this->dbs->getBibliographies($ids);
         if (!empty($rawBibliographies)) {
             $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
             $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
             $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
             $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
+
             $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
             $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
             $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
             $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
+
             $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
-            foreach ($bookBibliographies as $bibliography) {
-                $document->addCacheDependency('book_bibliography.' . $bibliography->getId());
-            }
-            foreach ($articleBibliographies as $bibliography) {
-                $document->addCacheDependency('article_bibliography.' . $bibliography->getId());
-            }
-            foreach ($bookChapterBibliographies as $bibliography) {
-                $document->addCacheDependency('book_chapter_bibliography.' . $bibliography->getId());
-            }
-            foreach ($onlineSourceBibliographies as $bibliography) {
-                $document->addCacheDependency('online_source_bibliography.' . $bibliography->getId());
-            }
-            foreach ($bibliographies as $bibliography) {
-                foreach ($bibliography->getCacheDependencies() as $cacheDependency) {
-                    $document->addCacheDependency($cacheDependency);
+
+            foreach ($rawBibliographies as $rawBibliography) {
+                $biblioId = $rawBibliography['reference_id'];
+                // Add cache dependencies
+                switch ($rawBibliography['type']) {
+                    case 'book':
+                        $documents[$rawBibliography['document_id']]
+                            ->addCacheDependency('book_bibliography.' . $biblioId);
+                        break;
+                    case 'article':
+                        $documents[$rawBibliography['document_id']]
+                            ->addCacheDependency('article_bibliography.' . $biblioId);
+                        break;
+                    case 'book_chapter':
+                        $documents[$rawBibliography['document_id']]
+                            ->addCacheDependency('book_chapter_bibliography.' . $biblioId);
+                        break;
+                    case 'online_source':
+                        $documents[$rawBibliography['document_id']]
+                            ->addCacheDependency('online_source_bibliography.' . $biblioId);
+                        break;
                 }
+                // Add cache dependency dependencies
+                foreach ($bibliographies[$biblioId]->getCacheDependencies() as $cacheDependency) {
+                    $documents[$rawBibliography['document_id']]
+                        ->addCacheDependency($cacheDependency);
+                }
+                // Add to document
+                $documents[$rawBibliography['document_id']]
+                    ->addBibliography($bibliographies[$biblioId]);
             }
-            $document->setBibliographies($bibliographies);
         }
     }
 }

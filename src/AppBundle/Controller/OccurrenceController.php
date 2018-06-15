@@ -238,12 +238,13 @@ class OccurrenceController extends Controller
         // limit results to public if no access rights
         if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
             $filters['public'] = 1;
+            unset($filters['text_status']);
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
             if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-                $filters['publicComment'] = $filters['comment'];
+                $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }
         }

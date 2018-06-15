@@ -166,6 +166,7 @@ class OccurrenceService extends DocumentService
     {
         return $this->conn->executeQuery(
             'SELECT
+                occurrence_to_entity.identity as document_id,
                 occurrence_to_entity.old_id as prev_id
             from migration.occurrence_to_entity
             where occurrence_to_entity.identity in (?)',

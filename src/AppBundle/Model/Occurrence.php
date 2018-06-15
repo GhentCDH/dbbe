@@ -175,7 +175,7 @@ class Occurrence extends Document
         return $this;
     }
 
-    public function getGenre(): Genre
+    public function getGenre(): ?Genre
     {
         return $this->genre;
     }
@@ -287,6 +287,15 @@ class Occurrence extends Document
         return $this->imageLinks;
     }
 
+    public function getDBBE(): bool
+    {
+        $textSource = $this->getTextSource();
+        if (isset($textSource) && $textSource->getType() == 'onlineSource' && $textSource->getOnlineSource()->getName() == 'DBBE') {
+            return true;
+        }
+        return false;
+    }
+
     public function getDescription(): string
     {
         $result = '';
@@ -313,6 +322,7 @@ class Occurrence extends Document
         $result = [
             'id' => $this->id,
             'public' => $this->getPublic(),
+            'dbbe' => $this->getDBBE(),
         ];
 
         if (isset($this->incipit)) {
@@ -323,6 +333,9 @@ class Occurrence extends Document
         }
         if (isset($this->text)) {
             $result['text'] = $this->text;
+        }
+        if (isset($this->textStatus)) {
+            $result['text_status'] = $this->textStatus->getShortJson();
         }
         if (isset($this->meter)) {
             $result['meter'] = $this->meter->getShortJson();

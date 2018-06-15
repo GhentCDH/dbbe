@@ -189,7 +189,9 @@ class ManuscriptManager extends DocumentManager
         }
         $manuscript = $manuscripts[$id];
 
-        $this->setBibliographies($manuscript);
+        $manusrciptArray = [$id => $manuscript];
+
+        $this->setBibliographies($manusrciptArray);
 
         // Diktyon
         $rawDiktyons = $this->dbs->getDiktyons([$id]);

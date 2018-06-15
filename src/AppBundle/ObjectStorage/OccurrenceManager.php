@@ -184,6 +184,24 @@ class OccurrenceManager extends DocumentManager
 
         $this->setComments($occurrences);
 
+        // text and record status
+        $rawStatuses = $this->dbs->getStatuses($ids);
+        foreach ($rawStatuses as $rawStatus) {
+            if ($rawStatus['type'] == 'occurrence_text') {
+                $occurrences[$rawStatus['occurrence_id']]
+                    ->setTextStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']))
+                    ->addCacheDependency('status.' . $rawStatus['status_id']);
+            }
+            if ($rawStatus['type'] == 'occurrence_record') {
+                $occurrences[$rawStatus['occurrence_id']]
+                    ->setRecordStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']))
+                    ->addCacheDependency('status.' . $rawStatus['status_id']);
+            }
+        }
+
+        // Needed to index DBBE in elasticsearch
+        $this->setBibliographies($occurrences);
+
         $this->setCache($occurrences, 'occurrence_short');
 
         return $cached + $occurrences;
@@ -210,28 +228,9 @@ class OccurrenceManager extends DocumentManager
         }
         $occurrence = $occurrences[$id];
 
-        $this->setPrevId($occurrence);
+        $occurrenceArray = [$id => $occurrence];
 
-        $this->setBibliographies($occurrence);
-
-        // text and record status
-        $rawStatuses = $this->dbs->getStatuses([$id]);
-        $rawTextStatuses = array_values(array_filter($rawStatuses, function ($rawStatus) {
-            return $rawStatus['type'] == 'occurrence_text';
-        }));
-        $rawRecordStatuses = array_values(array_filter($rawStatuses, function ($rawStatus) {
-            return $rawStatus['type'] == 'occurrence_record';
-        }));
-        if (count($rawTextStatuses) == 1) {
-            $occurrence
-                ->setTextStatus(new Status($rawTextStatuses[0]['status_id'], $rawTextStatuses[0]['status_name']))
-                ->addCacheDependency('status.' . $rawTextStatuses[0]['status_id']);
-        }
-        if (count($rawRecordStatuses) == 1) {
-            $occurrence
-                ->setRecordStatus(new Status($rawRecordStatuses[0]['status_id'], $rawRecordStatuses[0]['status_name']))
-                ->addCacheDependency('status.' . $rawRecordStatuses[0]['status_id']);
-        }
+        $this->setPrevIds($occurrenceArray);
 
         // type
         $rawTypes = $this->dbs->getTypes([$id]);

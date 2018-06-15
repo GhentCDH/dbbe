@@ -64,7 +64,7 @@
                     slot="comment"
                     slot-scope="props">
                     <template v-if="props.row.public_comment">
-                        <em v-if="isEditor">Public</em>
+                        <em v-if="isViewInternal">Public</em>
                         <ol>
                             <li
                                 v-for="(item, index) in props.row.public_comment"
@@ -158,7 +158,7 @@ export default {
         AbstractSearch,
     ],
     data() {
-        return {
+        let data = {
             model: {
                 text_type: 'any',
             },
@@ -211,6 +211,17 @@ export default {
                         model: 'comment',
                         validator: VueFormGenerator.validators.string,
                     },
+                    dbbe: this.createMultiSelect(
+                        'Transcribed by DBBE',
+                        {
+                            model: 'dbbe',
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return name === 'true' ? 'Yes' : 'No'
+                            },
+                        }
+                    )
                 }
             },
             tableOptions: {
@@ -237,6 +248,30 @@ export default {
             },
             defaultOrdering: 'incipit',
         }
+
+        // Add view internal only fields
+        if (this.isViewInternal) {
+            data.schema.fields['text_status'] = this.createMultiSelect(
+                'Text Status',
+                {
+                    model: 'text_status',
+                    styleClasses: 'has-warning',
+                }
+            )
+            data.schema.fields['public'] = this.createMultiSelect(
+                'Public',
+                {
+                    styleClasses: 'has-warning',
+                },
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Public only' : 'Internal only'
+                    },
+                }
+            )
+        }
+
+        return data
     },
     computed: {
         depUrls: function () {
@@ -251,7 +286,7 @@ export default {
             if (this.commentSearch) {
                 columns.unshift('comment')
             }
-            if (this.isEditor) {
+            if (this.isViewInternal) {
                 columns.push('actions')
             }
             return columns

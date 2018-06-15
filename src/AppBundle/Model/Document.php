@@ -82,9 +82,9 @@ class Document
         return $this->scribes;
     }
 
-    public function setBibliographies(array $bibliographies): Document
+    public function addBibliography(Bibliography $bibliography): Document
     {
-        $this->bibliographies = $bibliographies;
+        $this->bibliographies[$bibliography->getId()] = $bibliography;
 
         return $this;
     }
@@ -125,7 +125,7 @@ class Document
         return $this;
     }
 
-    public function getPublic(): ?bool
+    public function getPublic(): bool
     {
         return $this->public;
     }

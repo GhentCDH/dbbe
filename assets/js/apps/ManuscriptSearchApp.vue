@@ -144,7 +144,7 @@ export default {
         AbstractSearch,
     ],
     data() {
-        return {
+        let data = {
             schema: {
                 fields: {
                     city: this.createMultiSelect('City'),
@@ -205,6 +205,23 @@ export default {
             },
             defaultOrdering: 'name',
         }
+
+        // Add view internal only fields
+        if (this.isViewInternal) {
+            data.schema.fields['public'] = this.createMultiSelect(
+                'Public',
+                {
+                    styleClasses: 'has-warning',
+                },
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Public only' : 'Internal only'
+                    },
+                }
+            )
+        }
+
+        return data
     },
     computed: {
         depUrls: function () {

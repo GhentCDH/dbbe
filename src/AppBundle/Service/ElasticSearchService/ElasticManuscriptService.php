@@ -180,7 +180,7 @@ class ElasticManuscriptService extends ElasticSearchService
                         if (is_int($key)) {
                             $result['boolean'][] = $value;
                         } else {
-                            $result['boolean'][$key] = ($value === 1);
+                            $result['boolean'][$key] = ($value === '1');
                         }
                         break;
                 }

@@ -25,7 +25,7 @@ const YEAR_MAX = (new Date()).getFullYear()
 
 export default {
     props: {
-        isEditor: {
+        isViewInternal: {
             type: Boolean,
             default: false,
         },
@@ -70,18 +70,7 @@ export default {
             countRecords: '',
         }
     },
-    mounted() {
-        if (this.isEditor) {
-            this.$refs.form.schema.fields['public'] = this.createMultiSelect(
-                'Public',
-                null,
-                {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Public only' : 'Internal only'
-                    },
-                }
-            )
-        }
+    mounted () {
         this.originalModel = JSON.parse(JSON.stringify(this.model))
         window.onpopstate = ((event) => {this.popHistory(event)})
         this.updateCountRecords()
@@ -234,6 +223,14 @@ export default {
             if (b.id === -1) {
                 return 1
             }
+            // Place true before false
+            if (a.name === 'false' && b.name === 'true') {
+                return 1
+            }
+            if (a.name === 'true' && b.name === 'false') {
+                return -1
+            }
+            // Default
             if (a.name < b.name) {
                 return -1
             }
@@ -330,7 +327,7 @@ export default {
                         }
                     }
                     else if (this.schema.fields.hasOwnProperty(key)) {
-                        if (this.schema.fields[key].type === 'multiselectClear') {
+                        if (this.schema.fields[key].type === 'multiselectClear' && this.aggregation[key] != null) {
                             model[key] = this.aggregation[key].filter(v => String(v.id) === params['filters'][key])[0]
                         }
                         else {
