@@ -286,7 +286,7 @@ export default {
             if (this.commentSearch) {
                 columns.unshift('comment')
             }
-            if (this.isViewInternal) {
+            if (this.isEditor) {
                 columns.push('actions')
             }
             return columns

@@ -25,6 +25,10 @@ const YEAR_MAX = (new Date()).getFullYear()
 
 export default {
     props: {
+        isEditor: {
+            type: Boolean,
+            default: false,
+        },
         isViewInternal: {
             type: Boolean,
             default: false,

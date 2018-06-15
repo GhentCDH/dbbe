@@ -15,6 +15,7 @@
     </div>
     <div id="manuscript-search-app">
         <manuscript-search-app
+            :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
             :is-view-internal="{{ is_granted('ROLE_VIEW_INTERNAL') ? 'true' : 'false' }}"
             init-urls="{{ urls }}"
             init-data="{{ data }}"
