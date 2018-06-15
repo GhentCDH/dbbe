@@ -40,7 +40,13 @@
                 {% if occurrence.getTextSource() is not empty %}
                     <tr>
                         <td>Text source</td>
-                        <td>{% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}</td>
+                        <td>
+                            {% if occurrence.getTextSource().getType() == 'onlineSource' and occurrence.getTextSource().getOnlineSource().getName() == 'DBBE' %}
+                                <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with this text source">{{ occurrence.getTextSource().getOnlineSource().getName() }}</a>
+                            {% else %}
+                            {% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getTextStatus() is not empty %}
@@ -61,7 +67,7 @@
                 {% if occurrence.getGenre() is not empty %}
                     <tr>
                         <td>Genre</td>
-                        <td><a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ occurrence.getGenre.getId() }}" title="List all occurrences with this genre">{{ occurrence.getGenre().getName() }}</a></td>
+                        <td><a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ occurrence.getGenre.getId() }}" title="Search for all occurrences with this genre">{{ occurrence.getGenre().getName() }}</a></td>
                     </tr>
                 {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
