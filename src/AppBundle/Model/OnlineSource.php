@@ -23,6 +23,11 @@ class OnlineSource
         $this->lastAccessed = new DateTime($lastAccessed);
     }
 
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
     public function getBaseUrl(): string
     {
         return $this->baseUrl;
