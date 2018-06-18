@@ -62,6 +62,10 @@ class DefaultController extends Controller
             return $this->redirect(
                 $url . $target . urlencode('?referer=' . urlencode($request->headers->get('referer')))
             );
+        } elseif ($request->server->get('SCRIPT_URL')) {
+            return $this->redirect(
+                $url . $target . urlencode('?referer=' . urlencode($request->server->get('SCRIPT_URL')))
+            );
         } else {
             return $this->redirect($url . $target);
         }

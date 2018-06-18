@@ -23,11 +23,12 @@ security:
             security: false
 
         main:
-            cas: true
             pattern: ^/
+            security: true
+            cas: true
             provider: chain_provider
             logout_on_user_change: true
-            anonymous:    true
+            access_denied_url: /login
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER
