@@ -351,22 +351,24 @@ class ManuscriptController extends Controller
 
     private function sanitize(array $params): array
     {
-        if (empty($params)) {
-            $params = [
-                'limit' => 25,
-                'page' => 1,
-                'ascending' => 1,
-                'orderBy' => 'name',
-            ];
-        }
+        $defaults = [
+            'limit' => 25,
+            'page' => 1,
+            'ascending' => 1,
+            'orderBy' => ['name.keyword'],
+        ];
         $esParams = [];
 
         // Pagination
         if (isset($params['limit']) && is_numeric($params['limit'])) {
             $esParams['limit'] = $params['limit'];
+        } else {
+            $esParams['limit'] = $defaults['limit'];
         }
         if (isset($params['page']) && is_numeric($params['page'])) {
             $esParams['page'] = $params['page'];
+        } else {
+            $esParams['page'] = $defaults['page'];
         }
 
 
@@ -374,6 +376,8 @@ class ManuscriptController extends Controller
         if (isset($params['orderBy'])) {
             if (isset($params['ascending']) && is_numeric($params['ascending'])) {
                 $esParams['ascending'] = $params['ascending'];
+            } else {
+                $esParams['ascending'] = $defaults['ascending'];
             }
             if (($params['orderBy']) == 'name') {
                 $esParams['orderBy'] = ['name.keyword'];
@@ -384,7 +388,11 @@ class ManuscriptController extends Controller
                 } else {
                     $esParams['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
                 }
+            } else {
+                $esParams['orderBy'] = $defaults['orderBy'];
             }
+        } else {
+            $esParams['orderBy'] = $defaults['orderBy'];
         }
 
         // Filtering
@@ -396,7 +404,7 @@ class ManuscriptController extends Controller
 
         // limit results to public if no access rights
         if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            $filters['public'] = 1;
+            $filters['public'] = '1';
         }
 
         // set which comments should be searched
