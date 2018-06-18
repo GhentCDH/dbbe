@@ -282,6 +282,9 @@ class Manuscript extends Document implements IdJsonInterface
         if (isset($this->privateComment)) {
             $result['privateComment'] = $this->privateComment;
         }
+        if (isset($this->occurrences)) {
+            $result['occurrences'] = ArrayToJson::arrayToShortJson($this->occurrences);
+        }
         if (isset($this->status)) {
             $result['status'] = $this->status->getShortJson();
         }

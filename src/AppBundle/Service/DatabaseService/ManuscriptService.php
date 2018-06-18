@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -467,6 +469,31 @@ class ManuscriptService extends DocumentService
                 $manuscriptId,
             ]
         );
+    }
+
+    public function updateOccurrenceOrder(int $manuscriptId, array $occurrenceOrder): int
+    {
+        $this->beginTransaction();
+        try {
+            foreach ($occurrenceOrder as $orderItem) {
+                $this->conn->executeUpdate(
+                    'UPDATE data.document_contains
+                    set "order" = ?
+                    where document_contains.idcontainer = ?
+                    and document_contains.idcontent = ?',
+                    [
+                        $orderItem['order'],
+                        $manuscriptId,
+                        $orderItem['occurrence_id'],
+                    ]
+                );
+            }
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return count($occurrenceOrder);
     }
 
     public function upsertDiktyon(int $manuscriptId, int $diktyon): int

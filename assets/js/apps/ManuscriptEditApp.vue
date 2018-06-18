@@ -51,6 +51,13 @@
                 @validated="validated"
                 ref="origin" />
 
+            <occurrenceOrderPanel
+                id="occurrenceOrder"
+                header="Occurrence Order"
+                :model="model.occurrenceOrder"
+                @validated="validated"
+                ref="occurrenceOrder" />
+
             <bibliographyPanel
                 id="bibliography"
                 header="Bibliography"
@@ -114,6 +121,7 @@
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#date">Date</a></li>
                     <li><a href="#origin">Origin</a></li>
+                    <li><a href="#occurrenceOrder">Occurrence Order</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -146,7 +154,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'Bibliography', 'General'].includes(compName)) {
+    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'General'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -189,6 +197,7 @@ export default {
                     ceilingDayMonth: null,
                 },
                 origin: {origin: null},
+                occurrenceOrder: {occurrenceOrder: []},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -210,6 +219,7 @@ export default {
                 'persons',
                 'date',
                 'origin',
+                'occurrenceOrder',
                 'bibliography',
                 'general',
             ],
@@ -267,6 +277,11 @@ export default {
                 // Origin
                 this.model.origin = {
                     origin: this.manuscript.origin,
+                }
+
+                // Occurrence order
+                this.model.occurrenceOrder = {
+                    occurrenceOrder: this.manuscript.occurrences,
                 }
 
                 // Bibliography

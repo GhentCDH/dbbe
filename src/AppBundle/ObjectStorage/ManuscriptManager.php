@@ -350,6 +350,10 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
+            if (property_exists($data, 'occurrenceOrder')) {
+                $cacheReload['extended'] = true;
+                $this->updateOccurrenceOrder($manuscript, $data->occurrenceOrder);
+            }
             if (property_exists($data, 'bibliography')) {
                 $cacheReload['extended'] = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
@@ -474,6 +478,28 @@ class ManuscriptManager extends DocumentManager
     private function updateOrigin(Manuscript $manuscript, stdClass $origin): void
     {
         $this->dbs->updateOrigin($manuscript->getId(), $origin->id);
+    }
+
+    public function updateOccurrenceOrder(Manuscript $manuscript, array $occurrenceOrder): void
+    {
+        if (!is_array($occurrenceOrder)) {
+            throw new BadRequestHttpException('Incorrect data.');
+        }
+        foreach ($occurrenceOrder as $occurrence) {
+            if (!is_object($occurrence) || !property_exists($occurrence, 'id') || !is_numeric($occurrence->id)) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+        }
+
+        $this->dbs->updateOccurrenceOrder(
+            $manuscript->getId(),
+            array_map(function ($occurrence, $order) {
+                return [
+                    'occurrence_id' => $occurrence->id,
+                    'order' => $order,
+                ];
+            }, $occurrenceOrder, array_keys($occurrenceOrder))
+        );
     }
 
     private function updateBibliography(Manuscript $manuscript, stdClass $bibliography): void

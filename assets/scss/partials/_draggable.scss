@@ -1,0 +1,19 @@
+.draggable-item {
+  cursor: move;
+  margin-bottom: 7px;
+  transition: transform 1s;
+}
+
+.draggable-icon {
+  margin-right: 10px;
+}
+
+.sortable-chosen {
+  border-color: $brand-primary;
+  color: $brand-primary;
+}
+
+.sortable-ghost {
+  border: 0;
+  color: $white;
+}
