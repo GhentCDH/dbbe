@@ -1,6 +1,7 @@
 <template>
-    <panel :header="header"
-    :link="link">
+    <panel
+        :header="header"
+        :link="link">
         <vue-form-generator
             :schema="schema"
             :model="model"
@@ -102,7 +103,7 @@ export default {
             this.isValid = isValid
             this.calcChanges()
             this.$emit('validated', isValid, this.errors, this)
-        }
+        },
     }
 }
 </script>
