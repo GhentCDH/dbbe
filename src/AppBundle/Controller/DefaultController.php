@@ -58,11 +58,11 @@ class DefaultController extends Controller
         $target = urlencode($this->generateUrl('force', [], UrlGeneratorInterface::ABSOLUTE_URL));
         $url = 'https://'.$this->container->getParameter('cas_host') . '/login?service=';
 
-        if ($request->headers->get('referer')) {
+        if ($request->headers->get('referer') && $request->headers->get('referer') != '/login') {
             return $this->redirect(
                 $url . $target . urlencode('?referer=' . urlencode($request->headers->get('referer')))
             );
-        } elseif ($request->server->get('SCRIPT_URL')) {
+        } elseif ($request->server->get('SCRIPT_URL') && $request->server->get('SCRIPT_URL') != '/login') {
             return $this->redirect(
                 $url . $target . urlencode('?referer=' . urlencode($request->server->get('SCRIPT_URL')))
             );
