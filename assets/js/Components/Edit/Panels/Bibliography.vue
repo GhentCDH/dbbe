@@ -180,28 +180,28 @@
                 :model="editBib"
                 :options="formOptions"
                 ref="editBibForm"
-                @validated="bibFormValidated" />
+                @validated="validated" />
             <vue-form-generator
                 v-if="editBib.type === 'article'"
                 :schema="editArticleBibSchema"
                 :model="editBib"
                 :options="formOptions"
                 ref="editBibForm"
-                @validated="bibFormValidated" />
+                @validated="validated" />
             <vue-form-generator
                 v-if="editBib.type === 'bookChapter'"
                 :schema="editBookChapterBibSchema"
                 :model="editBib"
                 :options="formOptions"
                 ref="editBibForm"
-                @validated="bibFormValidated" />
+                @validated="validated" />
             <vue-form-generator
                 v-if="editBib.type === 'onlineSource'"
                 :schema="editOnlineSourceSchema"
                 :model="editBib"
                 :options="formOptions"
                 ref="editBibForm"
-                @validated="bibFormValidated" />
+                @validated="validated" />
             <div slot="header">
                 <h4
                     class="modal-title"
@@ -451,7 +451,7 @@ export default {
             }
             this.editBibModal = true
         },
-        bibFormValidated(isValid, errors) {
+        validated(isValid, errors) {
             this.isValid = isValid
         },
         submitBib() {

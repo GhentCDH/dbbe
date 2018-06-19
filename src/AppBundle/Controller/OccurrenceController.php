@@ -12,6 +12,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
 class OccurrenceController extends Controller
 {
     /**
@@ -119,7 +121,71 @@ class OccurrenceController extends Controller
                 ->getOccurrencesDependenciesByManuscript($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * @Route("/occurrences", name="occurrence_post")
+     * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postOccurrence(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $occurrence = $this
+                    ->get('occurrence_manager')
+                    ->addOccurrence(json_decode($request->getContent()));
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            $this->addFlash('success', 'Occurrence added successfully.');
+
+            return new JsonResponse($occurrence->getJson());
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * @Route("/occurrences/{id}", name="occurrence_put")
+     * @Method("PUT")
+     * @param  int    $id occurrence id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function putOccurrence(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $occurrence = $this
+                    ->get('occurrence_manager')
+                    ->updateOccurrence($id, json_decode($request->getContent()));
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            $this->addFlash('success', 'Occurrence data successfully saved.');
+
+            return new JsonResponse($occurrence->getJson());
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -149,33 +215,27 @@ class OccurrenceController extends Controller
             'AppBundle:Occurrence:edit.html.twig',
             [
                 'id' => $id,
-                'occurrence' => empty($id)
-                    ? null
-                    : json_encode($this->get('occurrence_manager')->getOccurrenceById($id)->getJson()),
-                'patrons' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons())
-                ),
-                'scribes' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes())
-                ),
-                'books' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks())
-                ),
-                'articles' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles())
-                ),
-                'bookChapters' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters())
-                ),
-                'onlineSources' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources())
-                ),
-                'textStatuses' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses())
-                ),
-                'recordStatuses' => json_encode(
-                    ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses())
-                ),
+                'urls' => json_encode([
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => $id == null ? 'occurrence_id' : $id]),
+                    'occurrence_post' => $this->generateUrl('occurrence_post'),
+                    'occurrence_put' => $this->generateUrl('occurrence_put', ['id' => $id]),
+                    'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'login' => $this->generateUrl('login'),
+                ]),
+                'data' => json_encode([
+                    'occurrence' => empty($id)
+                        ? null
+                        : $this->get('occurrence_manager')->getOccurrenceById($id)->getJson(),
+                    'patrons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons()),
+                    'scribes' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes()),
+                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
+                    'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),
+                    'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
+                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
+                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
+                    'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
+                    'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
+                ]),
             ]
         );
     }

@@ -317,6 +317,24 @@ class Occurrence extends Document
         ];
     }
 
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'name' => $this->getDescription(),
+            'patrons' => ArrayToJson::arrayToShortJson($this->patrons),
+            'scribes' => ArrayToJson::arrayToShortJson($this->scribes),
+            'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
+            'public' => $this->getPublic(),
+        ];
+
+        if (isset($this->date)) {
+            $result['date'] = $this->date->getJson();
+        }
+
+        return $result;
+    }
+
     public function getElastic(): array
     {
         $result = [

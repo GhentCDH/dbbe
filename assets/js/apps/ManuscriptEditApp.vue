@@ -66,7 +66,7 @@
                 @validated="validated"
                 ref="bibliography" />
 
-            <generalPanel
+            <generalManuscriptPanel
                 id="general"
                 header="General"
                 :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
@@ -154,7 +154,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'General'].includes(compName)) {
+    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'GeneralManuscript'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -240,7 +240,7 @@ export default {
             articles: this.data.articles,
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
-        },
+        }
         this.statuses = this.data.statuses
     },
     mounted () {
@@ -252,10 +252,15 @@ export default {
     methods: {
         loadManuscript() {
             if (this.manuscript != null) {
+                // Located At
                 this.model.locatedAt = this.manuscript.locatedAt
+
+                // Content
                 this.model.content = {
                     content: this.manuscript.content,
                 }
+
+                // Person
                 this.model.person = {
                     patrons: this.manuscript.patrons,
                     scribes: this.manuscript.scribes,

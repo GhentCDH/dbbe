@@ -6,7 +6,7 @@
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="generalForm"
+            ref="form"
             @validated="validated" />
     </panel>
 </template>
@@ -26,18 +26,16 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        values: {
+            type: Object,
+            default: () => {return {}}
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
-                    diktyon: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Diktyon',
-                        labelClasses: 'control-label',
-                        model: 'diktyon',
-                        validator: VueFormGenerator.validators.number,
-                    },
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -55,14 +53,8 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    status: this.createMultiSelect('Status', {values: this.values}, {}),
-                    illustrated: {
-                        type: 'checkbox',
-                        styleClasses: 'has-warning',
-                        label: 'Illustrated',
-                        labelClasses: 'control-label',
-                        model: 'illustrated',
-                    },
+                    textStatus: this.createMultiSelect('Text Status', {model: 'textStatus', values: this.values.textStatuses}),
+                    recordStatus: this.createMultiSelect('Record Status', {model: 'recordStatus', values: this.values.recordStatuses}),
                     public: {
                         type: 'checkbox',
                         styleClasses: 'has-error',
@@ -88,21 +80,8 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.status)
-        },
-        validate() {
-            this.$refs.generalForm.validate()
-        },
-        validated(isValid, errors) {
-            // fix NaN
-            if (isNaN(this.model.diktyon)) {
-                this.model.diktyon = null
-                this.$refs.generalForm.validate()
-                return
-            }
-            this.isValid = isValid
-            this.calcChanges()
-            this.$emit('validated', isValid, this.errors, this)
+            this.enableField(this.schema.fields.textStatus)
+            this.enableField(this.schema.fields.recordStatus)
         },
     }
 }

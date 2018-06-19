@@ -121,7 +121,7 @@ class ManuscriptController extends Controller
                 ->getManuscriptsDependenciesByRegion($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -142,7 +142,7 @@ class ManuscriptController extends Controller
                 ->getManuscriptsDependenciesByInstitution($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -163,7 +163,7 @@ class ManuscriptController extends Controller
                 ->getManuscriptsDependenciesByCollection($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -184,7 +184,7 @@ class ManuscriptController extends Controller
                 ->getManuscriptsDependenciesByContent($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -205,7 +205,7 @@ class ManuscriptController extends Controller
                 ->getManuscriptsDependenciesByStatus($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -234,7 +234,7 @@ class ManuscriptController extends Controller
 
             return new JsonResponse($manuscript->getJson());
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -269,7 +269,7 @@ class ManuscriptController extends Controller
 
             return new JsonResponse($manuscript->getJson());
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
@@ -302,7 +302,7 @@ class ManuscriptController extends Controller
 
             return new Response(null, 204);
         } else {
-            throw new NotFoundHttpException();
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 

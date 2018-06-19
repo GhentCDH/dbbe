@@ -20,6 +20,7 @@
   "build/main.js": "/build/main.js",
   "build/manuscriptedit.js": "/build/manuscriptedit.js",
   "build/manuscriptsearch.js": "/build/manuscriptsearch.js",
+  "build/occurrenceedit.js": "/build/occurrenceedit.js",
   "build/occurrencesearch.js": "/build/occurrencesearch.js",
   "build/originsedit.js": "/build/originsedit.js",
   "build/regionsedit.js": "/build/regionsedit.js",

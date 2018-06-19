@@ -109,14 +109,6 @@ export default {
             }
             this.$refs.form.validate()
         },
-        validate() {
-            this.$refs.form.validate()
-        },
-        validated(isValid, errors) {
-            this.isValid = isValid
-            this.calcChanges()
-            this.$emit('validated', isValid, this.errors, this)
-        },
         calcChanges() {
             this.changes = []
             if (this.originalModel == null) {

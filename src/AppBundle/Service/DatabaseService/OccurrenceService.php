@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 class OccurrenceService extends DocumentService
@@ -264,5 +266,33 @@ class OccurrenceService extends DocumentService
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
+    }
+
+    public function insert(): int
+    {
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_original_poem_has_identity
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.original_poem default values'
+            );
+            $occurrenceId = $this->conn->executeQuery(
+                'SELECT
+                    original_poem.identity as occurrence_id
+                from data.original_poem
+                order by identity desc
+                limit 1'
+            )->fetch()['occurrence_id'];
+            $this->conn->executeUpdate(
+                'INSERT INTO data.document_contains (idcontent) values (?)',
+                [$occurrenceId]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $occurrenceId;
     }
 }

@@ -35,10 +35,10 @@
                 @validated="validated"
                 ref="bibliography" />
 
-            <generalPanel
+            <generalOccurrencePanel
                 id="general"
                 header="General"
-                :link="{url: getStatusesUrl, text: 'Edit statuses'}"
+                :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
                 :model="model.general"
                 :values="statuses"
                 @validated="validated"
@@ -52,7 +52,7 @@
                 Reset
             </btn>
             <btn
-                v-if="manuscript"
+                v-if="occurrence"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()">
@@ -93,229 +93,49 @@
                 </ul>
             </nav>
         </aside>
-        <resetModal title="occurrence" />
-        <modal
-            v-model="resetModal"
-            title="Reset occurrence"
-            auto-focus>
-            <p>Are you sure you want to reset the occurrence information?</p>
-            <div slot="footer">
-                <btn @click="resetModal=false">Cancel</btn>
-                <btn
-                    type="danger"
-                    @click="reset()"
-                    data-action="auto-focus">
-                    Reset
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="invalidModal"
-            title="Invalid fields"
-            auto-focus>
-            <p>There are invalid input fields. Please correct them.</p>
-            <div slot="footer">
-                <btn
-                    @click="invalidModal=false"
-                    data-action="auto-focus">
-                    OK
-                </btn>
-            </div>
-        </modal>
-        <modal
-            v-model="saveModal"
-            title="Save occurrence"
-            size="lg"
-            auto-focus>
-            <p>Are you sure you want to save this occurrence information?</p>
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th class="col-md-2">Field</th>
-                        <th class="col-md-5">Previous value</th>
-                        <th class="col-md-5">New value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="row in diff"
-                        :key="row.key">
-                        <td>{{ row['label'] }}</td>
-                        <template v-for="key in ['old', 'new']">
-                            <td
-                                v-if="Array.isArray(row[key])"
-                                :key="key">
-                                <ul v-if="row[key].length > 0">
-                                    <li
-                                        v-for="(item, index) in row[key]"
-                                        :key="index">
-                                        {{ getDisplay(item) }}
-                                    </li>
-                                </ul>
-                            </td>
-                            <td
-                                v-else
-                                :key="key">
-                                {{ getDisplay(row[key]) }}
-                            </td>
-                        </template>
-                    </tr>
-                </tbody>
-            </table>
-            <div slot="footer">
-                <btn @click="saveModal=false">Cancel</btn>
-                <btn
-                    type="success"
-                    @click="save()"
-                    data-action="auto-focus">
-                    Save
-                </btn>
-            </div>
-        </modal>
+        <resetModal
+            title="occurrence"
+            :model="resetModal"
+            @cancel="resetModal=false"
+            @confirm="reset()" />
+        <invalidModal
+            :model="invalidModal"
+            @confirm="invalidModal=false" />
+        <saveModal
+            title="occurrence"
+            :model="saveModal"
+            :diff="diff"
+            @cancel="saveModal=false"
+            @confirm="save()" />
     </div>
 </template>
 
 <script>
-window.axios = require('axios')
-
 import Vue from 'vue'
-import VueFormGenerator from 'vue-form-generator'
-import * as uiv from 'uiv'
-import VueMultiselect from 'vue-multiselect'
 
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear'
+import AbstractDocumentEdit from '../Components/Edit/AbstractDocumentEdit'
 
-Vue.use(VueFormGenerator)
-Vue.use(uiv)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[.]vue$/)
 
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
-
-let panelComponents = require.context('../Components/Edit/Panels', false, /[.]vue$/)
-let modalComponents = require.context('../Components/Edit/Modals', false, /[.]vue$/)
-let components = {}
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    components[compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel'] = panelComponents(key).default
-}
-for(let key of modalComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    components[compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal'] = modalComponents(key).default
+    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'GeneralOccurrence'].includes(compName)) {
+        Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
+    }
 }
 
 export default {
-    components: components,
-    props: {
-        getManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        postManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        putManuscriptUrl: {
-            type: String,
-            default: '',
-        },
-        getLocationsUrl: {
-            type: String,
-            default: '',
-        },
-        getContentsUrl: {
-            type: String,
-            default: '',
-        },
-        getOriginsUrl: {
-            type: String,
-            default: '',
-        },
-        getStatusesUrl: {
-            type: String,
-            default: '',
-        },
-        initManuscript: {
-            type: String,
-            default: '',
-        },
-        initLocations: {
-            type: String,
-            default: '',
-        },
-        initContents: {
-            type: String,
-            default: '',
-        },
-        initPatrons: {
-            type: String,
-            default: '',
-        },
-        initScribes: {
-            type: String,
-            default: '',
-        },
-        initRelatedPersons: {
-            type: String,
-            default: '',
-        },
-        initOrigins: {
-            type: String,
-            default: '',
-        },
-        initBooks: {
-            type: String,
-            default: '',
-        },
-        initArticles: {
-            type: String,
-            default: '',
-        },
-        initBookChapters: {
-            type: String,
-            default: '',
-        },
-        initOnlineSources: {
-            type: String,
-            default: '',
-        },
-        initStatuses: {
-            type: String,
-            default: '',
-        },
-    },
+    mixins: [ AbstractDocumentEdit ],
     data() {
         return {
-            manuscript: this.initManuscript ? JSON.parse(this.initManuscript) : null,
-            locations: JSON.parse(this.initLocations),
-            contents: JSON.parse(this.initContents),
-            persons: {
-                patrons: JSON.parse(this.initPatrons),
-                scribes: JSON.parse(this.initScribes),
-                relatedPersons: JSON.parse(this.initRelatedPersons),
-            },
-            origins: JSON.parse(this.initOrigins),
-            bibliographies: {
-                books: JSON.parse(this.initBooks),
-                articles: JSON.parse(this.initArticles),
-                bookChapters: JSON.parse(this.initBookChapters),
-                onlineSources: JSON.parse(this.initOnlineSources),
-            },
-            statuses: JSON.parse(this.initStatuses),
+            occurrence: null,
+            persons: null,
+            bibliographies: null,
+            statuses: null,
             model: {
-                locatedAt: {
-                    location: {
-                        id: null,
-                        regionWithParents: null,
-                        institution: null,
-                        collection: null,
-                    },
-                    shelf: null,
-                },
-                content: {content: null},
                 person: {
                     patrons: [],
                     scribes: [],
-                    relatedPersons: [],
                 },
                 date: {
                     floor: null,
@@ -327,7 +147,6 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                origin: {origin: null},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -335,84 +154,63 @@ export default {
                     onlineSources: [],
                 },
                 general: {
-                    diktyon: null,
                     publicComment: null,
                     privateComment: null,
-                    illustrated: null,
-                    status: null,
+                    textStatus: null,
+                    recordStatus: null,
                     public: null,
                 },
             },
-            formOptions: {
-                validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
-            },
-            openRequests: 0,
-            alerts: [],
-            originalModel: {},
-            diff:[],
-            resetModal: false,
-            invalidModal: false,
-            saveModal: false,
-            invalidForms: false,
-            scrollY: null,
-            isSticky: false,
-            stickyStyle: {},
+            forms: [
+                'persons',
+                'date',
+                'bibliography',
+                'general',
+            ],
         }
     },
-    watch: {
-        'manuscript': function (newValue, oldValue) {
-            this.loadManuscript()
-        },
-        scrollY(newValue) {
-            let anchor = this.$refs.anchor.getBoundingClientRect()
-            if (anchor.top < 30) {
-                this.isSticky = true
-                this.stickyStyle = {
-                    width: anchor.width + 'px',
-                }
-            }
-            else {
-                this.isSticky = false
-                this.stickyStyle = {}
-            }
-        },
+    created () {
+        this.occurrence = this.data.occurrence
+        this.persons = {
+            patrons: this.data.patrons,
+            scribes: this.data.scribes,
+        }
+        this.bibliographies = {
+            books: this.data.books,
+            articles: this.data.articles,
+            bookChapters: this.data.bookChapters,
+            onlineSources: this.data.onlineSources,
+        }
+        this.statuses = {
+            textStatuses: this.data.textStatuses,
+            recordStatuses: this.data.recordStatuses,
+        }
     },
     mounted () {
-        this.loadManuscript()
+        this.loadOccurrence()
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
     },
     methods: {
-        loadManuscript() {
-            if (this.manuscript != null) {
-                this.model.locatedAt = this.manuscript.locatedAt
-                this.model.content = {
-                    content: this.manuscript.content,
-                }
+        loadOccurrence() {
+            if (this.occurrence != null) {
+                // Person
                 this.model.person = {
-                    patrons: this.manuscript.patrons,
-                    scribes: this.manuscript.scribes,
-                    relatedPersons: this.manuscript.relatedPersons,
+                    patrons: this.occurrence.patrons,
+                    scribes: this.occurrence.scribes,
                 }
 
                 // Date
                 this.model.date = {
-                    floor: this.manuscript.date != null ? this.manuscript.date.floor : null,
-                    ceiling: this.manuscript.date != null ? this.manuscript.date.ceiling : null,
+                    floor: this.occurrence.date != null ? this.occurrence.date.floor : null,
+                    ceiling: this.occurrence.date != null ? this.occurrence.date.ceiling : null,
                     exactDate: null,
                     exactYear: null,
                     floorYear: null,
                     floorDayMonth: null,
                     ceilingYear: null,
                     ceilingDayMonth: null,
-                }
-
-                // Origin
-                this.model.origin = {
-                    origin: this.manuscript.origin,
                 }
 
                 // Bibliography
@@ -422,9 +220,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                 }
-                for (let id of Object.keys(this.manuscript.bibliography)) {
-                    let bib = this.manuscript.bibliography[id]
-                    bib['id'] = id
+                for (let bib of this.occurrence.bibliography) {
                     switch (bib['type']) {
                     case 'book':
                         this.model.bibliography.books.push(bib)
@@ -443,12 +239,11 @@ export default {
 
                 // General
                 this.model.general = {
-                    diktyon: this.manuscript.diktyon,
-                    publicComment: this.manuscript.publicComment,
-                    privateComment: this.manuscript.privateComment,
-                    status: this.manuscript.status,
-                    illustrated: this.manuscript.illustrated,
-                    public: this.manuscript.public,
+                    publicComment: this.occurrence.publicComment,
+                    privateComment: this.occurrence.privateComment,
+                    textStatus: this.occurrence.textStatus,
+                    recordStatus: this.occurrence.recordStatus,
+                    public: this.occurrence.public,
                 }
             }
 
@@ -458,116 +253,35 @@ export default {
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
-        validateForms() {
-            this.$refs.locatedAt.validate()
-            this.$refs.content.validate()
-            this.$refs.persons.validate()
-            this.$refs.date.validate()
-            this.$refs.origin.validate()
-            this.$refs.general.validate()
-        },
-        validated(isValid, errors) {
-            this.invalidForms = (
-                !this.$refs.locatedAt.isValid
-                || !this.$refs.content.isValid
-                || !this.$refs.persons.isValid
-                || !this.$refs.date.isValid
-                || !this.$refs.origin.isValid
-                || !this.$refs.bibliography.isValid
-                || !this.$refs.general.isValid
-            )
-
-            this.calcDiff()
-        },
-        calcDiff() {
-            this.diff = []
-                .concat(this.$refs.locatedAt.changes)
-                .concat(this.$refs.content.changes)
-                .concat(this.$refs.persons.changes)
-                .concat(this.$refs.date.changes)
-                .concat(this.$refs.origin.changes)
-                .concat(this.$refs.bibliography.changes)
-                .concat(this.$refs.general.changes)
-
-            if (this.diff.length !== 0) {
-                window.onbeforeunload = function(e) {
-                    let dialogText = 'There are unsaved changes.'
-                    e.returnValue = dialogText
-                    return dialogText
-                }
-            }
-        },
-        getDisplay(item) {
-            if (item == null) {
-                return null
-            }
-            else if (item.hasOwnProperty('name')) {
-                return item['name']
-            }
-            return item
-        },
-        toSave() {
-            let result = {}
-            for (let diff of this.diff) {
-                if ('keyGroup' in diff) {
-                    if (!(diff.keyGroup in result)) {
-                        result[diff.keyGroup] = {}
-                    }
-                    result[diff.keyGroup][diff.key] = diff.value
-                }
-                else {
-                    result[diff.key] = diff.value
-                }
-            }
-            console.log(result)
-            return result
-        },
-        reset() {
-            this.resetModal = false
-            this.model = JSON.parse(JSON.stringify(this.originalModel))
-        },
         save() {
             this.openRequests++
             this.saveModal = false
-            if (this.manuscript == null) {
-                axios.post(this.postManuscriptUrl, this.toSave())
+            if (this.occurrence == null) {
+                axios.post(this.urls['occurrence_post'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.getManuscriptUrl.replace('manuscript_id', response.data.id)
+                        window.location = this.urls['occurrence_get'].replace('occurrence_id', response.data.id)
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
                         this.openRequests--
                     })
             }
             else {
-                axios.put(this.putManuscriptUrl, this.toSave())
+                axios.put(this.urls['occurrence_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.getManuscriptUrl
+                        window.location = this.urls['occurrence_get']
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
                         this.openRequests--
                     })
             }
-        },
-        saveButton() {
-            this.validateForms()
-            if (this.invalidForms) {
-                this.invalidModal = true
-            }
-            else {
-                this.saveModal = true
-            }
-        },
-        reload() {
-            window.onbeforeunload = function () {}
-            window.location.reload(true)
         },
     }
 }

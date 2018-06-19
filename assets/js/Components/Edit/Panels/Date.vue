@@ -4,7 +4,7 @@
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="dateForm"
+            ref="form"
             @validated="validated" />
         <div
             v-if="warnEstimate"
@@ -148,7 +148,7 @@ export default {
             if (this.model.exactYear) {
                 this.schema.fields.ceilingYear.min = YEAR_MIN
                 this.schema.fields.floorYear.max = YEAR_MAX
-                this.$refs.dateForm.validate()
+                this.$refs.form.validate()
             }
         },
         'model.floor': function (newValue, oldValue) {
@@ -171,7 +171,7 @@ export default {
                 }
             }
 
-            this.$refs.dateForm.validate()
+            this.$refs.form.validate()
         },
         'model.floorDayMonth': function (newValue, oldValue) {
             if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
@@ -182,7 +182,7 @@ export default {
                 this.model.ceilingDayMonth = this.model.floorDayMonth
             }
 
-            this.$refs.dateForm.validate()
+            this.$refs.form.validate()
         },
         'model.ceiling': function (newValue, oldValue) {
             this.updateFieldsFromModel('ceiling')
@@ -201,13 +201,13 @@ export default {
                 }
             }
 
-            this.$refs.dateForm.validate()
+            this.$refs.form.validate()
         },
         'model.ceilingDayMonth': function (newValue, oldValue) {
             if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
                 this.model.exactDate = true
             }
-            this.$refs.dateForm.validate()
+            this.$refs.form.validate()
         },
     },
     // set year min and max values
@@ -270,28 +270,25 @@ export default {
             }
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
-        validate() {
-            this.$refs.dateForm.validate()
-        },
         validated(isValid, errors) {
             for (let key of ['floor', 'ceiling']) {
                 // fix NaN
                 if (isNaN(this.model[key + 'Year'])) {
                     this.model[key + 'Year'] = null
-                    this.$refs.dateForm.validate()
+                    this.$refs.form.validate()
                     return
                 }
                 // fix empty DayMonth values
                 if (this.model[key + 'DayMonth'] === '') {
                     this.model[key + 'DayMonth'] = null
-                    this.$refs.dateForm.validate()
+                    this.$refs.form.validate()
                     return
                 }
                 // check if the complete date actually exists
                 if (isValid && this.model[key + 'DayMonth'] != null) {
                     let date = new Date(this.model[key + 'Year'] + '-' + this.model[key + 'DayMonth'].substr(3,2) + '-' + this.model[key + 'DayMonth'].substr(0,2))
                     if (isNaN(date)) {
-                        this.$refs.dateForm.errors.push({
+                        this.$refs.form.errors.push({
                             error: 'Invalid date',
                             field: this.schema.fields[key + 'DayMonth'],
                         })

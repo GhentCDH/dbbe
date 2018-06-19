@@ -51,12 +51,15 @@
             </ul>
         </div>
         <vue-form-generator
+            v-if="values && values.relatedPersons"
             :schema="relatedPersonsSchema"
             :model="model"
             :options="formOptions"
             ref="relatedPersonsForm"
             @validated="validated" />
-        <div class="small">
+        <div
+            v-if="values && values.relatedPersons"
+            class="small">
             <p>Related persons are persons that are related to this manuscript but that are not a patron or a scribe of the manuscript or of occurrences related to the manuscript.</p>
         </div>
     </panel>
@@ -154,12 +157,16 @@ export default {
         enableFields() {
             this.enableField(this.patronsSchema.fields.patrons)
             this.enableField(this.scribesSchema.fields.scribes)
-            this.enableField(this.relatedPersonsSchema.fields.relatedPersons)
+            if (this.values.relatedPersons) {
+                this.enableField(this.relatedPersonsSchema.fields.relatedPersons)
+            }
         },
         validate() {
             this.$refs.patronsForm.validate()
             this.$refs.scribesForm.validate()
-            this.$refs.relatedPersonsForm.validate()
+            if (this.values.relatedPersons) {
+                this.$refs.relatedPersonsForm.validate()
+            }
         },
         validated(isValid, errors) {
             this.isValid = isValid

@@ -2,13 +2,16 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Exception;
+use stdClass;
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 use AppBundle\Model\Genre;
 use AppBundle\Model\Image;
 use AppBundle\Model\Meter;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
-
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class OccurrenceManager extends DocumentManager
 {
@@ -283,5 +286,53 @@ class OccurrenceManager extends DocumentManager
     {
         $rawIds = $this->dbs->getDepIdsByManuscriptId($manuscriptId);
         return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+    }
+
+    public function addOccurrence(stdClass $data): Occurrence
+    {
+        $this->dbs->beginTransaction();
+        try {
+            $occurrenceId = $this->dbs->insert();
+
+            $newOccurrence = $this->updateOccurrence($occurrenceId, $data, true);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newOccurrence;
+    }
+
+    public function updateOccurrence(int $occurrenceId, stdClass $data, bool $new = false): Occurrence
+    {
+        $this->dbs->beginTransaction();
+        try {
+            $occurrence = $this->getOccurrenceById($id);
+            if ($occurrence == null) {
+                throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
+            }
+
+            $newOccurrence = $this->getOccurrenceById($id);
+
+            $this->updateModified($new ? null : $occurrence, $newOccurrence);
+
+            // TODO: add actual update functions
+            throw new Exception('Not implemented');
+
+
+            // (re-)index in elastic search
+            $this->ess->addOccurrence($newOccurrence);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newOccurrence;
     }
 }

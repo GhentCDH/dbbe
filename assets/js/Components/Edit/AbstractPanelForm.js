@@ -57,5 +57,13 @@ export default {
                 }
             }
         },
+        validated(isValid, errors) {
+            this.isValid = isValid
+            this.calcChanges()
+            this.$emit('validated', isValid, this.errors, this)
+        },
+        validate() {
+            this.$refs.form.validate()
+        },
     }
 }
