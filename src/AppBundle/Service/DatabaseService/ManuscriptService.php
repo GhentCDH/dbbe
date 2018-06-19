@@ -299,18 +299,25 @@ class ManuscriptService extends DocumentService
 
     public function insert(): int
     {
-        // Set search_path for trigger ensure_manuscript_has_document
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'INSERT INTO data.manuscript default values'
-        );
-        $manuscriptId = $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            order by identity desc
-            limit 1'
-        )->fetch()['manuscript_id'];
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_manuscript_has_document
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.manuscript default values'
+            );
+            $manuscriptId = $this->conn->executeQuery(
+                'SELECT
+                    manuscript.identity as manuscript_id
+                from data.manuscript
+                order by identity desc
+                limit 1'
+            )->fetch()['manuscript_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $manuscriptId;
     }
 
@@ -619,30 +626,36 @@ class ManuscriptService extends DocumentService
 
     public function upsertStatus(int $manuscriptId, int $statusId): int
     {
-        $update = $this->conn->executeUpdate(
-            'UPDATE data.document_status
-            set idstatus = ?
-            from data.status
-            where iddocument = ?
-            and document_status.idstatus = status.idstatus
-            and status.type = \'manuscript\'',
-            [
-                $statusId,
-                $manuscriptId,
-            ]
-        );
-        if ($update) {
-            return $update;
-        } else {
-            return $this->conn->executeUpdate(
-                'INSERT into data.document_status (iddocument, idstatus)
-                values (?, ?)',
+        $this->beginTransaction();
+        try {
+            $upsert = $this->conn->executeUpdate(
+                'UPDATE data.document_status
+                set idstatus = ?
+                from data.status
+                where iddocument = ?
+                and document_status.idstatus = status.idstatus
+                and status.type = \'manuscript\'',
                 [
-                    $manuscriptId,
                     $statusId,
+                    $manuscriptId,
                 ]
             );
+            if (!$upsert) {
+                $upsert = $this->conn->executeUpdate(
+                    'INSERT into data.document_status (iddocument, idstatus)
+                    values (?, ?)',
+                    [
+                        $manuscriptId,
+                        $statusId,
+                    ]
+                );
+            }
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
         }
+        return $upsert;
     }
 
     public function updateIllustrated(int $manuscriptId, bool $illustrated): int
@@ -673,33 +686,41 @@ class ManuscriptService extends DocumentService
 
     public function delete(int $manuscriptId): int
     {
-        // don't delete if this manuscript is used in document_contains
-        $count = $this->conn->executeQuery(
-            'SELECT count(*)
-            from data.document_contains
-            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            where manuscript.identity = ?',
-            [$manuscriptId]
-        )->fetchColumn(0);
-        if ($count > 0) {
-            throw new DependencyException('This manuscript has dependencies.');
+        $this->beginTransaction();
+        try {
+            // don't delete if this manuscript is used in document_contains
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.document_contains
+                inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+                where manuscript.identity = ?',
+                [$manuscriptId]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This manuscript has dependencies.');
+            }
+            // Set search_path for triggers
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'DELETE from data.document_title
+                where document_title.iddocument = ?',
+                [$manuscriptId]
+            );
+            $this->conn->executeUpdate(
+                'DELETE from data.factoid
+                where factoid.subject_identity = ?',
+                [$manuscriptId]
+            );
+            $delete = $this->conn->executeUpdate(
+                'DELETE from data.manuscript
+                where manuscript.identity = ?',
+                [$manuscriptId]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
         }
-        // Set search_path for triggers
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'DELETE from data.document_title
-            where document_title.iddocument = ?',
-            [$manuscriptId]
-        );
-        $this->conn->executeUpdate(
-            'DELETE from data.factoid
-            where factoid.subject_identity = ?',
-            [$manuscriptId]
-        );
-        return $this->conn->executeUpdate(
-            'DELETE from data.manuscript
-            where manuscript.identity = ?',
-            [$manuscriptId]
-        );
+        return $delete;
     }
 }

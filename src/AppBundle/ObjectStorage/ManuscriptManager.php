@@ -275,6 +275,7 @@ class ManuscriptManager extends DocumentManager
             );
 
             unset($data->locatedAt);
+            // TODO: check if following lines are needed
             if (!property_exists($data, 'public')) {
                 $data->public = false;
             }
@@ -404,7 +405,7 @@ class ManuscriptManager extends DocumentManager
 
             $this->updateModified($new ? null : $manuscript, $newManuscript);
 
-            // re-index in elastic search
+            // (re-)index in elastic search
             $this->ess->addManuscript($newManuscript);
 
             // commit transaction
@@ -770,6 +771,8 @@ class ManuscriptManager extends DocumentManager
 
             $this->dbs->delete($manuscriptId);
 
+            $this->updateModified($manuscript, null);
+
             // empty cache
             $this->cache->invalidateTags([
                 'manuscript_short.' . $manuscriptId,
@@ -778,8 +781,6 @@ class ManuscriptManager extends DocumentManager
             ]);
             $this->cache->deleteItem('manuscript_short.' . $manuscriptId);
             $this->cache->deleteItem('manuscript.' . $manuscriptId);
-
-            $this->updateModified($manuscript, null);
 
             // delete from elastic search
             $this->ess->delManuscript($manuscript);
