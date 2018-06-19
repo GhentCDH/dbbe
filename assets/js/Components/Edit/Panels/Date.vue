@@ -239,21 +239,23 @@ export default {
         },
         formatDateComputer(year, dayMonth, key) {
             let defaultDayMonth = key === 'floor' ? '01-01' : '12-31'
+            if (year == null) {
+                return null
+            }
             if (dayMonth == null) {
                 return year + '-' + defaultDayMonth
             }
-            else {
-                return year + '-' + dayMonth.substr(3,2) + '-' + dayMonth.substr(0,2)
-            }
+            return year + '-' + dayMonth.substr(3,2) + '-' + dayMonth.substr(0,2)
         },
         formatDateHuman(year, dayMonth, key) {
             let defaultDayMonth = key === 'floor' ? '01/01' : '31/12'
+            if (year == null) {
+                return null
+            }
             if (dayMonth == null) {
                 return defaultDayMonth + '/' + year
             }
-            else {
-                return dayMonth  + '/' + year
-            }
+            return dayMonth  + '/' + year
         },
         updateFieldsFromModel(key) {
             if (this.model[key] != null) {

@@ -454,9 +454,38 @@ class ManuscriptService extends DocumentService
         );
     }
 
+    public function deleteCompletionDate(int $manuscriptId): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'completed at\'',
+            [
+                $manuscriptId,
+            ]
+        );
+    }
+
+    public function insertOrigin(int $manuscriptId, int $locationId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.factoid (subject_identity, idlocation, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (select factoid_type.idfactoid_type from data.factoid_type where factoid_type.type = \'written\')
+            )',
+            [
+                $manuscriptId,
+                $locationId,
+            ]
+        );
+    }
+
     public function updateOrigin(int $manuscriptId, int $locationId): int
     {
-        // TODO: insert, update on conflict
         return $this->conn->executeUpdate(
             'UPDATE data.factoid
             set idlocation = ?
@@ -466,6 +495,20 @@ class ManuscriptService extends DocumentService
             and factoid_type.type = \'written\'',
             [
                 $locationId,
+                $manuscriptId,
+            ]
+        );
+    }
+
+    public function deleteOrigin(int $manuscriptId): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'written\'',
+            [
                 $manuscriptId,
             ]
         );

@@ -413,7 +413,7 @@ class ManuscriptManager extends DocumentManager
                 || !property_exists($content, 'id')
                 || !is_numeric($content->id)
             ) {
-                throw new BadRequestHttpException('Incorrect data.');
+                throw new BadRequestHttpException('Incorrect content data.');
             }
         }
         list($delIds, $addIds) = self::calcDiff($contents, $manuscript->getContentsWithParents());
@@ -428,11 +428,23 @@ class ManuscriptManager extends DocumentManager
 
     private function updatePatrons(Manuscript $manuscript, array $patrons): void
     {
+        foreach ($patrons as $patron) {
+            if (!is_object($patron) || !property_exists($patron, 'id') || !is_numeric($patron->id)) {
+                throw new BadRequestHttpException('Incorrect patrons data.');
+            }
+        }
+
         $this->updateBibroles($manuscript, $patrons, $manuscript->getPatrons(), 'patron');
     }
 
     private function updateScribes(Manuscript $manuscript, array $scribes): void
     {
+        foreach ($scribes as $scribe) {
+            if (!is_object($scribe) || !property_exists($scribe, 'id') || !is_numeric($scribe->id)) {
+                throw new BadRequestHttpException('Incorrect scribes data.');
+            }
+        }
+
         $this->updateBibroles($manuscript, $scribes, $manuscript->getScribes(), 'scribe');
     }
 
@@ -450,6 +462,12 @@ class ManuscriptManager extends DocumentManager
 
     private function updateRelatedPersons(Manuscript $manuscript, array $persons): void
     {
+        foreach ($persons as $person) {
+            if (!is_object($person) || !property_exists($person, 'id') || !is_numeric($person->id)) {
+                throw new BadRequestHttpException('Incorrect related persons data.');
+            }
+        }
+
         list($delIds, $addIds) = self::calcDiff($persons, $manuscript->getRelatedPersons());
 
         if (count($delIds) > 0) {
@@ -460,34 +478,50 @@ class ManuscriptManager extends DocumentManager
         }
     }
 
-    private function updateDate(Manuscript $manuscript, stdClass $date): void
+    private function updateDate(Manuscript $manuscript, stdClass $date = null): void
     {
-        // TODO: allow deletion
-        $dbDate = '('
-            . (empty($date->floor) ? '-infinity' : $date->floor)
-            . ', '
-            . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
-            . ')';
-        if (empty($manuscript->getDate())) {
-            $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);
+        if (empty($date)) {
+            $this->dbs->deleteCompletionDate($manuscript->getId());
+        } elseif (!property_exists($date, 'floor') || (!empty($date->floor) && !is_string($date->floor))
+            || !property_exists($date, 'ceiling') || (!empty($date->ceiling) && !is_string($date->ceiling))
+        ) {
+            throw new BadRequestHttpException('Incorrect date data.');
         } else {
-            $this->dbs->updateCompletionDate($manuscript->getId(), $dbDate);
+            $dbDate = '('
+                . (empty($date->floor) ? '-infinity' : $date->floor)
+                . ', '
+                . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
+                . ')';
+            if (empty($manuscript->getDate())) {
+                $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);
+            } else {
+                $this->dbs->updateCompletionDate($manuscript->getId(), $dbDate);
+            }
         }
     }
 
-    private function updateOrigin(Manuscript $manuscript, stdClass $origin): void
+    private function updateOrigin(Manuscript $manuscript, stdClass $origin = null): void
     {
-        $this->dbs->updateOrigin($manuscript->getId(), $origin->id);
+        if (empty($origin)) {
+            if (!empty($manuscript->getOrigin())) {
+                $this->dbs->deleteOrigin($manuscript->getId());
+            }
+        } elseif (!property_exists($origin, 'id') || !is_numeric($origin->id)) {
+            throw new BadRequestHttpException('Incorrect origin data.');
+        } else {
+            if (empty($manuscript->getOrigin())) {
+                $this->dbs->insertOrigin($manuscript->getId(), $origin->id);
+            } else {
+                $this->dbs->updateOrigin($manuscript->getId(), $origin->id);
+            }
+        }
     }
 
     public function updateOccurrenceOrder(Manuscript $manuscript, array $occurrenceOrder): void
     {
-        if (!is_array($occurrenceOrder)) {
-            throw new BadRequestHttpException('Incorrect data.');
-        }
         foreach ($occurrenceOrder as $occurrence) {
             if (!is_object($occurrence) || !property_exists($occurrence, 'id') || !is_numeric($occurrence->id)) {
-                throw new BadRequestHttpException('Incorrect data.');
+                throw new BadRequestHttpException('Incorrect occurrence order data.');
             }
         }
 
@@ -504,6 +538,35 @@ class ManuscriptManager extends DocumentManager
 
     private function updateBibliography(Manuscript $manuscript, stdClass $bibliography): void
     {
+        foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
+            $plurBibType = $bibType . 's';
+            if (!property_exists($bibliography, $plurBibType) || !is_array($bibliography->$plurBibType)) {
+                throw new BadRequestHttpException('Incorrect bibliography data.');
+            }
+            foreach ($bibliography->$plurBibType as $bib) {
+                if (!is_object($bib)
+                    || (property_exists($bib, 'id') && !is_numeric($bib->id))
+                    || !property_exists($bib, $bibType) || !is_object($bib->$bibType)
+                    || !property_exists($bib->$bibType, 'id') || !is_numeric($bib->$bibType->id)
+                ) {
+                    throw new BadRequestHttpException('Incorrect bibliography data.');
+                }
+                if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
+                    if (!property_exists($bib, 'startPage') || !(empty($bib->startPage) || is_string($bib->startPage))
+                        || !property_exists($bib, 'endPage')  || !(empty($bib->endPage) || is_string($bib->endPage))
+                        || (property_exists($bib, 'rawPages') && !(empty($bib->rawPages) || is_string($bib->rawPages)))
+                    ) {
+                        throw new BadRequestHttpException('Incorrect bibliography data.');
+                    }
+                } else {
+                    if (!property_exists($bib, 'relUrl') || !is_string($bib->relUrl)
+                    ) {
+                        throw new BadRequestHttpException('Incorrect bibliography data.');
+                    }
+                }
+            }
+        }
+
         $updateIds = [];
         $origBibIds = array_keys($manuscript->getBibliographies());
         // Add and update
