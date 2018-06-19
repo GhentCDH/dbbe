@@ -300,7 +300,6 @@ class ManuscriptManager extends DocumentManager
                 throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
             }
 
-            // TODO: sanitize data
             // update manuscript data
             $cacheReload = [
                 'mini' => $new,
@@ -343,10 +342,16 @@ class ManuscriptManager extends DocumentManager
                 $this->updateOrigin($manuscript, $data->origin);
             }
             if (property_exists($data, 'publicComment')) {
+                if (!is_string($data->publicComment)) {
+                    throw new BadRequestHttpException('Incorrect public comment data.');
+                }
                 $cacheReload['short'] = true;
                 $this->updatePublicComment($manuscript, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
                 $cacheReload['short'] = true;
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
@@ -359,6 +364,9 @@ class ManuscriptManager extends DocumentManager
                 $this->updateBibliography($manuscript, $data->bibliography);
             }
             if (property_exists($data, 'diktyon')) {
+                if (!is_numeric($data->diktyon)) {
+                    throw new BadRequestHttpException('Incorrect diktyon data.');
+                }
                 $cacheReload['extended'] = true;
                 $this->updateDiktyon($manuscript, $data->diktyon);
             }
@@ -367,6 +375,9 @@ class ManuscriptManager extends DocumentManager
                 $this->updateStatus($manuscript, $data);
             }
             if (property_exists($data, 'illustrated')) {
+                if (!is_bool($data->diktyon)) {
+                    throw new BadRequestHttpException('Incorrect illustrated data.');
+                }
                 $cacheReload['extended'] = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
             }
