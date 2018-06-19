@@ -328,6 +328,7 @@ class ManuscriptController extends Controller
                     'contents_edit' => $this->generateUrl('contents_edit'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'manuscript' => empty($id)

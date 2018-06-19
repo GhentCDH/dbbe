@@ -337,7 +337,7 @@ export default {
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the manuscript data.')})
                         this.openRequests--
                     })
             }
@@ -350,7 +350,7 @@ export default {
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while saving the manuscript data.'})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the manuscript data.')})
                         this.openRequests--
                     })
             }
