@@ -30,6 +30,32 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                occpers.occurrence_id
+            from (
+                SELECT
+                    original_poem.identity as occurrence_id,
+                    bibrole.idperson as person_id
+                from data.original_poem
+                inner join data.bibrole on original_poem.identity = bibrole.iddocument
+
+                union
+
+                select
+                    original_poem.identity as occurrence_id,
+                    person.identity as person_id
+                from data.original_poem
+                inner join data.factoid on original_poem.identity = factoid.object_identity
+                inner join data.person on factoid.subject_identity = person.identity
+            ) as occpers
+            where occpers.person_id = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(

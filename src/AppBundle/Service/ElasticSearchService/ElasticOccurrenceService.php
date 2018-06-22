@@ -130,13 +130,13 @@ class ElasticOccurrenceService extends ElasticSearchService
             }
         }
 
-        $aggregation_result = $this->aggregate(
+        $aggregationResult = $this->aggregate(
             self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status']),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
         // Add 'No genre' when necessary
-        if (array_key_exists('genre', $aggregation_result)
+        if (array_key_exists('genre', $aggregationResult)
             || (
                 !empty($params['filters'])
                 && array_key_exists('object', $params['filters'])
@@ -144,13 +144,13 @@ class ElasticOccurrenceService extends ElasticSearchService
                 && $params['filters']['object']['genre'] == -1
             )
         ) {
-            $aggregation_result['genre'][] = [
+            $aggregationResult['genre'][] = [
                 'id' => -1,
                 'name' => 'No genre',
             ];
         }
 
-        $result['aggregation'] = $aggregation_result;
+        $result['aggregation'] = $aggregationResult;
 
         return $result;
     }

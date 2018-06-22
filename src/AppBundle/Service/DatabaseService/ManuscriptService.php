@@ -132,6 +132,18 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.bibrole on manuscript.identity = bibrole.iddocument
+            where bibrole.idperson = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(

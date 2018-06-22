@@ -345,6 +345,11 @@ export default {
             // set oldFilterValues
             this.oldFilterValues = this.constructFilterValues()
 
+            // set table page
+            if (params.hasOwnProperty('page')) {
+                this.actualRequest = false
+                this.$refs.resultTable.setPage(params['page'])
+            }
             // set table ordering
             this.actualRequest = false
             if (params.hasOwnProperty('orderBy')) {

@@ -97,7 +97,7 @@ class ManuscriptManager extends DocumentManager
         $personIds = array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds);
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
         }
 
         $occurrences = [];
@@ -183,7 +183,7 @@ class ManuscriptManager extends DocumentManager
         }
 
         // Get basic manuscript information
-        $manuscripts= $this->getShortManuscriptsByIds([$id]);
+        $manuscripts = $this->getShortManuscriptsByIds([$id]);
         if (count($manuscripts) == 0) {
             throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
         }
@@ -257,6 +257,12 @@ class ManuscriptManager extends DocumentManager
     public function getManuscriptsDependenciesByStatus(int $statusId): array
     {
         $rawIds = $this->dbs->getDepIdsByStatusId($statusId);
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
+    public function getManuscriptsDependenciesByPerson(int $personId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByPersonId($personId);
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 

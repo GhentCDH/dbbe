@@ -264,7 +264,7 @@ class Manuscript extends Document implements IdJsonInterface
             'relatedPersons' => ArrayToJson::arrayToShortJson($this->relatedPersons),
             'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
             'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
-            'public' => $this->getPublic(),
+            'public' => $this->public,
         ];
 
         if (isset($this->date)) {
@@ -311,7 +311,7 @@ class Manuscript extends Document implements IdJsonInterface
         if (!empty($this->contentsWithParents)) {
             $contents = [];
             foreach ($this->contentsWithParents as $contentWithParents) {
-                $contents = array_merge($contents, $contentWithParents->getElastic());
+                $contents = array_merge($contents, $contentWithParents->getShortElastic());
             }
             $result['content'] = $contents;
         }
@@ -324,17 +324,17 @@ class Manuscript extends Document implements IdJsonInterface
         if (!empty($this->getAllPatrons())) {
             $result['patron'] = [];
             foreach ($this->getAllPatrons() as $patron) {
-                $result['patron'][] = $patron->getElastic();
+                $result['patron'][] = $patron->getShortJson();
             }
         }
         if (!empty($this->getAllSCribes())) {
             $result['scribe'] = [];
             foreach ($this->getAllSCribes() as $scribe) {
-                $result['scribe'][] = $scribe->getElastic();
+                $result['scribe'][] = $scribe->getShortJson();
             }
         }
         if (isset($this->origin)) {
-            $result['origin'] = $this->origin->getElastic();
+            $result['origin'] = $this->origin->getShortElastic();
         }
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;

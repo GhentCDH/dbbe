@@ -121,7 +121,7 @@ class OccurrenceManager extends DocumentManager
         $personIds = self::getUniqueIds($rawSubjects, 'person_id');
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
         }
         $keywordIds = self::getUniqueIds($rawSubjects, 'keyword_id');
         $keywords = [];
@@ -156,7 +156,7 @@ class OccurrenceManager extends DocumentManager
         $personIds = array_merge($patronIds, $scribeIds);
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
         }
         foreach ($rawBibroles as $rawBibrole) {
             $person = $persons[$rawBibrole['person_id']];
@@ -285,6 +285,12 @@ class OccurrenceManager extends DocumentManager
     public function getOccurrencesDependenciesByManuscript(int $manuscriptId): array
     {
         $rawIds = $this->dbs->getDepIdsByManuscriptId($manuscriptId);
+        return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+    }
+
+    public function getOccurrencesDependenciesByPerson(int $personId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByPersonId($personId);
         return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
     }
 

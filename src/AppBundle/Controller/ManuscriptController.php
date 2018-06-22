@@ -5,9 +5,9 @@ namespace AppBundle\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -17,6 +17,7 @@ class ManuscriptController extends Controller
 {
     /**
      * @Route("/manuscripts", name="manuscripts_search")
+     * @param Request $request
      */
     public function searchManuscripts(Request $request)
     {
@@ -42,6 +43,7 @@ class ManuscriptController extends Controller
 
     /**
      * @Route("/manuscripts/search_api", name="manuscripts_search_api")
+     * @param Request $request
      */
     public function searchManuscriptsAPI(Request $request)
     {
@@ -203,6 +205,27 @@ class ManuscriptController extends Controller
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByStatus($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on a person
+     * (bibrole)
+     * @Route("/manuscripts/persons/{id}", name="manuscript_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByPerson(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByPerson($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');

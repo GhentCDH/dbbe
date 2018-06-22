@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 {% if not person.getPublic() %}class="text-danger"{% endif %}>
+            Person "{{ person.getFullDescriptionWithOccupations() }}"
+            {% if not person.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('person_edit', {'id': person.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% if person.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ person.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if person.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ person.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if person.getPublic()|default is not null %}
+                        <tr class="danger">
+                            <td>Publication state</td>
+                            <td>{{ person.getPublic() ? 'Public': 'Not public' }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

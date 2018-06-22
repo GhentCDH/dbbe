@@ -18,6 +18,7 @@ class OccurrenceController extends Controller
 {
     /**
      * @Route("/occurrences", name="occurrences_search")
+     * @param Request $request
      */
     public function searchOccurrences(Request $request)
     {
@@ -42,6 +43,7 @@ class OccurrenceController extends Controller
 
     /**
      * @Route("/occurrences/search_api", name="occurrences_search_api")
+     * @param Request $request
      */
     public function searchOccurrencesAPI(Request $request)
     {
@@ -119,6 +121,27 @@ class OccurrenceController extends Controller
             $occurrences = $this
                 ->get('occurrence_manager')
                 ->getOccurrencesDependenciesByManuscript($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * Get all occurrences that have a dependency on a person
+     * (bibrole / factoid)
+     * @Route("/occurrences/persons/{id}", name="occurrence_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     */
+    public function getOccurrenceDepsByPerson(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $occurrences = $this
+                ->get('occurrence_manager')
+                ->getOccurrencesDependenciesByPerson($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');

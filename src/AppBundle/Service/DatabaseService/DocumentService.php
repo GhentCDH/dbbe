@@ -4,7 +4,7 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 
-class DocumentService extends DatabaseService
+class DocumentService extends EntityService
 {
     public function getCompletionDates(array $ids): array
     {
@@ -23,19 +23,6 @@ class DocumentService extends DatabaseService
                         and factoid_type.type = \'completed at\'
             ) factoid_merge on document.identity = factoid_merge.factoid_identity
             where document.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getPublics(array $ids = null): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                entity.identity as document_id,
-                entity.public
-            from data.entity
-            where entity.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -79,21 +66,6 @@ class DocumentService extends DatabaseService
             		\'online_source\' as type
             	from data.online_source
             ) online_source_merge on reference.idsource = online_source_merge.biblio_id
-            where document.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getComments(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                document.identity as document_id,
-                entity.public_comment,
-                entity.private_comment
-            from data.document
-            inner join data.entity on document.identity = entity.identity
             where document.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]

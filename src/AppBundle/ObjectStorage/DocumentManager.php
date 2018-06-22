@@ -2,55 +2,22 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\Document;
 use AppBundle\Model\FuzzyDate;
 
-class DocumentManager extends ObjectManager
+class DocumentManager extends EntityManager
 {
-    protected function setPublics(array &$documents): void
-    {
-        $ids = array_map(function ($document) {
-            return $document->getId();
-        }, $documents);
-        $rawPublics = $this->dbs->getPublics($ids);
-        foreach ($rawPublics as $rawPublic) {
-            $documents[$rawPublic['document_id']]
-                // default: true (if no value is set in the database)
-                ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
-        }
-    }
-
     protected function setDates(array &$documents): void
     {
-        $ids = array_map(function ($document) {
-            return $document->getId();
-        }, $documents);
-        $rawCompletionDates = $this->dbs->getCompletionDates($ids);
+        $rawCompletionDates = $this->dbs->getCompletionDates(self::getIds($documents));
         foreach ($rawCompletionDates as $rawCompletionDate) {
             $documents[$rawCompletionDate['document_id']]
                 ->setDate(new FuzzyDate($rawCompletionDate['completion_date']));
         }
     }
 
-    protected function setComments(array &$documents): void
-    {
-        $ids = array_map(function ($document) {
-            return $document->getId();
-        }, $documents);
-        $rawComments = $this->dbs->getComments($ids);
-        foreach ($rawComments as $rawComment) {
-            $documents[$rawComment['document_id']]
-                ->setPublicComment($rawComment['public_comment'])
-                ->setPrivateComment($rawComment['private_comment']);
-        }
-    }
-
     protected function setPrevIds(array &$documents): void
     {
-        $ids = array_map(function ($document) {
-            return $document->getId();
-        }, $documents);
-        $rawPrevIds = $this->dbs->getPrevIds($ids);
+        $rawPrevIds = $this->dbs->getPrevIds(self::getIds($documents));
         foreach ($rawPrevIds as $rawPrevId) {
             $documents[$rawPrevId['document_id']]
                 ->setPrevId($rawPrevId['prev_id']);
@@ -59,10 +26,7 @@ class DocumentManager extends ObjectManager
 
     protected function setBibliographies(array &$documents): void
     {
-        $ids = array_map(function ($document) {
-            return $document->getId();
-        }, $documents);
-        $rawBibliographies = $this->dbs->getBibliographies($ids);
+        $rawBibliographies = $this->dbs->getBibliographies(self::getIds($documents));
         if (!empty($rawBibliographies)) {
             $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
             $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');

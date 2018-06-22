@@ -4,8 +4,17 @@ namespace AppBundle\Service\DatabaseService;
 
 use Doctrine\DBAL\Connection;
 
-class PersonService extends DatabaseService
+class PersonService extends EntityService
 {
+    public function getIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                person.identity as person_id
+            from data.person'
+        )->fetchAll();
+    }
+
     public function getHistoricalIds(): array
     {
         return $this->conn->query(
@@ -16,7 +25,7 @@ class PersonService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getPersonsByIds(array $ids): array
+    public function getBasicInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -32,7 +41,7 @@ class PersonService extends DatabaseService
                 rgkiii.identifier as rgkiii,
                 vgk.identifier as vgk,
                 pbw.identifier as pbw,
-                occupation_merge.occupations
+                person.is_historical
             from data.person
             inner join data.name on name.idperson = person.identity
             left join (
@@ -91,16 +100,20 @@ class PersonService extends DatabaseService
                 inner join data.institution on global_id.idauthority = institution.identity
                 where institution.name = \'Prosopography of the Byzantine World\'
             ) as pbw on person.identity = pbw.idsubject
-            left join (
-                select
-                    person_occupation.idperson,
-                    array_to_json(array_agg(occupation.occupation)) as occupations
-                from data.person_occupation
-                inner join data.occupation on person_occupation.idoccupation = occupation.idoccupation
-                where occupation.is_function = TRUE
-                group by person_occupation.idperson
-            ) as occupation_merge on person.identity = occupation_merge.idperson
             where person.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getOccupations(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person_occupation.idperson as person_id,
+                person_occupation.idoccupation as occupation_id
+            from data.person_occupation
+            where person_occupation.idperson in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

@@ -68,7 +68,7 @@ class IdNameObjectWithParents implements IdJsonInterface
         return $this->getLastChild()->getJson();
     }
 
-    public function getElastic(): array
+    public function getShortElastic(): array
     {
         $result = [];
         $array = $this->array;

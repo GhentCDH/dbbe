@@ -103,6 +103,11 @@ services:
         arguments: ['@status_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    occupation_manager:
+        class: AppBundle\ObjectStorage\OccupationManager
+        arguments: ['@occupation_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     image_manager:
         class: AppBundle\ObjectStorage\ImageManager
         arguments: ['@image_service', '@cache.app', '@service_container', null, null]
@@ -164,6 +169,10 @@ services:
         class: AppBundle\Service\DatabaseService\StatusService
         arguments: ['@doctrine.orm.entity_manager']
 
+    occupation_service:
+        class: AppBundle\Service\DatabaseService\OccupationService
+        arguments: ['@doctrine.orm.entity_manager']
+
     image_service:
         class: AppBundle\Service\DatabaseService\ImageService
         arguments: ['@doctrine.orm.entity_manager']
@@ -185,5 +194,10 @@ services:
 
     occurrence_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticOccurrenceService
+        arguments: ['%elastic_hosts%', '%elastic_index%']
+        public: true
+
+    person_elastic_service:
+        class: AppBundle\Service\ElasticSearchService\ElasticPersonService
         arguments: ['%elastic_hosts%', '%elastic_index%']
         public: true

@@ -21,10 +21,12 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         // Get database and elasticsearch clients
         $manuscriptManager = $this->getContainer()->get('manuscript_manager');
         $occurrenceManager = $this->getContainer()->get('occurrence_manager');
+        $personManager = $this->getContainer()->get('person_manager');
 
         $elasticSearchService = $this->getContainer()->get('elasticsearch_service');
         $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
         $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
+        $personElasticService = $this->getContainer()->get('person_elastic_service');
 
         // Index all types
         // (Re)index manuscripts
@@ -36,5 +38,10 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         $occurrenceElasticService->setupOccurrences();
         $occurrences = $occurrenceManager->getAllOccurrences();
         $occurrenceElasticService->addOccurrences($occurrences);
+
+        // (Re)index persons
+        $personElasticService->setupPersons();
+        $persons = $personManager->getAllPersons();
+        $personElasticService->addPersons($persons);
     }
 }

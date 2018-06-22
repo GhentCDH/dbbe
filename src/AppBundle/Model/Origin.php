@@ -21,7 +21,7 @@ class Origin extends Location
         ];
     }
 
-    public function getElastic(): array
+    public function getShortElastic(): array
     {
         // add all parent regions as well
         // use the ids of the regions / institution

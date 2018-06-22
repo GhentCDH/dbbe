@@ -339,7 +339,7 @@ class Occurrence extends Document
     {
         $result = [
             'id' => $this->id,
-            'public' => $this->getPublic(),
+            'public' => $this->public,
             'dbbe' => $this->getDBBE(),
         ];
 
@@ -366,7 +366,7 @@ class Occurrence extends Document
             if (!empty($this->manuscript->getContentsWithParents())) {
                 $contents = [];
                 foreach ($this->manuscript->getContentsWithParents() as $contentWithParents) {
-                    $contents = array_merge($contents, $contentWithParents->getElastic());
+                    $contents = array_merge($contents, $contentWithParents->getShortElastic());
                 }
                 $result['manuscript_content'] = $contents;
             }

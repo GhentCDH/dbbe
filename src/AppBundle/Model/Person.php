@@ -2,11 +2,10 @@
 
 namespace AppBundle\Model;
 
-class Person implements SubjectInterface
+class Person extends Entity implements SubjectInterface
 {
     use CacheDependenciesTrait;
 
-    private $id;
     private $firstName;
     private $lastName;
     private $extra;
@@ -17,23 +16,13 @@ class Person implements SubjectInterface
     private $VGK;
     private $PBW;
     private $occupations;
-    private $public;
+    private $historical;
 
     public function __construct()
     {
-        return $this;
-    }
-
-    public function setId(int $id): Person
-    {
-        $this->id = $id;
+        $this->occupations = [];
 
         return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
     }
 
     public function setFirstName(string $firstName = null): Person
@@ -99,27 +88,51 @@ class Person implements SubjectInterface
         return $this;
     }
 
-    public function setOccupations(array $occupations): Person
+    public function addOccupation(Occupation $occupation): Person
     {
-        sort($occupations);
-        $this->occupations = $occupations;
+        $this->occupations[$occupation->getId()] = $occupation;
 
         return $this;
     }
 
-    public function setPublic(bool $public): Person
+    public function setHistorical(bool $historical = null): Person
     {
-        $this->public = $public;
+        $this->historical = empty($historical) ? false : $historical;
 
         return $this;
     }
 
-    public function getPublic(): bool
+    public function getName(): string
     {
-        if (isset($this->public)) {
-            return $this->public;
+        $nameArray = array_filter([
+            $this->firstName,
+            $this->lastName,
+            $this->extra,
+        ]);
+        if (empty($nameArray)) {
+            return $this->unprocessed;
         }
-        return true;
+        return implode(' ', $nameArray);
+    }
+
+    public function getFunctions(): array
+    {
+        if (empty($this->occupations)) {
+            return [];
+        }
+        return array_filter($this->occupations, function ($occupation) {
+            return $occupation->getIsFunction();
+        });
+    }
+
+    public function getTypes(): array
+    {
+        if (empty($this->occupations)) {
+            return [];
+        }
+        return array_filter($this->occupations, function ($occupation) {
+            return !$occupation->getIsFunction();
+        });
     }
 
     public function getFullDescription(): string
@@ -154,8 +167,8 @@ class Person implements SubjectInterface
     {
         $description = $this->getFullDescription();
 
-        if (!empty($this->occupations)) {
-            $description .= ' (' . implode(', ', $this->occupations) . ')';
+        if (!empty($this->getFunctions())) {
+            $description .= ' (' . implode(', ', $this->getFunctions()) . ')';
         }
 
         return $description;
@@ -185,7 +198,53 @@ class Person implements SubjectInterface
 
     public function getElastic(): array
     {
-        return $this->getShortJson();
+        $result = [
+            'id' => $this->id,
+            'name' => $this->getName(),
+            'historical' => $this->historical,
+            'public' => $this->public,
+        ];
+        if (isset($this->bornDate) && !empty($this->bornDate->getFloor())) {
+            $result['born_date_floor_year'] = intval($this->bornDate->getFloor()->format('Y'));
+        }
+        if (isset($this->bornDate) && !empty($this->bornDate->getCeiling())) {
+            $result['born_date_ceiling_year'] = intval($this->bornDate->getCeiling()->format('Y'));
+        }
+        if (isset($this->deathDate) && !empty($this->deathDate->getFloor())) {
+            $result['death_date_floor_year'] = intval($this->deathDate->getFloor()->format('Y'));
+        }
+        if (isset($this->deathDate) && !empty($this->deathDate->getCeiling())) {
+            $result['death_date_ceiling_year'] = intval($this->deathDate->getCeiling()->format('Y'));
+        }
+        if (isset($this->RGK)) {
+            $result['rgk'] = $this->RGK;
+        }
+        if (isset($this->VGK)) {
+            $result['vgk'] = $this->VGK;
+        }
+        if (isset($this->PBW)) {
+            $result['pbw'] = $this->PBW;
+        }
+        if (!empty($this->getFunctions())) {
+            $result['function'] = [];
+            foreach ($this->getFunctions() as $functionOccupation) {
+                $result['function'][] = $functionOccupation->getShortJson();
+            }
+        }
+        if (!empty($this->getTypes())) {
+            $result['type'] = [];
+            foreach ($this->getTypes() as $typeOccupation) {
+                $result['type'][] = $typeOccupation->getShortJson();
+            }
+        }
+        if (isset($this->publicComment)) {
+            $result['public_comment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['private_comment'] = $this->privateComment;
+        }
+
+        return $result;
     }
 
     public static function sortByFullDescription($a, $b)

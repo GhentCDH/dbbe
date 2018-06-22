@@ -4,19 +4,19 @@ namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Type;
 
-use AppBundle\Model\Manuscript;
+use AppBundle\Model\Person;
 
-class ElasticManuscriptService extends ElasticSearchService
+class ElasticPersonService extends ElasticSearchService
 {
     public function __construct(array $config, string $indexPrefix)
     {
         parent::__construct($config, $indexPrefix);
-        $this->type = $this->getIndex('manuscripts')->getType('manuscript');
+        $this->type = $this->getIndex('persons')->getType('person');
     }
 
-    public function setupManuscripts(): void
+    public function setupPersons(): void
     {
-        $index = $this->getIndex('manuscripts');
+        $index = $this->getIndex('persons');
         if ($index->exists()) {
             $index->delete();
         }
@@ -26,48 +26,35 @@ class ElasticManuscriptService extends ElasticSearchService
         $mapping->setType($this->type);
         $mapping->setProperties(
             [
-                'content' => ['type' => 'nested'],
-                'patron' => ['type' => 'nested'],
-                'scribe' => ['type' => 'nested'],
-                'origin' => ['type' => 'nested'],
+                'function' => ['type' => 'nested'],
+                'type' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
     }
 
-    public function addManuscripts(array $manuscripts): void
+    public function addPersons(array $persons): void
     {
-        $manuscriptsElastic = [];
-        foreach ($manuscripts as $manuscript) {
-            $manuscriptsElastic [] = $manuscript->getElastic();
+        $personsElastic = [];
+        foreach ($persons as $person) {
+            $personsElastic [] = $person->getElastic();
         }
 
-        $this->bulkAdd($manuscriptsElastic);
+        $this->bulkAdd($personsElastic);
     }
 
-    public function addManuscript(Manuscript $manuscript): void
+    public function addPerson(Person $person): void
     {
-        $this->add($manuscript->getElastic());
+        $this->add($person->getElastic());
     }
 
-    public function delManuscript(Manuscript $manuscript): void
+    public function delPerson(Person $person): void
     {
-        $this->del($manuscript->getId());
+        $this->del($person->getId());
     }
 
     public function searchAndAggregate(array $params): array
     {
-        $aggregationFilters = ['city', 'content', 'patron', 'scribe', 'origin', 'public'];
-        if (!empty($params['filters']) && isset($params['filters']['city'])) {
-            $aggregationFilters[] = 'library';
-        }
-        if (!empty($params['filters']) && isset($params['filters']['library'])) {
-            $aggregationFilters[] = 'collection';
-        }
-        if (!empty($params['filters']) && isset($params['filters']['collection'])) {
-            $aggregationFilters[] = 'shelf';
-        }
-
         if (!empty($params['filters'])) {
             $params['filters'] = self::classifyFilters($params['filters']);
         }
@@ -76,14 +63,6 @@ class ElasticManuscriptService extends ElasticSearchService
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
-            unset($result['data'][$key]['city']);
-            unset($result['data'][$key]['library']);
-            unset($result['data'][$key]['collection']);
-            unset($result['data'][$key]['shelf']);
-            unset($result['data'][$key]['patron']);
-            unset($result['data'][$key]['scribe']);
-            unset($result['data'][$key]['origin']);
-
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
                 unset($result['data'][$key]['public_comment']);
@@ -94,25 +73,9 @@ class ElasticManuscriptService extends ElasticSearchService
         }
 
         $aggregationResult = $this->aggregate(
-            self::classifyFilters($aggregationFilters),
+            self::classifyFilters(['historical', 'rgk', 'vgk', 'pbw', 'function', 'type', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
         );
-        // Filter out unnecessary results
-
-        // Add 'No collection' when necessary
-        if (array_key_exists('collection', $aggregationResult)
-            || (
-                !empty($params['filters'])
-                && array_key_exists('object', $params['filters'])
-                && array_key_exists('collection', $params['filters']['object'])
-                && $params['filters']['object']['collection'] == -1
-            )
-        ) {
-            $aggregationResult['collection'][] = [
-                'id' => -1,
-                'name' => 'No collection',
-            ];
-        }
 
         $result['aggregation'] = $aggregationResult;
 
@@ -131,16 +94,9 @@ class ElasticManuscriptService extends ElasticSearchService
             if (isset($value) && $value !== '') {
                 // $filters can be a sequential (aggregation) or an associative (query) array
                 switch (is_int($key) ? $value : $key) {
-                    case 'city':
-                    case 'library':
-                    case 'collection':
-                        if (is_int($key)) {
-                            $result['object'][] = $value;
-                        } else {
-                            $result['object'][$key] = $value;
-                        }
-                        break;
-                    case 'shelf':
+                    case 'rgk':
+                    case 'vgk':
+                    case 'pbw':
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;
                         } else {
@@ -149,8 +105,8 @@ class ElasticManuscriptService extends ElasticSearchService
                         break;
                     case 'date':
                         $date_result = [
-                            'floorField' => 'date_floor_year',
-                            'ceilingField' => 'date_ceiling_year',
+                            'floorField' => 'born_date_floor_year',
+                            'ceilingField' => 'death_date_ceiling_year',
                         ];
                         if (array_key_exists('from', $value)) {
                             $date_result['startDate'] = $value['from'];
@@ -160,16 +116,15 @@ class ElasticManuscriptService extends ElasticSearchService
                         }
                         $result['date_range'][] = $date_result;
                         break;
-                    case 'content':
-                    case 'patron':
-                    case 'scribe':
-                    case 'origin':
+                    case 'function':
+                    case 'type':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {
                             $result['nested'][$key] = $value;
                         }
                         break;
+                    case 'name':
                     case 'public_comment':
                         $result['text'][$key] = [
                             'text' => $value,
@@ -189,6 +144,7 @@ class ElasticManuscriptService extends ElasticSearchService
                         ];
                         break;
                     case 'public':
+                    case 'historical':
                         if (is_int($key)) {
                             $result['boolean'][] = $value;
                         } else {

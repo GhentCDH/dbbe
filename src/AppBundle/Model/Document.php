@@ -2,17 +2,13 @@
 
 namespace AppBundle\Model;
 
-class Document
+class Document extends Entity
 {
-    protected $id;
     protected $prevId;
     protected $date;
     protected $patrons;
     protected $scribes;
     protected $bibliographies;
-    protected $publicComment;
-    protected $privateComment;
-    protected $public;
 
     public function __construct()
     {
@@ -21,18 +17,6 @@ class Document
         $this->bibliographies = [];
 
         return $this;
-    }
-
-    public function setId(int $id): Document
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
     }
 
     public function setPrevId(int $prevId): Occurrence
@@ -92,41 +76,5 @@ class Document
     public function getBibliographies(): array
     {
         return $this->bibliographies;
-    }
-
-    public function setPublicComment(string $publicComment = null): Document
-    {
-        $this->publicComment = $publicComment;
-
-        return $this;
-    }
-
-    public function getPublicComment(): ?string
-    {
-        return $this->publicComment;
-    }
-
-    public function setPrivateComment(string $privateComment = null): Document
-    {
-        $this->privateComment = $privateComment;
-
-        return $this;
-    }
-
-    public function getPrivateComment(): ?string
-    {
-        return $this->privateComment;
-    }
-
-    public function setPublic(bool $public): Document
-    {
-        $this->public = $public;
-
-        return $this;
-    }
-
-    public function getPublic(): bool
-    {
-        return $this->public;
     }
 }
