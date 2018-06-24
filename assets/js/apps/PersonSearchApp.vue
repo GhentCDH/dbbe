@@ -85,10 +85,10 @@
                     </template>
                 </template>
                 <template
-                    v-if="props.row.rgk || props.row.vgk || props.row.pbw"
+                    v-if="props.row.rgk || props.row.vgh || props.row.pbw"
                     slot="identification"
                     slot-scope="props">
-                    {{ formatIdentification(props.row.rgk, props.row.vgk, props.row.pbw) }}
+                    {{ formatIdentification(props.row.rgk, props.row.vgh, props.row.pbw) }}
                 </template>
                 <template
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
@@ -192,7 +192,7 @@ export default {
                     function: this.createMultiSelect('Function'),
                     type: this.createMultiSelect('Type'),
                     rgk: this.createMultiSelect('RGK', {model: 'rgk'}),
-                    vgk: this.createMultiSelect('VGK', {model: 'vgk'}),
+                    vgh: this.createMultiSelect('VGH', {model: 'vgh'}),
                     pbw: this.createMultiSelect('PBW', {model: 'pbw'}),
                     comment: {
                         type: 'input',
@@ -295,13 +295,13 @@ export default {
             let death = death_floor === death_ceiling ? death_floor : death_floor + '-' + death_ceiling
             return born === death ? born : '(' + born + ') - (' + death + ')'
         },
-        formatIdentification(rgk, vgk, pbw) {
+        formatIdentification(rgk, vgh, pbw) {
             let result = []
             if (rgk) {
                 result.push('RGK: ' + rgk)
             }
-            if (vgk) {
-                result.push('VGK: ' + vgk)
+            if (vgh) {
+                result.push('VGH: ' + vgh)
             }
             if (pbw) {
                 result.push('PBW: ' + pbw)

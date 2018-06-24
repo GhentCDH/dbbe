@@ -73,7 +73,7 @@ class ElasticPersonService extends ElasticSearchService
         }
 
         $aggregationResult = $this->aggregate(
-            self::classifyFilters(['historical', 'rgk', 'vgk', 'pbw', 'function', 'type', 'public']),
+            self::classifyFilters(['historical', 'rgk', 'vgh', 'pbw', 'function', 'type', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -95,7 +95,7 @@ class ElasticPersonService extends ElasticSearchService
                 // $filters can be a sequential (aggregation) or an associative (query) array
                 switch (is_int($key) ? $value : $key) {
                     case 'rgk':
-                    case 'vgk':
+                    case 'vgh':
                     case 'pbw':
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;

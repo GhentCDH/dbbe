@@ -39,7 +39,7 @@ class PersonService extends EntityService
                 rgki.identifier as rgki,
                 rgkii.identifier as rgkii,
                 rgkiii.identifier as rgkiii,
-                vgk.identifier as vgk,
+                vgh.identifier as vgh,
                 pbw.identifier as pbw,
                 person.is_historical
             from data.person
@@ -91,7 +91,7 @@ class PersonService extends EntityService
                 from data.global_id
                 inner join data.document_title on global_id.idauthority = document_title.iddocument
                 where document_title.title = \'Die griechischen Schreiber des Mittelalters und der Renaissance\'
-            ) as vgk on person.identity = vgk.idsubject
+            ) as vgh on person.identity = vgh.idsubject
             left join (
                 select
                     global_id.idsubject,

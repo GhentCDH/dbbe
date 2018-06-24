@@ -13,7 +13,7 @@ class Person extends Entity implements SubjectInterface
     private $bornDate;
     private $deathDate;
     private $RGK;
-    private $VGK;
+    private $VGH;
     private $PBW;
     private $occupations;
     private $historical;
@@ -74,9 +74,9 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
-    public function setVGK(string $vgk): Person
+    public function setVGH(string $vgh): Person
     {
-        $this->VGK = $vgk;
+        $this->VGH = $vgh;
 
         return $this;
     }
@@ -153,8 +153,8 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->RGK)) {
             $description .= ' - RGK: ' . $this->RGK;
         }
-        if (isset($this->VGK)) {
-            $description .= ' - VGK: ' . $this->VGK;
+        if (isset($this->VGH)) {
+            $description .= ' - VGH: ' . $this->VGH;
         }
         if (isset($this->PBW)) {
             $description .= ' - PBW: ' . $this->PBW;
@@ -219,8 +219,8 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->RGK)) {
             $result['rgk'] = $this->RGK;
         }
-        if (isset($this->VGK)) {
-            $result['vgk'] = $this->VGK;
+        if (isset($this->VGH)) {
+            $result['vgh'] = $this->VGH;
         }
         if (isset($this->PBW)) {
             $result['pbw'] = $this->PBW;

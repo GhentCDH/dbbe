@@ -44,8 +44,8 @@ class PersonManager extends EntityManager
             if (isset($rawPerson['rgkiii'])) {
                 $person->setRGK('III', $rawPerson['rgkiii']);
             }
-            if (isset($rawPerson['vgk'])) {
-                $person->setVGK($rawPerson['vgk']);
+            if (isset($rawPerson['vgh'])) {
+                $person->setVGH($rawPerson['vgh']);
             }
             if (isset($rawPerson['pbw'])) {
                 $person->setPBW($rawPerson['pbw']);
