@@ -73,7 +73,7 @@ class BibliographyManager extends ObjectManager
                 if (!empty($personId)) {
                     $book
                         ->addAuthor($persons[$personId])
-                        ->addCacheDependency('person.' . $personId);
+                        ->addCacheDependency('person_mini.' . $personId);
                 }
             }
 
@@ -180,7 +180,7 @@ class BibliographyManager extends ObjectManager
                 if (!empty($personId)) {
                     $article
                         ->addAuthor($persons[$personId])
-                        ->addCacheDependency('person.' . $personId);
+                        ->addCacheDependency('person_mini.' . $personId);
                 }
             }
 
@@ -312,7 +312,7 @@ class BibliographyManager extends ObjectManager
                 if (!empty($personId)) {
                     $bookChapter
                         ->addAuthor($persons[$personId])
-                        ->addCacheDependency('person.' . $personId);
+                        ->addCacheDependency('person_mini.' . $personId);
                 }
             }
 

@@ -119,6 +119,58 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getManuscripts(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT -- bibrole of manuscript
+                bibrole.idperson as person_id,
+                manuscript.identity as manuscript_id,
+                null as occurrence_id,
+                bibrole.type
+            from data.bibrole
+            inner join data.manuscript on bibrole.iddocument = manuscript.identity
+            where bibrole.idperson in (?)
+            and bibrole.type in (\'scribe\', \'patron\')
+
+            union
+
+            SELECT -- bibrole of occurrence in manuscript
+                bibrole.idperson as person_id,
+                manuscript.identity as manuscript_id,
+                document_contains.idcontent as occurrence_id,
+                bibrole.type
+            from data.bibrole
+            inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
+            inner join data.manuscript on document_contains.idcontainer = manuscript.identity
+            where bibrole.idperson in (?)
+            and bibrole.type in (\'scribe\', \'patron\')
+
+            union
+
+            SELECT -- related person to manuscript
+                factoid.object_identity as person_id,
+                factoid.subject_identity as manuscript_id,
+                null as occurrence_id,
+                \'related\' as type
+            from data.factoid
+            inner join data.person on factoid.object_identity = person.identity
+            inner join data.manuscript on factoid.subject_identity = manuscript.identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            where person.identity in (?)
+            and type = \'related to\'',
+            [
+                $ids,
+                $ids,
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
     public function getIdsByOccupations(array $occupations): array
     {
         return $this->conn->executeQuery(

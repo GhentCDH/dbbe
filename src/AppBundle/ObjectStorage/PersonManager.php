@@ -123,7 +123,25 @@ class PersonManager extends EntityManager
 
         // Occurrences (scribe, patron, subject)
         // Types
-        // Manuscripts (scribe (also through occurrences), patron (also through occurrences), relatedPerson)
+
+        $rawManuscripts = $this->dbs->getManuscripts([$id]);
+        $patronManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'patron');
+        $scribeManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'scribe');
+        $relatedManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'related');
+        $manuscriptIds = array_unique(array_merge($patronManuscriptIds, $scribeManuscriptIds, $relatedManuscriptIds));
+
+        $manuscripts = $this->container->get('manuscript_manager')->getMiniManuscriptsByIds($manuscriptIds);
+
+        foreach ($rawManuscripts as $rawManuscript) {
+            $person
+                ->addManuscript($manuscripts[$rawManuscript['manuscript_id']], $rawManuscript['type'])
+                // manuscript patrons, scribes and related persons are defined in the short section
+                ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id']);
+            if (!empty($rawManuscript['occurrence_id'])) {
+                // occurrence patrons and scribes are defined in the short section
+                $person->addCacheDependency('occurrence_short.' . $rawManuscript['occurrence_id']);
+            }
+        }
 
         $this->setCache([$person->getId() => $person], 'person');
 

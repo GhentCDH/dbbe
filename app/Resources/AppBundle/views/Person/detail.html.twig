@@ -61,7 +61,41 @@
                         </td>
                     </tr>
                 {% endif %}
-                <!-- TODO: occurrences, types, manuscripts -->
+                <!-- TODO: occurrences, types -->
+                {% set patronManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getPatronManuscripts() : person.getPatronManuscripts()|public %}
+                {% set scribeManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getScribeManuscripts() : person.getScribeManuscripts()|public %}
+                {% set relatedManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getRelatedManuscripts() : person.getRelatedManuscripts()|public %}
+                {% if patronManuscripts is not empty or scribeManuscripts is not empty or relatedManuscripts is not empty%}
+                    <tr>
+                        <td>Manuscripts</td>
+                        <td>
+                            {% if patronManuscripts is not empty %}
+                                <h6>As patron:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': patronManuscripts} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                            {% if scribeManuscripts is not empty %}
+                                <h6>As scribe:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': scribeManuscripts} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                            {% if relatedManuscripts is not empty %}
+                                <h6>As related person:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if person.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>

@@ -136,7 +136,7 @@ class OccurrenceManager extends DocumentManager
                 }
                 $occurrences[$rawSubject['occurrence_id']]
                     ->addSubject($persons[$rawSubject['person_id']])
-                    ->addCacheDependency('person.' . $rawSubject['person_id']);
+                    ->addCacheDependency('person_short.' . $rawSubject['person_id']);
                 foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
                     $occurrences[$rawSubject['occurrence_id']]
                         ->addCacheDependency($cacheDependency);
@@ -153,7 +153,7 @@ class OccurrenceManager extends DocumentManager
         $rawBibroles = $this->dbs->getBibroles($ids, ['patron', 'scribe']);
         $patronIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'patron');
         $scribeIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'scribe');
-        $personIds = array_merge($patronIds, $scribeIds);
+        $personIds = array_unique(array_merge($patronIds, $scribeIds));
         $persons = [];
         if (count($personIds) > 0) {
             $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
@@ -163,11 +163,11 @@ class OccurrenceManager extends DocumentManager
             if ($rawBibrole['type'] == 'patron') {
                 $occurrences[$rawBibrole['occurrence_id']]
                     ->addPatron($person)
-                    ->addCacheDependency('person.' . $person->getId());
+                    ->addCacheDependency('person_short.' . $person->getId());
             } elseif ($rawBibrole['type'] == 'scribe') {
                 $occurrences[$rawBibrole['occurrence_id']]
                     ->addScribe($person)
-                    ->addCacheDependency('person.' . $person->getId());
+                    ->addCacheDependency('person_short.' . $person->getId());
             }
             foreach ($persons[$rawBibrole['person_id']]->getCacheDependencies() as $cacheDependency) {
                 $occurrences[$rawBibrole['occurrence_id']]

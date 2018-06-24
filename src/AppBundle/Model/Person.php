@@ -17,10 +17,16 @@ class Person extends Entity implements SubjectInterface
     private $PBW;
     private $occupations;
     private $historical;
+    private $manuscripts;
 
     public function __construct()
     {
         $this->occupations = [];
+        $this->manuscripts = [
+            'patron' => [],
+            'scribe' => [],
+            'related' => [],
+        ];
 
         return $this;
     }
@@ -100,6 +106,53 @@ class Person extends Entity implements SubjectInterface
         $this->historical = empty($historical) ? false : $historical;
 
         return $this;
+    }
+
+    public function addManuscript(Manuscript $manuscript, string $type): Person
+    {
+        // Only add manuscript of not yet in the array of this type
+        if (!array_key_exists($manuscript->getId(), $this->manuscripts[$type])) {
+            $this->manuscripts[$type][$manuscript->getId()] = $manuscript;
+        }
+
+        return $this;
+    }
+
+    public function getPatronManuscripts(): array
+    {
+        $patron = $this->manuscripts['patron'];
+        usort(
+            $patron,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+        return ($patron);
+    }
+
+    public function getScribeManuscripts(): array
+    {
+        $scribe = $this->manuscripts['scribe'];
+        usort(
+            $scribe,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+        return ($scribe);
+    }
+
+    public function getRelatedManuscripts(): array
+    {
+        // only return manuscripts with related link that do not have a patron or scribe link
+        $onlyRelated = array_diff_key($this->manuscripts['related'], $this->manuscripts['patron'], $this->manuscripts['scribe']);
+        usort(
+            $onlyRelated,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+        return $onlyRelated;
     }
 
     public function getName(): string

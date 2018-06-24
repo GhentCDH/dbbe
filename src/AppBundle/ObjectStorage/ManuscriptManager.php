@@ -94,7 +94,7 @@ class ManuscriptManager extends DocumentManager
         $rawRelatedPersons = $this->dbs->getRelatedPersons($ids);
         $relatedPersonIds = self::getUniqueIds($rawRelatedPersons, 'person_id');
 
-        $personIds = array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds);
+        $personIds = array_unique(array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds));
         $persons = [];
         if (count($personIds) > 0) {
             $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
@@ -113,29 +113,29 @@ class ManuscriptManager extends DocumentManager
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
-                            ->addCacheDependency('person.' . $person->getId())
-                            ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+                            ->addCacheDependency('person_short.' . $person->getId())
+                            ->addCacheDependency('occurrence_mini.' . $rawPerson['occurrence_id']);
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
-                            ->addCacheDependency('person.' . $person->getId())
-                            ->addCacheDependency('occurrence.' . $rawPerson['occurrence_id']);
+                            ->addCacheDependency('person_short.' . $person->getId())
+                            ->addCacheDependency('occurrence_mini.' . $rawPerson['occurrence_id']);
                     }
                 } else {
                     if ($rawPerson['type'] == 'patron') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addPatron($person)
-                            ->addCacheDependency('person.' . $person->getId());
+                            ->addCacheDependency('person_short.' . $person->getId());
                     } elseif ($rawPerson['type'] == 'scribe') {
                         $manuscripts[$rawPerson['manuscript_id']]
                             ->addScribe($person)
-                            ->addCacheDependency('person.' . $person->getId());
+                            ->addCacheDependency('person_short.' . $person->getId());
                     }
                 }
             } else {
                 $manuscripts[$rawPerson['manuscript_id']]
                     ->addRelatedPerson($person)
-                    ->addCacheDependency('person.' . $person->getId());
+                    ->addCacheDependency('person_short.' . $person->getId());
             }
             foreach ($person->getCacheDependencies() as $cacheDependency) {
                 $manuscripts[$rawPerson['manuscript_id']]
@@ -207,7 +207,7 @@ class ManuscriptManager extends DocumentManager
             foreach ($rawOccurrences as $rawOccurrence) {
                 $manuscript
                     ->addOccurrence($occurrences[$rawOccurrence['occurrence_id']])
-                    ->addCacheDependency('occurrence.' . $rawOccurrence['occurrence_id']);
+                    ->addCacheDependency('occurrence_mini.' . $rawOccurrence['occurrence_id']);
             }
         }
 
