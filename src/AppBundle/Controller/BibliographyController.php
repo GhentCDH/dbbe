@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 class BibliographyController extends Controller
 {
     /**
-     * @Route("/bibliography/{id}", name="bibliography_show")
+     * @Route("/bibliography/{id}", name="bibliography_get")
      */
     public function getBibliography(int $id, Request $request)
     {

@@ -13,6 +13,55 @@
         </h2>
         <table class="table table-hover table-bordered">
             <tbody>
+                {% if person.getName() is not empty %}
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ person.getName() }}</td>
+                    </tr>
+                {% endif %}
+                {% if person.getInterval() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ person.getInterval() }}</td>
+                    </tr>
+                {% endif %}
+                {% if person.getTypes() is not empty %}
+                    <tr>
+                        <td>Type(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getTypes()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if person.getFunctions() is not empty %}
+                    <tr>
+                        <td>Function(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getFunctions()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if person.getIdentifications() is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getIdentifications()} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                <!-- TODO: occurrences, types, manuscripts -->
                 {% if person.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>

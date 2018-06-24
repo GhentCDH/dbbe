@@ -32,7 +32,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': patrons} only %}
                                 {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -45,7 +45,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': scribes} only %}
                                 {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -58,7 +58,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedPersons} only %}
                                 {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_show','display': item.getFullDescriptionWithOccupations()} only %}
+                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
                                 {% endblock %}
                             {% endembed %}
                         </td>

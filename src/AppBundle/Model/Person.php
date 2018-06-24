@@ -115,14 +115,9 @@ class Person extends Entity implements SubjectInterface
         return implode(' ', $nameArray);
     }
 
-    public function getFunctions(): array
+    public function getInterval(): FuzzyInterval
     {
-        if (empty($this->occupations)) {
-            return [];
-        }
-        return array_filter($this->occupations, function ($occupation) {
-            return $occupation->getIsFunction();
-        });
+        return new FuzzyInterval($this->bornDate, $this->deathDate);
     }
 
     public function getTypes(): array
@@ -133,6 +128,27 @@ class Person extends Entity implements SubjectInterface
         return array_filter($this->occupations, function ($occupation) {
             return !$occupation->getIsFunction();
         });
+    }
+
+    public function getFunctions(): array
+    {
+        if (empty($this->occupations)) {
+            return [];
+        }
+        return array_filter($this->occupations, function ($occupation) {
+            return $occupation->getIsFunction();
+        });
+    }
+
+    public function getIdentifications(): array
+    {
+        $result = [];
+        foreach (['RGK', 'VGH', 'PBW'] as $id) {
+            if (isset($this->$id)) {
+                $result[] = $id . ': ' . $this->$id;
+            }
+        }
+        return $result;
     }
 
     public function getFullDescription(): string
@@ -225,16 +241,16 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->PBW)) {
             $result['pbw'] = $this->PBW;
         }
-        if (!empty($this->getFunctions())) {
-            $result['function'] = [];
-            foreach ($this->getFunctions() as $functionOccupation) {
-                $result['function'][] = $functionOccupation->getShortJson();
-            }
-        }
         if (!empty($this->getTypes())) {
             $result['type'] = [];
             foreach ($this->getTypes() as $typeOccupation) {
                 $result['type'][] = $typeOccupation->getShortJson();
+            }
+        }
+        if (!empty($this->getFunctions())) {
+            $result['function'] = [];
+            foreach ($this->getFunctions() as $functionOccupation) {
+                $result['function'][] = $functionOccupation->getShortJson();
             }
         }
         if (isset($this->publicComment)) {

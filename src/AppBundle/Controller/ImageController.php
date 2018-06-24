@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ImageController extends Controller
 {
     /**
-     * @Route("/occ_images/{url}", name="image_show")
+     * @Route("/occ_images/{url}", name="image_get")
      * @Method("GET")
      * @param  string    $url image relative url
      * @param Request $request

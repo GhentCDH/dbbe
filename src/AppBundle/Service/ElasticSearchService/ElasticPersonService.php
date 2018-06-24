@@ -63,6 +63,9 @@ class ElasticPersonService extends ElasticSearchService
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
+            unset($result['data'][$key]['historical']);
+            unset($result['data'][$key]['type']);
+            unset($result['data'][$key]['function']);
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
                 unset($result['data'][$key]['public_comment']);
@@ -73,7 +76,7 @@ class ElasticPersonService extends ElasticSearchService
         }
 
         $aggregationResult = $this->aggregate(
-            self::classifyFilters(['historical', 'rgk', 'vgh', 'pbw', 'function', 'type', 'public']),
+            self::classifyFilters(['historical', 'rgk', 'vgh', 'pbw', 'type', 'function', 'public']),
             !empty($params['filters']) ? $params['filters'] : []
         );
 

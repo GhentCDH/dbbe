@@ -15,7 +15,7 @@ use AppBundle\Utils\ArrayToJson;
 class TypeController extends Controller
 {
     /**
-     * @Route("/occurrences/{id}", name="type_show")
+     * @Route("/occurrences/{id}", name="type_get")
      * @param  int    $id type id
      * @param Request $request
      */
