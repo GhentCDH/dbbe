@@ -71,7 +71,7 @@
                         <td>
                             {% if patronManuscripts is not empty %}
                                 <h6>As patron:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': patronManuscripts} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': patronManuscripts, 'forceList': true} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
                                     {% endblock %}
@@ -79,7 +79,7 @@
                             {% endif %}
                             {% if scribeManuscripts is not empty %}
                                 <h6>As scribe:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': scribeManuscripts} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': scribeManuscripts, 'forceList': true} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
                                     {% endblock %}
@@ -87,7 +87,7 @@
                             {% endif %}
                             {% if relatedManuscripts is not empty %}
                                 <h6>As related person:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts, 'forceList': true} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
                                     {% endblock %}
