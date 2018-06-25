@@ -21,6 +21,7 @@ Encore
     .addEntry('occurrencesearch', './assets/js/main/occurrencesearch.js')
     .addEntry('occurrenceedit', './assets/js/main/occurrenceedit.js')
     .addEntry('originsedit', './assets/js/main/originsedit.js')
+    .addEntry('personedit', './assets/js/main/personedit.js')
     .addEntry('personsearch', './assets/js/main/personsearch.js')
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')

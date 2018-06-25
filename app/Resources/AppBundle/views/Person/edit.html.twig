@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-9">
+        <h2 class="h1">
+            {% if id is not empty %}
+                Edit person
+                <span class="small">
+                    <a
+                        href="{{ path('person_get', {'id': id}) }}"
+                        class="action pull-right"
+                        title="View the person">
+                        <i class="fa fa-eye"></i>
+                    </a>
+                </span>
+            {% else %}
+                Add person
+            {% endif %}
+        </h2>
+    </div>
+    <div id="person-edit-app">
+        <person-edit-app
+            init-urls = "{{ urls }}"
+            init-data="{{ data }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/personedit.js") }}"></script>
+{% endblock %}

@@ -113,7 +113,7 @@
 <script>
 import Vue from 'vue'
 
-import AbstractDocumentEdit from '../Components/Edit/AbstractDocumentEdit'
+import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
 const panelComponents = require.context('../Components/Edit/Panels', false, /[.]vue$/)
 
@@ -125,7 +125,7 @@ for(let key of panelComponents.keys()) {
 }
 
 export default {
-    mixins: [ AbstractDocumentEdit ],
+    mixins: [ AbstractEntityEdit ],
     data() {
         return {
             occurrence: null,

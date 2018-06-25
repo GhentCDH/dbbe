@@ -36,13 +36,13 @@ class PersonManager extends EntityManager
                 ->setHistorical($rawPerson['is_historical']);
             // identification
             if (isset($rawPerson['rgki'])) {
-                $person->setRGK('I', $rawPerson['rgki']);
+                $person->addRGK('I', $rawPerson['rgki']);
             }
             if (isset($rawPerson['rgkii'])) {
-                $person->setRGK('II', $rawPerson['rgkii']);
+                $person->addRGK('II', $rawPerson['rgkii']);
             }
             if (isset($rawPerson['rgkiii'])) {
-                $person->setRGK('III', $rawPerson['rgkiii']);
+                $person->addRGK('III', $rawPerson['rgkiii']);
             }
             if (isset($rawPerson['vgh'])) {
                 $person->setVGH($rawPerson['vgh']);

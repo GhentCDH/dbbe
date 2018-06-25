@@ -72,6 +72,8 @@ export default {
             aggregation: {},
             lastOrder: null,
             countRecords: '',
+            rgkRegex: /^(I{1,3})[.]([\d]+)(?:, I{1,3}[.][\d]+)*$/,
+            vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
         }
     },
     mounted () {
@@ -233,6 +235,41 @@ export default {
             }
             if (a.name === 'true' && b.name === 'false') {
                 return -1
+            }
+            // RGK (e.g., II.513)
+            let first = a.name.match(this.rgkRegex)
+            let second = b.name.match(this.rgkRegex)
+            if (first && second) {
+                if (first[1] < second[1]) {
+                    return -1
+                }
+                if (first[1] > second[1]) {
+                    return 1
+                }
+                return first[2] - second[2]
+            }
+            // VGH (e.g., 513.B)
+            first = a.name.match(this.vghRegex)
+            second = b.name.match(this.vghRegex)
+            if (first) {
+                if (second) {
+                    if (first[1] !== second[1]) {
+                        return first[1] - second[1]
+                    }
+                    if (first[2] < second[2]) {
+                        return -1
+                    }
+                    if (first[2] > second[2]) {
+                        return 1
+                    }
+                    return 0
+                }
+                // place irregular vghs at the end
+                return -1
+            }
+            if (second) {
+                // place irregular vghs at the end
+                return 1
             }
             // Default
             if (a.name < b.name) {

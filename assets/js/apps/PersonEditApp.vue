@@ -3,75 +3,40 @@
         <article
             class="col-sm-9 mbottom-large"
             ref="target">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+            <alert
+                v-for="(item, index) in alerts"
+                :key="index"
+                :type="item.type"
+                dismissible
+                @dismissed="alerts.splice(index, 1)">
+                {{ item.message }}
+            </alert>
 
-            <locatedAtPanel
-                id="location"
-                header="Location"
-                :link="{url: urls['locations_edit'], text: 'Edit locations'}"
-                :model="model.locatedAt"
-                :values="locations"
+            <basicPanel
+                id="basic"
+                header="Basic Information"
+                :model="model.basic"
                 @validated="validated"
-                ref="locatedAt" />
+                ref="basic" />
 
-            <contentPanel
-                id="content"
-                header="Content"
-                :link="{url: urls['contents_edit'], text: 'Edit contents'}"
-                :model="model.content"
-                :values="contents"
+            <identificationPanel
+                id="identification"
+                header="Identification"
+                :model="model.identification"
                 @validated="validated"
-                ref="content" />
+                ref="identification" />
 
-            <personPanel
-                id="persons"
-                header="Persons"
-                :model="model.person"
-                :values="persons"
+            <occupationPanel
+                id="occupation"
+                header="Occupations"
+                :model="model.occupation"
                 @validated="validated"
-                ref="persons"
-                :occurrence-patrons="manuscript ? manuscript.occurrencePatrons : []"
-                :occurrence-scribes="manuscript ? manuscript.occurrenceScribes : []" />
+                ref="occupation" />
 
-            <datePanel
-                id="date"
-                header="Date"
-                :model="model.date"
-                @validated="validated"
-                ref="date" />
-
-            <originPanel
-                id="origin"
-                header="Origin"
-                :link="{url: urls['origins_edit'], text: 'Edit origins'}"
-                :model="model.origin"
-                :values="origins"
-                @validated="validated"
-                ref="origin" />
-
-            <occurrenceOrderPanel
-                id="occurrenceOrder"
-                header="Occurrence Order"
-                :model="model.occurrenceOrder"
-                @validated="validated"
-                ref="occurrenceOrder" />
-
-            <bibliographyPanel
-                id="bibliography"
-                header="Bibliography"
-                :model="model.bibliography"
-                :values="bibliographies"
-                @validated="validated"
-                ref="bibliography" />
-
-            <generalManuscriptPanel
+            <generalPersonPanel
                 id="general"
                 header="General"
-                :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
                 :model="model.general"
-                :values="statuses"
                 @validated="validated"
                 ref="general" />
 
@@ -83,7 +48,7 @@
                 Reset
             </btn>
             <btn
-                v-if="manuscript"
+                v-if="occurrence"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()">
@@ -116,20 +81,16 @@
                 :style="stickyStyle">
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#location">Location</a></li>
-                    <li><a href="#content">Content</a></li>
-                    <li><a href="#persons">Persons</a></li>
-                    <li><a href="#date">Date</a></li>
-                    <li><a href="#origin">Origin</a></li>
-                    <li><a href="#occurrenceOrder">Occurrence Order</a></li>
-                    <li><a href="#bibliography">Bibliography</a></li>
+                    <li><a href="#basic">Basic Information</a></li>
+                    <li><a href="#identification">Identification</a></li>
+                    <li><a href="#occupation">Occupations</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
         <resetModal
-            title="manuscript"
+            title="person"
             :model="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()" />
@@ -137,7 +98,7 @@
             :model="invalidModal"
             @confirm="invalidModal=false" />
         <saveModal
-            title="manuscript"
+            title="person"
             :model="saveModal"
             :diff="diff"
             @cancel="saveModal=false"
@@ -154,7 +115,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'GeneralManuscript'].includes(compName)) {
+    if (['Basic', 'Identification', 'Occupation', 'GeneralPerson'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -163,28 +124,14 @@ export default {
     mixins: [ AbstractEntityEdit ],
     data() {
         return {
-            manuscript: null,
-            locations: null,
-            contents: null,
+            occurrence: null,
             persons: null,
-            origins: null,
             bibliographies: null,
             statuses: null,
             model: {
-                locatedAt: {
-                    location: {
-                        id: null,
-                        regionWithParents: null,
-                        institution: null,
-                        collection: null,
-                    },
-                    shelf: null,
-                },
-                content: {content: null},
                 person: {
                     patrons: [],
                     scribes: [],
-                    relatedPersons: [],
                 },
                 date: {
                     floor: null,
@@ -196,8 +143,6 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                origin: {origin: null},
-                occurrenceOrder: {occurrenceOrder: []},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -205,88 +150,63 @@ export default {
                     onlineSources: [],
                 },
                 general: {
-                    diktyon: null,
                     publicComment: null,
                     privateComment: null,
-                    illustrated: null,
-                    status: null,
+                    textStatus: null,
+                    recordStatus: null,
                     public: null,
                 },
             },
             forms: [
-                'locatedAt',
-                'content',
                 'persons',
                 'date',
-                'origin',
-                'occurrenceOrder',
                 'bibliography',
                 'general',
             ],
         }
     },
     created () {
-        this.manuscript = this.data.manuscript
-        this.locations = this.data.locations
-        this.contents = this.data.contents
+        this.occurrence = this.data.occurrence
         this.persons = {
             patrons: this.data.patrons,
             scribes: this.data.scribes,
-            relatedPersons: this.data.relatedPersons,
         }
-        this.origins = this.data.origins
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
         }
-        this.statuses = this.data.statuses
+        this.statuses = {
+            textStatuses: this.data.textStatuses,
+            recordStatuses: this.data.recordStatuses,
+        }
     },
     mounted () {
-        this.loadManuscript()
+        this.loadOccurrence()
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
     },
     methods: {
-        loadManuscript() {
-            if (this.manuscript != null) {
-                // Located At
-                this.model.locatedAt = this.manuscript.locatedAt
-
-                // Content
-                this.model.content = {
-                    content: this.manuscript.content,
-                }
-
+        loadOccurrence() {
+            if (this.occurrence != null) {
                 // Person
                 this.model.person = {
-                    patrons: this.manuscript.patrons,
-                    scribes: this.manuscript.scribes,
-                    relatedPersons: this.manuscript.relatedPersons,
+                    patrons: this.occurrence.patrons,
+                    scribes: this.occurrence.scribes,
                 }
 
                 // Date
                 this.model.date = {
-                    floor: this.manuscript.date != null ? this.manuscript.date.floor : null,
-                    ceiling: this.manuscript.date != null ? this.manuscript.date.ceiling : null,
+                    floor: this.occurrence.date != null ? this.occurrence.date.floor : null,
+                    ceiling: this.occurrence.date != null ? this.occurrence.date.ceiling : null,
                     exactDate: null,
                     exactYear: null,
                     floorYear: null,
                     floorDayMonth: null,
                     ceilingYear: null,
                     ceilingDayMonth: null,
-                }
-
-                // Origin
-                this.model.origin = {
-                    origin: this.manuscript.origin,
-                }
-
-                // Occurrence order
-                this.model.occurrenceOrder = {
-                    occurrenceOrder: this.manuscript.occurrences,
                 }
 
                 // Bibliography
@@ -296,7 +216,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                 }
-                for (let bib of this.manuscript.bibliography) {
+                for (let bib of this.occurrence.bibliography) {
                     switch (bib['type']) {
                     case 'book':
                         this.model.bibliography.books.push(bib)
@@ -315,12 +235,11 @@ export default {
 
                 // General
                 this.model.general = {
-                    diktyon: this.manuscript.diktyon,
-                    publicComment: this.manuscript.publicComment,
-                    privateComment: this.manuscript.privateComment,
-                    status: this.manuscript.status,
-                    illustrated: this.manuscript.illustrated,
-                    public: this.manuscript.public,
+                    publicComment: this.occurrence.publicComment,
+                    privateComment: this.occurrence.privateComment,
+                    textStatus: this.occurrence.textStatus,
+                    recordStatus: this.occurrence.recordStatus,
+                    public: this.occurrence.public,
                 }
             }
 
@@ -333,29 +252,29 @@ export default {
         save() {
             this.openRequests++
             this.saveModal = false
-            if (this.manuscript == null) {
-                axios.post(this.urls['manuscript_post'], this.toSave())
+            if (this.occurrence == null) {
+                axios.post(this.urls['occurrence_post'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['manuscript_get'].replace('manuscript_id', response.data.id)
+                        window.location = this.urls['occurrence_get'].replace('occurrence_id', response.data.id)
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the manuscript data.')})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
                         this.openRequests--
                     })
             }
             else {
-                axios.put(this.urls['manuscript_put'], this.toSave())
+                axios.put(this.urls['occurrence_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['manuscript_get']
+                        window.location = this.urls['occurrence_get']
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the manuscript data.')})
+                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
                         this.openRequests--
                     })
             }

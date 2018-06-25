@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 class Person extends Entity implements SubjectInterface
 {
     use CacheDependenciesTrait;
@@ -12,6 +14,7 @@ class Person extends Entity implements SubjectInterface
     private $unprocessed;
     private $bornDate;
     private $deathDate;
+    // array: a person can have an id in all 3 books
     private $RGK;
     private $VGH;
     private $PBW;
@@ -21,6 +24,8 @@ class Person extends Entity implements SubjectInterface
 
     public function __construct()
     {
+        $this->RGK = [];
+        $this->VGH = [];
         $this->occupations = [];
         $this->manuscripts = [
             'patron' => [],
@@ -73,16 +78,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
-    public function setRGK(string $volume, string $rgk): Person
+    // called for each entry
+    public function addRGK(string $volume, string $rgk): Person
     {
-        $this->RGK = $volume . '.' . $rgk;
+        $this->RGK[] = $volume . '.' . $rgk;
 
         return $this;
     }
 
+    // called once; comma separated list
     public function setVGH(string $vgh): Person
     {
-        $this->VGH = $vgh;
+        $this->VGH = explode(', ', $vgh);
 
         return $this;
     }
@@ -196,10 +203,11 @@ class Person extends Entity implements SubjectInterface
     public function getIdentifications(): array
     {
         $result = [];
-        foreach (['RGK', 'VGH', 'PBW'] as $id) {
-            if (isset($this->$id)) {
-                $result[] = $id . ': ' . $this->$id;
-            }
+        foreach (['RGK', 'VGH'] as $id) {
+            $result[] = $id . ': ' . implode(', ', $this->$id);
+        }
+        if (isset($this->PBW)) {
+            $result[] = 'PBW' . ': ' . $this->PBW;
         }
         return $result;
     }
@@ -220,10 +228,10 @@ class Person extends Entity implements SubjectInterface
             }
         }
         if (isset($this->RGK)) {
-            $description .= ' - RGK: ' . $this->RGK;
+            $description .= ' - RGK: ' . implode(', ', $this->RGK);
         }
         if (isset($this->VGH)) {
-            $description .= ' - VGH: ' . $this->VGH;
+            $description .= ' - VGH: ' . implode(', ', $this->VGH);
         }
         if (isset($this->PBW)) {
             $description .= ' - PBW: ' . $this->PBW;
@@ -265,6 +273,38 @@ class Person extends Entity implements SubjectInterface
         ];
     }
 
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'name' => $this->getName(),
+            'historical' => $this->historical,
+            'rgk' => implode(', ', $this->RGK),
+            'vgh' => implode(', ', $this->VGH),
+            'types' => ArrayToJson::arrayToShortJson($this->getTypes()),
+            'functions' => ArrayToJson::arrayToShortJson($this->getFunctions()),
+            'public' => $this->public,
+        ];
+
+        if (isset($this->bornDate)) {
+            $result['bornDate'] = $this->bornDate->getJson();
+        }
+        if (isset($this->deathDate)) {
+            $result['deathDate'] = $this->deathDate->getJson();
+        }
+        if (isset($this->PBW)) {
+            $result['pbw'] = $this->PBW;
+        }
+        if (isset($this->publicComment)) {
+            $result['publicComment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['privateComment'] = $this->privateComment;
+        }
+
+        return $result;
+    }
+
     public function getElastic(): array
     {
         $result = [
@@ -295,16 +335,10 @@ class Person extends Entity implements SubjectInterface
             $result['pbw'] = $this->PBW;
         }
         if (!empty($this->getTypes())) {
-            $result['type'] = [];
-            foreach ($this->getTypes() as $typeOccupation) {
-                $result['type'][] = $typeOccupation->getShortJson();
-            }
+            $result['type'] = ArrayToJson::arrayToShortJson($this->getTypes());
         }
         if (!empty($this->getFunctions())) {
-            $result['function'] = [];
-            foreach ($this->getFunctions() as $functionOccupation) {
-                $result['function'][] = $functionOccupation->getShortJson();
-            }
+            $result['function'] = ArrayToJson::arrayToShortJson($this->getFunctions());
         }
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;

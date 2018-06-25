@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PersonController extends Controller
@@ -109,6 +110,70 @@ class PersonController extends Controller
     }
 
     /**
+     * @Route("/persons", name="person_post")
+     * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postPerson(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $person = $this
+                    ->get('person_manager')
+                    ->addPerson(json_decode($request->getContent()));
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            $this->addFlash('success', 'Person added successfully.');
+
+            return new JsonResponse($person->getJson());
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * @Route("/persons/{id}", name="person_put")
+     * @Method("PUT")
+     * @param  int    $id person id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function putPerson(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $person = $this
+                    ->get('person_manager')
+                    ->updatePerson($id, json_decode($request->getContent()));
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            $this->addFlash('success', 'Person data successfully saved.');
+
+            return new JsonResponse($person->getJson());
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
      * @Route("/persons/{id}", name="person_delete")
      * @Method("DELETE")
      * @param  int    $id person id
@@ -128,7 +193,25 @@ class PersonController extends Controller
      */
     public function editPerson(int $id = null, Request $request)
     {
-        throw new \Exception('Not implemented');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        return $this->render(
+            'AppBundle:Person:edit.html.twig',
+            [
+                'id' => $id,
+                'urls' => json_encode([
+                    'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
+                    'person_post' => $this->generateUrl('person_post'),
+                    'person_put' => $this->generateUrl('person_put', ['id' => $id]),
+                    'login' => $this->generateUrl('login'),
+                ]),
+                'data' => json_encode([
+                    'person' => empty($id)
+                        ? null
+                        : $this->get('person_manager')->getPersonById($id)->getJson(),
+                ]),
+            ]
+        );
     }
 
     private function sanitize(array $params): array
