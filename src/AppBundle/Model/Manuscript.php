@@ -322,16 +322,10 @@ class Manuscript extends Document implements IdJsonInterface
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
         if (!empty($this->getAllPatrons())) {
-            $result['patron'] = [];
-            foreach ($this->getAllPatrons() as $patron) {
-                $result['patron'][] = $patron->getShortJson();
-            }
+            $result['patron'] = ArrayToJson::arrayToShortJson($this->getAllPatrons());
         }
         if (!empty($this->getAllSCribes())) {
-            $result['scribe'] = [];
-            foreach ($this->getAllSCribes() as $scribe) {
-                $result['scribe'][] = $scribe->getShortJson();
-            }
+            $result['scribe'] = ArrayToJson::arrayToShortJson($this->getAllSCribes());
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
