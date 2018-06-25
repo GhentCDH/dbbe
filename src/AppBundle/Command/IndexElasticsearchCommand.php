@@ -3,6 +3,7 @@
 namespace AppBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -13,35 +14,40 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         $this
             ->setName('app:elasticsearch:index')
             ->setDescription('Drops the old elasticsearch index and recreates it.')
-            ->setHelp('This command allows you to reindex elasticsearch.');
+            ->setHelp('This command allows you to reindex elasticsearch.')
+            ->addOption('index', 'i', InputOption::VALUE_OPTIONAL, 'Which index should be reindexed?');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Get database and elasticsearch clients
-        $manuscriptManager = $this->getContainer()->get('manuscript_manager');
-        $occurrenceManager = $this->getContainer()->get('occurrence_manager');
-        $personManager = $this->getContainer()->get('person_manager');
-
-        $elasticSearchService = $this->getContainer()->get('elasticsearch_service');
-        $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
-        $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
-        $personElasticService = $this->getContainer()->get('person_elastic_service');
+        $index = $input->getOption('index');
 
         // Index all types
         // (Re)index manuscripts
-        $manuscriptElasticService->setupManuscripts();
-        $manuscripts = $manuscriptManager->getAllManuscripts();
-        $manuscriptElasticService->addManuscripts($manuscripts);
+        if ($index == null || $index == 'manuscript') {
+            $manuscriptManager = $this->getContainer()->get('manuscript_manager');
+            $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
+            $manuscriptElasticService->setupManuscripts();
+            $manuscripts = $manuscriptManager->getAllManuscripts();
+            $manuscriptElasticService->addManuscripts($manuscripts);
+        }
 
         // (Re)index occurrences
-        $occurrenceElasticService->setupOccurrences();
-        $occurrences = $occurrenceManager->getAllOccurrences();
-        $occurrenceElasticService->addOccurrences($occurrences);
+        if ($index == null || $index == 'occurrence') {
+            $occurrenceManager = $this->getContainer()->get('occurrence_manager');
+            $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
+            $occurrenceElasticService->setupOccurrences();
+            $occurrences = $occurrenceManager->getAllOccurrences();
+            $occurrenceElasticService->addOccurrences($occurrences);
+        }
 
         // (Re)index persons
-        $personElasticService->setupPersons();
-        $persons = $personManager->getAllPersons();
-        $personElasticService->addPersons($persons);
+        if ($index == null || $index == 'person') {
+            $personManager = $this->getContainer()->get('person_manager');
+            $personElasticService = $this->getContainer()->get('person_elastic_service');
+            $personElasticService->setupPersons();
+            $persons = $personManager->getAllPersons();
+            $personElasticService->addPersons($persons);
+        }
     }
 }
