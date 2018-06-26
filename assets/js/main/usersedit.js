@@ -1,9 +1,9 @@
 import Vue from 'vue'
-import UsersApp from '../apps/UsersApp'
+import UsersEditApp from '../apps/UsersEditApp'
 
 new Vue({
     el: '#users-app',
     components: {
-        UsersApp
+        UsersEditApp
     }
 })

@@ -6,8 +6,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
@@ -15,7 +15,7 @@ use AppBundle\Utils\ArrayToJson;
 class UserController extends Controller
 {
     /**
-     * @Route("/admin/users")
+     * @Route("/admin/users", name="users_get")
      * @Method("GET")
      * @param Request $request
      */
@@ -57,14 +57,32 @@ class UserController extends Controller
                 'data' => ArrayToJson::arrayToJson($users),
             ];
             return new JsonResponse($response);
-        } else {
-            // HTML
-            return $this->render('AppBundle:User:overview.html.twig');
         }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
     /**
-     * @Route("/admin/users")
+     * @Route("/admin/users/edit", name="users_edit")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function editUsers(Request $request)
+    {
+        return $this->render(
+            'AppBundle:User:edit.html.twig',
+            [
+                'urls' => json_encode([
+                    'users_get' => $this->generateUrl('users_get'),
+                    'user_post' => $this->generateUrl('user_post'),
+                    'user_put' => $this->generateUrl('user_put', ['id' => 'user_id']),
+                    'login' => $this->generateUrl('login'),
+                ]),
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/users", name="user_post")
      * @Method("POST")
      * @param  Request $request
      * @return JsonResponse
@@ -81,7 +99,7 @@ class UserController extends Controller
     }
 
     /**
-     * @Route("/admin/users/{id}")
+     * @Route("/admin/users/{id}", name="user_put")
      * @Method("PUT")
      * @param  int    $id user id
      * @param Request $request

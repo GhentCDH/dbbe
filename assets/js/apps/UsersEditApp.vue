@@ -5,11 +5,14 @@
             <btn
                 type="success"
                 @click="create">
-                <i class="fa fa-user-plus" /> Add a new user
+                <i class="fa fa-user-plus" />   Add a new user
             </btn>
             <p>Emails and full names will be automatically completed at the first login.</p>
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)" />
             <v-server-table
-                url="/admin/users"
+                :url="urls['users_get']"
                 ref="table"
                 :columns="['username', 'email', 'full name', 'roles', 'status', 'created', 'modified', 'last login', 'actions']"
                 :options="tableOptions"
@@ -51,14 +54,9 @@
         <modal
             v-model="formModal"
             auto-focus>
-            <alert
-                v-for="(item, index) in alerts"
-                :key="item.key"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)">
-                {{ item.message }}
-            </alert>
+            <alerts
+                :alerts="editAlerts"
+                @dismiss="editAlerts.splice($event, 1)" />
             <p>Emails and full names will be automatically completed at the first login.</p>
             <vue-form-generator
                 :schema="schema"
@@ -101,13 +99,24 @@ import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
 import VueTables from 'vue-tables-2'
 
+import Alerts from '../Components/Alerts'
+
 Vue.use(uiv)
 Vue.use(VueFormGenerator)
 Vue.use(VueTables.ServerTable)
 
+Vue.component('alerts', Alerts)
+
 export default {
+    props: {
+        initUrls: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         return {
+            urls: JSON.parse(this.initUrls),
             roleNames: {
                 'ROLE_USER': 'User',
                 'ROLE_VIEW_INTERNAL': 'View internal',
@@ -131,6 +140,7 @@ export default {
             },
             showEditModal: false,
             alerts: [],
+            editAlerts: [],
             model: {},
             resetModel: {},
             defaultModel: {
@@ -194,27 +204,29 @@ export default {
                 this.formModal = false
                 // create new user
                 if (this.model.id === undefined) {
-                    axios.post('/admin/users', this.model)
+                    axios.post(this.urls['user_post'], this.model)
                         .then( (response) => {
                             this.$refs.table.refresh()
+                            this.alerts.push({type: 'success', message: 'User added successfully.'})
                         })
                         .catch( (error) => {
                             this.formModal = true
                             this.openRequests--
-                            this.alerts.push({type: 'error', message: 'Something whent wrong while saving the new user.'})
+                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the new user.', login: true})
                             console.log(error)
                         })
                 }
                 // update existing user
                 else {
-                    axios.put('/admin/users/' + this.model.id, this.model)
+                    axios.put(this.urls['user_put'].replace('user_id', this.model.id), this.model)
                         .then( (response) => {
                             this.$refs.table.refresh()
+                            this.alerts.push({type: 'success', message: 'User updated successfully.'})
                         })
                         .catch( (error) => {
                             this.formModal = true
                             this.openRequests--
-                            this.alerts.push({type: 'error', message: 'Something whent wrong while saving the updated user.'})
+                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the updated user.', login: true})
                             console.log(error)
                         })
                 }
