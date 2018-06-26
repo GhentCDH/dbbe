@@ -29,7 +29,9 @@
             <occupationPanel
                 id="occupation"
                 header="Occupations"
+                :link="{url: urls['occupations_edit'], text: 'Edit occupations'}"
                 :model="model.occupation"
+                :values="occupations"
                 @validated="validated"
                 ref="occupation" />
 
@@ -91,18 +93,21 @@
         </aside>
         <resetModal
             title="person"
-            :model="resetModal"
+            :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()" />
         <invalidModal
-            :model="invalidModal"
+            :show="invalidModal"
+            @cancel="invalidModal=false"
             @confirm="invalidModal=false" />
         <saveModal
             title="person"
-            :model="saveModal"
+            :show="saveModal"
             :diff="diff"
-            @cancel="saveModal=false"
-            @confirm="save()" />
+            :alerts="saveAlerts"
+            @cancel="cancelSave()"
+            @confirm="save()"
+            @dismiss-alert="saveAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -261,7 +266,8 @@ export default {
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
+                        this.saveModal = true
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: true})
                         this.openRequests--
                     })
             }
@@ -274,7 +280,8 @@ export default {
                     })
                     .catch( (error) => {
                         console.log(error)
-                        this.alerts.push({type: 'error', message: this.loginMessage('Something whent wrong while saving the occurrence data.')})
+                        this.saveModal = true
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: true})
                         this.openRequests--
                     })
             }

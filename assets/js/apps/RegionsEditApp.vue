@@ -60,17 +60,21 @@
             :schema="editRegionSchema"
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
-            @cancel="editModal=false"
+            :alerts="editAlerts"
+            @cancel="cancelEdit()"
             @reset="resetEdit()"
-            @confirm="submitEdit()" />
+            @confirm="submitEdit()"
+            @dismiss-alert="editAlerts.splice($event, 1)" />
         <mergeModal
             :show="mergeModal"
             :schema="mergeRegionSchema"
             :merge-model="mergeModel"
             :original-merge-model="originalMergeModel"
-            @cancel="mergeModal=false"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
             @reset="resetMerge()"
-            @confirm="submitMerge()">
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)">
             <table
                 v-if="mergeModel.primary && mergeModel.secondary"
                 slot="preview"
@@ -105,8 +109,10 @@
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            :alerts="deleteAlerts"
+            @cancel="cancelDelete()"
+            @confirm="submitDelete()"
+            @dismiss-alert="deleteAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -253,7 +259,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.region = this.model.region
+                this.submitModel.region = JSON.parse(JSON.stringify(this.model.region))
             }
             this.editRegionSchema.fields.parent.values = this.values
                 .filter(region => region.id != this.submitModel.region.id) // Remove current region
@@ -262,7 +268,7 @@ export default {
             this.editModal = true
         },
         mergeRegion() {
-            this.mergeModel.primary = this.model.region
+            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.region))
             this.mergeModel.secondary = null
             this.mergeRegionSchema.fields.primary.values = this.values
             this.mergeRegionSchema.fields.secondary.values = this.values
@@ -272,7 +278,7 @@ export default {
             this.mergeModal = true
         },
         delRegion() {
-            this.submitModel.region = this.model.region
+            this.submitModel.region = JSON.parse(JSON.stringify(this.model.region))
             this.deleteDependencies()
         },
         submitEdit() {
@@ -291,12 +297,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.region = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while adding the region.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the region.', login: true})
                         console.log(error)
                     })
             }
@@ -328,12 +336,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.region = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while updating the region.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the region.', login: true})
                         console.log(error)
                     })
             }
@@ -345,12 +355,14 @@ export default {
                 .then( (response) => {
                     this.submitModel.region = response.data
                     this.update()
+                    this.mergeAlerts = []
                     this.alerts.push({type: 'success', message: 'Merge successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while merging the regions.'})
+                    this.mergeModal = true
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the regions.', login: true})
                     console.log(error)
                 })
         },
@@ -361,13 +373,15 @@ export default {
                 .then( (response) => {
                     this.submitModel.region = null
                     this.submitModel.region = null
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
+                    this.deleteAlerts = []
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the region.'})
+                    this.deleteModal = true
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the region.', login: true})
                     console.log(error)
                 })
         },
@@ -377,12 +391,12 @@ export default {
                 .then( (response) => {
                     this.values = response.data
                     this.regionSchema.fields.region.values = this.values
-                    this.model.region = this.submitModel.region
+                    this.model.region = JSON.parse(JSON.stringify(this.submitModel.region))
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the region data.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the region data.', login: true})
                     console.log(error)
                 })
         },

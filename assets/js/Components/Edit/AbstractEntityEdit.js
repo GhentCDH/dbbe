@@ -47,6 +47,7 @@ export default {
             },
             openRequests: 0,
             alerts: [],
+            saveAlerts: [],
             originalModel: {},
             diff:[],
             resetModal: false,
@@ -137,8 +138,9 @@ export default {
             window.onbeforeunload = function () {}
             window.location.reload(true)
         },
-        loginMessage(message) {
-            return message + '<br />Is it possible your login timed out? Try <a href="' + this.urls['login'] + '" target="_blank">loggin in</a> again.'
+        cancelSave() {
+            this.saveModal = false
+            this.saveAlerts = []
         },
     },
 }

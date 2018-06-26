@@ -4,6 +4,9 @@
         size="lg"
         auto-focus
         @input="$emit('cancel')">
+        <alerts
+            :alerts="alerts"
+            @dismiss="$emit('dismiss-alert', $event)" />
         <div v-if="Object.keys(delDependencies).length !== 0">
             <p>This location has following dependencies that need to be resolved first:</p>
             <template v-for="(dependencyCategory, key) in delDependencies">
@@ -63,6 +66,10 @@ export default {
         formatType: {
             type: Function,
             default: (type) => {return type},
+        },
+        alerts: {
+            type: Array,
+            default: () => {return []}
         },
     },
 }

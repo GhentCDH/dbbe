@@ -7,6 +7,7 @@ use phpCAS;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class DefaultController extends Controller
@@ -58,17 +59,22 @@ class DefaultController extends Controller
         $target = urlencode($this->generateUrl('force', [], UrlGeneratorInterface::ABSOLUTE_URL));
         $url = 'https://'.$this->container->getParameter('cas_host') . '/login?service=';
 
+        if ($request->get('close') === 'true') {
+            return $this->redirect(
+                $url . $target . urlencode('?referer=/close')
+            );
+        }
         if ($request->headers->get('referer') && $request->headers->get('referer') != '/login') {
             return $this->redirect(
                 $url . $target . urlencode('?referer=' . urlencode($request->headers->get('referer')))
             );
-        } elseif ($request->server->get('SCRIPT_URL') && $request->server->get('SCRIPT_URL') != '/login') {
+        }
+        if ($request->server->get('SCRIPT_URL') && $request->server->get('SCRIPT_URL') != '/login') {
             return $this->redirect(
                 $url . $target . urlencode('?referer=' . urlencode($request->server->get('SCRIPT_URL')))
             );
-        } else {
-            return $this->redirect($url . $target);
         }
+        return $this->redirect($url . $target);
     }
 
     /**
@@ -113,6 +119,16 @@ class DefaultController extends Controller
         } else {
             return $this->redirect($this->generateUrl('homepage'));
         }
+    }
+
+    /**
+     * Page that closes itself after login
+     * @Route("/close", name="close")
+     * @param  Request $request
+     */
+    public function closeAction(Request $request)
+    {
+        return new Response('<html><body onload="window.close();"></body></html>');
     }
 
     /**

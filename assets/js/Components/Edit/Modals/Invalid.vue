@@ -1,8 +1,9 @@
 <template>
     <modal
-        v-model="model"
+        :value="show"
         title="Invalid fields"
-        auto-focus>
+        auto-focus
+        @input="$emit('cancel')">
         <p>There are invalid input fields. Please correct them.</p>
         <div slot="footer">
             <btn
@@ -16,7 +17,7 @@
 <script>
 export default {
     props: {
-        model: {
+        show: {
             type: Boolean,
             default: false,
         },

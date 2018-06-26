@@ -1,8 +1,9 @@
 <template>
     <modal
-        v-model="model"
+        :value="show"
         :title="'Reset' + title"
-        auto-focus>
+        auto-focus
+        @input="$emit('cancel')">
         <p>Are you sure you want to reset the {{ title }} information?</p>
         <div slot="footer">
             <btn @click="$emit('cancel')">Cancel</btn>
@@ -18,7 +19,7 @@
 <script>
 export default {
     props: {
-        model: {
+        show: {
             type: Boolean,
             default: false,
         },

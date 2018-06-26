@@ -58,16 +58,20 @@
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :format-type="formatType"
-            @cancel="editModal=false"
+            :alerts="editAlerts"
+            @cancel="cancelEdit()"
             @reset="resetEdit()"
-            @confirm="submitEdit()" />
+            @confirm="submitEdit()"
+            @dismiss-alert="editAlerts.splice($event, 1)" />
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
             :format-type="formatType"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            :alerts="deleteAlerts"
+            @cancel="cancelDelete()"
+            @confirm="submitDelete()"
+            @dismiss-alert="deleteAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -223,14 +227,14 @@ export default {
     methods: {
         editCity() {
             this.submitModel.type = 'regionWithParents'
-            this.submitModel.regionWithParents = this.model.regionWithParents
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
         editLibrary(add = false) {
             // TODO: check if name already exists
             this.submitModel.type = 'institution'
-            this.submitModel.regionWithParents = this.model.regionWithParents
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             if (add) {
                 this.submitModel.institution =  {
                     id: null,
@@ -238,7 +242,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.institution = this.model.institution
+                this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
             this.loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
@@ -249,14 +253,14 @@ export default {
         },
         delLibrary() {
             this.submitModel.type = 'institution'
-            this.submitModel.regionWithParents = this.model.regionWithParents
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.submitModel.institution = this.model.institution
             this.deleteDependencies()
         },
         editCollection(add = false) {
             this.submitModel.type = 'collection'
-            this.submitModel.regionWithParents = this.model.regionWithParents
-            this.submitModel.institution = this.model.institution
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
+            this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             if (add) {
                 this.submitModel.collection = {
                     id: null,
@@ -264,7 +268,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.collection = this.model.collection
+                this.submitModel.collection = JSON.parse(JSON.stringify(this.model.collection))
             }
 
             this.loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
@@ -277,9 +281,9 @@ export default {
         },
         delCollection() {
             this.submitModel.type = 'collection'
-            this.submitModel.regionWithParents = this.model.regionWithParents
-            this.submitModel.institution = this.model.institution
-            this.submitModel.collection = this.model.collection
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
+            this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
+            this.submitModel.collection = JSON.parse(JSON.stringify(this.model.collection))
             this.deleteDependencies()
         },
         submitEdit() {
@@ -357,12 +361,14 @@ export default {
                             break
                         }
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while adding a ' + this.formatType(this.submitModel.type) + '.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.type) + '.', login: true})
                         console.log(error)
                     })
             }
@@ -381,12 +387,14 @@ export default {
                             break
                         }
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while updating the ' + this.formatType(this.submitModel.type) + '.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.type) + '.', login: true})
                         console.log(error)
                     })
             }
@@ -413,13 +421,15 @@ export default {
                         this.submitModel.collection = null
                         break
                     }
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
+                    this.deleteAlerts = []
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the ' + this.formatType(this.submitModel.type) + '.'})
+                    this.deleteModal = true
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.type) + '.', login: true})
                     console.log(error)
                 })
         },
@@ -430,20 +440,20 @@ export default {
                     this.values = response.data
                     switch(this.submitModel.type) {
                     case 'regionWithParents':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
+                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         break
                     case 'institution':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
-                        this.model.institution = this.submitModel.institution
+                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
+                        this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
                         this.enableField(this.librarySchema.fields.library, this.submitModel)
                         break
                     case 'collection':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
-                        this.model.institution = this.submitModel.institution
-                        this.model.collection = this.submitModel.collection
+                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
+                        this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
+                        this.model.collection = JSON.parse(JSON.stringify(this.submitModel.collection))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
                         this.loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
@@ -454,7 +464,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the location data.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the location data.', login: true})
                     console.log(error)
                 })
         },

@@ -311,7 +311,7 @@ export default {
                 })
                 .catch((error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the occurrence.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the occurrence.'})
                     console.log(error)
                 })
         },

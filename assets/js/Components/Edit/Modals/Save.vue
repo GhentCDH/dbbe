@@ -1,9 +1,13 @@
 <template>
     <modal
-        v-model="model"
+        :value="show"
         :title="'Save ' + title"
         size="lg"
-        auto-focus>
+        auto-focus
+        @input="$emit('cancel')">
+        <alerts
+            :alerts="alerts"
+            @dismiss="$emit('dismiss-alert', $event)" />
         <p>Are you sure you want to save this {{ title }} information?</p>
         <table class="table table-striped table-hover">
             <thead>
@@ -53,7 +57,7 @@
 <script>
 export default {
     props: {
-        model: {
+        show: {
             type: Boolean,
             default: false,
         },
@@ -64,6 +68,10 @@ export default {
         diff: {
             type: Array,
             default: () => {return []},
+        },
+        alerts: {
+            type: Array,
+            default: () => {return []}
         },
     },
     methods: {

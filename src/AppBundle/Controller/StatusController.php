@@ -51,6 +51,7 @@ class StatusController extends Controller
                     'status_post' => $this->generateUrl('status_post'),
                     'status_put' => $this->generateUrl('status_put', ['id' => 'status_id']),
                     'status_delete' => $this->generateUrl('status_delete', ['id' => 'status_id']),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'statuses' => json_encode(
                     ArrayToJson::arrayToJson(

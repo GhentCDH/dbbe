@@ -73,6 +73,7 @@ class ContentController extends Controller
                     'content_merge' => $this->generateUrl('content_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
                     'content_put' => $this->generateUrl('content_put', ['id' => 'content_id']),
                     'content_delete' => $this->generateUrl('content_delete', ['id' => 'content_id']),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'contents' => json_encode(
                     ArrayToJson::arrayToJson(

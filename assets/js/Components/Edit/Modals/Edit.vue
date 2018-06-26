@@ -4,6 +4,9 @@
         size="lg"
         auto-focus
         @input="$emit('cancel')">
+        <alerts
+            :alerts="alerts"
+            @dismiss="$emit('dismiss-alert', $event)" />
         <vue-form-generator
             :schema="schema"
             :model="submitModel"
@@ -60,6 +63,10 @@ export default {
         formatType: {
             type: Function,
             default: (type) => {return type},
+        },
+        alerts: {
+            type: Array,
+            default: () => {return []}
         },
     },
     data () {

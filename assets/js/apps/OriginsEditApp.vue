@@ -44,16 +44,20 @@
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :format-type="formatType"
-            @cancel="editModal=false"
+            :alerts="editAlerts"
+            @cancel="cancelEdit()"
             @reset="resetEdit()"
-            @confirm="submitEdit()" />
+            @confirm="submitEdit()"
+            @dismiss-alert="editAlerts.splice($event, 1)" />
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
             :format-type="formatType"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            :alerts="deleteAlerts"
+            @cancel="cancelDelete()"
+            @confirm="submitDelete()"
+            @dismiss-alert="deleteAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -157,14 +161,14 @@ export default {
     methods: {
         editCity() {
             this.submitModel.type = 'regionWithParents'
-            this.submitModel.regionWithParents = this.model.regionWithParents
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
         editMonastery(add = false) {
             // TODO: check if name already exists
             this.submitModel.type = 'institution'
-            this.submitModel.regionWithParents = this.model.regionWithParents
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             if (add) {
                 this.submitModel.institution =  {
                     id: null,
@@ -172,7 +176,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.institution = this.model.institution
+                this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
             this.loadLocationField(this.editMonasterySchema.fields.city, this.submitModel)
@@ -183,8 +187,8 @@ export default {
         },
         delMonastery() {
             this.submitModel.type = 'institution'
-            this.submitModel.regionWithParents = this.model.regionWithParents
-            this.submitModel.institution = this.model.institution
+            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
+            this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             this.deleteDependencies()
         },
         submitEdit() {
@@ -236,12 +240,14 @@ export default {
                             break
                         }
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while adding a ' + this.formatType(this.submitModel.type) + '.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.type) + '.', login: true})
                         console.log(error)
                     })
             }
@@ -257,12 +263,14 @@ export default {
                             break
                         }
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while updating the ' + this.formatType(this.submitModel.type) + '.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.type) + '.', login: true})
                         console.log(error)
                     })
             }
@@ -273,13 +281,15 @@ export default {
             axios.delete(this.urls['monastery_delete'].replace('monastery_id', this.submitModel.institution.id))
                 .then( (response) => {
                     this.submitModel.institution = null
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
+                    this.deleteAlerts = []
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the ' + this.formatType(this.submitModel.type) + '.'})
+                    this.deleteModal = true
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.type) + '.', login: true})
                     console.log(error)
                 })
         },
@@ -290,12 +300,12 @@ export default {
                     this.values = response.data
                     switch(this.submitModel.type) {
                     case 'regionWithParents':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
+                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         break
                     case 'institution':
-                        this.model.regionWithParents = this.submitModel.regionWithParents
-                        this.model.institution = this.submitModel.institution
+                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
+                        this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)
                         this.loadLocationField(this.monasterySchema.fields.monastery, this.submitModel)
                         this.enableField(this.monasterySchema.fields.monastery, this.submitModel)
@@ -305,7 +315,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the origin data.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: true})
                     console.log(error)
                 })
         },

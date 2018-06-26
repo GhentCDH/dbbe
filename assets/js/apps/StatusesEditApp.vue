@@ -32,15 +32,19 @@
             :schema="editStatusSchema"
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
-            @cancel="editModal=false"
+            :alerts="editAlerts"
+            @cancel="cancelEdit()"
             @reset="resetEdit()"
-            @confirm="submitEdit()" />
+            @confirm="submitEdit()"
+            @dismiss-alert="editAlerts.splice($event, 1)" />
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            :alerts="deleteAlerts"
+            @cancel="cancelDelete()"
+            @confirm="submitDelete()"
+            @dismiss-alert="deleteAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -82,12 +86,13 @@ export default {
                 },
             },
             model: {
+                statusType: null,
                 status: null,
             },
             submitModel: {
-                type: status,
-                status: null,
+                type: 'status',
                 statusType: null,
+                status: null,
             },
         }
     },
@@ -124,8 +129,8 @@ export default {
             // TODO: check if name already exists
             this.submitModel = {
                 type: 'status',
-                status: null,
                 statusType: null,
+                status: null,
             }
             this.submitModel.statusType = this.model.statusType
             this.loadStatusTypeField(this.editStatusSchema.fields.statusType)
@@ -136,13 +141,13 @@ export default {
                 }
             }
             else {
-                this.submitModel.status = this.model.status
+                this.submitModel.status = JSON.parse(JSON.stringify(this.model.status))
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
         delStatus() {
-            this.submitModel.status = this.model.status
+            this.submitModel.status = JSON.parse(JSON.stringify(this.model.status))
             this.deleteDependencies()
         },
         submitEdit() {
@@ -156,12 +161,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.status = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while adding the status.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: true})
                         console.log(error)
                     })
             }
@@ -172,12 +179,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.status = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while updating the status.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: true})
                         console.log(error)
                     })
             }
@@ -188,13 +197,15 @@ export default {
             axios.delete(this.urls['status_delete'].replace('status_id', this.submitModel.status.id))
                 .then( (response) => {
                     this.submitModel.status = null
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
+                    this.deleteAlerts = []
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the status.'})
+                    this.deleteModal = true
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: true})
                     console.log(error)
                 })
         },
@@ -204,12 +215,12 @@ export default {
                 .then( (response) => {
                     this.values = response.data
                     this.loadStatusField()
-                    this.model.status = this.submitModel.status
+                    this.model.status = JSON.parse(JSON.stringify(this.submitModel.status))
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the status data.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: true})
                     console.log(error)
                 })
         },

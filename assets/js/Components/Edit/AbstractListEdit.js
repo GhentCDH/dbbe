@@ -44,6 +44,9 @@ export default {
             urls: JSON.parse(this.initUrls),
             values: JSON.parse(this.initData),
             alerts: [],
+            editAlerts: [],
+            mergeAlerts: [],
+            deleteAlerts: [],
             delDependencies: {},
             deleteModal: false,
             editModal: false,
@@ -92,9 +95,21 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while checking for dependencies.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: true})
                     console.log(error)
                 })
-        }
+        },
+        cancelEdit() {
+            this.editModal = false
+            this.editAlerts = []
+        },
+        cancelMerge() {
+            this.mergeModal = false
+            this.mergeAlerts = []
+        },
+        cancelDelete() {
+            this.deleteModal = false
+            this.deleteAlerts = []
+        },
     },
 }

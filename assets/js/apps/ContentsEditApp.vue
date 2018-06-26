@@ -31,17 +31,21 @@
             :schema="editContentSchema"
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
-            @cancel="editModal=false"
+            :alerts="editAlerts"
+            @cancel="cancelEdit()"
             @reset="resetEdit()"
-            @confirm="submitEdit()" />
+            @confirm="submitEdit()"
+            @dismiss-alert="editAlerts.splice($event, 1)" />
         <mergeModal
             :show="mergeModal"
             :schema="mergeContentSchema"
             :merge-model="mergeModel"
             :original-merge-model="originalMergeModel"
-            @cancel="mergeModal=false"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
             @reset="resetMerge()"
-            @confirm="submitMerge()">
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)">
             <table
                 v-if="mergeModel.primary && mergeModel.secondary"
                 slot="preview"
@@ -64,8 +68,10 @@
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            :alerts="deleteAlerts"
+            @cancel="cancelDelete()"
+            @confirm="submitDelete()"
+            @dismiss-alert="deleteAlerts.splice($event, 1)" />
     </div>
 </template>
 
@@ -163,7 +169,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.content = this.model.content
+                this.submitModel.content = JSON.parse(JSON.stringify(this.model.content))
             }
             this.editContentSchema.fields.parent.values = this.values
                 .filter(content => content.id != this.submitModel.content.id) // Remove current content
@@ -172,7 +178,7 @@ export default {
             this.editModal = true
         },
         mergeContent() {
-            this.mergeModel.primary = this.model.content
+            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.content))
             this.mergeModel.secondary = null
             this.mergeContentSchema.fields.primary.values = this.values
             this.mergeContentSchema.fields.secondary.values = this.values
@@ -198,12 +204,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.content = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Addition successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while adding the content.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the content.', login: true})
                         console.log(error)
                     })
             }
@@ -235,12 +243,14 @@ export default {
                     .then( (response) => {
                         this.submitModel.content = response.data
                         this.update()
+                        this.editAlerts = []
                         this.alerts.push({type: 'success', message: 'Update successful.'})
                         this.openRequests--
                     })
                     .catch( (error) => {
                         this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something whent wrong while updating the content.'})
+                        this.editModal = true
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the content.', login: true})
                         console.log(error)
                     })
             }
@@ -252,12 +262,14 @@ export default {
                 .then( (response) => {
                     this.submitModel.content = response.data
                     this.update()
+                    this.mergeAlerts = []
                     this.alerts.push({type: 'success', message: 'Merge successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while merging the content.'})
+                    this.mergeModal = true
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the content.', login: true})
                     console.log(error)
                 })
         },
@@ -267,14 +279,15 @@ export default {
             axios.delete(this.urls['content_delete'].replace('content_id', this.submitModel.content.id))
                 .then( (response) => {
                     this.submitModel.content = null
-                    this.submitModel.content = null
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.update()
+                    this.deleteAlerts = []
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while deleting the content.'})
+                    this.deleteModal = true
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the content.', login: true})
                     console.log(error)
                 })
         },
@@ -284,12 +297,12 @@ export default {
                 .then( (response) => {
                     this.values = response.data
                     this.contentSchema.fields.content.values = this.values
-                    this.model.content = this.submitModel.content
+                    this.model.content = JSON.parse(JSON.stringify(this.submitModel.content))
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something whent wrong while renewing the content data.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: true})
                     console.log(error)
                 })
         },

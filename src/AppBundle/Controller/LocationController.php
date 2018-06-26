@@ -69,6 +69,7 @@ class LocationController extends Controller
                     'collection_post' => $this->generateUrl('collection_post'),
                     'collection_put' => $this->generateUrl('collection_put', ['id' => 'collection_id']),
                     'collection_delete' => $this->generateUrl('collection_delete', ['id' => 'collection_id']),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'locations' => json_encode(
                     ArrayToJson::arrayToJson(
