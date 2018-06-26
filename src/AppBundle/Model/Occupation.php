@@ -19,4 +19,13 @@ class Occupation extends IdNameObject
     {
         return $this->isFunction;
     }
+
+    public function getJson(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'isFunction' => $this->isFunction,
+        ];
+    }
 }

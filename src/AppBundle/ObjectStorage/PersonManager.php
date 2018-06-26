@@ -148,6 +148,12 @@ class PersonManager extends EntityManager
         return $person;
     }
 
+    public function getPersonsDependenciesByOccupation(int $occupationId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByOccupationId($occupationId);
+        return $this->getShortPersonsByIds(self::getUniqueIds($rawIds, 'person_id'));
+    }
+
     private function getBibroles(array $occupations): array
     {
         $persons = [];

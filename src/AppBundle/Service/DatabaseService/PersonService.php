@@ -25,6 +25,17 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByOccupationId(int $occupationId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person_occupation.idperson as person_id
+            from data.person_occupation
+            where person_occupation.idoccupation = ?',
+            [$occupationId]
+        )->fetchAll();
+    }
+
     public function getBasicInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(

@@ -20,18 +20,8 @@
     </div>
     <div id="occurrence-edit-app">
         <occurrence-edit-app
-            get-occurrence-url="{{ (id is not empty) ? path('occurrence_get', {'id': id}) : path('occurrence_get', {'id': 'occurrence_id'}) }}"
-            post-occurrence-url="{{ path('occurrence_post') }}"
-            put-occurrence-url="{{ (id is not empty) ? path('occurrence_put', {'id': id}) : '' }}"
-            get-statuses-url="{{ path('statuses_get') }}"
-            init-patrons="{{ patrons }}"
-            init-scribes="{{ scribes }}"
-            init-books="{{ books }}"
-            init-articles="{{ articles }}"
-            init-book-chapters="{{ bookChapters }}"
-            init-online-sources="{{ onlineSources }}"
-            init-text-statuses="{{ textStatuses }}"
-            init-record-statuses="{{ recordStatuses }}"
+            init-urls = "{{ urls }}"
+            init-data="{{ data }}"
         />
     </div>
 {% endblock %}

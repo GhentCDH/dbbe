@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Utils\ArrayToJson;
+
 class PersonController extends Controller
 {
     /**
@@ -106,6 +108,27 @@ class PersonController extends Controller
                 'AppBundle:Person:detail.html.twig',
                 ['person' => $person]
             );
+        }
+    }
+
+    /**
+     * Get all persons that have a dependency on an occupation
+     * (person_occupation)
+     * @Route("/persons/occupations/{id}", name="person_deps_by_occupation")
+     * @Method("GET")
+     * @param  int    $id occupation id
+     * @param Request $request
+     */
+    public function getPersonDepsByOccupation(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $persons = $this
+                ->get('person_manager')
+                ->getPersonsDependenciesByOccupation($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($persons));
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
