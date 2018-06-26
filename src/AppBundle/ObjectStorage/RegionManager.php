@@ -252,7 +252,7 @@ class RegionManager extends ObjectManager
             $updates['pleiades'] = $secondary->getPleiades();
         }
 
-        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($secondaryId);
+        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($secondaryId, true);
         // Only keep dependencies based on origin
         // Locations of the manuscripts themselves never are regions
         $manuscripts = array_filter($manuscripts, function ($manuscript) use ($secondaryId) {

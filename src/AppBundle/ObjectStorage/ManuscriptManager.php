@@ -230,9 +230,12 @@ class ManuscriptManager extends DocumentManager
         return $manuscript;
     }
 
-    public function getManuscriptsDependenciesByRegion(int $regionId): array
+    public function getManuscriptsDependenciesByRegion(int $regionId, bool $short = false): array
     {
         $rawIds = $this->dbs->getDepIdsByRegionId($regionId);
+        if ($short) {
+            return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        }
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
