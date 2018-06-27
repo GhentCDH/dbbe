@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 class PersonService extends EntityService
@@ -195,5 +197,74 @@ class PersonService extends EntityService
             [$occupations],
             [Connection::PARAM_STR_ARRAY]
         )->fetchAll();
+    }
+
+    public function insert(): int
+    {
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_manuscript_has_document
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.person default values'
+            );
+            $personId = $this->conn->executeQuery(
+                'SELECT
+                    person.identity as person_id
+                from data.person
+                order by identity desc
+                limit 1'
+            )->fetch()['person_id'];
+            $this->conn->executeUpdate(
+                'INSERT INTO data.name (idperson) values (?)',
+                [
+                    $personId,
+                ]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $personId;
+    }
+
+    public function updateFirstName(int $personId, string $firstName = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.name
+            set first_name = ?
+            where name.idperson = ?',
+            [
+                $firstName,
+                $personId,
+            ]
+        );
+    }
+
+    public function updateLastName(int $personId, string $lastName = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.name
+            set last_name = ?
+            where name.idperson = ?',
+            [
+                $lastName,
+                $personId,
+            ]
+        );
+    }
+
+    public function updateExtra(int $personId, string $extra = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.name
+            set extra = ?
+            where name.idperson = ?',
+            [
+                $extra,
+                $personId,
+            ]
+        );
     }
 }

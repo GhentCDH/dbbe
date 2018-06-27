@@ -2,6 +2,13 @@
 
 namespace AppBundle\ObjectStorage;
 
+use stdClass;
+
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+use AppBundle\Model\Entity;
+use AppBundle\Model\FuzzyDate;
+
 class EntityManager extends ObjectManager
 {
     protected function setPublics(array &$entities): void
@@ -29,5 +36,32 @@ class EntityManager extends ObjectManager
         return array_map(function ($entity) {
             return $entity->getId();
         }, $entities);
+    }
+
+    protected function updatePublic(Entity $entity, bool $public): void
+    {
+        $this->dbs->updatePublic($entity->getId(), $public);
+    }
+
+    protected function updateDate(Entity $entity, string $type, FuzzyDate $currentDate = null, stdClass $newdate = null): void
+    {
+        if (empty($newdate)) {
+            $this->dbs->deleteDate($entity->getId(), $type);
+        } elseif (!property_exists($newdate, 'floor') || (!empty($newdate->floor) && !is_string($newdate->floor))
+            || !property_exists($newdate, 'ceiling') || (!empty($newdate->ceiling) && !is_string($newdate->ceiling))
+        ) {
+            throw new BadRequestHttpException('Incorrect date data.');
+        } else {
+            $dbDate = '('
+                . (empty($newdate->floor) ? '-infinity' : $newdate->floor)
+                . ', '
+                . (empty($newdate->ceiling) ? 'infinity' : $newdate->ceiling)
+                . ')';
+            if (!isset($currentDate) || $currentDate->isEmpty()) {
+                $this->dbs->insertDate($entity->getId(), $type, $dbDate);
+            } else {
+                $this->dbs->updateDate($entity->getId(), $type, $dbDate);
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Person extends Entity implements SubjectInterface
+class Person extends Entity implements SubjectInterface, IdJsonInterface
 {
     use CacheDependenciesTrait;
 
@@ -71,11 +71,21 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    public function getBornDate(): FuzzyDate
+    {
+        return $this->bornDate;
+    }
+
     public function setDeathDate(FuzzyDate $deathDate = null): Person
     {
         $this->deathDate = $deathDate;
 
         return $this;
+    }
+
+    public function getDeathDate(): FuzzyDate
+    {
+        return $this->deathDate;
     }
 
     // called for each entry
@@ -204,7 +214,9 @@ class Person extends Entity implements SubjectInterface
     {
         $result = [];
         foreach (['RGK', 'VGH'] as $id) {
-            $result[] = $id . ': ' . implode(', ', $this->$id);
+            if (!empty($this->$id)) {
+                $result[] = $id . ': ' . implode(', ', $this->$id);
+            }
         }
         if (isset($this->PBW)) {
             $result[] = 'PBW' . ': ' . $this->PBW;
@@ -227,10 +239,10 @@ class Person extends Entity implements SubjectInterface
                 $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
             }
         }
-        if (isset($this->RGK)) {
+        if (!empty($this->RGK)) {
             $description .= ' - RGK: ' . implode(', ', $this->RGK);
         }
-        if (isset($this->VGH)) {
+        if (!empty($this->VGH)) {
             $description .= ' - VGH: ' . implode(', ', $this->VGH);
         }
         if (isset($this->PBW)) {
@@ -278,10 +290,6 @@ class Person extends Entity implements SubjectInterface
         $result = [
             'id' => $this->id,
             'historical' => $this->historical,
-            'rgk' => implode(', ', $this->RGK),
-            'vgh' => implode(', ', $this->VGH),
-            'types' => ArrayToJson::arrayToShortJson($this->getTypes()),
-            'functions' => ArrayToJson::arrayToShortJson($this->getFunctions()),
             'public' => $this->public,
         ];
         if (isset($this->firstName)) {
@@ -296,17 +304,26 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->unprocessed)) {
             $result['unprocessed'] = $this->unprocessed;
         }
-        if (isset($this->historical)) {
-            $result['historical'] = $this->historical;
-        }
-        if (isset($this->bornDate)) {
+        if (isset($this->bornDate) && !($this->bornDate->isEmpty())) {
             $result['bornDate'] = $this->bornDate->getJson();
         }
-        if (isset($this->deathDate)) {
+        if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
+        }
+        if (!empty($this->RGK)) {
+            $result['rgk'] = implode(', ', $this->RGK);
+        }
+        if (!empty($this->VGH)) {
+            $result['vgh'] = implode(', ', $this->VGH);
         }
         if (isset($this->PBW)) {
             $result['pbw'] = $this->PBW;
+        }
+        if (!empty($this->getTypes())) {
+            $result['types'] = ArrayToJson::arrayToShortJson($this->getTypes());
+        }
+        if (!empty($this->getFunctions())) {
+            $result['functions'] = ArrayToJson::arrayToShortJson($this->getFunctions());
         }
         if (isset($this->publicComment)) {
             $result['publicComment'] = $this->publicComment;

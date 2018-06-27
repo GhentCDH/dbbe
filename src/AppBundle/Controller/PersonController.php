@@ -17,6 +17,7 @@ class PersonController extends Controller
 {
     /**
      * @Route("/persons", name="persons_search")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchPersons(Request $request)
@@ -47,6 +48,7 @@ class PersonController extends Controller
 
     /**
      * @Route("/persons/search_api", name="persons_search_api")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchPersonsAPI(Request $request)
@@ -211,6 +213,7 @@ class PersonController extends Controller
 
     /**
      * @Route("/persons/{id}/edit", name="person_edit")
+     * @Method("GET")
      * @param  int|null $id person id
      * @param Request $request
      * @return Response
@@ -226,7 +229,7 @@ class PersonController extends Controller
                 'urls' => json_encode([
                     'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
                     'person_post' => $this->generateUrl('person_post'),
-                    'person_put' => $this->generateUrl('person_put', ['id' => $id]),
+                    'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([

@@ -2,9 +2,12 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\Person;
-use AppBundle\Model\FuzzyDate;
+use stdClass;
 
+use AppBundle\Model\FuzzyDate;
+use AppBundle\Model\Person;
+
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PersonManager extends EntityManager
@@ -220,6 +223,118 @@ class PersonManager extends EntityManager
         return $persons;
     }
 
+    public function addPerson(stdClass $data): Person
+    {
+        $this->dbs->beginTransaction();
+        try {
+            $personId = $this->dbs->insert();
+
+            $newPerson = $this->updatePerson($personId, $data, true);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newPerson;
+    }
+
+    public function updatePerson(int $id, stdClass $data, bool $new = false): Person
+    {
+        $this->dbs->beginTransaction();
+        try {
+            $person = $this->getPersonById($id);
+            if ($person == null) {
+                throw new NotFoundHttpException('Person with id ' . $id .' not found.');
+            }
+
+            // update person data
+            $cacheReload = [
+                'mini' => $new,
+                'short' => $new,
+                'extended' => $new,
+            ];
+            if (property_exists($data, 'public')) {
+                $cacheReload['mini'] = true;
+                $this->updatePublic($person, $data->public);
+            }
+            if (property_exists($data, 'firstName')) {
+                $cacheReload['mini'] = true;
+                $this->updateFirstName($person, $data->firstName);
+            }
+            if (property_exists($data, 'lastName')) {
+                $cacheReload['mini'] = true;
+                $this->updateLastName($person, $data->lastName);
+            }
+            if (property_exists($data, 'extra')) {
+                $cacheReload['mini'] = true;
+                $this->updateExtra($person, $data->extra);
+            }
+            if (property_exists($data, 'bornDate')) {
+                $cacheReload['mini'] = true;
+                $this->updateDate($person, 'born', $person->getBornDate(), $data->bornDate);
+            }
+            if (property_exists($data, 'deathDate')) {
+                $cacheReload['mini'] = true;
+                $this->updateDate($person, 'died', $person->getDeathDate(), $data->deathDate);
+            }
+
+        //     ->setBornDate(new FuzzyDate($rawPerson['born_date']))
+        //     ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
+        //     ->setHistorical($rawPerson['is_historical']);
+        // // identification
+        // if (isset($rawPerson['rgki'])) {
+        //     $person->addRGK('I', $rawPerson['rgki']);
+        // }
+        // if (isset($rawPerson['rgkii'])) {
+        //     $person->addRGK('II', $rawPerson['rgkii']);
+        // }
+        // if (isset($rawPerson['rgkiii'])) {
+        //     $person->addRGK('III', $rawPerson['rgkiii']);
+        // }
+        // if (isset($rawPerson['vgh'])) {
+        //     $person->setVGH($rawPerson['vgh']);
+        // }
+        // if (isset($rawPerson['pbw'])) {
+        //     $person->setPBW($ra
+
+            // Throw error if none of above matched
+            if (!in_array(true, $cacheReload)) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+
+            // load new person data
+            if ($cacheReload['mini']) {
+                $this->cache->deleteItem('person_mini.' . $id);
+                $this->cache->deleteItem('person_short.' . $id);
+                $this->cache->deleteItem('person.' . $id);
+            }
+            if ($cacheReload['short']) {
+                $this->cache->deleteItem('person_short.' . $id);
+                $this->cache->deleteItem('person.' . $id);
+            }
+            if ($cacheReload['extended']) {
+                $this->cache->deleteItem('person.' . $id);
+            }
+            $newPerson = $this->getPersonById($id);
+
+            $this->updateModified($new ? null : $person, $newPerson);
+
+            // (re-)index in elastic search
+            $this->ess->addPerson($newPerson);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return $newPerson;
+    }
+
     private function getPersonsByOccupations(array $occupations): array
     {
         $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
@@ -232,5 +347,20 @@ class PersonManager extends EntityManager
         }
 
         return $occupationPersons;
+    }
+
+    private function updateFirstName(Person $person, string $firstName = null): void
+    {
+        $this->dbs->updateFirstName($person->getId(), $firstName);
+    }
+
+    private function updateLastName(Person $person, string $lastName = null): void
+    {
+        $this->dbs->updateLastName($person->getId(), $lastName);
+    }
+
+    private function updateExtra(Person $person, string $extra = null): void
+    {
+        $this->dbs->updateExtra($person->getId(), $extra);
     }
 }

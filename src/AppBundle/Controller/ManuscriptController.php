@@ -17,6 +17,7 @@ class ManuscriptController extends Controller
 {
     /**
      * @Route("/manuscripts", name="manuscripts_search")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchManuscripts(Request $request)
@@ -43,6 +44,7 @@ class ManuscriptController extends Controller
 
     /**
      * @Route("/manuscripts/search_api", name="manuscripts_search_api")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchManuscriptsAPI(Request $request)
@@ -331,6 +333,7 @@ class ManuscriptController extends Controller
 
     /**
      * @Route("/manuscripts/{id}/edit", name="manuscript_edit")
+     * @Method("GET")
      * @param  int|null $id manuscript id
      * @param Request $request
      * @return Response
@@ -346,7 +349,7 @@ class ManuscriptController extends Controller
                 'urls' => json_encode([
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => $id == null ? 'manuscript_id' : $id]),
                     'manuscript_post' => $this->generateUrl('manuscript_post'),
-                    'manuscript_put' => $this->generateUrl('manuscript_put', ['id' => $id]),
+                    'manuscript_put' => $this->generateUrl('manuscript_put', ['id' => $id == null ? 'manuscript_id' : $id]),
                     'locations_edit' => $this->generateUrl('locations_edit'),
                     'contents_edit' => $this->generateUrl('contents_edit'),
                     'origins_edit' => $this->generateUrl('origins_edit'),

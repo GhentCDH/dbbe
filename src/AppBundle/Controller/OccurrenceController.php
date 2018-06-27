@@ -18,6 +18,7 @@ class OccurrenceController extends Controller
 {
     /**
      * @Route("/occurrences", name="occurrences_search")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchOccurrences(Request $request)
@@ -43,6 +44,7 @@ class OccurrenceController extends Controller
 
     /**
      * @Route("/occurrences/search_api", name="occurrences_search_api")
+     * @Method("GET")
      * @param Request $request
      */
     public function searchOccurrencesAPI(Request $request)
@@ -226,6 +228,7 @@ class OccurrenceController extends Controller
 
     /**
      * @Route("/occurrences/{id}/edit", name="occurrence_edit")
+     * @Method("GET")
      * @param  int|null $id occurrence id
      * @param Request $request
      * @return Response

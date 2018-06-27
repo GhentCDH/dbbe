@@ -436,57 +436,6 @@ class ManuscriptService extends DocumentService
         );
     }
 
-    public function insertCompletionDate(int $manuscriptId, string $completionDate): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT INTO data.factoid (subject_identity, date, idfactoid_type)
-            values (
-                ?,
-                ?,
-                (
-                    select
-                        factoid_type.idfactoid_type
-                    from data.factoid_type
-                    where factoid_type.type = \'completed at\'
-                )
-            )',
-            [
-                $manuscriptId,
-                $completionDate,
-            ]
-        );
-    }
-
-    public function updateCompletionDate(int $manuscriptId, string $completionDate): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.factoid
-            set date = ?
-            from data.factoid_type
-            where factoid.subject_identity = ?
-            and factoid.idfactoid_type = factoid_type.idfactoid_type
-            and factoid_type.type = \'completed at\'',
-            [
-                $completionDate,
-                $manuscriptId,
-            ]
-        );
-    }
-
-    public function deleteCompletionDate(int $manuscriptId): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE from data.factoid
-            using data.factoid_type
-            where factoid.subject_identity = ?
-            and factoid.idfactoid_type = factoid_type.idfactoid_type
-            and factoid_type.type = \'completed at\'',
-            [
-                $manuscriptId,
-            ]
-        );
-    }
-
     public function insertOrigin(int $manuscriptId, int $locationId): int
     {
         return $this->conn->executeUpdate(
@@ -678,19 +627,6 @@ class ManuscriptService extends DocumentService
             where document.identity = ?',
             [
                 $illustrated ? 'TRUE': 'FALSE',
-                $manuscriptId,
-            ]
-        );
-    }
-
-    public function updatePublic(int $manuscriptId, bool $public): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.entity
-            set public = ?
-            where entity.identity = ?',
-            [
-                $public ? 'TRUE': 'FALSE',
                 $manuscriptId,
             ]
         );

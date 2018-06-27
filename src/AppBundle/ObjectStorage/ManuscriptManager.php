@@ -278,16 +278,13 @@ class ManuscriptManager extends DocumentManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
             $manuscriptId = $this->dbs->insert();
+            // Located at needs to be saved in order for getManuscriptById
             $this->container->get('located_at_manager')->addLocatedAt(
                 $manuscriptId,
                 $data->locatedAt
             );
-
+            // prevent locatedAt from being updated unnecessarily
             unset($data->locatedAt);
-            // TODO: check if following lines are needed
-            if (!property_exists($data, 'public')) {
-                $data->public = false;
-            }
 
             $newManuscript = $this->updateManuscript($manuscriptId, $data, true);
 
@@ -345,7 +342,7 @@ class ManuscriptManager extends DocumentManager
             }
             if (property_exists($data, 'date')) {
                 $cacheReload['short'] = true;
-                $this->updateDate($manuscript, $data->date);
+                $this->updateDate($manuscript, 'completed at', $manuscript->getDate(), $data->date);
             }
             if (property_exists($data, 'origin')) {
                 $cacheReload['short'] = true;
@@ -496,28 +493,6 @@ class ManuscriptManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addRelatedPerson($manuscript->getId(), $addId);
-        }
-    }
-
-    private function updateDate(Manuscript $manuscript, stdClass $date = null): void
-    {
-        if (empty($date)) {
-            $this->dbs->deleteCompletionDate($manuscript->getId());
-        } elseif (!property_exists($date, 'floor') || (!empty($date->floor) && !is_string($date->floor))
-            || !property_exists($date, 'ceiling') || (!empty($date->ceiling) && !is_string($date->ceiling))
-        ) {
-            throw new BadRequestHttpException('Incorrect date data.');
-        } else {
-            $dbDate = '('
-                . (empty($date->floor) ? '-infinity' : $date->floor)
-                . ', '
-                . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
-                . ')';
-            if (empty($manuscript->getDate())) {
-                $this->dbs->insertCompletionDate($manuscript->getId(), $dbDate);
-            } else {
-                $this->dbs->updateCompletionDate($manuscript->getId(), $dbDate);
-            }
         }
     }
 
@@ -742,11 +717,6 @@ class ManuscriptManager extends DocumentManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
-    }
-
-    private function updatePublic(Manuscript $manuscript, bool $public): void
-    {
-        $this->dbs->updatePublic($manuscript->getId(), $public);
     }
 
     private function updatePrivateComment(Manuscript $manuscript, string $privateComment = null): void

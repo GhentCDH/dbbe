@@ -257,21 +257,35 @@ class Manuscript extends Document implements IdJsonInterface
             'id' => $this->id,
             'locatedAt' => $this->locatedAt->getJson(),
             'name' => $this->getName(),
-            'content' => ArrayToJson::arrayToShortJson($this->contentsWithParents),
-            'patrons' => ArrayToJson::arrayToShortJson($this->patrons),
-            'occurrencePatrons' => self::getOccurrencePersonsJson($this->occurrencePatrons),
-            'scribes' => ArrayToJson::arrayToShortJson($this->scribes),
-            'relatedPersons' => ArrayToJson::arrayToShortJson($this->relatedPersons),
-            'occurrenceScribes' => self::getOccurrencePersonsJson($this->occurrenceScribes),
-            'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
             'public' => $this->public,
         ];
 
-        if (isset($this->date)) {
+        if (!empty($this->contentsWithParents)) {
+            $result['content'] = ArrayToJson::arrayToShortJson($this->contentsWithParents);
+        }
+        if (!empty($this->patrons)) {
+            $result['patrons'] = ArrayToJson::arrayToShortJson($this->patrons);
+        }
+        if (!empty($this->occurrencePatrons)) {
+            $result['occurrencePatrons'] = self::getOccurrencePersonsJson($this->occurrencePatrons);
+        }
+        if (!empty($this->scribes)) {
+            $result['scribes'] = ArrayToJson::arrayToShortJson($this->scribes);
+        }
+        if (!empty($this->occurrenceScribes)) {
+            $result['occurrenceScribes'] = self::getOccurrencePersonsJson($this->occurrenceScribes);
+        }
+        if (!empty($this->relatedPersons)) {
+            $result['relatedPersons'] = ArrayToJson::arrayToShortJson($this->relatedPersons);
+        }
+        if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortJson();
+        }
+        if (!empty($this->getBibliographies())) {
+            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
         }
         if (isset($this->diktyon)) {
             $result['diktyon'] = $this->diktyon;
