@@ -9,11 +9,12 @@
     <div id="contents-edit-app">
         <contents-edit-app
             init-urls="{{ urls }}"
-            init-data="{{ contents }}"            
+            init-data="{{ contents }}"
         />
     </div>
 {% endblock %}
 
 {% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
     <script type="text/javascript" src="{{ asset("/build/contentsedit.js") }}"></script>
 {% endblock %}
