@@ -95,7 +95,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: true})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -110,6 +110,9 @@ export default {
         cancelDelete() {
             this.deleteModal = false
             this.deleteAlerts = []
+        },
+        isLoginError(error) {
+            return error.message === 'Network Error'
         },
     },
 }

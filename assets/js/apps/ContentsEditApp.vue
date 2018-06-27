@@ -211,7 +211,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the content.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the content.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -250,7 +250,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the content.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the content.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -269,7 +269,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the content.', login: true})
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the content.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -287,7 +287,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the content.', login: true})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the content.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -302,7 +302,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: true})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },

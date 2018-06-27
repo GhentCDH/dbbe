@@ -304,7 +304,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the region.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the region.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -343,7 +343,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the region.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the region.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -362,7 +362,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the regions.', login: true})
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the regions.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -381,7 +381,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the region.', login: true})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the region.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -396,7 +396,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the region data.', login: true})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the region data.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },

@@ -142,5 +142,8 @@ export default {
             this.saveModal = false
             this.saveAlerts = []
         },
+        isLoginError(error) {
+            return error.message === 'Network Error'
+        },
     },
 }

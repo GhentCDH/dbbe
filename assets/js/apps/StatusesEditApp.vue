@@ -168,7 +168,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -186,7 +186,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: true})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -205,7 +205,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: true})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -220,7 +220,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: true})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },

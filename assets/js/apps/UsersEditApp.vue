@@ -212,7 +212,7 @@ export default {
                         .catch( (error) => {
                             this.formModal = true
                             this.openRequests--
-                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the new user.', login: true})
+                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the new user.', login: this.isLoginError(error)})
                             console.log(error)
                         })
                 }
@@ -226,7 +226,7 @@ export default {
                         .catch( (error) => {
                             this.formModal = true
                             this.openRequests--
-                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the updated user.', login: true})
+                            this.editAlerts.push({type: 'error', message: 'Something went wrong while saving the updated user.', login: this.isLoginError(error)})
                             console.log(error)
                         })
                 }
@@ -236,7 +236,10 @@ export default {
             if (this.openRequests > 0) {
                 this.openRequests--
             }
-        }
+        },
+        isLoginError(error) {
+            return error.message === 'Network Error'
+        },
     }
 }
 </script>
