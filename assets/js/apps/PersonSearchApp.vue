@@ -74,8 +74,7 @@
                         <a
                             v-if="props.row.name.length === 1"
                             :href="urls['person_get'].replace('person_id', props.row.id)"
-                            v-html="props.row.name[0]">
-                        </a>
+                            v-html="props.row.name[0]" />
                         <ul v-else>
                             <li
                                 v-for="(item, index) in props.row.name"
@@ -85,7 +84,7 @@
                     </template>
                 </template>
                 <template
-                    v-if="props.row.rgk || props.row.vgh || props.row.pbw"
+                    v-if="(props.row.rgk != null && props.row.rgk.length > 0) || (props.row.vgh != null && props.row.vgh.length > 0) || (props.row.pbw != null && props.row.pbw !== '')"
                     slot="identification"
                     slot-scope="props">
                     {{ formatIdentification(props.row.rgk, props.row.vgh, props.row.pbw) }}
@@ -297,16 +296,16 @@ export default {
         },
         formatIdentification(rgk, vgh, pbw) {
             let result = []
-            if (rgk) {
-                result.push('RGK: ' + rgk)
+            if (rgk != null && rgk.length > 0) {
+                result.push('RGK: ' + rgk.join(', '))
             }
-            if (vgh) {
-                result.push('VGH: ' + vgh)
+            if (vgh != null && vgh.length > 0) {
+                result.push('VGH: ' + vgh.join(', '))
             }
-            if (pbw) {
+            if (pbw != null && pbw !== '') {
                 result.push('PBW: ' + pbw)
             }
-            return result.join(', ')
+            return result.join(' - ')
         },
     }
 }
