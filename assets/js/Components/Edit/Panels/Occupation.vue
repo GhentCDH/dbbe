@@ -29,12 +29,26 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        values: {
+            type: Object,
+            default: () => {return {}}
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
-                    types: this.createMultiSelect('Types', {values: this.values.types}, {multiple: true, closeOnSelect: false}),
-                    functions: this.createMultiSelect('Functions', {values: this.values.functions}, {multiple: true, closeOnSelect: false}),
+                    types: this.createMultiSelect(
+                        'Types',
+                        {values: this.values.types},
+                        {multiple: true, closeOnSelect: false}
+                    ),
+                    functions: this.createMultiSelect(
+                        'Functions',
+                        {values: this.values.functions},
+                        {multiple: true, closeOnSelect: false}
+                    ),
                 }
             }
         }

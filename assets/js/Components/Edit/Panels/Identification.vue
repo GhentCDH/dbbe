@@ -1,7 +1,7 @@
 <template>
     <panel :header="header">
         <vue-form-generator
-            :schema="schema1"
+            :schema="schema"
             :model="model"
             :options="formOptions"
             ref="form"
@@ -32,7 +32,7 @@ export default {
     },
     data() {
         return {
-            schema1: {
+            schema: {
                 fields: {
                     rgk: {
                         type: 'input',
@@ -41,7 +41,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'rgk',
                         validator: VueFormGenerator.validators.regexp,
-                        pattern: '^I{1,3}[.][\d]+(?:, I{1,3}[.][\d]+)*$',
+                        pattern: '^I{1,3}[.][\\d]+(?:, I{1,3}[.][\\d]+)*$',
                         hint: 'E.g., "I.191, II.252, III.315" (without quotes)',
                     },
                     vgh: {
@@ -51,7 +51,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'vgh',
                         validator: VueFormGenerator.validators.regexp,
-                        pattern: '^[\d]+[.][A-Z](?:, [\d]+[.][A-Z])*$',
+                        pattern: '^[\\d]+[.][A-Z](?:, [\\d]+[.][A-Z])*$',
                         hint: 'E.g., "158.D, 175.B, 203.A" (without quotes)',
                     },
                     pbw: {

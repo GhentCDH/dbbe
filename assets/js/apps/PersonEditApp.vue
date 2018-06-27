@@ -19,6 +19,20 @@
                 @validated="validated"
                 ref="basic" />
 
+            <datePanel
+                id="bornDate"
+                header="Born Date"
+                :model="model.bornDate"
+                @validated="validated"
+                ref="bornDate" />
+
+            <datePanel
+                id="deathDate"
+                header="Death Date"
+                :model="model.deathDate"
+                @validated="validated"
+                ref="deathDate" />
+
             <identificationPanel
                 id="identification"
                 header="Identification"
@@ -50,7 +64,7 @@
                 Reset
             </btn>
             <btn
-                v-if="occurrence"
+                v-if="person"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()">
@@ -84,6 +98,8 @@
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic Information</a></li>
+                    <li><a href="#bornDate">Born Date</a></li>
+                    <li><a href="#deathDate">Death Date</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#occupation">Occupations</a></li>
                     <li><a href="#general">General</a></li>
@@ -120,7 +136,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['Basic', 'Identification', 'Occupation', 'GeneralPerson'].includes(compName)) {
+    if (['Basic', 'Date', 'Identification', 'Occupation', 'GeneralPerson'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -129,16 +145,17 @@ export default {
     mixins: [ AbstractEntityEdit ],
     data() {
         return {
-            occurrence: null,
-            persons: null,
-            bibliographies: null,
-            statuses: null,
+            person: null,
+            occupations: null,
             model: {
-                person: {
-                    patrons: [],
-                    scribes: [],
+                basic: {
+                    firstName: null,
+                    lastName: null,
+                    extra: null,
+                    unprocessed: null,
+                    isHistorical: null,
                 },
-                date: {
+                bornDate: {
                     floor: null,
                     ceiling: null,
                     exactDate: null,
@@ -148,64 +165,70 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                bibliography: {
-                    books: [],
-                    articles: [],
-                    bookChapters: [],
-                    onlineSources: [],
+                deathDate: {
+                    floor: null,
+                    ceiling: null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                },
+                identification: {
+                    rgk: null,
+                    vgh: null,
+                    pbw: null,
+                },
+                occupation: {
+                    types: null,
+                    functions: null,
                 },
                 general: {
                     publicComment: null,
                     privateComment: null,
-                    textStatus: null,
-                    recordStatus: null,
                     public: null,
                 },
             },
             forms: [
-                'persons',
-                'date',
-                'bibliography',
+                'basic',
+                'bornDate',
+                'deathDate',
+                'identification',
+                'occupation',
                 'general',
             ],
         }
     },
     created () {
-        this.occurrence = this.data.occurrence
-        this.persons = {
-            patrons: this.data.patrons,
-            scribes: this.data.scribes,
-        }
-        this.bibliographies = {
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
-        }
-        this.statuses = {
-            textStatuses: this.data.textStatuses,
-            recordStatuses: this.data.recordStatuses,
+        this.person = this.data.person
+        this.occupations = {
+            types: this.data.types,
+            functions: this.data.functions,
         }
     },
     mounted () {
-        this.loadOccurrence()
+        this.loadPerson()
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
     },
     methods: {
-        loadOccurrence() {
-            if (this.occurrence != null) {
-                // Person
-                this.model.person = {
-                    patrons: this.occurrence.patrons,
-                    scribes: this.occurrence.scribes,
+        loadPerson() {
+            if (this.person != null) {
+                // Basic info
+                this.model.basic = {
+                    firstName: this.person.firstName,
+                    lastName: this.person.lastName,
+                    extra: this.person.extra,
+                    unprocessed: this.person.unprocessed,
+                    historical: this.person.historical,
                 }
 
-                // Date
-                this.model.date = {
-                    floor: this.occurrence.date != null ? this.occurrence.date.floor : null,
-                    ceiling: this.occurrence.date != null ? this.occurrence.date.ceiling : null,
+                // Born date
+                this.model.bornDate = {
+                    floor: this.person.bornDate != null ? this.person.bornDate.floor : null,
+                    ceiling: this.person.bornDate != null ? this.person.bornDate.ceiling : null,
                     exactDate: null,
                     exactYear: null,
                     floorYear: null,
@@ -214,37 +237,30 @@ export default {
                     ceilingDayMonth: null,
                 }
 
-                // Bibliography
-                this.model.bibliography = {
-                    books: [],
-                    articles: [],
-                    bookChapters: [],
-                    onlineSources: [],
+                // Death date
+                this.model.deathDate = {
+                    floor: this.person.deathDate != null ? this.person.deathDate.floor : null,
+                    ceiling: this.person.deathDate != null ? this.person.deathDate.ceiling : null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
                 }
-                for (let bib of this.occurrence.bibliography) {
-                    switch (bib['type']) {
-                    case 'book':
-                        this.model.bibliography.books.push(bib)
-                        break
-                    case 'article':
-                        this.model.bibliography.articles.push(bib)
-                        break
-                    case 'bookChapter':
-                        this.model.bibliography.bookChapters.push(bib)
-                        break
-                    case 'onlineSource':
-                        this.model.bibliography.onlineSources.push(bib)
-                        break
-                    }
+
+                // Identification
+                this.model.identification = {
+                    rgk: this.person.rgk,
+                    vgh: this.person.vgh,
+                    pbw: this.person.pbw,
                 }
 
                 // General
                 this.model.general = {
-                    publicComment: this.occurrence.publicComment,
-                    privateComment: this.occurrence.privateComment,
-                    textStatus: this.occurrence.textStatus,
-                    recordStatus: this.occurrence.recordStatus,
-                    public: this.occurrence.public,
+                    publicComment: this.person.publicComment,
+                    privateComment: this.person.privateComment,
+                    public: this.person.public,
                 }
             }
 
@@ -257,12 +273,12 @@ export default {
         save() {
             this.openRequests++
             this.saveModal = false
-            if (this.occurrence == null) {
-                axios.post(this.urls['occurrence_post'], this.toSave())
+            if (this.person == null) {
+                axios.post(this.urls['person_post'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['occurrence_get'].replace('occurrence_id', response.data.id)
+                        window.location = this.urls['person_get'].replace('person_id', response.data.id)
                     })
                     .catch( (error) => {
                         console.log(error)
@@ -272,11 +288,11 @@ export default {
                     })
             }
             else {
-                axios.put(this.urls['occurrence_put'], this.toSave())
+                axios.put(this.urls['person_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['occurrence_get']
+                        window.location = this.urls['person_get']
                     })
                     .catch( (error) => {
                         console.log(error)

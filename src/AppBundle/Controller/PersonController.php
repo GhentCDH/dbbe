@@ -82,6 +82,7 @@ class PersonController extends Controller
 
     /**
      * @Route("/persons/{id}", name="person_get")
+     * @Method("GET")
      * @param  int    $id person id
      * @param Request $request
      */
@@ -232,6 +233,8 @@ class PersonController extends Controller
                     'person' => empty($id)
                         ? null
                         : $this->get('person_manager')->getPersonById($id)->getJson(),
+                    'types' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllTypes()),
+                    'functions' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllFunctions()),
                 ]),
             ]
         );

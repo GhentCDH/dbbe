@@ -277,7 +277,6 @@ class Person extends Entity implements SubjectInterface
     {
         $result = [
             'id' => $this->id,
-            'name' => $this->getName(),
             'historical' => $this->historical,
             'rgk' => implode(', ', $this->RGK),
             'vgh' => implode(', ', $this->VGH),
@@ -285,7 +284,21 @@ class Person extends Entity implements SubjectInterface
             'functions' => ArrayToJson::arrayToShortJson($this->getFunctions()),
             'public' => $this->public,
         ];
-
+        if (isset($this->firstName)) {
+            $result['firstName'] = $this->firstName;
+        }
+        if (isset($this->lastName)) {
+            $result['lastName'] = $this->lastName;
+        }
+        if (isset($this->extra)) {
+            $result['extra'] = $this->extra;
+        }
+        if (isset($this->unprocessed)) {
+            $result['unprocessed'] = $this->unprocessed;
+        }
+        if (isset($this->historical)) {
+            $result['historical'] = $this->historical;
+        }
         if (isset($this->bornDate)) {
             $result['bornDate'] = $this->bornDate->getJson();
         }
