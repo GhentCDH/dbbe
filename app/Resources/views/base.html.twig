@@ -99,6 +99,13 @@
                                                     <span>Manuscripts</span>
                                                 </a>
                                             </li>
+                                            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                                                <li class="{{ app.request.get('_route') == 'persons_search' ? 'active' }}">
+                                                    <a href="{{ path('persons_search') }}">
+                                                        <span>Persons</span>
+                                                    </a>
+                                                </li>
+                                            {% endif %}
                                             <li class="dropdown">
                                                 <a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle" href="#">
                                                     <span>Info</span>
@@ -137,6 +144,11 @@
                                                         <li>
                                                           <a href="{{ path('locations_edit') }}">
                                                             <span>Locations</span>
+                                                          </a>
+                                                        </li>
+                                                        <li>
+                                                          <a href="{{ path('occupations_edit') }}">
+                                                            <span>Occupations</span>
                                                           </a>
                                                         </li>
                                                         <li>
