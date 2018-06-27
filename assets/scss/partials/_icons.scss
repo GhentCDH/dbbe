@@ -7,3 +7,12 @@ a {
     }
   }
 }
+
+.h1 {
+  a {
+    &.action {
+      font-size: $fz-default;
+      padding-top: 22px;
+    }
+  }
+}

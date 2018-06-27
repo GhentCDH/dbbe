@@ -5,14 +5,12 @@
         <h2 class="h1">
             {% if id is not empty %}
                 Edit Occurrence
-                <span class="small">
-                    <a
-                        href="{{ path('occurrence_get', {'id': id}) }}"
-                        class="action pull-right"
-                        title="View the occurrence">
-                        <i class="fa fa-eye"></i>
-                    </a>
-                </span>
+                <a
+                    href="{{ path('occurrence_get', {'id': id}) }}"
+                    class="action pull-right"
+                    title="View the occurrence">
+                    <i class="fa fa-eye"></i>
+                </a>
             {% else %}
                 Add Occurrence
             {% endif %}

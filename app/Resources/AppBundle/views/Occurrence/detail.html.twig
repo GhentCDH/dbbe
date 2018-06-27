@@ -2,7 +2,7 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2 {% if not occurrence.getPublic() %}class="text-danger"{% endif %}>
+        <h2 class="h1{% if not occurrence.getPublic() %} text-danger{% endif %}">
             Occurrence {{ occurrence.getId() }}
             {% if occurrence.getPrevId() is not empty %}<small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
             {% if not occurrence.getPublic() %}
@@ -13,12 +13,12 @@
             {% endif %}
         </h2>
         <div class="row pbottom-default">
-            <div class="col-md-8">
+            {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
+            <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %} greek">
                 {% if (occurrence.getTitle() or occurrence.getText()) %}
                      {% include '@App/Helpers/renderLineNumbers.html.twig' with {'title': occurrence.getTitle(), 'text': occurrence.getText()} only %}
                 {% endif %}
             </div>
-            {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
             {% if images is not empty %}
                 <div class="col-md-4">
                     <div class="row">
@@ -59,7 +59,7 @@
                 {% if type is not empty %}
                     <tr>
                         <td>Type</td>
-                        <td>
+                        <td class="greek">
                             {% include '@App/Helpers/renderPublic.html.twig' with {'item': type, 'path': 'type_get','display': type.getDescription()} only %}
                         </td>
                     </tr>

@@ -38,9 +38,10 @@
                 :options="tableOptions"
                 @data="onData"
                 @loaded="onLoaded">
-                <template
+                <span
                     slot="text"
-                    slot-scope="props">
+                    slot-scope="props"
+                    class="greek">
                     <template v-if="props.row.title">
                         <ol type="A">
                             <li
@@ -59,7 +60,7 @@
                                 v-html="item" />
                         </ol>
                     </template>
-                </template>
+                </span>
                 <template
                     slot="comment"
                     slot-scope="props">
@@ -88,6 +89,7 @@
                     slot="incipit"
                     slot-scope="props"
                     :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
+                    class="greek"
                     v-html="props.row.incipit" />
                 <a
                     v-if="props.row.manuscript"

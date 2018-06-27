@@ -5,14 +5,12 @@
         <h2 class="h1">
             {% if id is not empty %}
                 Edit Manuscript
-                <span class="small">
-                    <a
-                        href="{{ path('manuscript_get', {'id': id}) }}"
-                        class="action pull-right"
-                        title="View the manuscript">
-                        <i class="fa fa-eye"></i>
-                    </a>
-                </span>
+                <a
+                    href="{{ path('manuscript_get', {'id': id}) }}"
+                    class="action pull-right"
+                    title="View the manuscript">
+                    <i class="fa fa-eye"></i>
+                </a>
             {% else %}
                 Add Manuscript
             {% endif %}

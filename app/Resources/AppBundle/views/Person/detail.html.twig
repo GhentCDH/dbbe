@@ -2,7 +2,7 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2 {% if not person.getPublic() %}class="text-danger"{% endif %}>
+        <h2 class="h1{% if not person.getPublic() %} text-danger{% endif %}">
             Person "{{ person.getFullDescriptionWithOccupations() }}"
             {% if not person.getPublic() %}
                 - Not Public
