@@ -36,6 +36,16 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keyGroup: {
+            type: String,
+            default: 'date',
+        },
+        groupLabel: {
+            type: String,
+            default: null,
+        },
+    },
     data() {
         return {
             schema: {
@@ -227,9 +237,9 @@ export default {
             ) {
                 for (let key of ['floor', 'ceiling']) {
                     this.changes.push({
-                        'keyGroup': 'date',
+                        'keyGroup': this.keyGroup,
                         'key': key,
-                        'label': {floor: 'Date from', ceiling: 'Date to'}[key],
+                        'label': this.groupLabel == null ? {floor: 'Date from', ceiling: 'Date to'}[key] : this.groupLabel + ' ' + {floor: 'date from', ceiling: 'date to'}[key],
                         'old': this.formatDateHuman(this.originalModel[key + 'Year'], this.originalModel[key + 'DayMonth'], key),
                         'new': this.formatDateHuman(this.model[key + 'Year'], this.model[key + 'DayMonth'], key),
                         'value': this.formatDateComputer(this.model[key + 'Year'], this.model[key + 'DayMonth'], key),

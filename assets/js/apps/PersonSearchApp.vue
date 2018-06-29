@@ -256,6 +256,7 @@ export default {
                     url: this.urls['occurrence_get'],
                     urlIdentifier: 'occurrence_id',
                 },
+                // TODO: books, bookchapters, article
             }
         },
         tableColumns() {
@@ -270,6 +271,7 @@ export default {
         },
     },
     methods: {
+        // TODO: merge
         del(row) {
             this.submitModel.person = row
             AbstractListEdit.methods.deleteDependencies.call(this)

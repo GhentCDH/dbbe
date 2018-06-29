@@ -96,6 +96,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
+    public function getRGK(): array
+    {
+        return $this->RGK;
+    }
+
     // called once; comma separated list
     public function setVGH(string $vgh): Person
     {
@@ -104,11 +109,21 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
+    public function getVGH(): array
+    {
+        return $this->VGH;
+    }
+
     public function setPBW(string $pbw): Person
     {
         $this->PBW = $pbw;
 
         return $this;
+    }
+
+    public function getPBW(): string
+    {
+        return $this->PBW;
     }
 
     public function addOccupation(Occupation $occupation): Person
@@ -355,10 +370,10 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !empty($this->deathDate->getCeiling())) {
             $result['death_date_ceiling_year'] = intval($this->deathDate->getCeiling()->format('Y'));
         }
-        if (isset($this->RGK)) {
+        if (!empty($this->RGK)) {
             $result['rgk'] = $this->RGK;
         }
-        if (isset($this->VGH)) {
+        if (!empty($this->VGH)) {
             $result['vgh'] = $this->VGH;
         }
         if (isset($this->PBW)) {

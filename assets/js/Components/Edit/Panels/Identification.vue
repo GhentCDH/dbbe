@@ -19,6 +19,27 @@ import Panel from '../Panel'
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
+VueFormGenerator.validators.rgk = function(rgk) {
+    if (rgk === '') {
+        return []
+    }
+    if (!/^I{1,3}[.][\d]+(?:, I{1,3}[.][\d]+)*$/.test(rgk)) {
+        return ['Invalid comma separated list of RGK identifiers']
+    }
+    let rgkArray = rgk.split(', ')
+    let volumeArray = []
+    for (let rgkId of rgkArray) {
+        let volume = rgkId.split('.')[0]
+        if (volumeArray.includes(volume)) {
+            return ['Duplicate entry for RGK volume ' + volume]
+        }
+        else {
+            volumeArray.push(volume)
+        }
+    }
+    return []
+}
+
 export default {
     mixins: [
         AbstractField,
@@ -40,8 +61,7 @@ export default {
                         label: 'RGK',
                         labelClasses: 'control-label',
                         model: 'rgk',
-                        validator: VueFormGenerator.validators.regexp,
-                        pattern: '^I{1,3}[.][\\d]+(?:, I{1,3}[.][\\d]+)*$',
+                        validator: VueFormGenerator.validators.rgk,
                         hint: 'E.g., "I.191, II.252, III.315" (without quotes)',
                     },
                     vgh: {
@@ -56,7 +76,7 @@ export default {
                     },
                     pbw: {
                         type: 'input',
-                        inputType: 'text',
+                        inputType: 'number',
                         label: 'PBW',
                         labelClasses: 'control-label',
                         model: 'pbw',

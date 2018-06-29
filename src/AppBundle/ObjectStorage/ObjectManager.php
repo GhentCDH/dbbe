@@ -82,7 +82,24 @@ class ObjectManager
             if (method_exists($item, 'getCacheDependencies')) {
                 $cache->tag($item->getCacheDependencies());
             }
-            $this->cache->save($cache->set($item));
+            try {
+                $this->cache->save($cache->set($item));
+            } catch (\Exception $e) {
+                var_dump($e);
+            }
+        }
+    }
+
+    protected function resetCache(array $range, string $cacheKey, int $id): void
+    {
+        if ($range['mini']) {
+            $this->cache->deleteItem($cacheKey . '_mini.' . $id);
+        }
+        if ($range['mini'] || $range['short']) {
+            $this->cache->deleteItem($cacheKey . '_short.' . $id);
+        }
+        if ($range['mini'] || $range['short'] || $range['extended']) {
+            $this->cache->deleteItem($cacheKey . '.' . $id);
         }
     }
 

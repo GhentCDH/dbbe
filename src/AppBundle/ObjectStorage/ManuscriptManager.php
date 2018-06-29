@@ -395,18 +395,7 @@ class ManuscriptManager extends DocumentManager
             }
 
             // load new manuscript data
-            if ($cacheReload['mini']) {
-                $this->cache->deleteItem('manuscript_mini.' . $id);
-                $this->cache->deleteItem('manuscript_short.' . $id);
-                $this->cache->deleteItem('manuscript.' . $id);
-            }
-            if ($cacheReload['short']) {
-                $this->cache->deleteItem('manuscript_short.' . $id);
-                $this->cache->deleteItem('manuscript.' . $id);
-            }
-            if ($cacheReload['extended']) {
-                $this->cache->deleteItem('manuscript.' . $id);
-            }
+            $this->resetCache($cacheReload, 'manuscript', $id);
             $newManuscript = $this->getManuscriptById($id);
 
             $this->updateModified($new ? null : $manuscript, $newManuscript);
@@ -418,6 +407,11 @@ class ManuscriptManager extends DocumentManager
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
+            // Reset cache on elasticsearch error
+            if (isset($newManuscript)) {
+                $this->resetCache($cacheReload, 'manuscript', $id);
+                $this->getManuscriptById($id);
+            }
             throw $e;
         }
 

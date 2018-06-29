@@ -20,7 +20,7 @@
             <tbody>
                 <tr
                     v-for="row in diff"
-                    :key="row.key">
+                    :key="row.keyGroup == null ? row.key : row.keyGroup + '.' + row.key">
                     <td>{{ row['label'] }}</td>
                     <template v-for="key in ['old', 'new']">
                         <td

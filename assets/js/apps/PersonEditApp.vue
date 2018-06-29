@@ -23,12 +23,16 @@
                 id="bornDate"
                 header="Born Date"
                 :model="model.bornDate"
+                key-group="bornDate"
+                group-label="Born"
                 @validated="validated"
                 ref="bornDate" />
 
             <datePanel
                 id="deathDate"
                 header="Death Date"
+                key-group="deathDate"
+                group-label="Death"
                 :model="model.deathDate"
                 @validated="validated"
                 ref="deathDate" />
@@ -155,6 +159,7 @@ export default {
                     unprocessed: null,
                     isHistorical: null,
                 },
+                // TODO: duplicate keys (on save)
                 bornDate: {
                     floor: null,
                     ceiling: null,
