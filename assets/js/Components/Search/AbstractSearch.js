@@ -461,7 +461,7 @@ export default {
             })
         }
         if (this.$parent.historyRequest) {
-            if (this.$parent.openRequests > 1) {
+            if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
                 this.$parent.tableCancel('Operation canceled by newer request')
             }
             let url = this.url
@@ -491,7 +491,7 @@ export default {
                 }.bind(this))
         }
         this.$parent.pushHistory(data)
-        if (this.$parent.openRequests > 1) {
+        if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
             this.$parent.tableCancel('Operation canceled by newer request')
         }
         return axios.get(this.url, {

@@ -89,6 +89,21 @@ class RegionManager extends ObjectManager
         return $regionsWithParents;
     }
 
+    /**
+     * Clear cache and update elasticsearch
+     * @param array $ids manuscript ids
+     */
+    public function resetRegionsWithParents(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->cache->deleteItem('region_with_parents.' . $id);
+        }
+
+        $this->getRegionsWithParentsByIds($ids);
+
+        $this->cache->invalidateTags(['regions']);
+    }
+
     public function addRegionWithParents(stdClass $data): RegionWithParents
     {
         $this->dbs->beginTransaction();
@@ -307,7 +322,23 @@ class RegionManager extends ObjectManager
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
-            // TODO: invalidate caches and revert elasticsearch updates when rolling back, because part of them can be updated
+            // Reset caches and elasticsearch
+            $this->resetRegionsWithParents([$primaryId]);
+            if (!empty($manuscripts)) {
+                $this->container->get('manuscript_manager')->resetManuscripts(array_map(function ($manuscript) {
+                    return $manuscript->getId();
+                }, $manuscripts));
+            }
+            if (!empty($institutions)) {
+                $this->container->get('institution_manager')->resetInstitutions(array_map(function ($institution) {
+                    return $institution->getId();
+                }, $institutions));
+            }
+            if (!empty($regions)) {
+                $this->resetRegionsWithParents(array_map(function ($region) {
+                    return $region->getId();
+                }, $regions));
+            }
             throw $e;
         }
 

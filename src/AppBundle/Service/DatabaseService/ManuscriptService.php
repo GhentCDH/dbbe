@@ -136,10 +136,21 @@ class ManuscriptService extends DocumentService
     {
         return $this->conn->executeQuery(
             'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.bibrole on manuscript.identity = bibrole.iddocument
-            where bibrole.idperson = ?',
+                manpers.manuscript_id
+            from (
+                select manuscript.identity as manuscript_id,
+                    bibrole.idperson as person_id
+                from data.manuscript
+                inner join data.bibrole on manuscript.identity = bibrole.iddocument
+
+                union
+
+                select manuscript.identity as manuscript_id,
+                    factoid.object_identity
+                from data.manuscript
+                inner join data.factoid on manuscript.identity = factoid.subject_identity
+            ) as manpers
+            where manpers.person_id = ?',
             [$personId]
         )->fetchAll();
     }

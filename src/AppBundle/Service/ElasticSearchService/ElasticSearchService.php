@@ -99,6 +99,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             $part = $result['_source'];
             if (isset($result['highlight'])) {
                 foreach ($result['highlight'] as $key => $value) {
+                    $part['original_' . $key] = $part[$key];
                     $part[$key] = self::formatHighlight($value[0]);
                 }
             }

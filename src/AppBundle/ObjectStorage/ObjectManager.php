@@ -90,15 +90,18 @@ class ObjectManager
         }
     }
 
-    protected function resetCache(array $range, string $cacheKey, int $id): void
+    protected function clearCache(string $cacheKey, int $id, array $range = null): void
     {
-        if ($range['mini']) {
+        if (empty($range) || $range['mini']) {
+            $this->cache->invalidateTags([$cacheKey . '_mini.' . $id]);
             $this->cache->deleteItem($cacheKey . '_mini.' . $id);
         }
-        if ($range['mini'] || $range['short']) {
+        if (empty($range) || $range['mini'] || $range['short']) {
+            $this->cache->invalidateTags([$cacheKey . '_short.' . $id]);
             $this->cache->deleteItem($cacheKey . '_short.' . $id);
         }
-        if ($range['mini'] || $range['short'] || $range['extended']) {
+        if (empty($range) || $range['mini'] || $range['short'] || $range['extended']) {
+            $this->cache->invalidateTags([$cacheKey . '.' . $id]);
             $this->cache->deleteItem($cacheKey . '.' . $id);
         }
     }
@@ -127,18 +130,18 @@ class ObjectManager
 
     protected static function calcDiff(array $newJsonArray, array $oldObjectArray): array
     {
-        $newIds = array_map(
+        $newIds = array_unique(array_map(
             function ($newJsonItem) {
                 return $newJsonItem->id;
             },
             $newJsonArray
-        );
-        $oldIds = array_map(
+        ));
+        $oldIds = array_unique(array_map(
             function ($oldObjectItem) {
                 return $oldObjectItem->getId();
             },
             $oldObjectArray
-        );
+        ));
 
         $delIds = array_diff($oldIds, $newIds);
         $addIds = array_diff($newIds, $oldIds);

@@ -288,10 +288,30 @@ class OccurrenceManager extends DocumentManager
         return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
     }
 
-    public function getOccurrencesDependenciesByPerson(int $personId): array
+    public function getOccurrencesDependenciesByPerson(int $personId, bool $short = false): array
     {
         $rawIds = $this->dbs->getDepIdsByPersonId($personId);
+        if ($short) {
+            return $this->getShortOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+        }
         return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+    }
+
+    /**
+     * Clear cache and update elasticsearch
+     * @param array $ids occurrence ids
+     */
+    public function resetOccurrences(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->cache->deleteItem('occurrence_mini.' . $id);
+            $this->cache->deleteItem('occurrence_short.' . $id);
+            $this->cache->deleteItem('occurrence.' . $id);
+            $occurrence = $this->getOccurrenceById($id);
+            $this->ess->addOccurrence($occurrence);
+        }
+
+        $this->cache->invalidateTags(['occurrences']);
     }
 
     public function addOccurrence(stdClass $data): Occurrence
@@ -312,13 +332,13 @@ class OccurrenceManager extends DocumentManager
         return $newOccurrence;
     }
 
-    public function updateOccurrence(int $occurrenceId, stdClass $data, bool $new = false): Occurrence
+    public function updateOccurrence(int $id, stdClass $data, bool $new = false): Occurrence
     {
         $this->dbs->beginTransaction();
         try {
             $occurrence = $this->getOccurrenceById($id);
             if ($occurrence == null) {
-                throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
+                throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
             }
 
             $newOccurrence = $this->getOccurrenceById($id);

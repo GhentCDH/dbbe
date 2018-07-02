@@ -147,6 +147,7 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractSearch from '../Components/Search/AbstractSearch'
+
 // used for deleteDependencies
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 

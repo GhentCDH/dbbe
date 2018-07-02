@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Occurrence extends Document
+class Occurrence extends Document implements IdJsonInterface
 {
     use CacheDependenciesTrait;
 

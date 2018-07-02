@@ -35,12 +35,17 @@ class PersonController extends Controller
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'person_edit' => $this->generateUrl('person_edit', ['id' => 'person_id']),
+                    'person_merge' => $this->generateUrl('person_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode(
                     $this->get('person_elastic_service')->searchAndAggregate(
                         $this->sanitize($request->query->all())
                     )
+                ),
+                'persons' => json_encode(
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllPersons()) : []
                 ),
             ]
         );
@@ -165,6 +170,31 @@ class PersonController extends Controller
     }
 
     /**
+     * @Route("/persons/{primary}/{secondary}", name="person_merge")
+     * @Method("PUT")
+     * @param  int    $primary first person id (will stay)
+     * @param  int    $secondary second person id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function mergePersons(int $primary, int $secondary, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        try {
+            $person = $this
+                ->get('person_manager')
+                ->mergePersons($primary, $secondary);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        return new JsonResponse($person->getJson());
+    }
+
+    /**
      * @Route("/persons/{id}", name="person_put")
      * @Method("PUT")
      * @param  int    $id person id
@@ -208,7 +238,28 @@ class PersonController extends Controller
      */
     public function deletePerson(int $id, Request $request)
     {
-        throw new \Exception('Not implemented');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            try {
+                $person = $this
+                    ->get('person_manager')
+                    ->delPerson($id);
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            } catch (BadRequestHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            return new Response(null, 204);
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
     }
 
     /**

@@ -6,7 +6,10 @@
             :type="item.type"
             dismissible
             @dismissed="$emit('dismiss', index)">
-            {{ item.message }}
+            <p>{{ item.message }}</p>
+            <p v-if="item.extra">
+                {{ item.extra }}
+            </p>
             <p v-if="item.login">
                 Is it possible your login timed out? Try
                 <a

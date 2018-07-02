@@ -299,20 +299,22 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                 }
-                for (let bib of this.manuscript.bibliography) {
-                    switch (bib['type']) {
-                    case 'book':
-                        this.model.bibliography.books.push(bib)
-                        break
-                    case 'article':
-                        this.model.bibliography.articles.push(bib)
-                        break
-                    case 'bookChapter':
-                        this.model.bibliography.bookChapters.push(bib)
-                        break
-                    case 'onlineSource':
-                        this.model.bibliography.onlineSources.push(bib)
-                        break
+                if (this.manuscript.bibliography != null) {
+                    for (let bib of this.manuscript.bibliography) {
+                        switch (bib['type']) {
+                        case 'book':
+                            this.model.bibliography.books.push(bib)
+                            break
+                        case 'article':
+                            this.model.bibliography.articles.push(bib)
+                            break
+                        case 'bookChapter':
+                            this.model.bibliography.bookChapters.push(bib)
+                            break
+                        case 'onlineSource':
+                            this.model.bibliography.onlineSources.push(bib)
+                            break
+                        }
                     }
                 }
 
@@ -326,7 +328,6 @@ export default {
                     public: this.manuscript.public,
                 }
             }
-
             else {
                 this.model.general.public = true
             }

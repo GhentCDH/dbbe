@@ -5,8 +5,6 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use AppBundle\Model\Status;
-
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -14,6 +12,7 @@ use AppBundle\Exceptions\DependencyException;
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
+use AppBundle\Model\Status;
 
 class ManuscriptManager extends DocumentManager
 {
@@ -263,10 +262,28 @@ class ManuscriptManager extends DocumentManager
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
-    public function getManuscriptsDependenciesByPerson(int $personId): array
+    public function getManuscriptsDependenciesByPerson(int $personId, bool $short = false): array
     {
         $rawIds = $this->dbs->getDepIdsByPersonId($personId);
+        if ($short) {
+            return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        }
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
+    /**
+     * Clear cache and update elasticsearch
+     * @param array $ids manuscript ids
+     */
+    public function resetManuscripts(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->clearCache('manuscript', $id);
+            $manuscript = $this->getManuscriptById($id);
+            $this->ess->addManuscript($manuscript);
+        }
+
+        $this->cache->invalidateTags(['manuscripts']);
     }
 
     public function addManuscript(stdClass $data): Manuscript
@@ -290,7 +307,7 @@ class ManuscriptManager extends DocumentManager
 
             // commit transaction
             $this->dbs->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->dbs->rollBack();
             throw $e;
         }
@@ -395,7 +412,8 @@ class ManuscriptManager extends DocumentManager
             }
 
             // load new manuscript data
-            $this->resetCache($cacheReload, 'manuscript', $id);
+            $this->clearCache('manuscript', $id, $cacheReload);
+            $this->cache->invalidateTags(['manuscripts']);
             $newManuscript = $this->getManuscriptById($id);
 
             $this->updateModified($new ? null : $manuscript, $newManuscript);
@@ -405,12 +423,12 @@ class ManuscriptManager extends DocumentManager
 
             // commit transaction
             $this->dbs->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->dbs->rollBack();
             // Reset cache on elasticsearch error
             if (isset($newManuscript)) {
-                $this->resetCache($cacheReload, 'manuscript', $id);
-                $this->getManuscriptById($id);
+                $this->resetManuscripts([$id]);
+                $this->cache->invalidateTags(['manuscripts']);
             }
             throw $e;
         }
@@ -438,8 +456,11 @@ class ManuscriptManager extends DocumentManager
         }
     }
 
-    private function updatePatrons(Manuscript $manuscript, array $patrons): void
+    private function updatePatrons(Manuscript $manuscript, array $patrons = null): void
     {
+        if ($patrons == null) {
+            $patrons = [];
+        }
         foreach ($patrons as $patron) {
             if (!is_object($patron) || !property_exists($patron, 'id') || !is_numeric($patron->id)) {
                 throw new BadRequestHttpException('Incorrect patrons data.');
@@ -449,8 +470,11 @@ class ManuscriptManager extends DocumentManager
         $this->updateBibroles($manuscript, $patrons, $manuscript->getPatrons(), 'patron');
     }
 
-    private function updateScribes(Manuscript $manuscript, array $scribes): void
+    private function updateScribes(Manuscript $manuscript, array $scribes = null): void
     {
+        if ($scribes == null) {
+            $scribes = [];
+        }
         foreach ($scribes as $scribe) {
             if (!is_object($scribe) || !property_exists($scribe, 'id') || !is_numeric($scribe->id)) {
                 throw new BadRequestHttpException('Incorrect scribes data.');
@@ -472,8 +496,11 @@ class ManuscriptManager extends DocumentManager
         }
     }
 
-    private function updateRelatedPersons(Manuscript $manuscript, array $persons): void
+    private function updateRelatedPersons(Manuscript $manuscript, array $persons = null): void
     {
+        if ($persons == null) {
+            $persons = [];
+        }
         foreach ($persons as $person) {
             if (!is_object($person) || !property_exists($person, 'id') || !is_numeric($person->id)) {
                 throw new BadRequestHttpException('Incorrect related persons data.');

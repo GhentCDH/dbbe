@@ -6,6 +6,8 @@ use Exception;
 
 use Doctrine\DBAL\Connection;
 
+use AppBundle\Exceptions\DependencyException;
+
 class PersonService extends EntityService
 {
     const RGK = [
@@ -455,5 +457,49 @@ class PersonService extends EntityService
                 $typeId,
             ]
         );
+    }
+
+    public function delete(int $personId): int
+    {
+        $this->beginTransaction();
+        try {
+            // don't delete if this person is used in bibrole
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.bibrole
+                where bibrole.idperson = ?',
+                [$personId]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This person has bibrole dependencies.');
+            }
+            // don't delete if this person is used in factoid
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.factoid
+                where factoid.object_identity = ?',
+                [$personId]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This person has factoid dependencies.');
+            }
+            // Set search_path for triggers
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            // $this->conn->executeUpdate(
+            //     'DELETE from data.factoid
+            //     where factoid.subject_identity = ?',
+            //     [$personId]
+            // );
+            $delete = $this->conn->executeUpdate(
+                'DELETE from data.person
+                where person.identity = ?',
+                [$personId]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $delete;
     }
 }

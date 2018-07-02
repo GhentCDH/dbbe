@@ -43,11 +43,21 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
     public function setLastName(string $lastName = null): Person
     {
         $this->lastName = $lastName;
 
         return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
     }
 
     public function setExtra(string $extra = null): Person
@@ -57,11 +67,21 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
+    public function getExtra(): ?string
+    {
+        return $this->extra;
+    }
+
     public function setUnprocessed(string $unprocessed = null): Person
     {
         $this->unprocessed = $unprocessed;
 
         return $this;
+    }
+
+    public function getUnprocessed(): ?string
+    {
+        return $this->unprocessed;
     }
 
     public function setBornDate(FuzzyDate $bornDate = null): Person
@@ -71,7 +91,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
-    public function getBornDate(): FuzzyDate
+    public function getBornDate(): ?FuzzyDate
     {
         return $this->bornDate;
     }
@@ -83,7 +103,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
-    public function getDeathDate(): FuzzyDate
+    public function getDeathDate(): ?FuzzyDate
     {
         return $this->deathDate;
     }
@@ -121,7 +141,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this;
     }
 
-    public function getPBW(): string
+    public function getPBW(): ?string
     {
         return $this->PBW;
     }
@@ -138,6 +158,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         $this->historical = empty($historical) ? false : $historical;
 
         return $this;
+    }
+
+    public function getHistorical(): bool
+    {
+        return $this->historical;
     }
 
     public function addManuscript(Manuscript $manuscript, string $type): Person
@@ -298,6 +323,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     {
         $result = [
             'id' => $this->id,
+            'name' => $this->getFullDescriptionWithOccupations(),
             'historical' => $this->historical,
             'public' => $this->public,
         ];

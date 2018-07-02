@@ -82,7 +82,7 @@ export default {
     },
     methods: {
         mergeFormValidated(isValid, errors) {
-            this.invalidMergeForm = !isValid && mergeModel.primary && mergeModel.secondary && mergeModel.primary.id != mergeModel.secondary.id
+            this.invalidMergeForm = !(isValid && this.mergeModel.primary && this.mergeModel.secondary && this.mergeModel.primary.id != this.mergeModel.secondary.id)
         },
     }
 }

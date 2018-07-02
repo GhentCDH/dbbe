@@ -11,7 +11,6 @@ export default {
                 // Values will be loaded using a watcher or Ajax request
                 values: [],
                 selectOptions: {
-                    optionsLimit: 10000,
                     customLabel: ({id, name}) => {
                         return name
                     },

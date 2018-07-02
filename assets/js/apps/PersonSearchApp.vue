@@ -93,7 +93,7 @@
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
                     slot="date"
                     slot-scope="props">
-                    {{ formatDate(props.row.born_date_floor_year, props.row.born_date_ceiling_year, props.row.death_date_floor_year, props.row.death_date_ceiling_year) }}
+                    {{ formatInterval(props.row.born_date_floor_year, props.row.born_date_ceiling_year, props.row.death_date_floor_year, props.row.death_date_ceiling_year) }}
                 </template>
                 <template
                     v-if="props.row.death_date_floor_year && props.row.death_date_ceiling_year"
@@ -118,6 +118,13 @@
                     <a
                         href="#"
                         class="action"
+                        title="Merge"
+                        @click.prevent="merge(props.row)">
+                        <i class="fa fa-compress" />
+                    </a>
+                    <a
+                        href="#"
+                        class="action"
                         title="Delete"
                         @click.prevent="del(props.row)">
                         <i class="fa fa-trash-o" />
@@ -125,6 +132,86 @@
                 </template>
             </v-server-table>
         </article>
+        <mergeModal
+            :show="mergeModal"
+            :schema="mergePersonSchema"
+            :merge-model="mergeModel"
+            :original-merge-model="originalMergeModel"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
+            @reset="resetMerge()"
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)">
+            <table
+                v-if="mergeModel.primary && mergeModel.secondary"
+                slot="preview"
+                class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>First Name</td>
+                        <td>{{ mergeModel.primary.firstName || mergeModel.secondary.firstName }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Name</td>
+                        <td>{{ mergeModel.primary.lastName || mergeModel.secondary.lastName }}</td>
+                    </tr>
+                    <tr>
+                        <td>Extra</td>
+                        <td>{{ mergeModel.primary.extra || mergeModel.secondary.extra }}</td>
+                    </tr>
+                    <tr>
+                        <td>Unprocessed</td>
+                        <td>{{ (mergeModel.primary.firstName || mergeModel.secondary.firstName || mergeModel.primary.lastName || mergeModel.secondary.lastName || mergeModel.primary.extra || mergeModel.secondary.extra) ? '' : mergeModel.primary.unprocessed || mergeModel.secondary.unprocessed }}</td>
+                    </tr>
+                    <tr>
+                        <td>Historical</td>
+                        <td>{{ mergeModel.primary.historical ? 'Yes' : 'No' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Born Date</td>
+                        <td>{{ formatDate(mergeModel.primary.bornDate) || formatDate(mergeModel.secondary.bornDate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Death Date</td>
+                        <td>{{ formatDate(mergeModel.primary.deathDate) || formatDate(mergeModel.secondary.deathDate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>RGK</td>
+                        <td>{{ mergeModel.primary.rgk || mergeModel.secondary.rgk }}</td>
+                    </tr>
+                    <tr>
+                        <td>VGH</td>
+                        <td>{{ mergeModel.primary.vgh || mergeModel.secondary.vgh }}</td>
+                    </tr>
+                    <tr>
+                        <td>PBW</td>
+                        <td>{{ mergeModel.primary.pbw || mergeModel.secondary.pbw }}</td>
+                    </tr>
+                    <tr>
+                        <td>Types</td>
+                        <td>{{ formatOccupations(mergeModel.primary.types) || formatOccupations(mergeModel.secondary.types) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Functions</td>
+                        <td>{{ formatOccupations(mergeModel.primary.functions) || formatOccupations(mergeModel.secondary.functions) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Public comment</td>
+                        <td>{{ mergeModel.primary.publicComment || mergeModel.secondary.publicComment }}</td>
+                    </tr>
+                    <tr>
+                        <td>Private comment</td>
+                        <td>{{ mergeModel.primary.privateComment || mergeModel.secondary.privateComment }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </mergeModal>
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -144,15 +231,24 @@ import VueFormGenerator from 'vue-form-generator'
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractSearch from '../Components/Search/AbstractSearch'
 
+// used for deleteDependencies, mergeModal
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 export default {
     mixins: [
         AbstractField,
         AbstractSearch,
+        AbstractListEdit, // merge functionality
     ],
+    props: {
+        initPersons: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         let data = {
+            persons: JSON.parse(this.initPersons),
             schema: {
                 fields: {
                     name: {
@@ -219,6 +315,17 @@ export default {
                     return (row.public == null || row.public) ? '' : 'warning'
                 },
             },
+            mergePersonSchema: {
+                fields: {
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                },
+            },
+            mergeModel: {
+                type: 'persons',
+                primary: null,
+                secondary: null,
+            },
             submitModel: {
                 type: 'person',
                 person: {},
@@ -249,7 +356,7 @@ export default {
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_person'].replace('person_id', this.submitModel.person.id),
                     url: this.urls['manuscript_get'],
-                    urlIdentifier: 'occurrence_id',
+                    urlIdentifier: 'manuscript_id',
                 },
                 'Occurrences': {
                     depUrl: this.urls['occurrence_deps_by_person'].replace('person_id', this.submitModel.person.id),
@@ -271,10 +378,39 @@ export default {
         },
     },
     methods: {
-        // TODO: merge
+        merge(row) {
+            this.mergeModel.primary = JSON.parse(JSON.stringify(this.persons.filter(person => person.id === row.id)[0]))
+            this.mergeModel.secondary = null
+            this.mergePersonSchema.fields.primary.values = this.persons
+            this.mergePersonSchema.fields.secondary.values = this.persons
+            this.enableField(this.mergePersonSchema.fields.primary)
+            this.enableField(this.mergePersonSchema.fields.secondary)
+            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
+            this.mergeModal = true
+        },
         del(row) {
-            this.submitModel.person = row
+            this.submitModel.person = {
+                id: row.id,
+                name: row.original_name == null ? row.name : row.original_name,
+            }
             AbstractListEdit.methods.deleteDependencies.call(this)
+        },
+        submitMerge() {
+            this.mergeModal = false
+            this.openRequests++
+            axios.put(this.urls['person_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
+                .then( (response) => {
+                    this.$refs.resultTable.refresh()
+                    this.mergeAlerts = []
+                    this.alerts.push({type: 'success', message: 'Merge successful.'})
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.mergeModal = true
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the persons.', login: this.isLoginError(error)})
+                    console.log(error)
+                })
         },
         submitDelete() {
             this.openRequests++
@@ -291,10 +427,22 @@ export default {
                     console.log(error)
                 })
         },
-        formatDate(born_floor, born_ceiling, death_floor, death_ceiling) {
+        formatDate(date) {
+            if (date == null || date.floor == null || date.ceiling == null) {
+                return null
+            }
+            return date.floor + ' - ' + date.ceiling
+        },
+        formatInterval(born_floor, born_ceiling, death_floor, death_ceiling) {
             let born = born_floor === born_ceiling ? born_floor : born_floor + '-' + born_ceiling
             let death = death_floor === death_ceiling ? death_floor : death_floor + '-' + death_ceiling
             return born === death ? born : '(' + born + ') - (' + death + ')'
+        },
+        formatOccupations(occupations) {
+            if (occupations == null || occupations.length === 0) {
+                return null
+            }
+            return occupations.map(occupation => occupation.name).join(', ')
         },
         formatIdentification(rgk, vgh, pbw) {
             let result = []

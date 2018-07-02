@@ -42,6 +42,21 @@ class InstitutionManager extends ObjectManager
         return $this->getInstitutionsByIds($institutionIds);
     }
 
+    /**
+     * Clear cache and update elasticsearch
+     * @param array $ids institution ids
+     */
+    public function resetInstitutions(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->cache->deleteItem('institution.' . $id);
+        }
+
+        $this->getInstitutionsByIds($ids);
+
+        $this->cache->invalidateTags(['institutions']);
+    }
+
     public function addInstitution(stdClass $data, bool $library = false, bool $monastery = false): Institution
     {
         $this->dbs->beginTransaction();

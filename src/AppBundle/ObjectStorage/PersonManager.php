@@ -2,13 +2,15 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Exception;
 use stdClass;
-
-use AppBundle\Model\FuzzyDate;
-use AppBundle\Model\Person;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use AppBundle\Exceptions\DependencyException;
+use AppBundle\Model\FuzzyDate;
+use AppBundle\Model\Person;
 
 class PersonManager extends EntityManager
 {
@@ -105,9 +107,23 @@ class PersonManager extends EntityManager
 
     public function getAllPersons(): array
     {
+        $cache = $this->cache->getItem('persons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, 'person_id');
-        return $this->getShortPersonsByIds($ids);
+        $persons = $this->getShortPersonsByIds($ids);
+
+        // Sort by name
+        usort($persons, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        $cache->tag(['persons']);
+        $this->cache->save($cache->set($persons));
+        return $persons;
     }
 
     public function getPersonById(int $id): Person
@@ -124,8 +140,9 @@ class PersonManager extends EntityManager
         }
         $person = $persons[$id];
 
-        // Occurrences (scribe, patron, subject)
-        // Types
+        // TODO: Occurrences (scribe, patron, subject)
+        // TODO: Types
+        // TODO: books, bookchapters, articles
 
         $rawManuscripts = $this->dbs->getManuscripts([$id]);
         $patronManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'patron');
@@ -223,6 +240,37 @@ class PersonManager extends EntityManager
         return $persons;
     }
 
+    private function getPersonsByOccupations(array $occupations): array
+    {
+        $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
+        $personIds = self::getUniqueIds($rawOccupationPersons, 'person_id');
+        $persons = $this->getMiniPersonsByIds($personIds);
+
+        $occupationPersons = [];
+        foreach ($rawOccupationPersons as $rawOccupationPerson) {
+            $occupationPersons[$rawOccupationPerson['occupation']][] = $persons[$rawOccupationPerson['person_id']];
+        }
+
+        return $occupationPersons;
+    }
+
+    /**
+     * Clear cache and update elasticsearch
+     * @param array $ids person ids
+     */
+    public function resetPersons(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->cache->deleteItem('person_mini.' . $id);
+            $this->cache->deleteItem('person_short.' . $id);
+            $this->cache->deleteItem('person.' . $id);
+            $person = $this->getPersonById($id);
+            $this->ess->addPerson($person);
+        }
+
+        $this->cache->invalidateTags(['persons']);
+    }
+
     public function addPerson(stdClass $data): Person
     {
         $this->dbs->beginTransaction();
@@ -233,7 +281,7 @@ class PersonManager extends EntityManager
 
             // commit transaction
             $this->dbs->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->dbs->rollBack();
             throw $e;
         }
@@ -337,22 +385,23 @@ class PersonManager extends EntityManager
             }
 
             // load new person data
-            $this->resetCache($cacheReload, 'person', $id);
+            $this->clearCache('person', $id, $cacheReload);
+            $this->cache->invalidateTags(['persons']);
             $newPerson = $this->getPersonById($id);
 
             $this->updateModified($new ? null : $person, $newPerson);
 
-            // (re-)index in elastic search
+            // Reset cache and elasticsearch
             $this->ess->addPerson($newPerson);
 
             // commit transaction
             $this->dbs->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->dbs->rollBack();
             // Reset cache on elasticsearch error
             if (isset($newPerson)) {
-                $this->resetCache($cacheReload, 'person', $id);
-                $this->getPersonById($id);
+                $this->resetPersons([$id]);
+                $this->cache->invalidateTags(['persons']);
             }
             throw $e;
         }
@@ -360,18 +409,123 @@ class PersonManager extends EntityManager
         return $newPerson;
     }
 
-    private function getPersonsByOccupations(array $occupations): array
+    public function mergePersons(int $primaryId, int $secondaryId): Person
     {
-        $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
-        $personIds = self::getUniqueIds($rawOccupationPersons, 'person_id');
-        $persons = $this->getMiniPersonsByIds($personIds);
+        if ($primaryId == $secondaryId) {
+            throw new BadRequestHttpException(
+                'Persons with id ' . $primaryId .' and id ' . $secondaryId . ' are identical and cannot be merged.'
+            );
+        }
+        $primary = $this->getPersonById($primaryId);
+        $secondary = $this->getPersonById($primaryId);
 
-        $occupationPersons = [];
-        foreach ($rawOccupationPersons as $rawOccupationPerson) {
-            $occupationPersons[$rawOccupationPerson['occupation']][] = $persons[$rawOccupationPerson['person_id']];
+        $updates = [];
+        if (empty($primary->getFirstName()) && !empty($secondary->getFirstName())) {
+            $updates['firstName'] = $secondary->getFirstName();
+        }
+        if (empty($primary->getLastName()) && !empty($secondary->getLastName())) {
+            $updates['lastName'] = $secondary->getLastName();
+        }
+        if (empty($primary->getExtra()) && !empty($secondary->getExtra())) {
+            $updates['extra'] = $secondary->getExtra();
+        }
+        if (empty($primary->getUnprocessed()) && !empty($secondary->getUnprocessed())) {
+            $updates['unprocessed'] = $secondary->getUnprocessed();
+        }
+        if (empty($primary->getBornDate()) && !empty($secondary->getBornDate())) {
+            $updates['bornDate'] = $secondary->getBornDate();
+        }
+        if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
+            $updates['deathDate'] = $secondary->getDeathDate();
+        }
+        if (empty($primary->getRGK()) && !empty($secondary->getRGK())) {
+            $updates['rgk'] = $secondary->getRGK();
+        }
+        if (empty($primary->getVGH()) && !empty($secondary->getVGH())) {
+            $updates['vgh'] = $secondary->getVGH();
+        }
+        if (empty($primary->getPBW()) && !empty($secondary->getPBW())) {
+            $updates['pbw'] = $secondary->getPBW();
+        }
+        if (empty($primary->getTypes()) && !empty($secondary->getTypes())) {
+            $updates['types'] = $secondary->getTypes();
+        }
+        if (empty($primary->getFunctions()) && !empty($secondary->getFunctions())) {
+            $updates['functions'] = $secondary->getFunctions();
+        }
+        if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
+            $updates['publicComment'] = $secondary->getPublicComment();
+        }
+        if (empty($primary->getPrivateComment()) && !empty($secondary->getPrivateComment())) {
+            $updates['privateComment'] = $secondary->getPrivateComment();
         }
 
-        return $occupationPersons;
+        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($secondaryId, true);
+        $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($secondaryId, true);
+
+        if ((!empty($manuscripts) || !empty($occurrences)) && !$primary->getHistorical()) {
+            $updates['historical'] = true;
+        }
+        // TODO: books, bookchapters, articles
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($updates)) {
+                $primary = $this->updatePerson($primaryId, json_decode(json_encode($updates)));
+            }
+            if (!empty($manuscripts)) {
+                foreach ($manuscripts as $manuscript) {
+                    $individualUpdate = [];
+                    self::getIndividualUpdatePart($individualUpdate, 'patrons', $manuscript->getPatrons(), $primaryId, $secondaryId);
+                    self::getIndividualUpdatePart($individualUpdate, 'scribes', $manuscript->getScribes(), $primaryId, $secondaryId);
+                    self::getIndividualUpdatePart($individualUpdate, 'relatedPersons', $manuscript->getRelatedPersons(), $primaryId, $secondaryId);
+                    $manuscript = $this->container->get('manuscript_manager')->updateManuscript(
+                        $manuscript->getId(),
+                        json_decode(json_encode($individualUpdate))
+                    );
+                }
+            }
+            if (!empty($occurrences)) {
+                foreach ($occurrences as $occurrence) {
+                    $individualUpdate = [];
+                    self::getIndividualUpdatePart($individualUpdate, 'patrons', $occurrence->getPatrons(), $primaryId, $secondaryId);
+                    self::getIndividualUpdatePart($individualUpdate, 'scribes', $occurrence->getScribes(), $primaryId, $secondaryId);
+                    $this->container->get('occurrence_manager')->updateOccurrence(
+                        $occurrence->getId(),
+                        json_decode(json_encode($individualUpdate))
+                    );
+                }
+            }
+            // TODO: books, bookchapters, articles
+            $this->delPerson($secondaryId);
+
+            // Make sure indirect properties (manuscripts, occurrences) are reloaded correctly
+            $this->cache->invalidateTags(['person.' . $primaryId]);
+            $this->cache->deleteItem('person.' . $primaryId);
+            $person = $this->getPersonById($primaryId);
+            $this->cache->invalidateTags(['persons']);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            // Reset caches and elasticsearch
+            $this->resetPersons([$primaryId]);
+            if (!empty($manuscripts)) {
+                $this->container->get('manuscript_manager')->resetManuscripts(array_map(function ($manuscript) {
+                    return $manuscript->getId();
+                }, $manuscripts));
+            }
+            if (!empty($occurrences)) {
+                $this->container->get('occurrence_manager')->resetOccurrences(array_map(function ($occurrence) {
+                    return $occurrence->getId();
+                }, $occurrences));
+            }
+            // TODO: books, bookchapters, articles
+            throw $e;
+        }
+
+        return $primary;
     }
 
     private function updateFirstName(Person $person, string $firstName = null): void
@@ -391,6 +545,13 @@ class PersonManager extends EntityManager
 
     private function updateHistorical(Person $person, bool $historical): void
     {
+        if (!$historical) {
+            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($person->getId());
+            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($person->getId());
+            if (!empty($manuscripts) || !empty($occurrences)) {
+                throw new BadRequestHttpException('Persons linked to manuscripts or occurrences must be historical');
+            }
+        }
         $this->dbs->updateHistorical($person->getId(), $historical);
     }
 
@@ -480,6 +641,51 @@ class PersonManager extends EntityManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addOccupation($person->getId(), $addId);
+        }
+    }
+
+    public function delPerson(int $personId): void
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // Throws NotFoundException if not found
+            $person = $this->getPersonById($personId);
+
+            $this->dbs->delete($personId);
+
+            $this->updateModified($person, null);
+
+            // empty cache
+            $this->clearCache('person', $personId);
+            $this->cache->invalidateTags(['persons']);
+
+            // delete from elastic search
+            $this->ess->delPerson($person);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (DependencyException $e) {
+            $this->dbs->rollBack();
+            throw new BadRequestHttpException($e->getMessage());
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return;
+    }
+
+    private static function getIndividualUpdatePart(array &$individualUpdate, string $personType, array $persons, int $primaryId, int $secondaryId): void
+    {
+        if (in_array($secondaryId, array_keys($persons))) {
+            $individualUpdate[$personType] = [];
+            foreach ($persons as $key => $value) {
+                if ($key == $secondaryId) {
+                    $individualUpdate[$personType][] = ['id' => $primaryId];
+                } else {
+                    $individualUpdate[$personType][] = ['id' => $key];
+                }
+            }
         }
     }
 }
