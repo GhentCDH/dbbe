@@ -99,4 +99,30 @@ class EntityService extends DatabaseService
             ]
         );
     }
+
+    public function updatePublicComment(int $entityId, string $publicComment): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set public_comment = ?
+            where entity.identity = ?',
+            [
+                $publicComment,
+                $entityId,
+            ]
+        );
+    }
+
+    public function updatePrivateComment(int $entityId, string $privateComment): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity
+            set private_comment = ?
+            where entity.identity = ?',
+            [
+                $privateComment,
+                $entityId,
+            ]
+        );
+    }
 }

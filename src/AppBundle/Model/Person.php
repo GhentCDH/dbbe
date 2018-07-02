@@ -207,9 +207,6 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function getTypes(): array
     {
-        if (empty($this->occupations)) {
-            return [];
-        }
         return array_filter($this->occupations, function ($occupation) {
             return !$occupation->getIsFunction();
         });
@@ -217,9 +214,6 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function getFunctions(): array
     {
-        if (empty($this->occupations)) {
-            return [];
-        }
         return array_filter($this->occupations, function ($occupation) {
             return $occupation->getIsFunction();
         });

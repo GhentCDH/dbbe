@@ -64,4 +64,26 @@ class EntityManager extends ObjectManager
             }
         }
     }
+
+    protected function updatePublicComment(Entity $entity, string $publicComment = null): void
+    {
+        if (empty($publicComment)) {
+            if (!empty($entity->getPublicComment())) {
+                $this->dbs->updatePublicComment($entity->getId(), '');
+            }
+        } else {
+            $this->dbs->updatePublicComment($entity->getId(), $publicComment);
+        }
+    }
+
+    protected function updatePrivateComment(Entity $entity, string $privateComment = null): void
+    {
+        if (empty($privateComment)) {
+            if (!empty($entity->getPrivateComment())) {
+                $this->dbs->updatePrivateComment($entity->getId(), '');
+            }
+        } else {
+            $this->dbs->updatePrivateComment($entity->getId(), $privateComment);
+        }
+    }
 }

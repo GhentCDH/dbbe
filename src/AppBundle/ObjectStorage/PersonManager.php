@@ -261,18 +261,30 @@ class PersonManager extends EntityManager
                 $this->updatePublic($person, $data->public);
             }
             if (property_exists($data, 'firstName')) {
+                if (!is_string($data->firstName)) {
+                    throw new BadRequestHttpException('Incorrect first name data.');
+                }
                 $cacheReload['mini'] = true;
                 $this->updateFirstName($person, $data->firstName);
             }
             if (property_exists($data, 'lastName')) {
+                if (!is_string($data->lastName)) {
+                    throw new BadRequestHttpException('Incorrect last name data.');
+                }
                 $cacheReload['mini'] = true;
                 $this->updateLastName($person, $data->lastName);
             }
             if (property_exists($data, 'extra')) {
+                if (!is_string($data->extra)) {
+                    throw new BadRequestHttpException('Incorrect extra data.');
+                }
                 $cacheReload['mini'] = true;
                 $this->updateExtra($person, $data->extra);
             }
             if (property_exists($data, 'historical')) {
+                if (!is_bool($data->historical)) {
+                    throw new BadRequestHttpException('Incorrect historical data.');
+                }
                 $cacheReload['mini'] = true;
                 $this->updateHistorical($person, $data->historical);
             }
@@ -296,8 +308,28 @@ class PersonManager extends EntityManager
                 $cacheReload['mini'] = true;
                 $this->updatePBW($person, $data->pbw);
             }
-
-            // TODO: occupations, comments
+            if (property_exists($data, 'types')) {
+                $cacheReload['short'] = true;
+                $this->updateOccupations($person, $data->types, 'types');
+            }
+            if (property_exists($data, 'functions')) {
+                $cacheReload['short'] = true;
+                $this->updateOccupations($person, $data->functions, 'functions');
+            }
+            if (property_exists($data, 'publicComment')) {
+                if (!is_string($data->publicComment)) {
+                    throw new BadRequestHttpException('Incorrect public comment data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updatePublicComment($person, $data->publicComment);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updatePrivateComment($person, $data->privateComment);
+            }
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {
@@ -428,6 +460,26 @@ class PersonManager extends EntityManager
             $this->dbs->delPBW($person->getId());
         } else {
             $this->dbs->upsertPBW($person->getId(), $pbw);
+        }
+    }
+
+    private function updateOccupations(Person $person, array $occupations, string $occupationType): void
+    {
+        foreach ($occupations as $occupation) {
+            if (!is_object($occupation)
+                || !property_exists($occupation, 'id')
+                || !is_numeric($occupation->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect occupations data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($occupations, $occupationType === 'types' ? $person->getTypes() : $person->getFunctions());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delOccupations($person->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addOccupation($person->getId(), $addId);
         }
     }
 }

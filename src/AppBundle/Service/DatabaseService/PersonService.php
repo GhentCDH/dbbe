@@ -426,4 +426,34 @@ class PersonService extends EntityService
             ]
         );
     }
+
+    public function delOccupations(int $personId, array $typeIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.person_occupation
+            where person_occupation.idperson = ?
+            and person_occupation.idoccupation in (?)',
+            [
+                $personId,
+                $typeIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function addOccupation(int $personId, int $typeId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.person_occupation (idperson, idoccupation)
+            values (?, ?)',
+            [
+                $personId,
+                $typeId,
+            ]
+        );
+    }
 }

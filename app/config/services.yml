@@ -38,6 +38,16 @@ services:
         arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage']
         public: true
 
+    occurrence_manager:
+        class: AppBundle\ObjectStorage\OccurrenceManager
+        arguments: ['@occurrence_service', '@cache.app', '@service_container', '@occurrence_elastic_service', '@security.token_storage']
+        public: true
+
+    person_manager:
+        class: AppBundle\ObjectStorage\PersonManager
+        arguments: ['@person_service', '@cache.app', '@service_container', '@person_elastic_service', '@security.token_storage']
+        public: true
+
     located_at_manager:
         class: AppBundle\ObjectStorage\LocatedAtManager
         arguments: ['@located_at_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -51,11 +61,6 @@ services:
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
         arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage']
-        public: true
-
-    person_manager:
-        class: AppBundle\ObjectStorage\PersonManager
-        arguments: ['@person_service', '@cache.app', '@service_container', null, null]
         public: true
 
     region_manager:
@@ -76,11 +81,6 @@ services:
     collection_manager:
         class: AppBundle\ObjectStorage\CollectionManager
         arguments: ['@collection_service', '@cache.app', '@service_container', null, '@security.token_storage']
-        public: true
-
-    occurrence_manager:
-        class: AppBundle\ObjectStorage\OccurrenceManager
-        arguments: ['@occurrence_service', '@cache.app', '@service_container', null, null]
         public: true
 
     type_manager:

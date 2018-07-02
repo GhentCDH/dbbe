@@ -159,7 +159,6 @@ export default {
                     unprocessed: null,
                     isHistorical: null,
                 },
-                // TODO: duplicate keys (on save)
                 bornDate: {
                     floor: null,
                     ceiling: null,
@@ -258,7 +257,13 @@ export default {
                 this.model.identification = {
                     rgk: this.person.rgk,
                     vgh: this.person.vgh,
-                    pbw: this.person.pbw,
+                    pbw: Number(this.person.pbw),
+                }
+
+                // Identification
+                this.model.occupation = {
+                    types: this.person.types,
+                    functions: this.person.functions,
                 }
 
                 // General

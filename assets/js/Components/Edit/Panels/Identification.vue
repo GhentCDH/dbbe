@@ -20,7 +20,7 @@ Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 VueFormGenerator.validators.rgk = function(rgk) {
-    if (rgk === '') {
+    if (rgk == null || rgk === '') {
         return []
     }
     if (!/^I{1,3}[.][\d]+(?:, I{1,3}[.][\d]+)*$/.test(rgk)) {

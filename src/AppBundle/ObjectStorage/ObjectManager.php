@@ -124,4 +124,25 @@ class ObjectManager
             $new == null ? null : json_encode($new->getJson())
         );
     }
+
+    protected static function calcDiff(array $newJsonArray, array $oldObjectArray): array
+    {
+        $newIds = array_map(
+            function ($newJsonItem) {
+                return $newJsonItem->id;
+            },
+            $newJsonArray
+        );
+        $oldIds = array_map(
+            function ($oldObjectItem) {
+                return $oldObjectItem->getId();
+            },
+            $oldObjectArray
+        );
+
+        $delIds = array_diff($oldIds, $newIds);
+        $addIds = array_diff($newIds, $oldIds);
+
+        return [$delIds, $addIds];
+    }
 }

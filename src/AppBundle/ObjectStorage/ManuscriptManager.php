@@ -683,17 +683,6 @@ class ManuscriptManager extends DocumentManager
         }
     }
 
-    private function updatePublicComment(Manuscript $manuscript, string $publicComment = null): void
-    {
-        if (empty($publicComment)) {
-            if (!empty($manuscript->getPublicComment())) {
-                $this->dbs->updatePublicComment($manuscript->getId(), '');
-            }
-        } else {
-            $this->dbs->updatePublicComment($manuscript->getId(), $publicComment);
-        }
-    }
-
     private function updateStatus(Manuscript $manuscript, stdClass $data): void
     {
         if ($data->status == null) {
@@ -711,17 +700,6 @@ class ManuscriptManager extends DocumentManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
-    }
-
-    private function updatePrivateComment(Manuscript $manuscript, string $privateComment = null): void
-    {
-        if (empty($privateComment)) {
-            if (!empty($manuscript->getPrivateComment())) {
-                $this->dbs->updatePrivateComment($manuscript->getId(), '');
-            }
-        } else {
-            $this->dbs->updatePrivateComment($manuscript->getId(), $privateComment);
-        }
     }
 
     public function elasticIndex(array $miniManuscripts): void
@@ -769,27 +747,6 @@ class ManuscriptManager extends DocumentManager
         }
 
         return;
-    }
-
-    private static function calcDiff(array $newJsonArray, array $oldObjectArray): array
-    {
-        $newIds = array_map(
-            function ($newJsonItem) {
-                return $newJsonItem->id;
-            },
-            $newJsonArray
-        );
-        $oldIds = array_map(
-            function ($oldObjectItem) {
-                return $oldObjectItem->getId();
-            },
-            $oldObjectArray
-        );
-
-        $delIds = array_diff($oldIds, $newIds);
-        $addIds = array_diff($newIds, $oldIds);
-
-        return [$delIds, $addIds];
     }
 
     private static function certainString(stdClass $object, string $property): string
