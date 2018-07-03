@@ -33,6 +33,32 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getIdentifications(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                global_id.idsubject as entity_id,
+                identifier.ididentifier as identifier_id,
+                identifier.system_name,
+                identifier.name,
+                identifier.is_primary,
+                array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifiers,
+                array_to_json(array_agg(global_id.idauthority ORDER BY array_position(identifier.ids, global_id.idauthority))) as authority_ids,
+                array_to_json(identifier.ids) as identifier_ids
+            from data.global_id
+            inner join data.identifier on global_id.idauthority = ANY(identifier.ids)
+            where global_id.idsubject in (?)
+            group by global_id.idsubject, identifier.ididentifier
+            order by identifier.order',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
     public function updatePublic(int $entityId, bool $public): int
     {
         return $this->conn->executeUpdate(
@@ -122,6 +148,47 @@ class EntityService extends DatabaseService
             [
                 $privateComment,
                 $entityId,
+            ]
+        );
+    }
+
+    public function delIdentification(int $entityId, int $identifierId, int $volume)
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.global_id
+            using data.identifier
+            where global_id.idsubject = ?
+            and global_id.idauthority = identifier.ids[? + 1]
+            and identifier.ididentifier = ?',
+            [
+                $entityId,
+                $volume,
+                $identifierId,
+            ]
+        );
+    }
+
+    public function upsertIdentification(int $entityId, int $identifierId, int $volume, string $identification): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.global_id (idauthority, idsubject, identifier)
+            VALUES (
+                (
+                    select identifier.ids[? + 1]
+                    from data.identifier
+                    where identifier.ididentifier = ?
+                ),
+                ?,
+                ?
+            )
+            -- primary key constraint on idauthority, idsubject
+            on conflict (idauthority, idsubject) do update
+            set identifier = excluded.identifier',
+            [
+                $volume,
+                $identifierId,
+                $entityId,
+                $identification,
             ]
         );
     }

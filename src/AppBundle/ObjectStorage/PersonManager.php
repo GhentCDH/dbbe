@@ -39,24 +39,11 @@ class PersonManager extends EntityManager
                 ->setBornDate(new FuzzyDate($rawPerson['born_date']))
                 ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
                 ->setHistorical($rawPerson['is_historical']);
-            // identification
-            if (isset($rawPerson['rgki'])) {
-                $person->addRGK('I', $rawPerson['rgki']);
-            }
-            if (isset($rawPerson['rgkii'])) {
-                $person->addRGK('II', $rawPerson['rgkii']);
-            }
-            if (isset($rawPerson['rgkiii'])) {
-                $person->addRGK('III', $rawPerson['rgkiii']);
-            }
-            if (isset($rawPerson['vgh'])) {
-                $person->setVGH($rawPerson['vgh']);
-            }
-            if (isset($rawPerson['pbw'])) {
-                $person->setPBW($rawPerson['pbw']);
-            }
+
             $persons[$rawPerson['person_id']] = $person;
         }
+
+        $this->setIdentifiers($persons);
 
         $this->setPublics($persons);
 
@@ -344,17 +331,12 @@ class PersonManager extends EntityManager
                 $cacheReload['mini'] = true;
                 $this->updateDate($person, 'died', $person->getDeathDate(), $data->deathDate);
             }
-            if (property_exists($data, 'rgk')) {
-                $cacheReload['mini'] = true;
-                $this->updateRGK($person, $data->rgk);
-            }
-            if (property_exists($data, 'vgh')) {
-                $cacheReload['mini'] = true;
-                $this->updateVGH($person, $data->vgh);
-            }
-            if (property_exists($data, 'pbw')) {
-                $cacheReload['mini'] = true;
-                $this->updatePBW($person, $data->pbw);
+            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
+            foreach ($identifiers as $identifier) {
+                if (property_exists($data, $identifier->getSystemName())) {
+                    $cacheReload['mini'] = true;
+                    $this->updateIdentification($person, $identifier, $data->{$identifier->getSystemName()});
+                }
             }
             if (property_exists($data, 'types')) {
                 $cacheReload['short'] = true;
@@ -553,75 +535,6 @@ class PersonManager extends EntityManager
             }
         }
         $this->dbs->updateHistorical($person->getId(), $historical);
-    }
-
-    private function updateRGK(Person $person, string $rgk): void
-    {
-        if (!empty($rgk) && !preg_match(
-            '/^I{1,3}[.][\d]+(?:, I{1,3}[.][\d]+)*/',
-            $rgk
-        )) {
-            throw new BadRequestHttpException('Incorrect rgk data.');
-        }
-
-        $rgkArray = empty($rgk) ? [] : explode(', ', $rgk);
-        $volumeArray = [];
-        foreach ($rgkArray as $rgkID) {
-            $volume = explode('.', $rgkID);
-            if (in_array($volume, $volumeArray)) {
-                throw new BadRequestHttpException('Incorrect rgk data (duplicate).');
-            } else {
-                $volumeArray[] = $volume;
-            }
-        }
-
-        $delRgks = array_diff($person->getRGK(), $rgkArray);
-        $addRgks = array_diff($rgkArray, $person->getRGK());
-
-        foreach ($delRgks as $delRgk) {
-            $this->dbs->delRGKs(
-                $person->getId(),
-                array_map(
-                    function ($delRgk) {
-                        return explode('.', $delRgk)[0];
-                    },
-                    $delRgks
-                )
-            );
-        }
-        foreach ($addRgks as $addRgk) {
-            list($rgkVolume, $rgkNumber) = explode('.', $addRgk);
-            $this->dbs->addRGK($person->getId(), $rgkVolume, $rgkNumber);
-        }
-    }
-
-    private function updateVGH(Person $person, string $vgh = null): void
-    {
-        if (!empty($vgh) && !preg_match(
-            '/^[\d]+[.][A-Z](?:, [\d]+[.][A-Z])*$/',
-            $vgh
-        )) {
-            throw new BadRequestHttpException('Incorrect vgh data.');
-        }
-
-        if (empty($vgh)) {
-            $this->dbs->delVGH($person->getId());
-        } else {
-            $this->dbs->upsertVGH($person->getId(), $vgh);
-        }
-    }
-
-    private function updatePBW(Person $person, string $pbw = null): void
-    {
-        if (!empty($pbw) && !is_numeric($pbw)) {
-            throw new BadRequestHttpException('Incorrect pbw data.');
-        }
-
-        if (empty($pbw)) {
-            $this->dbs->delPBW($person->getId());
-        } else {
-            $this->dbs->upsertPBW($person->getId(), $pbw);
-        }
     }
 
     private function updateOccupations(Person $person, array $occupations, string $occupationType): void

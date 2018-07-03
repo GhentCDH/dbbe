@@ -40,6 +40,7 @@
             <identificationPanel
                 id="identification"
                 header="Identification"
+                :identifiers="identifiers"
                 :model="model.identification"
                 @validated="validated"
                 ref="identification" />
@@ -148,7 +149,7 @@ for(let key of panelComponents.keys()) {
 export default {
     mixins: [ AbstractEntityEdit ],
     data() {
-        return {
+        let data = {
             person: null,
             occupations: null,
             model: {
@@ -179,11 +180,7 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                identification: {
-                    rgk: null,
-                    vgh: null,
-                    pbw: null,
-                },
+                identification: {},
                 occupation: {
                     types: null,
                     functions: null,
@@ -203,6 +200,10 @@ export default {
                 'general',
             ],
         }
+        for (let identifier of JSON.parse(this.initIdentifiers)) {
+            data.model.identification[identifier.systemName] = null
+        }
+        return data
     },
     created () {
         this.person = this.data.person
@@ -254,10 +255,9 @@ export default {
                 }
 
                 // Identification
-                this.model.identification = {
-                    rgk: this.person.rgk,
-                    vgh: this.person.vgh,
-                    pbw: Number(this.person.pbw),
+                this.model.identification = {}
+                for (let identifier of this.identifiers) {
+                    this.model.identification[identifier.systemName] = this.person.identifications != null ? this.person.identifications[identifier.systemName] : null
                 }
 
                 // Identification

@@ -8,6 +8,14 @@ class Entity
     protected $publicComment;
     protected $privateComment;
     protected $public;
+    protected $identifications;
+
+    public function __construct()
+    {
+        $this->identifications = [];
+
+        return $this;
+    }
 
     public function setId(int $id): Entity
     {
@@ -55,5 +63,17 @@ class Entity
     public function getPublic(): bool
     {
         return $this->public;
+    }
+
+    public function addIdentification(Identification $identification): Person
+    {
+        $this->identifications[$identification->getIdentifier()->getSystemName()] = $identification;
+
+        return $this;
+    }
+
+    public function getIdentifications(): array
+    {
+        return $this->identifications;
     }
 }

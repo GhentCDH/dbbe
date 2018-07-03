@@ -47,6 +47,9 @@ class PersonController extends Controller
                 'persons' => json_encode(
                     $this->isGranted('ROLE_EDITOR_VIEW') ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllPersons()) : []
                 ),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'))
+                ),
             ]
         );
     }
@@ -290,6 +293,9 @@ class PersonController extends Controller
                     'types' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllTypes()),
                     'functions' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllFunctions()),
                 ]),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))
+                ),
             ]
         );
     }

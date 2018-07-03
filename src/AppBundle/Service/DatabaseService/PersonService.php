@@ -10,14 +10,6 @@ use AppBundle\Exceptions\DependencyException;
 
 class PersonService extends EntityService
 {
-    const RGK = [
-        'I' => 'Repertorium der griechischen Kopisten 800-1600. 1. Grossbritannien A. Verzeichnis der Kopisten',
-        'II' => 'Repertorium der griechischen Kopisten 800-1600. 2. Frankreich A. Verzeichnis der Kopisten',
-        'III' => 'Repertorium der griechischen Kopisten 800-1600. 3. Rom mit dem Vatikan A. Verzeichnis der Kopisten',
-    ];
-    const VGH = 'Die griechischen Schreiber des Mittelalters und der Renaissance';
-    const PBW = 'Prosopography of the Byzantine World';
-
     public function getIds(): array
     {
         return $this->conn->query(
@@ -59,12 +51,7 @@ class PersonService extends EntityService
                 name.unprocessed,
                 person.is_historical,
                 factoid_born.born_date,
-                factoid_died.death_date,
-                rgki.identifier as rgki,
-                rgkii.identifier as rgkii,
-                rgkiii.identifier as rgkiii,
-                vgh.identifier as vgh,
-                pbw.identifier as pbw
+                factoid_died.death_date
             from data.person
             inner join data.name on name.idperson = person.identity
             left join (
@@ -83,61 +70,11 @@ class PersonService extends EntityService
                 inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
                 where factoid_type.type = \'died\'
             ) as factoid_died on person.identity = factoid_died.subject_identity
-            left join (
-                select
-                    global_id.idsubject,
-                    global_id.identifier
-                from data.global_id
-                inner join data.document_title on global_id.idauthority = document_title.iddocument
-                where document_title.title = ?
-            ) as rgki on person.identity = rgki.idsubject
-            left join (
-                select
-                    global_id.idsubject,
-                    global_id.identifier
-                from data.global_id
-                inner join data.document_title on global_id.idauthority = document_title.iddocument
-                where document_title.title = ?
-            ) as rgkii on person.identity = rgkii.idsubject
-            left join (
-                select
-                    global_id.idsubject,
-                    global_id.identifier
-                from data.global_id
-                inner join data.document_title on global_id.idauthority = document_title.iddocument
-                where document_title.title = ?
-            ) as rgkiii on person.identity = rgkiii.idsubject
-            left join (
-                select
-                    global_id.idsubject,
-                    global_id.identifier
-                from data.global_id
-                inner join data.document_title on global_id.idauthority = document_title.iddocument
-                where document_title.title = ?
-            ) as vgh on person.identity = vgh.idsubject
-            left join (
-                select
-                    global_id.idsubject,
-                    global_id.identifier
-                from data.global_id
-                inner join data.institution on global_id.idauthority = institution.identity
-                where institution.name = ?
-            ) as pbw on person.identity = pbw.idsubject
             where person.identity in (?)',
             [
-                self::RGK['I'],
-                self::RGK['II'],
-                self::RGK['III'],
-                self::VGH,
-                self::PBW,
                 $ids,
             ],
             [
-                \PDO::PARAM_STR,
-                \PDO::PARAM_STR,
-                \PDO::PARAM_STR,
-                \PDO::PARAM_STR,
-                \PDO::PARAM_STR,
                 Connection::PARAM_INT_ARRAY,
             ]
         )->fetchAll();
@@ -301,130 +238,6 @@ class PersonService extends EntityService
             [
                 $historical ? 'TRUE': 'FALSE',
                 $personId,
-            ]
-        );
-    }
-
-    public function delRGKs(int $personId, array $volumes): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE from data.global_id
-            using data.document_title
-            where global_id.idsubject = ?
-            and global_id.idauthority = document_title.iddocument
-            and document_title.title in (?)',
-            [
-                $personId,
-                array_map(
-                    function ($volume) {
-                        return self::RGK[$volume];
-                    },
-                    $volumes
-                ),
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_STR_ARRAY,
-            ]
-        );
-    }
-
-    public function addRGK(int $personId, string $volume, int $number): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.global_id (idauthority, idsubject, identifier)
-            VALUES (
-                (
-                    select document_title.iddocument
-                    from data.document_title
-                    where document_title.title = ?
-                ),
-                ?,
-                ?
-            )',
-            [
-                self::RGK[$volume],
-                $personId,
-                $number,
-            ]
-        );
-    }
-
-    public function delVGH(int $personId): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE from data.global_id
-            using data.document_title
-            where global_id.idsubject = ?
-            and global_id.idauthority = document_title.iddocument
-            and document_title.title = ?',
-            [
-                $personId,
-                self::VGH,
-            ]
-        );
-    }
-
-    public function upsertVGH(int $personId, string $vgh): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.global_id (idauthority, idsubject, identifier)
-            VALUES (
-                (
-                    select document_title.iddocument
-                    from data.document_title
-                    where document_title.title = ?
-                    order by iddocument limit 1
-                ),
-                ?,
-                ?
-            )
-            -- primary key constraint on idauthority, idsubject
-            on conflict (idauthority, idsubject) do update
-            set identifier = excluded.identifier',
-            [
-                self::VGH,
-                $personId,
-                $vgh,
-            ]
-        );
-    }
-
-    public function delPBW(int $personId): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE from data.global_id
-            using data.institution
-            where global_id.idsubject = ?
-            and global_id.idauthority = institution.identity
-            and institution.name = ?',
-            [
-                $personId,
-                self::PBW,
-            ]
-        );
-    }
-
-    public function upsertPBW(int $personId, string $pbw): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.global_id (idauthority, idsubject, identifier)
-            VALUES (
-                (
-                    select institution.identity
-                    from data.institution
-                    where institution.name = ?
-                ),
-                ?,
-                ?
-            )
-            -- primary key constraint on idauthority, idsubject
-            on conflict (idauthority, idsubject) do update
-            set identifier = excluded.identifier',
-            [
-                self::PBW,
-                $personId,
-                $pbw,
             ]
         );
     }

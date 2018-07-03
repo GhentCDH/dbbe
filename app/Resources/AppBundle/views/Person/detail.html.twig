@@ -55,7 +55,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getIdentifications()} only %}
                                 {% block renderItem %}
-                                    {{ item }}
+                                    {{ item.getIdentifier().getName() }}: {{ item.getIdentifications()|join(', ') }}
                                 {% endblock %}
                             {% endembed %}
                         </td>

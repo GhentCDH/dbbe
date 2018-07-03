@@ -35,11 +35,16 @@ export default {
             type: String,
             default: '',
         },
+        initIdentifiers: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
             urls: JSON.parse(this.initUrls),
             data: JSON.parse(this.initData),
+            identifiers: JSON.parse(this.initIdentifiers),
             formOptions: {
                 validateAfterChanged: true,
                 validationErrorClass: "has-error",

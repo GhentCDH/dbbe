@@ -245,6 +245,10 @@ export default {
             type: String,
             default: '',
         },
+        initIdentifiers: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         let data = {
@@ -286,9 +290,6 @@ export default {
                     },
                     type: this.createMultiSelect('Type'),
                     function: this.createMultiSelect('Function'),
-                    rgk: this.createMultiSelect('RGK', {model: 'rgk'}),
-                    vgh: this.createMultiSelect('VGH', {model: 'vgh'}),
-                    pbw: this.createMultiSelect('PBW', {model: 'pbw'}),
                     comment: {
                         type: 'input',
                         inputType: 'text',
@@ -331,6 +332,11 @@ export default {
                 person: {},
             },
             defaultOrdering: 'name',
+        }
+
+        // Add identifier fields
+        for (let identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
         }
 
         // Add view internal only fields

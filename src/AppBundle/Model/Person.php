@@ -14,18 +14,12 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     private $unprocessed;
     private $bornDate;
     private $deathDate;
-    // array: a person can have an id in all 3 books
-    private $RGK;
-    private $VGH;
-    private $PBW;
     private $occupations;
     private $historical;
     private $manuscripts;
 
     public function __construct()
     {
-        $this->RGK = [];
-        $this->VGH = [];
         $this->occupations = [];
         $this->manuscripts = [
             'patron' => [],
@@ -106,44 +100,6 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     public function getDeathDate(): ?FuzzyDate
     {
         return $this->deathDate;
-    }
-
-    // called for each entry
-    public function addRGK(string $volume, string $rgk): Person
-    {
-        $this->RGK[] = $volume . '.' . $rgk;
-
-        return $this;
-    }
-
-    public function getRGK(): array
-    {
-        return $this->RGK;
-    }
-
-    // called once; comma separated list
-    public function setVGH(string $vgh): Person
-    {
-        $this->VGH = explode(', ', $vgh);
-
-        return $this;
-    }
-
-    public function getVGH(): array
-    {
-        return $this->VGH;
-    }
-
-    public function setPBW(string $pbw): Person
-    {
-        $this->PBW = $pbw;
-
-        return $this;
-    }
-
-    public function getPBW(): ?string
-    {
-        return $this->PBW;
     }
 
     public function addOccupation(Occupation $occupation): Person
@@ -244,20 +200,6 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         });
     }
 
-    public function getIdentifications(): array
-    {
-        $result = [];
-        foreach (['RGK', 'VGH'] as $id) {
-            if (!empty($this->$id)) {
-                $result[] = $id . ': ' . implode(', ', $this->$id);
-            }
-        }
-        if (isset($this->PBW)) {
-            $result[] = 'PBW' . ': ' . $this->PBW;
-        }
-        return $result;
-    }
-
     public function getFullDescription(): string
     {
         $nameArray = array_filter([
@@ -273,14 +215,10 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
                 $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
             }
         }
-        if (!empty($this->RGK)) {
-            $description .= ' - RGK: ' . implode(', ', $this->RGK);
-        }
-        if (!empty($this->VGH)) {
-            $description .= ' - VGH: ' . implode(', ', $this->VGH);
-        }
-        if (isset($this->PBW)) {
-            $description .= ' - PBW: ' . $this->PBW;
+        foreach ($this->identifications as $identification) {
+            if ($identification->getIdentifier()->getPrimary()) {
+                $description .= ' - ' . $identification->getIdentifier()->getName() . ': ' . implode(', ', $identification->getIdentifications());
+            }
         }
 
         return $description;
@@ -345,14 +283,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
         }
-        if (!empty($this->RGK)) {
-            $result['rgk'] = implode(', ', $this->RGK);
-        }
-        if (!empty($this->VGH)) {
-            $result['vgh'] = implode(', ', $this->VGH);
-        }
-        if (isset($this->PBW)) {
-            $result['pbw'] = $this->PBW;
+        if (count($this->identifications) > 0) {
+            $result['identifications'] = [];
+            foreach ($this->identifications as $identification) {
+                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
+            }
         }
         if (!empty($this->getTypes())) {
             $result['types'] = ArrayToJson::arrayToShortJson($this->getTypes());
@@ -390,14 +325,10 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !empty($this->deathDate->getCeiling())) {
             $result['death_date_ceiling_year'] = intval($this->deathDate->getCeiling()->format('Y'));
         }
-        if (!empty($this->RGK)) {
-            $result['rgk'] = $this->RGK;
-        }
-        if (!empty($this->VGH)) {
-            $result['vgh'] = $this->VGH;
-        }
-        if (isset($this->PBW)) {
-            $result['pbw'] = $this->PBW;
+        foreach ($this->identifications as $identification) {
+            if ($identification->getIdentifier()->getPrimary()) {
+                $result[$identification->getIdentifier()->getSystemName()] = $identification->getIdentifications();
+            }
         }
         if (!empty($this->getTypes())) {
             $result['type'] = ArrayToJson::arrayToShortJson($this->getTypes());

@@ -108,6 +108,11 @@ services:
         arguments: ['@occupation_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    identifier_manager:
+        class: AppBundle\ObjectStorage\IdentifierManager
+        arguments: ['@identifier_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     image_manager:
         class: AppBundle\ObjectStorage\ImageManager
         arguments: ['@image_service', '@cache.app', '@service_container', null, null]
@@ -175,6 +180,10 @@ services:
 
     image_service:
         class: AppBundle\Service\DatabaseService\ImageService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    identifier_service:
+        class: AppBundle\Service\DatabaseService\IdentifierService
         arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:
