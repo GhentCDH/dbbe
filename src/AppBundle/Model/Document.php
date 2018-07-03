@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 class Document extends Entity
 {
     protected $prevId;
@@ -12,6 +14,8 @@ class Document extends Entity
 
     public function __construct()
     {
+        parent::__construct();
+
         $this->patrons = [];
         $this->scribes = [];
         $this->bibliographies = [];
@@ -76,5 +80,23 @@ class Document extends Entity
     public function getBibliographies(): array
     {
         return $this->bibliographies;
+    }
+
+    public function getJson(): array
+    {
+        $result = parent::getJson();
+
+        if (!empty($this->patrons)) {
+            $result['patrons'] = ArrayToJson::arrayToShortJson($this->patrons);
+        }
+        if (!empty($this->scribes)) {
+            $result['scribes'] = ArrayToJson::arrayToShortJson($this->scribes);
+        }
+
+        if (!empty($this->getBibliographies())) {
+            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
+        }
+
+        return $result;
     }
 }

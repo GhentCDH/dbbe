@@ -8,7 +8,6 @@ class Manuscript extends Document implements IdJsonInterface
 {
     use CacheDependenciesTrait;
 
-    private $diktyon;
     private $locatedAt;
     private $contentsWithParents;
     private $origin;
@@ -195,18 +194,6 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->origin;
     }
 
-    public function setDiktyon(int $diktyon = null): Manuscript
-    {
-        $this->diktyon = $diktyon;
-
-        return $this;
-    }
-
-    public function getDiktyon(): ?int
-    {
-        return $this->diktyon;
-    }
-
     public function addOccurrence(Occurrence $occurrence): Manuscript
     {
         $this->occurrences[] = $occurrence;
@@ -253,24 +240,16 @@ class Manuscript extends Document implements IdJsonInterface
 
     public function getJson(): array
     {
-        $result = [
-            'id' => $this->id,
-            'locatedAt' => $this->locatedAt->getJson(),
-            'name' => $this->getName(),
-            'public' => $this->public,
-        ];
+        $result = parent::getJson();
+
+        $result['locatedAt'] = $this->locatedAt->getJson();
+        $result['$result['] = $this->getName();
 
         if (!empty($this->contentsWithParents)) {
             $result['content'] = ArrayToJson::arrayToShortJson($this->contentsWithParents);
         }
-        if (!empty($this->patrons)) {
-            $result['patrons'] = ArrayToJson::arrayToShortJson($this->patrons);
-        }
         if (!empty($this->occurrencePatrons)) {
             $result['occurrencePatrons'] = self::getOccurrencePersonsJson($this->occurrencePatrons);
-        }
-        if (!empty($this->scribes)) {
-            $result['scribes'] = ArrayToJson::arrayToShortJson($this->scribes);
         }
         if (!empty($this->occurrenceScribes)) {
             $result['occurrenceScribes'] = self::getOccurrencePersonsJson($this->occurrenceScribes);
@@ -283,18 +262,6 @@ class Manuscript extends Document implements IdJsonInterface
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortJson();
-        }
-        if (!empty($this->getBibliographies())) {
-            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
-        }
-        if (isset($this->diktyon)) {
-            $result['diktyon'] = $this->diktyon;
-        }
-        if (isset($this->publicComment)) {
-            $result['publicComment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['privateComment'] = $this->privateComment;
         }
         if (isset($this->occurrences)) {
             $result['occurrences'] = ArrayToJson::arrayToShortJson($this->occurrences);
@@ -311,14 +278,13 @@ class Manuscript extends Document implements IdJsonInterface
 
     public function getElastic(): array
     {
-        $result = [
-            'id' => $this->id,
-            'city' => $this->locatedAt->getLocation()->getRegionWithParents()->getIndividualJson(),
-            'library' => $this->locatedAt->getLocation()->getInstitution()->getJson(),
-            'shelf' => $this->locatedAt->getShelf(),
-            'name' => $this->getName(),
-            'public' => $this->getPublic(),
-        ];
+        $result = parent::getJson();
+
+        $result['city'] = $this->locatedAt->getLocation()->getRegionWithParents()->getIndividualJson();
+        $result['library'] = $this->locatedAt->getLocation()->getInstitution()->getJson();
+        $result['shelf'] = $this->locatedAt->getShelf();
+        $result['name'] = $this->getName();
+
         if ($this->locatedAt->getLocation()->getCollection() != null) {
             $result['collection'] = $this->locatedAt->getLocation()->getCollection()->getJson();
         }
@@ -343,12 +309,6 @@ class Manuscript extends Document implements IdJsonInterface
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
-        }
-        if (isset($this->publicComment)) {
-            $result['public_comment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['private_comment'] = $this->privateComment;
         }
 
         return $result;

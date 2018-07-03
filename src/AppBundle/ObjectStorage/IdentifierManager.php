@@ -22,6 +22,7 @@ class IdentifierManager extends ObjectManager
                 $rawIdentifier['system_name'],
                 $rawIdentifier['name'],
                 $rawIdentifier['is_primary'],
+                $rawIdentifier['link'],
                 $rawIdentifier['volumes'],
                 $rawIdentifier['regex'],
                 $rawIdentifier['description']

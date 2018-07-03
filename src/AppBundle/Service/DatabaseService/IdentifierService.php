@@ -14,6 +14,7 @@ class IdentifierService extends DatabaseService
                 identifier.system_name,
                 identifier.name,
                 identifier.is_primary,
+                identifier.link,
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
                 identifier.description

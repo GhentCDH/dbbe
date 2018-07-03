@@ -58,6 +58,8 @@
                 @validated="validated"
                 ref="occurrenceOrder" />
 
+            <!-- TODO: add identification panel -->
+
             <bibliographyPanel
                 id="bibliography"
                 header="Bibliography"

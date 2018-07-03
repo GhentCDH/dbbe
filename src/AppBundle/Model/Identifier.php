@@ -11,13 +11,15 @@ class Identifier
     private $volumes;
     private $regex;
     private $description;
+    private $link;
 
-    public function __construct(int $id, string $systemName, string $name, bool $primary, int $volumes = null, string $regex = null, string $description = null)
+    public function __construct(int $id, string $systemName, string $name, bool $primary, string $link = null, int $volumes = null, string $regex = null, string $description = null)
     {
         $this->id = $id;
         $this->systemName = $systemName;
         $this->name = $name;
         $this->primary = $primary;
+        $this->link = $link;
         $this->volumes = $volumes;
         $this->regex = $regex;
         $this->description = $description;
@@ -41,6 +43,11 @@ class Identifier
     public function getPrimary(): bool
     {
         return $this->primary;
+    }
+
+    public function getLink(): ?string
+    {
+        return $this->link;
     }
 
     public function getVolumes(): int

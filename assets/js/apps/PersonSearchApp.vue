@@ -83,6 +83,7 @@
                         </ul>
                     </template>
                 </template>
+                <!-- TODO: switch to generic identification -->
                 <template
                     v-if="(props.row.rgk != null && props.row.rgk.length > 0) || (props.row.vgh != null && props.row.vgh.length > 0) || (props.row.pbw != null && props.row.pbw !== '')"
                     slot="identification"
@@ -181,6 +182,7 @@
                         <td>Death Date</td>
                         <td>{{ formatDate(mergeModel.primary.deathDate) || formatDate(mergeModel.secondary.deathDate) }}</td>
                     </tr>
+                    <!-- TODO: switch to generic identification -->
                     <tr>
                         <td>RGK</td>
                         <td>{{ mergeModel.primary.rgk || mergeModel.secondary.rgk }}</td>

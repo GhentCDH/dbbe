@@ -43,7 +43,7 @@ class PersonManager extends EntityManager
             $persons[$rawPerson['person_id']] = $person;
         }
 
-        $this->setIdentifiers($persons);
+        $this->setIdentifications($persons);
 
         $this->setPublics($persons);
 
@@ -420,6 +420,7 @@ class PersonManager extends EntityManager
         if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
             $updates['deathDate'] = $secondary->getDeathDate();
         }
+        // TODO: switch to generic identification
         if (empty($primary->getRGK()) && !empty($secondary->getRGK())) {
             $updates['rgk'] = $secondary->getRGK();
         }

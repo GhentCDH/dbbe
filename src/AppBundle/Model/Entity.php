@@ -65,7 +65,7 @@ class Entity
         return $this->public;
     }
 
-    public function addIdentification(Identification $identification): Person
+    public function addIdentification(Identification $identification): Entity
     {
         $this->identifications[$identification->getIdentifier()->getSystemName()] = $identification;
 
@@ -75,5 +75,52 @@ class Entity
     public function getIdentifications(): array
     {
         return $this->identifications;
+    }
+
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'public' => $this->public,
+        ];
+
+        if (count($this->identifications) > 0) {
+            $result['identifications'] = [];
+            foreach ($this->identifications as $identification) {
+                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
+            }
+        }
+
+        if (isset($this->publicComment)) {
+            $result['publicComment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['privateComment'] = $this->privateComment;
+        }
+
+        return $result;
+    }
+
+    public function getElastic(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'public' => $this->public,
+        ];
+
+        foreach ($this->identifications as $identification) {
+            if ($identification->getIdentifier()->getPrimary()) {
+                $result[$identification->getIdentifier()->getSystemName()] = $identification->getIdentifications();
+            }
+        }
+
+        if (isset($this->publicComment)) {
+            $result['public_comment'] = $this->publicComment;
+        }
+        if (isset($this->privateComment)) {
+            $result['private_comment'] = $this->privateComment;
+        }
+
+        return $result;
     }
 }

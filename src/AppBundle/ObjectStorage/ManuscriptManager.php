@@ -190,13 +190,9 @@ class ManuscriptManager extends DocumentManager
 
         $manusrciptArray = [$id => $manuscript];
 
-        $this->setBibliographies($manusrciptArray);
+        $this->setIdentifications($manusrciptArray);
 
-        // Diktyon
-        $rawDiktyons = $this->dbs->getDiktyons([$id]);
-        if (count($rawDiktyons) == 1) {
-            $manuscript->setDiktyon($rawDiktyons[0]['diktyon_id']);
-        }
+        $this->setBibliographies($manusrciptArray);
 
         // Occurrences
         $rawOccurrences = $this->dbs->getOccurrences([$id]);
@@ -383,23 +379,23 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['extended'] = true;
                 $this->updateOccurrenceOrder($manuscript, $data->occurrenceOrder);
             }
+            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
+            foreach ($identifiers as $identifier) {
+                if (property_exists($data, $identifier->getSystemName())) {
+                    $cacheReload['mini'] = true;
+                    $this->updateIdentification($person, $identifier, $data->{$identifier->getSystemName()});
+                }
+            }
             if (property_exists($data, 'bibliography')) {
                 $cacheReload['extended'] = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
-            }
-            if (property_exists($data, 'diktyon')) {
-                if (!is_numeric($data->diktyon)) {
-                    throw new BadRequestHttpException('Incorrect diktyon data.');
-                }
-                $cacheReload['extended'] = true;
-                $this->updateDiktyon($manuscript, $data->diktyon);
             }
             if (property_exists($data, 'status')) {
                 $cacheReload['extended'] = true;
                 $this->updateStatus($manuscript, $data);
             }
             if (property_exists($data, 'illustrated')) {
-                if (!is_bool($data->diktyon)) {
+                if (!is_bool($data->illustrated)) {
                     throw new BadRequestHttpException('Incorrect illustrated data.');
                 }
                 $cacheReload['extended'] = true;
@@ -696,17 +692,6 @@ class ManuscriptManager extends DocumentManager
                     }
                 )
             );
-        }
-    }
-
-    private function updateDiktyon(Manuscript $manuscript, int $diktyon = null): void
-    {
-        if (empty($diktyon)) {
-            if (!empty($manuscript->getDiktyon())) {
-                $this->dbs->deleteDiktyon($manuscript->getId());
-            }
-        } else {
-            $this->dbs->upsertDiktyon($manuscript->getId(), $diktyon);
         }
     }
 

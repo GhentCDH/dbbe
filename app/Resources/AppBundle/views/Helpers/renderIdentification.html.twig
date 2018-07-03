@@ -1,0 +1,5 @@
+{% if item.getIdentifier().getLink() is not empty %}
+    {{ item.getIdentifier().getName() }}: <a href="{{ item.getIdentifier().getLink() }}{{ item.getIdentifications()|join(', ') }}">{{ item.getIdentifications()|join(', ') }}</a>
+{% else %}
+    {{ item.getIdentifier().getName() }}: {{ item.getIdentifications()|join(', ') }}
+{% endif %}

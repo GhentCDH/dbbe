@@ -248,26 +248,6 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getDiktyons(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                diktyon.identifier as diktyon_id
-            from data.manuscript
-            left join (
-                select global_id.idsubject, global_id.identifier
-                from data.global_id
-                inner join data.institution
-                    on global_id.idauthority = institution.identity
-                    and institution.name = \'Diktyon\'
-            ) as diktyon on manuscript.identity = diktyon.idsubject
-            where manuscript.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getOccurrences(array $ids): array
     {
         return $this->conn->executeQuery(

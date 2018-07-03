@@ -20,6 +20,8 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function __construct()
     {
+        parent::__construct();
+        
         $this->occupations = [];
         $this->manuscripts = [
             'patron' => [],
@@ -259,12 +261,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function getJson(): array
     {
-        $result = [
-            'id' => $this->id,
-            'name' => $this->getFullDescriptionWithOccupations(),
-            'historical' => $this->historical,
-            'public' => $this->public,
-        ];
+        $result = parent::getJson();
+
+        $result['name'] = $this->getFullDescriptionWithOccupations();
+        $result['historical'] = $this->historical;
+
         if (isset($this->firstName)) {
             $result['firstName'] = $this->firstName;
         }
@@ -283,23 +284,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
         }
-        if (count($this->identifications) > 0) {
-            $result['identifications'] = [];
-            foreach ($this->identifications as $identification) {
-                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
-            }
-        }
         if (!empty($this->getTypes())) {
             $result['types'] = ArrayToJson::arrayToShortJson($this->getTypes());
         }
         if (!empty($this->getFunctions())) {
             $result['functions'] = ArrayToJson::arrayToShortJson($this->getFunctions());
-        }
-        if (isset($this->publicComment)) {
-            $result['publicComment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['privateComment'] = $this->privateComment;
         }
 
         return $result;
@@ -307,12 +296,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function getElastic(): array
     {
-        $result = [
-            'id' => $this->id,
-            'name' => $this->getName(),
-            'historical' => $this->historical,
-            'public' => $this->public,
-        ];
+        $result = parent::getJson();
+
+        $result['name'] = $this->getName();
+        $result['historical'] = $this->historical;
+
         if (isset($this->bornDate) && !empty($this->bornDate->getFloor())) {
             $result['born_date_floor_year'] = intval($this->bornDate->getFloor()->format('Y'));
         }
@@ -325,22 +313,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !empty($this->deathDate->getCeiling())) {
             $result['death_date_ceiling_year'] = intval($this->deathDate->getCeiling()->format('Y'));
         }
-        foreach ($this->identifications as $identification) {
-            if ($identification->getIdentifier()->getPrimary()) {
-                $result[$identification->getIdentifier()->getSystemName()] = $identification->getIdentifications();
-            }
-        }
         if (!empty($this->getTypes())) {
             $result['type'] = ArrayToJson::arrayToShortJson($this->getTypes());
         }
         if (!empty($this->getFunctions())) {
             $result['function'] = ArrayToJson::arrayToShortJson($this->getFunctions());
-        }
-        if (isset($this->publicComment)) {
-            $result['public_comment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['private_comment'] = $this->privateComment;
         }
 
         return $result;

@@ -88,11 +88,15 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getDiktyon() is not empty %}
+                {% if manuscript.getIdentifications() is not empty %}
                     <tr>
-                        <td>Link to Pinakes</td>
+                        <td>Identification</td>
                         <td>
-                            <a href="http://pinakes.irht.cnrs.fr/notices/cote/id/{{ manuscript.getDiktyon() }}">http://pinakes.irht.cnrs.fr/notices/cote/id/{{ manuscript.getDiktyon() }}</a>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getIdentifications()} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
