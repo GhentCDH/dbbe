@@ -237,7 +237,7 @@ export default {
         },
         loadOccupationField() {
             this.occupationSchema.fields.occupation.values = this.values
-                .filter((occupation) => occupation.isFunction === (this.model.occupationType === 'functions'))
+                .filter((occupation) => occupation.isFunction === (this.model.occupationType.id === 'functions'))
         },
     }
 }

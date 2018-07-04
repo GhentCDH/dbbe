@@ -298,6 +298,7 @@ class PersonController extends Controller
                     'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
                     'person_post' => $this->generateUrl('person_post'),
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
+                    'occupations_edit' => $this->generateUrl('occupations_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
