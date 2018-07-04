@@ -35,7 +35,8 @@ class ManuscriptController extends Controller
                 ]),
                 'data' => json_encode(
                     $this->get('manuscript_elastic_service')->searchAndAggregate(
-                        $this->sanitize($request->query->all())
+                        $this->sanitize($request->query->all()),
+                        $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
                 'identifiers' => json_encode(
@@ -53,16 +54,9 @@ class ManuscriptController extends Controller
     public function searchManuscriptsAPI(Request $request)
     {
         $result = $this->get('manuscript_elastic_service')->searchAndAggregate(
-            $this->sanitize($request->query->all())
+            $this->sanitize($request->query->all()),
+            $this->isGranted('ROLE_VIEW_INTERNAL')
         );
-
-        // Remove non public fields if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            unset($result['aggregation']['public']);
-            foreach ($result['data'] as $key => $value) {
-                unset($result['data'][$key]['public']);
-            }
-        }
 
         return new JsonResponse($result);
     }

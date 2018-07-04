@@ -11,12 +11,11 @@ class ElasticOccurrenceService extends ElasticSearchService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
-        parent::__construct($config, $indexPrefix);
-        $this->type = $this->getIndex('occurrences')->getType('occurrence');
-        $this->primaryIdentifierSystemNames = array_map(
-            function ($identifier) {
-                return $identifier->getSystemName();
-            },
+        parent::__construct(
+            $config,
+            $indexPrefix,
+            'occurrences',
+            'occurrence',
             $container->get('identifier_manager')->getIdentifiersByType('occurrence')
         );
     }
@@ -101,7 +100,7 @@ class ElasticOccurrenceService extends ElasticSearchService
         $this->del($occurrence->getId());
     }
 
-    public function searchAndAggregate(array $params): array
+    public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifyFilters($params['filters']);
@@ -137,13 +136,13 @@ class ElasticOccurrenceService extends ElasticSearchService
             }
         }
 
-        $aggregationResult = $this->aggregate(
-            $this->classifyFilters(array_merge($this->primaryIdentifierSystemNames, ['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status'])),
+        $result['aggregation'] = $this->aggregate(
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
         // Add 'No genre' when necessary
-        if (array_key_exists('genre', $aggregationResult)
+        if (array_key_exists('genre', $result['aggregation'])
             || (
                 !empty($params['filters'])
                 && array_key_exists('object', $params['filters'])
@@ -151,13 +150,27 @@ class ElasticOccurrenceService extends ElasticSearchService
                 && $params['filters']['object']['genre'] == -1
             )
         ) {
-            $aggregationResult['genre'][] = [
+            $result['aggregation']['genre'][] = [
                 'id' => -1,
                 'name' => 'No genre',
             ];
         }
 
-        $result['aggregation'] = $aggregationResult;
+        // Remove non public fields if no access rights
+        // Add 'no-selectors' for primary identifiers
+        if (!$viewInternal) {
+            unset($result['aggregation']['public']);
+            foreach ($result['data'] as $key => $value) {
+                unset($result['data'][$key]['public']);
+            }
+        } else {
+            foreach ($this->primaryIdentifiers as $identifier) {
+                $result['aggregation'][$identifier->getSystemName()][] = [
+                    'id' => -1,
+                    'name' => 'No ' . $identifier->getName(),
+                ];
+            }
+        }
 
         return $result;
     }
@@ -176,7 +189,7 @@ class ElasticOccurrenceService extends ElasticSearchService
                 $switch = is_int($key) ? $value : $key;
                 switch ($switch) {
                     // Primary identifiers
-                    case in_array($switch, $this->primaryIdentifierSystemNames) ? $switch : null:
+                    case in_array($switch, $this->getIdentifierSystemNames()) ? $switch : null:
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;
                         } else {

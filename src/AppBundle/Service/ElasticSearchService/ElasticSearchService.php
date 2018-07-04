@@ -15,12 +15,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     private $client;
     private $indexPrefix;
     protected $type;
-    protected $primaryIdentifierSystemNames;
+    protected $primaryIdentifiers;
 
-    public function __construct(array $config, string $indexPrefix)
-    {
+    public function __construct(
+        array $config,
+        string $indexPrefix,
+        string $indexName,
+        string $typeName,
+        array $primaryIdentifiers
+    ) {
         $this->client = new Client($config);
         $this->indexPrefix = $indexPrefix;
+        $this->type = $this->getIndex($indexName)->getType($typeName);
+        $this->primaryIdentifiers = $primaryIdentifiers;
     }
 
     public function getIndex($indexName)
@@ -348,9 +355,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'exact_text':
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(
-                            (new Query\Match($key . '.keyword', $value))
-                        );
+                        if ($value == -1) {
+                            $filterQuery->addMustNot(
+                                new Query\Exists($key)
+                            );
+                        } else {
+                            $filterQuery->addMust(
+                                (new Query\Match($key . '.keyword', $value))
+                            );
+                        }
                     }
                     break;
                 case 'boolean':
@@ -363,6 +376,16 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
         return $filterQuery;
+    }
+
+    protected function getIdentifierSystemNames(): array
+    {
+        return array_map(
+            function ($identifier) {
+                return $identifier->getSystemName();
+            },
+            $this->primaryIdentifiers
+        );
     }
 
     private static function createHighlight(array $filterTypes): array

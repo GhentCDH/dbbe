@@ -11,12 +11,11 @@ class ElasticManuscriptService extends ElasticSearchService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
-        parent::__construct($config, $indexPrefix);
-        $this->type = $this->getIndex('manuscripts')->getType('manuscript');
-        $this->primaryIdentifierSystemNames = array_map(
-            function ($identifier) {
-                return $identifier->getSystemName();
-            },
+        parent::__construct(
+            $config,
+            $indexPrefix,
+            'manuscripts',
+            'manuscript',
             $container->get('identifier_manager')->getIdentifiersByType('manuscript')
         );
     }
@@ -62,7 +61,7 @@ class ElasticManuscriptService extends ElasticSearchService
         $this->del($manuscript->getId());
     }
 
-    public function searchAndAggregate(array $params): array
+    public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         $aggregationFilters = ['city', 'content', 'patron', 'scribe', 'origin', 'public'];
         if (!empty($params['filters']) && isset($params['filters']['city'])) {
@@ -100,14 +99,14 @@ class ElasticManuscriptService extends ElasticSearchService
             }
         }
 
-        $aggregationResult = $this->aggregate(
-            $this->classifyFilters(array_merge($this->primaryIdentifierSystemNames, $aggregationFilters)),
+        $result['aggregation'] = $this->aggregate(
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters)),
             !empty($params['filters']) ? $params['filters'] : []
         );
-        // Filter out unnecessary results
 
+        // Filter out unnecessary results
         // Add 'No collection' when necessary
-        if (array_key_exists('collection', $aggregationResult)
+        if (array_key_exists('collection', $result['aggregation'])
             || (
                 !empty($params['filters'])
                 && array_key_exists('object', $params['filters'])
@@ -115,13 +114,27 @@ class ElasticManuscriptService extends ElasticSearchService
                 && $params['filters']['object']['collection'] == -1
             )
         ) {
-            $aggregationResult['collection'][] = [
+            $result['aggregation']['collection'][] = [
                 'id' => -1,
                 'name' => 'No collection',
             ];
         }
 
-        $result['aggregation'] = $aggregationResult;
+        // Remove non public fields if no access rights
+        // Add 'no-selectors' for primary identifiers
+        if (!$viewInternal) {
+            unset($result['aggregation']['public']);
+            foreach ($result['data'] as $key => $value) {
+                unset($result['data'][$key]['public']);
+            }
+        } else {
+            foreach ($this->primaryIdentifiers as $identifier) {
+                $result['aggregation'][$identifier->getSystemName()][] = [
+                    'id' => -1,
+                    'name' => 'No ' . $identifier->getName(),
+                ];
+            }
+        }
 
         return $result;
     }
@@ -140,7 +153,7 @@ class ElasticManuscriptService extends ElasticSearchService
                 $switch = is_int($key) ? $value : $key;
                 switch ($switch) {
                     // Primary identifiers
-                    case in_array($switch, $this->primaryIdentifierSystemNames) ? $switch : null:
+                    case in_array($switch, $this->getIdentifierSystemNames()) ? $switch : null:
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;
                         } else {

@@ -42,7 +42,8 @@ class PersonController extends Controller
                 ]),
                 'data' => json_encode(
                     $this->get('person_elastic_service')->searchAndAggregate(
-                        $this->sanitize($request->query->all())
+                        $this->sanitize($request->query->all()),
+                        $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
                 'persons' => json_encode(
@@ -65,16 +66,9 @@ class PersonController extends Controller
         $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
 
         $result = $this->get('person_elastic_service')->searchAndAggregate(
-            $this->sanitize($request->query->all())
+            $this->sanitize($request->query->all()),
+            $this->isGranted('ROLE_VIEW_INTERNAL')
         );
-
-        // Remove non public fields if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
-            unset($result['aggregation']['public']);
-            foreach ($result['data'] as $key => $value) {
-                unset($result['data'][$key]['public']);
-            }
-        }
 
         return new JsonResponse($result);
     }

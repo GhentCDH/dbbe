@@ -90,6 +90,21 @@
                     {{ formatIdentification(props.row) }}
                 </template>
                 <template
+                    v-if="props.row.function"
+                    slot="functions"
+                    slot-scope="props">
+                    <ul v-if="props.row.function.length > 1">
+                        <li
+                            v-for="(func, index) in props.row.function"
+                            :key="index">
+                            {{ func.name }}
+                        </li>
+                    </ul>
+                    <template v-else>
+                        {{ props.row.function[0].name }}
+                    </template>
+                </template>
+                <template
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
                     slot="date"
                     slot-scope="props">
@@ -188,7 +203,7 @@
                         <td>
                             {{
                                 (mergeModel.primary.identifications != null ? mergeModel.primary.identifications[identifier.systemName] : null)
-                                || (mergeModel.secondary.identifications != null ? mergeModel.secondary.identifications[identifier.systemName] : null)
+                                    || (mergeModel.secondary.identifications != null ? mergeModel.secondary.identifications[identifier.systemName] : null)
                             }}
                         </td>
                     </tr>
@@ -368,7 +383,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'date']
+            let columns = ['name', 'identification', 'functions', 'date']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }

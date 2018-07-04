@@ -11,12 +11,11 @@ class ElasticPersonService extends ElasticSearchService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
-        parent::__construct($config, $indexPrefix);
-        $this->type = $this->getIndex('persons')->getType('person');
-        $this->primaryIdentifierSystemNames = array_map(
-            function ($identifier) {
-                return $identifier->getSystemName();
-            },
+        parent::__construct(
+            $config,
+            $indexPrefix,
+            'persons',
+            'person',
             $container->get('identifier_manager')->getIdentifiersByType('person')
         );
     }
@@ -60,7 +59,7 @@ class ElasticPersonService extends ElasticSearchService
         $this->del($person->getId());
     }
 
-    public function searchAndAggregate(array $params): array
+    public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifyFilters($params['filters']);
@@ -72,7 +71,6 @@ class ElasticPersonService extends ElasticSearchService
         foreach ($result['data'] as $key => $value) {
             unset($result['data'][$key]['historical']);
             unset($result['data'][$key]['type']);
-            unset($result['data'][$key]['function']);
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
                 unset($result['data'][$key]['public_comment']);
@@ -82,12 +80,26 @@ class ElasticPersonService extends ElasticSearchService
             }
         }
 
-        $aggregationResult = $this->aggregate(
-            $this->classifyFilters(array_merge($this->primaryIdentifierSystemNames, ['historical', 'type', 'function', 'public'])),
+        $result['aggregation'] = $this->aggregate(
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'type', 'function', 'public'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
-        $result['aggregation'] = $aggregationResult;
+        // Remove non public fields if no access rights
+        // Add 'no-selectors' for primary identifiers
+        if (!$viewInternal) {
+            unset($result['aggregation']['public']);
+            foreach ($result['data'] as $key => $value) {
+                unset($result['data'][$key]['public']);
+            }
+        } else {
+            foreach ($this->primaryIdentifiers as $identifier) {
+                $result['aggregation'][$identifier->getSystemName()][] = [
+                    'id' => -1,
+                    'name' => 'No ' . $identifier->getName(),
+                ];
+            }
+        }
 
         return $result;
     }
@@ -106,7 +118,7 @@ class ElasticPersonService extends ElasticSearchService
                 $switch = is_int($key) ? $value : $key;
                 switch ($switch) {
                     // Primary identifiers
-                    case in_array($switch, $this->primaryIdentifierSystemNames) ? $switch : null:
+                    case in_array($switch, $this->getIdentifierSystemNames()) ? $switch : null:
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;
                         } else {
