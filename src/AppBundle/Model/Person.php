@@ -16,6 +16,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     private $deathDate;
     private $occupations;
     private $historical;
+    private $modern;
     private $manuscripts;
 
     public function __construct()
@@ -121,6 +122,18 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     public function getHistorical(): bool
     {
         return $this->historical;
+    }
+
+    public function setModern(bool $modern = null): Person
+    {
+        $this->modern = empty($modern) ? false : $modern;
+
+        return $this;
+    }
+
+    public function getModern(): bool
+    {
+        return $this->modern;
     }
 
     public function addManuscript(Manuscript $manuscript, string $type): Person
@@ -265,6 +278,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
         $result['name'] = $this->getFullDescriptionWithOccupations();
         $result['historical'] = $this->historical;
+        $result['modern'] = $this->modern;
 
         if (isset($this->firstName)) {
             $result['firstName'] = $this->firstName;
@@ -300,6 +314,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
         $result['name'] = $this->getName();
         $result['historical'] = $this->historical;
+        $result['modern'] = $this->modern;
 
         if (isset($this->bornDate) && !empty($this->bornDate->getFloor())) {
             $result['born_date_floor_year'] = intval($this->bornDate->getFloor()->format('Y'));

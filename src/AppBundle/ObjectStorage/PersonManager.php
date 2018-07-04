@@ -38,7 +38,8 @@ class PersonManager extends EntityManager
                 ->setUnprocessed($rawPerson['unprocessed'])
                 ->setBornDate(new FuzzyDate($rawPerson['born_date']))
                 ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
-                ->setHistorical($rawPerson['is_historical']);
+                ->setHistorical($rawPerson['is_historical'])
+                ->setModern($rawPerson['is_modern']);
 
             $persons[$rawPerson['person_id']] = $person;
         }
@@ -227,6 +228,25 @@ class PersonManager extends EntityManager
         return $persons;
     }
 
+    public function getAllModernPersons(): array
+    {
+        $cache = $this->cache->getItem('modern_persons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $rawIds = $this->dbs->getModernIds();
+        $ids = self::getUniqueIds($rawIds, 'person_id');
+
+        $persons = array_values($this->getMiniPersonsByIds($ids));
+
+        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+
+        $cache->tag(['persons']);
+        $this->cache->save($cache->set($persons));
+        return $persons;
+    }
+
     private function getPersonsByOccupations(array $occupations): array
     {
         $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
@@ -322,6 +342,13 @@ class PersonManager extends EntityManager
                 }
                 $cacheReload['mini'] = true;
                 $this->updateHistorical($person, $data->historical);
+            }
+            if (property_exists($data, 'modern')) {
+                if (!is_bool($data->modern)) {
+                    throw new BadRequestHttpException('Incorrect modern data.');
+                }
+                $cacheReload['mini'] = true;
+                $this->updateModern($person, $data->modern);
             }
             if (property_exists($data, 'bornDate')) {
                 $cacheReload['mini'] = true;
@@ -447,6 +474,9 @@ class PersonManager extends EntityManager
             $updates['historical'] = true;
         }
         // TODO: books, bookchapters, articles
+        // if ((!empty($books) || !empty($bookChapters) || !empty($articles)) && !$primary->getModern()) {
+        //     $updates['modern'] = true;
+        // }
 
         $this->dbs->beginTransaction();
         try {
@@ -533,6 +563,17 @@ class PersonManager extends EntityManager
             }
         }
         $this->dbs->updateHistorical($person->getId(), $historical);
+    }
+
+    private function updateModern(Person $person, bool $modern): void
+    {
+        if (!$modern) {
+            // TODO: book, bookchapter, article dependencies
+            // if (!empty($books) || !empty($bookChapters) || !empty($articles)) {
+            //     throw new BadRequestHttpException('Persons linked to books, book chapters or articles must be modern');
+            // }
+        }
+        $this->dbs->updateModern($person->getId(), $modern);
     }
 
     private function updateOccupations(Person $person, array $occupations, string $occupationType): void

@@ -158,7 +158,8 @@ export default {
                     lastName: null,
                     extra: null,
                     unprocessed: null,
-                    isHistorical: null,
+                    historical: null,
+                    modern: null,
                 },
                 bornDate: {
                     floor: null,
@@ -228,6 +229,7 @@ export default {
                     extra: this.person.extra,
                     unprocessed: this.person.unprocessed,
                     historical: this.person.historical,
+                    modern: this.person.modern,
                 }
 
                 // Born date

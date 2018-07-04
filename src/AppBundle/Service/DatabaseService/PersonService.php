@@ -29,6 +29,16 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getModernIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            where person.is_modern = TRUE'
+        )->fetchAll();
+    }
+
     public function getDepIdsByOccupationId(int $occupationId): array
     {
         return $this->conn->executeQuery(
@@ -50,6 +60,7 @@ class PersonService extends EntityService
                 name.extra,
                 name.unprocessed,
                 person.is_historical,
+                person.is_modern,
                 factoid_born.born_date,
                 factoid_died.death_date
             from data.person
@@ -237,6 +248,19 @@ class PersonService extends EntityService
             where person.identity = ?',
             [
                 $historical ? 'TRUE': 'FALSE',
+                $personId,
+            ]
+        );
+    }
+
+    public function updateModern(int $personId, bool $modern): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.person
+            set is_modern = ?
+            where person.identity = ?',
+            [
+                $modern ? 'TRUE': 'FALSE',
                 $personId,
             ]
         );

@@ -109,6 +109,18 @@
                             <td>{{ person.getPrivateComment()|nl2br }}</td>
                         </tr>
                     {% endif %}
+                    {% if person.getHistorical()|default is not null %}
+                        <tr class="warning">
+                            <td>Historical</td>
+                            <td>{{ person.getHistorical() ? 'Yes': 'No' }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if person.getModern()|default is not null %}
+                        <tr class="warning">
+                            <td>Modern</td>
+                            <td>{{ person.getModern() ? 'Yes': 'No' }}</td>
+                        </tr>
+                    {% endif %}
                     {% if person.getPublic()|default is not null %}
                         <tr class="danger">
                             <td>Publication state</td>

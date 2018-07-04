@@ -189,6 +189,10 @@
                         <td>{{ mergeModel.primary.historical ? 'Yes' : 'No' }}</td>
                     </tr>
                     <tr>
+                        <td>Modern</td>
+                        <td>{{ mergeModel.primary.modern ? 'Yes' : 'No' }}</td>
+                    </tr>
+                    <tr>
                         <td>Born Date</td>
                         <td>{{ formatDate(mergeModel.primary.bornDate) || formatDate(mergeModel.secondary.bornDate) }}</td>
                     </tr>
@@ -277,6 +281,15 @@ export default {
                         {
                             customLabel: ({id, name}) => {
                                 return name === 'true' ? 'Historical only' : 'Non-historical only'
+                            },
+                        }
+                    ),
+                    modern: this.createMultiSelect(
+                        'Modern',
+                        {},
+                        {
+                            customLabel: ({id, name}) => {
+                                return name === 'true' ? 'Modern only' : 'Non-modern only'
                             },
                         }
                     ),

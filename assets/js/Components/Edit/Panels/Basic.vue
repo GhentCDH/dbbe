@@ -24,6 +24,7 @@ VueFormGenerator.validators.name = function(value, field, model) {
         (model.firstName == null || model.firstName === '')
         && (model.lastName == null || model.lastName === '')
         && (model.extra == null || model.extra === '')
+        && (model.unprocessed == null || model.unprocessed === '')
     ) {
         return ['At least one of the fields "First Name", "Last Name", "Extra" is required.']
     }
@@ -83,6 +84,12 @@ export default {
                         label: 'Historical',
                         labelClasses: 'control-label',
                         model: 'historical',
+                    },
+                    modern: {
+                        type: 'checkbox',
+                        label: 'Modern',
+                        labelClasses: 'control-label',
+                        model: 'modern',
                     },
                 }
             },
