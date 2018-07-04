@@ -58,7 +58,13 @@
                 @validated="validated"
                 ref="occurrenceOrder" />
 
-            <!-- TODO: add identification panel -->
+            <identificationPanel
+                id="identification"
+                header="Identification"
+                :identifiers="identifiers"
+                :model="model.identification"
+                @validated="validated"
+                ref="identification" />
 
             <bibliographyPanel
                 id="bibliography"
@@ -124,6 +130,7 @@
                     <li><a href="#date">Date</a></li>
                     <li><a href="#origin">Origin</a></li>
                     <li><a href="#occurrenceOrder">Occurrence Order</a></li>
+                    <li><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -159,7 +166,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Bibliography', 'GeneralManuscript'].includes(compName)) {
+    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Identification', 'Bibliography', 'GeneralManuscript'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -167,7 +174,7 @@ for(let key of panelComponents.keys()) {
 export default {
     mixins: [ AbstractEntityEdit ],
     data() {
-        return {
+        let data = {
             manuscript: null,
             locations: null,
             contents: null,
@@ -203,6 +210,7 @@ export default {
                 },
                 origin: {origin: null},
                 occurrenceOrder: {occurrenceOrder: []},
+                identification: {},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -210,7 +218,6 @@ export default {
                     onlineSources: [],
                 },
                 general: {
-                    diktyon: null,
                     publicComment: null,
                     privateComment: null,
                     illustrated: null,
@@ -225,10 +232,15 @@ export default {
                 'date',
                 'origin',
                 'occurrenceOrder',
+                'identification',
                 'bibliography',
                 'general',
             ],
         }
+        for (let identifier of JSON.parse(this.initIdentifiers)) {
+            data.model.identification[identifier.systemName] = null
+        }
+        return data
     },
     created () {
         this.manuscript = this.data.manuscript
@@ -320,9 +332,14 @@ export default {
                     }
                 }
 
+                // Identification
+                this.model.identification = {}
+                for (let identifier of this.identifiers) {
+                    this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
+                }
+
                 // General
                 this.model.general = {
-                    diktyon: this.manuscript.diktyon,
                     publicComment: this.manuscript.publicComment,
                     privateComment: this.manuscript.privateComment,
                     status: this.manuscript.status,

@@ -16,7 +16,7 @@ use AppBundle\Utils\ArrayToJson;
 class ManuscriptController extends Controller
 {
     /**
-     * @Route("/manuscripts", name="manuscripts_search")
+     * @Route("/manuscripts/search", name="manuscripts_search")
      * @Method("GET")
      * @param Request $request
      */
@@ -37,6 +37,9 @@ class ManuscriptController extends Controller
                     $this->get('manuscript_elastic_service')->searchAndAggregate(
                         $this->sanitize($request->query->all())
                     )
+                ),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('manuscript'))
                 ),
             ]
         );
@@ -372,6 +375,9 @@ class ManuscriptController extends Controller
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
                     'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),
                 ]),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('manuscript'))
+                ),
             ]
         );
     }

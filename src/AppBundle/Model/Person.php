@@ -21,7 +21,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     public function __construct()
     {
         parent::__construct();
-        
+
         $this->occupations = [];
         $this->manuscripts = [
             'patron' => [],
@@ -296,7 +296,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
 
     public function getElastic(): array
     {
-        $result = parent::getJson();
+        $result = parent::getElastic();
 
         $result['name'] = $this->getName();
         $result['historical'] = $this->historical;

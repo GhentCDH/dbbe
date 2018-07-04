@@ -207,6 +207,11 @@ export default {
             defaultOrdering: 'name',
         }
 
+        // Add identifier fields
+        for (let identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
+        }
+
         // Add view internal only fields
         if (this.isViewInternal) {
             data.schema.fields['public'] = this.createMultiSelect(

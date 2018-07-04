@@ -3,15 +3,22 @@
 namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Type;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use AppBundle\Model\Occurrence;
 
 class ElasticOccurrenceService extends ElasticSearchService
 {
-    public function __construct(array $config, string $indexPrefix)
+    public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
         parent::__construct($config, $indexPrefix);
         $this->type = $this->getIndex('occurrences')->getType('occurrence');
+        $this->primaryIdentifierSystemNames = array_map(
+            function ($identifier) {
+                return $identifier->getSystemName();
+            },
+            $container->get('identifier_manager')->getIdentifiersByType('occurrence')
+        );
     }
 
     public function setupOccurrences(): void
@@ -97,7 +104,7 @@ class ElasticOccurrenceService extends ElasticSearchService
     public function searchAndAggregate(array $params): array
     {
         if (!empty($params['filters'])) {
-            $params['filters'] = self::classifyFilters($params['filters']);
+            $params['filters'] = $this->classifyFilters($params['filters']);
         }
 
         $result = $this->search($params);
@@ -131,7 +138,7 @@ class ElasticOccurrenceService extends ElasticSearchService
         }
 
         $aggregationResult = $this->aggregate(
-            self::classifyFilters(['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status']),
+            $this->classifyFilters(array_merge($this->primaryIdentifierSystemNames, ['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -160,13 +167,22 @@ class ElasticOccurrenceService extends ElasticSearchService
      * @param  array $filters can be a sequential (aggregation) or an associative (query) array
      * @return array
      */
-    public static function classifyFilters(array $filters): array
+    public function classifyFilters(array $filters): array
     {
         $result = [];
         foreach ($filters as $key => $value) {
             if (isset($value) && $value !== '') {
                 // $filters can be a sequential (aggregation) or an associative (query) array
-                switch (is_int($key) ? $value : $key) {
+                $switch = is_int($key) ? $value : $key;
+                switch ($switch) {
+                    // Primary identifiers
+                    case in_array($switch, $this->primaryIdentifierSystemNames) ? $switch : null:
+                        if (is_int($key)) {
+                            $result['exact_text'][] = $value;
+                        } else {
+                            $result['exact_text'][$key] = $value;
+                        }
+                        break;
                     case 'text':
                         $result['multiple_text'][$key] = [
                             'text' => [

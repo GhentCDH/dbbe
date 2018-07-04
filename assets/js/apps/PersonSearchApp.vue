@@ -83,12 +83,11 @@
                         </ul>
                     </template>
                 </template>
-                <!-- TODO: switch to generic identification -->
                 <template
-                    v-if="(props.row.rgk != null && props.row.rgk.length > 0) || (props.row.vgh != null && props.row.vgh.length > 0) || (props.row.pbw != null && props.row.pbw !== '')"
+                    v-if="hasIdentification(props.row)"
                     slot="identification"
                     slot-scope="props">
-                    {{ formatIdentification(props.row.rgk, props.row.vgh, props.row.pbw) }}
+                    {{ formatIdentification(props.row) }}
                 </template>
                 <template
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
@@ -182,18 +181,16 @@
                         <td>Death Date</td>
                         <td>{{ formatDate(mergeModel.primary.deathDate) || formatDate(mergeModel.secondary.deathDate) }}</td>
                     </tr>
-                    <!-- TODO: switch to generic identification -->
-                    <tr>
-                        <td>RGK</td>
-                        <td>{{ mergeModel.primary.rgk || mergeModel.secondary.rgk }}</td>
-                    </tr>
-                    <tr>
-                        <td>VGH</td>
-                        <td>{{ mergeModel.primary.vgh || mergeModel.secondary.vgh }}</td>
-                    </tr>
-                    <tr>
-                        <td>PBW</td>
-                        <td>{{ mergeModel.primary.pbw || mergeModel.secondary.pbw }}</td>
+                    <tr
+                        v-for="identifier in identifiers"
+                        :key="identifier.systemName">
+                        <td>{{ identifier.name }}</td>
+                        <td>
+                            {{
+                                (mergeModel.primary.identifications != null ? mergeModel.primary.identifications[identifier.systemName] : null)
+                                || (mergeModel.secondary.identifications != null ? mergeModel.secondary.identifications[identifier.systemName] : null)
+                            }}
+                        </td>
                     </tr>
                     <tr>
                         <td>Types</td>
@@ -244,10 +241,6 @@ export default {
     ],
     props: {
         initPersons: {
-            type: String,
-            default: '',
-        },
-        initIdentifiers: {
             type: String,
             default: '',
         },
@@ -408,7 +401,7 @@ export default {
             this.openRequests++
             axios.put(this.urls['person_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
                 .then( (response) => {
-                    this.$refs.resultTable.refresh()
+                    this.update()
                     this.mergeAlerts = []
                     this.alerts.push({type: 'success', message: 'Merge successful.'})
                     this.openRequests--
@@ -435,6 +428,20 @@ export default {
                     console.log(error)
                 })
         },
+        update() {
+            this.$refs.resultTable.refresh()
+            this.openRequests++
+            axios.get(this.urls['persons_get'])
+                .then( (response) => {
+                    this.persons = response.data
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the person data.', login: this.isLoginError(error)})
+                    console.log(error)
+                })
+        },
         formatDate(date) {
             if (date == null || date.floor == null || date.ceiling == null) {
                 return null
@@ -452,16 +459,20 @@ export default {
             }
             return occupations.map(occupation => occupation.name).join(', ')
         },
-        formatIdentification(rgk, vgh, pbw) {
+        hasIdentification(person) {
+            for (let identifier of this.identifiers) {
+                if (person[identifier.systemName] != null && person[identifier.systemName].length > 0) {
+                    return true
+                }
+            }
+            return false
+        },
+        formatIdentification(person) {
             let result = []
-            if (rgk != null && rgk.length > 0) {
-                result.push('RGK: ' + rgk.join(', '))
-            }
-            if (vgh != null && vgh.length > 0) {
-                result.push('VGH: ' + vgh.join(', '))
-            }
-            if (pbw != null && pbw !== '') {
-                result.push('PBW: ' + pbw)
+            for (let identifier of this.identifiers) {
+                if (person[identifier.systemName] != null && person[identifier.systemName].length > 0) {
+                    result.push(identifier.name + ': ' + person[identifier.systemName].join(', '))
+                }
             }
             return result.join(' - ')
         },

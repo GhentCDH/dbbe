@@ -41,10 +41,16 @@ export default {
             type: String,
             default: '',
         },
+        initIdentifiers: {
+            type: String,
+            default: '',
+        },
     },
     data () {
         return {
             urls: JSON.parse(this.initUrls),
+            data: JSON.parse(this.initData),
+            identifiers: JSON.parse(this.initIdentifiers),
             model: {},
             originalModel: {},
             formOptions: {
@@ -440,12 +446,11 @@ export default {
         this.$parent.openRequests++
         if (!this.$parent.initialized) {
             return new Promise((resolve, reject) => {
-                let parsedData = JSON.parse(this.$parent.initData)
-                this.$emit('data', parsedData)
+                this.$emit('data', this.$parent.data)
                 resolve({
                     data : {
-                        data: parsedData.data,
-                        count: parsedData.count
+                        data: this.$parent.data.data,
+                        count: this.$parent.data.count
                     }
                 })
             })

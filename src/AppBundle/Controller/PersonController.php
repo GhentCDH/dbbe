@@ -16,7 +16,7 @@ use AppBundle\Utils\ArrayToJson;
 class PersonController extends Controller
 {
     /**
-     * @Route("/persons", name="persons_search")
+     * @Route("/persons/search", name="persons_search")
      * @Method("GET")
      * @param Request $request
      */
@@ -37,6 +37,7 @@ class PersonController extends Controller
                     'person_edit' => $this->generateUrl('person_edit', ['id' => 'person_id']),
                     'person_merge' => $this->generateUrl('person_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
+                    'persons_get' => $this->generateUrl('persons_get'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode(
@@ -76,6 +77,25 @@ class PersonController extends Controller
         }
 
         return new JsonResponse($result);
+    }
+
+    /**
+     * @Route("/persons", name="persons_get")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function getPersons(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return new JsonResponse(
+                ArrayToJson::arrayToJson(
+                    $this->get('person_manager')->getAllPersons()
+                )
+            );
+        }
+        throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
     /**

@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class OccurrenceController extends Controller
 {
     /**
-     * @Route("/occurrences", name="occurrences_search")
+     * @Route("/occurrences/search", name="occurrences_search")
      * @Method("GET")
      * @param Request $request
      */
@@ -37,6 +37,9 @@ class OccurrenceController extends Controller
                     $this->get('occurrence_elastic_service')->searchAndAggregate(
                         $this->sanitize($request->query->all())
                     )
+                ),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('occurrence'))
                 ),
             ]
         );
@@ -262,6 +265,9 @@ class OccurrenceController extends Controller
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                 ]),
+                'identifiers' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))
+                ),
             ]
         );
     }

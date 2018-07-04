@@ -3,15 +3,22 @@
 namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Type;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use AppBundle\Model\Person;
 
 class ElasticPersonService extends ElasticSearchService
 {
-    public function __construct(array $config, string $indexPrefix)
+    public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
         parent::__construct($config, $indexPrefix);
         $this->type = $this->getIndex('persons')->getType('person');
+        $this->primaryIdentifierSystemNames = array_map(
+            function ($identifier) {
+                return $identifier->getSystemName();
+            },
+            $container->get('identifier_manager')->getIdentifiersByType('person')
+        );
     }
 
     public function setupPersons(): void
@@ -56,7 +63,7 @@ class ElasticPersonService extends ElasticSearchService
     public function searchAndAggregate(array $params): array
     {
         if (!empty($params['filters'])) {
-            $params['filters'] = self::classifyFilters($params['filters']);
+            $params['filters'] = $this->classifyFilters($params['filters']);
         }
 
         $result = $this->search($params);
@@ -76,7 +83,7 @@ class ElasticPersonService extends ElasticSearchService
         }
 
         $aggregationResult = $this->aggregate(
-            self::classifyFilters(['historical', 'rgk', 'vgh', 'pbw', 'type', 'function', 'public']),
+            $this->classifyFilters(array_merge($this->primaryIdentifierSystemNames, ['historical', 'type', 'function', 'public'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -90,16 +97,16 @@ class ElasticPersonService extends ElasticSearchService
      * @param  array $filters can be a sequential (aggregation) or an associative (query) array
      * @return array
      */
-    public static function classifyFilters(array $filters): array
+    public function classifyFilters(array $filters): array
     {
         $result = [];
         foreach ($filters as $key => $value) {
             if (isset($value) && $value !== '') {
                 // $filters can be a sequential (aggregation) or an associative (query) array
-                switch (is_int($key) ? $value : $key) {
-                    case 'rgk':
-                    case 'vgh':
-                    case 'pbw':
+                $switch = is_int($key) ? $value : $key;
+                switch ($switch) {
+                    // Primary identifiers
+                    case in_array($switch, $this->primaryIdentifierSystemNames) ? $switch : null:
                         if (is_int($key)) {
                             $result['exact_text'][] = $value;
                         } else {

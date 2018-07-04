@@ -399,7 +399,7 @@ class PersonManager extends EntityManager
             );
         }
         $primary = $this->getPersonById($primaryId);
-        $secondary = $this->getPersonById($primaryId);
+        $secondary = $this->getPersonById($secondaryId);
 
         $updates = [];
         if (empty($primary->getFirstName()) && !empty($secondary->getFirstName())) {
@@ -420,16 +420,13 @@ class PersonManager extends EntityManager
         if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
             $updates['deathDate'] = $secondary->getDeathDate();
         }
-        // TODO: switch to generic identification
-        if (empty($primary->getRGK()) && !empty($secondary->getRGK())) {
-            $updates['rgk'] = $secondary->getRGK();
+        $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
+        foreach ($identifiers as $identifier) {
+            if (empty($primary->getIdentifications()[$identifier->getSystemName()]) && !empty($secondary->getIdentifications()[$identifier->getSystemName()])) {
+                $updates[$identifier->getSystemName()] = implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()]->getIdentifications());
+            }
         }
-        if (empty($primary->getVGH()) && !empty($secondary->getVGH())) {
-            $updates['vgh'] = $secondary->getVGH();
-        }
-        if (empty($primary->getPBW()) && !empty($secondary->getPBW())) {
-            $updates['pbw'] = $secondary->getPBW();
-        }
+        var_dump($updates);
         if (empty($primary->getTypes()) && !empty($secondary->getTypes())) {
             $updates['types'] = $secondary->getTypes();
         }

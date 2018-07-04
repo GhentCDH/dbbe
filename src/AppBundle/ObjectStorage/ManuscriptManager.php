@@ -379,11 +379,11 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['extended'] = true;
                 $this->updateOccurrenceOrder($manuscript, $data->occurrenceOrder);
             }
-            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
+            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('manuscript');
             foreach ($identifiers as $identifier) {
                 if (property_exists($data, $identifier->getSystemName())) {
-                    $cacheReload['mini'] = true;
-                    $this->updateIdentification($person, $identifier, $data->{$identifier->getSystemName()});
+                    $cacheReload['extended'] = true;
+                    $this->updateIdentification($manuscript, $identifier, $data->{$identifier->getSystemName()});
                 }
             }
             if (property_exists($data, 'bibliography')) {

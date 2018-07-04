@@ -30,14 +30,6 @@ export default {
         return {
             schema: {
                 fields: {
-                    diktyon: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Diktyon',
-                        labelClasses: 'control-label',
-                        model: 'diktyon',
-                        validator: VueFormGenerator.validators.number,
-                    },
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -89,17 +81,6 @@ export default {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.status)
-        },
-        validated(isValid, errors) {
-            // fix NaN
-            if (isNaN(this.model.diktyon)) {
-                this.model.diktyon = null
-                this.$refs.form.validate()
-                return
-            }
-            this.isValid = isValid
-            this.calcChanges()
-            this.$emit('validated', isValid, this.errors, this)
         },
     }
 }

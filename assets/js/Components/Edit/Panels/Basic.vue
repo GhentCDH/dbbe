@@ -19,6 +19,18 @@ import Panel from '../Panel'
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
+VueFormGenerator.validators.name = function(value, field, model) {
+    if (
+        (model.firstName == null || model.firstName === '')
+        && (model.lastName == null || model.lastName === '')
+        && (model.extra == null || model.extra === '')
+    ) {
+        return ['At least one of the fields "First Name", "Last Name", "Extra" is required.']
+    }
+
+    return []
+}
+
 export default {
     mixins: [
         AbstractField,
@@ -40,7 +52,7 @@ export default {
                         label: 'First Name',
                         labelClasses: 'control-label',
                         model: 'firstName',
-                        validator: VueFormGenerator.validators.string,
+                        validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
                     lastName: {
                         type: 'input',
@@ -48,7 +60,7 @@ export default {
                         label: 'Last Name',
                         labelClasses: 'control-label',
                         model: 'lastName',
-                        validator: VueFormGenerator.validators.string,
+                        validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
                     extra: {
                         type: 'input',
@@ -56,7 +68,7 @@ export default {
                         label: 'Extra',
                         labelClasses: 'control-label',
                         model: 'extra',
-                        validator: VueFormGenerator.validators.string,
+                        validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
                     unprocessed: {
                         type: 'input',
@@ -65,7 +77,6 @@ export default {
                         labelClasses: 'control-label',
                         model: 'unprocessed',
                         disabled: true,
-                        validator: VueFormGenerator.validators.string,
                     },
                     historical: {
                         type: 'checkbox',

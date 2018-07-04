@@ -6,6 +6,7 @@ use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Document;
 use Elastica\Query;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 const MAX = 2147483647;
 
@@ -14,6 +15,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     private $client;
     private $indexPrefix;
     protected $type;
+    protected $primaryIdentifierSystemNames;
 
     public function __construct(array $config, string $indexPrefix)
     {
