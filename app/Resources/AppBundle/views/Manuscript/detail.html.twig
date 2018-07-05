@@ -110,7 +110,7 @@
                 {% if occurrences is not empty %}
                     <tr>
                         <td>Occurrences</td>
-                        <td>
+                        <td class="greek">
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get','display': item.getDescription()} only %}
