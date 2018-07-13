@@ -148,32 +148,7 @@ class OccurrenceManager extends DocumentManager
             }
         }
 
-        // Patrons and scribes
-        // Bundle to reduce number of database requests
-        $rawBibroles = $this->dbs->getBibroles($ids, ['patron', 'scribe']);
-        $patronIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'patron');
-        $scribeIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'scribe');
-        $personIds = array_unique(array_merge($patronIds, $scribeIds));
-        $persons = [];
-        if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
-        }
-        foreach ($rawBibroles as $rawBibrole) {
-            $person = $persons[$rawBibrole['person_id']];
-            if ($rawBibrole['type'] == 'patron') {
-                $occurrences[$rawBibrole['occurrence_id']]
-                    ->addPatron($person)
-                    ->addCacheDependency('person_short.' . $person->getId());
-            } elseif ($rawBibrole['type'] == 'scribe') {
-                $occurrences[$rawBibrole['occurrence_id']]
-                    ->addScribe($person)
-                    ->addCacheDependency('person_short.' . $person->getId());
-            }
-            foreach ($persons[$rawBibrole['person_id']]->getCacheDependencies() as $cacheDependency) {
-                $occurrences[$rawBibrole['occurrence_id']]
-                    ->addCacheDependency($cacheDependency);
-            }
-        }
+        $this->setPersonRoles($occurrences);
 
         $this->setDates($occurrences);
 

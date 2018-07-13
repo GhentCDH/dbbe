@@ -249,8 +249,7 @@ class OccurrenceController extends Controller
                     'occurrence' => empty($id)
                         ? null
                         : $this->get('occurrence_manager')->getOccurrenceById($id)->getJson(),
-                    'patrons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons()),
-                    'scribes' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes()),
+                    'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),

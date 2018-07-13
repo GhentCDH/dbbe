@@ -8,16 +8,29 @@ class Document extends Entity
 {
     protected $prevId;
     protected $date;
-    protected $patrons;
-    protected $scribes;
+    /**
+     * Array containing all personroles
+     * Structure:
+     *  [
+     *      role_system_name => [
+     *          role,
+     *          [
+     *              person_id => person,
+     *              person_id => person,
+     *          ],
+     *      ],
+     *      role_system_name => [...],
+     *  ]
+     * @var array
+     */
+    protected $personRoles;
     protected $bibliographies;
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->patrons = [];
-        $this->scribes = [];
+        $this->personRoles = [];
         $this->bibliographies = [];
 
         return $this;
@@ -46,28 +59,49 @@ class Document extends Entity
     {
         return $this->date;
     }
-    public function addPatron(Person $person): Document
+    public function addPersonRole(Role $role, Person $person): Document
     {
-        $this->patrons[$person->getId()] = $person;
+        if (!isset($this->personRoles[$role->getSystemName()])) {
+            $this->personRoles[$role->getSystemName()] = [$role, []];
+        }
+        if (!isset($this->personRoles[$role->getSystemName()][1][$person->getId()])) {
+            $this->personRoles[$role->getSystemName()][1][$person->getId()] = $person;
+        }
 
         return $this;
     }
 
-    public function getPatrons(): array
+    public function getPersonRoles(): array
     {
-        return $this->patrons;
+        return $this->personRoles;
     }
 
-    public function addScribe(Person $person): Document
+    public function getPublicPersonRoles(): array
     {
-        $this->scribes[$person->getId()] = $person;
-
-        return $this;
+        $personRoles = $this->personRoles;
+        foreach ($personRoles as $roleName => $personRole) {
+            foreach ($personRole[1] as $personId => $person) {
+                if (!$person->getPublic()) {
+                    unset($personRoles[$roleName][1][$personId]);
+                }
+            }
+            if (empty($personRoles[$roleName][1])) {
+                unset($personRoles[$roleName]);
+            }
+        }
+        return $personRoles;
     }
 
-    public function getScribes(): array
+    private function getPersonRolesJson(): array
     {
-        return $this->scribes;
+        $result = [];
+        foreach ($this->personRoles as $roleName => $personRole) {
+            $result[$roleName] = [];
+            foreach ($personRole[1] as $person) {
+                $result[$roleName][] = $person->getShortJson();
+            }
+        }
+        return $result;
     }
 
     public function addBibliography(Bibliography $bibliography): Document
@@ -86,13 +120,9 @@ class Document extends Entity
     {
         $result = parent::getJson();
 
-        if (!empty($this->patrons)) {
-            $result['patrons'] = ArrayToJson::arrayToShortJson($this->patrons);
+        if (!empty($this->personRoles)) {
+            $result['personRoles'] = $this->getPersonRolesJson();
         }
-        if (!empty($this->scribes)) {
-            $result['scribes'] = ArrayToJson::arrayToShortJson($this->scribes);
-        }
-
         if (!empty($this->getBibliographies())) {
             $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
         }

@@ -40,18 +40,7 @@ export default {
             }
         }
     },
-    watch: {
-        model() {
-            this.init()
-        }
-    },
-    mounted () {
-        this.init()
-    },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-        },
         validate() {
             this.calcChanges()
         },

@@ -155,6 +155,18 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.bibrole on manuscript.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -169,66 +181,28 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getBibroles(array $ids, array $roles): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id,
-                bibrole.idperson as person_id,
-                bibrole.type
-            from data.manuscript
-            inner join data.bibrole on manuscript.identity = bibrole.iddocument
-            where manuscript.identity in (?)
-            and bibrole.type in (?)',
-            [
-                $ids,
-                $roles,
-            ],
-            [
-                Connection::PARAM_INT_ARRAY,
-                Connection::PARAM_STR_ARRAY,
-            ]
-        )->fetchAll();
-    }
-
-    public function getOccurrenceBibroles(array $ids, array $roles): array
+    public function getOccurrencePersonRoles(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 manuscript.identity as manuscript_id,
                 bibrole.iddocument as occurrence_id,
                 bibrole.idperson as person_id,
-                bibrole.type
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
             from data.manuscript
             inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
-            where manuscript.identity in (?)
-            and bibrole.type in (?)',
+            inner join data.role on bibrole.idrole = role.idrole
+            where manuscript.identity in (?)',
             [
                 $ids,
-                $roles,
             ],
             [
                 Connection::PARAM_INT_ARRAY,
-                Connection::PARAM_STR_ARRAY,
             ]
-        )->fetchAll();
-    }
-
-    public function getRelatedPersons(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                factoid.subject_identity as manuscript_id,
-                factoid.object_identity as person_id
-            from data.manuscript
-            inner join data.factoid on manuscript.identity = factoid.subject_identity
-            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
-            inner join data.person on factoid.object_identity = person.identity
-            where manuscript.identity in (?)
-            and type = \'related to\'',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
@@ -350,79 +324,6 @@ class ManuscriptService extends DocumentService
             [
                 $manuscriptId,
                 $contentId,
-            ]
-        );
-    }
-
-    public function delBibroles(int $manuscriptId, string $role, array $personIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.bibrole
-            where bibrole.iddocument = ?
-            and bibrole.type = ?
-            and bibrole.idperson in (?)',
-            [
-                $manuscriptId,
-                $role,
-                $personIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                \PDO::PARAM_STR,
-                Connection::PARAM_INT_ARRAY,
-            ]
-        );
-    }
-
-    public function addBibrole(int $manuscriptId, string $role, int $personId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT INTO data.bibrole (iddocument, type, idperson)
-            values (?, ?, ?)',
-            [
-                $manuscriptId,
-                $role,
-                $personId,
-            ]
-        );
-    }
-
-    public function delRelatedPersons(int $manuscriptId, array $personIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.factoid
-            where factoid.subject_identity = ?
-            and factoid.object_identity in (?)',
-            [
-                $manuscriptId,
-                $personIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_INT_ARRAY,
-            ]
-        );
-    }
-
-    public function addRelatedPerson(int $manuscriptId, int $personId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT INTO data.factoid (subject_identity, object_identity, idfactoid_type)
-            values (
-                ?,
-                ?,
-                (
-                    select
-                        factoid_type.idfactoid_type
-                    from data.factoid_type
-                    where factoid_type.type = \'related to\'
-                )
-            )',
-            [
-                $manuscriptId,
-                $personId,
             ]
         );
     }

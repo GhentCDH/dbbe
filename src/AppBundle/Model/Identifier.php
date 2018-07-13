@@ -2,11 +2,9 @@
 
 namespace AppBundle\Model;
 
-class Identifier
+class Identifier extends IdNameObject
 {
-    private $id;
     private $systemName;
-    private $name;
     private $primary;
     private $volumes;
     private $regex;
@@ -25,19 +23,9 @@ class Identifier
         $this->description = $description;
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
     public function getSystemName(): string
     {
         return $this->systemName;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     public function getPrimary(): bool
@@ -68,6 +56,7 @@ class Identifier
     public function getJson(): array
     {
         $result = [
+            'id' => $this->id,
             'systemName' => $this->systemName,
             'name' => $this->name,
         ];

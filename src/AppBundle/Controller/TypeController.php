@@ -16,6 +16,7 @@ class TypeController extends Controller
 {
     /**
      * @Route("/occurrences/{id}", name="type_get")
+     * @Method("GET")
      * @param  int    $id type id
      * @param Request $request
      */

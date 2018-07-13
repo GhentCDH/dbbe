@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,7 @@ class LocationController extends Controller
 {
     /**
      * @Route("/locations/manuscripts", name="locations_manuscripts_get")
+     * @Method("GET")
      * @param Request $request
      */
     public function getLocationsForManuscripts(Request $request)
@@ -29,6 +31,7 @@ class LocationController extends Controller
 
     /**
      * @Route("/locations", name="locations_get")
+     * @Method("GET")
      * @param Request $request
      */
     public function getLocations(Request $request)
@@ -47,6 +50,7 @@ class LocationController extends Controller
 
     /**
      * @Route("/locations/edit", name="locations_edit")
+     * @Method("GET")
      * @param Request $request
      */
     public function editLocations(Request $request)

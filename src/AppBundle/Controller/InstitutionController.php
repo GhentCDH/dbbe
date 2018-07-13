@@ -34,7 +34,7 @@ class InstitutionController extends Controller
     }
 
     /**
-     * @Route("/institutions/", name="institution_post")
+     * @Route("/institutions", name="institution_post")
      * @Method("POST")
      * @param Request $request
      * @param bool $library Indicates whether the institution is a library
@@ -60,7 +60,7 @@ class InstitutionController extends Controller
     }
 
     /**
-     * @Route("/libraries/", name="library_post")
+     * @Route("/libraries", name="library_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
@@ -71,7 +71,7 @@ class InstitutionController extends Controller
     }
 
     /**
-     * @Route("/monasteries/", name="monastery_post")
+     * @Route("/monasteries", name="monastery_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse

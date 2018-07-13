@@ -45,14 +45,14 @@
                 @validated="validated"
                 ref="identification" />
 
-            <occupationPanel
-                id="occupation"
-                header="Occupations"
-                :link="{url: urls['occupations_edit'], text: 'Edit occupations'}"
-                :model="model.occupation"
-                :values="occupations"
+            <officePanel
+                id="offices"
+                header="Offices"
+                :link="{url: urls['offices_edit'], text: 'Edit offices'}"
+                :model="model.offices"
+                :values="offices"
                 @validated="validated"
-                ref="occupation" />
+                ref="offices" />
 
             <generalPersonPanel
                 id="general"
@@ -106,7 +106,7 @@
                     <li><a href="#bornDate">Born Date</a></li>
                     <li><a href="#deathDate">Death Date</a></li>
                     <li><a href="#identification">Identification</a></li>
-                    <li><a href="#occupation">Occupations</a></li>
+                    <li><a href="#offices">Offices</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -141,7 +141,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['Basic', 'Date', 'Identification', 'Occupation', 'GeneralPerson'].includes(compName)) {
+    if (['Basic', 'Date', 'Identification', 'Office', 'GeneralPerson'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
@@ -151,7 +151,7 @@ export default {
     data() {
         let data = {
             person: null,
-            occupations: null,
+            offices: null,
             model: {
                 basic: {
                     firstName: null,
@@ -182,10 +182,7 @@ export default {
                     ceilingDayMonth: null,
                 },
                 identification: {},
-                occupation: {
-                    types: null,
-                    functions: null,
-                },
+                offices: {offices: null},
                 general: {
                     publicComment: null,
                     privateComment: null,
@@ -197,7 +194,7 @@ export default {
                 'bornDate',
                 'deathDate',
                 'identification',
-                'occupation',
+                'offices',
                 'general',
             ],
         }
@@ -208,10 +205,7 @@ export default {
     },
     created () {
         this.person = this.data.person
-        this.occupations = {
-            types: this.data.types,
-            functions: this.data.functions,
-        }
+        this.offices = this.data.offices
     },
     mounted () {
         this.loadPerson()
@@ -263,9 +257,8 @@ export default {
                 }
 
                 // Identification
-                this.model.occupation = {
-                    types: this.person.types,
-                    functions: this.person.functions,
+                this.model.offices = {
+                    offices: this.person.office
                 }
 
                 // General

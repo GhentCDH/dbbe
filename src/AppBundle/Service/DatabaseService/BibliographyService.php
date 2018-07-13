@@ -94,7 +94,8 @@ class BibliographyService extends DatabaseService
                 book.city,
                 book.editor
             from data.book
-            left join data.bibrole on book.identity = bibrole.iddocument and bibrole.type = \'author\'
+            left join data.bibrole on book.identity = bibrole.iddocument
+            left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
             inner join data.document_title on book.identity = document_title.iddocument
             where book.identity in (?)
             group by book.identity, document_title.title',
@@ -123,7 +124,8 @@ class BibliographyService extends DatabaseService
                 document_contains.page_start as article_page_start,
                 document_contains.page_end as article_page_end
             from data.article
-            left join data.bibrole on article.identity = bibrole.iddocument and bibrole.type = \'author\'
+            left join data.bibrole on article.identity = bibrole.iddocument
+            left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
             inner join data.document_title on article.identity = document_title.iddocument
             inner join data.document_contains on article.identity = document_contains.idcontent
             inner join data.journal on journal.identity = document_contains.idcontainer
@@ -174,7 +176,8 @@ class BibliographyService extends DatabaseService
                 document_contains.page_start as book_chapter_page_start,
                 document_contains.page_end as book_chapter_page_end
             from data.bookchapter
-            left join data.bibrole on bookchapter.identity = bibrole.iddocument and bibrole.type = \'author\'
+            left join data.bibrole on bookchapter.identity = bibrole.iddocument
+            left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
             inner join data.document_title on bookchapter.identity = document_title.iddocument
             inner join data.document_contains on bookchapter.identity = document_contains.idcontent
             inner join data.book on book.identity = document_contains.idcontainer

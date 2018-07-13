@@ -39,14 +39,14 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
-    public function getDepIdsByOccupationId(int $occupationId): array
+    public function getDepIdsByOfficeId(int $officeId): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 person_occupation.idperson as person_id
             from data.person_occupation
             where person_occupation.idoccupation = ?',
-            [$occupationId]
+            [$officeId]
         )->fetchAll();
     }
 
@@ -91,12 +91,35 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
-    public function getOccupations(array $ids): array
+    public function getRoles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as document_id,
+                bibrole.idrole as role_id,
+                case
+                    when manuscript.identity is not null then \'manuscript\'
+                    when original_poem.identity is not null then \'occurrence\'
+                    when reconstructed_poem.identity is not null then \'type\'
+                end as document_key
+            from data.bibrole
+            left join data.manuscript on bibrole.iddocument = manuscript.identity
+            left join data.original_poem on bibrole.iddocument = original_poem.identity
+            left join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
+            where bibrole.idperson in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+
+    public function getOffices(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 person_occupation.idperson as person_id,
-                person_occupation.idoccupation as occupation_id
+                person_occupation.idoccupation as office_id
             from data.person_occupation
             where person_occupation.idperson in (?)',
             [$ids],
@@ -111,63 +134,38 @@ class PersonService extends EntityService
                 bibrole.idperson as person_id,
                 manuscript.identity as manuscript_id,
                 null as occurrence_id,
-                bibrole.type
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
             from data.bibrole
             inner join data.manuscript on bibrole.iddocument = manuscript.identity
+            inner join data.role on bibrole.idrole = role.idrole
             where bibrole.idperson in (?)
-            and bibrole.type in (\'scribe\', \'patron\')
 
-            union
+            union all
 
             SELECT -- bibrole of occurrence in manuscript
                 bibrole.idperson as person_id,
                 manuscript.identity as manuscript_id,
                 document_contains.idcontent as occurrence_id,
-                bibrole.type
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
             from data.bibrole
             inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            where bibrole.idperson in (?)
-            and bibrole.type in (\'scribe\', \'patron\')
-
-            union
-
-            SELECT -- related person to manuscript
-                factoid.object_identity as person_id,
-                factoid.subject_identity as manuscript_id,
-                null as occurrence_id,
-                \'related\' as type
-            from data.factoid
-            inner join data.person on factoid.object_identity = person.identity
-            inner join data.manuscript on factoid.subject_identity = manuscript.identity
-            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
-            where person.identity in (?)
-            and type = \'related to\'',
+            inner join data.role on bibrole.idrole = role.idrole
+            where bibrole.idperson in (?)',
             [
-                $ids,
                 $ids,
                 $ids,
             ],
             [
                 Connection::PARAM_INT_ARRAY,
                 Connection::PARAM_INT_ARRAY,
-                Connection::PARAM_INT_ARRAY,
             ]
-        )->fetchAll();
-    }
-
-    public function getIdsByOccupations(array $occupations): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                occupation.occupation,
-                person.identity as person_id
-            from data.person
-            inner join data.person_occupation on person.identity = person_occupation.idperson
-            inner join data.occupation on person_occupation.idoccupation = occupation.idoccupation
-            where occupation.occupation in (?)',
-            [$occupations],
-            [Connection::PARAM_STR_ARRAY]
         )->fetchAll();
     }
 
@@ -266,7 +264,7 @@ class PersonService extends EntityService
         );
     }
 
-    public function delOccupations(int $personId, array $typeIds): int
+    public function delOffices(int $personId, array $officeIds): int
     {
         return $this->conn->executeUpdate(
             'DELETE
@@ -275,7 +273,7 @@ class PersonService extends EntityService
             and person_occupation.idoccupation in (?)',
             [
                 $personId,
-                $typeIds,
+                $officeIds,
             ],
             [
                 \PDO::PARAM_INT,
@@ -284,14 +282,14 @@ class PersonService extends EntityService
         );
     }
 
-    public function addOccupation(int $personId, int $typeId): int
+    public function addOffice(int $personId, int $officeId): int
     {
         return $this->conn->executeUpdate(
             'INSERT INTO data.person_occupation (idperson, idoccupation)
             values (?, ?)',
             [
                 $personId,
-                $typeId,
+                $officeId,
             ]
         );
     }

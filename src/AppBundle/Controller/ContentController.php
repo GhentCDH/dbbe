@@ -19,6 +19,7 @@ class ContentController extends Controller
 {
     /**
      * @Route("/contents/contents/{id}", name="contents_by_content")
+     * @Method("GET")
      * @param int $id The content id
      * @param Request $request
      */

@@ -29,46 +29,23 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
-    props: {
-        values: {
-            type: Object,
-            default: () => {return {}}
-        },
-    },
     data() {
         return {
             schema: {
                 fields: {
-                    types: this.createMultiSelect(
-                        'Types',
-                        {values: this.values.types},
-                        {multiple: true, closeOnSelect: false}
-                    ),
-                    functions: this.createMultiSelect(
-                        'Functions',
-                        {values: this.values.functions},
+                    offices: this.createMultiSelect(
+                        'Offices',
+                        {values: this.values},
                         {multiple: true, closeOnSelect: false}
                     ),
                 }
             }
         }
     },
-    watch: {
-        values() {
-            this.init()
-        },
-        model() {
-            this.init()
-        }
-    },
-    mounted () {
-        this.init()
-    },
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.types)
-            this.enableField(this.schema.fields.functions)
+            this.enableField(this.schema.fields.offices)
         },
     }
 }

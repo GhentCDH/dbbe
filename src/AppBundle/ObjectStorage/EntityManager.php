@@ -113,71 +113,80 @@ class EntityManager extends ObjectManager
 
     protected function updateIdentification(Entity $entity, Identifier $identifier, string $value): void
     {
-        $this->dbs->beginTransaction();
-        try {
-            if (!empty($value) && !preg_match(
-                '/' . $identifier->getRegex() . '/',
-                $value
-            )) {
-                throw new BadRequestHttpException('Incorrect identification data.');
+        if (!empty($value) && !preg_match(
+            '/' . $identifier->getRegex() . '/',
+            $value
+        )) {
+            throw new BadRequestHttpException('Incorrect identification data.');
+        }
+
+
+        if ($identifier->getVolumes() > 1) {
+            $newIdentifications = empty($value) ? [] : explode(', ', $value);
+            $volumeArray = [];
+            foreach ($newIdentifications as $identification) {
+                $volume = explode('.', $identification)[0];
+                if (in_array($volume, $volumeArray)) {
+                    throw new BadRequestHttpException('Duplicate identification entry.');
+                } else {
+                    $volumeArray[] = $volume;
+                }
             }
 
+            $newArray = [];
+            foreach ($newIdentifications as $newIdentification) {
+                list($volume, $id) = explode('.', $newIdentification);
+                $newArray[$volume] = $id;
+            }
 
-            if ($identifier->getVolumes() > 1) {
-                $newIdentifications = empty($value) ? [] : explode(', ', $value);
-                $volumeArray = [];
-                foreach ($newIdentifications as $identification) {
-                    $volume = explode('.', $identification)[0];
-                    if (in_array($volume, $volumeArray)) {
-                        throw new BadRequestHttpException('Duplicate identification entry.');
-                    } else {
-                        $volumeArray[] = $volume;
-                    }
+            $currentIdentifications = empty($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()]->getIdentifications();
+            $currentArray = [];
+            foreach ($currentIdentifications as $currentIdentification) {
+                list($volume, $id) = explode('.', $currentIdentification);
+                $currentArray[$volume] = $id;
+            }
+
+            $delArray = [];
+            $upsertArray = [];
+            for ($volume = 0; $volume < $identifier->getVolumes(); $volume++) {
+                $romanVolume = Identification::numberToRoman($volume +1);
+                // No old and no new value
+                if (!isset($currentArray[$romanVolume]) && !isset($newArray[$romanVolume])) {
+                    continue;
                 }
-
-                $newArray = [];
-                foreach ($newIdentifications as $newIdentification) {
-                    list($volume, $id) = explode('.', $newIdentification);
-                    $newArray[$volume] = $id;
+                // Old value === new value
+                if (isset($currentArray[$romanVolume]) && isset($newArray[$romanVolume])
+                    && $currentArray[$romanVolume] === $newArray[$romanVolume]
+                ) {
+                    continue;
                 }
-
-                $currentIdentifications = empty($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()]->getIdentifications();
-                $currentArray = [];
-                foreach ($currentIdentifications as $currentIdentification) {
-                    list($volume, $id) = explode('.', $currentIdentification);
-                    $currentArray[$volume] = $id;
+                // Old value, but no new value
+                if (isset($currentArray[$romanVolume]) && !isset($newArray[$romanVolume])) {
+                    $delArray[] = $volume;
+                    continue;
                 }
+                // No old or different value
+                $upsertArray[$volume] = $newArray[$romanVolume];
+            }
 
-                $delArray = [];
-                $upsertArray = [];
-                for ($volume = 0; $volume < $identifier->getVolumes(); $volume++) {
-                    $romanVolume = Identification::numberToRoman($volume +1);
-                    // No old and no new value
-                    if (!array_key_exists($romanVolume, $currentArray) && !array_key_exists($romanVolume, $newArray)) {
-                        continue;
-                    }
-                    // Old value === new value
-                    if (array_key_exists($romanVolume, $currentArray) && array_key_exists($romanVolume, $newArray)
-                        && $currentArray[$romanVolume] === $newArray[$romanVolume]
-                    ) {
-                        continue;
-                    }
-                    // Old value, but no new value
-                    if (array_key_exists($romanVolume, $currentArray) && !array_key_exists($romanVolume, $newArray)) {
-                        $delArray[] = $volume;
-                        continue;
-                    }
-                    // No old or different value
-                    $upsertArray[$volume] = $newArray[$romanVolume];
-                }
-
+            $this->dbs->beginTransaction();
+            try {
                 foreach ($delArray as $volume) {
                     $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
                 }
                 foreach ($upsertArray as $volume => $value) {
                     $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $volume, $value);
                 }
-            } else {
+
+                // commit transaction
+                $this->dbs->commit();
+            } catch (Exception $e) {
+                $this->dbs->rollBack();
+                throw $e;
+            }
+        } else {
+            $this->dbs->beginTransaction();
+            try {
                 // Old value, but no new value
                 if (!empty($entity->getIdentifications()[$identifier->getSystemName()]) && empty($value)) {
                     $this->dbs->delIdentification($entity->getId(), $identifier->getId(), 0);
@@ -186,13 +195,13 @@ class EntityManager extends ObjectManager
                 ) {
                     $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), 0, $value);
                 }
-            }
 
-            // commit transaction
-            $this->dbs->commit();
-        } catch (Exception $e) {
-            $this->dbs->rollBack();
-            throw $e;
+                // commit transaction
+                $this->dbs->commit();
+            } catch (Exception $e) {
+                $this->dbs->rollBack();
+                throw $e;
+            }
         }
     }
 }

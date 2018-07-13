@@ -152,28 +152,6 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function getBibroles(array $ids, array $roles): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                bibrole.idperson as person_id,
-                bibrole.type
-            from data.original_poem
-            inner join data.bibrole on original_poem.identity = bibrole.iddocument
-            where original_poem.identity in (?)
-            and bibrole.type in (?)',
-            [
-                $ids,
-                $roles,
-            ],
-            [
-                Connection::PARAM_INT_ARRAY,
-                Connection::PARAM_STR_ARRAY,
-            ]
-        )->fetchAll();
-    }
-
     public function getGenres(array $ids): array
     {
         return $this->conn->executeQuery(

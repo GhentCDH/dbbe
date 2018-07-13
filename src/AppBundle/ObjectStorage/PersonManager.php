@@ -5,17 +5,20 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use AppBundle\Model\BibRole;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
+use AppBundle\Model\Role;
 
 class PersonManager extends EntityManager
 {
     /**
-     * Get persons with enough information to get an id and a full description (without occupations)
+     * Get persons with enough information to get an id and a full description (without offices)
      * @param  array $ids
      * @return array
      */
@@ -54,7 +57,7 @@ class PersonManager extends EntityManager
     }
 
     /**
-     * Get persons with enough information to get an id and a full description with occupations
+     * Get persons with enough information to get an id and a full description with offices
      * @param  array $ids
      * @return array
      */
@@ -71,18 +74,34 @@ class PersonManager extends EntityManager
         // Remove all ids that did not match above
         $ids = array_keys($persons);
 
-        // Occupations
-        $rawOccupations = $this->dbs->getOccupations($ids);
+        // Roles
+        $rawRoles = $this->dbs->getRoles($ids);
 
-        $occupations = [];
-        if (count($rawOccupations) > 0) {
-            $occupationIds = self::getUniqueIds($rawOccupations, 'occupation_id');
-            $occupations = $this->container->get('occupation_manager')->getOccupationsByIds($occupationIds);
+        $roles = [];
+        if (count($rawRoles) > 0) {
+            $roleIds = self::getUniqueIds($rawRoles, 'role_id');
+            $roles = $this->container->get('role_manager')->getRolesByIds($roleIds);
 
-            foreach ($rawOccupations as $rawOccupation) {
-                $persons[$rawOccupation['person_id']]
-                    ->addOccupation($occupations[$rawOccupation['occupation_id']])
-                    ->addCacheDependency('occupation.' . $rawOccupation['occupation_id']);
+            foreach ($rawRoles as $rawRole) {
+                $persons[$rawRole['person_id']]
+                    ->addRole($roles[$rawRole['role_id']])
+                    ->addCacheDependency('role.' . $rawRole['role_id'])
+                    ->addCacheDependency($rawRole['document_key'] . '.' . $rawRole['document_id']);
+            }
+        }
+
+        // offices
+        $rawOffices = $this->dbs->getOffices($ids);
+
+        $offices = [];
+        if (count($rawOffices) > 0) {
+            $officeIds = self::getUniqueIds($rawOffices, 'office_id');
+            $offices = $this->container->get('office_manager')->getOfficesByIds($officeIds);
+
+            foreach ($rawOffices as $rawOffice) {
+                $persons[$rawOffice['person_id']]
+                    ->addOffice($offices[$rawOffice['office_id']])
+                    ->addCacheDependency('office.' . $rawOffice['office_id']);
             }
         }
 
@@ -132,22 +151,52 @@ class PersonManager extends EntityManager
         // TODO: Types
         // TODO: books, bookchapters, articles
 
+        // Manuscript roles
         $rawManuscripts = $this->dbs->getManuscripts([$id]);
-        $patronManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'patron');
-        $scribeManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'scribe');
-        $relatedManuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id', 'type', 'related');
-        $manuscriptIds = array_unique(array_merge($patronManuscriptIds, $scribeManuscriptIds, $relatedManuscriptIds));
+        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
+        $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
 
         $manuscripts = $this->container->get('manuscript_manager')->getMiniManuscriptsByIds($manuscriptIds);
+        $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
 
         foreach ($rawManuscripts as $rawManuscript) {
-            $person
-                ->addManuscript($manuscripts[$rawManuscript['manuscript_id']], $rawManuscript['type'])
-                // manuscript patrons, scribes and related persons are defined in the short section
-                ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id']);
-            if (!empty($rawManuscript['occurrence_id'])) {
-                // occurrence patrons and scribes are defined in the short section
-                $person->addCacheDependency('occurrence_short.' . $rawManuscript['occurrence_id']);
+            if (!isset($rawManuscript['occurrence_id'])) {
+                $person
+                    ->addManuscriptRole(
+                        new Role(
+                            $rawManuscript['role_id'],
+                            json_decode($rawManuscript['role_usage']),
+                            $rawManuscript['role_system_name'],
+                            $rawManuscript['role_name']
+                        ),
+                        $manuscripts[$rawManuscript['manuscript_id']]
+                    )
+                    // manuscript roles are defined in the short section
+                    ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id']);
+                foreach ($manuscripts[$rawManuscript['manuscript_id']]->getCacheDependencies() as $cacheDependency) {
+                    $person->addCacheDependency($cacheDependency);
+                }
+            } else {
+                $person
+                    ->addOccurrenceManuscriptRole(
+                        new Role(
+                            $rawManuscript['role_id'],
+                            json_decode($rawManuscript['role_usage']),
+                            $rawManuscript['role_system_name'],
+                            $rawManuscript['role_name']
+                        ),
+                        $manuscripts[$rawManuscript['manuscript_id']],
+                        $occurrences[$rawManuscript['occurrence_id']]
+                    )
+                    // manuscript and occurrence roles are defined in the short section
+                    ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id'])
+                    ->addCacheDependency('occurrence_short.' . $rawManuscript['occurrence_id']);
+                foreach ($manuscripts[$rawManuscript['manuscript_id']]->getCacheDependencies() as $cacheDependency) {
+                    $person->addCacheDependency($cacheDependency);
+                }
+                foreach ($occurrences[$rawManuscript['occurrence_id']]->getCacheDependencies() as $cacheDependency) {
+                    $person->addCacheDependency($cacheDependency);
+                }
             }
         }
 
@@ -156,57 +205,10 @@ class PersonManager extends EntityManager
         return $person;
     }
 
-    public function getPersonsDependenciesByOccupation(int $occupationId): array
+    public function getPersonsDependenciesByOffice(int $officeId): array
     {
-        $rawIds = $this->dbs->getDepIdsByOccupationId($occupationId);
+        $rawIds = $this->dbs->getDepIdsByOfficeId($officeId);
         return $this->getShortPersonsByIds(self::getUniqueIds($rawIds, 'person_id'));
-    }
-
-    private function getBibroles(array $occupations): array
-    {
-        $persons = [];
-        $personIds = [];
-        $personsByOccupations = array_merge($this->getPersonsByOccupations($occupations));
-        foreach ($personsByOccupations as $personsByOccupation) {
-            foreach ($personsByOccupation as $person) {
-                if (!in_array($person->getId(), $personIds)) {
-                    $personIds[] = $person->getId();
-                    $persons[] = $person;
-                }
-            }
-        }
-
-        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
-
-        return $persons;
-    }
-
-    public function getAllPatrons(): array
-    {
-        $cache = $this->cache->getItem('patrons');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $patrons = $this->getBibroles(['Sponsor', 'Owner']);
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($patrons));
-        return $patrons;
-    }
-
-    public function getAllScribes(): array
-    {
-        $cache = $this->cache->getItem('scribes');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $scribes = $this->getBibroles(['Scribe']);
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($scribes));
-        return $scribes;
     }
 
     public function getAllHistoricalPersons(): array
@@ -245,20 +247,6 @@ class PersonManager extends EntityManager
         $cache->tag(['persons']);
         $this->cache->save($cache->set($persons));
         return $persons;
-    }
-
-    private function getPersonsByOccupations(array $occupations): array
-    {
-        $rawOccupationPersons = $this->dbs->getIdsByOccupations($occupations);
-        $personIds = self::getUniqueIds($rawOccupationPersons, 'person_id');
-        $persons = $this->getMiniPersonsByIds($personIds);
-
-        $occupationPersons = [];
-        foreach ($rawOccupationPersons as $rawOccupationPerson) {
-            $occupationPersons[$rawOccupationPerson['occupation']][] = $persons[$rawOccupationPerson['person_id']];
-        }
-
-        return $occupationPersons;
     }
 
     /**
@@ -365,13 +353,9 @@ class PersonManager extends EntityManager
                     $this->updateIdentification($person, $identifier, $data->{$identifier->getSystemName()});
                 }
             }
-            if (property_exists($data, 'types')) {
+            if (property_exists($data, 'offices')) {
                 $cacheReload['short'] = true;
-                $this->updateOccupations($person, $data->types, 'types');
-            }
-            if (property_exists($data, 'functions')) {
-                $cacheReload['short'] = true;
-                $this->updateOccupations($person, $data->functions, 'functions');
+                $this->updateOffices($person, $data->offices);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
@@ -454,11 +438,8 @@ class PersonManager extends EntityManager
             }
         }
         var_dump($updates);
-        if (empty($primary->getTypes()) && !empty($secondary->getTypes())) {
-            $updates['types'] = $secondary->getTypes();
-        }
-        if (empty($primary->getFunctions()) && !empty($secondary->getFunctions())) {
-            $updates['functions'] = $secondary->getFunctions();
+        if (empty($primary->getOffices()) && !empty($secondary->getOffices())) {
+            $updates['offices'] = $secondary->getOffices();
         }
         if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
             $updates['publicComment'] = $secondary->getPublicComment();
@@ -576,23 +557,23 @@ class PersonManager extends EntityManager
         $this->dbs->updateModern($person->getId(), $modern);
     }
 
-    private function updateOccupations(Person $person, array $occupations, string $occupationType): void
+    private function updateOffices(Person $person, array $offices): void
     {
-        foreach ($occupations as $occupation) {
-            if (!is_object($occupation)
-                || !property_exists($occupation, 'id')
-                || !is_numeric($occupation->id)
+        foreach ($offices as $office) {
+            if (!is_object($office)
+                || !property_exists($office, 'id')
+                || !is_numeric($office->id)
             ) {
-                throw new BadRequestHttpException('Incorrect occupations data.');
+                throw new BadRequestHttpException('Incorrect offices data.');
             }
         }
-        list($delIds, $addIds) = self::calcDiff($occupations, $occupationType === 'types' ? $person->getTypes() : $person->getFunctions());
+        list($delIds, $addIds) = self::calcDiff($offices, $person->getOffices());
 
         if (count($delIds) > 0) {
-            $this->dbs->delOccupations($person->getId(), $delIds);
+            $this->dbs->delOffices($person->getId(), $delIds);
         }
         foreach ($addIds as $addId) {
-            $this->dbs->addOccupation($person->getId(), $addId);
+            $this->dbs->addOffice($person->getId(), $addId);
         }
     }
 

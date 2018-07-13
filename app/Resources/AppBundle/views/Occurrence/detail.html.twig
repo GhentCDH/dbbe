@@ -85,29 +85,19 @@
                         <td>{{ occurrence.getLocation() }}</td>
                     </tr>
                 {% endif %}
-                {% set patrons = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPatrons() : occurrence.getPatrons()|public %}
-                {% if patrons is not empty %}
+                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles() %}
+                {% if personRoles is not empty %}
                     <tr>
-                        <td>Patron(s)</td>
+                        <td>Person(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': patrons} only %}
-                                {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
-                    </tr>
-                {% endif %}
-                {% set scribes = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getScribes() : occurrence.getScribes()|public %}
-                {% if scribes is not empty %}
-                    <tr>
-                        <td>Scribe(s)</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': scribes} only %}
-                                {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
-                                {% endblock %}
-                            {% endembed %}
+                            {% for rolename, personRole in personRoles %}
+                                <h6>{{ personRole[0].getName() }}:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endfor %}
                         </td>
                     </tr>
                 {% endif %}
@@ -149,7 +139,7 @@
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': subjects} only %}
                                 {% block renderItem %}
                                     {% if item is person %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOccupations()} only %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
                                     {% else %}
                                         {{ item.getName() }}
                                     {% endif %}

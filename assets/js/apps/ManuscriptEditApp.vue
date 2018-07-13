@@ -28,12 +28,12 @@
             <personPanel
                 id="persons"
                 header="Persons"
-                :model="model.person"
-                :values="persons"
+                :roles="roles"
+                :model="model.personRoles"
+                :values="historicalPersons"
+                :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : []"
                 @validated="validated"
-                ref="persons"
-                :occurrence-patrons="manuscript ? manuscript.occurrencePatrons : []"
-                :occurrence-scribes="manuscript ? manuscript.occurrenceScribes : []" />
+                ref="persons" />
 
             <datePanel
                 id="date"
@@ -173,15 +173,22 @@ for(let key of panelComponents.keys()) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    props: {
+        initRoles: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         let data = {
             manuscript: null,
             locations: null,
             contents: null,
-            persons: null,
+            historicalPersons: null,
             origins: null,
             bibliographies: null,
             statuses: null,
+            roles: JSON.parse(this.initRoles),
             model: {
                 locatedAt: {
                     location: {
@@ -193,11 +200,7 @@ export default {
                     shelf: null,
                 },
                 content: {content: null},
-                person: {
-                    patrons: [],
-                    scribes: [],
-                    relatedPersons: [],
-                },
+                personRoles: {},
                 date: {
                     floor: null,
                     ceiling: null,
@@ -240,17 +243,16 @@ export default {
         for (let identifier of JSON.parse(this.initIdentifiers)) {
             data.model.identification[identifier.systemName] = null
         }
+        for (let role of data.roles) {
+            data.model.personRoles[role.systemName] = null
+        }
         return data
     },
     created () {
         this.manuscript = this.data.manuscript
         this.locations = this.data.locations
         this.contents = this.data.contents
-        this.persons = {
-            patrons: this.data.patrons,
-            scribes: this.data.scribes,
-            relatedPersons: this.data.relatedPersons,
-        }
+        this.historicalPersons = this.data.historicalPersons
         this.origins = this.data.origins
         this.bibliographies = {
             books: this.data.books,
@@ -277,11 +279,14 @@ export default {
                     content: this.manuscript.content,
                 }
 
-                // Person
-                this.model.person = {
-                    patrons: this.manuscript.patrons,
-                    scribes: this.manuscript.scribes,
-                    relatedPersons: this.manuscript.relatedPersons,
+                // PersonRoles
+                this.model.identification = {}
+                for (let identifier of this.identifiers) {
+                    this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
+                }
+                this.model.personRoles = {}
+                for (let role of this.roles) {
+                    this.model.personRoles[role.systemName] = this.manuscript.personRoles != null ? this.manuscript.personRoles[role.systemName] : null
                 }
 
                 // Date

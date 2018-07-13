@@ -12,6 +12,7 @@ use AppBundle\Exceptions\DependencyException;
 use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
+use AppBundle\Model\Role;
 use AppBundle\Model\Status;
 
 class ManuscriptManager extends DocumentManager
@@ -78,66 +79,38 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
-        // Patrons, scribes, related persons
-        // Both the direct patrons and scribes as the patrons and scribes of occurrences
-        // Bundle to reduce number of database requests
-        $rawBibroles = $this->dbs->getBibroles($ids, ['patron', 'scribe']);
-        $patronIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'patron');
-        $scribeIds = self::getUniqueIds($rawBibroles, 'person_id', 'type', 'scribe');
+        $this->setPersonRoles($manuscripts);
 
-        $rawOccurrenceBibroles = $this->dbs->getOccurrenceBibroles($ids, ['patron', 'scribe']);
-        $occurrencePatronIds = self::getUniqueIds($rawOccurrenceBibroles, 'person_id', 'type', 'patron');
-        $occurrenceScribeIds = self::getUniqueIds($rawOccurrenceBibroles, 'person_id', 'type', 'scribe');
-        $occurrenceIds = self::getUniqueIds($rawOccurrenceBibroles, 'occurrence_id');
+        // Roles via occurrences
+        $rawOccurrenceRoles = $this->dbs->getOccurrencePersonRoles($ids);
+        $personIds = self::getUniqueIds($rawOccurrenceRoles, 'person_id');
+        $occurrenceIds = self::getUniqueIds($rawOccurrenceRoles, 'occurrence_id');
 
-        $rawRelatedPersons = $this->dbs->getRelatedPersons($ids);
-        $relatedPersonIds = self::getUniqueIds($rawRelatedPersons, 'person_id');
-
-        $personIds = array_unique(array_merge($patronIds, $scribeIds, $occurrencePatronIds, $occurrenceScribeIds, $relatedPersonIds));
         $persons = [];
         if (count($personIds) > 0) {
             $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
         }
-
         $occurrences = [];
         if (count($occurrenceIds) > 0) {
             $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
         }
 
-        foreach (array_merge($rawBibroles, $rawOccurrenceBibroles, $rawRelatedPersons) as $rawPerson) {
-            $person = $persons[$rawPerson['person_id']];
-
-            if (isset($rawPerson['type'])) {
-                if (isset($rawPerson['occurrence_id'])) {
-                    if ($rawPerson['type'] == 'patron') {
-                        $manuscripts[$rawPerson['manuscript_id']]
-                            ->addOccurrencePatron($person, $occurrences[$rawPerson['occurrence_id']])
-                            ->addCacheDependency('person_short.' . $person->getId())
-                            ->addCacheDependency('occurrence_mini.' . $rawPerson['occurrence_id']);
-                    } elseif ($rawPerson['type'] == 'scribe') {
-                        $manuscripts[$rawPerson['manuscript_id']]
-                            ->addOccurrenceScribe($person, $occurrences[$rawPerson['occurrence_id']])
-                            ->addCacheDependency('person_short.' . $person->getId())
-                            ->addCacheDependency('occurrence_mini.' . $rawPerson['occurrence_id']);
-                    }
-                } else {
-                    if ($rawPerson['type'] == 'patron') {
-                        $manuscripts[$rawPerson['manuscript_id']]
-                            ->addPatron($person)
-                            ->addCacheDependency('person_short.' . $person->getId());
-                    } elseif ($rawPerson['type'] == 'scribe') {
-                        $manuscripts[$rawPerson['manuscript_id']]
-                            ->addScribe($person)
-                            ->addCacheDependency('person_short.' . $person->getId());
-                    }
-                }
-            } else {
-                $manuscripts[$rawPerson['manuscript_id']]
-                    ->addRelatedPerson($person)
-                    ->addCacheDependency('person_short.' . $person->getId());
+        foreach ($rawOccurrenceRoles as $raw) {
+            $manuscripts[$raw['manuscript_id']]
+                ->addOccurrencePersonRole(
+                    new Role($raw['role_id'], json_decode($raw['role_usage']), $raw['role_system_name'], $raw['role_name']),
+                    $persons[$raw['person_id']],
+                    $occurrences[$raw['occurrence_id']]
+                )
+                ->addCacheDependency('role.' . $raw['role_id'])
+                ->addCacheDependency('person_short.' . $raw['person_id'])
+                ->addCacheDependency('occurrence_mini.' . $raw['occurrence_id']);
+            foreach ($persons[$raw['person_id']]->getCacheDependencies() as $cacheDependency) {
+                $manuscripts[$raw['manuscript_id']]
+                    ->addCacheDependency($cacheDependency);
             }
-            foreach ($person->getCacheDependencies() as $cacheDependency) {
-                $manuscripts[$rawPerson['manuscript_id']]
+            foreach ($occurrences[$raw['occurrence_id']]->getCacheDependencies() as $cacheDependency) {
+                $manuscripts[$raw['manuscript_id']]
                     ->addCacheDependency($cacheDependency);
             }
         }
@@ -267,6 +240,12 @@ class ManuscriptManager extends DocumentManager
         return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
     }
 
+    public function getManuscriptsDependenciesByRole(int $roleId): array
+    {
+        $rawIds = $this->dbs->getDepIdsByRoleId($roleId);
+        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+    }
+
     /**
      * Clear cache and update elasticsearch
      * @param array $ids manuscript ids
@@ -341,17 +320,12 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateContent($manuscript, $data->content);
             }
-            if (property_exists($data, 'patrons')) {
-                $cacheReload['short'] = true;
-                $this->updatePatrons($manuscript, $data->patrons);
-            }
-            if (property_exists($data, 'scribes')) {
-                $cacheReload['short'] = true;
-                $this->updateScribes($manuscript, $data->scribes);
-            }
-            if (property_exists($data, 'relatedPersons')) {
-                $cacheReload['short'] = true;
-                $this->updateRelatedPersons($manuscript, $data->relatedPersons);
+            $roles = $this->container->get('role_manager')->getRolesByType('manuscript');
+            foreach ($roles as $role) {
+                if (property_exists($data, $role->getSystemName())) {
+                    $cacheReload['short'] = true;
+                    $this->updatePersonRole($manuscript, $role, $data->{$role->getSystemName()});
+                }
             }
             if (property_exists($data, 'date')) {
                 $cacheReload['short'] = true;
@@ -449,67 +423,6 @@ class ManuscriptManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addContent($manuscript->getId(), $addId);
-        }
-    }
-
-    private function updatePatrons(Manuscript $manuscript, array $patrons = null): void
-    {
-        if ($patrons == null) {
-            $patrons = [];
-        }
-        foreach ($patrons as $patron) {
-            if (!is_object($patron) || !property_exists($patron, 'id') || !is_numeric($patron->id)) {
-                throw new BadRequestHttpException('Incorrect patrons data.');
-            }
-        }
-
-        $this->updateBibroles($manuscript, $patrons, $manuscript->getPatrons(), 'patron');
-    }
-
-    private function updateScribes(Manuscript $manuscript, array $scribes = null): void
-    {
-        if ($scribes == null) {
-            $scribes = [];
-        }
-        foreach ($scribes as $scribe) {
-            if (!is_object($scribe) || !property_exists($scribe, 'id') || !is_numeric($scribe->id)) {
-                throw new BadRequestHttpException('Incorrect scribes data.');
-            }
-        }
-
-        $this->updateBibroles($manuscript, $scribes, $manuscript->getScribes(), 'scribe');
-    }
-
-    private function updateBibroles(Manuscript $manuscript, array $newPersons, array $oldPersons, string $role): void
-    {
-        list($delIds, $addIds) = self::calcDiff($newPersons, $oldPersons);
-
-        if (count($delIds) > 0) {
-            $this->dbs->delBibroles($manuscript->getId(), $role, $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addBibrole($manuscript->getId(), $role, $addId);
-        }
-    }
-
-    private function updateRelatedPersons(Manuscript $manuscript, array $persons = null): void
-    {
-        if ($persons == null) {
-            $persons = [];
-        }
-        foreach ($persons as $person) {
-            if (!is_object($person) || !property_exists($person, 'id') || !is_numeric($person->id)) {
-                throw new BadRequestHttpException('Incorrect related persons data.');
-            }
-        }
-
-        list($delIds, $addIds) = self::calcDiff($persons, $manuscript->getRelatedPersons());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delRelatedPersons($manuscript->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addRelatedPerson($manuscript->getId(), $addId);
         }
     }
 

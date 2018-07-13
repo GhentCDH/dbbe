@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class CollectionController extends Controller
 {
     /**
-     * @Route("/collections/", name="collection_post")
+     * @Route("/collections", name="collection_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse

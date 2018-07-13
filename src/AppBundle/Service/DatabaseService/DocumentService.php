@@ -71,4 +71,64 @@ class DocumentService extends EntityService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getPersonRoles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.iddocument as manuscript_id,
+                bibrole.idperson as person_id,
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
+            from data.bibrole
+            inner join data.role on bibrole.idrole = role.idrole
+            where bibrole.iddocument in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function addPersonRole(int $documentId, int $roleId, int $personId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.bibrole (iddocument, idrole, idperson)
+            values (
+                ?,
+                ?,
+                ?
+            )',
+            [
+                $documentId,
+                $roleId,
+                $personId,
+            ]
+        );
+    }
+
+    public function delPersonRole(int $documentId, int $roleId, array $personIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.bibrole
+            where bibrole.iddocument = ?
+            and bibrole.idrole = ?
+            and bibrole.idperson in (?)',
+            [
+                $documentId,
+                $roleId,
+                $personIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
 }

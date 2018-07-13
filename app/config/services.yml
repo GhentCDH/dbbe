@@ -103,9 +103,14 @@ services:
         arguments: ['@status_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
-    occupation_manager:
-        class: AppBundle\ObjectStorage\OccupationManager
-        arguments: ['@occupation_service', '@cache.app', '@service_container', null, '@security.token_storage']
+    role_manager:
+        class: AppBundle\ObjectStorage\RoleManager
+        arguments: ['@role_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
+    office_manager:
+        class: AppBundle\ObjectStorage\OfficeManager
+        arguments: ['@office_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     identifier_manager:
@@ -174,8 +179,12 @@ services:
         class: AppBundle\Service\DatabaseService\StatusService
         arguments: ['@doctrine.orm.entity_manager']
 
-    occupation_service:
-        class: AppBundle\Service\DatabaseService\OccupationService
+    role_service:
+        class: AppBundle\Service\DatabaseService\RoleService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    office_service:
+        class: AppBundle\Service\DatabaseService\OfficeService
         arguments: ['@doctrine.orm.entity_manager']
 
     image_service:

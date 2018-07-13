@@ -12,16 +12,25 @@ class Manuscript extends Document implements IdJsonInterface
     private $contentsWithParents;
     private $origin;
     /**
-     * Array of arrays with one person and at least one occurrence
+     * Array containing all personroles inherited via occurrences
+     * Structure:
+     *  [
+     *      role_system_name => [
+     *          role,
+     *          [
+     *              person_id => [
+     *                  person, occurrence, occurrence, ...,
+     *              ],
+     *              person_id => [
+     *                  person, occurrence, occurrence, ...,
+     *              ],
+     *          ],
+     *      ],
+     *      role_system_name => [...],
+     *  ]
      * @var array
      */
-    private $occurrencePatrons;
-    /**
-     * Array of arrays with one person and at least one occurrence
-     * @var array
-     */
-    private $occurrenceScribes;
-    private $relatedPersons;
+    private $occurrencePersonRoles;
     /**
      * Array of occurrences, in order
      * @var array
@@ -35,9 +44,7 @@ class Manuscript extends Document implements IdJsonInterface
         parent::__construct();
 
         $this->contentsWithParents = [];
-        $this->occurrencePatrons = [];
-        $this->occurrenceScribes = [];
-        $this->relatedPersons = [];
+        $this->occurrencePersonRoles = [];
 
         return $this;
     }
@@ -75,110 +82,139 @@ class Manuscript extends Document implements IdJsonInterface
         return $this->contentsWithParents;
     }
 
-    public function addOccurrencePatron(Person $person, Occurrence $occurrence): Manuscript
+    public function addOccurrencePersonRole(Role $role, Person $person, Occurrence $occurrence): Manuscript
     {
-        if (isset($this->occurrencePatrons[$person->getId()])) {
-            $this->occurrencePatrons[$person->getId()][] = $occurrence;
+        if (!isset($this->occurrencePersonRoles[$role->getSystemName()])) {
+            $this->occurrencePersonRoles[$role->getSystemName()] = [$role, []];
         }
-        $this->occurrencePatrons[$person->getId()] = [$person, $occurrence];
+        if (!isset($this->occurrencePersonRoles[$role->getSystemName()][1][$person->getId()])) {
+            $this->occurrencePersonRoles[$role->getSystemName()][1][$person->getId()] = [$person];
+        }
+        $this->occurrencePersonRoles[$role->getSystemName()][1][$person->getId()][] = $occurrence;
 
         return $this;
     }
 
-    public function getOccurrencePatrons(): array
+    private function getOccurrencePersonRolesJson(): array
     {
-        return $this->occurrencePatrons;
+        $result = [];
+        foreach ($this->occurrencePersonRoles as $roleName => $occurrencePersonRole) {
+            $result[$roleName] = [];
+            foreach ($occurrencePersonRole[1] as $occurrencePerson) {
+                $person = array_shift($occurrencePerson);
+                $row = $person->getShortJson();
+                $row['occurrences'] = array_map(
+                    function ($occurrence) {
+                        return $occurrence->getDescription();
+                    },
+                    $occurrencePerson
+                );
+                $result[$roleName][] = $row;
+            }
+        }
+        return $result;
     }
 
-    public function getAllPatrons(): array
+    public function getAllPersonRoles(): array
     {
-        $patrons = $this->patrons;
-        foreach ($this->occurrencePatrons as $occurrencePatron) {
-            $occurrencePatronPerson = array_shift($occurrencePatron);
-            if (!array_key_exists($occurrencePatronPerson->getId(), $patrons)) {
-                // if all occurrences linked to a person are not public, indicate person as not public
-                if ($occurrencePatronPerson->getPublic()) {
-                    $public = false;
-                    foreach ($occurrencePatron as $occurrence) {
-                        if ($occurrence->getPublic()) {
-                            $public = true;
+        $personRoles = $this->personRoles;
+        foreach ($this->occurrencePersonRoles as $roleName => $occurrencePersonRole) {
+            $role = array_shift($occurrencePersonRole);
+            if (!isset($personRoles[$roleName])) {
+                $personRoles[$roleName] = [$role, []];
+            }
+            foreach ($occurrencePersonRole[0] as $personId => $occurrencePerson) {
+                if (!isset($personRoles[$roleName][$personId])) {
+                    $person = array_shift($occurrencePerson);
+                    // if all occurrences linked to a person are not public, indicate person as not public
+                    if ($person->getPublic()) {
+                        $public = false;
+                        foreach ($occurrencePerson as $occurrence) {
+                            if ($occurrence->getPublic()) {
+                                $public = true;
+                                break;
+                            }
+                        }
+                        if (!$public) {
+                            $person->setPublic(false);
                         }
                     }
-                    if (!$public) {
-                        $occurrencePatronPerson->setPublic(false);
-                    }
-                    $patrons[$occurrencePatronPerson->getId()] = $occurrencePatronPerson;
+                    $personRoles[$roleName][1][$personId] = $person;
                 }
             }
         }
-        return $patrons;
+        return $personRoles;
     }
 
-    public function addOccurrenceScribe(Person $person, Occurrence $occurrence): Manuscript
+    public function getAllPublicPersonRoles(): array
     {
-        if (isset($this->occurrenceScribes[$person->getId()])) {
-            $this->occurrenceScribes[$person->getId()][] = $occurrence;
-        }
-        $this->occurrenceScribes[$person->getId()] = [$person, $occurrence];
-
-        return $this;
-    }
-
-    public function getOccurrenceScribes(): array
-    {
-        return $this->occurrenceScribes;
-    }
-
-    public function getAllSCribes(): array
-    {
-        $scribes = $this->scribes;
-        foreach ($this->occurrenceScribes as $occurrenceScribe) {
-            $occurrenceScribePerson = array_shift($occurrenceScribe);
-            if (!array_key_exists($occurrenceScribePerson->getId(), $scribes)) {
-                // if all occurrences linked to a person are not public, indicate person as not public
-                if ($occurrenceScribePerson->getPublic()) {
-                    $public = false;
-                    foreach ($occurrenceScribe as $occurrence) {
-                        if ($occurrence->getPublic()) {
-                            $public = true;
-                        }
-                    }
-                    if (!$public) {
-                        $occurrenceScribePerson->setPublic(false);
-                    }
-                    $scribes[$occurrenceScribePerson->getId()] = $occurrenceScribePerson;
+        $personRoles = $this->getAllPersonRoles();
+        foreach ($personRoles as $roleName => $personRole) {
+            foreach ($personRole[1] as $personId => $person) {
+                if (!$person->getPublic()) {
+                    unset($personRoles[$roleName][1][$personId]);
                 }
-                $scribes[$occurrenceScribePerson->getId()] = $occurrenceScribePerson;
+            }
+            if (empty($personRoles[$roleName][1])) {
+                unset($personRoles[$roleName]);
             }
         }
-        return $scribes;
-    }
-
-    public function addRelatedPerson(Person $person): Manuscript
-    {
-        $this->relatedPersons[$person->getId()] = $person;
-
-        return $this;
-    }
-
-    public function getRelatedPersons(): array
-    {
-        return $this->relatedPersons;
+        return $personRoles;
     }
 
     public function getOnlyRelatedPersons(): array
     {
-        $persons = [];
-        $allPatrons = $this->getAllPatrons();
-        $allScribes = $this->getAllSCribes();
-        foreach ($this->relatedPersons as $relatedPerson) {
-            if (!array_key_exists($relatedPerson->getId(), $allPatrons)
-                && !array_key_exists($relatedPerson->getId(), $allScribes)
-            ) {
-                $persons[$relatedPerson->getId()] = $relatedPerson;
+        if (!isset($this->personRoles['related'])) {
+            return [];
+        }
+        $result = [];
+        $relatedPersons = $this->personRoles['related'][1];
+        $allPersonRoles = $this->getAllPersonRoles();
+        foreach ($relatedPersons as $relatedPersonId => $relatedPerson) {
+            $found = false;
+            foreach ($allPersonRoles as $roleName => $personRole) {
+                if ($roleName == 'related') {
+                    continue;
+                }
+                if (isset($personRole[1][$relatedPersonId])) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $result[$relatedPersonId] = $relatedPerson;
             }
         }
-        return $persons;
+        return $result;
+    }
+
+    public function getOnlyPublicRelatedPersons(): array
+    {
+        if (!isset($this->personRoles['related'])) {
+            return [];
+        }
+        $result = [];
+        $relatedPersons = $this->personRoles['related'][1];
+        $allPersonRoles = $this->getAllPublicPersonRoles();
+        foreach ($relatedPersons as $relatedPersonId => $relatedPerson) {
+            if (!$relatedPerson->getPublic()) {
+                continue;
+            }
+            $found = false;
+            foreach ($allPersonRoles as $roleName => $personRole) {
+                if ($roleName == 'related') {
+                    continue;
+                }
+                if (isset($personRole[1][$relatedPersonId])) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $result[$relatedPersonId] = $relatedPerson;
+            }
+        }
+        return $result;
     }
 
     public function setOrigin(Origin $origin): Manuscript
@@ -248,14 +284,8 @@ class Manuscript extends Document implements IdJsonInterface
         if (!empty($this->contentsWithParents)) {
             $result['content'] = ArrayToJson::arrayToShortJson($this->contentsWithParents);
         }
-        if (!empty($this->occurrencePatrons)) {
-            $result['occurrencePatrons'] = self::getOccurrencePersonsJson($this->occurrencePatrons);
-        }
-        if (!empty($this->occurrenceScribes)) {
-            $result['occurrenceScribes'] = self::getOccurrencePersonsJson($this->occurrenceScribes);
-        }
-        if (!empty($this->relatedPersons)) {
-            $result['relatedPersons'] = ArrayToJson::arrayToShortJson($this->relatedPersons);
+        if (!empty($this->occurrencePersonRoles)) {
+            $result['occurrencePersonRoles'] = $this->getOccurrencePersonRolesJson();
         }
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
@@ -301,33 +331,17 @@ class Manuscript extends Document implements IdJsonInterface
         if (isset($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
-        if (!empty($this->getAllPatrons())) {
-            $result['patron'] = ArrayToJson::arrayToShortJson($this->getAllPatrons());
+        $personRoles = $this->getAllPersonRoles();
+        if (isset($personRoles['patron'])) {
+            $result['patron'] = ArrayToJson::arrayToShortJson($personRoles['patron'][1]);
         }
-        if (!empty($this->getAllSCribes())) {
-            $result['scribe'] = ArrayToJson::arrayToShortJson($this->getAllSCribes());
+        if (isset($personRoles['scribe'])) {
+            $result['scribe'] = ArrayToJson::arrayToShortJson($personRoles['scribe'][1]);
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
         }
 
-        return $result;
-    }
-
-    private static function getOccurrencePersonsJson(array $occurrencePersons): array
-    {
-        $result = [];
-        foreach ($occurrencePersons as $occurrencePerson) {
-            $person = array_shift($occurrencePerson);
-            $row = $person->getShortJson();
-            $row['occurrences'] = array_map(
-                function ($occurrence) {
-                    return $occurrence->getDescription();
-                },
-                $occurrencePerson
-            );
-            $result[] = $row;
-        }
         return $result;
     }
 }

@@ -220,8 +220,6 @@ export default {
             this.$refs.form.validate()
         },
     },
-    // set year min and max values
-
     methods: {
         calcChanges() {
             this.changes = []

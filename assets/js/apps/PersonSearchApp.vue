@@ -90,18 +90,18 @@
                     {{ formatIdentification(props.row) }}
                 </template>
                 <template
-                    v-if="props.row.function"
-                    slot="functions"
+                    v-if="props.row.office"
+                    slot="offices"
                     slot-scope="props">
-                    <ul v-if="props.row.function.length > 1">
+                    <ul v-if="props.row.office.length > 1">
                         <li
-                            v-for="(func, index) in props.row.function"
+                            v-for="(func, index) in props.row.office"
                             :key="index">
                             {{ func.name }}
                         </li>
                     </ul>
                     <template v-else>
-                        {{ props.row.function[0].name }}
+                        {{ props.row.office[0].name }}
                     </template>
                 </template>
                 <template
@@ -212,12 +212,8 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Types</td>
-                        <td>{{ formatOccupations(mergeModel.primary.types) || formatOccupations(mergeModel.secondary.types) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Functions</td>
-                        <td>{{ formatOccupations(mergeModel.primary.functions) || formatOccupations(mergeModel.secondary.functions) }}</td>
+                        <td>Offices</td>
+                        <td>{{ formatOffices(mergeModel.primary.offices) || formatOffices(mergeModel.secondary.offices) }}</td>
                     </tr>
                     <tr>
                         <td>Public comment</td>
@@ -311,8 +307,8 @@ export default {
                         max: AbstractSearch.YEAR_MAX,
                         validator: VueFormGenerator.validators.number,
                     },
-                    type: this.createMultiSelect('Type'),
-                    function: this.createMultiSelect('Function'),
+                    role: this.createMultiSelect('Role'),
+                    office: this.createMultiSelect('Office'),
                     comment: {
                         type: 'input',
                         inputType: 'text',
@@ -396,7 +392,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'functions', 'date']
+            let columns = ['name', 'identification', 'offices', 'date']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }
@@ -481,11 +477,11 @@ export default {
             let death = death_floor === death_ceiling ? death_floor : death_floor + '-' + death_ceiling
             return born === death ? born : '(' + born + ') - (' + death + ')'
         },
-        formatOccupations(occupations) {
-            if (occupations == null || occupations.length === 0) {
+        formatOffices(offices) {
+            if (offices == null || offices.length === 0) {
                 return null
             }
-            return occupations.map(occupation => occupation.name).join(', ')
+            return offices.map(office => office.name).join(', ')
         },
         hasIdentification(person) {
             for (let identifier of this.identifiers) {

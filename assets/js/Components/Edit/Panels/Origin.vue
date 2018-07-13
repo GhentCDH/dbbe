@@ -38,19 +38,9 @@ export default {
             }
         }
     },
-    watch: {
-        values() {
-            this.init()
-        },
-        model() {
-            this.init()
-        }
-    },
-    mounted () {
-        this.init()
-    },
     methods: {
         init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.origin)
         },
         validate() {

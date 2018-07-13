@@ -50,12 +50,6 @@ export default {
         }
     },
     watch: {
-        values() {
-            this.init()
-        },
-        model() {
-            this.init()
-        },
         'model.location.regionWithParents'() {
             this.cityChange()
         },
@@ -65,9 +59,6 @@ export default {
         'model.location.collection'() {
             this.collectionChange()
         },
-    },
-    mounted() {
-        this.init()
     },
     methods: {
         init() {

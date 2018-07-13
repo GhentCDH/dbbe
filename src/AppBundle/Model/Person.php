@@ -14,21 +14,55 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     private $unprocessed;
     private $bornDate;
     private $deathDate;
-    private $occupations;
+    private $offices;
     private $historical;
     private $modern;
-    private $manuscripts;
+    /**
+     * Array containing all manuscriptroles
+     * Structure:
+     *  [
+     *      role_system_name => [
+     *          role,
+     *          [
+     *              manuscript_id => manuscript,
+     *              manuscript_id => manuscript,
+     *          ],
+     *      ],
+     *      role_system_name => [...],
+     *  ]
+     * @var array
+     */
+    private $manuscriptRoles;
+    /**
+     * Array containing all manuscriptroles inherited via occurrences
+     * Structure:
+     *  [
+     *      role_system_name => [
+     *          role,
+     *          [
+     *              manuscript_id => [
+     *                  manuscript, occurrence, occurrence, ...
+     *              ],
+     *              manuscript_id => [
+     *                  manuscript, occurrence, occurrence, ...
+     *              ],
+     *          ],
+     *      ],
+     *      role_system_name => [...],
+     *  ]
+     * @var array
+     */
+    private $occurrenceManuscriptRoles;
+    // TODO: occurrences, types
+    // TODO: articles, books, bookChapters
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->occupations = [];
-        $this->manuscripts = [
-            'patron' => [],
-            'scribe' => [],
-            'related' => [],
-        ];
+        $this->offices = [];
+        $this->manuscriptRoles = [];
+        $this->occurrenceManuscriptRoles = [];
 
         return $this;
     }
@@ -105,11 +139,23 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this->deathDate;
     }
 
-    public function addOccupation(Occupation $occupation): Person
+    public function addRole(Role $role): Person
     {
-        $this->occupations[$occupation->getId()] = $occupation;
+        $this->roles[$role->getId()] = $role;
 
         return $this;
+    }
+
+    public function addOffice(Office $office): Person
+    {
+        $this->offices[$office->getId()] = $office;
+
+        return $this;
+    }
+
+    public function getOffices(): array
+    {
+        return $this->offices;
     }
 
     public function setHistorical(bool $historical = null): Person
@@ -136,51 +182,131 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $this->modern;
     }
 
-    public function addManuscript(Manuscript $manuscript, string $type): Person
+    public function addManuscriptRole(Role $role, Manuscript $manuscript): Person
     {
-        // Only add manuscript of not yet in the array of this type
-        if (!array_key_exists($manuscript->getId(), $this->manuscripts[$type])) {
-            $this->manuscripts[$type][$manuscript->getId()] = $manuscript;
+        if (!isset($this->manuscriptRoles[$role->getSystemName()])) {
+            $this->manuscriptRoles[$role->getSystemName()] = [$role, []];
+        }
+        if (!isset($this->manuscriptRoles[$role->getSystemName()][1][$manuscript->getId()])) {
+            $this->manuscriptRoles[$role->getSystemName()][1][$manuscript->getId()] = $manuscript;
         }
 
         return $this;
     }
 
-    public function getPatronManuscripts(): array
+    public function addOccurrenceManuscriptRole(Role $role, Manuscript $manuscript, Occurrence $occurrence): Person
     {
-        $patron = $this->manuscripts['patron'];
-        usort(
-            $patron,
-            function ($a, $b) {
-                return strcmp($a->getName(), $b->getName());
-            }
-        );
-        return ($patron);
+        if (!isset($this->occurrenceManuscriptRoles[$role->getSystemName()])) {
+            $this->occurrenceManuscriptRoles[$role->getSystemName()] = [$role, []];
+        }
+        if (!isset($this->occurrenceManuscriptRoles[$role->getSystemName()][1][$manuscript->getId()])) {
+            $this->occurrenceManuscriptRoles[$role->getSystemName()][1][$manuscript->getId()] = [$manuscript];
+        }
+        $this->occurrenceManuscriptRoles[$role->getSystemName()][1][$manuscript->getId()][] = $occurrence;
+
+        return $this;
     }
 
-    public function getScribeManuscripts(): array
+    public function getAllManuscriptRoles(): array
     {
-        $scribe = $this->manuscripts['scribe'];
-        usort(
-            $scribe,
-            function ($a, $b) {
-                return strcmp($a->getName(), $b->getName());
+        $manuscriptRoles = $this->manuscriptRoles;
+        foreach ($this->occurrenceManuscriptRoles as $roleName => $occurrenceManuscriptRole) {
+            $role = array_shift($occurrenceManuscriptRole);
+            if (!isset($manuscriptRoles[$roleName])) {
+                $manuscriptRoles[$roleName] = [$role, []];
             }
-        );
-        return ($scribe);
+            foreach ($occurrenceManuscriptRole[0] as $manuscriptId => $occurrenceManuscript) {
+                if (!isset($manuscriptRoles[$roleName][$manuscriptId])) {
+                    $manuscript = array_shift($occurrenceManuscript);
+                    // if all occurrences linked to a manuscript are not public, indicate manuscript as not public
+                    if ($manuscript->getPublic()) {
+                        $public = false;
+                        foreach ($occurrenceManuscript as $occurrence) {
+                            if ($occurrence->getPublic()) {
+                                $public = true;
+                                break;
+                            }
+                        }
+                        if (!$public) {
+                            $manuscript->setPublic(false);
+                        }
+                    }
+                    $manuscriptRoles[$roleName][1][$manuscriptId] = $manuscript;
+                }
+            }
+        }
+        return $manuscriptRoles;
     }
 
-    public function getRelatedManuscripts(): array
+    public function getAllPublicManuscriptRoles(): array
     {
-        // only return manuscripts with related link that do not have a patron or scribe link
-        $onlyRelated = array_diff_key($this->manuscripts['related'], $this->manuscripts['patron'], $this->manuscripts['scribe']);
-        usort(
-            $onlyRelated,
-            function ($a, $b) {
-                return strcmp($a->getName(), $b->getName());
+        $manuscriptRoles = $this->getAllManuscriptRoles();
+        foreach ($manuscriptRoles as $roleName => $manuscriptRole) {
+            foreach ($manuscriptRole[1] as $manuscriptId => $manuscript) {
+                if (!$person->getPublic()) {
+                    unset($manuscriptRoles[$roleName][1][$manuscriptId]);
+                }
             }
-        );
-        return $onlyRelated;
+            if (empty($manuscriptRoles[$roleName][1])) {
+                unset($manuscriptRoles[$roleName]);
+            }
+        }
+        return $manuscriptRoles;
+    }
+
+    public function getOnlyRelatedManuscripts(): array
+    {
+        if (!isset($this->manuscriptRoles['related'])) {
+            return [];
+        }
+        $result = [];
+        $relatedManuscripts = $this->manuscriptRoles['related'][1];
+        $allManuscriptRoles = $this->getAllManuscriptRoles();
+        foreach ($relatedManuscripts as $relatedManuscriptId => $relatedManuscript) {
+            $found = false;
+            foreach ($allManuscriptRoles as $roleName => $manuscriptrole) {
+                if ($roleName == 'related') {
+                    continue;
+                }
+                if (isset($manuscriptrole[1][$relatedManuscriptId])) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $result[$relatedManuscriptId] = $relatedManuscript;
+            }
+        }
+        return $result;
+    }
+
+    public function getOnlyPublicRelatedPersons(): array
+    {
+        if (!isset($this->manuscriptRoles['related'])) {
+            return [];
+        }
+        $result = [];
+        $relatedManuscripts = $this->manuscriptRoles['related'][1];
+        $allManuscriptRoles = $this->getAllPublicManuscriptRoles();
+        foreach ($relatedManuscripts as $relatedManuscriptId => $relatedManuscript) {
+            if (!$relatedManuscript->getPublic()) {
+                continue;
+            }
+            $found = false;
+            foreach ($allManuscriptRoles as $roleName => $manuscriptrole) {
+                if ($roleName == 'related') {
+                    continue;
+                }
+                if (isset($manuscriptrole[1][$relatedManuscriptId])) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $result[$relatedManuscriptId] = $relatedManuscript;
+            }
+        }
+        return $result;
     }
 
     public function getName(): string
@@ -199,20 +325,6 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     public function getInterval(): FuzzyInterval
     {
         return new FuzzyInterval($this->bornDate, $this->deathDate);
-    }
-
-    public function getTypes(): array
-    {
-        return array_filter($this->occupations, function ($occupation) {
-            return !$occupation->getIsFunction();
-        });
-    }
-
-    public function getFunctions(): array
-    {
-        return array_filter($this->occupations, function ($occupation) {
-            return $occupation->getIsFunction();
-        });
     }
 
     public function getFullDescription(): string
@@ -239,12 +351,12 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $description;
     }
 
-    public function getFullDescriptionWithOccupations(): string
+    public function getFullDescriptionWithOffices(): string
     {
         $description = $this->getFullDescription();
 
-        if (!empty($this->getFunctions())) {
-            $description .= ' (' . implode(', ', $this->getFunctions()) . ')';
+        if (!empty($this->offices)) {
+            $description .= ' (' . implode(', ', $this->offices) . ')';
         }
 
         return $description;
@@ -276,7 +388,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
     {
         $result = parent::getJson();
 
-        $result['name'] = $this->getFullDescriptionWithOccupations();
+        $result['name'] = $this->getFullDescriptionWithOffices();
         $result['historical'] = $this->historical;
         $result['modern'] = $this->modern;
 
@@ -298,11 +410,8 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
         }
-        if (!empty($this->getTypes())) {
-            $result['types'] = ArrayToJson::arrayToShortJson($this->getTypes());
-        }
-        if (!empty($this->getFunctions())) {
-            $result['functions'] = ArrayToJson::arrayToShortJson($this->getFunctions());
+        if (!empty($this->offices)) {
+            $result['office'] = ArrayToJson::arrayToShortJson($this->offices);
         }
 
         return $result;
@@ -328,11 +437,11 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         if (isset($this->deathDate) && !empty($this->deathDate->getCeiling())) {
             $result['death_date_ceiling_year'] = intval($this->deathDate->getCeiling()->format('Y'));
         }
-        if (!empty($this->getTypes())) {
-            $result['type'] = ArrayToJson::arrayToShortJson($this->getTypes());
+        if (!empty($this->roles)) {
+            $result['role'] = ArrayToJson::arrayToShortJson($this->roles);
         }
-        if (!empty($this->getFunctions())) {
-            $result['function'] = ArrayToJson::arrayToShortJson($this->getFunctions());
+        if (!empty($this->offices)) {
+            $result['office'] = ArrayToJson::arrayToShortJson($this->offices);
         }
 
         return $result;

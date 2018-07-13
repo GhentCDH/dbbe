@@ -3,18 +3,18 @@
 {% block content %}
     <div class="col-xs-12">
         <h2 class="h1">
-            Edit occupations
+            Edit Offices
         </h2>
     </div>
-    <div id="occupations-edit-app">
-        <occupations-edit-app
+    <div id="offices-edit-app">
+        <offices-edit-app
             init-urls="{{ urls }}"
-            init-data="{{ occupations }}"
+            init-data="{{ offices }}"
         />
     </div>
 {% endblock %}
 
 {% block javascript %}
     <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("/build/occupationsedit.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/officesedit.js") }}"></script>
 {% endblock %}

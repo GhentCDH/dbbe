@@ -35,11 +35,15 @@ export default {
         }
     },
     watch: {
+        // Only called when a new key is added to a specific model, so make sure to initialize correctly
         model() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-        }
+            this.init()
+        },
     },
     methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+        },
         calcChanges() {
             this.changes = []
             if (this.originalModel == null) {

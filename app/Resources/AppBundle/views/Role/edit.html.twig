@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-12">
+        <h2 class="h1">
+            Edit Roles
+        </h2>
+    </div>
+    <div id="roles-edit-app">
+        <roles-edit-app
+            init-urls="{{ urls }}"
+            init-data="{{ roles }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/rolesedit.js") }}"></script>
+{% endblock %}

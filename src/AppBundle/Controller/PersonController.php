@@ -137,20 +137,20 @@ class PersonController extends Controller
     }
 
     /**
-     * Get all persons that have a dependency on an occupation
-     * (person_occupation)
-     * @Route("/persons/occupations/{id}", name="person_deps_by_occupation")
+     * Get all persons that have a dependency on an office
+     * (person_office)
+     * @Route("/persons/offices/{id}", name="person_deps_by_office")
      * @Method("GET")
-     * @param  int    $id occupation id
+     * @param  int    $id office id
      * @param Request $request
      */
-    public function getPersonDepsByOccupation(int $id, Request $request)
+    public function getPersonDepsByOffice(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $persons = $this
                 ->get('person_manager')
-                ->getPersonsDependenciesByOccupation($id);
+                ->getPersonsDependenciesByOffice($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($persons));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -298,15 +298,14 @@ class PersonController extends Controller
                     'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
                     'person_post' => $this->generateUrl('person_post'),
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
-                    'occupations_edit' => $this->generateUrl('occupations_edit'),
+                    'offices_edit' => $this->generateUrl('offices_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'person' => empty($id)
                         ? null
                         : $this->get('person_manager')->getPersonById($id)->getJson(),
-                    'types' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllTypes()),
-                    'functions' => ArrayToJson::arrayToShortJson($this->get('occupation_manager')->getAllFunctions()),
+                    'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAllOffices()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))

@@ -3,7 +3,7 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 class="h1{% if not person.getPublic() %} text-danger{% endif %}">
-            Person "{{ person.getFullDescriptionWithOccupations() }}"
+            Person "{{ person.getFullDescriptionWithOffices() }}"
             {% if not person.getPublic() %}
                 - Not Public
             {% endif %}
@@ -25,23 +25,11 @@
                         <td>{{ person.getInterval() }}</td>
                     </tr>
                 {% endif %}
-                {% if person.getTypes() is not empty %}
+                {% if person.getOffices() is not empty %}
                     <tr>
-                        <td>Type(s)</td>
+                        <td>Office</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getTypes()} only %}
-                                {% block renderItem %}
-                                    {{ item.getName() }}
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
-                    </tr>
-                {% endif %}
-                {% if person.getFunctions() is not empty %}
-                    <tr>
-                        <td>Function(s)</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getFunctions()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getOffices()} only %}
                                 {% block renderItem %}
                                     {{ item.getName() }}
                                 {% endblock %}
@@ -62,34 +50,27 @@
                     </tr>
                 {% endif %}
                 <!-- TODO: occurrences, types -->
-                {% set patronManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getPatronManuscripts() : person.getPatronManuscripts()|public %}
-                {% set scribeManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getScribeManuscripts() : person.getScribeManuscripts()|public %}
-                {% set relatedManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getRelatedManuscripts() : person.getRelatedManuscripts()|public %}
-                {% if patronManuscripts is not empty or scribeManuscripts is not empty or relatedManuscripts is not empty%}
+                {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getAllManuscriptRoles() : person.getAllPublicManuscriptRoles() %}
+                {% if manuscriptRoles is not empty %}
                     <tr>
-                        <td>Manuscripts</td>
+                        <td>Manuscript(s)</td>
                         <td>
-                            {% if patronManuscripts is not empty %}
-                                <h6>As patron:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': patronManuscripts, 'forceList': true} only %}
-                                    {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
-                                    {% endblock %}
-                                {% endembed %}
-                            {% endif %}
-                            {% if scribeManuscripts is not empty %}
-                                <h6>As scribe:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': scribeManuscripts, 'forceList': true} only %}
-                                    {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
-                                    {% endblock %}
-                                {% endembed %}
-                            {% endif %}
+                            {% for rolename, manuscriptRole in manuscriptRoles %}
+                                {% if rolename != 'related' %}
+                                    <h6>As {{ manuscriptRole[0].getName() }}:</h6>
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptRole[1]} only %}
+                                        {% block renderItem %}
+                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endif %}
+                            {% endfor %}
+                            {% set relatedManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getOnlyRelatedManuscripts() : person.getOnlyPublicRelatedManuscripts() %}
                             {% if relatedManuscripts is not empty %}
-                                <h6>As related person:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts, 'forceList': true} only %}
+                                <h6>Related:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts} only %}
                                     {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get','display': item.getName()} only %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get', 'display': item.getName()} only %}
                                     {% endblock %}
                                 {% endembed %}
                             {% endif %}

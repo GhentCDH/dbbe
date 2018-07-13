@@ -13,20 +13,21 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class OccupationController extends Controller
+class RoleController extends Controller
 {
     /**
-     * @Route("/occupations", name="occupations_get")
+     * @Route("/roles", name="roles_get")
+     * @Method("GET")
      * @param Request $request
      */
-    public function getOccupations(Request $request)
+    public function getRoles(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
                 ArrayToJson::arrayToJson(
-                    $this->get('occupation_manager')->getAllOccupations()
+                    $this->get('role_manager')->getAllRoles()
                 )
             );
         }
@@ -34,28 +35,30 @@ class OccupationController extends Controller
     }
 
     /**
-     * @Route("/occupations/edit", name="occupations_edit")
+     * @Route("/roles/edit", name="roles_edit")
+     * @Method("GET")
      * @param Request $request
      */
-    public function editOccupations(Request $request)
+    public function editRoles(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         return $this->render(
-            'AppBundle:Occupation:edit.html.twig',
+            'AppBundle:Role:edit.html.twig',
             [
                 'urls' => json_encode([
-                    'occupations_get' => $this->generateUrl('occupations_get'),
-                    'person_deps_by_occupation' => $this->generateUrl('person_deps_by_occupation', ['id' => 'occupation_id']),
-                    'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
-                    'occupation_post' => $this->generateUrl('occupation_post'),
-                    'occupation_put' => $this->generateUrl('occupation_put', ['id' => 'occupation_id']),
-                    'occupation_delete' => $this->generateUrl('occupation_delete', ['id' => 'occupation_id']),
+                    'roles_get' => $this->generateUrl('roles_get'),
+                    'manuscript_deps_by_role' => $this->generateUrl('manuscript_deps_by_role', ['id' => 'role_id']),
+                    // TODO: occurrences, types
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'role_post' => $this->generateUrl('role_post'),
+                    'role_put' => $this->generateUrl('role_put', ['id' => 'role_id']),
+                    'role_delete' => $this->generateUrl('role_delete', ['id' => 'role_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
-                'occupations' => json_encode(
+                'roles' => json_encode(
                     ArrayToJson::arrayToJson(
-                        $this->get('occupation_manager')->getAllOccupations()
+                        $this->get('role_manager')->getAllRoles()
                     )
                 ),
             ]
@@ -63,19 +66,19 @@ class OccupationController extends Controller
     }
 
     /**
-     * @Route("/occupations/", name="occupation_post")
+     * @Route("/roles", name="role_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postOccupation(Request $request)
+    public function postRole(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
-            $occupation = $this
-                ->get('occupation_manager')
-                ->addOccupation(json_decode($request->getContent()));
+            $role = $this
+                ->get('role_manager')
+                ->addRole(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -83,24 +86,24 @@ class OccupationController extends Controller
             );
         }
 
-        return new JsonResponse($occupation->getJson());
+        return new JsonResponse($role->getJson());
     }
 
     /**
-     * @Route("/occupations/{id}", name="occupation_put")
+     * @Route("/roles/{id}", name="role_put")
      * @Method("PUT")
-     * @param  int    $id occupation id
+     * @param  int    $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putOccupation(int $id, Request $request)
+    public function putRole(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
-            $occupation = $this
-                ->get('occupation_manager')
-                ->updateOccupation($id, json_decode($request->getContent()));
+            $role = $this
+                ->get('role_manager')
+                ->updateRole($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -113,23 +116,23 @@ class OccupationController extends Controller
             );
         }
 
-        return new JsonResponse($occupation->getJson());
+        return new JsonResponse($role->getJson());
     }
 
     /**
-     * @Route("/occupations/{id}", name="occupation_delete")
+     * @Route("/roles/{id}", name="role_delete")
      * @Method("DELETE")
-     * @param  int    $id occupation id
+     * @param  int    $id role id
      * @return JsonResponse
      */
-    public function deleteOccupation(int $id)
+    public function deleteRole(int $id)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
             $this
-                ->get('occupation_manager')
-                ->delOccupation($id);
+                ->get('role_manager')
+                ->delRole($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

@@ -13,21 +13,21 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class StatusController extends Controller
+class OfficeController extends Controller
 {
     /**
-     * @Route("/statuses", name="statuses_get")
+     * @Route("/offices", name="offices_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function getStatuses(Request $request)
+    public function getOffices(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
                 ArrayToJson::arrayToJson(
-                    $this->get('status_manager')->getAllStatuses()
+                    $this->get('office_manager')->getAllOffices()
                 )
             );
         }
@@ -35,29 +35,29 @@ class StatusController extends Controller
     }
 
     /**
-     * @Route("/statuses/edit", name="statuses_edit")
+     * @Route("/offices/edit", name="offices_edit")
      * @Method("GET")
      * @param Request $request
      */
-    public function editStatuses(Request $request)
+    public function editOffices(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Status:edit.html.twig',
+            'AppBundle:Office:edit.html.twig',
             [
                 'urls' => json_encode([
-                    'statuses_get' => $this->generateUrl('statuses_get'),
-                    'manuscript_deps_by_status' => $this->generateUrl('manuscript_deps_by_status', ['id' => 'status_id']),
-                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                    'status_post' => $this->generateUrl('status_post'),
-                    'status_put' => $this->generateUrl('status_put', ['id' => 'status_id']),
-                    'status_delete' => $this->generateUrl('status_delete', ['id' => 'status_id']),
+                    'offices_get' => $this->generateUrl('offices_get'),
+                    'person_deps_by_office' => $this->generateUrl('person_deps_by_office', ['id' => 'office_id']),
+                    'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
+                    'office_post' => $this->generateUrl('office_post'),
+                    'office_put' => $this->generateUrl('office_put', ['id' => 'office_id']),
+                    'office_delete' => $this->generateUrl('office_delete', ['id' => 'office_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
-                'statuses' => json_encode(
+                'offices' => json_encode(
                     ArrayToJson::arrayToJson(
-                        $this->get('status_manager')->getAllStatuses()
+                        $this->get('office_manager')->getAllOffices()
                     )
                 ),
             ]
@@ -65,19 +65,19 @@ class StatusController extends Controller
     }
 
     /**
-     * @Route("/statuses", name="status_post")
+     * @Route("/offices", name="office_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postStatus(Request $request)
+    public function postOffice(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $status = $this
-                ->get('status_manager')
-                ->addStatus(json_decode($request->getContent()));
+            $office = $this
+                ->get('office_manager')
+                ->addOffice(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -85,24 +85,24 @@ class StatusController extends Controller
             );
         }
 
-        return new JsonResponse($status->getJson());
+        return new JsonResponse($office->getJson());
     }
 
     /**
-     * @Route("/statuses/{id}", name="status_put")
+     * @Route("/offices/{id}", name="office_put")
      * @Method("PUT")
-     * @param  int    $id status id
+     * @param  int    $id office id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putStatus(int $id, Request $request)
+    public function putOffice(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
-            $status = $this
-                ->get('status_manager')
-                ->updateStatus($id, json_decode($request->getContent()));
+            $office = $this
+                ->get('office_manager')
+                ->updateOffice($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -115,23 +115,23 @@ class StatusController extends Controller
             );
         }
 
-        return new JsonResponse($status->getJson());
+        return new JsonResponse($office->getJson());
     }
 
     /**
-     * @Route("/statuses/{id}", name="status_delete")
+     * @Route("/offices/{id}", name="office_delete")
      * @Method("DELETE")
-     * @param  int    $id status id
+     * @param  int    $id office id
      * @return JsonResponse
      */
-    public function deleteStatus(int $id)
+    public function deleteOffice(int $id)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
             $this
-                ->get('status_manager')
-                ->delStatus($id);
+                ->get('office_manager')
+                ->delOffice($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

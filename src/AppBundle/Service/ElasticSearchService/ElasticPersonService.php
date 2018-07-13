@@ -32,8 +32,8 @@ class ElasticPersonService extends ElasticSearchService
         $mapping->setType($this->type);
         $mapping->setProperties(
             [
-                'function' => ['type' => 'nested'],
-                'type' => ['type' => 'nested'],
+                'role' => ['type' => 'nested'],
+                'office' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
@@ -71,7 +71,7 @@ class ElasticPersonService extends ElasticSearchService
         foreach ($result['data'] as $key => $value) {
             unset($result['data'][$key]['historical']);
             unset($result['data'][$key]['modern']);
-            unset($result['data'][$key]['type']);
+            unset($result['data'][$key]['role']);
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
                 unset($result['data'][$key]['public_comment']);
@@ -82,7 +82,7 @@ class ElasticPersonService extends ElasticSearchService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'modern', 'type', 'function', 'public'])),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'modern', 'role', 'office', 'public'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -139,8 +139,8 @@ class ElasticPersonService extends ElasticSearchService
                         }
                         $result['date_range'][] = $date_result;
                         break;
-                    case 'function':
-                    case 'type':
+                    case 'role':
+                    case 'office':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

@@ -11,7 +11,8 @@
             :schema="schema"
             :model="submitModel"
             :options="formOptions"
-            @validated="editFormValidated" />
+            @validated="editFormValidated"
+            ref="edit" />
         <div slot="header">
             <h4
                 v-if="submitModel[submitModel.type] && submitModel[submitModel.type].id"
@@ -35,7 +36,7 @@
             <btn
                 type="success"
                 :disabled="invalidEditForm || JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
-                @click="$emit('confirm')">
+                @click="confirm()">
                 {{ submitModel[submitModel.type] && submitModel[submitModel.type].id ? 'Update' : 'Add' }}
             </btn>
         </div>
@@ -83,6 +84,11 @@ export default {
         editFormValidated(isValid, errors) {
             this.invalidEditForm = !isValid
         },
+        confirm() {
+            if (this.$refs.edit.validate()) {
+                this.$emit('confirm')
+            }
+        }
     }
 }
 </script>

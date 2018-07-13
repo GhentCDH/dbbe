@@ -212,7 +212,7 @@ class ManuscriptController extends Controller
 
     /**
      * Get all manuscripts that have a dependency on a person
-     * (bibrole)
+     * (bibrole, factoid)
      * @Route("/manuscripts/persons/{id}", name="manuscript_deps_by_person")
      * @Method("GET")
      * @param  int    $id person id
@@ -225,6 +225,27 @@ class ManuscriptController extends Controller
             $manuscripts = $this
                 ->get('manuscript_manager')
                 ->getManuscriptsDependenciesByPerson($id);
+            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
+        } else {
+            throw new BadRequestHttpException('Only JSON requests allowed.');
+        }
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on a role
+     * (bibrole)
+     * @Route("/manuscripts/roles/{id}", name="manuscript_deps_by_role")
+     * @Method("GET")
+     * @param  int    $id role id
+     * @param Request $request
+     */
+    public function getManuscriptDepsByRole(int $id, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $manuscripts = $this
+                ->get('manuscript_manager')
+                ->getManuscriptsDependenciesByRole($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -359,9 +380,7 @@ class ManuscriptController extends Controller
                         : $this->get('manuscript_manager')->getManuscriptById($id)->getJson(),
                     'locations' => ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts()),
                     'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
-                    'patrons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllPatrons()),
-                    'scribes' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllSCribes()),
-                    'relatedPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
+                    'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
@@ -371,6 +390,9 @@ class ManuscriptController extends Controller
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('manuscript'))
+                ),
+                'roles' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('manuscript'))
                 ),
             ]
         );

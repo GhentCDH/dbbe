@@ -1,67 +1,35 @@
 <template>
     <panel :header="header">
-        <vue-form-generator
-            :schema="patronsSchema"
-            :model="model"
-            :options="formOptions"
-            ref="patronsForm"
-            @validated="validated" />
-        <div
-            v-if="occurrencePatrons.length > 0"
-            class="small">
-            <p>Patron(s) provided by occurrences:</p>
-            <ul>
-                <li
-                    v-for="patron in occurrencePatrons"
-                    :key="patron.id">
-                    {{ patron.name }}
-                    <ul>
-                        <li
-                            v-for="(occurrence, index) in patron.occurrences"
-                            :key="index">
-                            {{ occurrence }}
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <vue-form-generator
-            :schema="scribesSchema"
-            :model="model"
-            :options="formOptions"
-            ref="scribesForm"
-            @validated="validated" />
-        <div
-            v-if="occurrenceScribes.length > 0"
-            class="small">
-            <p>Scribe(s) provided by occurrences:</p>
-            <ul>
-                <li
-                    v-for="scribe in occurrenceScribes"
-                    :key="scribe.id">
-                    {{ scribe.name }}
-                    <ul>
-                        <li
-                            v-for="(occurrence, index) in scribe.occurrences"
-                            :key="index">
-                            {{ occurrence }}
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <vue-form-generator
-            v-if="values && values.relatedPersons"
-            :schema="relatedPersonsSchema"
-            :model="model"
-            :options="formOptions"
-            ref="relatedPersonsForm"
-            @validated="validated" />
-        <div
-            v-if="values && values.relatedPersons"
-            class="small">
-            <p>Related persons are persons that are related to this manuscript but that are not a patron or a scribe of the manuscript or of occurrences related to the manuscript.</p>
-        </div>
+        <template v-for="role in roles">
+            <vue-form-generator
+                :key="'form_' + role.systemName"
+                :schema="schemas[role.systemName]"
+                :model="model"
+                :options="formOptions"
+                ref="forms"
+                @validated="validated" />
+            <div
+                :key="'occ_' + role.systemName"
+                v-if="occurrencePersonRoles[role.systemName]"
+                class="small">
+                <p>{{ role.name }}(s) provided by occurrences:</p>
+                <ul>
+                    <li
+                        v-for="person in occurrencePersonRoles[role.systemName]"
+                        :key="person.id">
+                        {{ person.name }}
+                        <ul>
+                            <li
+                                v-for="(occurrence, index) in person.occurrences"
+                                :key="index"
+                                class="greek">
+                                {{ occurrence }}
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </template>
     </panel>
 </template>
 <script>
@@ -84,70 +52,42 @@ export default {
         AbstractPanelForm,
     ],
     props: {
-        occurrencePatrons: {
+        roles: {
             type: Array,
             default: () => {return []}
         },
-        occurrenceScribes: {
-            type: Array,
-            default: () => {return []}
-        },
-        values: {
+        occurrencePersonRoles: {
             type: Object,
             default: () => {return {}}
         },
     },
     data() {
-        return {
-            patronsSchema: {
-                fields: {
-                    patrons: this.createMultiSelect(
-                        'Patrons',
-                        {values: this.values.patrons},
-                        {multiple: true, closeOnSelect: false}
-                    ),
-                }
-            },
-            scribesSchema: {
-                fields: {
-                    scribes: this.createMultiSelect(
-                        'Scribes',
-                        {values: this.values.scribes},
-                        {multiple: true, closeOnSelect: false}
-                    ),
-                }
-            },
-            relatedPersonsSchema: {
-                fields: {
-                    relatedPersons: this.createMultiSelect(
-                        'Related Persons',
-                        {values: this.values.relatedPersons},
-                        {multiple: true, closeOnSelect: false}
-                    ),
-                }
-            },
+        let data = {
+            schemas: {},
+            refs: {},
         }
+        for (let role of this.roles) {
+            let fields = {}
+            fields[role.systemName] = this.createMultiSelect(
+                role.name,
+                {values: this.values},
+                {multiple: true, closeOnSelect: false}
+            )
+            data.schemas[role.systemName] = {
+                fields: fields,
+            }
+            data.refs[role.systemName] = role.systemName + 'Form'
+        }
+        return data
     },
     computed: {
         fields() {
-            return Object.assign(
-                {},
-                this.patronsSchema.fields,
-                this.scribesSchema.fields,
-                this.relatedPersonsSchema.fields
-            )
+            let fields = {}
+            for (let role of this.roles) {
+                fields[role.systemName] = this.schemas[role.systemName]['fields'][role.systemName]
+            }
+            return fields
         }
-    },
-    watch: {
-        values() {
-            this.init()
-        },
-        model() {
-            this.init()
-        }
-    },
-    mounted () {
-        this.init()
     },
     methods: {
         init() {
@@ -155,24 +95,15 @@ export default {
             this.enableFields()
         },
         enableFields() {
-            this.enableField(this.patronsSchema.fields.patrons)
-            this.enableField(this.scribesSchema.fields.scribes)
-            if (this.values.relatedPersons) {
-                this.enableField(this.relatedPersonsSchema.fields.relatedPersons)
+            for (let role of this.roles) {
+                this.enableField(this.schemas[role.systemName]['fields'][role.systemName])
             }
         },
         validate() {
-            this.$refs.patronsForm.validate()
-            this.$refs.scribesForm.validate()
-            if (this.values.relatedPersons) {
-                this.$refs.relatedPersonsForm.validate()
+            for (let form of this.$refs.forms) {
+                form.validate()
             }
         },
-        validated(isValid, errors) {
-            this.isValid = isValid
-            this.calcChanges()
-            this.$emit('validated', isValid, this.errors, this)
-        }
     }
 }
 </script>

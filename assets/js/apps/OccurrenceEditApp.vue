@@ -174,10 +174,7 @@ export default {
     },
     created () {
         this.occurrence = this.data.occurrence
-        this.persons = {
-            patrons: this.data.patrons,
-            scribes: this.data.scribes,
-        }
+        this.persons = this.data.historicalPersons
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
