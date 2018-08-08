@@ -186,8 +186,8 @@ export default {
                     meter: this.createMultiSelect('Meter'),
                     subject: this.createMultiSelect('Subject'),
                     manuscript_content: this.createMultiSelect('Manuscript Content', {model: 'manuscript_content'}),
-                    patron: this.createMultiSelect('Patron'),
-                    scribe: this.createMultiSelect('Scribe'),
+                    person: this.createMultiSelect('Person'),
+                    role: this.createMultiSelect('Role', {dependency: 'person'}),
                     year_from: {
                         type: 'input',
                         inputType: 'number',

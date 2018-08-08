@@ -188,7 +188,7 @@ class Manuscript extends Document implements IdJsonInterface
         return $result;
     }
 
-    public function getOnlyPublicRelatedPersons(): array
+    public function getOnlyRelatedPublicPersons(): array
     {
         if (!isset($this->personRoles['related'])) {
             return [];
@@ -215,6 +215,42 @@ class Manuscript extends Document implements IdJsonInterface
             }
         }
         return $result;
+    }
+
+    /**
+     * Person roles, related persons only contain persons that have no other roles
+     * @return array [description]
+     */
+    public function getFixedRelatedPersonRoles(): array
+    {
+        $allPersonRoles = $this->getAllPersonRoles();
+        if (isset($allPersonRoles['related'])) {
+            $relatedPersonRoles = $this->getOnlyRelatedPersons();
+            if (empty($relatedPersonRoles)) {
+                unset($allPersonRoles['related']);
+            } else {
+                $allPersonRoles['related'][1] = $relatedPersonRoles;
+            }
+        }
+        return $allPersonRoles;
+    }
+
+    /**
+     * Person roles, related persons only contain persons that have no other roles
+     * @return array [description]
+     */
+    public function getFixedRelatedPublicPersonRoles(): array
+    {
+        $allPersonRoles = $this->getAllPublicPersonRoles();
+        if (isset($allPersonRoles['related'])) {
+            $relatedPersonRoles = $this->getOnlyRelatedPublicPersons();
+            if (empty($relatedPersonRoles)) {
+                unset($allPersonRoles['related']);
+            } else {
+                $allPersonRoles['related'][1] = $relatedPersonRoles;
+            }
+        }
+        return $allPersonRoles;
     }
 
     public function setOrigin(Origin $origin): Manuscript
@@ -331,12 +367,8 @@ class Manuscript extends Document implements IdJsonInterface
         if (isset($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
-        $personRoles = $this->getAllPersonRoles();
-        if (isset($personRoles['patron'])) {
-            $result['patron'] = ArrayToJson::arrayToShortJson($personRoles['patron'][1]);
-        }
-        if (isset($personRoles['scribe'])) {
-            $result['scribe'] = ArrayToJson::arrayToShortJson($personRoles['scribe'][1]);
+        foreach ($this->getFixedRelatedPersonRoles() as $roleName => $personRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();

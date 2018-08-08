@@ -16,18 +16,21 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     private $indexPrefix;
     protected $type;
     protected $primaryIdentifiers;
+    protected $roles;
 
     public function __construct(
         array $config,
         string $indexPrefix,
         string $indexName,
         string $typeName,
-        array $primaryIdentifiers
+        array $primaryIdentifiers,
+        array $roles = null
     ) {
         $this->client = new Client($config);
         $this->indexPrefix = $indexPrefix;
         $this->type = $this->getIndex($indexName)->getType($typeName);
         $this->primaryIdentifiers = $primaryIdentifiers;
+        $this->roles = $roles;
     }
 
     public function getIndex($indexName)
@@ -171,6 +174,29 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'multiple_fields_object':
+                    // fieldName = [
+                    //     [multiple_names] (e.g., [patron, scribe, related]),
+                    //      'actual field name' (e.g. 'person'),
+                    //      'dependend field name' (e.g. 'role')
+                    //  ]
+                    foreach ($fieldNames as $fieldName) {
+                        foreach ($fieldName[0] as $key) {
+                            $query->addAggregation(
+                                (new Aggregation\Nested($key, $key))
+                                    ->addAggregation(
+                                        (new Aggregation\Terms('id'))
+                                            ->setSize(MAX)
+                                            ->setField($key . '.id')
+                                            ->addAggregation(
+                                                (new Aggregation\Terms('name'))
+                                                    ->setField($key . '.name.keyword')
+                                            )
+                                    )
+                            );
+                        }
+                    }
+                    break;
             }
         }
 
@@ -219,6 +245,55 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 'id' => $result['key'],
                                 'name' => $result['key_as_string'],
                             ];
+                        }
+                    }
+                    break;
+                case 'multiple_fields_object':
+                    foreach ($fieldNames as $fieldName) {
+                        // fieldName = [
+                        //     [multiple_names] (e.g., [patron, scribe, related]),
+                        //      'actual field name' (e.g. 'person'),
+                        //      'dependent field name' (e.g. 'role')
+                        //  ]
+
+                        //  a filter is set for the actual field name
+                        if (isset($filterValues['multiple_fields_object'][$fieldName[1]])) {
+                            $ids = [];
+                            foreach ($fieldName[0] as $key) {
+                                $aggregation = $searchResult->getAggregation($key);
+                                foreach ($aggregation['id']['buckets'] as $result) {
+                                    if (!in_array($result['key'], $ids)) {
+                                        $ids[] = $result['key'];
+                                        $results[$fieldName[1]][] = [
+                                            'id' => $result['key'],
+                                            'name' => $result['name']['buckets'][0]['key'],
+                                        ];
+                                    }
+
+                                    // check if this result is a result of the actual field filter
+                                    if ($result['key'] == $filterValues['multiple_fields_object'][$fieldName[1]][1]) {
+                                        $results[$fieldName[2]][] = [
+                                            'id' => $key,
+                                            'name' => $this->roles[$key]->getName() . ' (' . $result['doc_count'] . ')',
+                                        ];
+                                    }
+                                }
+                            }
+                        } else {
+                            // prevent duplicate entries
+                            $ids = [];
+                            foreach ($fieldName[0] as $key) {
+                                $aggregation = $searchResult->getAggregation($key);
+                                foreach ($aggregation['id']['buckets'] as $result) {
+                                    if (!in_array($result['key'], $ids)) {
+                                        $ids[] = $result['key'];
+                                        $results[$fieldName[1]][] = [
+                                            'id' => $result['key'],
+                                            'name' => $result['name']['buckets'][0]['key'],
+                                        ];
+                                    }
+                                }
+                            }
                         }
                     }
                     break;
@@ -373,6 +448,23 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'multiple_fields_object':
+                    // options = [[keys], value]
+                    foreach ($filterValues as $key => $options) {
+                        $subQuery = new Query\BoolQuery();
+                        foreach ($options[0] as $key) {
+                            $subQuery->addShould(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery(
+                                        (new Query\BoolQuery())
+                                            ->addMust(['match' => [$key . '.id' => $options[1]]])
+                                    )
+                            );
+                        }
+                        $filterQuery->addMust($subQuery);
+                    }
+                    break;
             }
         }
         return $filterQuery;
@@ -385,6 +477,16 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 return $identifier->getSystemName();
             },
             $this->primaryIdentifiers
+        );
+    }
+
+    protected function getRoleSystemNames(): array
+    {
+        return array_map(
+            function ($role) {
+                return $role->getSystemName();
+            },
+            $this->roles
         );
     }
 

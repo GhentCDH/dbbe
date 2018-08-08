@@ -92,6 +92,7 @@ export default {
                             closeOnSelect: false,
                         }
                     ),
+                    // TODO: systemName niet aanpasbaar maken
                     systemName: {
                         type: 'input',
                         inputType: 'text',

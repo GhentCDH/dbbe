@@ -16,7 +16,8 @@ class ElasticManuscriptService extends ElasticSearchService
             $indexPrefix,
             'manuscripts',
             'manuscript',
-            $container->get('identifier_manager')->getIdentifiersByType('manuscript')
+            $container->get('identifier_manager')->getIdentifiersByType('manuscript'),
+            $container->get('role_manager')->getRolesByType('manuscript')
         );
     }
 
@@ -35,6 +36,7 @@ class ElasticManuscriptService extends ElasticSearchService
                 'content' => ['type' => 'nested'],
                 'patron' => ['type' => 'nested'],
                 'scribe' => ['type' => 'nested'],
+                'related' => ['type' => 'nested'],
                 'origin' => ['type' => 'nested'],
             ]
         );
@@ -63,7 +65,7 @@ class ElasticManuscriptService extends ElasticSearchService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $aggregationFilters = ['city', 'content', 'patron', 'scribe', 'origin', 'public'];
+        $aggregationFilters = ['city', 'content', 'person', 'origin', 'public'];
         if (!empty($params['filters']) && isset($params['filters']['city'])) {
             $aggregationFilters[] = 'library';
         }
@@ -160,6 +162,18 @@ class ElasticManuscriptService extends ElasticSearchService
                             $result['exact_text'][$key] = $value;
                         }
                         break;
+                    // Person roles
+                    case 'person':
+                        if (is_int($key)) {
+                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames(), $value, 'role'];
+                        } else {
+                            if (isset($filters['role'])) {
+                                $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                            } else {
+                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames(), $value, 'role'];
+                            }
+                        }
+                        break;
                     case 'city':
                     case 'library':
                     case 'collection':
@@ -190,8 +204,6 @@ class ElasticManuscriptService extends ElasticSearchService
                         $result['date_range'][] = $date_result;
                         break;
                     case 'content':
-                    case 'patron':
-                    case 'scribe':
                     case 'origin':
                         if (is_int($key)) {
                             $result['nested'][] = $value;

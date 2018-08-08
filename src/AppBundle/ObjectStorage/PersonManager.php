@@ -387,6 +387,8 @@ class PersonManager extends EntityManager
             // Reset cache and elasticsearch
             $this->ess->addPerson($newPerson);
 
+            //TODO: update manuscript and occurrence ES
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {

@@ -16,7 +16,8 @@ class ElasticOccurrenceService extends ElasticSearchService
             $indexPrefix,
             'occurrences',
             'occurrence',
-            $container->get('identifier_manager')->getIdentifiersByType('occurrence')
+            $container->get('identifier_manager')->getIdentifiersByType('occurrence'),
+            $container->get('role_manager')->getRolesByType('occurrence')
         );
     }
 
@@ -137,7 +138,7 @@ class ElasticOccurrenceService extends ElasticSearchService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'patron', 'scribe', 'genre', 'dbbe', 'public', 'text_status'])),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -196,6 +197,18 @@ class ElasticOccurrenceService extends ElasticSearchService
                             $result['exact_text'][$key] = $value;
                         }
                         break;
+                    // Person roles
+                    case 'person':
+                        if (is_int($key)) {
+                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames(), $value, 'role'];
+                        } else {
+                            if (isset($filters['role'])) {
+                                $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                            } else {
+                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames(), $value, 'role'];
+                            }
+                        }
+                        break;
                     case 'text':
                         $result['multiple_text'][$key] = [
                             'text' => [
@@ -233,8 +246,6 @@ class ElasticOccurrenceService extends ElasticSearchService
                         break;
                     case 'subject':
                     case 'manuscript_content':
-                    case 'patron':
-                    case 'scribe':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

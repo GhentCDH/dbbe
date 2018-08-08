@@ -50,30 +50,19 @@
                     </tr>
                 {% endif %}
                 <!-- TODO: occurrences, types -->
-                {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getAllManuscriptRoles() : person.getAllPublicManuscriptRoles() %}
+                {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
                 {% if manuscriptRoles is not empty %}
                     <tr>
                         <td>Manuscript(s)</td>
                         <td>
                             {% for rolename, manuscriptRole in manuscriptRoles %}
-                                {% if rolename != 'related' %}
-                                    <h6>As {{ manuscriptRole[0].getName() }}:</h6>
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptRole[1]} only %}
-                                        {% block renderItem %}
-                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
-                                        {% endblock %}
-                                    {% endembed %}
-                                {% endif %}
-                            {% endfor %}
-                            {% set relatedManuscripts = is_granted('ROLE_VIEW_INTERNAL') ? person.getOnlyRelatedManuscripts() : person.getOnlyPublicRelatedManuscripts() %}
-                            {% if relatedManuscripts is not empty %}
-                                <h6>Related:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedManuscripts} only %}
+                                <h6>As {{ manuscriptRole[0].getName() }}:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptRole[1]} only %}
                                     {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get', 'display': item.getName()} only %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
                                     {% endblock %}
                                 {% endembed %}
-                            {% endif %}
+                            {% endfor %}
                         </td>
                     </tr>
                 {% endif %}

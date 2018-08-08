@@ -80,6 +80,7 @@ export default {
             countRecords: '',
             rgkRegex: /^(I{1,3})[.]([\d]+)(?:, I{1,3}[.][\d]+)*$/,
             vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
+            roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
         }
     },
     mounted () {
@@ -276,6 +277,12 @@ export default {
             if (second) {
                 // place irregular vghs at the end
                 return 1
+            }
+            // Role with count (e.g., Patron (7))
+            first = a.name.match(this.roleCountRegex)
+            second = b.name.match(this.roleCountRegex)
+            if (first && second) {
+                return second[1] - first[1]
             }
             // Default
             if (a.name < b.name) {

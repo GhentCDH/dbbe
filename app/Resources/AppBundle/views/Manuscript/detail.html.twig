@@ -25,30 +25,19 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getAllPersonRoles() : manuscript.getAllPublicPersonRoles() %}
+                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getFixedRelatedPersonRoles() : manuscript.getFixedRelatedPublicPersonRoles() %}
                 {% if personRoles is not empty %}
                     <tr>
                         <td>Person(s)</td>
                         <td>
                             {% for rolename, personRole in personRoles %}
-                                {% if rolename != 'related' %}
-                                    <h6>{{ personRole[0].getName() }}:</h6>
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
-                                        {% block renderItem %}
-                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get', 'display': item.getFullDescriptionWithOffices()} only %}
-                                        {% endblock %}
-                                    {% endembed %}
-                                {% endif %}
-                            {% endfor %}
-                            {% set relatedPersons = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getOnlyRelatedPersons() : manuscript.getOnlyPublicRelatedPersons() %}
-                            {% if relatedPersons is not empty %}
-                                <h6>Related:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': relatedPersons} only %}
+                                <h6>{{ personRole[0].getName() }}:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get', 'display': item.getFullDescriptionWithOffices()} only %}
                                     {% endblock %}
                                 {% endembed %}
-                            {% endif %}
+                            {% endfor %}
                         </td>
                     </tr>
                 {% endif %}

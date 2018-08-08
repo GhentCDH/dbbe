@@ -150,8 +150,8 @@ export default {
                 fields: {
                     city: this.createMultiSelect('City'),
                     library: this.createMultiSelect('Library', {dependency: 'city'}),
-                    collection: this.createMultiSelect('Collection', {dependency: 'library', model: 'collection'}),
-                    shelf: this.createMultiSelect('Shelf', {dependency: 'library', model: 'shelf'}),
+                    collection: this.createMultiSelect('Collection', {dependency: 'library'}),
+                    shelf: this.createMultiSelect('Shelf', {dependency: 'library'}),
                     year_from: {
                         type: 'input',
                         inputType: 'number',
@@ -171,8 +171,8 @@ export default {
                         validator: VueFormGenerator.validators.number,
                     },
                     content: this.createMultiSelect('Content'),
-                    patron: this.createMultiSelect('Patron'),
-                    scribe: this.createMultiSelect('Scribe'),
+                    person: this.createMultiSelect('Person'),
+                    role: this.createMultiSelect('Role', {dependency: 'person'}),
                     origin: this.createMultiSelect('Origin'),
                     comment: {
                         type: 'input',

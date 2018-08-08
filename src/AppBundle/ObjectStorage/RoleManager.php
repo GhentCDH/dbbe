@@ -91,6 +91,7 @@ class RoleManager extends ObjectManager
         return $roles;
     }
 
+    // TODO: systemName niet aanpasbaar maken
     public function addRole(stdClass $data): Role
     {
         $this->dbs->beginTransaction();

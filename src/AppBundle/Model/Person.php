@@ -280,7 +280,7 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
         return $result;
     }
 
-    public function getOnlyPublicRelatedPersons(): array
+    public function getOnlyRelatedPublicManuscripts(): array
     {
         if (!isset($this->manuscriptRoles['related'])) {
             return [];
@@ -307,6 +307,34 @@ class Person extends Entity implements SubjectInterface, IdJsonInterface
             }
         }
         return $result;
+    }
+
+    public function getFixedRelatedManuscriptRoles(): array
+    {
+        $allManuscriptRoles = $this->getAllManuscriptRoles();
+        if (isset($allManuscriptRoles['related'])) {
+            $relatedManuscriptRoles = $this->getOnlyRelatedManuscripts();
+            if (empty($relatedManuscriptRoles)) {
+                unset($allManuscriptRoles['related']);
+            } else {
+                $allManuscriptRoles['related'][1] = $relatedManuscriptRoles;
+            }
+        }
+        return $allManuscriptRoles;
+    }
+
+    public function getFixedRelatedPublicManuscriptRoles(): array
+    {
+        $allManuscriptRoles = $this->getAllPublicManuscriptRoles();
+        if (isset($allManuscriptRoles['related'])) {
+            $relatedManuscriptRoles = $this->getOnlyRelatedPublicManuscripts();
+            if (empty($relatedManuscriptRoles)) {
+                unset($allManuscriptRoles['related']);
+            } else {
+                $allManuscriptRoles['related'][1] = $relatedManuscriptRoles;
+            }
+        }
+        return $allManuscriptRoles;
     }
 
     public function getName(): string
