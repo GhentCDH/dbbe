@@ -387,7 +387,15 @@ class PersonManager extends EntityManager
             // Reset cache and elasticsearch
             $this->ess->addPerson($newPerson);
 
-            //TODO: update manuscript and occurrence ES
+            if ($cacheReload['mini']) {
+                // update Elastic manuscripts
+                $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($id);
+                $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
+
+                // update Elastic occurrences
+                $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($id);
+                $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            }
 
             // commit transaction
             $this->dbs->commit();

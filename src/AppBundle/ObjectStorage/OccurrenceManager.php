@@ -279,14 +279,35 @@ class OccurrenceManager extends DocumentManager
     public function resetOccurrences(array $ids): void
     {
         foreach ($ids as $id) {
-            $this->cache->deleteItem('occurrence_mini.' . $id);
-            $this->cache->deleteItem('occurrence_short.' . $id);
-            $this->cache->deleteItem('occurrence.' . $id);
-            $occurrence = $this->getOccurrenceById($id);
-            $this->ess->addOccurrence($occurrence);
+            $this->clearCache('occurrence', $id);
         }
-
         $this->cache->invalidateTags(['occurrences']);
+
+        $this->elasticIndexByIds($ids);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param array $miniOccurrences
+     */
+    public function elasticIndex(array $miniOccurrences): void
+    {
+        $occurrenceIds = array_map(
+            function ($miniOccurrence) {
+                return $miniOccurrence->getId();
+            },
+            $miniOccurrences
+        );
+        $this->elasticIndexByIds($occurrenceIds);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param  array  $ids Occurrence ids
+     */
+    private function elasticIndexByIds(array $ids): void
+    {
+        $this->ess->addOccurrences($this->getShortOccurrencesByIds($ids));
     }
 
     public function addOccurrence(stdClass $data): Occurrence

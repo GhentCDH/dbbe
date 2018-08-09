@@ -247,18 +247,42 @@ class ManuscriptManager extends DocumentManager
     }
 
     /**
-     * Clear cache and update elasticsearch
-     * @param array $ids manuscript ids
+     * Clear cache and (re-)index elasticsearch
+     * When something goes wrong with an update
+     * @param array $ids Manuscript ids
      */
     public function resetManuscripts(array $ids): void
     {
         foreach ($ids as $id) {
             $this->clearCache('manuscript', $id);
-            $manuscript = $this->getManuscriptById($id);
-            $this->ess->addManuscript($manuscript);
         }
-
         $this->cache->invalidateTags(['manuscripts']);
+
+        $this->elasticIndexByIds($ids);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param array $miniManuscripts
+     */
+    public function elasticIndex(array $miniManuscripts): void
+    {
+        $manuscriptIds = array_map(
+            function ($miniManuscript) {
+                return $miniManuscript->getId();
+            },
+            $miniManuscripts
+        );
+        $this->elasticIndexByIds($manuscriptIds);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param  array  $ids Manuscript ids
+     */
+    private function elasticIndexByIds(array $ids): void
+    {
+        $this->ess->addManuscripts($this->getShortManuscriptsByIds($ids));
     }
 
     public function addManuscript(stdClass $data): Manuscript
@@ -390,6 +414,12 @@ class ManuscriptManager extends DocumentManager
 
             // (re-)index in elastic search
             $this->ess->addManuscript($newManuscript);
+
+            // update Elastic occurrences
+            if ($cacheReload['mini']) {
+                $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByManuscript($id);
+                $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            }
 
             // commit transaction
             $this->dbs->commit();
@@ -625,17 +655,6 @@ class ManuscriptManager extends DocumentManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
-    }
-
-    public function elasticIndex(array $miniManuscripts): void
-    {
-        $manuscriptIds = array_map(
-            function ($miniManuscript) {
-                return $miniManuscript->getId();
-            },
-            $miniManuscripts
-        );
-        $this->ess->addManuscripts($this->getShortManuscriptsByIds($manuscriptIds));
     }
 
     public function delManuscript(int $manuscriptId): void
