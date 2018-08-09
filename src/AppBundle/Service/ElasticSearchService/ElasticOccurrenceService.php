@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use AppBundle\Model\Occurrence;
 
-class ElasticOccurrenceService extends ElasticSearchService
+class ElasticOccurrenceService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -82,26 +82,6 @@ class ElasticOccurrenceService extends ElasticSearchService
             ]
         );
         $mapping->send();
-    }
-
-    public function addOccurrences(array $occurrences): void
-    {
-        $occurrencesElastic = [];
-        foreach ($occurrences as $occurrence) {
-            $occurrencesElastic [] = $occurrence->getElastic();
-        }
-
-        $this->bulkAdd($occurrencesElastic);
-    }
-
-    public function addOccurrence(Occurrence $occurrence): void
-    {
-        $this->add($occurrence->getElastic());
-    }
-
-    public function delOccurrence(Occurrence $occurrence): void
-    {
-        $this->del($occurrence->getId());
     }
 
     public function searchAndAggregate(array $params, bool $viewInternal): array

@@ -30,55 +30,6 @@ class DocumentManager extends EntityManager
         }
     }
 
-    protected function setBibliographies(array &$documents): void
-    {
-        $rawBibliographies = $this->dbs->getBibliographies(self::getIds($documents));
-        if (!empty($rawBibliographies)) {
-            $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
-            $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
-            $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
-            $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
-
-            $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
-            $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
-            $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
-            $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
-
-            $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
-
-            foreach ($rawBibliographies as $rawBibliography) {
-                $biblioId = $rawBibliography['reference_id'];
-                // Add cache dependencies
-                switch ($rawBibliography['type']) {
-                    case 'book':
-                        $documents[$rawBibliography['document_id']]
-                            ->addCacheDependency('book_bibliography.' . $biblioId);
-                        break;
-                    case 'article':
-                        $documents[$rawBibliography['document_id']]
-                            ->addCacheDependency('article_bibliography.' . $biblioId);
-                        break;
-                    case 'book_chapter':
-                        $documents[$rawBibliography['document_id']]
-                            ->addCacheDependency('book_chapter_bibliography.' . $biblioId);
-                        break;
-                    case 'online_source':
-                        $documents[$rawBibliography['document_id']]
-                            ->addCacheDependency('online_source_bibliography.' . $biblioId);
-                        break;
-                }
-                // Add cache dependency dependencies
-                foreach ($bibliographies[$biblioId]->getCacheDependencies() as $cacheDependency) {
-                    $documents[$rawBibliography['document_id']]
-                        ->addCacheDependency($cacheDependency);
-                }
-                // Add to document
-                $documents[$rawBibliography['document_id']]
-                    ->addBibliography($bibliographies[$biblioId]);
-            }
-        }
-    }
-
     protected function setPersonRoles(array &$documents): void
     {
         $rawRoles = $this->dbs->getPersonRoles(self::getIds($documents));
@@ -87,12 +38,12 @@ class DocumentManager extends EntityManager
 
             $persons = [];
             if (count($personIds) > 0) {
-                $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
+                $persons = $this->container->get('person_manager')->getShort($personIds);
             }
 
             // Direct roles
             foreach ($rawRoles as $raw) {
-                $documents[$raw['manuscript_id']]
+                $documents[$raw['document_id']]
                     ->addPersonRole(
                         new Role($raw['role_id'], json_decode($raw['role_usage']), $raw['role_system_name'], $raw['role_name']),
                         $persons[$raw['person_id']]
@@ -100,7 +51,7 @@ class DocumentManager extends EntityManager
                     ->addCacheDependency('role.' . $raw['role_id'])
                     ->addCacheDependency('person_short.' . $raw['person_id']);
                 foreach ($persons[$raw['person_id']]->getCacheDependencies() as $cacheDependency) {
-                    $documents[$raw['manuscript_id']]
+                    $documents[$raw['document_id']]
                         ->addCacheDependency($cacheDependency);
                 }
             }

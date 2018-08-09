@@ -9,6 +9,7 @@ class Entity
     protected $privateComment;
     protected $public;
     protected $identifications;
+    protected $bibliographies;
 
     public function __construct()
     {
@@ -75,6 +76,18 @@ class Entity
     public function getIdentifications(): array
     {
         return $this->identifications;
+    }
+
+    public function addBibliography(Bibliography $bibliography): Document
+    {
+        $this->bibliographies[$bibliography->getId()] = $bibliography;
+
+        return $this;
+    }
+
+    public function getBibliographies(): array
+    {
+        return $this->bibliographies;
     }
 
     public function getJson(): array

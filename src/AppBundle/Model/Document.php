@@ -24,7 +24,6 @@ class Document extends Entity
      * @var array
      */
     protected $personRoles;
-    protected $bibliographies;
 
     public function __construct()
     {
@@ -102,18 +101,6 @@ class Document extends Entity
             }
         }
         return $result;
-    }
-
-    public function addBibliography(Bibliography $bibliography): Document
-    {
-        $this->bibliographies[$bibliography->getId()] = $bibliography;
-
-        return $this;
-    }
-
-    public function getBibliographies(): array
-    {
-        return $this->bibliographies;
     }
 
     public function getJson(): array

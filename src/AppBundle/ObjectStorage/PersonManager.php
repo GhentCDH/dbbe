@@ -5,24 +5,39 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use AppBundle\Model\BibRole;
+use Psr\Cache\CacheItemPoolInterface;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
 use AppBundle\Model\Role;
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class PersonManager extends EntityManager
 {
+    public function __construct(
+        DatabaseServiceInterface $databaseService,
+        CacheItemPoolInterface $cacheItemPool,
+        ContainerInterface $container,
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null
+    ) {
+        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
+        $this->en = 'person';
+    }
+
     /**
      * Get persons with enough information to get an id and a full description (without offices)
      * @param  array $ids
      * @return array
      */
-    public function getMiniPersonsByIds(array $ids): array
+    public function getMini(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'person_mini');
         if (empty($ids)) {
@@ -61,7 +76,7 @@ class PersonManager extends EntityManager
      * @param  array $ids
      * @return array
      */
-    public function getShortPersonsByIds(array $ids): array
+    public function getShort(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'person_short');
         if (empty($ids)) {
@@ -69,7 +84,7 @@ class PersonManager extends EntityManager
         }
 
         // Get basic person information
-        $persons = $this->getMiniPersonsByIds($ids);
+        $persons = $this->getMini($ids);
 
         // Remove all ids that did not match above
         $ids = array_keys($persons);
@@ -112,28 +127,12 @@ class PersonManager extends EntityManager
         return $cached + $persons;
     }
 
-    public function getAllPersons(): array
-    {
-        $cache = $this->cache->getItem('persons');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'person_id');
-        $persons = $this->getShortPersonsByIds($ids);
-
-        // Sort by name
-        usort($persons, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($persons));
-        return $persons;
-    }
-
-    public function getPersonById(int $id): Person
+    /**
+     * Get a single person with all information
+     * @param  int    $id
+     * @return Person
+     */
+    public function getFull(int $id): Person
     {
         $cache = $this->cache->getItem('person.' . $id);
         if ($cache->isHit()) {
@@ -141,7 +140,7 @@ class PersonManager extends EntityManager
         }
 
         // Get basic person information
-        $persons = $this->getShortPersonsByIds([$id]);
+        $persons = $this->getShort([$id]);
         if (count($persons) == 0) {
             throw new NotFoundHttpException('Person with id ' . $id .' not found.');
         }
@@ -156,8 +155,8 @@ class PersonManager extends EntityManager
         $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
         $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
 
-        $manuscripts = $this->container->get('manuscript_manager')->getMiniManuscriptsByIds($manuscriptIds);
-        $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
+        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
 
         foreach ($rawManuscripts as $rawManuscript) {
             if (!isset($rawManuscript['occurrence_id'])) {
@@ -205,10 +204,28 @@ class PersonManager extends EntityManager
         return $person;
     }
 
-    public function getPersonsDependenciesByOffice(int $officeId): array
+    public function getAllShort(): array
     {
-        $rawIds = $this->dbs->getDepIdsByOfficeId($officeId);
-        return $this->getShortPersonsByIds(self::getUniqueIds($rawIds, 'person_id'));
+        $cache = $this->cache->getItem('persons');
+        if ($cache->isHit()) {
+            return $cache->get();
+        }
+
+        $persons = parent::getAllShort();
+
+        // Sort by name
+        usort($persons, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        $cache->tag(['persons']);
+        $this->cache->save($cache->set($persons));
+        return $persons;
+    }
+
+    public function getOfficeDependencies(int $officeId): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId));
     }
 
     public function getAllHistoricalPersons(): array
@@ -221,7 +238,7 @@ class PersonManager extends EntityManager
         $rawIds = $this->dbs->getHistoricalIds();
         $ids = self::getUniqueIds($rawIds, 'person_id');
 
-        $persons = array_values($this->getMiniPersonsByIds($ids));
+        $persons = array_values($this->getMini($ids));
 
         usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
@@ -240,7 +257,7 @@ class PersonManager extends EntityManager
         $rawIds = $this->dbs->getModernIds();
         $ids = self::getUniqueIds($rawIds, 'person_id');
 
-        $persons = array_values($this->getMiniPersonsByIds($ids));
+        $persons = array_values($this->getMini($ids));
 
         usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
@@ -249,30 +266,13 @@ class PersonManager extends EntityManager
         return $persons;
     }
 
-    /**
-     * Clear cache and update elasticsearch
-     * @param array $ids person ids
-     */
-    public function resetPersons(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->cache->deleteItem('person_mini.' . $id);
-            $this->cache->deleteItem('person_short.' . $id);
-            $this->cache->deleteItem('person.' . $id);
-            $person = $this->getPersonById($id);
-            $this->ess->addPerson($person);
-        }
-
-        $this->cache->invalidateTags(['persons']);
-    }
-
-    public function addPerson(stdClass $data): Person
+    public function add(stdClass $data): Person
     {
         $this->dbs->beginTransaction();
         try {
             $personId = $this->dbs->insert();
 
-            $newPerson = $this->updatePerson($personId, $data, true);
+            $newPerson = $this->update($personId, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -284,11 +284,11 @@ class PersonManager extends EntityManager
         return $newPerson;
     }
 
-    public function updatePerson(int $id, stdClass $data, bool $new = false): Person
+    public function update(int $id, stdClass $data, bool $new = false): Person
     {
         $this->dbs->beginTransaction();
         try {
-            $person = $this->getPersonById($id);
+            $person = $this->getFull($id);
             if ($person == null) {
                 throw new NotFoundHttpException('Person with id ' . $id .' not found.');
             }
@@ -297,7 +297,7 @@ class PersonManager extends EntityManager
             $cacheReload = [
                 'mini' => $new,
                 'short' => $new,
-                'extended' => $new,
+                'full' => $new,
             ];
             if (property_exists($data, 'public')) {
                 $cacheReload['mini'] = true;
@@ -378,9 +378,8 @@ class PersonManager extends EntityManager
             }
 
             // load new person data
-            $this->clearCache('person', $id, $cacheReload);
-            $this->cache->invalidateTags(['persons']);
-            $newPerson = $this->getPersonById($id);
+            $this->clearCache($id, $cacheReload);
+            $newPerson = $this->getFull($id);
 
             $this->updateModified($new ? null : $person, $newPerson);
 
@@ -389,11 +388,11 @@ class PersonManager extends EntityManager
 
             if ($cacheReload['mini']) {
                 // update Elastic manuscripts
-                $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($id);
+                $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($id);
                 $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
                 // update Elastic occurrences
-                $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($id);
+                $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($id);
                 $this->container->get('occurrence_manager')->elasticIndex($occurrences);
             }
 
@@ -403,8 +402,7 @@ class PersonManager extends EntityManager
             $this->dbs->rollBack();
             // Reset cache on elasticsearch error
             if (isset($newPerson)) {
-                $this->resetPersons([$id]);
-                $this->cache->invalidateTags(['persons']);
+                $this->reset([$id]);
             }
             throw $e;
         }
@@ -412,15 +410,15 @@ class PersonManager extends EntityManager
         return $newPerson;
     }
 
-    public function mergePersons(int $primaryId, int $secondaryId): Person
+    public function merge(int $primaryId, int $secondaryId): Person
     {
         if ($primaryId == $secondaryId) {
             throw new BadRequestHttpException(
                 'Persons with id ' . $primaryId .' and id ' . $secondaryId . ' are identical and cannot be merged.'
             );
         }
-        $primary = $this->getPersonById($primaryId);
-        $secondary = $this->getPersonById($secondaryId);
+        $primary = $this->getFull($primaryId);
+        $secondary = $this->getFull($secondaryId);
 
         $updates = [];
         if (empty($primary->getFirstName()) && !empty($secondary->getFirstName())) {
@@ -458,8 +456,8 @@ class PersonManager extends EntityManager
             $updates['privateComment'] = $secondary->getPrivateComment();
         }
 
-        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($secondaryId, true);
-        $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($secondaryId, true);
+        $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($secondaryId, true);
+        $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($secondaryId, true);
 
         if ((!empty($manuscripts) || !empty($occurrences)) && !$primary->getHistorical()) {
             $updates['historical'] = true;
@@ -480,7 +478,7 @@ class PersonManager extends EntityManager
                     self::getIndividualUpdatePart($individualUpdate, 'patrons', $manuscript->getPatrons(), $primaryId, $secondaryId);
                     self::getIndividualUpdatePart($individualUpdate, 'scribes', $manuscript->getScribes(), $primaryId, $secondaryId);
                     self::getIndividualUpdatePart($individualUpdate, 'relatedPersons', $manuscript->getRelatedPersons(), $primaryId, $secondaryId);
-                    $manuscript = $this->container->get('manuscript_manager')->updateManuscript(
+                    $manuscript = $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
                         json_decode(json_encode($individualUpdate))
                     );
@@ -498,12 +496,12 @@ class PersonManager extends EntityManager
                 }
             }
             // TODO: books, bookchapters, articles
-            $this->delPerson($secondaryId);
+            $this->delete($secondaryId);
 
             // Make sure indirect properties (manuscripts, occurrences) are reloaded correctly
             $this->cache->invalidateTags(['person.' . $primaryId]);
             $this->cache->deleteItem('person.' . $primaryId);
-            $person = $this->getPersonById($primaryId);
+            $person = $this->getFull($primaryId);
             $this->cache->invalidateTags(['persons']);
 
             // commit transaction
@@ -511,14 +509,14 @@ class PersonManager extends EntityManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
             // Reset caches and elasticsearch
-            $this->resetPersons([$primaryId]);
+            $this->reset([$primaryId]);
             if (!empty($manuscripts)) {
-                $this->container->get('manuscript_manager')->resetManuscripts(array_map(function ($manuscript) {
+                $this->container->get('manuscript_manager')->reset(array_map(function ($manuscript) {
                     return $manuscript->getId();
                 }, $manuscripts));
             }
             if (!empty($occurrences)) {
-                $this->container->get('occurrence_manager')->resetOccurrences(array_map(function ($occurrence) {
+                $this->container->get('occurrence_manager')->reset(array_map(function ($occurrence) {
                     return $occurrence->getId();
                 }, $occurrences));
             }
@@ -547,8 +545,8 @@ class PersonManager extends EntityManager
     private function updateHistorical(Person $person, bool $historical): void
     {
         if (!$historical) {
-            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByPerson($person->getId());
-            $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByPerson($person->getId());
+            $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($person->getId());
+            $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($person->getId());
             if (!empty($manuscripts) || !empty($occurrences)) {
                 throw new BadRequestHttpException('Persons linked to manuscripts or occurrences must be historical');
             }
@@ -587,12 +585,12 @@ class PersonManager extends EntityManager
         }
     }
 
-    public function delPerson(int $personId): void
+    public function delete(int $personId): void
     {
         $this->dbs->beginTransaction();
         try {
             // Throws NotFoundException if not found
-            $person = $this->getPersonById($personId);
+            $person = $this->getFull($personId);
 
             $this->dbs->delete($personId);
 
@@ -603,7 +601,7 @@ class PersonManager extends EntityManager
             $this->cache->invalidateTags(['persons']);
 
             // delete from elastic search
-            $this->ess->delPerson($person);
+            $this->ess->delete($person);
 
             // commit transaction
             $this->dbs->commit();

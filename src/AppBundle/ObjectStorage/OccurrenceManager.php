@@ -5,22 +5,39 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use Psr\Cache\CacheItemPoolInterface;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\Genre;
 use AppBundle\Model\Image;
 use AppBundle\Model\Meter;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class OccurrenceManager extends DocumentManager
 {
+    public function __construct(
+        DatabaseServiceInterface $databaseService,
+        CacheItemPoolInterface $cacheItemPool,
+        ContainerInterface $container,
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null
+    ) {
+        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
+        $this->en = 'occurrence';
+    }
+
     /**
      * Get occurrences with enough information to get an id and a description
      * @param  array $ids
      * @return array
      */
-    public function getMiniOccurrencesByIds(array $ids): array
+    public function getMini(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'occurrence_mini');
         if (empty($ids)) {
@@ -60,14 +77,19 @@ class OccurrenceManager extends DocumentManager
         return $cached + $occurrences;
     }
 
-    public function getShortOccurrencesByIds(array $ids): array
+    /**
+     * Get occurrences with enough information to index in ElasticSearch
+     * @param  array $ids
+     * @return array
+     */
+    public function getShort(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'occurrence_short');
         if (empty($ids)) {
             return $cached;
         }
 
-        $occurrences = $this->getMiniOccurrencesByIds($ids);
+        $occurrences = $this->getMini($ids);
 
         // Remove all ids that did not match above
         $ids = array_keys($occurrences);
@@ -78,7 +100,7 @@ class OccurrenceManager extends DocumentManager
             return $cached;
         }
         $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
-        $manuscripts = $this->container->get('manuscript_manager')->getShortManuscriptsByIds($manuscriptIds);
+        $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
         foreach ($rawLocations as $rawLocation) {
             if (isset($manuscripts[$rawLocation['manuscript_id']])) {
                 $manuscript = $manuscripts[$rawLocation['manuscript_id']];
@@ -121,7 +143,7 @@ class OccurrenceManager extends DocumentManager
         $personIds = self::getUniqueIds($rawSubjects, 'person_id');
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getShort($personIds);
         }
         $keywordIds = self::getUniqueIds($rawSubjects, 'keyword_id');
         $keywords = [];
@@ -185,14 +207,12 @@ class OccurrenceManager extends DocumentManager
         return $cached + $occurrences;
     }
 
-    public function getAllOccurrences(): array
-    {
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'occurrence_id');
-        return $this->getShortOccurrencesByIds($ids);
-    }
-
-    public function getOccurrenceById(int $id): Occurrence
+    /**
+     * Get a single occurrence with all information
+     * @param  int         $id
+     * @return Occurrence
+     */
+    public function getFull(int $id): Occurrence
     {
         $cache = $this->cache->getItem('occurrence.' . $id);
         if ($cache->isHit()) {
@@ -200,7 +220,7 @@ class OccurrenceManager extends DocumentManager
         }
 
         // Get basic occurrence information
-        $occurrences = $this->getShortOccurrencesByIds([$id]);
+        $occurrences = $this->getShort([$id]);
         if (count($occurrences) == 0) {
             throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
         }
@@ -212,6 +232,7 @@ class OccurrenceManager extends DocumentManager
 
         // type
         $rawTypes = $this->dbs->getTypes([$id]);
+        // TODO: allow multiple types
         if (count($rawTypes) == 1) {
             $type = $this->container->get('type_manager')->getMiniTypesByIds([$rawTypes[0]['type_id']])[$rawTypes[0]['type_id']];
             $occurrence
@@ -257,66 +278,23 @@ class OccurrenceManager extends DocumentManager
         return $occurrence;
     }
 
-    public function getOccurrencesDependenciesByManuscript(int $manuscriptId): array
+    public function getManuscriptDependencies(int $manuscriptId): array
     {
-        $rawIds = $this->dbs->getDepIdsByManuscriptId($manuscriptId);
-        return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId));
     }
 
-    public function getOccurrencesDependenciesByPerson(int $personId, bool $short = false): array
+    public function getPersonDependencies(int $personId, bool $short = false): array
     {
-        $rawIds = $this->dbs->getDepIdsByPersonId($personId);
-        if ($short) {
-            return $this->getShortOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
-        }
-        return $this->getMiniOccurrencesByIds(self::getUniqueIds($rawIds, 'occurrence_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short);
     }
 
-    /**
-     * Clear cache and update elasticsearch
-     * @param array $ids occurrence ids
-     */
-    public function resetOccurrences(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->clearCache('occurrence', $id);
-        }
-        $this->cache->invalidateTags(['occurrences']);
-
-        $this->elasticIndexByIds($ids);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param array $miniOccurrences
-     */
-    public function elasticIndex(array $miniOccurrences): void
-    {
-        $occurrenceIds = array_map(
-            function ($miniOccurrence) {
-                return $miniOccurrence->getId();
-            },
-            $miniOccurrences
-        );
-        $this->elasticIndexByIds($occurrenceIds);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param  array  $ids Occurrence ids
-     */
-    private function elasticIndexByIds(array $ids): void
-    {
-        $this->ess->addOccurrences($this->getShortOccurrencesByIds($ids));
-    }
-
-    public function addOccurrence(stdClass $data): Occurrence
+    public function add(stdClass $data): Occurrence
     {
         $this->dbs->beginTransaction();
         try {
             $occurrenceId = $this->dbs->insert();
 
-            $newOccurrence = $this->updateOccurrence($occurrenceId, $data, true);
+            $newOccurrence = $this->update($occurrenceId, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -328,25 +306,36 @@ class OccurrenceManager extends DocumentManager
         return $newOccurrence;
     }
 
-    public function updateOccurrence(int $id, stdClass $data, bool $new = false): Occurrence
+    public function update(int $id, stdClass $data, bool $new = false): Occurrence
     {
         $this->dbs->beginTransaction();
         try {
-            $occurrence = $this->getOccurrenceById($id);
+            $occurrence = $this->getFull($id);
             if ($occurrence == null) {
                 throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
             }
 
-            $newOccurrence = $this->getOccurrenceById($id);
 
-            $this->updateModified($new ? null : $occurrence, $newOccurrence);
 
             // TODO: add actual update functions
             throw new Exception('Not implemented');
 
 
+
+            // load new occurrence data
+            $this->clearCache($id, $cacheReload);
+            $newOccurrence = $this->getFull($id);
+
+            $this->updateModified($new ? null : $occurrence, $newOccurrence);
+
             // (re-)index in elastic search
-            $this->ess->addOccurrence($newOccurrence);
+            $this->ess->add($newOccurrence);
+
+            if ($cacheReload['mini']) {
+                // update Elastic manuscripts
+                $manuscripts = $this->container->get('manuscript_manager')->getOccurrenceDependencies($id);
+                $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
+            }
 
             // commit transaction
             $this->dbs->commit();
@@ -357,4 +346,6 @@ class OccurrenceManager extends DocumentManager
 
         return $newOccurrence;
     }
+
+    // TODO: delete
 }

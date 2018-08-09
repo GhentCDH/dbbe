@@ -228,7 +228,7 @@ class RegionManager extends ObjectManager
             $this->updateModified($regionWithParents, $newRegionWithParents);
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($regionId);
+            $manuscripts = $this->container->get('manuscript_manager')->getRegionDependencies($regionId);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction
@@ -267,7 +267,7 @@ class RegionManager extends ObjectManager
             $updates['pleiades'] = $secondary->getPleiades();
         }
 
-        $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByRegion($secondaryId, true);
+        $manuscripts = $this->container->get('manuscript_manager')->getRegionDependencies($secondaryId, true);
         // Only keep dependencies based on origin
         // Locations of the manuscripts themselves never are regions
         $manuscripts = array_filter($manuscripts, function ($manuscript) use ($secondaryId) {
@@ -288,7 +288,7 @@ class RegionManager extends ObjectManager
             }
             if (!empty($manuscripts)) {
                 foreach ($manuscripts as $manuscript) {
-                    $this->container->get('manuscript_manager')->updateManuscript(
+                    $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
                         json_decode(json_encode([
                             'origin' => [

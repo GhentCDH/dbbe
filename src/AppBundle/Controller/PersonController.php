@@ -47,7 +47,7 @@ class PersonController extends Controller
                     )
                 ),
                 'persons' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllPersons()) : []
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllShort()) : []
                 ),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'))
@@ -85,7 +85,7 @@ class PersonController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
                 ArrayToJson::arrayToJson(
-                    $this->get('person_manager')->getAllPersons()
+                    $this->get('person_manager')->getAllShort()
                 )
             );
         }
@@ -115,7 +115,7 @@ class PersonController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $person = $this->get('person_manager')->getPersonById($id);
+                $person = $this->get('person_manager')->getFull($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -125,7 +125,7 @@ class PersonController extends Controller
             return new JsonResponse($person->getJson());
         } else {
             // Let the 404 page handle the not found exception
-            $person = $this->get('person_manager')->getPersonById($id);
+            $person = $this->get('person_manager')->getFull($id);
             if (!$person->getPublic()) {
                 $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
             }
@@ -150,7 +150,7 @@ class PersonController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $persons = $this
                 ->get('person_manager')
-                ->getPersonsDependenciesByOffice($id);
+                ->getOfficeDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($persons));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -170,7 +170,7 @@ class PersonController extends Controller
             try {
                 $person = $this
                     ->get('person_manager')
-                    ->addPerson(json_decode($request->getContent()));
+                    ->add(json_decode($request->getContent()));
             } catch (BadRequestHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -201,7 +201,7 @@ class PersonController extends Controller
         try {
             $person = $this
                 ->get('person_manager')
-                ->mergePersons($primary, $secondary);
+                ->merge($primary, $secondary);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -225,7 +225,7 @@ class PersonController extends Controller
             try {
                 $person = $this
                     ->get('person_manager')
-                    ->updatePerson($id, json_decode($request->getContent()));
+                    ->update($id, json_decode($request->getContent()));
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -260,7 +260,7 @@ class PersonController extends Controller
             try {
                 $person = $this
                     ->get('person_manager')
-                    ->delPerson($id);
+                    ->delete($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -304,7 +304,7 @@ class PersonController extends Controller
                 'data' => json_encode([
                     'person' => empty($id)
                         ? null
-                        : $this->get('person_manager')->getPersonById($id)->getJson(),
+                        : $this->get('person_manager')->getFull($id)->getJson(),
                     'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAllOffices()),
                 ]),
                 'identifiers' => json_encode(

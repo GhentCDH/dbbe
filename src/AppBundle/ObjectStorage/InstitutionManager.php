@@ -134,7 +134,7 @@ class InstitutionManager extends ObjectManager
             $this->setCache([$newInstitution->getId() => $newInstitution], 'institution');
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByInstitution($institutionId);
+            $manuscripts = $this->container->get('manuscript_manager')->getInstitutionDependencies($institutionId);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction

@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use AppBundle\Model\Manuscript;
 
-class ElasticManuscriptService extends ElasticSearchService
+class ElasticManuscriptService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -44,26 +44,6 @@ class ElasticManuscriptService extends ElasticSearchService
             ]
         );
         $mapping->send();
-    }
-
-    public function addManuscripts(array $manuscripts): void
-    {
-        $manuscriptsElastic = [];
-        foreach ($manuscripts as $manuscript) {
-            $manuscriptsElastic [] = $manuscript->getElastic();
-        }
-
-        $this->bulkAdd($manuscriptsElastic);
-    }
-
-    public function addManuscript(Manuscript $manuscript): void
-    {
-        $this->add($manuscript->getElastic());
-    }
-
-    public function delManuscript(Manuscript $manuscript): void
-    {
-        $this->del($manuscript->getId());
     }
 
     public function searchAndAggregate(array $params, bool $viewInternal): array

@@ -54,7 +54,7 @@ class CollectionManager extends ObjectManager
             $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByCollection($collectionId);
+            $manuscripts = $this->container->get('manuscript_manager')->getCollectionDependencies($collectionId);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             $this->updateModified(null, $newCollection);

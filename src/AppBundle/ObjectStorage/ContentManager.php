@@ -165,7 +165,7 @@ class ContentManager extends ObjectManager
             $this->updateModified($contentWithParents, $newContentWithParents);
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByContent($contentId);
+            $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($contentId);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction
@@ -194,8 +194,8 @@ class ContentManager extends ObjectManager
         }
         list($primary, $secondary) = array_values($contentsWithParents);
 
-        $miniManuscripts = $this->container->get('manuscript_manager')->getManuscriptsDependenciesByContent($secondaryId);
-        $shortManuscripts = $this->container->get('manuscript_manager')->getShortManuscriptsByIds(
+        $miniManuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId);
+        $shortManuscripts = $this->container->get('manuscript_manager')->getShort(
             array_map(function ($miniManuscript) {
                 return $miniManuscript->getId();
             }, $miniManuscripts)
@@ -211,7 +211,7 @@ class ContentManager extends ObjectManager
                         return $contentItem['id'] !== $secondaryId;
                     }));
                     $contentArray[] = ['id' => $primaryId];
-                    $this->container->get('manuscript_manager')->updateManuscript(
+                    $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
                         json_decode(json_encode(['content' => $contentArray]))
                     );

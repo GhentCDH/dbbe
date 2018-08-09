@@ -8,11 +8,11 @@ use Psr\Cache\CacheItemPoolInterface;
 
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\IdJsonInterface;
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class ObjectManager
 {
@@ -36,28 +36,12 @@ class ObjectManager
         $this->ts = $tokenStorage;
     }
 
-    protected static function getUniqueIds(array $rows, string $key, string $filterKey = null, $filterValue = null): array
+    protected function getDependencies(array $rawIds, bool $short = false): array
     {
-        $uniqueIds = [];
-        foreach ($rows as $row) {
-            if (isset($filterKey) && $row[$filterKey] !== $filterValue) {
-                continue;
-            }
-            // array_to_json(array_agg())
-            if (is_array(json_decode($row[$key]))) {
-                foreach (json_decode($row[$key]) as $id) {
-                    if (!in_array($id, $uniqueIds)) {
-                        $uniqueIds[] = $id;
-                    }
-                }
-            } else {
-                // integer
-                if (!in_array($row[$key], $uniqueIds)) {
-                    $uniqueIds[] = $row[$key];
-                }
-            }
+        if ($short) {
+            return $this->getShort(self::getUniqueIds($rawIds, $this->en . '_id'));
         }
-        return $uniqueIds;
+        return $this->getMini(self::getUniqueIds($rawIds, $this->en . '_id'));
     }
 
     protected function getCache(array $ids, string $cacheKey): array
@@ -90,19 +74,33 @@ class ObjectManager
         }
     }
 
-    protected function clearCache(string $cacheKey, int $id, array $range = null): void
+    /**
+     * Clear specified cache level or all caches for an entity
+     * @param int        $id    Entity id
+     * @param array|null $range Cache level to be cleared
+     */
+    protected function clearCache(int $id, array $range = null): void
     {
-        if (empty($range) || $range['mini']) {
-            $this->cache->invalidateTags([$cacheKey . '_mini.' . $id]);
-            $this->cache->deleteItem($cacheKey . '_mini.' . $id);
+        if (empty($range) || (isset($range['mini']) && $range['mini'])) {
+            $this->clearSpecificCaches($id, ['mini', 'short', 'full']);
+        } else if (isset($range['short']) && $range['short']) {
+            $this->clearSpecificCaches($id, ['short', 'full']);
+        } else if (isset($range['full']) && $range['full']) {
+            $this->clearSpecificCaches($id, ['full']);
         }
-        if (empty($range) || $range['mini'] || $range['short']) {
-            $this->cache->invalidateTags([$cacheKey . '_short.' . $id]);
-            $this->cache->deleteItem($cacheKey . '_short.' . $id);
-        }
-        if (empty($range) || $range['mini'] || $range['short'] || $range['extended']) {
-            $this->cache->invalidateTags([$cacheKey . '.' . $id]);
-            $this->cache->deleteItem($cacheKey . '.' . $id);
+        $this->cache->invalidateTags([$this->en . 's']);
+    }
+
+    /**
+     * Clear specific caches
+     * @param int   $id        Entity id
+     * @param array $specifics Names of the specific caches to be cleared
+     */
+    private function clearSpecificCaches(int $id, array $specifics): void
+    {
+        foreach ($specifics as $specific) {
+            $this->cache->invalidateTags([$this->en . '_' . $specific . '.' . $id]);
+            $this->cache->deleteItem($this->en . '_' . $specific . '.' . $id);
         }
     }
 
@@ -126,6 +124,30 @@ class ObjectManager
             $old == null ? null : json_encode($old->getJson()),
             $new == null ? null : json_encode($new->getJson())
         );
+    }
+
+    protected static function getUniqueIds(array $rows, string $key, string $filterKey = null, $filterValue = null): array
+    {
+        $uniqueIds = [];
+        foreach ($rows as $row) {
+            if (isset($filterKey) && $row[$filterKey] !== $filterValue) {
+                continue;
+            }
+            // array_to_json(array_agg())
+            if (is_array(json_decode($row[$key]))) {
+                foreach (json_decode($row[$key]) as $id) {
+                    if (!in_array($id, $uniqueIds)) {
+                        $uniqueIds[] = $id;
+                    }
+                }
+            } else {
+                // integer
+                if (!in_array($row[$key], $uniqueIds)) {
+                    $uniqueIds[] = $row[$key];
+                }
+            }
+        }
+        return $uniqueIds;
     }
 
     protected static function calcDiff(array $newJsonArray, array $oldObjectArray): array

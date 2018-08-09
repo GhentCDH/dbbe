@@ -84,7 +84,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+                $manuscript = $this->get('manuscript_manager')->getFull($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -94,7 +94,7 @@ class ManuscriptController extends Controller
             return new JsonResponse($manuscript->getJson());
         } else {
             // Let the 404 page handle the not found exception
-            $manuscript = $this->get('manuscript_manager')->getManuscriptById($id);
+            $manuscript = $this->get('manuscript_manager')->getFull($id);
             if (!$manuscript->getPublic()) {
                 $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
             }
@@ -119,7 +119,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByRegion($id);
+                ->getRegionDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -140,7 +140,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByInstitution($id);
+                ->getInstitutionDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -161,7 +161,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByCollection($id);
+                ->getCollectionDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -182,7 +182,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByContent($id);
+                ->getContentDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -203,7 +203,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByStatus($id);
+                ->getStatusDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -224,7 +224,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByPerson($id);
+                ->getPersonDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -245,7 +245,7 @@ class ManuscriptController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $manuscripts = $this
                 ->get('manuscript_manager')
-                ->getManuscriptsDependenciesByRole($id);
+                ->getRoleDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -265,7 +265,7 @@ class ManuscriptController extends Controller
             try {
                 $manuscript = $this
                     ->get('manuscript_manager')
-                    ->addManuscript(json_decode($request->getContent()));
+                    ->add(json_decode($request->getContent()));
             } catch (BadRequestHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -295,7 +295,7 @@ class ManuscriptController extends Controller
             try {
                 $manuscript = $this
                     ->get('manuscript_manager')
-                    ->updateManuscript($id, json_decode($request->getContent()));
+                    ->update($id, json_decode($request->getContent()));
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -330,7 +330,7 @@ class ManuscriptController extends Controller
             try {
                 $manuscript = $this
                     ->get('manuscript_manager')
-                    ->delManuscript($id);
+                    ->delete($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -377,7 +377,7 @@ class ManuscriptController extends Controller
                 'data' => json_encode([
                     'manuscript' => empty($id)
                         ? null
-                        : $this->get('manuscript_manager')->getManuscriptById($id)->getJson(),
+                        : $this->get('manuscript_manager')->getFull($id)->getJson(),
                     'locations' => ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts()),
                     'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),

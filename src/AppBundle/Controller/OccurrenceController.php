@@ -84,7 +84,7 @@ class OccurrenceController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $occurrence = $this->get('occurrence_manager')->getOccurrenceById($id);
+                $occurrence = $this->get('occurrence_manager')->getFull($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -94,7 +94,7 @@ class OccurrenceController extends Controller
             return new JsonResponse($occurrence->getJson());
         } else {
             // Let the 404 page handle the not found exception
-            $occurrence = $this->get('occurrence_manager')->getOccurrenceById($id);
+            $occurrence = $this->get('occurrence_manager')->getFull($id);
             if (!$occurrence->getPublic()) {
                 $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
             }
@@ -119,7 +119,7 @@ class OccurrenceController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $occurrences = $this
                 ->get('occurrence_manager')
-                ->getOccurrencesDependenciesByManuscript($id);
+                ->getManuscriptDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -140,7 +140,7 @@ class OccurrenceController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $occurrences = $this
                 ->get('occurrence_manager')
-                ->getOccurrencesDependenciesByPerson($id);
+                ->getPersonDependencies($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -160,7 +160,7 @@ class OccurrenceController extends Controller
             try {
                 $occurrence = $this
                     ->get('occurrence_manager')
-                    ->addOccurrence(json_decode($request->getContent()));
+                    ->add(json_decode($request->getContent()));
             } catch (BadRequestHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -190,7 +190,7 @@ class OccurrenceController extends Controller
             try {
                 $occurrence = $this
                     ->get('occurrence_manager')
-                    ->updateOccurrence($id, json_decode($request->getContent()));
+                    ->update($id, json_decode($request->getContent()));
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -248,7 +248,7 @@ class OccurrenceController extends Controller
                 'data' => json_encode([
                     'occurrence' => empty($id)
                         ? null
-                        : $this->get('occurrence_manager')->getOccurrenceById($id)->getJson(),
+                        : $this->get('occurrence_manager')->getFull($id)->getJson(),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),

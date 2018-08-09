@@ -52,18 +52,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $this->type->getIndex()->refresh();
     }
 
-    protected function add(array $indexingContent)
-    {
-        $document = new Document($indexingContent['id'], $indexingContent);
-        $this->type->addDocument($document);
-    }
-
-    protected function del(int $id)
-    {
-        $document = new Document($id, []);
-        $this->type->deleteDocument($document);
-    }
-
     public function search(array $params = null): array
     {
         // Construct query

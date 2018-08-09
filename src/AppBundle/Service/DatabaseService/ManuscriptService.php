@@ -167,6 +167,19 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByOccurrenceId(int $occurrenceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.document_contains on manuscript.identity = document_contains.idcontainer
+            inner join data.original_poem on document_contains.idcontent = original_poem.identity
+            where original_poem.identity = ?',
+            [$occurrenceId]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(

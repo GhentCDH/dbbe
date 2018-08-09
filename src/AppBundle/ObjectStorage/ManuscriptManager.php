@@ -5,24 +5,40 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Psr\Cache\CacheItemPoolInterface;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Exceptions\DependencyException;
-use AppBundle\Exceptions\NotFoundInDatabaseException;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
 use AppBundle\Model\Role;
 use AppBundle\Model\Status;
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class ManuscriptManager extends DocumentManager
 {
+    public function __construct(
+        DatabaseServiceInterface $databaseService,
+        CacheItemPoolInterface $cacheItemPool,
+        ContainerInterface $container,
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null
+    ) {
+        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
+        $this->en = 'manuscript';
+    }
+
     /**
      * Get manuscripts with enough information to get an id and a name
      * @param  array $ids
      * @return array
      */
-    public function getMiniManuscriptsByIds(array $ids): array
+    public function getMini(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'manuscript_mini');
         if (empty($ids)) {
@@ -51,14 +67,19 @@ class ManuscriptManager extends DocumentManager
         return $cached + $manuscripts;
     }
 
-    public function getShortManuscriptsByIds(array $ids): array
+    /**
+     * Get manuscripts with enough information to index in ElasticSearch
+     * @param  array $ids
+     * @return array
+     */
+    public function getShort(array $ids): array
     {
         list($cached, $ids) = $this->getCache($ids, 'manuscript_short');
         if (empty($ids)) {
             return $cached;
         }
 
-        $manuscripts = $this->getMiniManuscriptsByIds($ids);
+        $manuscripts = $this->getMini($ids);
 
         // Remove all ids that did not match above
         $ids = array_keys($manuscripts);
@@ -88,11 +109,11 @@ class ManuscriptManager extends DocumentManager
 
         $persons = [];
         if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getShortPersonsByIds($personIds);
+            $persons = $this->container->get('person_manager')->getShort($personIds);
         }
         $occurrences = [];
         if (count($occurrenceIds) > 0) {
-            $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
         }
 
         foreach ($rawOccurrenceRoles as $raw) {
@@ -140,14 +161,12 @@ class ManuscriptManager extends DocumentManager
         return $cached + $manuscripts;
     }
 
-    public function getAllManuscripts(): array
-    {
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'manuscript_id');
-        return $this->getShortManuscriptsByIds($ids);
-    }
-
-    public function getManuscriptById(int $id): Manuscript
+    /**
+     * Get a single manuscript with all information
+     * @param  int        $id
+     * @return Manuscript
+     */
+    public function getFull(int $id): Manuscript
     {
         $cache = $this->cache->getItem('manuscript.' . $id);
         if ($cache->isHit()) {
@@ -155,7 +174,7 @@ class ManuscriptManager extends DocumentManager
         }
 
         // Get basic manuscript information
-        $manuscripts = $this->getShortManuscriptsByIds([$id]);
+        $manuscripts = $this->getShort([$id]);
         if (count($manuscripts) == 0) {
             throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
         }
@@ -171,7 +190,7 @@ class ManuscriptManager extends DocumentManager
         $rawOccurrences = $this->dbs->getOccurrences([$id]);
         if (count($rawOccurrences) > 0) {
             $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-            $occurrences = $this->container->get('occurrence_manager')->getMiniOccurrencesByIds($occurrenceIds);
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
             foreach ($rawOccurrences as $rawOccurrence) {
                 $manuscript
                     ->addOccurrence($occurrences[$rawOccurrence['occurrence_id']])
@@ -198,94 +217,47 @@ class ManuscriptManager extends DocumentManager
         return $manuscript;
     }
 
-    public function getManuscriptsDependenciesByRegion(int $regionId, bool $short = false): array
+    public function getRegionDependencies(int $regionId, bool $short = false): array
     {
-        $rawIds = $this->dbs->getDepIdsByRegionId($regionId);
-        if ($short) {
-            return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
-        }
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short);
     }
 
-    public function getManuscriptsDependenciesByInstitution(int $institutionId): array
+    public function getInstitutionDependencies(int $institutionId): array
     {
-        $rawIds = $this->dbs->getDepIdsByInstitutionId($institutionId);
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByInstitutionId($institutionId));
     }
 
-    public function getManuscriptsDependenciesByCollection(int $collectionId): array
+    public function getCollectionDependencies(int $collectionId): array
     {
-        $rawIds = $this->dbs->getDepIdsByCollectionId($collectionId);
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByCollectionId($collectionId));
     }
 
-    public function getManuscriptsDependenciesByContent(int $contentId): array
+    public function getContentDependencies(int $contentId): array
     {
-        $rawIds = $this->dbs->getDepIdsByContentId($contentId);
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId));
     }
 
-    public function getManuscriptsDependenciesByStatus(int $statusId): array
+    public function getStatusDependencies(int $statusId): array
     {
-        $rawIds = $this->dbs->getDepIdsByStatusId($statusId);
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId));
     }
 
-    public function getManuscriptsDependenciesByPerson(int $personId, bool $short = false): array
+    public function getPersonDependencies(int $personId, bool $short = false): array
     {
-        $rawIds = $this->dbs->getDepIdsByPersonId($personId);
-        if ($short) {
-            return $this->getShortManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
-        }
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short);
     }
 
-    public function getManuscriptsDependenciesByRole(int $roleId): array
+    public function getRoleDependencies(int $roleId): array
     {
-        $rawIds = $this->dbs->getDepIdsByRoleId($roleId);
-        return $this->getMiniManuscriptsByIds(self::getUniqueIds($rawIds, 'manuscript_id'));
+        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId));
     }
 
-    /**
-     * Clear cache and (re-)index elasticsearch
-     * When something goes wrong with an update
-     * @param array $ids Manuscript ids
-     */
-    public function resetManuscripts(array $ids): void
+    public function getOccurrenceDependencies(int $occurrenceId): array
     {
-        foreach ($ids as $id) {
-            $this->clearCache('manuscript', $id);
-        }
-        $this->cache->invalidateTags(['manuscripts']);
-
-        $this->elasticIndexByIds($ids);
+        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId));
     }
 
-    /**
-     * (Re-)index elasticsearch
-     * @param array $miniManuscripts
-     */
-    public function elasticIndex(array $miniManuscripts): void
-    {
-        $manuscriptIds = array_map(
-            function ($miniManuscript) {
-                return $miniManuscript->getId();
-            },
-            $miniManuscripts
-        );
-        $this->elasticIndexByIds($manuscriptIds);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param  array  $ids Manuscript ids
-     */
-    private function elasticIndexByIds(array $ids): void
-    {
-        $this->ess->addManuscripts($this->getShortManuscriptsByIds($ids));
-    }
-
-    public function addManuscript(stdClass $data): Manuscript
+    public function add(stdClass $data): Manuscript
     {
         $this->dbs->beginTransaction();
         try {
@@ -294,7 +266,7 @@ class ManuscriptManager extends DocumentManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
             $manuscriptId = $this->dbs->insert();
-            // Located at needs to be saved in order for getManuscriptById
+            // Located at needs to be saved in order for getFull
             $this->container->get('located_at_manager')->addLocatedAt(
                 $manuscriptId,
                 $data->locatedAt
@@ -302,7 +274,7 @@ class ManuscriptManager extends DocumentManager
             // prevent locatedAt from being updated unnecessarily
             unset($data->locatedAt);
 
-            $newManuscript = $this->updateManuscript($manuscriptId, $data, true);
+            $newManuscript = $this->update($manuscriptId, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -314,11 +286,11 @@ class ManuscriptManager extends DocumentManager
         return $newManuscript;
     }
 
-    public function updateManuscript(int $id, stdClass $data, bool $new = false): Manuscript
+    public function update(int $id, stdClass $data, bool $new = false): Manuscript
     {
         $this->dbs->beginTransaction();
         try {
-            $manuscript = $this->getManuscriptById($id);
+            $manuscript = $this->getFull($id);
             if ($manuscript == null) {
                 throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
             }
@@ -327,7 +299,7 @@ class ManuscriptManager extends DocumentManager
             $cacheReload = [
                 'mini' => $new,
                 'short' => $new,
-                'extended' => $new,
+                'full' => $new,
             ];
             if (property_exists($data, 'locatedAt')) {
                 $cacheReload['mini'] = true;
@@ -374,29 +346,29 @@ class ManuscriptManager extends DocumentManager
                 $this->updatePrivateComment($manuscript, $data->privateComment);
             }
             if (property_exists($data, 'occurrenceOrder')) {
-                $cacheReload['extended'] = true;
+                $cacheReload['full'] = true;
                 $this->updateOccurrenceOrder($manuscript, $data->occurrenceOrder);
             }
             $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('manuscript');
             foreach ($identifiers as $identifier) {
                 if (property_exists($data, $identifier->getSystemName())) {
-                    $cacheReload['extended'] = true;
+                    $cacheReload['full'] = true;
                     $this->updateIdentification($manuscript, $identifier, $data->{$identifier->getSystemName()});
                 }
             }
             if (property_exists($data, 'bibliography')) {
-                $cacheReload['extended'] = true;
+                $cacheReload['full'] = true;
                 $this->updateBibliography($manuscript, $data->bibliography);
             }
             if (property_exists($data, 'status')) {
-                $cacheReload['extended'] = true;
+                $cacheReload['full'] = true;
                 $this->updateStatus($manuscript, $data);
             }
             if (property_exists($data, 'illustrated')) {
                 if (!is_bool($data->illustrated)) {
                     throw new BadRequestHttpException('Incorrect illustrated data.');
                 }
-                $cacheReload['extended'] = true;
+                $cacheReload['full'] = true;
                 $this->updateIllustrated($manuscript, $data->illustrated);
             }
 
@@ -406,18 +378,17 @@ class ManuscriptManager extends DocumentManager
             }
 
             // load new manuscript data
-            $this->clearCache('manuscript', $id, $cacheReload);
-            $this->cache->invalidateTags(['manuscripts']);
-            $newManuscript = $this->getManuscriptById($id);
+            $this->clearCache($id, $cacheReload);
+            $newManuscript = $this->getFull($id);
 
             $this->updateModified($new ? null : $manuscript, $newManuscript);
 
             // (re-)index in elastic search
-            $this->ess->addManuscript($newManuscript);
+            $this->ess->add($newManuscript);
 
             // update Elastic occurrences
             if ($cacheReload['mini']) {
-                $occurrences = $this->container->get('occurrence_manager')->getOccurrencesDependenciesByManuscript($id);
+                $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id);
                 $this->container->get('occurrence_manager')->elasticIndex($occurrences);
             }
 
@@ -425,10 +396,9 @@ class ManuscriptManager extends DocumentManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
+            // Reset cache and elasticsearch on elasticsearch error
             if (isset($newManuscript)) {
-                $this->resetManuscripts([$id]);
-                $this->cache->invalidateTags(['manuscripts']);
+                $this->reset([$id]);
             }
             throw $e;
         }
@@ -492,152 +462,6 @@ class ManuscriptManager extends DocumentManager
         );
     }
 
-    private function updateBibliography(Manuscript $manuscript, stdClass $bibliography): void
-    {
-        foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
-            $plurBibType = $bibType . 's';
-            if (!property_exists($bibliography, $plurBibType) || !is_array($bibliography->$plurBibType)) {
-                throw new BadRequestHttpException('Incorrect bibliography data.');
-            }
-            foreach ($bibliography->$plurBibType as $bib) {
-                if (!is_object($bib)
-                    || (property_exists($bib, 'id') && !is_numeric($bib->id))
-                    || !property_exists($bib, $bibType) || !is_object($bib->$bibType)
-                    || !property_exists($bib->$bibType, 'id') || !is_numeric($bib->$bibType->id)
-                ) {
-                    throw new BadRequestHttpException('Incorrect bibliography data.');
-                }
-                if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
-                    if (!property_exists($bib, 'startPage') || !(empty($bib->startPage) || is_string($bib->startPage))
-                        || !property_exists($bib, 'endPage')  || !(empty($bib->endPage) || is_string($bib->endPage))
-                        || (property_exists($bib, 'rawPages') && !(empty($bib->rawPages) || is_string($bib->rawPages)))
-                    ) {
-                        throw new BadRequestHttpException('Incorrect bibliography data.');
-                    }
-                } else {
-                    if (!property_exists($bib, 'relUrl') || !is_string($bib->relUrl)
-                    ) {
-                        throw new BadRequestHttpException('Incorrect bibliography data.');
-                    }
-                }
-            }
-        }
-
-        $updateIds = [];
-        $origBibIds = array_keys($manuscript->getBibliographies());
-        // Add and update
-        foreach ($bibliography->books as $bookBib) {
-            if (!property_exists($bookBib, 'id')) {
-                $this->container->get('bibliography_manager')->addBookBibliography(
-                    $manuscript->getId(),
-                    $bookBib->book->id,
-                    self::certainString($bookBib, 'startPage'),
-                    self::certainString($bookBib, 'endPage')
-                );
-            } elseif (in_array($bookBib->id, $origBibIds)) {
-                $updateIds[] = $bookBib->id;
-                $this->container->get('bibliography_manager')->updateBookBibliography(
-                    $bookBib->id,
-                    $bookBib->book->id,
-                    self::certainString($bookBib, 'startPage'),
-                    self::certainString($bookBib, 'endPage'),
-                    self::certainString($bookBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundInDatabaseException(
-                    'Bibliography with id "' . $bookBib->id . '" not found '
-                    . ' in manuscript with id "' . $manuscript->getId() . '".'
-                );
-            }
-        }
-        foreach ($bibliography->articles as $articleBib) {
-            if (!property_exists($articleBib, 'id')) {
-                $this->container->get('bibliography_manager')->addArticleBibliography(
-                    $manuscript->getId(),
-                    $articleBib->article->id,
-                    self::certainString($articleBib, 'startPage'),
-                    self::certainString($articleBib, 'endPage')
-                );
-            } elseif (in_array($articleBib->id, $origBibIds)) {
-                $updateIds[] = $articleBib->id;
-                $this->container->get('bibliography_manager')->updateArticleBibliography(
-                    $articleBib->id,
-                    $articleBib->article->id,
-                    self::certainString($articleBib, 'startPage'),
-                    self::certainString($articleBib, 'endPage'),
-                    self::certainString($articleBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundInDatabaseException(
-                    'Bibliography with id "' . $articleBib->id . '" not found '
-                    . ' in manuscript with id "' . $manuscript->getId() . '".'
-                );
-            }
-        }
-        foreach ($bibliography->bookChapters as $bookChapterBib) {
-            if (!property_exists($bookChapterBib, 'id')) {
-                $this->container->get('bibliography_manager')->addBookChapterBibliography(
-                    $manuscript->getId(),
-                    $bookChapterBib->bookChapter->id,
-                    self::certainString($bookChapterBib, 'startPage'),
-                    self::certainString($bookChapterBib, 'endPage')
-                );
-            } elseif (in_array($bookChapterBib->id, $origBibIds)) {
-                $updateIds[] = $bookChapterBib->id;
-                $this->container->get('bibliography_manager')->updateBookChapterBibliography(
-                    $bookChapterBib->id,
-                    $bookChapterBib->bookChapter->id,
-                    self::certainString($bookChapterBib, 'startPage'),
-                    self::certainString($bookChapterBib, 'endPage'),
-                    self::certainString($bookChapterBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundInDatabaseException(
-                    'Bibliography with id "' . $bookChapterBib->id . '" not found '
-                    . ' in manuscript with id "' . $manuscript->getId() . '".'
-                );
-            }
-        }
-        foreach ($bibliography->onlineSources as $onlineSourceBib) {
-            if (!property_exists($onlineSourceBib, 'id')) {
-                $this->container->get('bibliography_manager')->addOnlineSourceBibliography(
-                    $manuscript->getId(),
-                    $onlineSourceBib->onlineSource->id,
-                    self::certainString($onlineSourceBib, 'relUrl')
-                );
-            } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
-                $updateIds[] = $onlineSourceBib->id;
-                $this->container->get('bibliography_manager')->updateOnlineSourceBibliography(
-                    $onlineSourceBib->id,
-                    $onlineSourceBib->onlineSource->id,
-                    self::certainString($onlineSourceBib, 'relUrl')
-                );
-            } else {
-                throw new NotFoundInDatabaseException(
-                    'Bibliography with id "' . $onlineSourceBib->id . '" not found '
-                    . ' in manuscript with id "' . $manuscript->getId() . '".'
-                );
-            }
-        }
-        // delete
-        $delIds = [];
-        foreach ($origBibIds as $origId) {
-            if (!in_array($origId, $updateIds)) {
-                $delIds[] = $origId;
-            }
-        }
-        if (count($delIds) > 0) {
-            $this->container->get('bibliography_manager')->delBibliographies(
-                array_filter(
-                    $manuscript->getBibliographies(),
-                    function ($bibliography) use ($delIds) {
-                        return in_array($bibliography->getId(), $delIds);
-                    }
-                )
-            );
-        }
-    }
-
     private function updateStatus(Manuscript $manuscript, stdClass $data): void
     {
         if ($data->status == null) {
@@ -657,28 +481,22 @@ class ManuscriptManager extends DocumentManager
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
     }
 
-    public function delManuscript(int $manuscriptId): void
+    public function delete(int $manuscriptId): void
     {
         $this->dbs->beginTransaction();
         try {
             // Throws NotFoundException if not found
-            $manuscript = $this->getManuscriptById($manuscriptId);
+            $manuscript = $this->getFull($manuscriptId);
 
             $this->dbs->delete($manuscriptId);
 
             $this->updateModified($manuscript, null);
 
             // empty cache
-            $this->cache->invalidateTags([
-                'manuscript_short.' . $manuscriptId,
-                'manuscript.' . $manuscriptId,
-                'manuscripts'
-            ]);
-            $this->cache->deleteItem('manuscript_short.' . $manuscriptId);
-            $this->cache->deleteItem('manuscript.' . $manuscriptId);
+            $this->clearCache();
 
             // delete from elastic search
-            $this->ess->delManuscript($manuscript);
+            $this->ess->delete($manuscript);
 
             // commit transaction
             $this->dbs->commit();
@@ -691,16 +509,5 @@ class ManuscriptManager extends DocumentManager
         }
 
         return;
-    }
-
-    private static function certainString(stdClass $object, string $property): string
-    {
-        if (!property_exists($object, $property)) {
-            return '';
-        }
-        if (empty($object->$property)) {
-            return '';
-        }
-        return $object->$property;
     }
 }

@@ -28,8 +28,8 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $manuscriptManager = $this->getContainer()->get('manuscript_manager');
             $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
             $manuscriptElasticService->setupManuscripts();
-            $manuscripts = $manuscriptManager->getAllManuscripts();
-            $manuscriptElasticService->addManuscripts($manuscripts);
+            $manuscripts = $manuscriptManager->getAllShort();
+            $manuscriptElasticService->addMultiple($manuscripts);
         }
 
         // (Re)index occurrences
@@ -37,8 +37,8 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $occurrenceManager = $this->getContainer()->get('occurrence_manager');
             $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
             $occurrenceElasticService->setupOccurrences();
-            $occurrences = $occurrenceManager->getAllOccurrences();
-            $occurrenceElasticService->addOccurrences($occurrences);
+            $occurrences = $occurrenceManager->getAllShort();
+            $occurrenceElasticService->addMultiple($occurrences);
         }
 
         // (Re)index persons
@@ -46,8 +46,8 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $personManager = $this->getContainer()->get('person_manager');
             $personElasticService = $this->getContainer()->get('person_elastic_service');
             $personElasticService->setupPersons();
-            $persons = $personManager->getAllPersons();
-            $personElasticService->addPersons($persons);
+            $persons = $personManager->getAllShort();
+            $personElasticService->addMultiple($persons);
         }
     }
 }

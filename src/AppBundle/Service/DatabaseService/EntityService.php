@@ -60,6 +60,50 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getBibliographies(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                entity.identity as entity_id,
+                reference.idreference as reference_id,
+	            coalesce(
+                    book_merge.type::text,
+                    article_merge.type::text,
+                    book_chapter_merge.type::text,
+                    online_source_merge.type::text
+                ) as type
+            from data.entity
+            inner join data.reference on entity.identity = reference.idtarget
+            left join (
+                select
+                    book.identity as biblio_id,
+                    \'book\' as type
+                from data.book
+            ) book_merge on reference.idsource = book_merge.biblio_id
+            left join (
+                select
+                    article.identity as biblio_id,
+                    \'article\' as type
+                from data.article
+            ) article_merge on reference.idsource = article_merge.biblio_id
+            left join (
+                select
+                    bookchapter.identity as biblio_id,
+                    \'book_chapter\' as type
+                from data.bookchapter
+            ) book_chapter_merge on reference.idsource = book_chapter_merge.biblio_id
+            left join (
+                select
+                    online_source.identity as biblio_id,
+                    \'online_source\' as type
+                from data.online_source
+            ) online_source_merge on reference.idsource = online_source_merge.biblio_id
+            where entity.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function updatePublic(int $entityId, bool $public): int
     {
         return $this->conn->executeUpdate(

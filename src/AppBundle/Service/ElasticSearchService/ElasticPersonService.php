@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use AppBundle\Model\Person;
 
-class ElasticPersonService extends ElasticSearchService
+class ElasticPersonService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -37,26 +37,6 @@ class ElasticPersonService extends ElasticSearchService
             ]
         );
         $mapping->send();
-    }
-
-    public function addPersons(array $persons): void
-    {
-        $personsElastic = [];
-        foreach ($persons as $person) {
-            $personsElastic [] = $person->getElastic();
-        }
-
-        $this->bulkAdd($personsElastic);
-    }
-
-    public function addPerson(Person $person): void
-    {
-        $this->add($person->getElastic());
-    }
-
-    public function delPerson(Person $person): void
-    {
-        $this->del($person->getId());
     }
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
