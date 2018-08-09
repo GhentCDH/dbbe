@@ -37,6 +37,9 @@ class ElasticManuscriptService extends ElasticSearchService
                 'patron' => ['type' => 'nested'],
                 'scribe' => ['type' => 'nested'],
                 'related' => ['type' => 'nested'],
+                'patron_public' => ['type' => 'nested'],
+                'scribe_public' => ['type' => 'nested'],
+                'related_public' => ['type' => 'nested'],
                 'origin' => ['type' => 'nested'],
             ]
         );
@@ -77,7 +80,7 @@ class ElasticManuscriptService extends ElasticSearchService
         }
 
         if (!empty($params['filters'])) {
-            $params['filters'] = $this->classifyFilters($params['filters']);
+            $params['filters'] = $this->classifyFilters($params['filters'], $viewInternal);
         }
 
         $result = $this->search($params);
@@ -102,7 +105,7 @@ class ElasticManuscriptService extends ElasticSearchService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters)),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -144,9 +147,10 @@ class ElasticManuscriptService extends ElasticSearchService
     /**
      * Add elasticsearch information to filters
      * @param  array $filters can be a sequential (aggregation) or an associative (query) array
+     * @param  bool $viewInternal indicates whether internal (non-public) data can be displayed
      * @return array
      */
-    public function classifyFilters(array $filters): array
+    public function classifyFilters(array $filters, bool $viewInternal): array
     {
         $result = [];
         foreach ($filters as $key => $value) {
@@ -165,12 +169,12 @@ class ElasticManuscriptService extends ElasticSearchService
                     // Person roles
                     case 'person':
                         if (is_int($key)) {
-                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames(), $value, 'role'];
+                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                         } else {
                             if (isset($filters['role'])) {
                                 $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
                             } else {
-                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames(), $value, 'role'];
+                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                             }
                         }
                         break;

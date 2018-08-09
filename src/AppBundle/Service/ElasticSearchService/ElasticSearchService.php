@@ -480,11 +480,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         );
     }
 
-    protected function getRoleSystemNames(): array
+    protected function getRoleSystemNames(bool $viewInternal): array
     {
         return array_map(
-            function ($role) {
-                return $role->getSystemName();
+            function ($role) use ($viewInternal) {
+                return $viewInternal ? $role->getSystemName() : $role->getSystemName() . '_public';
             },
             $this->roles
         );

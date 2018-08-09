@@ -74,8 +74,11 @@ class ElasticOccurrenceService extends ElasticSearchService
                 ],
                 'subject' => ['type' => 'nested'],
                 'manuscript_content' => ['type' => 'nested'],
+                'manuscript_content_public' => ['type' => 'nested'],
                 'patron' => ['type' => 'nested'],
                 'scribe' => ['type' => 'nested'],
+                'patron_public' => ['type' => 'nested'],
+                'scribe_public' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
@@ -104,7 +107,7 @@ class ElasticOccurrenceService extends ElasticSearchService
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
-            $params['filters'] = $this->classifyFilters($params['filters']);
+            $params['filters'] = $this->classifyFilters($params['filters'], $viewInternal);
         }
 
         $result = $this->search($params);
@@ -112,6 +115,7 @@ class ElasticOccurrenceService extends ElasticSearchService
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
             unset($result['data'][$key]['manuscript_content']);
+            unset($result['data'][$key]['manuscript_content_public']);
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['meter']);
             unset($result['data'][$key]['patron']);
@@ -138,9 +142,13 @@ class ElasticOccurrenceService extends ElasticSearchService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status'])),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status']), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
+        if (!$viewInternal && isset($result['aggregation']['manuscript_content_public'])) {
+            $result['aggregation']['manuscript_content'] = $result['aggregation']['manuscript_content_public'];
+            unset($result['aggregation']['manuscript_content_public']);
+        }
 
         // Add 'No genre' when necessary
         if (array_key_exists('genre', $result['aggregation'])
@@ -179,9 +187,10 @@ class ElasticOccurrenceService extends ElasticSearchService
     /**
      * Add elasticsearch information to filters
      * @param  array $filters can be a sequential (aggregation) or an associative (query) array
+     * @param  bool $viewInternal indicates whether internal (non-public) data can be displayed
      * @return array
      */
-    public function classifyFilters(array $filters): array
+    public function classifyFilters(array $filters, bool $viewInternal): array
     {
         $result = [];
         foreach ($filters as $key => $value) {
@@ -200,12 +209,12 @@ class ElasticOccurrenceService extends ElasticSearchService
                     // Person roles
                     case 'person':
                         if (is_int($key)) {
-                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames(), $value, 'role'];
+                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                         } else {
                             if (isset($filters['role'])) {
                                 $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
                             } else {
-                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames(), $value, 'role'];
+                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                             }
                         }
                         break;
@@ -245,11 +254,21 @@ class ElasticOccurrenceService extends ElasticSearchService
                         $result['date_range'][] = $date_result;
                         break;
                     case 'subject':
-                    case 'manuscript_content':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {
                             $result['nested'][$key] = $value;
+                        }
+                        break;
+                    case 'manuscript_content':
+                        if (is_int($key)) {
+                            $result['nested'][] = $viewInternal ? $value : $value . '_public';
+                        } else {
+                            if ($viewInternal) {
+                                $result['nested'][$key] = $value;
+                            } else {
+                                $result['nested'][$key . '_public'] = $value;
+                            }
                         }
                         break;
                     case 'public_comment':

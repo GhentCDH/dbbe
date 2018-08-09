@@ -364,24 +364,17 @@ class Occurrence extends Document implements IdJsonInterface
         if (!empty($this->manuscript)) {
             $result['manuscript'] = $this->manuscript->getShortJson();
             if (!empty($this->manuscript->getContentsWithParents())) {
-                $contents = [];
-                foreach ($this->manuscript->getContentsWithParents() as $contentWithParents) {
-                    $contents = array_merge($contents, $contentWithParents->getShortElastic());
+                $result['manuscript_content'] = ArrayToJson::arrayToShortElastic($this->manuscript->getContentsWithParents());
+                if ($this->manuscript->getPublic()) {
+                    $result['manuscript_content_public'] = $result['manuscript_content'];
                 }
-                $result['manuscript_content'] = $contents;
             }
         }
-        if (!empty($this->patrons)) {
-            $result['patron'] = [];
-            foreach ($this->patrons as $patron) {
-                $result['patron'][] = $patron->getShortJson();
-            }
+        foreach ($this->getPersonRoles() as $roleName => $personRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
-        if (!empty($this->scribes)) {
-            $result['scribe'] = [];
-            foreach ($this->scribes as $scribe) {
-                $result['scribe'][] = $scribe->getShortJson();
-            }
+        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
         if (isset($this->date) && !empty($this->date->getFloor())) {
             $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));

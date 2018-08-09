@@ -370,6 +370,9 @@ class Manuscript extends Document implements IdJsonInterface
         foreach ($this->getFixedRelatedPersonRoles() as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
+        foreach ($this->getFixedRelatedPublicPersonRoles() as $roleName => $personRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
         }
