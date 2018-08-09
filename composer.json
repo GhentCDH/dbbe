@@ -70,11 +70,6 @@
         "incenteev-parameters": {
             "file": "app/config/parameters.yml"
         },
-        "branch-alias": null,
-        "patches": {
-            "l3/cas-bundle": {
-                "Add CAS attributes": "patches/attributes_patch.diff"
-            }
-        }
+        "branch-alias": null
     }
 }
