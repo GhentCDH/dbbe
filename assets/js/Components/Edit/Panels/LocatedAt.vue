@@ -45,6 +45,14 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
+                    extra: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Extra',
+                        labelClasses: 'control-label',
+                        model: 'extra',
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             }
         }
@@ -113,6 +121,16 @@ export default {
                     old: this.originalModel.shelf,
                     new: this.model.shelf,
                     value: this.model.shelf,
+                })
+            }
+            if (this.model.extra !== this.originalModel.extra && !(this.model.extra == null && this.originalModel.extra == null)) {
+                this.changes.push({
+                    key: 'extra',
+                    keyGroup: 'locatedAt',
+                    label: 'Extra',
+                    old: this.originalModel.extra,
+                    new: this.model.extra,
+                    value: this.model.extra,
                 })
             }
             if (this.model.location.id !== this.originalModel.location.id && !(this.model.location.id == null && this.originalModel.location.id == null)) {

@@ -28,7 +28,8 @@ class LocatedAtManager extends ObjectManager
             $locatedAts[$rawLocatedAt['locatedat_id']] = (new LocatedAt())
                 ->setId($rawLocatedAt['locatedat_id'])
                 ->setLocation($locations[$rawLocatedAt['location_id']])
-                ->setShelf($rawLocatedAt['shelf']);
+                ->setShelf($rawLocatedAt['shelf'])
+                ->setExtra($rawLocatedAt['extra']);
         }
 
         $this->setCache($locatedAts, 'located_at');
@@ -46,8 +47,10 @@ class LocatedAtManager extends ObjectManager
                 && is_numeric($data->location->id)
                 && property_exists($data, 'shelf')
                 && is_string($data->shelf)
+                && property_exists($data, 'extra')
+                && (empty($data->extra) || is_string($data->extra))
             ) {
-                $this->dbs->insert($locatedAtId, $data->location->id, $data->shelf);
+                $this->dbs->insert($locatedAtId, $data->location->id, $data->shelf, $data->extra);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }
@@ -93,6 +96,12 @@ class LocatedAtManager extends ObjectManager
             ) {
                 $correct = true;
                 $this->dbs->updateShelf($locatedAtId, $data->shelf);
+            }
+            if (property_exists($data, 'extra')
+                && empty($data->extra) || is_string($data->extra)
+            ) {
+                $correct = true;
+                $this->dbs->updateExtra($locatedAtId, $data->extra);
             }
 
             if (!$correct) {

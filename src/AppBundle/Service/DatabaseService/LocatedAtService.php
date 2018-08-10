@@ -13,7 +13,8 @@ class LocatedAtService extends DatabaseService
                 -- iddocument is the unique identifier in the located_at table
                 located_at.iddocument as locatedat_id,
                 located_at.idlocation as location_id,
-                located_at.identification as shelf
+                located_at.identification as shelf,
+                located_at.extra as extra
             from data.located_at
             where located_at.iddocument in (?)',
             [$ids],
@@ -21,15 +22,16 @@ class LocatedAtService extends DatabaseService
         )->fetchAll();
     }
 
-    public function insert(int $documentId, int $locationId, string $shelf): int
+    public function insert(int $documentId, int $locationId, string $shelf, string $extra = null): int
     {
         return $this->conn->executeUpdate(
-            'INSERT INTO data.located_at (iddocument, idlocation, identification)
-            values (?, ?, ?)',
+            'INSERT INTO data.located_at (iddocument, idlocation, identification, extra)
+            values (?, ?, ?, ?)',
             [
                 $documentId,
                 $locationId,
                 $shelf,
+                $extra
             ]
         );
     }
@@ -51,6 +53,16 @@ class LocatedAtService extends DatabaseService
             set identification = ?
             where located_at.iddocument = ?',
             [$shelf, $locatedAtId]
+        );
+    }
+
+    public function updateExtra(int $locatedAtId, string $extra): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.located_at
+            set extra = ?
+            where located_at.iddocument = ?',
+            [$extra, $locatedAtId]
         );
     }
 }

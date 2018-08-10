@@ -15,6 +15,7 @@ class LocatedAt implements IdJsonInterface
     private $id;
     private $location;
     private $shelf;
+    private $extra;
 
     public function __construct()
     {
@@ -61,6 +62,18 @@ class LocatedAt implements IdJsonInterface
         return $this->shelf;
     }
 
+    public function setExtra(string $extra = null): LocatedAt
+    {
+        $this->extra = $extra;
+
+        return $this;
+    }
+
+    public function getExtra(): ?string
+    {
+        return $this->extra;
+    }
+
     public function getName(): string
     {
         $name = strtoupper($this->location->getRegionWithParents()->getIndividualName());
@@ -69,6 +82,9 @@ class LocatedAt implements IdJsonInterface
             $name .= ' - ' . $this->location->getCollection()->getName();
         }
         $name .= ' ' . $this->shelf;
+        if (!empty($this->extra)) {
+            $name .= ' (' . $this->extra . ')';
+        }
 
         return $name;
     }
@@ -79,6 +95,7 @@ class LocatedAt implements IdJsonInterface
             'id' => $this->id,
             'location' => $this->location->getJson(),
             'shelf' => $this->shelf,
+            'extra' => $this->extra,
         ];
     }
 }

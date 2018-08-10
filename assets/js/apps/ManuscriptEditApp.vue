@@ -198,6 +198,7 @@ export default {
                         collection: null,
                     },
                     shelf: null,
+                    extra: null,
                 },
                 content: {content: null},
                 personRoles: {},
