@@ -89,9 +89,14 @@ class ElasticManuscriptService extends ElasticEntityService
             !empty($params['filters']) ? $params['filters'] : []
         );
 
-        // Filter out unnecessary results
         // Add 'No collection' when necessary
-        if (array_key_exists('collection', $result['aggregation'])
+        // When a library has been selected and no collection has been selected
+        if ((!empty($params['filters'])
+                && array_key_exists('object', $params['filters'])
+                && array_key_exists('library', $params['filters']['object'])
+                && !array_key_exists('collection', $params['filters']['object'])
+            )
+            // When the 'no collection' has been selected
             || (
                 !empty($params['filters'])
                 && array_key_exists('object', $params['filters'])
