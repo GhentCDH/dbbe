@@ -346,7 +346,7 @@ class Manuscript extends Document implements IdJsonInterface
     {
         $result = parent::getElastic();
 
-        $result['city'] = $this->locatedAt->getLocation()->getRegionWithParents()->getIndividualJson();
+        $result['city'] = $this->locatedAt->getLocation()->getRegionWithParents()->getIndividualShortJson();
         $result['library'] = $this->locatedAt->getLocation()->getInstitution()->getJson();
         $result['shelf'] = $this->locatedAt->getShelf();
         $result['name'] = $this->getName();
