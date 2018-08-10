@@ -6,7 +6,7 @@ use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Document;
 use Elastica\Query;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Elastica\Query\AbstractQuery;
 
 const MAX = 2147483647;
 
@@ -378,40 +378,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'text':
                     foreach ($filterValues as $key => $value) {
-                        switch ($value['type']) {
-                            case 'any':
-                                $matchQuery = new Query\Match($key, $value['text']);
-                                break;
-                            case 'all':
-                                $matchQuery = (new Query\Match())
-                                    ->setFieldQuery($key, $value['text'])
-                                    ->setFieldOperator($key, Query\Match::OPERATOR_AND);
-                                break;
-                            case 'phrase':
-                                $matchQuery = (new Query\MatchPhrase($key, $value['text']));
-                                break;
-                        }
-                        $filterQuery->addMust($matchQuery);
+                        $filterQuery->addMust(self::contstructTextQuery($key, $value));
                     }
                     break;
                 case 'multiple_text':
                     foreach ($filterValues as $field => $options) {
                         $subQuery = new Query\BoolQuery();
                         foreach ($options as $key => $value) {
-                            switch ($value['type']) {
-                                case 'any':
-                                    $matchQuery = new Query\Match($key, $value['text']);
-                                    break;
-                                case 'all':
-                                    $matchQuery = (new Query\Match())
-                                        ->setFieldQuery($key, $value['text'])
-                                        ->setFieldOperator($key, Query\Match::OPERATOR_AND);
-                                    break;
-                                case 'phrase':
-                                    $matchQuery = (new Query\MatchPhrase($key, $value['text']));
-                                    break;
-                            }
-                            $subQuery->addShould($matchQuery);
+                            $subQuery->addShould(self::contstructTextQuery($key, $value));
                         }
                         $filterQuery->addMust($subQuery);
                     }
@@ -518,5 +492,52 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
         return $result;
+    }
+
+    /**
+     * Construct a text query, where correct order, all, 75%, 50%, 25% of words are boosted by counting these results multiple times
+     * Remark: if one of the terms appears in the title and the other in the text, it is not boosted, look into Multi Match with cross fields if other results are wanted
+     * @param  string              $key   Elasticsearch field to match
+     * @param  array               $value Array with [type] of match (any, all, phrase) and the [text] to search for
+     * @return AbstractQuery
+     */
+    private static function contstructTextQuery($key, $value): AbstractQuery
+    {
+        $textQuery = new Query\BoolQuery();
+        $anyQuery = new Query\Match($key, $value['text']);
+        $threeQuarterQuery = (new Query\Match())
+            ->setFieldQuery($key, $value['text'])
+            ->setFieldMinimumShouldMatch($key, '75%');
+        $halfQuery = (new Query\Match())
+            ->setFieldQuery($key, $value['text'])
+            ->setFieldMinimumShouldMatch($key, '50%');
+        $quarterQuery = (new Query\Match())
+            ->setFieldQuery($key, $value['text'])
+            ->setFieldMinimumShouldMatch($key, '25%');
+        $allQuery = (new Query\Match())
+            ->setFieldQuery($key, $value['text'])
+            ->setFieldOperator($key, Query\Match::OPERATOR_AND);
+        $phraseQuery = new Query\MatchPhrase($key, $value['text']);
+        switch ($value['type']) {
+            case 'any':
+                $textQuery
+                    ->addShould($phraseQuery)
+                    ->addShould($allQuery)
+                    ->addShould($threeQuarterQuery)
+                    ->addShould($halfQuery)
+                    ->addShould($quarterQuery)
+                    ->addShould($anyQuery);
+                break;
+            case 'all':
+                $textQuery
+                    ->addShould($phraseQuery)
+                    ->addShould($allQuery);
+                break;
+            case 'phrase':
+                $textQuery->addMust($phraseQuery);
+                break;
+        }
+
+        return $textQuery;
     }
 }
