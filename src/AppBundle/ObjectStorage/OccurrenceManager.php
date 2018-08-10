@@ -214,7 +214,7 @@ class OccurrenceManager extends DocumentManager
      */
     public function getFull(int $id): Occurrence
     {
-        $cache = $this->cache->getItem('occurrence.' . $id);
+        $cache = $this->cache->getItem('occurrence_full.' . $id);
         if ($cache->isHit()) {
             return $cache->get();
         }
@@ -273,7 +273,7 @@ class OccurrenceManager extends DocumentManager
             }
         }
 
-        $this->setCache([$occurrence->getId() => $occurrence], 'occurrence');
+        $this->setCache([$occurrence->getId() => $occurrence], 'occurrence_full');
 
         return $occurrence;
     }

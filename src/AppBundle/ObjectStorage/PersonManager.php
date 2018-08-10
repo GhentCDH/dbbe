@@ -134,7 +134,7 @@ class PersonManager extends EntityManager
      */
     public function getFull(int $id): Person
     {
-        $cache = $this->cache->getItem('person.' . $id);
+        $cache = $this->cache->getItem('person_full.' . $id);
         if ($cache->isHit()) {
             return $cache->get();
         }
@@ -199,7 +199,7 @@ class PersonManager extends EntityManager
             }
         }
 
-        $this->setCache([$person->getId() => $person], 'person');
+        $this->setCache([$person->getId() => $person], 'person_full');
 
         return $person;
     }

@@ -168,7 +168,7 @@ class ManuscriptManager extends DocumentManager
      */
     public function getFull(int $id): Manuscript
     {
-        $cache = $this->cache->getItem('manuscript.' . $id);
+        $cache = $this->cache->getItem('manuscript_full.' . $id);
         if ($cache->isHit()) {
             return $cache->get();
         }
@@ -212,7 +212,7 @@ class ManuscriptManager extends DocumentManager
             $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
         }
 
-        $this->setCache([$manuscript->getId() => $manuscript], 'manuscript');
+        $this->setCache([$manuscript->getId() => $manuscript], 'manuscript_full');
 
         return $manuscript;
     }
