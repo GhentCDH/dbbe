@@ -153,7 +153,7 @@ class EntityManager extends ObjectManager
      */
     private function elasticIndexByIds(array $ids): void
     {
-        $this->ess->add($this->getShort($ids));
+        $this->ess->addMultiple($this->getShort($ids));
     }
 
     protected function updatePublic(Entity $entity, bool $public): void
