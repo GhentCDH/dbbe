@@ -309,7 +309,8 @@ class OccurrenceController extends Controller
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
-        } else {
+        // Don't set default order if there is a text field filter
+        } else if (!(isset($params['filters']['text']) || isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
 
