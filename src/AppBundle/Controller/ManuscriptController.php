@@ -382,7 +382,7 @@ class ManuscriptController extends Controller
                     'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
-                    'books' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBooks()),
+                    'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),

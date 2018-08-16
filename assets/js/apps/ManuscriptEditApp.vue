@@ -31,7 +31,7 @@
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
-                :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : []"
+                :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : {}"
                 @validated="validated"
                 ref="persons" />
 
@@ -280,11 +280,13 @@ export default {
                     content: this.manuscript.content,
                 }
 
-                // PersonRoles
+                // Identification
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
                     this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
                 }
+
+                // PersonRoles
                 this.model.personRoles = {}
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.manuscript.personRoles != null ? this.manuscript.personRoles[role.systemName] : null

@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            Book "{{ book.getTitle() }}"
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('book_edit', {'id': book.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? book.getPersonRoles() : book.getPublicPersonRoles() %}
+                {% if personRoles is not empty %}
+                    <tr>
+                        <td>Person(s)</td>
+                        <td>
+                            {% for rolename, personRole in personRoles %}
+                                <h6>{{ personRole[0].getName() }}:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if book.getYear() is not empty %}
+                    <tr>
+                        <td>Year</td>
+                        <td>{{ book.getYear() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getCity() is not empty %}
+                    <tr>
+                        <td>City</td>
+                        <td>{{ book.getCity() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getEditor() is not empty %}
+                    <tr>
+                        <td>Editor</td>
+                        <td>{{ book.getEditor() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getPublisher() is not empty %}
+                    <tr>
+                        <td>Publisher</td>
+                        <td>{{ book.getPublisher() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getSeries() is not empty %}
+                    <tr>
+                        <td>Series</td>
+                        <td>{{ book.getSeries() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getVolume() is not empty %}
+                    <tr>
+                        <td>Volume</td>
+                        <td>{{ book.getVolume() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getTotalVolumes() is not empty %}
+                    <tr>
+                        <td>Total volumes</td>
+                        <td>{{ book.getTotalVolumes() }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

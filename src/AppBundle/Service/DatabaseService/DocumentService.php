@@ -40,7 +40,8 @@ class DocumentService extends EntityService
                 role.name as role_name
             from data.bibrole
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.iddocument in (?)',
+            where bibrole.iddocument in (?)
+            order by bibrole.rank',
             [
                 $ids,
             ],
@@ -84,6 +85,21 @@ class DocumentService extends EntityService
                 \PDO::PARAM_INT,
                 \PDO::PARAM_INT,
                 Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function updatePersonRoleRank(int $documentId, int $personId, int $rank): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.bibrole
+            set rank = ?
+            where bibrole.iddocument = ?
+            and bibrole.idperson = ?',
+            [
+                $rank,
+                $documentId,
+                $personId
             ]
         );
     }

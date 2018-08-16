@@ -384,7 +384,7 @@ class PersonManager extends EntityManager
             $this->updateModified($new ? null : $person, $newPerson);
 
             // Reset cache and elasticsearch
-            $this->ess->addPerson($newPerson);
+            $this->ess->add($newPerson);
 
             if ($cacheReload['mini']) {
                 // update Elastic manuscripts

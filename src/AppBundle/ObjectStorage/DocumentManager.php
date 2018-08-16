@@ -92,4 +92,18 @@ class DocumentManager extends EntityManager
             throw $e;
         }
     }
+
+    protected function updatePersonRoleWithRank(Document $document, Role $role, array $persons): void
+    {
+        // First make sure all persons are saved
+        $this->updatePersonRole($document, $role, $persons);
+
+        // Update rank
+        $oldPersons = isset($personRoles[$role->getSystemName()]) ? $personRoles[$role->getSystemName()][1] : [];
+        foreach ($persons as $index => $person) {
+            if (!isset($oldPersons[$index]) || $oldPersons[$index]->getId() != $person->id) {
+                $this->dbs->updatePersonRoleRank($document->getId(), $person->id, $index + 1);
+            }
+        }
+    }
 }

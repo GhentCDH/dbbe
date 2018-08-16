@@ -73,6 +73,11 @@ services:
         arguments: ['@bilbiography_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    book_manager:
+        class: AppBundle\ObjectStorage\BookManager
+        arguments: ['@book_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     institution_manager:
         class: AppBundle\ObjectStorage\InstitutionManager
         arguments: ['@institution_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -149,6 +154,10 @@ services:
 
     bilbiography_service:
         class: AppBundle\Service\DatabaseService\BibliographyService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    book_service:
+        class: AppBundle\Service\DatabaseService\BookService
         arguments: ['@doctrine.orm.entity_manager']
 
     occurrence_service:

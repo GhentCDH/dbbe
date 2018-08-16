@@ -30,3 +30,9 @@ Level|Fields|Dependent on
 Mini|<ul><li>id</li><li>firstName</li><li>lastName</li><li>extra</li><li>unprocessed</li><li>bornDate</li><li>deathDate</li><li>historical</li><li>modern</li><li>identification (EntityManager)</li><li>public (EntityManager)</li></ul>|<ul><li>Identifier (identification (EntityManager))</li></ul>
 Short|<ul><li>roles</li><li>offices</li><li>comments (EntityManager)</li></ul>|<ul><li>Role</li><li>Office</li></ul>
 Full|<ul><li>manuscriptRole</li><li>occurrenceManuscriptrole</li></ul>|<ul><li>Manuscript mini (manuscriptRole)</li><li>Manuscript mini (occurrenceManuscriptrole)</li><li>Occurrence mini (occurrenceManuscriptrole)</li></ul>
+
+### Book
+Level|Fields|Dependent on
+---|---|---
+Mini|<ul><li>id</li><li>personRoles (DocumentManager)</li><li>year</li><li>title</li><li>city</li><li>editor (used in BookChapter)</li></ul>|<ul><li>Person short (personRoles (DocumentManager))</li></ul>
+Full|<ul><li>Publisher</li><li>Series</li><li>Volume</li><li>TotalVolumes</li>

@@ -27,6 +27,7 @@ Encore
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('rolesedit', './assets/js/main/rolesedit.js')
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')
+    .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('usersedit', './assets/js/main/usersedit.js')
     .addEntry('main', './assets/js/main/main.js')
     .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')

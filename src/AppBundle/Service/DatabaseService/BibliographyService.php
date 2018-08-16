@@ -83,36 +83,6 @@ class BibliographyService extends DatabaseService
         );
     }
 
-    public function getBooksByIds(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                book.identity as book_id,
-                array_to_json(array_agg(bibrole.idperson order by bibrole.rank)) as person_ids,
-                document_title.title,
-                book.year,
-                book.city,
-                book.editor
-            from data.book
-            left join data.bibrole on book.identity = bibrole.iddocument
-            left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
-            inner join data.document_title on book.identity = document_title.iddocument
-            where book.identity in (?)
-            group by book.identity, document_title.title',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getBookIds(): array
-    {
-        return $this->conn->query(
-            'SELECT
-                book.identity as book_id
-            from data.book'
-        )->fetchAll();
-    }
-
     public function getArticlesByIds(array $ids): array
     {
         return $this->conn->executeQuery(

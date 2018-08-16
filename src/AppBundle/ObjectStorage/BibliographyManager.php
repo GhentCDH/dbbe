@@ -4,7 +4,6 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Article;
 use AppBundle\Model\ArticleBibliography;
-use AppBundle\Model\Book;
 use AppBundle\Model\BookBibliography;
 use AppBundle\Model\BookChapter;
 use AppBundle\Model\BookChapterBibliography;
@@ -25,7 +24,7 @@ class BibliographyManager extends ObjectManager
         $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
 
         $bookIds = self::getUniqueIds($rawBibliographies, 'source_id');
-        $books = $this->getBooksByIds($bookIds);
+        $books = $this->container->get('book_manager')->getMini($bookIds);
 
         foreach ($rawBibliographies as $rawBibliography) {
             $bibliography =
@@ -46,64 +45,6 @@ class BibliographyManager extends ObjectManager
         $this->setCache($bibliographies, 'book_bibliography');
 
         return $cached + $bibliographies;
-    }
-
-    public function getBooksByIds(array $ids): array
-    {
-        list($cached, $ids) = $this->getCache($ids, 'book');
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $books = [];
-        $rawBooks = $this->dbs->getBooksByIds($ids);
-
-        $personIds = self::getUniqueIds($rawBooks, 'person_ids');
-        $persons = $this->container->get('person_manager')->getMini($personIds);
-
-        foreach ($rawBooks as $rawBook) {
-            $book = new Book(
-                $rawBook['book_id'],
-                $rawBook['year'],
-                $rawBook['title'],
-                $rawBook['city'],
-                $rawBook['editor']
-            );
-            foreach (json_decode($rawBook['person_ids']) as $personId) {
-                if (!empty($personId)) {
-                    $book
-                        ->addAuthor($persons[$personId])
-                        ->addCacheDependency('person_mini.' . $personId);
-                }
-            }
-
-            $books[$rawBook['book_id']] = $book;
-        }
-
-        $this->setCache($books, 'book');
-
-        return $cached + $books;
-    }
-
-    public function getAllBooks(): array
-    {
-        $cache = $this->cache->getItem('books');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        $rawIds = $this->dbs->getBookIds();
-        $ids = self::getUniqueIds($rawIds, 'book_id');
-        $books = $this->getBooksByIds($ids);
-
-        // Sort by description
-        usort($books, function ($a, $b) {
-            return strcmp($a->getDescription(), $b->getDescription());
-        });
-
-        $cache->tag(['books']);
-        $this->cache->save($cache->set($books));
-        return $books;
     }
 
     public function addBookBibliography(int $documentId, int $bookId, string $startPage, string $endPage): void
@@ -295,7 +236,7 @@ class BibliographyManager extends ObjectManager
         $rawBookChapters = $this->dbs->getBookChaptersByIds($ids);
 
         $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
-        $books = $this->getBooksByIds($bookIds);
+        $books = $this->container->get('book_manager')->getMini($bookIds);
 
         $personIds = self::getUniqueIds($rawBookChapters, 'person_ids');
         $persons = $this->container->get('person_manager')->getMini($personIds);

@@ -12,7 +12,7 @@
                 {{ item.message }}
             </alert>
 
-            <basicPanel
+            <basicPersonPanel
                 id="basic"
                 header="Basic Information"
                 :model="model.basic"
@@ -141,7 +141,7 @@ const panelComponents = require.context('../Components/Edit/Panels', false, /[.]
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['Basic', 'Date', 'Identification', 'Office', 'GeneralPerson'].includes(compName)) {
+    if (['BasicPerson', 'Date', 'Identification', 'Office', 'GeneralPerson'].includes(compName)) {
         Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
     }
 }
