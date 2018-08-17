@@ -162,13 +162,11 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[LocatedAt|Content|Person|Date|Origin|OccurrenceOrder|Identification|Bibliography|GeneralManuscript][.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['LocatedAt', 'Content', 'Person', 'Date', 'Origin', 'OccurrenceOrder', 'Identification', 'Bibliography', 'GeneralManuscript'].includes(compName)) {
-        Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
-    }
+    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
 }
 
 export default {
