@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Person extends Entity implements SubjectInterface, IdJsonInterface
+class Person extends Entity implements SubjectInterface
 {
     use CacheDependenciesTrait;
 

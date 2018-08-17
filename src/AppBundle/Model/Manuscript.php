@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Manuscript extends Document implements IdJsonInterface
+class Manuscript extends Document
 {
     use CacheDependenciesTrait;
 

@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-class Entity
+class Entity implements IdJsonInterface
 {
     protected $id;
     protected $publicComment;

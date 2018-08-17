@@ -2,7 +2,7 @@
 
 namespace AppBundle\Model;
 
-class Region extends IdNameObject implements IdJsonInterface
+class Region extends IdNameObject
 {
     private $historicalName;
     private $isCity;
