@@ -5,8 +5,6 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use AppBundle\Model\Occurrence;
-
 class ElasticOccurrenceService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
@@ -64,23 +62,23 @@ class ElasticOccurrenceService extends ElasticEntityService
                 ],
             ],
         ]);
+
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
-        $mapping->setProperties(
-            [
-                'text' => [
-                    'type' => 'text',
-                    'analyzer' => 'custom_greek',
-                ],
-                'subject' => ['type' => 'nested'],
-                'manuscript_content' => ['type' => 'nested'],
-                'manuscript_content_public' => ['type' => 'nested'],
-                'patron' => ['type' => 'nested'],
-                'scribe' => ['type' => 'nested'],
-                'patron_public' => ['type' => 'nested'],
-                'scribe_public' => ['type' => 'nested'],
-            ]
-        );
+        $properties = [
+            'text' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek',
+            ],
+            'subject' => ['type' => 'nested'],
+            'manuscript_content' => ['type' => 'nested'],
+            'manuscript_content_public' => ['type' => 'nested'],
+        ];
+        foreach ($this->getRoleSystemNames(true) as $role) {
+            $properties[$role] = ['type' => 'nested'];
+            $properties[$role . '_public'] = ['type' => 'nested'];
+        }
+        $mapping->setProperties($properties);
         $mapping->send();
     }
 
@@ -98,11 +96,13 @@ class ElasticOccurrenceService extends ElasticEntityService
             unset($result['data'][$key]['manuscript_content_public']);
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['meter']);
-            unset($result['data'][$key]['patron']);
-            unset($result['data'][$key]['scribe']);
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
+            foreach ($this->getRoleSystemNames(true) as $role) {
+                unset($result['data'][$key][$role]);
+                unset($result['data'][$key][$role . '_public']);
+            }
 
             // Keep text / title if there was a search, then these will be an array
             if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {

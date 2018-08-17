@@ -5,8 +5,6 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use AppBundle\Model\Manuscript;
-
 class ElasticManuscriptService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
@@ -31,18 +29,15 @@ class ElasticManuscriptService extends ElasticEntityService
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
-        $mapping->setProperties(
-            [
-                'content' => ['type' => 'nested'],
-                'patron' => ['type' => 'nested'],
-                'scribe' => ['type' => 'nested'],
-                'related' => ['type' => 'nested'],
-                'patron_public' => ['type' => 'nested'],
-                'scribe_public' => ['type' => 'nested'],
-                'related_public' => ['type' => 'nested'],
-                'origin' => ['type' => 'nested'],
-            ]
-        );
+        $properties = [
+            'content' => ['type' => 'nested'],
+            'origin' => ['type' => 'nested'],
+        ];
+        foreach ($this->getRoleSystemNames(true) as $role) {
+            $properties[$role] = ['type' => 'nested'];
+            $properties[$role . '_public'] = ['type' => 'nested'];
+        }
+        $mapping->setProperties($properties);
         $mapping->send();
     }
 
@@ -71,9 +66,11 @@ class ElasticManuscriptService extends ElasticEntityService
             unset($result['data'][$key]['library']);
             unset($result['data'][$key]['collection']);
             unset($result['data'][$key]['shelf']);
-            unset($result['data'][$key]['patron']);
-            unset($result['data'][$key]['scribe']);
             unset($result['data'][$key]['origin']);
+            foreach ($this->getRoleSystemNames(true) as $role) {
+                unset($result['data'][$key][$role]);
+                unset($result['data'][$key][$role . '_public']);
+            }
 
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
@@ -111,7 +108,7 @@ class ElasticManuscriptService extends ElasticEntityService
         }
 
         // Remove non public fields if no access rights
-        // Add 'no-selectors' for primary identifiers
+        // Add 'no-selectors' for primary identifiers if access rights
         if (!$viewInternal) {
             unset($result['aggregation']['public']);
             foreach ($result['data'] as $key => $value) {
