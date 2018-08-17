@@ -121,6 +121,18 @@ class BookController extends Controller
     }
 
     /**
+     * @Route("/books/{id}", name="book_delete")
+     * @Method("DELETE")
+     * @param  int    $id book id
+     * @param Request $request
+     * @return Response
+     */
+    public function deleteBook(int $id, Request $request)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    /**
      * @Route("/books/{id}/edit", name="book_edit")
      * @Method("GET")
      * @param  int|null $id book id

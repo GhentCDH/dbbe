@@ -49,5 +49,15 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $persons = $personManager->getAllShort();
             $personElasticService->addMultiple($persons);
         }
+
+        // (Re)index bibliography
+        if ($index == null || $index == 'bibliography') {
+            $bookManager = $this->getContainer()->get('book_manager');
+            // TODO: bookchapter, article
+            $bibliographyElasticService = $this->getContainer()->get('bibliography_elastic_service');
+            $bibliographyElasticService->setupBibliographies();
+            $books = $bookManager->getAllMini();
+            $bibliographyElasticService->addMultiple($books);
+        }
     }
 }

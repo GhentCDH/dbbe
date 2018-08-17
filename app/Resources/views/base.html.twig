@@ -106,6 +106,13 @@
                                                     </a>
                                                 </li>
                                             {% endif %}
+                                            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                                                <li class="{{ app.request.get('_route') == 'bibliographies_search' ? 'active' }}">
+                                                    <a href="{{ path('bibliographies_search') }}">
+                                                        <span>Bibliographies</span>
+                                                    </a>
+                                                </li>
+                                            {% endif %}
                                             <li class="dropdown">
                                                 <a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle" href="#">
                                                     <span>Info</span>

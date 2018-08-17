@@ -149,18 +149,20 @@ export default {
                 }
             }
 
-            // set year min and max values
-            if (this.model.year_from != null) {
-                this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
-            }
-            else {
-                this.schema.fields.year_to.min = YEAR_MIN
-            }
-            if (this.model.year_to != null) {
-                this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
-            }
-            else {
-                this.schema.fields.year_from.max = YEAR_MAX
+            if ('year_from' in this.schema.fields && 'year_to' in this.schema.fields) {
+                // set year min and max values
+                if (this.model.year_from != null) {
+                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from)
+                }
+                else {
+                    this.schema.fields.year_to.min = YEAR_MIN
+                }
+                if (this.model.year_to != null) {
+                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to)
+                }
+                else {
+                    this.schema.fields.year_from.max = YEAR_MAX
+                }
             }
 
             // Cancel timeouts caused by input requests not long ago

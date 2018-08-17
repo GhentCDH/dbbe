@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-sm-12 ">
+        <h2 class="h1">Search Bibliographies</h2>
+        {% if is_granted('ROLE_EDITOR_VIEW') %}
+        <div class="pbottom-default">
+            <a
+                href="{{ path('book_add') }}"
+                class="action">
+                <i class="fa fa-plus"></i> Add a new book
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div id="bibliography-search-app">
+        <bibliography-search-app
+            :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
+            :is-view-internal="{{ is_granted('ROLE_VIEW_INTERNAL') ? 'true' : 'false' }}"
+            init-urls="{{ urls }}"
+            init-data="{{ data }}"
+            init-identifiers="{{ identifiers }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/bibliographysearch.js") }}"></script>
+{% endblock %}

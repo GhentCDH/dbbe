@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 class Book extends Document implements IdJsonInterface
 {
     use CacheDependenciesTrait;
@@ -165,6 +167,26 @@ class Book extends Document implements IdJsonInterface
         }
         if (!empty($this->totalVolumes)) {
             $result['totalVolumes'] = $this->totalVolumes;
+        }
+
+        return $result;
+    }
+
+    public function getElastic(): array
+    {
+        $result = parent::getElastic();
+
+        $result['type'] = [
+            'id' => 0,
+            'name' => 'Book',
+        ];
+
+        $result['title'] = $this->title;
+        foreach ($this->getPersonRoles() as $roleName => $personRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
 
         return $result;

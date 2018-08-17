@@ -13,9 +13,13 @@ Encore
 
     // Add javascripts
     .autoProvidejQuery()
+    .addEntry('bibliographysearch', './assets/js/main/bibliographysearch.js')
+    .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('contentsedit', './assets/js/main/contentsedit.js')
     .addEntry('feedback', './assets/js/main/feedback.js')
+    .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')
+    .addEntry('main', './assets/js/main/main.js')
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
     .addEntry('manuscriptedit', './assets/js/main/manuscriptedit.js')
     .addEntry('officesedit', './assets/js/main/officesedit.js')
@@ -27,10 +31,7 @@ Encore
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('rolesedit', './assets/js/main/rolesedit.js')
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')
-    .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('usersedit', './assets/js/main/usersedit.js')
-    .addEntry('main', './assets/js/main/main.js')
-    .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
 
     // allow sass/scss files to be processed
     .enableSassLoader()
