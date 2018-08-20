@@ -87,7 +87,7 @@ class ManuscriptManager extends DocumentManager
                 $rawContents = $this->dbs->getContents($ids);
                 if (count($rawContents) > 0) {
                     $contentIds = self::getUniqueIds($rawContents, 'genre_id');
-                    $contentsWithParents = $this->container->get('content_manager')->getContentsWithParentsByIds($contentIds);
+                    $contentsWithParents = $this->container->get('content_manager')->getWithParents($contentIds);
                     foreach ($rawContents as $rawContent) {
                         $contentWithParents = $contentsWithParents[$rawContent['genre_id']];
                         $manuscripts[$rawContent['manuscript_id']]

@@ -4,6 +4,10 @@ namespace AppBundle\Model;
 
 class Region extends IdNameObject
 {
+    const CACHENAME = 'region';
+
+    use CacheLinkTrait;
+
     private $historicalName;
     private $isCity;
     private $pleiades;

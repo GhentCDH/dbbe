@@ -18,7 +18,7 @@ class ContentManager extends ObjectManager
 {
     // TODO: get for individual content
 
-    public function getContentsWithParentsByIds(array $ids)
+    public function getWithParents(array $ids)
     {
         return $this->wrapCache(
             ContentWithParents::CACHENAME,
@@ -53,7 +53,7 @@ class ContentManager extends ObjectManager
             function () {
                 $rawIds = $this->dbs->getContentIds();
                 $ids = self::getUniqueIds($rawIds, 'content_id');
-                $contentsWithParents = $this->getContentsWithParentsByIds($ids);
+                $contentsWithParents = $this->getWithParents($ids);
 
                 // Sort by name
                 usort($contentsWithParents, function ($a, $b) {
@@ -69,7 +69,7 @@ class ContentManager extends ObjectManager
     {
         $rawIds = $this->dbs->getContentsByContent($contentId);
         $ids = self::getUniqueIds($rawIds, 'content_id');
-        return $this->getContentsWithParentsByIds($ids);
+        return $this->getWithParents($ids);
     }
 
     public function addContentWithParents(stdClass $data): ContentWithParents
@@ -95,7 +95,7 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $newContentWithParents = $this->getContentsWithParentsByIds([$contentId])[$contentId];
+            $newContentWithParents = $this->getWithParents([$contentId])[$contentId];
 
             $this->updateModified(null, $newContentWithParents);
 
@@ -117,7 +117,7 @@ class ContentManager extends ObjectManager
         // TODO: make sure if a parent changes, the child changes as well
         $this->dbs->beginTransaction();
         try {
-            $contentsWithParents = $this->getContentsWithParentsByIds([$contentId]);
+            $contentsWithParents = $this->getWithParents([$contentId]);
             if (count($contentsWithParents) == 0) {
                 $this->dbs->rollBack();
                 throw new NotFoundHttpException('Content with id ' . $contentId .' not found.');
@@ -154,7 +154,7 @@ class ContentManager extends ObjectManager
 
             // load new content data
             $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
-            $newContentWithParents = $this->getContentsWithParentsByIds([$contentId])[$contentId];
+            $newContentWithParents = $this->getWithParents([$contentId])[$contentId];
 
             $this->updateModified($contentWithParents, $newContentWithParents);
 
@@ -175,7 +175,7 @@ class ContentManager extends ObjectManager
     public function mergeContentsWithParents(int $primaryId, int $secondaryId): ContentWithParents
     {
         // TODO: make sure if a parent changes, the child changes as well
-        $contentsWithParents = $this->getContentsWithParentsByIds([$primaryId, $secondaryId]);
+        $contentsWithParents = $this->getWithParents([$primaryId, $secondaryId]);
         if (count($contentsWithParents) != 2) {
             if (!array_key_exists($primaryId, $contentsWithParents)) {
                 throw new NotFoundHttpException('Content with id ' . $primaryId .' not found.');
@@ -237,7 +237,7 @@ class ContentManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $contentsWithParents = $this->getContentsWithParentsByIds([$contentId]);
+            $contentsWithParents = $this->getWithParents([$contentId]);
             if (count($contentsWithParents) == 0) {
                 throw new NotFoundHttpException('Content with id ' . $contentId .' not found.');
             }

@@ -19,7 +19,7 @@ class LocationManager extends ObjectManager
                 $locations = [];
                 $rawLocations = $this->dbs->getLocationsByIds($ids);
                 $regionIds = self::getUniqueIds($rawLocations, 'region_id');
-                $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
+                $regionsWithParents = $this->container->get('region_manager')->getWithParents($regionIds);
                 $institutions = $this->container->get('institution_manager')->getWithData($rawLocations);
                 $collections = $this->container->get('collection_manager')->getWithData($rawLocations);
 

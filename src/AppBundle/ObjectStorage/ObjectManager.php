@@ -190,10 +190,10 @@ class ObjectManager
                     return $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds([$matches[3]])[$matches[3]];
                     break;
                 case 'content_with_parents':
-                    return $this->container->get('content_manager')->getContentsWithParentsByIds([$matches[3]])[$matches[3]];
+                    return $this->container->get('content_manager')->getWithParents([$matches[3]])[$matches[3]];
                     break;
                 case 'region_with_parents':
-                    return $this->container->get('region_manager')->getRegionsWithParentsByIds([$matches[3]])[$matches[3]];
+                    return $this->container->get('region_manager')->getWithParents([$matches[3]])[$matches[3]];
                     break;
                 default:
                     return $this->container->get($matches[1] . '_manager')->get([$matches[3]])[$matches[3]];
@@ -205,7 +205,7 @@ class ObjectManager
 
     protected function deleteCache(string $cacheKey, int $id): void
     {
-        $this->cache->deleteItem($cacheKey . '.' . $institutionId);
+        $this->cache->deleteItem($cacheKey . '.' . $id);
     }
 
     protected function wrapCache(string $cacheKey, array $ids, callable $function): array

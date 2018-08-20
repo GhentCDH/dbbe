@@ -7,6 +7,7 @@ class RegionWithParents extends IdNameObjectWithParents
     const CACHENAME = 'region_with_parents';
 
     use CacheLinkTrait;
+    use CacheObjectTrait;
 
     public function getHistoricalName(): string
     {
@@ -69,5 +70,16 @@ class RegionWithParents extends IdNameObjectWithParents
             array_pop($array);
         }
         return $result;
+    }
+
+    public static function unlinkCache($data)
+    {
+        $regionWithParents = new RegionWithParents($data['array']);
+
+        foreach ($data as $key => $value) {
+            $regionWithParents->set($key, $value);
+        }
+
+        return $regionWithParents;
     }
 }
