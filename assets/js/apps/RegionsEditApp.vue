@@ -311,12 +311,12 @@ export default {
             else {
                 let data = {}
                 if (JSON.stringify(this.submitModel.region.parent) !== JSON.stringify(this.originalSubmitModel.region.parent)) {
-                    if (this.submitModel.parent == null) {
+                    if (this.submitModel.region.parent == null) {
                         data.parent = null
                     }
                     else {
                         data.parent = {
-                            id: this.submitModel.parent.id
+                            id: this.submitModel.region.parent.id
                         }
                     }
                 }
