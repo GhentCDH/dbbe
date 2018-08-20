@@ -41,19 +41,15 @@ class DocumentManager extends EntityManager
                 $persons = $this->container->get('person_manager')->getShort($personIds);
             }
 
+            $roles = $this->container->get('role_manager')->getWithData($rawRoles);
+
             // Direct roles
             foreach ($rawRoles as $raw) {
                 $documents[$raw['document_id']]
                     ->addPersonRole(
-                        new Role($raw['role_id'], json_decode($raw['role_usage']), $raw['role_system_name'], $raw['role_name']),
+                        $roles[$raw['role_id']],
                         $persons[$raw['person_id']]
-                    )
-                    ->addCacheDependency('role.' . $raw['role_id'])
-                    ->addCacheDependency('person_short.' . $raw['person_id']);
-                foreach ($persons[$raw['person_id']]->getCacheDependencies() as $cacheDependency) {
-                    $documents[$raw['document_id']]
-                        ->addCacheDependency($cacheDependency);
-                }
+                    );
             }
         }
     }

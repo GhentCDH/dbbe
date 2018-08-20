@@ -4,6 +4,8 @@ namespace AppBundle\Model;
 
 class Journal
 {
+    const CACHENAME = 'journal';
+    
     private $id;
     private $title;
     private $year;

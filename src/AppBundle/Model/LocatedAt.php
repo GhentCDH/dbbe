@@ -6,7 +6,10 @@ use stdClass;
 
 class LocatedAt implements IdJsonInterface
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'located_at';
+
+    use CacheLinkTrait;
+    use CacheObjectTrait;
 
     /**
      * Location id is actually the document id, since it is the unique column in this table
@@ -37,10 +40,6 @@ class LocatedAt implements IdJsonInterface
     public function setLocation(Location $location): LocatedAt
     {
         $this->location = $location;
-        $this->addCacheDependency('location.' . $location->getId());
-        foreach ($location->getCacheDependencies() as $cacheDependency) {
-            $this->addCacheDependency($cacheDependency);
-        }
 
         return $this;
     }

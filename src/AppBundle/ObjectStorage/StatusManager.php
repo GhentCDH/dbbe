@@ -13,50 +13,71 @@ use AppBundle\Model\Status;
 
 class StatusManager extends ObjectManager
 {
-    public function getStatusesByIds(array $ids)
+    public function get(array $ids)
     {
-        list($cached, $ids) = $this->getCache($ids, 'status');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            Status::CACHENAME,
+            $ids,
+            function ($ids) {
+                $statuses = [];
+                $rawStatuses = $this->dbs->getStatusesByIds($ids);
 
-        $statuses = [];
-        $rawStatuses = $this->dbs->getStatusesByIds($ids);
+                foreach ($rawStatuses as $rawStatus) {
+                    $statuses[$rawStatus['status_id']] = new Status(
+                        $rawStatus['status_id'],
+                        $rawStatus['status_name'],
+                        $rawStatus['status_type']
+                    );
+                }
 
-        foreach ($rawStatuses as $rawStatus) {
-            $statuses[$rawStatus['status_id']] = new Status(
-                $rawStatus['status_id'],
-                $rawStatus['status_name'],
-                $rawStatus['status_type']
-            );
-        }
+                return $statuses;
+            }
+        );
+    }
 
-        $this->setCache($statuses, 'status');
+    public function getWithData(array $data)
+    {
+        return $this->wrapDataCache(
+            Status::CACHENAME,
+            $data,
+            'status_id',
+            function ($data) {
+                $statuses = [];
+                foreach ($data as $rawStatus) {
+                    if (isset($rawStatus['status_id'])) {
+                        $statuses[$rawStatus['status_id']] = new Status(
+                            $rawStatus['status_id'],
+                            $rawStatus['status_name'],
+                            $rawStatus['status_type']
+                        );
+                    }
+                }
 
-        return $cached + $statuses;
+                return $statuses;
+            }
+        );
     }
 
     public function getAllStatuses(): array
     {
-        $cache = $this->cache->getItem('statuses');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'statuses',
+            ['statuses'],
+            function () {
+                $rawStatuses = $this->dbs->getAllStatuses();
+                $statuses = [];
+                foreach ($rawStatuses as $rawStatus) {
+                    $statuses[] = new Status($rawStatus['status_id'], $rawStatus['status_name'], $rawStatus['status_type']);
+                }
 
-        $rawStatuses = $this->dbs->getAllStatuses();
-        $statuses = [];
-        foreach ($rawStatuses as $rawStatus) {
-            $statuses[] = new Status($rawStatus['status_id'], $rawStatus['status_name'], $rawStatus['status_type']);
-        }
+                // Sort by name
+                usort($statuses, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        // Sort by name
-        usort($statuses, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['statuses']);
-        $this->cache->save($cache->set($statuses));
-        return $statuses;
+                return $statuses;
+            }
+        );
     }
 
     public function getAllManuscriptStatuses(): array
@@ -99,13 +120,12 @@ class StatusManager extends ObjectManager
             }
 
             // load new content data
-            $newStatus = $this->getStatusesByIds([$statusId])[$statusId];
+            $newStatus = $this->get([$statusId])[$statusId];
 
             $this->updateModified(null, $newStatus);
 
             // update cache
             $this->cache->invalidateTags(['statuses']);
-            $this->setCache([$newStatus->getId() => $newStatus], 'status');
 
             // commit transaction
             $this->dbs->commit();
@@ -121,7 +141,7 @@ class StatusManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $statuses = $this->getStatusesByIds([$statusId]);
+            $statuses = $this->get([$statusId]);
             if (count($statuses) == 0) {
                 throw new NotFoundHttpException('Status with id ' . $statusId .' not found.');
             }
@@ -141,14 +161,10 @@ class StatusManager extends ObjectManager
             }
 
             // load new status data
-            $this->cache->invalidateTags(['status.' . $statusId, 'statuses']);
-            $this->cache->deleteItem('status.' . $statusId);
-            $newStatus = $this->getStatusesByIds([$statusId])[$statusId];
+            $this->deleteCache(Status::CACHENAME, $statusId);
+            $newStatus = $this->get([$statusId])[$statusId];
 
             $this->updateModified($status, $newStatus);
-
-            // update cache
-            $this->setCache([$newStatus->getId() => $newStatus], 'status');
 
             // commit transaction
             $this->dbs->commit();
@@ -164,7 +180,7 @@ class StatusManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $statuses = $this->getStatusesByIds([$statusId]);
+            $statuses = $this->get([$statusId]);
             if (count($statuses) == 0) {
                 throw new NotFoundHttpException('Status with id ' . $statusId .' not found.');
             }
@@ -173,8 +189,8 @@ class StatusManager extends ObjectManager
             $this->dbs->delete($statusId);
 
             // clear cache
-            $this->cache->invalidateTags(['status.' . $statusId, 'statuses']);
-            $this->cache->deleteItem('status.' . $statusId);
+            $this->cache->invalidateTags(['statuses']);
+            $this->deleteCache(Status::CACHENAME, $statusId);
 
             $this->updateModified($status, null);
 

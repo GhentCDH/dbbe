@@ -13,26 +13,47 @@ use AppBundle\Model\Collection;
 
 class CollectionManager extends ObjectManager
 {
-    public function getCollectionsByIds(array $ids): array
+    public function get(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'collection');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            Collection::CACHENAME,
+            $ids,
+            function ($ids) {
+                $collections = [];
+                $rawCollections = $this->dbs->getCollectionsByIds($ids);
 
-        $collections = [];
-        $rawCollections = $this->dbs->getCollectionsByIds($ids);
+                foreach ($rawCollections as $rawCollection) {
+                    $collections[$rawCollection['collection_id']] = new Collection(
+                        $rawCollection['collection_id'],
+                        $rawCollection['name']
+                    );
+                }
 
-        foreach ($rawCollections as $rawCollection) {
-            $collections[$rawCollection['collection_id']] = new Collection(
-                $rawCollection['collection_id'],
-                $rawCollection['name']
-            );
-        }
+                return $collections;
+            }
+        );
+    }
 
-        $this->setCache($collections, 'collection');
+    public function getWithData(array $data): array
+    {
+        return $this->wrapDataCache(
+            Collection::CACHENAME,
+            $data,
+            'collection_id',
+            function ($data) {
+                $collections = [];
+                foreach ($data as $rawCollection) {
+                    if (isset($rawCollection['collection_id'])) {
+                        $collections[$rawCollection['collection_id']] = new Collection(
+                            $rawCollection['collection_id'],
+                            $rawCollection['collection_name']
+                        );
+                    }
+                }
 
-        return $cached + $collections;
+                return $collections;
+            }
+        );
     }
 
     public function addCollection(stdClass $data): Collection
@@ -51,7 +72,7 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
+            $newCollection = $this->get([$collectionId])[$collectionId];
 
             // update Elastic manuscripts
             $manuscripts = $this->container->get('manuscript_manager')->getCollectionDependencies($collectionId);
@@ -61,7 +82,6 @@ class CollectionManager extends ObjectManager
 
             // update cache
             $this->cache->invalidateTags(['collections']);
-            $this->setCache([$newCollection->getId() => $newCollection], 'collection');
 
             // commit transaction
             $this->dbs->commit();
@@ -77,7 +97,7 @@ class CollectionManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $collections = $this->getCollectionsByIds([$collectionId]);
+            $collections = $this->get([$collectionId]);
             if (count($collections) == 0) {
                 throw new NotFoundHttpException('Collection with id ' . $collectionId .' not found.');
             }
@@ -104,14 +124,10 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
-            $this->cache->deleteItem('collection.' . $collectionId);
-            $newCollection = $this->getCollectionsByIds([$collectionId])[$collectionId];
+            $this->deleteCache(Collection::CACHENAME, $collectionId);
+            $newCollection = $this->get([$collectionId])[$collectionId];
 
             $this->updateModified($collection, $newCollection);
-
-            // update cache
-            $this->setCache([$newCollection->getId() => $newCollection], 'collection');
 
             // commit transaction
             $this->dbs->commit();
@@ -127,7 +143,7 @@ class CollectionManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $collections = $this->getCollectionsByIds([$collectionId]);
+            $collections = $this->get([$collectionId]);
             if (count($collections) == 0) {
                 throw new NotFoundHttpException('Collection with id ' . $collectionId .' not found.');
             }
@@ -136,8 +152,8 @@ class CollectionManager extends ObjectManager
             $this->dbs->delete($collectionId);
 
             // clear cache
-            $this->cache->invalidateTags(['collection.' . $collectionId, 'collections']);
-            $this->cache->deleteItem('collection.' . $collectionId);
+            $this->cache->invalidateTags(['collections']);
+            $this->deleteCache(Collection::CACHENAME, $collectionId);
 
             $this->updateModified($collection, null);
 

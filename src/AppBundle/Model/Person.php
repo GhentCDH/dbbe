@@ -6,17 +6,20 @@ use AppBundle\Utils\ArrayToJson;
 
 class Person extends Entity implements SubjectInterface
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'person';
 
-    private $firstName;
-    private $lastName;
-    private $extra;
-    private $unprocessed;
-    private $bornDate;
-    private $deathDate;
-    private $offices;
-    private $historical;
-    private $modern;
+    use CacheLinkTrait;
+
+    protected $firstName;
+    protected $lastName;
+    protected $extra;
+    protected $unprocessed;
+    protected $bornDate;
+    protected $deathDate;
+    protected $offices;
+    protected $historical;
+    protected $modern;
+    protected $roles;
     /**
      * Array containing all manuscriptroles
      * Structure:
@@ -32,7 +35,7 @@ class Person extends Entity implements SubjectInterface
      *  ]
      * @var array
      */
-    private $manuscriptRoles;
+    protected $manuscriptRoles;
     /**
      * Array containing all manuscriptroles inherited via occurrences
      * Structure:
@@ -52,7 +55,7 @@ class Person extends Entity implements SubjectInterface
      *  ]
      * @var array
      */
-    private $occurrenceManuscriptRoles;
+    protected $occurrenceManuscriptRoles;
     // TODO: occurrences, types
     // TODO: articles, books, bookChapters
 
@@ -139,9 +142,23 @@ class Person extends Entity implements SubjectInterface
         return $this->deathDate;
     }
 
+    public function setRoles(array $roles): Person
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
     public function addRole(Role $role): Person
     {
         $this->roles[$role->getId()] = $role;
+
+        return $this;
+    }
+
+    public function setOffices(array $offices): Person
+    {
+        $this->offices = $offices;
 
         return $this;
     }
@@ -182,6 +199,13 @@ class Person extends Entity implements SubjectInterface
         return $this->modern;
     }
 
+    public function setManuscriptRoles(array $manuscriptRoles): Person
+    {
+        $this->manuscriptRoles = $manuscriptRoles;
+
+        return $this;
+    }
+
     public function addManuscriptRole(Role $role, Manuscript $manuscript): Person
     {
         if (!isset($this->manuscriptRoles[$role->getSystemName()])) {
@@ -190,6 +214,13 @@ class Person extends Entity implements SubjectInterface
         if (!isset($this->manuscriptRoles[$role->getSystemName()][1][$manuscript->getId()])) {
             $this->manuscriptRoles[$role->getSystemName()][1][$manuscript->getId()] = $manuscript;
         }
+
+        return $this;
+    }
+
+    public function setOccurrenceManuscriptRoles(array $occurrenceManuscriptRoles): Person
+    {
+        $this->occurrenceManuscriptRoles = $occurrenceManuscriptRoles;
 
         return $this;
     }
@@ -243,7 +274,7 @@ class Person extends Entity implements SubjectInterface
         $manuscriptRoles = $this->getAllManuscriptRoles();
         foreach ($manuscriptRoles as $roleName => $manuscriptRole) {
             foreach ($manuscriptRole[1] as $manuscriptId => $manuscript) {
-                if (!$person->getPublic()) {
+                if (!$manuscript->getPublic()) {
                     unset($manuscriptRoles[$roleName][1][$manuscriptId]);
                 }
             }

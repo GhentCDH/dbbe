@@ -15,22 +15,21 @@ class ImageManager extends ObjectManager
      */
     public function getImageByUrl(string $url): Image
     {
-        $cache = $this->cache->getItem('image_url.' . $url);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapSingleCache(
+            'image_url',
+            $url,
+            function ($url) {
+                $rawImages = $this->dbs->getByUrl($url);
+                if (count($rawImages) !== 1) {
+                    throw new NotFoundHttpException('Image with url "' . $url . '" not found');
+                }
 
-        $rawImages = $this->dbs->getByUrl($url);
-        if (count($rawImages) !== 1) {
-            throw new NotFoundHttpException('Image with url "' . $url . '" not found');
-        }
+                $rawImage = $rawImages[0];
 
-        $rawImage = $rawImages[0];
+                $image = new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']);
 
-        $image = new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']);
-
-        $this->setCache([$image->getId() => $image], 'image_url');
-
-        return $image;
+                return $image;
+            }
+        );
     }
 }

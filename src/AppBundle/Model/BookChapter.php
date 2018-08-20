@@ -4,8 +4,11 @@ namespace AppBundle\Model;
 
 class BookChapter
 {
+    const CACHENAME = 'book_chapter';
+
     use AuthorsTrait;
-    use CacheDependenciesTrait;
+    use CacheLinkTrait;
+    use CacheObjectTrait;
     use StartEndPagesTrait;
 
     private $id;
@@ -66,5 +69,16 @@ class BookChapter
             'id' => $this->id,
             'name' => $this->getDescription(),
         ];
+    }
+
+    public static function unlinkCache($data)
+    {
+        $bookChapter = new BookChapter($data['id'], $data['title'], $data['book']);
+
+        foreach ($data as $key => $value) {
+            $bookChapter->set($key, $value);
+        }
+
+        return $bookChapter;
     }
 }

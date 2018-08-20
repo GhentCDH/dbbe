@@ -14,53 +14,61 @@ use AppBundle\Model\Office;
 
 class OfficeManager extends ObjectManager
 {
-    public function getOfficesByIds(array $ids)
+    public function get(array $ids)
     {
-        list($cached, $ids) = $this->getCache($ids, 'office');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            Office::CACHENAME,
+            $ids,
+            function ($ids) {
+                $offices = [];
+                $rawOffices = $this->dbs->getOfficesByIds($ids);
+                $offices = $this->getWithData($rawOffices);
 
-        $offices = [];
-        $rawOffices = $this->dbs->getOfficesByIds($ids);
+                return $offices;
+            }
+        );
+    }
 
-        foreach ($rawOffices as $rawOffice) {
-            $offices[$rawOffice['office_id']] = new Office(
-                $rawOffice['office_id'],
-                $rawOffice['name']
-            );
-        }
+    public function getWithData(array $data)
+    {
+        return $this->wrapDataCache(
+            Office::CACHENAME,
+            $data,
+            'office_id',
+            function ($data) {
+                $offices = [];
+                foreach ($data as $rawOffice) {
+                    if (isset($rawOffice['office_id'])) {
+                        $offices[$rawOffice['office_id']] = new Office(
+                            $rawOffice['office_id'],
+                            $rawOffice['name']
+                        );
+                    }
+                }
 
-        $this->setCache($offices, 'office');
-
-        return $cached + $offices;
+                return $offices;
+            }
+        );
     }
 
     public function getAllOffices(): array
     {
-        $cache = $this->cache->getItem('offices');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'offices',
+            ['offices'],
+            function () {
+                $offices = [];
+                $rawOffices = $this->dbs->getAllOffices();
+                $offices = $this->getWithData($rawOffices);
 
-        $offices = [];
-        $rawOffices = $this->dbs->getAllOffices();
+                // Sort by name
+                usort($offices, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        foreach ($rawOffices as $rawOffice) {
-            $offices[] = new Office(
-                $rawOffice['office_id'],
-                $rawOffice['name']
-            );
-        }
-
-        // Sort by name
-        usort($offices, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['offices']);
-        $this->cache->save($cache->set($offices));
-        return $offices;
+                return $offices;
+            }
+        );
     }
 
     public function addOffice(stdClass $data): Office
@@ -78,13 +86,12 @@ class OfficeManager extends ObjectManager
             }
 
             // load new content data
-            $newOffice = $this->getOfficesByIds([$officeId])[$officeId];
+            $newOffice = $this->get([$officeId])[$officeId];
 
             $this->updateModified(null, $newOffice);
 
             // update cache
             $this->cache->invalidateTags(['offices']);
-            $this->setCache([$newOffice->getId() => $newOffice], 'office');
 
             // commit transaction
             $this->dbs->commit();
@@ -100,7 +107,7 @@ class OfficeManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $offices = $this->getOfficesByIds([$officeId]);
+            $offices = $this->get([$officeId]);
             if (count($offices) == 0) {
                 throw new NotFoundHttpException('Office with id ' . $officeId .' not found.');
             }
@@ -120,14 +127,10 @@ class OfficeManager extends ObjectManager
             }
 
             // load new office data
-            $this->cache->invalidateTags(['office.' . $officeId, 'offices']);
-            $this->cache->deleteItem('office.' . $officeId);
-            $newOffice = $this->getOfficesByIds([$officeId])[$officeId];
+            $this->deleteCache(Office::CACHENAME, $officeId);
+            $newOffice = $this->get([$officeId])[$officeId];
 
             $this->updateModified($office, $newOffice);
-
-            // update cache
-            $this->setCache([$newOffice->getId() => $newOffice], 'office');
 
             // commit transaction
             $this->dbs->commit();
@@ -143,7 +146,7 @@ class OfficeManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $offices = $this->getOfficesByIds([$officeId]);
+            $offices = $this->get([$officeId]);
             if (count($offices) == 0) {
                 throw new NotFoundHttpException('Office with id ' . $officeId .' not found.');
             }
@@ -152,8 +155,8 @@ class OfficeManager extends ObjectManager
             $this->dbs->delete($officeId);
 
             // clear cache
-            $this->cache->invalidateTags(['office.' . $officeId, 'offices']);
-            $this->cache->deleteItem('office.' . $officeId);
+            $this->cache->invalidateTags(['offices']);
+            $this->deleteCache(Office::CACHENAME, $officeId);
 
             $this->updateModified($office, null);
 

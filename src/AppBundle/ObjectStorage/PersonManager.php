@@ -39,36 +39,36 @@ class PersonManager extends EntityManager
      */
     public function getMini(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'person_mini');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapLevelCache(
+            Person::CACHENAME,
+            'mini',
+            $ids,
+            function ($ids) {
+                $persons = [];
+                $rawPersons = $this->dbs->getBasicInfoByIds($ids);
 
-        $persons = [];
-        $rawPersons = $this->dbs->getBasicInfoByIds($ids);
+                foreach ($rawPersons as $rawPerson) {
+                     $person = (new Person())
+                        ->setId($rawPerson['person_id'])
+                        ->setFirstName($rawPerson['first_name'])
+                        ->setLastName($rawPerson['last_name'])
+                        ->setExtra($rawPerson['extra'])
+                        ->setUnprocessed($rawPerson['unprocessed'])
+                        ->setBornDate(new FuzzyDate($rawPerson['born_date']))
+                        ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
+                        ->setHistorical($rawPerson['is_historical'])
+                        ->setModern($rawPerson['is_modern']);
 
-        foreach ($rawPersons as $rawPerson) {
-             $person = (new Person())
-                ->setId($rawPerson['person_id'])
-                ->setFirstName($rawPerson['first_name'])
-                ->setLastName($rawPerson['last_name'])
-                ->setExtra($rawPerson['extra'])
-                ->setUnprocessed($rawPerson['unprocessed'])
-                ->setBornDate(new FuzzyDate($rawPerson['born_date']))
-                ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
-                ->setHistorical($rawPerson['is_historical'])
-                ->setModern($rawPerson['is_modern']);
+                    $persons[$rawPerson['person_id']] = $person;
+                }
 
-            $persons[$rawPerson['person_id']] = $person;
-        }
+                $this->setIdentifications($persons);
 
-        $this->setIdentifications($persons);
+                $this->setPublics($persons);
 
-        $this->setPublics($persons);
-
-        $this->setCache($persons, 'person_mini');
-
-        return $cached + $persons;
+                return $persons;
+            }
+        );
     }
 
     /**
@@ -78,53 +78,48 @@ class PersonManager extends EntityManager
      */
     public function getShort(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'person_short');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapLevelCache(
+            Person::CACHENAME,
+            'short',
+            $ids,
+            function ($ids) {
+                // Get basic person information
+                $persons = $this->getMini($ids);
 
-        // Get basic person information
-        $persons = $this->getMini($ids);
+                // Remove all ids that did not match above
+                $ids = array_keys($persons);
 
-        // Remove all ids that did not match above
-        $ids = array_keys($persons);
+                // Roles
+                $rawRoles = $this->dbs->getRoles($ids);
 
-        // Roles
-        $rawRoles = $this->dbs->getRoles($ids);
+                $roles = [];
+                if (count($rawRoles) > 0) {
+                    $roleIds = self::getUniqueIds($rawRoles, 'role_id');
+                    $roles = $this->container->get('role_manager')->get($roleIds);
 
-        $roles = [];
-        if (count($rawRoles) > 0) {
-            $roleIds = self::getUniqueIds($rawRoles, 'role_id');
-            $roles = $this->container->get('role_manager')->getRolesByIds($roleIds);
+                    foreach ($rawRoles as $rawRole) {
+                        $persons[$rawRole['person_id']]->addRole($roles[$rawRole['role_id']]);
+                    }
+                }
 
-            foreach ($rawRoles as $rawRole) {
-                $persons[$rawRole['person_id']]
-                    ->addRole($roles[$rawRole['role_id']])
-                    ->addCacheDependency('role.' . $rawRole['role_id'])
-                    ->addCacheDependency($rawRole['document_key'] . '.' . $rawRole['document_id']);
+                // offices
+                $rawOffices = $this->dbs->getOffices($ids);
+
+                $offices = [];
+                if (count($rawOffices) > 0) {
+                    $officeIds = self::getUniqueIds($rawOffices, 'office_id');
+                    $offices = $this->container->get('office_manager')->get($officeIds);
+
+                    foreach ($rawOffices as $rawOffice) {
+                        $persons[$rawOffice['person_id']]->addOffice($offices[$rawOffice['office_id']]);
+                    }
+                }
+
+                $this->setComments($persons);
+
+                return $persons;
             }
-        }
-
-        // offices
-        $rawOffices = $this->dbs->getOffices($ids);
-
-        $offices = [];
-        if (count($rawOffices) > 0) {
-            $officeIds = self::getUniqueIds($rawOffices, 'office_id');
-            $offices = $this->container->get('office_manager')->getOfficesByIds($officeIds);
-
-            foreach ($rawOffices as $rawOffice) {
-                $persons[$rawOffice['person_id']]
-                    ->addOffice($offices[$rawOffice['office_id']])
-                    ->addCacheDependency('office.' . $rawOffice['office_id']);
-            }
-        }
-
-        $this->setComments($persons);
-
-        $this->setCache($persons, 'person_short');
-
-        return $cached + $persons;
+        );
     }
 
     /**
@@ -134,93 +129,70 @@ class PersonManager extends EntityManager
      */
     public function getFull(int $id): Person
     {
-        $cache = $this->cache->getItem('person_full.' . $id);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-
-        // Get basic person information
-        $persons = $this->getShort([$id]);
-        if (count($persons) == 0) {
-            throw new NotFoundHttpException('Person with id ' . $id .' not found.');
-        }
-        $person = $persons[$id];
-
-        // TODO: Occurrences (scribe, patron, subject)
-        // TODO: Types
-        // TODO: books, bookchapters, articles
-
-        // Manuscript roles
-        $rawManuscripts = $this->dbs->getManuscripts([$id]);
-        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
-        $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
-
-        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
-        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-
-        foreach ($rawManuscripts as $rawManuscript) {
-            if (!isset($rawManuscript['occurrence_id'])) {
-                $person
-                    ->addManuscriptRole(
-                        new Role(
-                            $rawManuscript['role_id'],
-                            json_decode($rawManuscript['role_usage']),
-                            $rawManuscript['role_system_name'],
-                            $rawManuscript['role_name']
-                        ),
-                        $manuscripts[$rawManuscript['manuscript_id']]
-                    )
-                    // manuscript roles are defined in the short section
-                    ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id']);
-                foreach ($manuscripts[$rawManuscript['manuscript_id']]->getCacheDependencies() as $cacheDependency) {
-                    $person->addCacheDependency($cacheDependency);
+        return $this->wrapSingleLevelCache(
+            Person::CACHENAME,
+            'full',
+            $id,
+            function ($id) {
+                // Get basic person information
+                $persons = $this->getShort([$id]);
+                if (count($persons) == 0) {
+                    throw new NotFoundHttpException('Person with id ' . $id .' not found.');
                 }
-            } else {
-                $person
-                    ->addOccurrenceManuscriptRole(
-                        new Role(
-                            $rawManuscript['role_id'],
-                            json_decode($rawManuscript['role_usage']),
-                            $rawManuscript['role_system_name'],
-                            $rawManuscript['role_name']
-                        ),
-                        $manuscripts[$rawManuscript['manuscript_id']],
-                        $occurrences[$rawManuscript['occurrence_id']]
-                    )
-                    // manuscript and occurrence roles are defined in the short section
-                    ->addCacheDependency('manuscript_short.' . $rawManuscript['manuscript_id'])
-                    ->addCacheDependency('occurrence_short.' . $rawManuscript['occurrence_id']);
-                foreach ($manuscripts[$rawManuscript['manuscript_id']]->getCacheDependencies() as $cacheDependency) {
-                    $person->addCacheDependency($cacheDependency);
+                $person = $persons[$id];
+
+                // TODO: Occurrences (scribe, patron, subject)
+                // TODO: Types
+                // TODO: books, bookchapters, articles
+
+                // Manuscript roles
+                $rawManuscripts = $this->dbs->getManuscripts([$id]);
+                $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
+                $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
+
+                $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+
+                $roles = $this->container->get('role_manager')->getWithData($rawManuscripts);
+
+                foreach ($rawManuscripts as $rawManuscript) {
+                    if (!isset($rawManuscript['occurrence_id'])) {
+                        $person
+                            ->addManuscriptRole(
+                                $roles[$rawManuscript['role_id']],
+                                $manuscripts[$rawManuscript['manuscript_id']]
+                            );
+                    } else {
+                        $person
+                            ->addOccurrenceManuscriptRole(
+                                $roles[$rawManuscript['role_id']],
+                                $manuscripts[$rawManuscript['manuscript_id']],
+                                $occurrences[$rawManuscript['occurrence_id']]
+                            );
+                    }
                 }
-                foreach ($occurrences[$rawManuscript['occurrence_id']]->getCacheDependencies() as $cacheDependency) {
-                    $person->addCacheDependency($cacheDependency);
-                }
+
+                return $person;
             }
-        }
-
-        $this->setCache([$person->getId() => $person], 'person_full');
-
-        return $person;
+        );
     }
 
     public function getAllShort(): array
     {
-        $cache = $this->cache->getItem('persons');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'persons',
+            ['persons'],
+            function () {
+                $persons = parent::getAllShort();
 
-        $persons = parent::getAllShort();
+                // Sort by name
+                usort($persons, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        // Sort by name
-        usort($persons, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($persons));
-        return $persons;
+                return $persons;
+            }
+        );
     }
 
     public function getOfficeDependencies(int $officeId): array
@@ -230,40 +202,38 @@ class PersonManager extends EntityManager
 
     public function getAllHistoricalPersons(): array
     {
-        $cache = $this->cache->getItem('historical_persons');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'historical_persons',
+            ['persons'],
+            function () {
+                $rawIds = $this->dbs->getHistoricalIds();
+                $ids = self::getUniqueIds($rawIds, 'person_id');
 
-        $rawIds = $this->dbs->getHistoricalIds();
-        $ids = self::getUniqueIds($rawIds, 'person_id');
+                $persons = array_values($this->getMini($ids));
 
-        $persons = array_values($this->getMini($ids));
+                usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
-        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($persons));
-        return $persons;
+                return $persons;
+            }
+        );
     }
 
     public function getAllModernPersons(): array
     {
-        $cache = $this->cache->getItem('modern_persons');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'modern_persons',
+            ['persons'],
+            function () {
+                $rawIds = $this->dbs->getModernIds();
+                $ids = self::getUniqueIds($rawIds, 'person_id');
 
-        $rawIds = $this->dbs->getModernIds();
-        $ids = self::getUniqueIds($rawIds, 'person_id');
+                $persons = array_values($this->getMini($ids));
 
-        $persons = array_values($this->getMini($ids));
+                usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
 
-        usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
-
-        $cache->tag(['persons']);
-        $this->cache->save($cache->set($persons));
-        return $persons;
+                return $persons;
+            }
+        );
     }
 
     public function add(stdClass $data): Person
@@ -445,7 +415,6 @@ class PersonManager extends EntityManager
                 $updates[$identifier->getSystemName()] = implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()]->getIdentifications());
             }
         }
-        var_dump($updates);
         if (empty($primary->getOffices()) && !empty($secondary->getOffices())) {
             $updates['offices'] = $secondary->getOffices();
         }
@@ -497,12 +466,6 @@ class PersonManager extends EntityManager
             }
             // TODO: books, bookchapters, articles
             $this->delete($secondaryId);
-
-            // Make sure indirect properties (manuscripts, occurrences) are reloaded correctly
-            $this->cache->invalidateTags(['person.' . $primaryId]);
-            $this->cache->deleteItem('person.' . $primaryId);
-            $person = $this->getFull($primaryId);
-            $this->cache->invalidateTags(['persons']);
 
             // commit transaction
             $this->dbs->commit();

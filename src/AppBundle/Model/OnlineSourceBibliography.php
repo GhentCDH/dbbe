@@ -4,8 +4,10 @@ namespace AppBundle\Model;
 
 class OnlineSourceBibliography extends Bibliography
 {
-    private $onlineSource;
-    private $relUrl;
+    const CACHENAME = 'online_source_bibliography';
+
+    protected $onlineSource;
+    protected $relUrl;
 
     public function __construct(int $id)
     {

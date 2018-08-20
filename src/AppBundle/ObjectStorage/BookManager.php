@@ -36,31 +36,31 @@ class BookManager extends DocumentManager
      */
     public function getMini(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'book_mini');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapLevelCache(
+            Book::CACHENAME,
+            'mini',
+            $ids,
+            function ($ids) {
+                $books = [];
+                $rawBooks = $this->dbs->getBasicInfoByIds($ids);
 
-        $books = [];
-        $rawBooks = $this->dbs->getBasicInfoByIds($ids);
+                foreach ($rawBooks as $rawBook) {
+                    $book = new Book(
+                        $rawBook['book_id'],
+                        $rawBook['year'],
+                        $rawBook['title'],
+                        $rawBook['city'],
+                        $rawBook['editor']
+                    );
 
-        foreach ($rawBooks as $rawBook) {
-            $book = new Book(
-                $rawBook['book_id'],
-                $rawBook['year'],
-                $rawBook['title'],
-                $rawBook['city'],
-                $rawBook['editor']
-            );
+                    $books[$rawBook['book_id']] = $book;
+                }
 
-            $books[$rawBook['book_id']] = $book;
-        }
+                $this->setPersonRoles($books);
 
-        $this->setPersonRoles($books);
-
-        $this->setCache($books, 'book_mini');
-
-        return $cached + $books;
+                return $books;
+            }
+        );
     }
 
     /**
@@ -80,52 +80,51 @@ class BookManager extends DocumentManager
      */
     public function getFull(int $id): Book
     {
-        $cache = $this->cache->getItem('book_full.' . $id);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapSingleLevelCache(
+            Book::CACHENAME,
+            'full',
+            $id,
+            function ($id) {
+                // Get basic book information
+                $books = $this->getShort([$id]);
+                if (count($books) == 0) {
+                    throw new NotFoundHttpException('Book with id ' . $id .' not found.');
+                }
+                $book = $books[$id];
 
-        // Get basic book information
-        $books = $this->getMini([$id]);
-        if (count($books) == 0) {
-            throw new NotFoundHttpException('Book with id ' . $id .' not found.');
-        }
-        $book = $books[$id];
+                // Publisher, series, volume, total_volumes
+                $rawBooks = $this->dbs->getFullInfoByIds([$id]);
+                if (count($rawBooks) == 1) {
+                    $book
+                        ->setPublisher($rawBooks[0]['publisher'])
+                        ->setSeries($rawBooks[0]['series'])
+                        ->setVolume($rawBooks[0]['volume'])
+                        ->setTotalVolumes($rawBooks[0]['total_volumes']);
+                }
 
-        // Publisher, series, volume, total_volumes
-        $rawBooks = $this->dbs->getFullInfoByIds([$id]);
-        if (count($rawBooks) == 1) {
-            $book
-                ->setPublisher($rawBooks[0]['publisher'])
-                ->setSeries($rawBooks[0]['series'])
-                ->setVolume($rawBooks[0]['volume'])
-                ->setTotalVolumes($rawBooks[0]['total_volumes']);
-        }
-
-        $this->setCache([$book->getId() => $book], 'book_full');
-
-        return $book;
+                return $book;
+            }
+        );
     }
 
     public function getAllMini(): array
     {
-        $cache = $this->cache->getItem('books');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'books',
+            ['books'],
+            function () {
+                $rawIds = $this->dbs->getIds();
+                $ids = self::getUniqueIds($rawIds, 'book_id');
+                $books = $this->getMini($ids);
 
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'book_id');
-        $books = $this->getMini($ids);
+                // Sort by description
+                usort($books, function ($a, $b) {
+                    return strcmp($a->getDescription(), $b->getDescription());
+                });
 
-        // Sort by description
-        usort($books, function ($a, $b) {
-            return strcmp($a->getDescription(), $b->getDescription());
-        });
-
-        $cache->tag(['books']);
-        $this->cache->save($cache->set($books));
-        return $books;
+                return $books;
+            }
+        );
     }
 
     public function add(stdClass $data): Book

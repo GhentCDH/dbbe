@@ -2,9 +2,12 @@
 
 namespace AppBundle\Model;
 
+use ReflectionClass;
+
 abstract class Bibliography
 {
-    use CacheDependenciesTrait;
+    use CacheLinkTrait;
+    use CacheObjectTrait;
 
     protected $id;
     protected $type;
@@ -40,4 +43,15 @@ abstract class Bibliography
     abstract public function getDescription(): string;
 
     abstract public function getShortJson(): array;
+
+    public static function unlinkCache($data)
+    {
+        $object = (new ReflectionClass(static::class))->newInstance($data['id']);
+
+        foreach ($data as $key => $value) {
+            $object->set($key, $value);
+        }
+
+        return $object;
+    }
 }

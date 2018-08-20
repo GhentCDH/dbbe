@@ -16,57 +16,53 @@ use AppBundle\Model\ContentWithParents;
 
 class ContentManager extends ObjectManager
 {
+    // TODO: get for individual content
+
     public function getContentsWithParentsByIds(array $ids)
     {
-        list($cached, $ids) = $this->getCache($ids, 'content_with_parents');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            ContentWithParents::CACHENAME,
+            $ids,
+            function ($ids) {
+                $contentsWithParents = [];
+                $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
 
-        $contentsWithParents = [];
-        $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
+                foreach ($rawContentsWithParents as $rawContentWithParents) {
+                    $ids = explode(':', $rawContentWithParents['ids']);
+                    $names = explode(':', $rawContentWithParents['names']);
 
-        foreach ($rawContentsWithParents as $rawContentWithParents) {
-            $ids = explode(':', $rawContentWithParents['ids']);
-            $names = explode(':', $rawContentWithParents['names']);
+                    $contents = [];
+                    foreach (array_keys($ids) as $key) {
+                        $contents[] = new Content($ids[$key], $names[$key]);
+                    }
+                    $contentWithParents = new ContentWithParents($contents);
 
-            $contents = [];
-            foreach (array_keys($ids) as $key) {
-                $contents[] = new Content($ids[$key], $names[$key]);
+                    $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
+                }
+
+                return $contentsWithParents;
             }
-            $contentWithParents = new ContentWithParents($contents);
-
-            foreach ($ids as $id) {
-                $contentWithParents->addCacheDependency('content.' . $id);
-            }
-
-            $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
-        }
-
-        $this->setCache($contentsWithParents, 'content_with_parents');
-
-        return $cached + $contentsWithParents;
+        );
     }
 
     public function getAllContentsWithParents(): array
     {
-        $cache = $this->cache->getItem('contents_with_parents');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'contents_with_parents',
+            ['contents'],
+            function () {
+                $rawIds = $this->dbs->getContentIds();
+                $ids = self::getUniqueIds($rawIds, 'content_id');
+                $contentsWithParents = $this->getContentsWithParentsByIds($ids);
 
-        $rawIds = $this->dbs->getContentIds();
-        $ids = self::getUniqueIds($rawIds, 'content_id');
-        $contentsWithParents = $this->getContentsWithParentsByIds($ids);
+                // Sort by name
+                usort($contentsWithParents, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        // Sort by name
-        usort($contentsWithParents, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['contents']);
-        $this->cache->save($cache->set($contentsWithParents));
-        return $contentsWithParents;
+                return $contentsWithParents;
+            }
+        );
     }
 
     public function getContentsWithParentsByContent(int $contentId): array
@@ -105,7 +101,6 @@ class ContentManager extends ObjectManager
 
             // update cache
             $this->cache->invalidateTags(['contents']);
-            $this->setCache([$newContentWithParents->getId() => $newContentWithParents], 'content_with_parents');
 
             // commit transaction
             $this->dbs->commit();
@@ -119,6 +114,7 @@ class ContentManager extends ObjectManager
 
     public function updateContentWithParents(int $contentId, stdClass $data): ContentWithParents
     {
+        // TODO: make sure if a parent changes, the child changes as well
         $this->dbs->beginTransaction();
         try {
             $contentsWithParents = $this->getContentsWithParentsByIds([$contentId]);
@@ -157,9 +153,7 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'content.' . $contentId, 'contents']);
-            $this->cache->deleteItem('content_with_parents.' . $contentId);
-            $this->cache->deleteItem('content.' . $contentId);
+            $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
             $newContentWithParents = $this->getContentsWithParentsByIds([$contentId])[$contentId];
 
             $this->updateModified($contentWithParents, $newContentWithParents);
@@ -180,6 +174,7 @@ class ContentManager extends ObjectManager
 
     public function mergeContentsWithParents(int $primaryId, int $secondaryId): ContentWithParents
     {
+        // TODO: make sure if a parent changes, the child changes as well
         $contentsWithParents = $this->getContentsWithParentsByIds([$primaryId, $secondaryId]);
         if (count($contentsWithParents) != 2) {
             if (!array_key_exists($primaryId, $contentsWithParents)) {
@@ -227,8 +222,6 @@ class ContentManager extends ObjectManager
             }
             $this->delContent($secondaryId);
 
-            $this->cache->invalidateTags(['contents']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
@@ -253,8 +246,8 @@ class ContentManager extends ObjectManager
             $this->dbs->delete($contentId);
 
             // empty cache
-            $this->cache->invalidateTags(['content_with_parents.' . $contentId, 'contents']);
-            $this->cache->deleteItem('content_with_parents.' . $contentId);
+            $this->cache->invalidateTags(['contents']);
+            $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
 
             $this->updateModified($contentWithParents, null);
 

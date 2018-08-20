@@ -12,29 +12,28 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class LocatedAtManager extends ObjectManager
 {
-    public function getLocatedAtsByIds(array $documentIds): array
+    public function get(array $documentIds): array
     {
-        list($cached, $documentIds) = $this->getCache($documentIds, 'located_at');
-        if (empty($documentIds)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            LocatedAt::CACHENAME,
+            $documentIds,
+            function ($documentIds) {
+                $locatedAts = [];
+                $rawLocatedAts = $this->dbs->getLocatedAtsByIds($documentIds);
+                $locationIds = self::getUniqueIds($rawLocatedAts, 'location_id');
+                $locations = $this->container->get('location_manager')->get($locationIds);
 
-        $locatedAts = [];
-        $rawLocatedAts = $this->dbs->getLocatedAtsByIds($documentIds);
-        $locationIds = self::getUniqueIds($rawLocatedAts, 'location_id');
-        $locations = $this->container->get('location_manager')->getLocationsByIds($locationIds);
+                foreach ($rawLocatedAts as $rawLocatedAt) {
+                    $locatedAts[$rawLocatedAt['locatedat_id']] = (new LocatedAt())
+                        ->setId($rawLocatedAt['locatedat_id'])
+                        ->setLocation($locations[$rawLocatedAt['location_id']])
+                        ->setShelf($rawLocatedAt['shelf'])
+                        ->setExtra($rawLocatedAt['extra']);
+                }
 
-        foreach ($rawLocatedAts as $rawLocatedAt) {
-            $locatedAts[$rawLocatedAt['locatedat_id']] = (new LocatedAt())
-                ->setId($rawLocatedAt['locatedat_id'])
-                ->setLocation($locations[$rawLocatedAt['location_id']])
-                ->setShelf($rawLocatedAt['shelf'])
-                ->setExtra($rawLocatedAt['extra']);
-        }
-
-        $this->setCache($locatedAts, 'located_at');
-
-        return $locatedAts;
+                return $locatedAts;
+            }
+        );
     }
 
     public function addLocatedAt(int $locatedAtId, stdClass $data): LocatedAt
@@ -56,11 +55,12 @@ class LocatedAtManager extends ObjectManager
             }
 
             // load new locationAt data
-            $newLocatedAt = $this->getLocatedAtsByIds([$locatedAtId])[$locatedAtId];
+            $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
             $this->updateModified(null, $newLocatedAt);
 
             // update cache
-            $this->setCache([$newLocatedAt->getId() => $newLocatedAt], 'located_at');
+            $this->cache->invalidateTags('located_ats');
+            $this->setCache([$newLocatedAt->getId() => $newLocatedAt], LocatedAt::CACHENAME);
 
             // commit transaction
             $this->dbs->commit();
@@ -76,7 +76,7 @@ class LocatedAtManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $locatedAts = $this->getLocatedAtsByIds([$locatedAtId]);
+            $locatedAts = $this->get([$locatedAtId]);
             if (count($locatedAts) == 0) {
                 throw new NotFoundHttpException('LocatedAt with id ' . $locatedAtId .' not found.');
             }
@@ -109,13 +109,9 @@ class LocatedAtManager extends ObjectManager
             }
 
             // load new locationAt data
-            $this->cache->invalidateTags(['located_at.' . $locatedAtId]);
-            $this->cache->deleteItem('located_at.' . $locatedAtId);
-            $newLocatedAt = $this->getLocatedAtsByIds([$locatedAtId])[$locatedAtId];
+            $this->deleteCache(LocatedAt::CACHENAME, $institutionId);
+            $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
             $this->updateModified($locatedAt, $newLocatedAt);
-
-            // update cache
-            $this->setCache([$newLocatedAt->getId() => $newLocatedAt], 'located_at');
 
             // commit transaction
             $this->dbs->commit();

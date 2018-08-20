@@ -5,11 +5,12 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 
 use Psr\Cache\CacheItemPoolInterface;
-
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+
+use AppBundle\Model\CacheObject;
 use AppBundle\Model\IdJsonInterface;
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
@@ -44,6 +45,58 @@ class ObjectManager
         return $this->getMini(self::getUniqueIds($rawIds, $this->en . '_id'));
     }
 
+    protected function setCache(array $items, string $cacheKey): void
+    {
+        foreach ($items as $id => $item) {
+            $cache = $this->cache->getItem($cacheKey . '.' . $id);
+            $this->cache->save($cache->set($this->linkCache($item)));
+        }
+    }
+
+    protected function setArrayCache(array $items, string $cacheKey, array $tags): void
+    {
+        $cache = $this->cache->getItem($cacheKey);
+        $cache->tag($tags);
+        $this->cache->save($cache->set($this->createCache($items)));
+    }
+
+    private function linkCache($item)
+    {
+        if (is_object($item) && method_exists($item, 'get')) {
+            $data = [];
+            foreach ($item->get() as $key => $value) {
+                if (isset($value) && (!is_array($value) || !empty($value))) {
+                    $data[$key] = $this->createCache($value);
+                }
+            }
+            return new CacheObject(
+                get_class($item),
+                $data
+            );
+        }
+        return $item;
+    }
+
+    private function createCache($item)
+    {
+        if (is_object($item) && method_exists($item, 'getCacheLink')) {
+            return $item->getCacheLink();
+        }
+        if (is_object($item) && method_exists($item, 'get')) {
+            return $this->linkCache($item);
+        }
+        if (is_array($item)) {
+            return array_map(
+                function ($element) {
+                    return $this->createCache($element);
+                },
+                $item
+            );
+        }
+
+        return $item;
+    }
+
     protected function getCache(array $ids, string $cacheKey): array
     {
         $cached = [];
@@ -51,7 +104,7 @@ class ObjectManager
         foreach ($ids as $key => $id) {
             $cache = $this->cache->getItem($cacheKey . '.' . $id);
             if ($cache->isHit()) {
-                $cached[$id] = $cache->get();
+                $cached[$id] = $this->unlinkCache($cache->get());
                 unset($ids[$key]);
             }
         }
@@ -59,19 +112,203 @@ class ObjectManager
         return [$cached, $ids];
     }
 
-    protected function setCache(array $items, string $cacheKey): void
+    protected function getSingleCache($id, string $cacheKey)
     {
-        foreach ($items as $id => $item) {
-            $cache = $this->cache->getItem($cacheKey . '.' . $id);
-            if (method_exists($item, 'getCacheDependencies')) {
-                $cache->tag($item->getCacheDependencies());
+        $cache = $this->cache->getItem($cacheKey . '.' . $id);
+        if ($cache->isHit()) {
+            return $this->unlinkCache($cache->get());
+        }
+        return null;
+    }
+
+    protected function getArrayCache(string $cacheKey)
+    {
+        $cache = $this->cache->getItem($cacheKey);
+        if ($cache->isHit()) {
+            return $this->resolveCache($cache->get());
+        }
+        return null;
+    }
+
+    protected function unlinkCache($item)
+    {
+        if (is_object($item) && is_a($item, CacheObject::class)) {
+            $data = $item->getData();
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->resolveCache($value);
             }
-            try {
-                $this->cache->save($cache->set($item));
-            } catch (\Exception $e) {
-                var_dump($e);
+            return $item->getClassName()::unlinkCache($data);
+        }
+        return $item;
+    }
+
+    private function resolveCache($item)
+    {
+        if (is_array($item)) {
+            foreach ($item as $index => $value) {
+                $item[$index] = $this->resolveCache($value);
+            }
+            return $item;
+        }
+        if (is_object($item) && is_a($item, CacheObject::class)) {
+            return $this->unlinkCache($item);
+        }
+        if (is_string($item) && preg_match('/^C:([\w_]+)(?::(\w+))?:(\d+)/', $item, $matches)) {
+            if (!empty($matches[2])) {
+                switch ($matches[2]) {
+                    case 'mini':
+                        return $this->container->get($matches[1] . '_manager')->getMini([$matches[3]])[$matches[3]];
+                        break;
+                    case 'short':
+                        return $this->container->get($matches[1] . '_manager')->getShort([$matches[3]])[$matches[3]];
+                        break;
+                    case 'full':
+                        return $this->container->get($matches[1] . '_manager')->getFull([$matches[3]]);
+                        break;
+                }
+            }
+            switch ($matches[1]) {
+                case 'article':
+                    return $this->container->get('bibliography_manager')->getArticlesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'book_chapter':
+                    return $this->container->get('bibliography_manager')->getBookChaptersByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'online_source':
+                    return $this->container->get('bibliography_manager')->getOnlineSourcesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'article_bibliography':
+                    return $this->container->get('bibliography_manager')->getArticleBibliographiesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'book_bibliography':
+                    return $this->container->get('bibliography_manager')->getBookBibliographiesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'book_chapter_bibliography':
+                    return $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'online_source_bibliography':
+                    return $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'content_with_parents':
+                    return $this->container->get('content_manager')->getContentsWithParentsByIds([$matches[3]])[$matches[3]];
+                    break;
+                case 'region_with_parents':
+                    return $this->container->get('region_manager')->getRegionsWithParentsByIds([$matches[3]])[$matches[3]];
+                    break;
+                default:
+                    return $this->container->get($matches[1] . '_manager')->get([$matches[3]])[$matches[3]];
+                    break;
             }
         }
+        return $item;
+    }
+
+    protected function deleteCache(string $cacheKey, int $id): void
+    {
+        $this->cache->deleteItem($cacheKey . '.' . $institutionId);
+    }
+
+    protected function wrapCache(string $cacheKey, array $ids, callable $function): array
+    {
+        list($cached, $ids) = $this->getCache($ids, $cacheKey);
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $objects = $function($ids);
+
+        $this->setCache($objects, $cacheKey);
+
+        return $cached + $objects;
+    }
+
+    protected function wrapSingleCache(string $cacheKey, $id, callable $function)
+    {
+        $cache = $this->getSingleCache($id, $cacheKey);
+        if (!is_null($cache)) {
+            return $cache;
+        }
+
+        $object = $function($id);
+
+        $this->setCache([$id => $object], $cacheKey);
+
+        return $object;
+    }
+
+    protected function wrapDataCache(string $cacheKey, array $data, string $idKey, callable $function): array
+    {
+        $ids = self::getUniqueIds($data, $idKey);
+        list($cached, $ids) = $this->getCache($ids, $cacheKey);
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $objects = $function($data);
+
+        $this->setCache($objects, $cacheKey);
+
+        return $cached + $objects;
+    }
+
+    protected function wrapLevelCache(string $cacheKey, string $cacheLevel, array $ids, callable $function): array
+    {
+        list($cached, $ids) = $this->getCache($ids, $cacheKey . '_' . $cacheLevel);
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $levelObjects = array_map(
+            function ($levelObject) use ($cacheLevel) {
+                $levelObject->setCacheLevel($cacheLevel);
+                return $levelObject;
+            },
+            $function($ids)
+        );
+
+        $this->setCache($levelObjects, $cacheKey . '_' . $cacheLevel);
+
+        return $cached + $levelObjects;
+    }
+
+    protected function wrapSingleLevelCache(string $cacheKey, string $cacheLevel, int $id, callable $function)
+    {
+        $cache = $this->getSingleCache($id, $cacheKey . '_' . $cacheLevel);
+        if (!is_null($cache)) {
+            return $cache;
+        }
+
+        $levelObject = $function($id);
+        $levelObject->setCacheLevel($cacheLevel);
+
+        $this->setCache([$id => $levelObject], $cacheKey . '_' . $cacheLevel);
+
+        return $levelObject;
+    }
+
+    protected function wrapArrayCache(string $cacheKey, array $tags, callable $function): array
+    {
+        $cache = $this->getArrayCache($cacheKey);
+        if (!is_null($cache)) {
+            return $cache;
+        }
+
+        $result = $function();
+        $this->setArrayCache($result, $cacheKey, $tags);
+        return $result;
+    }
+
+    protected function wrapArrayTypeCache(string $cacheKey, string $type, array $tags, callable $function): array
+    {
+        $cache = $this->getArrayCache($cacheKey . '.' . $type);
+        if (!is_null($cache)) {
+            return $cache;
+        }
+
+        $result = $function($type);
+
+        $this->setArrayCache($result, $cacheKey . '.' . $type, $tags);
+        return $result;
     }
 
     /**
@@ -99,8 +336,7 @@ class ObjectManager
     private function clearSpecificCaches(int $id, array $specifics): void
     {
         foreach ($specifics as $specific) {
-            $this->cache->invalidateTags([$this->en . '_' . $specific . '.' . $id]);
-            $this->cache->deleteItem($this->en . '_' . $specific . '.' . $id);
+            $this->deleteCache($this->en . '_' . $specific, $id);
         }
     }
 

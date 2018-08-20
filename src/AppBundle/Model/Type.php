@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 class Type extends Document
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'type';
 
     private $incipit;
 

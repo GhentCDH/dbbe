@@ -23,6 +23,7 @@ class EntityManager extends ObjectManager
 
     public function getAllShort(): array
     {
+        // TODO: add cache
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, $this->en . '_id');
         return $this->getShort($ids);
@@ -50,20 +51,15 @@ class EntityManager extends ObjectManager
 
     protected function setIdentifications(array &$entities): void
     {
-        $rawIdentifiers = $this->dbs->getIdentifications(self::getIds($entities));
-        foreach ($rawIdentifiers as $rawIdentifier) {
-            $entities[$rawIdentifier['entity_id']]->addIdentification(
-                new Identification(
-                    new Identifier(
-                        $rawIdentifier['identifier_id'],
-                        $rawIdentifier['system_name'],
-                        $rawIdentifier['name'],
-                        $rawIdentifier['is_primary'],
-                        $rawIdentifier['link']
-                    ),
-                    json_decode($rawIdentifier['identifiers']),
-                    json_decode($rawIdentifier['authority_ids']),
-                    json_decode($rawIdentifier['identifier_ids'])
+        $rawIdentifications = $this->dbs->getIdentifications(self::getIds($entities));
+        $identifiers = $this->container->get('identifier_manager')->getWithData($rawIdentifications);
+        foreach ($rawIdentifications as $rawIdentification) {
+            $entities[$rawIdentification['entity_id']]->addIdentification(
+                Identification::constructFromDB(
+                    $identifiers[$rawIdentification['identifier_id']],
+                    json_decode($rawIdentification['identifications']),
+                    json_decode($rawIdentification['authority_ids']),
+                    json_decode($rawIdentification['identification_ids'])
                 )
             );
         }
@@ -87,30 +83,6 @@ class EntityManager extends ObjectManager
 
             foreach ($rawBibliographies as $rawBibliography) {
                 $biblioId = $rawBibliography['reference_id'];
-                // Add cache dependencies
-                switch ($rawBibliography['type']) {
-                    case 'book':
-                        $entities[$rawBibliography['entity_id']]
-                            ->addCacheDependency('book_bibliography.' . $biblioId);
-                        break;
-                    case 'article':
-                        $entities[$rawBibliography['entity_id']]
-                            ->addCacheDependency('article_bibliography.' . $biblioId);
-                        break;
-                    case 'book_chapter':
-                        $entities[$rawBibliography['entity_id']]
-                            ->addCacheDependency('book_chapter_bibliography.' . $biblioId);
-                        break;
-                    case 'online_source':
-                        $entities[$rawBibliography['entity_id']]
-                            ->addCacheDependency('online_source_bibliography.' . $biblioId);
-                        break;
-                }
-                // Add cache dependency dependencies
-                foreach ($bibliographies[$biblioId]->getCacheDependencies() as $cacheDependency) {
-                    $entities[$rawBibliography['entity_id']]
-                        ->addCacheDependency($cacheDependency);
-                }
                 // Add to entity
                 $entities[$rawBibliography['entity_id']]
                     ->addBibliography($bibliographies[$biblioId]);

@@ -39,42 +39,42 @@ class OccurrenceManager extends DocumentManager
      */
     public function getMini(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'occurrence_mini');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapLevelCache(
+            Occurrence::CACHENAME,
+            'mini',
+            $ids,
+            function ($ids) {
+                $occurrences = [];
+                $rawLocations = $this->dbs->getLocations($ids);
+                if (count($rawLocations) == 0) {
+                    return [];
+                }
+                foreach ($rawLocations as $rawLocation) {
+                    $occurrences[$rawLocation['occurrence_id']] = (new Occurrence())
+                        ->setId($rawLocation['occurrence_id'])
+                        ->setFoliumStart($rawLocation['folium_start'])
+                        ->setFoliumStartRecto($rawLocation['folium_start_recto'])
+                        ->setFoliumEnd($rawLocation['folium_end'])
+                        ->setFoliumEndRecto($rawLocation['folium_end_recto'])
+                        ->setGeneralLocation($rawLocation['general_location']);
+                }
 
-        $occurrences = [];
-        $rawLocations = $this->dbs->getLocations($ids);
-        if (count($rawLocations) == 0) {
-            return $cached;
-        }
-        foreach ($rawLocations as $rawLocation) {
-            $occurrences[$rawLocation['occurrence_id']] = (new Occurrence())
-                ->setId($rawLocation['occurrence_id'])
-                ->setFoliumStart($rawLocation['folium_start'])
-                ->setFoliumStartRecto($rawLocation['folium_start_recto'])
-                ->setFoliumEnd($rawLocation['folium_end'])
-                ->setFoliumEndRecto($rawLocation['folium_end_recto'])
-                ->setGeneralLocation($rawLocation['general_location']);
-        }
+                // Remove all ids that did not match above
+                $ids = array_keys($occurrences);
 
-        // Remove all ids that did not match above
-        $ids = array_keys($occurrences);
+                $rawIncipits = $this->dbs->getIncipits($ids);
+                if (count($rawIncipits) > 0) {
+                    foreach ($rawIncipits as $rawIncipit) {
+                        $occurrences[$rawIncipit['occurrence_id']]
+                            ->setIncipit($rawIncipit['incipit']);
+                    }
+                }
 
-        $rawIncipits = $this->dbs->getIncipits($ids);
-        if (count($rawIncipits) > 0) {
-            foreach ($rawIncipits as $rawIncipit) {
-                $occurrences[$rawIncipit['occurrence_id']]
-                    ->setIncipit($rawIncipit['incipit']);
+                $this->setPublics($occurrences);
+
+                return $occurrences;
             }
-        }
-
-        $this->setPublics($occurrences);
-
-        $this->setCache($occurrences, 'occurrence_mini');
-
-        return $cached + $occurrences;
+        );
     }
 
     /**
@@ -84,127 +84,104 @@ class OccurrenceManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'occurrence_short');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapLevelCache(
+            Occurrence::CACHENAME,
+            'short',
+            $ids,
+            function ($ids) {
+                $occurrences = $this->getMini($ids);
 
-        $occurrences = $this->getMini($ids);
+                // Remove all ids that did not match above
+                $ids = array_keys($occurrences);
 
-        // Remove all ids that did not match above
-        $ids = array_keys($occurrences);
-
-        // Manuscript
-        $rawLocations = $this->dbs->getLocations($ids);
-        if (count($rawLocations) == 0) {
-            return $cached;
-        }
-        $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
-        $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
-        foreach ($rawLocations as $rawLocation) {
-            if (isset($manuscripts[$rawLocation['manuscript_id']])) {
-                $manuscript = $manuscripts[$rawLocation['manuscript_id']];
-                $occurrences[$rawLocation['occurrence_id']]
-                    ->setManuscript($manuscript);
-                foreach ($manuscript->getCacheDependencies() as $cacheDependency) {
-                    // prevent self reference
-                    if ($cacheDependency != 'occurrence.' . $rawLocation['occurrence_id']) {
-                        $occurrences[$rawLocation['occurrence_id']]
-                            ->addCacheDependency($cacheDependency);
+                // Manuscript
+                $rawLocations = $this->dbs->getLocations($ids);
+                if (count($rawLocations) == 0) {
+                    return [];
+                }
+                $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
+                $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
+                foreach ($rawLocations as $rawLocation) {
+                    if (isset($manuscripts[$rawLocation['manuscript_id']])) {
+                        $manuscript = $manuscripts[$rawLocation['manuscript_id']];
+                        $occurrences[$rawLocation['occurrence_id']]->setManuscript($manuscript);
                     }
                 }
-            }
-        }
 
-        // Title
-        $rawTitles = $this->dbs->getTitles($ids);
-        foreach ($rawTitles as $rawTitle) {
-            $occurrences[$rawTitle['occurrence_id']]
-                ->setTitle($rawTitle['title']);
-        }
-
-        // Text
-        $rawTexts = $this->dbs->getTexts($ids);
-        foreach ($rawTexts as $rawText) {
-            $occurrences[$rawText['occurrence_id']]
-                ->setText($rawText['text_content']);
-        }
-
-        // Meter
-        $rawMeters = $this->dbs->getMeters($ids);
-        foreach ($rawMeters as $rawMeter) {
-            $occurrences[$rawMeter['occurrence_id']]
-                ->setMeter(new Meter($rawMeter['meter_id'], $rawMeter['meter_name']))
-                ->addCacheDependency('meter.' . $rawMeter['meter_id']);
-        }
-
-        // Subject
-        $rawSubjects = $this->dbs->getSubjects($ids);
-        $personIds = self::getUniqueIds($rawSubjects, 'person_id');
-        $persons = [];
-        if (count($personIds) > 0) {
-            $persons = $this->container->get('person_manager')->getShort($personIds);
-        }
-        $keywordIds = self::getUniqueIds($rawSubjects, 'keyword_id');
-        $keywords = [];
-        if (count($keywordIds) > 0) {
-            $keywords = $this->container->get('keyword_manager')->getKeywordsByIds($keywordIds);
-        }
-        foreach ($rawSubjects as $rawSubject) {
-            if (isset($rawSubject['person_id'])) {
-                foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
-                    $occurrences[$rawSubject['occurrence_id']]
-                        ->addCacheDependency($cacheDependency);
+                // Title
+                $rawTitles = $this->dbs->getTitles($ids);
+                foreach ($rawTitles as $rawTitle) {
+                    $occurrences[$rawTitle['occurrence_id']]
+                        ->setTitle($rawTitle['title']);
                 }
-                $occurrences[$rawSubject['occurrence_id']]
-                    ->addSubject($persons[$rawSubject['person_id']])
-                    ->addCacheDependency('person_short.' . $rawSubject['person_id']);
-                foreach ($persons[$rawSubject['person_id']]->getCacheDependencies() as $cacheDependency) {
-                    $occurrences[$rawSubject['occurrence_id']]
-                        ->addCacheDependency($cacheDependency);
+
+                // Text
+                $rawTexts = $this->dbs->getTexts($ids);
+                foreach ($rawTexts as $rawText) {
+                    $occurrences[$rawText['occurrence_id']]
+                        ->setText($rawText['text_content']);
                 }
-            } elseif (isset($rawSubject['keyword_id'])) {
-                $occurrences[$rawSubject['occurrence_id']]
-                    ->addSubject($keywords[$rawSubject['keyword_id']])
-                    ->addCacheDependency('keyword.' . $rawSubject['keyword_id']);
+
+                // Meter
+                $rawMeters = $this->dbs->getMeters($ids);
+                foreach ($rawMeters as $rawMeter) {
+                    // TODO: getwithdata meter
+                    $occurrences[$rawMeter['occurrence_id']]
+                        ->setMeter(new Meter($rawMeter['meter_id'], $rawMeter['meter_name']));
+                }
+
+                // Subject
+                $rawSubjects = $this->dbs->getSubjects($ids);
+                $personIds = self::getUniqueIds($rawSubjects, 'person_id');
+                $persons = [];
+                if (count($personIds) > 0) {
+                    $persons = $this->container->get('person_manager')->getShort($personIds);
+                }
+                $keywordIds = self::getUniqueIds($rawSubjects, 'keyword_id');
+                $keywords = [];
+                if (count($keywordIds) > 0) {
+                    $keywords = $this->container->get('keyword_manager')->get($keywordIds);
+                }
+                foreach ($rawSubjects as $rawSubject) {
+                    if (isset($rawSubject['person_id'])) {
+                        $occurrences[$rawSubject['occurrence_id']]->addSubject($persons[$rawSubject['person_id']]);
+                    } elseif (isset($rawSubject['keyword_id'])) {
+                        $occurrences[$rawSubject['occurrence_id']]->addSubject($keywords[$rawSubject['keyword_id']]);
+                    }
+                }
+
+                $this->setPersonRoles($occurrences);
+
+                $this->setDates($occurrences);
+
+                // Genre
+                $rawGenres = $this->dbs->getGenres($ids);
+                foreach ($rawGenres as $rawGenre) {
+                    $occurrences[$rawGenre['occurrence_id']]
+                        ->setGenre(new Genre($rawGenre['genre_id'], $rawGenre['genre_name']));
+                }
+
+                $this->setComments($occurrences);
+
+                // text and record status
+                $rawStatuses = $this->dbs->getStatuses($ids);
+                foreach ($rawStatuses as $rawStatus) {
+                    if ($rawStatus['type'] == 'occurrence_text') {
+                        $occurrences[$rawStatus['occurrence_id']]
+                            ->setTextStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']));
+                    }
+                    if ($rawStatus['type'] == 'occurrence_record') {
+                        $occurrences[$rawStatus['occurrence_id']]
+                            ->setRecordStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']));
+                    }
+                }
+
+                // Needed to index DBBE in elasticsearch
+                $this->setBibliographies($occurrences);
+
+                return $occurrences;
             }
-        }
-
-        $this->setPersonRoles($occurrences);
-
-        $this->setDates($occurrences);
-
-        // Genre
-        $rawGenres = $this->dbs->getGenres($ids);
-        foreach ($rawGenres as $rawGenre) {
-            $occurrences[$rawGenre['occurrence_id']]
-                ->setGenre(new Genre($rawGenre['genre_id'], $rawGenre['genre_name']))
-                ->addCacheDependency('genre.' . $rawGenre['genre_id']);
-        }
-
-        $this->setComments($occurrences);
-
-        // text and record status
-        $rawStatuses = $this->dbs->getStatuses($ids);
-        foreach ($rawStatuses as $rawStatus) {
-            if ($rawStatus['type'] == 'occurrence_text') {
-                $occurrences[$rawStatus['occurrence_id']]
-                    ->setTextStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']))
-                    ->addCacheDependency('status.' . $rawStatus['status_id']);
-            }
-            if ($rawStatus['type'] == 'occurrence_record') {
-                $occurrences[$rawStatus['occurrence_id']]
-                    ->setRecordStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']))
-                    ->addCacheDependency('status.' . $rawStatus['status_id']);
-            }
-        }
-
-        // Needed to index DBBE in elasticsearch
-        $this->setBibliographies($occurrences);
-
-        $this->setCache($occurrences, 'occurrence_short');
-
-        return $cached + $occurrences;
+        );
     }
 
     /**
@@ -214,68 +191,66 @@ class OccurrenceManager extends DocumentManager
      */
     public function getFull(int $id): Occurrence
     {
-        $cache = $this->cache->getItem('occurrence_full.' . $id);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapSingleLevelCache(
+            Occurrence::CACHENAME,
+            'full',
+            $id,
+            function ($id) {
+                // Get basic occurrence information
+                $occurrences = $this->getShort([$id]);
+                if (count($occurrences) == 0) {
+                    throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
+                }
+                $occurrence = $occurrences[$id];
 
-        // Get basic occurrence information
-        $occurrences = $this->getShort([$id]);
-        if (count($occurrences) == 0) {
-            throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
-        }
-        $occurrence = $occurrences[$id];
+                $occurrenceArray = [$id => $occurrence];
 
-        $occurrenceArray = [$id => $occurrence];
+                $this->setPrevIds($occurrenceArray);
 
-        $this->setPrevIds($occurrenceArray);
+                // type
+                $rawTypes = $this->dbs->getTypes([$id]);
+                // TODO: allow multiple types
+                if (count($rawTypes) == 1) {
+                    $type = $this->container->get('type_manager')->getMini([$rawTypes[0]['type_id']])[$rawTypes[0]['type_id']];
+                    $occurrence->setType($type);
+                }
 
-        // type
-        $rawTypes = $this->dbs->getTypes([$id]);
-        // TODO: allow multiple types
-        if (count($rawTypes) == 1) {
-            $type = $this->container->get('type_manager')->getMiniTypesByIds([$rawTypes[0]['type_id']])[$rawTypes[0]['type_id']];
-            $occurrence
-                ->setType($type)
-                ->addCacheDependency('type.' . $rawTypes[0]['type_id']);
-        }
+                // paleographical information
+                $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
+                if (count($rawPaleographicalInfos) == 1) {
+                    $occurrence
+                        ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
+                }
 
-        // paleographical information
-        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
-        if (count($rawPaleographicalInfos) == 1) {
-            $occurrence
-                ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
-        }
+                // contextual information
+                $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
+                if (count($rawContextualInfos) == 1) {
+                    $occurrence
+                        ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
+                }
 
-        // contextual information
-        $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
-        if (count($rawContextualInfos) == 1) {
-            $occurrence
-                ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
-        }
+                // verses
+                $rawVerses = $this->dbs->getVerses([$id]);
+                if (count($rawContextualInfos) == 1) {
+                    $occurrence
+                        ->setVerses($rawVerses[0]['verses']);
+                }
 
-        // verses
-        $rawVerses = $this->dbs->getVerses([$id]);
-        if (count($rawContextualInfos) == 1) {
-            $occurrence
-                ->setVerses($rawVerses[0]['verses']);
-        }
+                // images
+                $rawImages = $this->dbs->getImages([$id]);
+                foreach ($rawImages as $rawImage) {
+                    if (strpos($rawImage['url'], 'http') === 0) {
+                        $occurrence
+                            ->addImageLink(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                    } else {
+                        $occurrence
+                            ->addImage(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                    }
+                }
 
-        // images
-        $rawImages = $this->dbs->getImages([$id]);
-        foreach ($rawImages as $rawImage) {
-            if (strpos($rawImage['url'], 'http') === 0) {
-                $occurrence
-                    ->addImageLink(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
-            } else {
-                $occurrence
-                    ->addImage(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                return $occurrence;
             }
-        }
-
-        $this->setCache([$occurrence->getId() => $occurrence], 'occurrence_full');
-
-        return $occurrence;
+        );
     }
 
     public function getManuscriptDependencies(int $manuscriptId): array

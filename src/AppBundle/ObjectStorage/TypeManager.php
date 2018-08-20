@@ -11,28 +11,28 @@ class TypeManager extends DocumentManager
      * @param  array $ids
      * @return array
      */
-    public function getMiniTypesByIds(array $ids): array
+    public function getMini(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'type_mini');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapSingleLevelCache(
+            Type::CACHENAME,
+            'full',
+            $id,
+            function ($id) {
+                $types = [];
+                $rawIncipits = $this->dbs->getIncipits($ids);
+                if (count($rawIncipits) == 0) {
+                    return [];
+                }
+                foreach ($rawIncipits as $rawIncipit) {
+                    $types[$rawIncipit['type_id']] = (new Type())
+                        ->setId($rawIncipit['type_id'])
+                        ->setIncipit($rawIncipit['incipit']);
+                }
 
-        $types = [];
-        $rawIncipits = $this->dbs->getIncipits($ids);
-        if (count($rawIncipits) == 0) {
-            return $cached;
-        }
-        foreach ($rawIncipits as $rawIncipit) {
-            $types[$rawIncipit['type_id']] = (new Type())
-                ->setId($rawIncipit['type_id'])
-                ->setIncipit($rawIncipit['incipit']);
-        }
+                $this->setPublics($types);
 
-        $this->setPublics($types);
-
-        $this->setCache($types, 'type_mini');
-
-        return $cached + $types;
+                return $types;
+            }
+        );
     }
 }

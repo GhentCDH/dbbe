@@ -4,7 +4,7 @@ namespace AppBundle\Model;
 
 trait RawPagesTrait
 {
-    private $rawPages;
+    protected $rawPages;
 
     public function setRawPages(string $rawPages = null)
     {

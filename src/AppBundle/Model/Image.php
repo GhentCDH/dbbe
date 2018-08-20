@@ -2,8 +2,6 @@
 
 namespace AppBundle\Model;
 
-use AppBundle\Utils\ArrayToJson;
-
 class Image
 {
     private $id;

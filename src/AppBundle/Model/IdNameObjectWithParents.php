@@ -4,8 +4,6 @@ namespace AppBundle\Model;
 
 class IdNameObjectWithParents implements IdJsonInterface
 {
-    use CacheDependenciesTrait;
-
     protected $array;
 
     public function __construct(array $array)

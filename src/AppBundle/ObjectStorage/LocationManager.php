@@ -10,77 +10,77 @@ use AppBundle\Model\Location;
 
 class LocationManager extends ObjectManager
 {
-    public function getLocationsByIds(array $ids): array
+    public function get(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'location');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            Location::CACHENAME,
+            $ids,
+            function ($ids) {
+                $locations = [];
+                $rawLocations = $this->dbs->getLocationsByIds($ids);
+                $regionIds = self::getUniqueIds($rawLocations, 'region_id');
+                $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
+                $institutions = $this->container->get('institution_manager')->getWithData($rawLocations);
+                $collections = $this->container->get('collection_manager')->getWithData($rawLocations);
 
-        $locations = [];
-        $rawLocations = $this->dbs->getLocationsByIds($ids);
-        $regionIds = self::getUniqueIds($rawLocations, 'region_id');
-        $regionsWithParents = $this->container->get('region_manager')->getRegionsWithParentsByIds($regionIds);
+                foreach ($rawLocations as $rawLocation) {
+                     $location = (new Location())
+                        ->setId($rawLocation['location_id'])
+                        ->setRegionWithParents($regionsWithParents[$rawLocation['region_id']]);
 
-        foreach ($rawLocations as $rawLocation) {
-             $location = (new Location())
-                ->setId($rawLocation['location_id'])
-                ->setRegionWithParents($regionsWithParents[$rawLocation['region_id']]);
+                    if (isset($rawLocation['institution_id'])) {
+                        $location->setInstitution($institutions[$rawLocation['institution_id']]);
+                    }
+                    if (isset($rawLocation['collection_id'])) {
+                        $location->setCollection($collections[$rawLocation['collection_id']]);
+                    }
 
-            if (isset($rawLocation['institution_id'])) {
-                $location->setInstitution(new Institution($rawLocation['institution_id'], $rawLocation['institution_name']));
+                    $locations[$rawLocation['location_id']] = $location;
+                }
+
+                return $locations;
             }
-            if (isset($rawLocation['collection_id'])) {
-                $location->setCollection(new Collection($rawLocation['collection_id'], $rawLocation['collection_name']));
-            }
-
-            $locations[$rawLocation['location_id']] = $location;
-        }
-
-        $this->setCache($locations, 'location');
-        return $cached + $locations;
+        );
     }
 
     public function getLocationsForManuscripts(): array
     {
-        $cache = $this->cache->getItem('locations_for_manuscripts');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'locations_for_manuscripts',
+            ['regions', 'institutions', 'collections'],
+            function () {
+                $rawLocationsForManuscripts = $this->dbs->getLocationIdsForManuscripts();
+                $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
+                $locationsForManuscripts = $this->get($locationIds);
 
-        $rawLocationsForManuscripts = $this->dbs->getLocationIdsForManuscripts();
-        $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
-        $locationsForManuscripts = $this->getLocationsByIds($locationIds);
+                // Sort by name
+                usort($locationsForManuscripts, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        // Sort by name
-        usort($locationsForManuscripts, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($locationsForManuscripts));
-        return $locationsForManuscripts;
+                return $locationsForManuscripts;
+            }
+        );
     }
 
     public function getLocationsForLocations(): array
     {
-        $cache = $this->cache->getItem('locations_for_locations');
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayCache(
+            'locations_for_locations',
+            ['regions', 'institutions', 'collections'],
+            function () {
+                $rawLocationsForLocations = $this->dbs->getLocationIdsForLocations();
+                $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
+                $locationsForLocations = $this->get($locationIds);
 
-        $rawLocationsForLocations = $this->dbs->getLocationIdsForLocations();
-        $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
-        $locationsForLocations = $this->getLocationsByIds($locationIds);
+                // Sort by name
+                usort($locationsForLocations, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
 
-        // Sort by name
-        usort($locationsForLocations, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
-
-        $cache->tag(['regions', 'institutions', 'collections']);
-        $this->cache->save($cache->set($locationsForLocations));
-        return $locationsForLocations;
+                return $locationsForLocations;
+            }
+        );
     }
 
     public function getLocationByRegion(int $regionId): int

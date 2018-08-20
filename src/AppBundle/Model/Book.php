@@ -6,17 +6,19 @@ use AppBundle\Utils\ArrayToJson;
 
 class Book extends Document
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'book';
 
-    private $year;
-    private $title;
-    private $city;
-    private $editor;
-    private $publisher;
-    private $series;
-    private $volume;
-    private $totalVolumes;
-    private $translators;
+    use CacheLinkTrait;
+
+    protected $year;
+    protected $title;
+    protected $city;
+    protected $editor;
+    protected $publisher;
+    protected $series;
+    protected $volume;
+    protected $totalVolumes;
+    protected $translators;
 
     public function __construct(
         int $id,
@@ -190,5 +192,16 @@ class Book extends Document
         }
 
         return $result;
+    }
+
+    public static function unlinkCache($data)
+    {
+        $book = new Book($data['id'], $data['year'], $data['title'], $data['city']);
+
+        foreach ($data as $key => $value) {
+            $book->set($key, $value);
+        }
+
+        return $book;
     }
 }

@@ -4,8 +4,11 @@ namespace AppBundle\Model;
 
 class Article
 {
+    const CACHENAME = 'article';
+
     use AuthorsTrait;
-    use CacheDependenciesTrait;
+    use CacheLinkTrait;
+    use CacheObjectTrait;
     use StartEndPagesTrait;
 
     private $id;
@@ -74,5 +77,16 @@ class Article
             'id' => $this->id,
             'name' => $this->getDescription(),
         ];
+    }
+
+    public static function unlinkCache($data)
+    {
+        $article = new Article($data['id'], $data['title'], $data['journal']);
+
+        foreach ($data as $key => $value) {
+            $article->set($key, $value);
+        }
+
+        return $article;
     }
 }

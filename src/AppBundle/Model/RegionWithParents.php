@@ -4,6 +4,10 @@ namespace AppBundle\Model;
 
 class RegionWithParents extends IdNameObjectWithParents
 {
+    const CACHENAME = 'region_with_parents';
+
+    use CacheLinkTrait;
+
     public function getHistoricalName(): string
     {
         $names = [];

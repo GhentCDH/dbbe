@@ -6,7 +6,10 @@ use stdClass;
 
 class Location
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'location';
+
+    use CacheLinkTrait;
+    use CacheObjectTrait;
 
     /**
      * @var int
@@ -36,10 +39,6 @@ class Location
     public function setRegionWithParents(RegionWithParents $regionWithParents): Location
     {
         $this->regionWithParents = $regionWithParents;
-        $this->addCacheDependency('region_with_parents.' . $regionWithParents->getId());
-        foreach ($regionWithParents->getCacheDependencies() as $cacheDependency) {
-            $this->addCacheDependency($cacheDependency);
-        }
 
         return $this;
     }
@@ -52,7 +51,6 @@ class Location
     public function setInstitution(Institution $institution): Location
     {
         $this->institution = $institution;
-        $this->addCacheDependency('institution.' . $institution->getId());
 
         return $this;
     }
@@ -65,7 +63,6 @@ class Location
     public function setCollection(Collection $collection): Location
     {
         $this->collection = $collection;
-        $this->addCacheDependency('collection.' . $collection->getId());
 
         return $this;
     }

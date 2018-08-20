@@ -4,6 +4,8 @@ namespace AppBundle\Model;
 
 class Status extends IdNameObject
 {
+    const CACHENAME = 'status';
+    
     private $type;
 
     public function __construct(int $id, string $name, string $type = null)

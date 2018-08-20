@@ -4,20 +4,36 @@ namespace AppBundle\Model;
 
 class Identification
 {
+    use CacheObjectTrait;
+
     private $identifier;
     private $identifications;
 
-    public function __construct(Identifier $identifier, array $identifiers, array $authorityIds, array $identifierIds)
+    public static function constructFromDB(Identifier $identifier, array $identifications, array $authorityIds, array $identificationIds)
     {
-        $this->identifier = $identifier;
-        $this->identifications = [];
-        if (count($identifierIds) > 1) {
-            foreach ($identifiers as $key => $value) {
-                $this->identifications[] = self::numberToRoman(array_search($authorityIds[$key], $identifierIds) + 1) . '.' . $value;
+        $identification = new Identification();
+
+        $identification->identifier = $identifier;
+        $identification->identifications = [];
+        if (count($identificationIds) > 1) {
+            foreach ($identifications as $key => $value) {
+                $identification->identifications[] = self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
             }
         } else {
-            $this->identifications = explode(', ', $identifiers[0]);
+            $identification->identifications = explode(', ', $identifications[0]);
         }
+
+        return $identification;
+    }
+
+    private static function constructFromCache(Identifier $identifier, array $identifications)
+    {
+        $identification = new Identification();
+
+        $identification->identifier = $identifier;
+        $identification->identifications = $identifications;
+
+        return $identification;
     }
 
     public function getIdentifier(): Identifier
@@ -48,5 +64,17 @@ class Identification
             }
         }
         return $returnValue;
+    }
+
+
+    public static function unlinkCache($data)
+    {
+        $identification = self::constructFromCache($data['identifier'], $data['identifications']);
+
+        foreach ($data as $key => $value) {
+            $identification->set($key, $value);
+        }
+
+        return $identification;
     }
 }

@@ -6,30 +6,32 @@ use AppBundle\Utils\ArrayToJson;
 
 class Occurrence extends Document
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'occurrence';
 
-    private $foliumStart;
-    private $foliumStartRecto;
-    private $foliumEnd;
-    private $foliumEndRecto;
-    private $generalLocation;
-    private $type;
-    private $manuscript;
-    private $incipit;
-    private $title;
-    private $text;
-    private $meter;
-    private $genre;
-    private $subjects;
-    private $textStatus;
-    private $recordStatus;
-    private $paleographicalInfo;
-    private $contextualInfo;
-    private $verses;
+    use CacheLinkTrait;
+
+    protected $foliumStart;
+    protected $foliumStartRecto;
+    protected $foliumEnd;
+    protected $foliumEndRecto;
+    protected $generalLocation;
+    protected $type;
+    protected $manuscript;
+    protected $incipit;
+    protected $title;
+    protected $text;
+    protected $meter;
+    protected $genre;
+    protected $subjects;
+    protected $textStatus;
+    protected $recordStatus;
+    protected $paleographicalInfo;
+    protected $contextualInfo;
+    protected $verses;
     // Links to images on the server itself
-    private $images;
+    protected $images;
     // Link to images hosted externally
-    private $imageLinks;
+    protected $imageLinks;
 
     public function __construct()
     {

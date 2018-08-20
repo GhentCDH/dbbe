@@ -263,7 +263,8 @@ class ManuscriptService extends DocumentService
             'SELECT
                 document_status.iddocument as manuscript_id,
                 status.idstatus as status_id,
-                status.status as status_name
+                status.status as status_name,
+                status.type as status_type
             from data.document_status
             inner join data.status on document_status.idstatus = status.idstatus
             where document_status.iddocument in (?)

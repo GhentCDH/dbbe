@@ -13,46 +13,67 @@ use AppBundle\Model\Institution;
 
 class InstitutionManager extends ObjectManager
 {
-    public function getInstitutionsByIds(array $ids): array
+    public function get(array $ids): array
     {
-        list($cached, $ids) = $this->getCache($ids, 'institution');
-        if (empty($ids)) {
-            return $cached;
-        }
+        return $this->wrapCache(
+            Institution::CACHENAME,
+            $ids,
+            function ($ids) {
+                $institutions = [];
+                $rawInstitutions = $this->dbs->getInstitutionsByIds($ids);
 
-        $institutions = [];
-        $rawInstitutions = $this->dbs->getInstitutionsByIds($ids);
+                foreach ($rawInstitutions as $rawInstitution) {
+                    $institutions[$rawInstitution['institution_id']] = new Institution(
+                        $rawInstitution['institution_id'],
+                        $rawInstitution['name']
+                    );
+                }
 
-        foreach ($rawInstitutions as $rawInstitution) {
-            $institutions[$rawInstitution['institution_id']] = new Institution(
-                $rawInstitution['institution_id'],
-                $rawInstitution['name']
-            );
-        }
+                return $institutions;
+            }
+        );
+    }
 
-        $this->setCache($institutions, 'institution');
+    public function getWithData(array $data): array
+    {
+        return $this->wrapDataCache(
+            Institution::CACHENAME,
+            $data,
+            'institution_id',
+            function ($data) {
+                $institutions = [];
+                foreach ($data as $rawInstitution) {
+                    if (isset($rawInstitution['institution_id'])) {
+                        $institutions[$rawInstitution['institution_id']] = new Institution(
+                            $rawInstitution['institution_id'],
+                            $rawInstitution['institution_name']
+                        );
+                    }
+                }
 
-        return $cached + $institutions;
+                return $institutions;
+            }
+        );
     }
 
     public function getInstitutionsByRegion(int $regionId): array
     {
         $rawInstitutions = $this->dbs->getInstitutionsByRegion($regionId);
         $institutionIds = self::getUniqueIds($rawInstitutions, 'institution_id');
-        return $this->getInstitutionsByIds($institutionIds);
+        return $this->get($institutionIds);
     }
 
     /**
-     * Clear cache and update elasticsearch
+     * Clear cache
      * @param array $ids institution ids
      */
-    public function resetInstitutions(array $ids): void
+    public function reset(array $ids): void
     {
         foreach ($ids as $id) {
-            $this->cache->deleteItem('institution.' . $id);
+            $this->deleteCache(Institution::CACHENAME, $id);
         }
 
-        $this->getInstitutionsByIds($ids);
+        $this->get($ids);
 
         $this->cache->invalidateTags(['institutions']);
     }
@@ -73,14 +94,12 @@ class InstitutionManager extends ObjectManager
             }
 
             // load new institution data
-            $this->cache->invalidateTags(['institutions']);
-            $newInstitution = $this->getInstitutionsByIds([$institutionId])[$institutionId];
+            $newInstitution = $this->get([$institutionId])[$institutionId];
 
             $this->updateModified(null, $newInstitution);
 
             // update cache
             $this->cache->invalidateTags(['institutions']);
-            $this->setCache([$newInstitution->getId() => $newInstitution], 'institution');
 
             // commit transaction
             $this->dbs->commit();
@@ -96,7 +115,7 @@ class InstitutionManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $institutions = $this->getInstitutionsByIds([$institutionId]);
+            $institutions = $this->get([$institutionId]);
             if (count($institutions) == 0) {
                 throw new NotFoundHttpException('Institution with id ' . $institutionId .' not found.');
             }
@@ -123,15 +142,11 @@ class InstitutionManager extends ObjectManager
             }
 
             // load new institution data
-            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
-            $this->cache->deleteItem('institution.' . $institutionId);
-            $newInstitution = $this->getInstitutionsByIds([$institutionId])[$institutionId];
+            $this->deleteCache(Institution::CACHENAME, $institutionId);
+            $newInstitution = $this->get([$institutionId])[$institutionId];
 
             // TODO: make sure parent edits are logged
             $this->updateModified($institution, $newInstitution);
-
-            // update cache
-            $this->setCache([$newInstitution->getId() => $newInstitution], 'institution');
 
             // update Elastic manuscripts
             $manuscripts = $this->container->get('manuscript_manager')->getInstitutionDependencies($institutionId);
@@ -151,7 +166,7 @@ class InstitutionManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            $institutions = $this->getInstitutionsByIds([$institutionId]);
+            $institutions = $this->get([$institutionId]);
             if (count($institutions) == 0) {
                 throw new NotFoundHttpException('Institution with id ' . $institutionId .' not found.');
             }
@@ -160,8 +175,8 @@ class InstitutionManager extends ObjectManager
             $this->dbs->delete($institutionId);
 
             // clear cache
-            $this->cache->invalidateTags(['institution.' . $institutionId, 'institutions']);
-            $this->cache->deleteItem('institution.' . $institutionId);
+            $this->cache->invalidateTags(['institutions']);
+            $this->deleteCache(Institution::CACHENAME, $institutionId);
 
             $this->updateModified($institution, null);
 

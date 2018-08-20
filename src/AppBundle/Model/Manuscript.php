@@ -6,11 +6,13 @@ use AppBundle\Utils\ArrayToJson;
 
 class Manuscript extends Document
 {
-    use CacheDependenciesTrait;
+    const CACHENAME = 'manuscript';
 
-    private $locatedAt;
-    private $contentsWithParents;
-    private $origin;
+    use CacheLinkTrait;
+
+    protected $locatedAt;
+    protected $contentsWithParents;
+    protected $origin;
     /**
      * Array containing all personroles inherited via occurrences
      * Structure:
@@ -30,14 +32,14 @@ class Manuscript extends Document
      *  ]
      * @var array
      */
-    private $occurrencePersonRoles;
+    protected $occurrencePersonRoles;
     /**
      * Array of occurrences, in order
      * @var array
      */
-    private $occurrences;
-    private $status;
-    private $illustrated;
+    protected $occurrences;
+    protected $status;
+    protected $illustrated;
 
     public function __construct()
     {
@@ -52,10 +54,6 @@ class Manuscript extends Document
     public function setLocatedAt(LocatedAt $locatedAt): Manuscript
     {
         $this->locatedAt = $locatedAt;
-        $this->addCacheDependency('located_at.' . $locatedAt->getId());
-        foreach ($locatedAt->getCacheDependencies() as $cacheDependency) {
-            $this->addCacheDependency($cacheDependency);
-        }
 
         return $this;
     }
@@ -70,6 +68,13 @@ class Manuscript extends Document
         return $this->locatedAt->getName();
     }
 
+    private function setContentsWithParents(array $contentsWithParents): Manuscript
+    {
+        $this->contentsWithParents = $contentsWithParents;
+
+        return $this;
+    }
+
     public function addContentWithParents(ContentWithParents $contentWithParents): Manuscript
     {
         $this->contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
@@ -80,6 +85,13 @@ class Manuscript extends Document
     public function getContentsWithParents(): array
     {
         return $this->contentsWithParents;
+    }
+
+    public function setOccurrencePersonRoles(array $occurrencePersonRoles): Manuscript
+    {
+        $this->occurrencePersonRoles = $occurrencePersonRoles;
+
+        return $this;
     }
 
     public function addOccurrencePersonRole(Role $role, Person $person, Occurrence $occurrence): Manuscript
@@ -256,7 +268,6 @@ class Manuscript extends Document
     public function setOrigin(Origin $origin): Manuscript
     {
         $this->origin = $origin;
-        $this->addCacheDependency('location.' . $origin->getId());
 
         return $this;
     }
@@ -264,6 +275,13 @@ class Manuscript extends Document
     public function getOrigin(): ?Origin
     {
         return $this->origin;
+    }
+
+    public function setOccurrences(array $occurrences): Manuscript
+    {
+        $this->occurrences = $occurrences;
+
+        return $this;
     }
 
     public function addOccurrence(Occurrence $occurrence): Manuscript

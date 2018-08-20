@@ -43,9 +43,12 @@ class EntityService extends DatabaseService
                 identifier.name,
                 identifier.is_primary,
                 identifier.link,
-                array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifiers,
+                array_length(identifier.ids, 1) as volumes,
+                identifier.regex,
+                identifier.description,
+                array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifications,
                 array_to_json(array_agg(global_id.idauthority ORDER BY array_position(identifier.ids, global_id.idauthority))) as authority_ids,
-                array_to_json(identifier.ids) as identifier_ids
+                array_to_json(identifier.ids) as identification_ids
             from data.global_id
             inner join data.identifier on global_id.idauthority = ANY(identifier.ids)
             where global_id.idsubject in (?)

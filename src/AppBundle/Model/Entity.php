@@ -4,12 +4,16 @@ namespace AppBundle\Model;
 
 class Entity implements IdJsonInterface
 {
+    use CacheObjectTrait;
+
     protected $id;
     protected $publicComment;
     protected $privateComment;
     protected $public;
     protected $identifications;
     protected $bibliographies;
+
+    protected $cacheLevel;
 
     public function __construct()
     {
@@ -28,6 +32,13 @@ class Entity implements IdJsonInterface
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function setCacheLevel(string $cacheLevel): Entity
+    {
+        $this->cacheLevel = $cacheLevel;
+
+        return $this;
     }
 
     public function setPublicComment(string $publicComment = null): Entity
@@ -66,6 +77,13 @@ class Entity implements IdJsonInterface
         return $this->public;
     }
 
+    public function setIdentifications(array $identifications): Entity
+    {
+        $this->identifications = $identifications;
+
+        return $this;
+    }
+
     public function addIdentification(Identification $identification): Entity
     {
         $this->identifications[$identification->getIdentifier()->getSystemName()] = $identification;
@@ -78,7 +96,14 @@ class Entity implements IdJsonInterface
         return $this->identifications;
     }
 
-    public function addBibliography(Bibliography $bibliography): Document
+    public function setBibliographies(array $bibliographies): Entity
+    {
+        $this->bibliographies = $bibliographies;
+
+        return $this;
+    }
+
+    public function addBibliography(Bibliography $bibliography): Entity
     {
         $this->bibliographies[$bibliography->getId()] = $bibliography;
 

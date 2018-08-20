@@ -4,6 +4,8 @@ namespace AppBundle\Model;
 
 class Origin extends Location
 {
+    const CACHENAME = 'origin';
+
     public function getName(): string
     {
         $names = [$this->regionWithParents->getHistoricalName()];

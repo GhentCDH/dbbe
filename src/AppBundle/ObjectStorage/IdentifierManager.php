@@ -8,30 +8,59 @@ class IdentifierManager extends ObjectManager
 {
     public function getIdentifiersByType(string $type): array
     {
-        $cache = $this->cache->getItem('identifiers.' . $type);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
+        return $this->wrapArrayTypeCache(
+            'identifiers',
+            $type,
+            ['identifiers'],
+            function ($type) {
+                $rawIdentifiers = $this->dbs->getIdentifiersByType($type);
+                $identifiers = $this->getWithData($rawIdentifiers);
 
-        $identifiers = [];
-        $rawIdentifiers = $this->dbs->getIdentifiersByType($type);
+                return $identifiers;
+            }
+        );
+    }
 
-        foreach ($rawIdentifiers as $rawIdentifier) {
-            $identifiers[$rawIdentifier['system_name']] = new Identifier(
-                $rawIdentifier['identifier_id'],
-                $rawIdentifier['system_name'],
-                $rawIdentifier['name'],
-                $rawIdentifier['is_primary'],
-                $rawIdentifier['link'],
-                $rawIdentifier['volumes'],
-                $rawIdentifier['regex'],
-                $rawIdentifier['description']
-            );
-        }
+    public function get(array $ids)
+    {
+        return $this->wrapCache(
+            Identifier::CACHENAME,
+            $ids,
+            function ($ids) {
+                $rawIdentifiers = $this->dbs->getIdentifiersByIds($ids);
+                $identifiers = $this->getWithData($rawIdentifiers);
 
-        $cache->tag(['identifiers']);
-        $this->cache->save($cache->set($identifiers));
-        return $identifiers;
+                return $identifiers;
+            }
+        );
+    }
+
+    public function getWithData(array $data)
+    {
+        return $this->wrapDataCache(
+            Identifier::CACHENAME,
+            $data,
+            'identifier_id',
+            function ($data) {
+                $identifiers = [];
+                foreach ($data as $rawIdentifier) {
+                    if (isset($rawIdentifier['identifier_id'])) {
+                        $identifiers[$rawIdentifier['identifier_id']] = new Identifier(
+                            $rawIdentifier['identifier_id'],
+                            $rawIdentifier['system_name'],
+                            $rawIdentifier['name'],
+                            $rawIdentifier['is_primary'],
+                            $rawIdentifier['link'],
+                            $rawIdentifier['volumes'],
+                            $rawIdentifier['regex'],
+                            $rawIdentifier['description']
+                        );
+                    }
+                }
+
+                return $identifiers;
+            }
+        );
     }
 
     public function getPrimaryIdentifiersByType(string $type): array

@@ -4,8 +4,8 @@ namespace AppBundle\Model;
 
 trait StartEndPagesTrait
 {
-    private $startPage;
-    private $endPage;
+    protected $startPage;
+    protected $endPage;
 
     public function setStartPage(string $startPage = null)
     {

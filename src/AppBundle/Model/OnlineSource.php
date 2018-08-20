@@ -6,6 +6,10 @@ use DateTime;
 
 class OnlineSource
 {
+    const CACHENAME = 'online_source';
+
+    use CacheLinkTrait;
+
     private $id;
     private $baseUrl;
     private $name;

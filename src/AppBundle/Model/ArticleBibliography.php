@@ -4,10 +4,12 @@ namespace AppBundle\Model;
 
 class ArticleBibliography extends Bibliography
 {
+    const CACHENAME = 'article_bibliography';
+
     use RawPagesTrait;
     use StartEndPagesTrait;
 
-    private $article;
+    protected $article;
 
     public function __construct(int $id)
     {

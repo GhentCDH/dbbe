@@ -13,9 +13,9 @@ class RoleService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 role.idrole as role_id,
-                array_to_json(role.type) as usage,
-                role.system_name,
-                role.name
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
             from data.role
             where role.idrole in (?)',
             [$ids],
@@ -28,9 +28,9 @@ class RoleService extends DatabaseService
         return $this->conn->query(
             'SELECT
             role.idrole as role_id,
-            array_to_json(role.type) as usage,
-            role.system_name,
-            role.name
+            array_to_json(role.type) as role_usage,
+            role.system_name as role_system_name,
+            role.name as role_name
             from data.role'
         )->fetchAll();
     }
@@ -40,9 +40,9 @@ class RoleService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 role.idrole as role_id,
-                array_to_json(role.type) as usage,
-                role.system_name,
-                role.name
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name
             from data.role
             where ? = ANY(role.type)',
             [$type]
