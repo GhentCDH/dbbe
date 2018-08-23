@@ -82,7 +82,12 @@ class RoleManager extends ObjectManager
             function ($type) {
                 $roles = [];
                 $rawRoles = $this->dbs->getRolesByType($type);
-                $roles = $this->getWithData($rawRoles);
+
+                // Keys in this array must be systemnames as they are used in queries
+                $rolesWithId = $this->getWithData($rawRoles);
+                foreach ($rolesWithId as $roleWithId) {
+                    $roles[$roleWithId->getSystemName()] = $roleWithId;
+                }
 
                 return $roles;
             }
