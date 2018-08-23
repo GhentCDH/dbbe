@@ -137,7 +137,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[BasicPerson|Date|Identification|Office|GeneralPerson][.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /(?:BasicPerson|Date|Identification|Office|GeneralPerson)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
