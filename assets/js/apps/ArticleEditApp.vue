@@ -24,6 +24,7 @@
             <basicArticlePanel
                 id="basic"
                 header="Basic Information"
+                :link="{url: urls['journals_edit'], text: 'Edit journals'}"
                 :model="model.basic"
                 :values="journals"
                 @validated="validated"
