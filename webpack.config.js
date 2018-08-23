@@ -46,9 +46,6 @@ Encore
 
     // empty the outputPath dir before each build
     .cleanupOutputBeforeBuild()
-
-    // enable vue-loader
-    .enableVueLoader()
 ;
 
 // further config tweaking
