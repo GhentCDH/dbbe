@@ -421,6 +421,11 @@ class Person extends Entity implements SubjectInterface
         return $description;
     }
 
+    public function getDescription(): string
+    {
+        return $this->getFullDescriptionWithOffices();
+    }
+
     public function getShortDescription(): string
     {
         $nameArray = array_filter([

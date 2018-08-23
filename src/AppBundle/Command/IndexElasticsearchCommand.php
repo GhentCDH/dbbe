@@ -25,38 +25,40 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
         // Index all types
         // (Re)index manuscripts
         if ($index == null || $index == 'manuscript') {
-            $manuscriptManager = $this->getContainer()->get('manuscript_manager');
+            $manuscripts = $this->getContainer()->get('manuscript_manager')->getAllShort();
+
             $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
             $manuscriptElasticService->setupManuscripts();
-            $manuscripts = $manuscriptManager->getAllShort();
             $manuscriptElasticService->addMultiple($manuscripts);
         }
 
         // (Re)index occurrences
         if ($index == null || $index == 'occurrence') {
-            $occurrenceManager = $this->getContainer()->get('occurrence_manager');
+            $occurrences = $this->getContainer()->get('occurrence_manager')->getAllShort();
+
             $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
             $occurrenceElasticService->setupOccurrences();
-            $occurrences = $occurrenceManager->getAllShort();
             $occurrenceElasticService->addMultiple($occurrences);
         }
 
         // (Re)index persons
         if ($index == null || $index == 'person') {
-            $personManager = $this->getContainer()->get('person_manager');
+            $persons = $this->getContainer()->get('person_manager')->getAllShort();
+
             $personElasticService = $this->getContainer()->get('person_elastic_service');
             $personElasticService->setupPersons();
-            $persons = $personManager->getAllShort();
             $personElasticService->addMultiple($persons);
         }
 
         // (Re)index bibliography
         if ($index == null || $index == 'bibliography') {
-            $bookManager = $this->getContainer()->get('book_manager');
             // TODO: bookchapter, article
+            $articles = $this->getContainer()->get('article_manager')->getAllShort();
+            $books = $this->getContainer()->get('book_manager')->getAllShort();
+
             $bibliographyElasticService = $this->getContainer()->get('bibliography_elastic_service');
             $bibliographyElasticService->setupBibliographies();
-            $books = $bookManager->getAllMini();
+            $bibliographyElasticService->addMultiple($articles);
             $bibliographyElasticService->addMultiple($books);
         }
     }

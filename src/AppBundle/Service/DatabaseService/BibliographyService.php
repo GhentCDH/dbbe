@@ -83,49 +83,6 @@ class BibliographyService extends DatabaseService
         );
     }
 
-    public function getArticlesByIds(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                article.identity as article_id,
-                document_title.title as article_title,
-                array_to_json(array_agg(bibrole.idperson order by bibrole.rank)) as person_ids,
-                journal.identity as journal_id,
-                document_contains.page_start as article_page_start,
-                document_contains.page_end as article_page_end
-            from data.article
-            left join data.bibrole on article.identity = bibrole.iddocument
-            left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
-            inner join data.document_title on article.identity = document_title.iddocument
-            inner join data.document_contains on article.identity = document_contains.idcontent
-            inner join data.journal on journal.identity = document_contains.idcontainer
-            where article.identity in (?)
-            group by
-                article.identity, document_title.title,
-                journal.identity,
-                document_contains.page_start, document_contains.page_end',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getJournalsByIds(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                journal.identity as journal_id,
-                document_title.title,
-                journal.year,
-                journal.volume,
-                journal.number
-            from data.journal
-            inner join data.document_title on journal.identity = document_title.iddocument
-            where journal.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getArticleIds(): array
     {
         return $this->conn->query(

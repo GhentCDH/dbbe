@@ -6,7 +6,7 @@ class Type extends Document
 {
     const CACHENAME = 'type';
 
-    private $incipit;
+    protected $incipit;
 
     public function setIncipit(string $incipit): Type
     {

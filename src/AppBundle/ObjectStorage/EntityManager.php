@@ -5,28 +5,84 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use Psr\Cache\CacheItemPoolInterface;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\Entity;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Identification;
 use AppBundle\Model\Identifier;
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class EntityManager extends ObjectManager
 {
     /**
-     * entity name
      * @var string
      */
-    protected $en;
+    protected $entityType;
+
+    public function __construct(
+        DatabaseServiceInterface $databaseService,
+        CacheItemPoolInterface $cacheItemPool,
+        ContainerInterface $container,
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null,
+        string $entityType
+    ) {
+        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
+        $this->entityType = $entityType;
+    }
+
+    public function getAll(string $sortFunction = null): array
+    {
+        return $this->getAllCombined('all', $sortFunction);
+    }
+
+    public function getAllMini(string $sortFunction = null): array
+    {
+        return $this->getAllCombined('mini', $sortFunction);
+    }
 
     public function getAllShort(): array
     {
-        // TODO: add cache
-        $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, $this->en . '_id');
-        return $this->getShort($ids);
+        return $this->getAllCombined('short', null);
+    }
+
+    private function getAllCombined(string $level, string $sortFunction = null): array
+    {
+        return $this->wrapArrayCache(
+            $this->entityType . 's_' . $level,
+            [$this->entityType . 's'],
+            function () use ($level, $sortFunction) {
+                $rawIds = $this->dbs->getIds();
+                $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
+
+                switch ($level) {
+                    case 'all':
+                        $objects = $this->get($ids);
+                        break;
+                    case 'mini':
+                        $objects = $this->getMini($ids);
+                        break;
+                    case 'short':
+                        $objects = $this->getShort($ids);
+                        break;
+                }
+
+                if (!empty($sortFunction)) {
+                    usort($objects, function ($a, $b) use ($sortFunction) {
+                        return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
+                    });
+                }
+
+                return $objects;
+            }
+        );
     }
 
     protected function setPublics(array &$entities): void
@@ -82,10 +138,25 @@ class EntityManager extends ObjectManager
             $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
 
             foreach ($rawBibliographies as $rawBibliography) {
-                $biblioId = $rawBibliography['reference_id'];
-                // Add to entity
                 $entities[$rawBibliography['entity_id']]
-                    ->addBibliography($bibliographies[$biblioId]);
+                    ->addBibliography($bibliographies[$rawBibliography['reference_id']]);
+            }
+        }
+    }
+
+    protected function setInverseBibliographies(array &$entities): void
+    {
+        $rawInverseBibliographies = $this->dbs->getInverseBibliographies(self::getIds($entities));
+        if (!empty($rawInverseBibliographies)) {
+            $inverseBibliographies = [];
+            foreach (['manuscript', 'occurrence', 'type', 'person'] as $type) {
+                $ids = self::getUniqueIds($rawInverseBibliographies, 'entity_id', 'type', $type);
+                $inverseBibliographies+= $this->container->get($type . '_manager')->getMini($ids);
+            }
+
+            foreach ($rawInverseBibliographies as $rawInverseBibliography) {
+                $entities[$rawInverseBibliography['biblio_id']]
+                    ->addInverseBibliography($inverseBibliographies[$rawInverseBibliography['entity_id']], $rawInverseBibliography['type']);
             }
         }
     }
@@ -419,9 +490,11 @@ class EntityManager extends ObjectManager
 
     protected static function getIds(array $entities): array
     {
-        return array_map(function ($entity) {
-            return $entity->getId();
-        }, $entities);
+        $ids = [];
+        foreach ($entities as $entity) {
+            $ids[] = $entity->getId();
+        }
+        return $ids;
     }
 
     private static function certainString(stdClass $object, string $property): string

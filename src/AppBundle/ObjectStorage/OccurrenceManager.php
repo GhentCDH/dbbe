@@ -5,33 +5,16 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use Psr\Cache\CacheItemPoolInterface;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\Genre;
 use AppBundle\Model\Image;
 use AppBundle\Model\Meter;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
-use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
-use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class OccurrenceManager extends DocumentManager
 {
-    public function __construct(
-        DatabaseServiceInterface $databaseService,
-        CacheItemPoolInterface $cacheItemPool,
-        ContainerInterface $container,
-        ElasticSearchServiceInterface $elasticSearchService = null,
-        TokenStorageInterface $tokenStorage = null
-    ) {
-        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
-        $this->en = 'occurrence';
-    }
-
     /**
      * Get occurrences with enough information to get an id and a description
      * @param  array $ids
@@ -201,11 +184,10 @@ class OccurrenceManager extends DocumentManager
                 if (count($occurrences) == 0) {
                     throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
                 }
+
+                $this->setPrevIds($occurrences);
+
                 $occurrence = $occurrences[$id];
-
-                $occurrenceArray = [$id => $occurrence];
-
-                $this->setPrevIds($occurrenceArray);
 
                 // type
                 $rawTypes = $this->dbs->getTypes([$id]);

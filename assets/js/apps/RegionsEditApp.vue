@@ -320,18 +320,12 @@ export default {
                         }
                     }
                 }
-                if (this.submitModel.region.individualName !== this.originalSubmitModel.region.individualName) {
-                    data.individualName = this.submitModel.region.individualName
+                for (let key of ['individualName', 'individualHistoricalName', 'pleiades', 'isCity']) {
+                    if (this.submitModel.region[key] !== this.originalSubmitModel.region[key]) {
+                        data[key] = this.submitModel.region[key]
+                    }
                 }
-                if (this.submitModel.region.individualHistoricalName !== this.originalSubmitModel.region.individualHistoricalName) {
-                    data.individualHistoricalName = this.submitModel.region.individualHistoricalName
-                }
-                if (this.submitModel.region.pleiades !== this.originalSubmitModel.region.pleiades) {
-                    data.pleiades = this.submitModel.region.pleiades
-                }
-                if (this.submitModel.region.isCity !== this.originalSubmitModel.region.isCity) {
-                    data.isCity = this.submitModel.region.isCity
-                }
+
                 axios.put(this.urls['region_put'].replace('region_id', this.submitModel.region.id), data)
                     .then( (response) => {
                         this.submitModel.region = response.data

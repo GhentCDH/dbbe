@@ -4,7 +4,6 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,8 +12,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class ManuscriptController extends Controller
+class ManuscriptController extends BasicController
 {
+    const MANAGER = 'manuscript_manager';
+    const TEMPLATE_FOLDER = 'AppBundle:Manuscript:';
+
     /**
      * @Route("/manuscripts/search", name="manuscripts_search")
      * @Method("GET")
@@ -53,6 +55,7 @@ class ManuscriptController extends Controller
      */
     public function searchManuscriptsAPI(Request $request)
     {
+        $this->throwErrorIfNotJson($request);
         $result = $this->get('manuscript_elastic_service')->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
@@ -253,6 +256,32 @@ class ManuscriptController extends Controller
     }
 
     /**
+     * Get all manuscripts that have a dependency on an article
+     * (reference)
+     * @Route("/manuscripts/article/{id}", name="manuscript_deps_by_article")
+     * @Method("GET")
+     * @param  int    $id bibliogrpahy id
+     * @param Request $request
+     */
+    public function getDepsByArticle(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getArticleDependencies');
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on a book
+     * (reference)
+     * @Route("/manuscripts/book/{id}", name="manuscript_deps_by_book")
+     * @Method("GET")
+     * @param  int    $id bibliogrpahy id
+     * @param Request $request
+     */
+    public function getDepsByBook(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookDependencies');
+    }
+
+    /**
      * @Route("/manuscripts", name="manuscript_post")
      * @Method("POST")
      * @param Request $request
@@ -382,8 +411,8 @@ class ManuscriptController extends Controller
                     'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
+                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
                     'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),

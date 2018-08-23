@@ -33,8 +33,10 @@ class Book extends Document
         $this->year = $year;
         $this->title = $title;
         $this->city = $city;
-        $this->city = $city;
         $this->editor = $editor;
+
+        // All books are public
+        $this->public = true;
 
         return $this;
     }
@@ -179,7 +181,7 @@ class Book extends Document
         $result = parent::getElastic();
 
         $result['type'] = [
-            'id' => 0,
+            'id' => 1,
             'name' => 'Book',
         ];
 

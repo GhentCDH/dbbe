@@ -2,15 +2,19 @@
 
 namespace AppBundle\Twig;
 
+use Twig_Extension;
+use Twig_SimpleFilter;
+use Twig_SimpleTest;
+
 use AppBundle\Model\Person;
 use AppBundle\Model\SubjectInterface;
 
-class AppExtension extends \Twig_Extension
+class AppExtension extends Twig_Extension
 {
     public function getTests()
     {
         return [
-            new \Twig_SimpleTest('person', function (SubjectInterface $object) {
+            new Twig_SimpleTest('person', function (SubjectInterface $object) {
                 return $object instanceof Person;
             }),
         ];
@@ -19,7 +23,7 @@ class AppExtension extends \Twig_Extension
     public function getFilters()
     {
         return [
-            new \Twig_SimpleFilter('public', function ($object) {
+            new Twig_SimpleFilter('public', function ($object) {
                 if (is_array($object)) {
                     return array_filter($object, function ($item) {
                         return !method_exists($item, 'getPublic') || $item->getPublic();
@@ -32,12 +36,12 @@ class AppExtension extends \Twig_Extension
                     }
                 }
             }),
-            new \Twig_SimpleFilter('primary', function ($array) {
+            new Twig_SimpleFilter('primary', function ($array) {
                 return array_filter($array, function ($item) {
                     return $item->getRefType() == 'Primary source';
                 });
             }),
-            new \Twig_SimpleFilter('secondary', function ($array) {
+            new Twig_SimpleFilter('secondary', function ($array) {
                 return array_filter($array, function ($item) {
                     return $item->getRefType() == 'Secondary source';
                 });

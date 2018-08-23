@@ -2,8 +2,6 @@
 
 namespace AppBundle\Model;
 
-use AppBundle\Utils\ArrayToJson;
-
 class Document extends Entity
 {
     protected $prevId;
@@ -117,9 +115,6 @@ class Document extends Entity
 
         if (!empty($this->personRoles)) {
             $result['personRoles'] = $this->getPersonRolesJson();
-        }
-        if (!empty($this->getBibliographies())) {
-            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
         }
 
         return $result;

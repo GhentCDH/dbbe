@@ -13,10 +13,12 @@ Encore
 
     // Add javascripts
     .autoProvidejQuery()
+    .addEntry('articleedit', './assets/js/main/articleedit.js')
     .addEntry('bibliographysearch', './assets/js/main/bibliographysearch.js')
     .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('contentsedit', './assets/js/main/contentsedit.js')
     .addEntry('feedback', './assets/js/main/feedback.js')
+    .addEntry('journalsedit', './assets/js/main/journalsedit.js')
     .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')
     .addEntry('main', './assets/js/main/main.js')

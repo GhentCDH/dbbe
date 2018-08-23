@@ -40,9 +40,9 @@ class ObjectManager
     protected function getDependencies(array $rawIds, bool $short = false): array
     {
         if ($short) {
-            return $this->getShort(self::getUniqueIds($rawIds, $this->en . '_id'));
+            return $this->getShort(self::getUniqueIds($rawIds, $this->entityType . '_id'));
         }
-        return $this->getMini(self::getUniqueIds($rawIds, $this->en . '_id'));
+        return $this->getMini(self::getUniqueIds($rawIds, $this->entityType . '_id'));
     }
 
     protected function setCache(array $items, string $cacheKey): void
@@ -55,6 +55,7 @@ class ObjectManager
 
     protected function setArrayCache(array $items, string $cacheKey, array $tags): void
     {
+        // var_dump($cacheKey);
         $cache = $this->cache->getItem($cacheKey);
         $cache->tag($tags);
         $this->cache->save($cache->set($this->createCache($items)));
@@ -86,6 +87,13 @@ class ObjectManager
             return $this->linkCache($item);
         }
         if (is_array($item)) {
+            // var_dump($item);
+            // var_dump(array_map(
+            //     function ($element) {
+            //         return $this->createCache($element);
+            //     },
+            //     $item
+            // ));
             return array_map(
                 function ($element) {
                     return $this->createCache($element);
@@ -325,7 +333,7 @@ class ObjectManager
         } else if (isset($range['full']) && $range['full']) {
             $this->clearSpecificCaches($id, ['full']);
         }
-        $this->cache->invalidateTags([$this->en . 's']);
+        $this->cache->invalidateTags([$this->entityType . 's']);
     }
 
     /**
@@ -336,7 +344,7 @@ class ObjectManager
     private function clearSpecificCaches(int $id, array $specifics): void
     {
         foreach ($specifics as $specific) {
-            $this->deleteCache($this->en . '_' . $specific, $id);
+            $this->deleteCache($this->entityType . '_' . $specific, $id);
         }
     }
 

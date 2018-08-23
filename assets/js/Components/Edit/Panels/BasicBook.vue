@@ -24,12 +24,6 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
-    props: {
-        values: {
-            type: Object,
-            default: () => {return {}}
-        },
-    },
     data() {
         return {
             schema: {

@@ -26,6 +26,12 @@ class BibliographyController extends Controller
             [
                 'urls' => json_encode([
                     'bibliographies_search_api' => $this->generateUrl('bibliographies_search_api'),
+                    'manuscript_deps_by_article' => $this->generateUrl('manuscript_deps_by_article', ['id' => 'article_id']),
+                    'manuscript_deps_by_book' => $this->generateUrl('manuscript_deps_by_book', ['id' => 'book_id']),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
+                    'article_edit' => $this->generateUrl('article_edit', ['id' => 'article_id']),
+                    'article_delete' => $this->generateUrl('article_delete', ['id' => 'article_id']),
                     'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
                     'book_edit' => $this->generateUrl('book_edit', ['id' => 'book_id']),
                     'book_delete' => $this->generateUrl('book_delete', ['id' => 'book_id']),
@@ -51,7 +57,7 @@ class BibliographyController extends Controller
     public function searchBibliographiesAPI(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-        
+
         $result = $this->get('bibliography_elastic_service')->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')

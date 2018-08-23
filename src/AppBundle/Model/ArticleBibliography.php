@@ -32,7 +32,7 @@ class ArticleBibliography extends Bibliography
     {
         return
             $this->article->getDescription()
-            . $this->formatStartEndPages(': ')
+            . $this->formatStartEndPages(': ', $this->rawPages)
             . '.';
     }
 

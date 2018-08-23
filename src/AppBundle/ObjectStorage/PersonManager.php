@@ -5,33 +5,15 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use Psr\Cache\CacheItemPoolInterface;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
-use AppBundle\Model\Role;
-use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
-use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class PersonManager extends EntityManager
 {
-    public function __construct(
-        DatabaseServiceInterface $databaseService,
-        CacheItemPoolInterface $cacheItemPool,
-        ContainerInterface $container,
-        ElasticSearchServiceInterface $elasticSearchService = null,
-        TokenStorageInterface $tokenStorage = null
-    ) {
-        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
-        $this->en = 'person';
-    }
-
     /**
      * Get persons with enough information to get an id and a full description (without offices)
      * @param  array $ids
@@ -177,22 +159,9 @@ class PersonManager extends EntityManager
         );
     }
 
-    public function getAllShort(): array
+    public function getAllShort(string $sortFunction = null): array
     {
-        return $this->wrapArrayCache(
-            'persons',
-            ['persons'],
-            function () {
-                $persons = parent::getAllShort();
-
-                // Sort by name
-                usort($persons, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $persons;
-            }
-        );
+        return parent::getAllShort($sortFunction == null ? 'getName' : $sortFunction);
     }
 
     public function getOfficeDependencies(int $officeId): array

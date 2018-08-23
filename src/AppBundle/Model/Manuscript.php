@@ -68,6 +68,11 @@ class Manuscript extends Document
         return $this->locatedAt->getName();
     }
 
+    public function getDescription(): string
+    {
+        return $this->getName();
+    }
+
     private function setContentsWithParents(array $contentsWithParents): Manuscript
     {
         $this->contentsWithParents = $contentsWithParents;

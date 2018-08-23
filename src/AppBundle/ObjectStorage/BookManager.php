@@ -4,31 +4,19 @@ namespace AppBundle\ObjectStorage;
 
 use stdClass;
 use Exception;
+use AppBundle\Exceptions\DependencyException;
 
-use Psr\Cache\CacheItemPoolInterface;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\Book;
-use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
-use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
+/**
+ * ObjectManager for books
+ * Servicename: book_manager
+ */
 class BookManager extends DocumentManager
 {
-    public function __construct(
-        DatabaseServiceInterface $databaseService,
-        CacheItemPoolInterface $cacheItemPool,
-        ContainerInterface $container,
-        ElasticSearchServiceInterface $elasticSearchService = null,
-        TokenStorageInterface $tokenStorage = null
-    ) {
-        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
-        $this->en = 'book';
-    }
-
     /**
      * Get books with enough information to get an id and a description
      * @param  array $ids
@@ -42,7 +30,7 @@ class BookManager extends DocumentManager
             $ids,
             function ($ids) {
                 $books = [];
-                $rawBooks = $this->dbs->getBasicInfoByIds($ids);
+                $rawBooks = $this->dbs->getMiniInfoByIds($ids);
 
                 foreach ($rawBooks as $rawBook) {
                     $book = new Book(
@@ -70,7 +58,7 @@ class BookManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        return $this->getShort($ids);
+        return $this->getMini($ids);
     }
 
     /**
@@ -90,6 +78,9 @@ class BookManager extends DocumentManager
                 if (count($books) == 0) {
                     throw new NotFoundHttpException('Book with id ' . $id .' not found.');
                 }
+
+                $this->setInverseBibliographies($books);
+
                 $book = $books[$id];
 
                 // Publisher, series, volume, total_volumes
@@ -107,26 +98,28 @@ class BookManager extends DocumentManager
         );
     }
 
-    public function getAllMini(): array
+    /**
+     * @param  string|null $sortFunction Name of the optional method to call for sorting
+     * @return array
+     */
+    public function getAllMini(string $sortFunction = null): array
     {
-        return $this->wrapArrayCache(
-            'books',
-            ['books'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'book_id');
-                $books = $this->getMini($ids);
-
-                // Sort by description
-                usort($books, function ($a, $b) {
-                    return strcmp($a->getDescription(), $b->getDescription());
-                });
-
-                return $books;
-            }
-        );
+        return parent::getAllMini($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
+    /**
+     * @return array
+     */
+    public function getAllShort(): array
+    {
+        return parent::getAllShort();
+    }
+
+    /**
+     * Add a new book
+     * @param  stdClass $data
+     * @return Book
+     */
     public function add(stdClass $data): Book
     {
         if (!property_exists($data, 'title')
@@ -143,13 +136,13 @@ class BookManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $bookId = $this->dbs->insert($data->title, $data->year, $data->city);
+            $id = $this->dbs->insert($data->title, $data->year, $data->city);
 
             unset($data->title);
             unset($data->year);
             unset($data->city);
 
-            $newBook = $this->update($bookId, $data, true);
+            $new = $this->update($id, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -158,85 +151,95 @@ class BookManager extends DocumentManager
             throw $e;
         }
 
-        return $newBook;
+        return $new;
     }
 
-    public function update(int $id, stdClass $data, bool $new = false): Book
+    /**
+     * Update new or existing book
+     * @param  int      $id
+     * @param  stdClass $data
+     * @param  bool     $isNew Indicate whether this is a new book
+     * @return Book
+     */
+    public function update(int $id, stdClass $data, bool $isNew = false): Book
     {
         $this->dbs->beginTransaction();
         try {
-            $book = $this->getFull($id);
-            if ($book == null) {
+            $old = $this->getFull($id);
+            if ($old == null) {
                 throw new NotFoundHttpException('Book with id ' . $id .' not found.');
             }
 
-            // update book data
+            // update data
             $cacheReload = [
-                'mini' => $new,
-                'full' => $new,
+                'mini' => $isNew,
+                'full' => $isNew,
             ];
             $roles = $this->container->get('role_manager')->getRolesByType('book');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
                     $cacheReload['mini'] = true;
-                    $this->updatePersonRoleWithRank($book, $role, $data->{$role->getSystemName()});
+                    $this->updatePersonRoleWithRank($old, $role, $data->{$role->getSystemName()});
                 }
             }
             if (property_exists($data, 'title')) {
-                if (!is_string($data->title)) {
+                // Title is a required field
+                if (!is_string($data->title) || empty($data->title)) {
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateTitle($book, $data->title);
+                $this->dbs->updateTitle($id, $data->title);
             }
+            // Title is a required field
             if (property_exists($data, 'year')) {
-                if (!is_numeric($data->year)) {
+                if (!is_numeric($data->year) || empty($data->year)) {
                     throw new BadRequestHttpException('Incorrect year data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateYear($book, $data->year);
+                $this->dbs->updateYear($id, $data->year);
             }
+            // City is a required field
             if (property_exists($data, 'city')) {
-                if (!is_string($data->city)) {
+                if (!is_string($data->city) || empty($data->city)) {
                     throw new BadRequestHttpException('Incorrect city data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateCity($book, $data->city);
+                $this->dbs->updateCity($id, $data->city);
             }
             if (property_exists($data, 'editor')) {
                 if (!is_string($data->editor)) {
                     throw new BadRequestHttpException('Incorrect editor data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateEditor($book, $data->editor);
+                $this->dbs->updateEditor($id, $data->editor);
             }
             if (property_exists($data, 'publisher')) {
                 if (!is_string($data->publisher)) {
                     throw new BadRequestHttpException('Incorrect publisher data.');
                 }
                 $cacheReload['full'] = true;
-                $this->updatePublisher($book, $data->publisher);
+                $this->dbs->updatePublisher($id, $data->publisher);
             }
             if (property_exists($data, 'series')) {
                 if (!is_string($data->series)) {
                     throw new BadRequestHttpException('Incorrect series data.');
                 }
                 $cacheReload['full'] = true;
-                $this->updateSeries($book, $data->series);
+                $this->dbs->updateSeries($id, $data->series);
             }
             if (property_exists($data, 'volume')) {
                 if (!is_numeric($data->volume)) {
                     throw new BadRequestHttpException('Incorrect volume data.');
                 }
                 $cacheReload['full'] = true;
-                $this->updateVolume($book, $data->volume);
+                $this->dbs->updateVolume($id, $data->volume);
             }
             if (property_exists($data, 'totalVolumes')) {
                 if (!is_numeric($data->totalVolumes)) {
                     throw new BadRequestHttpException('Incorrect totalVolumes data.');
                 }
                 $cacheReload['full'] = true;
-                $this->updateTotalVolumes($book, $data->totalVolumes);
+                $this->dbs->updateTotalVolumes($id, $data->totalVolumes);
             }
 
             // Throw error if none of above matched
@@ -244,78 +247,62 @@ class BookManager extends DocumentManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
-            // load new book data
+            // load new data
             $this->clearCache($id, $cacheReload);
-            $newBook = $this->getFull($id);
+            $new = $this->getFull($id);
 
-            $this->updateModified($new ? null : $book, $newBook);
+            $this->updateModified($isNew ? null : $old, $new);
 
-            // Reset cache and elasticsearch
-            // TODO
-            // TODO: check dependencies to clear cache and update elasticsearch
+            // (re-)index in elastic search
+            $this->ess->add($new);
+
+            // TODO: reset and re-index bookchapter dependencies
 
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
             // Reset cache on elasticsearch error
-            if (isset($newBook)) {
+            if (isset($new)) {
                 $this->reset([$id]);
             }
             throw $e;
         }
 
-        return $newBook;
+        return $new;
     }
 
-    private function updateTitle(Book $book, string $title): void
+    /**
+     * Delete a book
+     * @param int $id
+     */
+    public function delete(int $id): void
     {
-        // Title is a required field
-        if (empty($title)) {
-            throw new BadRequestHttpException('Incorrect title data.');
+        $this->dbs->beginTransaction();
+        try {
+            // Throws a not found exception when not found
+            $old = $this->getFull($id);
+
+            $this->dbs->delete($id);
+
+            $this->updateModified($old, null);
+
+            // empty cache
+            $this->clearCache($id);
+
+            // delete from elastic search
+            $this->ess->delete($old);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (DependencyException $e) {
+            $this->dbs->rollBack();
+            throw new BadRequestHttpException($e->getMessage());
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
         }
 
-        $this->dbs->updateTitle($book->getId(), $title);
+        return;
     }
-
-    private function updateYear(Book $book, int $year): void
-    {
-        // Year is a required field
-        if (empty($year)) {
-            throw new BadRequestHttpException('Incorrect year data.');
-        }
-
-        $this->dbs->updateYear($book->getId(), $year);
-    }
-    private function updateCity(Book $book, string $city): void
-    {
-        // City is a required field
-        if (empty($city)) {
-            throw new BadRequestHttpException('Incorrect city data.');
-        }
-
-        $this->dbs->updateCity($book->getId(), $city);
-    }
-    private function updateEditor(Book $book, string $editor): void
-    {
-        $this->dbs->updateEditor($book->getId(), $editor);
-    }
-    private function updatePublisher(Book $book, string $publisher): void
-    {
-        $this->dbs->updatePublisher($book->getId(), $publisher);
-    }
-    private function updateSeries(Book $book, string $series): void
-    {
-        $this->dbs->updateSeries($book->getId(), $series);
-    }
-    private function updateVolume(Book $book, string $volume): void
-    {
-        $this->dbs->updateVolume($book->getId(), $volume);
-    }
-    private function updateTotalVolumes(Book $book, string $totalVolumes): void
-    {
-        $this->dbs->updateTotalVolumes($book->getId(), $totalVolumes);
-    }
-
-    // TODO: delete
 }

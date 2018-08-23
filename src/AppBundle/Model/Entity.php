@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 class Entity implements IdJsonInterface
 {
     use CacheObjectTrait;
@@ -12,6 +14,7 @@ class Entity implements IdJsonInterface
     protected $public;
     protected $identifications;
     protected $bibliographies;
+    protected $inverseBibliographies;
 
     protected $cacheLevel;
 
@@ -110,30 +113,72 @@ class Entity implements IdJsonInterface
         return $this;
     }
 
-    public function getBibliographies(): array
+    public function getBibliographies(): ?array
     {
         return $this->bibliographies;
+    }
+
+    public function setInverseBibliographies(array $inverseBibliographies): Entity
+    {
+        $this->inverseBibliographies = $inverseBibliographies;
+
+        return $this;
+    }
+
+    public function addInverseBibliography(Entity $entity, string $type): Entity
+    {
+        if (!isset($this->inverseBibliographies[$type])) {
+            $this->inverseBibliographies[$type] = [];
+        }
+        $this->inverseBibliographies[$type][$entity->getId()] = $entity;
+
+        usort(
+            $this->inverseBibliographies[$type],
+            function ($a, $b) use ($type) {
+                switch ($type) {
+                    case 'manuscript':
+                    case 'person':
+                        return strcmp($a->getDescription(), $b->getDescription());
+                        break;
+                    case 'occurrence':
+                    case 'type':
+                        return strcmp($a->getIncipit(), $b->getIncipit());
+                        break;
+                }
+            }
+        );
+
+        return $this;
+    }
+
+    public function getInverseBibliographies(): ?array
+    {
+        return $this->inverseBibliographies;
     }
 
     public function getJson(): array
     {
         $result = [
             'id' => $this->id,
-            'public' => $this->public,
         ];
-
-        if (count($this->identifications) > 0) {
-            $result['identifications'] = [];
-            foreach ($this->identifications as $identification) {
-                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
-            }
-        }
 
         if (isset($this->publicComment)) {
             $result['publicComment'] = $this->publicComment;
         }
         if (isset($this->privateComment)) {
             $result['privateComment'] = $this->privateComment;
+        }
+        if (isset($this->public)) {
+            $result['public'] = $this->public;
+        }
+        if (!empty($this->identifications)) {
+            $result['identifications'] = [];
+            foreach ($this->identifications as $identification) {
+                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
+            }
+        }
+        if (!empty($this->getBibliographies())) {
+            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
         }
 
         return $result;

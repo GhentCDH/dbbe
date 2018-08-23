@@ -4,10 +4,16 @@ namespace AppBundle\Service\DatabaseService;
 
 use Exception;
 
+use AppBundle\Exceptions\DependencyException;
+
 use Doctrine\DBAL\Connection;
 
 class BookService extends DocumentService
 {
+    /**
+     * Get all book ids
+     * @return array
+     */
     public function getIds(): array
     {
         return $this->conn->query(
@@ -17,7 +23,11 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
-    public function getBasicInfoByIds(array $ids): array
+    /**
+     * @param  array $ids
+     * @return array
+     */
+    public function getMiniInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -34,6 +44,10 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getFullInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -50,6 +64,12 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
+    /**
+     * @param  string $title
+     * @param  int    $year
+     * @param  string $city
+     * @return int
+     */
     public function insert(string $title, int $year, string $city): int
     {
         $this->beginTransaction();
@@ -64,7 +84,7 @@ class BookService extends DocumentService
                     $city,
                 ]
             );
-            $bookId = $this->conn->executeQuery(
+            $id = $this->conn->executeQuery(
                 'SELECT
                     book.identity as book_id
                 from data.book
@@ -75,7 +95,7 @@ class BookService extends DocumentService
                 'INSERT INTO data.document_title (iddocument, idlanguage, title)
                 values (?, (select idlanguage from data.language where name = \'Unknown\'), ?)',
                 [
-                    $bookId,
+                    $id,
                     $title,
                 ]
             );
@@ -84,52 +104,69 @@ class BookService extends DocumentService
             $this->rollBack();
             throw $e;
         }
-        return $bookId;
+        return $id;
     }
 
-    public function updateTitle(int $bookId, string $title): int
+    /**
+     * @param  int    $id
+     * @param  string $title
+     * @return int
+     */
+    public function updateTitle(int $id, string $title): int
     {
-        // TODO: test if upsert is needed for new books
         return $this->conn->executeUpdate(
             'UPDATE data.document_title
             set title = ?
             where document_title.iddocument = ?',
             [
                 $title,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateYear(int $bookId, int $year): int
+    /**
+     * @param  int $id
+     * @param  int $year
+     * @return int
+     */
+    public function updateYear(int $id, int $year): int
     {
-        // TODO: test if upsert is needed for new books
         return $this->conn->executeUpdate(
             'UPDATE data.book
             set year = ?
             where book.identity = ?',
             [
                 $year,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateCity(int $bookId, string $city): int
+    /**
+     * @param  int    $id
+     * @param  string $city
+     * @return int
+     */
+    public function updateCity(int $id, string $city): int
     {
-        // TODO: test if upsert is needed for new books
         return $this->conn->executeUpdate(
             'UPDATE data.book
             set city = ?
             where book.identity = ?',
             [
                 $city,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateEditor(int $bookId, string $editor): int
+    /**
+     * @param  int    $id
+     * @param  string $editor
+     * @return int
+     */
+    public function updateEditor(int $id, string $editor): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -137,12 +174,17 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $editor,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updatePublisher(int $bookId, string $publisher): int
+    /**
+     * @param  int    $id
+     * @param  string $publisher
+     * @return int
+     */
+    public function updatePublisher(int $id, string $publisher): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -150,12 +192,17 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $publisher,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateSeries(int $bookId, string $series): int
+    /**
+     * @param  int    $id
+     * @param  string $series
+     * @return int
+     */
+    public function updateSeries(int $id, string $series): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -163,12 +210,17 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $series,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateVolume(int $bookId, int $volume): int
+    /**
+     * @param  int $id
+     * @param  int $volume
+     * @return int
+     */
+    public function updateVolume(int $id, int $volume): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -176,12 +228,17 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $volume,
-                $bookId,
+                $id,
             ]
         );
     }
 
-    public function updateTotalVolumes(int $bookId, int $totalVolumes): int
+    /**
+     * @param  int $id
+     * @param  int $totalVolumes
+     * @return int
+     */
+    public function updateTotalVolumes(int $id, int $totalVolumes): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -189,8 +246,51 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $totalVolumes,
-                $bookId,
+                $id,
             ]
         );
+    }
+
+    /**
+     * @param  int $id
+     * @return int
+     */
+    public function delete(int $id): int
+    {
+        $this->beginTransaction();
+        try {
+            // don't delete if this book is used in reference
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.reference
+                where reference.idsource = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This book has dependencies.');
+            }
+            // don't delete if this book is used in document_contains
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.document_contains
+                where document_contains.idcontainer = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This book has dependencies.');
+            }
+            // Set search_path for triggers
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $delete = $this->conn->executeUpdate(
+                'DELETE from data.entity
+                where entity.identity = ?',
+                [$id]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $delete;
     }
 }

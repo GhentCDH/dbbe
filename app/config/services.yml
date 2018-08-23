@@ -35,17 +35,17 @@ services:
 
     manuscript_manager:
         class: AppBundle\ObjectStorage\ManuscriptManager
-        arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage']
+        arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage', 'manuscript']
         public: true
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager
-        arguments: ['@occurrence_service', '@cache.app', '@service_container', '@occurrence_elastic_service', '@security.token_storage']
+        arguments: ['@occurrence_service', '@cache.app', '@service_container', '@occurrence_elastic_service', '@security.token_storage', 'occurrence']
         public: true
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager
-        arguments: ['@person_service', '@cache.app', '@service_container', '@person_elastic_service', '@security.token_storage']
+        arguments: ['@person_service', '@cache.app', '@service_container', '@person_elastic_service', '@security.token_storage', 'person']
         public: true
 
     located_at_manager:
@@ -73,9 +73,19 @@ services:
         arguments: ['@bilbiography_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    article_manager:
+        class: AppBundle\ObjectStorage\ArticleManager
+        arguments: ['@article_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'article']
+        public: true
+
     book_manager:
         class: AppBundle\ObjectStorage\BookManager
-        arguments: ['@book_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        arguments: ['@book_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book']
+        public: true
+
+    journal_manager:
+        class: AppBundle\ObjectStorage\JournalManager
+        arguments: ['@journal_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal']
         public: true
 
     institution_manager:
@@ -90,7 +100,7 @@ services:
 
     type_manager:
         class: AppBundle\ObjectStorage\TypeManager
-        arguments: ['@type_service', '@cache.app', '@service_container', null, null]
+        arguments: ['@type_service', '@cache.app', '@service_container', null, null, 'type']
         public: true
 
     origin_manager:
@@ -156,8 +166,16 @@ services:
         class: AppBundle\Service\DatabaseService\BibliographyService
         arguments: ['@doctrine.orm.entity_manager']
 
+    article_service:
+        class: AppBundle\Service\DatabaseService\ArticleService
+        arguments: ['@doctrine.orm.entity_manager']
+
     book_service:
         class: AppBundle\Service\DatabaseService\BookService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    journal_service:
+        class: AppBundle\Service\DatabaseService\JournalService
         arguments: ['@doctrine.orm.entity_manager']
 
     occurrence_service:

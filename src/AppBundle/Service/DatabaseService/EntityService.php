@@ -2,6 +2,17 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use PDO;
+
+use AppBundle\Model\Article;
+use AppBundle\Model\Book;
+use AppBundle\Model\BookChapter;
+use AppBundle\Model\Manuscript;
+use AppBundle\Model\Occurrence;
+use AppBundle\Model\OnlineSource;
+use AppBundle\Model\Person;
+use AppBundle\Model\Type;
+
 use Doctrine\DBAL\Connection;
 
 class EntityService extends DatabaseService
@@ -67,7 +78,7 @@ class EntityService extends DatabaseService
     {
         return $this->conn->executeQuery(
             'SELECT
-                entity.identity as entity_id,
+                reference.idtarget as entity_id,
                 reference.idreference as reference_id,
 	            coalesce(
                     book_merge.type::text,
@@ -75,20 +86,19 @@ class EntityService extends DatabaseService
                     book_chapter_merge.type::text,
                     online_source_merge.type::text
                 ) as type
-            from data.entity
-            inner join data.reference on entity.identity = reference.idtarget
-            left join (
-                select
-                    book.identity as biblio_id,
-                    \'book\' as type
-                from data.book
-            ) book_merge on reference.idsource = book_merge.biblio_id
+            from data.reference
             left join (
                 select
                     article.identity as biblio_id,
                     \'article\' as type
                 from data.article
             ) article_merge on reference.idsource = article_merge.biblio_id
+            left join (
+                select
+                    book.identity as biblio_id,
+                    \'book\' as type
+                from data.book
+            ) book_merge on reference.idsource = book_merge.biblio_id
             left join (
                 select
                     bookchapter.identity as biblio_id,
@@ -101,9 +111,60 @@ class EntityService extends DatabaseService
                     \'online_source\' as type
                 from data.online_source
             ) online_source_merge on reference.idsource = online_source_merge.biblio_id
-            where entity.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
+            where reference.idtarget in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getInverseBibliographies(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reference.idsource as biblio_id,
+                reference.idtarget as entity_id,
+	            coalesce(
+                    manuscript_merge.type::text,
+                    occurrence_merge.type::text,
+                    type_merge.type::text,
+                    person_merge.type::text
+                ) as type
+            from data.reference
+            left join (
+                select
+                    manuscript.identity as entity_id,
+                    \'manuscript\' as type
+                from data.manuscript
+            ) manuscript_merge on reference.idtarget = manuscript_merge.entity_id
+            left join (
+                select
+                    original_poem.identity as entity_id,
+                    \'occurrence\' as type
+                from data.original_poem
+            ) occurrence_merge on reference.idtarget = occurrence_merge.entity_id
+            left join (
+                select
+                    reconstructed_poem.identity as entity_id,
+                    \'type\' as type
+                from data.reconstructed_poem
+            ) type_merge on reference.idtarget = type_merge.entity_id
+            left join (
+                select
+                    person.identity as entity_id,
+                    \'person\' as type
+                from data.person
+            ) person_merge on reference.idtarget = person_merge.entity_id
+            where reference.idsource in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
         )->fetchAll();
     }
 

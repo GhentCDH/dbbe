@@ -180,6 +180,32 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByArticleId(int $articleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget
+            inner join data.article on reference.idsource = article.identity
+            where article.identity = ?',
+            [$articleId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByBookId(int $bookId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget
+            inner join data.book on reference.idsource = book.identity
+            where book.identity = ?',
+            [$bookId]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -540,8 +566,8 @@ class ManuscriptService extends DocumentService
                 [$manuscriptId]
             );
             $delete = $this->conn->executeUpdate(
-                'DELETE from data.manuscript
-                where manuscript.identity = ?',
+                'DELETE from data.document
+                where document.identity = ?',
                 [$manuscriptId]
             );
             $this->commit();

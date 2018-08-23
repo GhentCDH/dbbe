@@ -68,17 +68,15 @@
                     {{ props.row.type.name }}
                 </template>
                 <a
-                    v-if="props.row.type.id === 0"
                     slot="title"
                     slot-scope="props"
-                    :href="urls['book_get'].replace('book_id', props.row.id)"
+                    :href="urls[types[props.row.type.id] + '_get'].replace(types[props.row.type.id] + '_id', props.row.id)"
                     v-html="formatTitle(props.row.title)" />
                 <template
                     slot="actions"
                     slot-scope="props">
                     <a
-                        v-if="props.row.type.id === 0"
-                        :href="urls['book_edit'].replace('book_id', props.row.id)"
+                        :href="urls[types[props.row.type.id] + '_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
                         class="action"
                         title="Edit">
                         <i class="fa fa-pencil-square-o" />
@@ -132,6 +130,7 @@ export default {
             },
             schema: {
                 fields: {
+                    type: this.createMultiSelect('Type'),
                     title: {
                         type: 'input',
                         inputType: 'text',
@@ -177,10 +176,15 @@ export default {
                 },
             },
             submitModel: {
-                type: 'bibliography',
-                bibliography: {},
+                type: null,
+                article: {},
+                book: {},
             },
             defaultOrdering: 'title',
+            types: {
+                0: 'article',
+                1: 'book'
+            }
         }
 
         // Add identifier fields
@@ -209,10 +213,11 @@ export default {
         depUrls: function () {
             return {
                 'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_bibliography'].replace('bibliography_id', this.submitModel.bibliography.id),
+                    depUrl: this.urls['manuscript_deps_by_' + this.submitModel.type].replace(this.submitModel.type + '_id', this.submitModel[this.submitModel.type].id),
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 },
+                // TODO: occurrence, type, person
             }
         },
         tableColumns() {
@@ -228,33 +233,34 @@ export default {
     },
     methods: {
         del(row) {
-            this.submitModel.bibliography = row
+            this.submitModel.type = this.types[row.type.id]
+            this.submitModel[this.types[row.type.id]] = row
+            this.submitModel[this.types[row.type.id]].name = this.formatTitle(this.submitModel[this.types[row.type.id]].title, true)
             AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
             this.openRequests++
             this.deleteModal = false
-            let url = ''
-            switch (this.submitModel.bibliography.type.id) {
-            case 0:
-                url = this.urls['book_delete'].replace('book_id', this.submitModel.bibliography.id)
-                break
-            }
-            axios.delete(url)
+            axios.delete(this.urls[this.submitModel.type + '_delete'].replace(this.submitModel.type + '_id', this.submitModel[this.submitModel.type].id))
                 .then((response) => {
                     this.$refs.resultTable.refresh()
                     this.openRequests--
-                    this.alerts.push({type: 'success', message: 'Bibliography deleted successfully.'})
+                    this.alerts.push({type: 'success', message: this.submitModel.type.replace(/^\w/, c => c.toUpperCase()) + ' deleted successfully.'})
                 })
                 .catch((error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the bibliography.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.submitModel.type + '.'})
                     console.log(error)
                 })
         },
-        formatTitle(title) {
+        formatTitle(title, strip = false) {
             if (Array.isArray(title)) {
-                return title[0]
+                if (strip) {
+                    return title[0].replace('<mark>', '').replace('</mark>', '')
+                }
+                else {
+                    return title[0]
+                }
             }
             else {
                 return title

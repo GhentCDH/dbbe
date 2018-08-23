@@ -1,0 +1,17 @@
+{% if inverseBibliographies is not empty %}
+    {% for type, entities in inverseBibliographies %}
+        {% set displayEntities = is_granted('ROLE_VIEW_INTERNAL') ? entities : entities|public %}
+        {% if displayEntities is not empty %}
+            <tr>
+                <td>{{ type|capitalize }}(s)</td>
+                <td>
+                    {% embed '@App/Helpers/renderList.html.twig' with {'list': displayEntities} only %}
+                        {% block renderItem %}
+                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': constant('CACHENAME', item) ~ '_get','display': item.getDescription()} only %}
+                        {% endblock %}
+                    {% endembed %}
+                </td>
+            <tr>
+        {% endif %}
+    {% endfor %}
+{% endif %}

@@ -13,11 +13,11 @@ class TypeManager extends DocumentManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapSingleLevelCache(
+        return $this->wrapLevelCache(
             Type::CACHENAME,
             'full',
-            $id,
-            function ($id) {
+            $ids,
+            function ($ids) {
                 $types = [];
                 $rawIncipits = $this->dbs->getIncipits($ids);
                 if (count($rawIncipits) == 0) {
