@@ -83,9 +83,19 @@ services:
         arguments: ['@book_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book']
         public: true
 
+    book_chapter_manager:
+        class: AppBundle\ObjectStorage\BookChapterManager
+        arguments: ['@book_chapter_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_chapter']
+        public: true
+
     journal_manager:
         class: AppBundle\ObjectStorage\JournalManager
         arguments: ['@journal_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal']
+        public: true
+
+    online_source_manager:
+        class: AppBundle\ObjectStorage\OnlineSourceManager
+        arguments: ['@online_source_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'online_source']
         public: true
 
     institution_manager:
@@ -174,8 +184,16 @@ services:
         class: AppBundle\Service\DatabaseService\BookService
         arguments: ['@doctrine.orm.entity_manager']
 
+    book_chapter_service:
+        class: AppBundle\Service\DatabaseService\BookChapterService
+        arguments: ['@doctrine.orm.entity_manager']
+
     journal_service:
         class: AppBundle\Service\DatabaseService\JournalService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    online_source_service:
+        class: AppBundle\Service\DatabaseService\OnlineSourceService
         arguments: ['@doctrine.orm.entity_manager']
 
     occurrence_service:

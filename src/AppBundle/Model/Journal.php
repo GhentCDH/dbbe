@@ -95,7 +95,7 @@ class Journal extends Document
         return $result;
     }
 
-    public static function unlinkCache($data)
+    public static function unlinkCache(array $data)
     {
         $journal = new Journal($data['id'], $data['title'], $data['year']);
 

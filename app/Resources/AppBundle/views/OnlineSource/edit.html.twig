@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-sm-9">
+        <h2 class="h1">
+            {% if id is not empty %}
+                Edit online source
+                <a
+                    href="{{ path('online_source_get', {'id': id}) }}"
+                    class="action pull-right"
+                    title="View the online source">
+                    <i class="fa fa-eye"></i>
+                </a>
+            {% else %}
+                Add online source
+            {% endif %}
+        </h2>
+    </div>
+    <div id="online-source-edit-app">
+        <online-source-edit-app
+            init-urls = "{{ urls }}"
+            init-data="{{ data }}"
+            init-identifiers="{{ identifiers }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/onlinesourceedit.js") }}"></script>
+{% endblock %}

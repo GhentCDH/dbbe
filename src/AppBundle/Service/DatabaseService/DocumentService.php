@@ -103,4 +103,22 @@ class DocumentService extends EntityService
             ]
         );
     }
+
+    /**
+     * @param  int    $id
+     * @param  string $title
+     * @return int
+     */
+    public function updateTitle(int $id, string $title): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_title
+            set title = ?
+            where document_title.iddocument = ?',
+            [
+                $title,
+                $id,
+            ]
+        );
+    }
 }

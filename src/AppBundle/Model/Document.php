@@ -4,6 +4,10 @@ namespace AppBundle\Model;
 
 class Document extends Entity
 {
+    /**
+     * @var string
+     */
+    protected $title;
     protected $prevId;
     protected $date;
     /**
@@ -33,7 +37,26 @@ class Document extends Entity
         return $this;
     }
 
-    public function setPrevId(int $prevId): Occurrence
+    /**
+     * @param  string|null $title
+     * @return Document
+     */
+    public function setTitle(string $title = null): Document
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setPrevId(int $prevId): Document
     {
         $this->prevId = $prevId;
 

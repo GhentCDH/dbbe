@@ -74,7 +74,7 @@ class ArticleController extends BasicController
     /**
      * @Route("/articles/{id}", name="article_put")
      * @Method("PUT")
-     * @param  int    $id book id
+     * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
@@ -104,7 +104,7 @@ class ArticleController extends BasicController
     /**
      * @Route("/articles/{id}/edit", name="article_edit")
      * @Method("GET")
-     * @param  int|null $id book id
+     * @param  int|null $id
      * @param Request $request
      */
     public function edit(int $id = null, Request $request)
@@ -119,6 +119,7 @@ class ArticleController extends BasicController
                     'article_get' => $this->generateUrl('article_get', ['id' => $id == null ? 'article_id' : $id]),
                     'article_post' => $this->generateUrl('article_post'),
                     'article_put' => $this->generateUrl('article_put', ['id' => $id == null ? 'article_id' : $id]),
+                    'journals_edit' => $this->generateUrl('journals_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([

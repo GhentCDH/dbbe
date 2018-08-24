@@ -206,6 +206,32 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByBookChapterId(int $bookChapterId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget
+            inner join data.bookchapter on reference.idsource = bookchapter.identity
+            where bookchapter.identity = ?',
+            [$bookChapterId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByOnlineSourceId(int $onlineSourceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget
+            inner join data.online_source on reference.idsource = online_source.identity
+            where online_source.identity = ?',
+            [$onlineSourceId]
+        )->fetchAll();
+    }
+
     public function getContents(array $ids): array
     {
         return $this->conn->executeQuery(

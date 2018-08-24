@@ -126,6 +126,16 @@ class InstitutionService extends DatabaseService
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }
+        // don't delete if this institution is used as an online source
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.online_source
+            where online_source.identity = ?',
+            [$institutionId]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This institution has dependencies.');
+        }
         // Set search_path for trigger delete_entity
         $this->conn->exec('SET SEARCH_PATH TO data');
         return $this->conn->executeUpdate(

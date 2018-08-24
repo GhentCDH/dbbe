@@ -85,22 +85,11 @@
                         <td>{{ occurrence.getLocation() }}</td>
                     </tr>
                 {% endif %}
-                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles() %}
-                {% if personRoles is not empty %}
-                    <tr>
-                        <td>Person(s)</td>
-                        <td>
-                            {% for rolename, personRole in personRoles %}
-                                <h6>{{ personRole[0].getName() }}:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
-                                    {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
-                                    {% endblock %}
-                                {% endembed %}
-                            {% endfor %}
-                        </td>
-                    </tr>
-                {% endif %}
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles()}
+                    only
+                %}
                 {% if occurrence.getDate() is not empty %}
                     <tr>
                         <td>Date</td>

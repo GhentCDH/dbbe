@@ -4,22 +4,57 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
+/**
+ */
 class Book extends Document
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'book';
 
     use CacheLinkTrait;
 
+    /**
+     * @var int
+     */
     protected $year;
+    /**
+     * @var string
+     */
     protected $title;
+    /**
+     * @var string
+     */
     protected $city;
+    /**
+     * @var string
+     */
     protected $editor;
+    /**
+     * @var string
+     */
     protected $publisher;
+    /**
+     * @var string
+     */
     protected $series;
+    /**
+     * @var int
+     */
     protected $volume;
+    /**
+     * @var int
+     */
     protected $totalVolumes;
-    protected $translators;
 
+    /**
+     * @param int         $id
+     * @param int         $year
+     * @param string      $title
+     * @param string      $city
+     * @param string|null $editor
+     */
     public function __construct(
         int $id,
         int $year,
@@ -41,26 +76,42 @@ class Book extends Document
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getYear(): int
     {
         return $this->year;
     }
 
+    /**
+     * @return string
+     */
     public function getTitle(): string
     {
         return $this->title;
     }
 
+    /**
+     * @return string
+     */
     public function getCity(): string
     {
         return $this->city;
     }
 
+    /**
+     * @return string|null
+     */
     public function getEditor(): ?string
     {
         return $this->editor;
     }
 
+    /**
+     * @param string|null $publisher
+     * @return Book
+     */
     public function setPublisher(string $publisher = null): Book
     {
         $this->publisher = $publisher;
@@ -68,11 +119,18 @@ class Book extends Document
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getPublisher(): ?string
     {
         return $this->publisher;
     }
 
+    /**
+     * @param string|null $series
+     * @return Book
+     */
     public function setSeries(string $series = null): Book
     {
         $this->series = $series;
@@ -80,11 +138,18 @@ class Book extends Document
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getSeries(): ?string
     {
         return $this->series;
     }
 
+    /**
+     * @param  int|null $volume
+     * @return Book
+     */
     public function setVolume(int $volume = null): Book
     {
         $this->volume = $volume;
@@ -92,11 +157,18 @@ class Book extends Document
         return $this;
     }
 
+    /**
+     * @return int|null
+     */
     public function getVolume(): ?int
     {
         return $this->volume;
     }
 
+    /**
+     * @param  int|null $totalVolumes
+     * @return Book
+     */
     public function setTotalVolumes(int $totalVolumes = null): Book
     {
         $this->totalVolumes = $totalVolumes;
@@ -104,23 +176,17 @@ class Book extends Document
         return $this;
     }
 
+    /**
+     * @return int|null
+     */
     public function getTotalVolumes(): ?int
     {
         return $this->totalVolumes;
     }
 
-    public function addTranslator(Person $translator): Book
-    {
-        $this->translators[] = $translator;
-
-        return $this;
-    }
-
-    public function getTranslators(): array
-    {
-        return $this->translators;
-    }
-
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         $authorNames = [];
@@ -136,6 +202,9 @@ class Book extends Document
             . ', ' . $this->city;
     }
 
+    /**
+     * @return array
+     */
     public function getShortJson(): array
     {
         return [
@@ -144,6 +213,9 @@ class Book extends Document
         ];
     }
 
+    /**
+     * @return array
+     */
     public function getJson(): array
     {
         $result = parent::getJson();
@@ -176,6 +248,9 @@ class Book extends Document
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getElastic(): array
     {
         $result = parent::getElastic();
@@ -196,7 +271,11 @@ class Book extends Document
         return $result;
     }
 
-    public static function unlinkCache($data)
+    /**
+     * @param array $data
+     * @return Book
+     */
+    public static function unlinkCache(array $data)
     {
         $book = new Book($data['id'], $data['year'], $data['title'], $data['city']);
 

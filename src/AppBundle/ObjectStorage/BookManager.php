@@ -4,11 +4,11 @@ namespace AppBundle\ObjectStorage;
 
 use stdClass;
 use Exception;
-use AppBundle\Exceptions\DependencyException;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Book;
 
 /**
@@ -170,7 +170,6 @@ class BookManager extends DocumentManager
                 throw new NotFoundHttpException('Book with id ' . $id .' not found.');
             }
 
-            // update data
             $cacheReload = [
                 'mini' => $isNew,
                 'full' => $isNew,

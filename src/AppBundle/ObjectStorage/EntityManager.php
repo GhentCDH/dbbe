@@ -158,6 +158,11 @@ class EntityManager extends ObjectManager
                 $entities[$rawInverseBibliography['biblio_id']]
                     ->addInverseBibliography($inverseBibliographies[$rawInverseBibliography['entity_id']], $rawInverseBibliography['type']);
             }
+
+            $biblioIds = self::getUniqueIds($rawInverseBibliographies, 'biblio_id');
+            foreach ($biblioIds as $biblioId) {
+                $entities[$biblioId]->sortInverseBibliographies();
+            }
         }
     }
 

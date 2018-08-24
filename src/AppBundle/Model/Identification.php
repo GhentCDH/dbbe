@@ -67,7 +67,7 @@ class Identification
     }
 
 
-    public static function unlinkCache($data)
+    public static function unlinkCache(array $data)
     {
         $identification = self::constructFromCache($data['identifier'], $data['identifications']);
 

@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            Online source "{{ online_source.getName() }}"
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('online_source_edit', {'id': online_source.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                <tr>
+                    <td>Url</td>
+                    <td>{{ online_source.getUrl() }}</td>
+                </tr>
+                <tr>
+                    <td>Last accessed</td>
+                    <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
+                </tr>
+                {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': online_source.getInverseBibliographies()} only %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

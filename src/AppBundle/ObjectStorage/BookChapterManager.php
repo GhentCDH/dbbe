@@ -9,54 +9,54 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Exceptions\DependencyException;
-use AppBundle\Model\Article;
+use AppBundle\Model\BookChapter;
 
 /**
- * ObjectManager for articles
- * Servicename: article_manager
+ * ObjectManager for book chapters
+ * Servicename: book_chapter_manager
  */
-class ArticleManager extends DocumentManager
+class BookChapterManager extends DocumentManager
 {
     /**
-     * Get articles with enough information to get an id and a description
+     * Get book chapters with enough information to get an id and a description
      * @param  array $ids
      * @return array
      */
     public function getMini(array $ids): array
     {
         return $this->wrapLevelCache(
-            Article::CACHENAME,
+            BookChapter::CACHENAME,
             'mini',
             $ids,
             function ($ids) {
-                $articles = [];
-                $rawArticles = $this->dbs->getMiniInfoByIds($ids);
+                $bookChapters = [];
+                $rawBookChapters = $this->dbs->getMiniInfoByIds($ids);
 
-                $journalIds = self::getUniqueIds($rawArticles, 'journal_id');
-                $journals = $this->container->get('journal_manager')->get($journalIds);
+                $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
+                $books = $this->container->get('book_manager')->getMini($bookIds);
 
-                foreach ($rawArticles as $rawArticle) {
-                    $article = (new Article(
-                        $rawArticle['article_id'],
-                        $rawArticle['article_title'],
-                        $journals[$rawArticle['journal_id']]
+                foreach ($rawBookChapters as $rawBookChapter) {
+                    $bookChapter = (new BookChapter(
+                        $rawBookChapter['book_chapter_id'],
+                        $rawBookChapter['book_chapter_title'],
+                        $books[$rawBookChapter['book_id']]
                     ))
-                        ->setStartPage($rawArticle['article_page_start'])
-                        ->setEndPage($rawArticle['article_page_end'])
-                        ->setRawPages($rawArticle['article_raw_pages']);
+                        ->setStartPage($rawBookChapter['book_chapter_page_start'])
+                        ->setEndPage($rawBookChapter['book_chapter_page_end'])
+                        ->setRawPages($rawBookChapter['book_chapter_raw_pages']);
 
-                    $articles[$rawArticle['article_id']] = $article;
+                    $bookChapters[$rawBookChapter['book_chapter_id']] = $bookChapter;
                 }
 
-                $this->setPersonRoles($articles);
+                $this->setPersonRoles($bookChapters);
 
-                return $articles;
+                return $bookChapters;
             }
         );
     }
 
     /**
-     * Get articles with enough information to index in ElasticSearch
+     * Get book chapters with enough information to index in ElasticSearch
      * @param  array $ids
      * @return array
      */
@@ -66,26 +66,26 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Get a single article with all information
+     * Get a single book chapter with all information
      * @param  int        $id
-     * @return Article
+     * @return BookChapter
      */
-    public function getFull(int $id): Article
+    public function getFull(int $id): BookChapter
     {
         return $this->wrapSingleLevelCache(
-            Article::CACHENAME,
+            BookChapter::CACHENAME,
             'full',
             $id,
             function ($id) {
                 // Get basic information
-                $articles = $this->getShort([$id]);
-                if (count($articles) == 0) {
-                    throw new NotFoundHttpException('Article with id ' . $id .' not found.');
+                $bookChapters = $this->getShort([$id]);
+                if (count($bookChapters) == 0) {
+                    throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
                 }
 
-                $this->setInverseBibliographies($articles);
+                $this->setInverseBibliographies($bookChapters);
 
-                return $articles[$id];
+                return $bookChapters[$id];
             }
         );
     }
@@ -108,39 +108,39 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Get all articles that are dependent on a specific journal
-     * @param  int   $journalId
+     * Get all book chapters that are dependent on a specific book
+     * @param  int   $bookId
      * @return array
      */
-    public function getJournalDependencies(int $journalId): array
+    public function getBookDependencies(int $bookId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId));
+        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId));
     }
 
     /**
-     * Add a new article
+     * Add a new book chapter
      * @param  stdClass $data
-     * @return Article
+     * @return BookChapter
      */
-    public function add(stdClass $data): Article
+    public function add(stdClass $data): BookChapter
     {
         if (!property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
-            || !property_exists($data, 'journal')
-            || !is_object($data->journal)
-            || !property_exists($data->journal, 'id')
-            || !is_numeric($data->journal->id)
-            || empty($data->journal->id)
+            || !property_exists($data, 'book')
+            || !is_object($data->book)
+            || !property_exists($data->book, 'id')
+            || !is_numeric($data->book->id)
+            || empty($data->book->id)
         ) {
-            throw new BadRequestHttpException('Incorrect data to add a new article');
+            throw new BadRequestHttpException('Incorrect data to add a new book chapter');
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title, $data->journal->id);
+            $id = $this->dbs->insert($data->title, $data->book->id);
 
             unset($data->title);
-            unset($data->journal);
+            unset($data->book);
 
             $new = $this->update($id, $data, true);
 
@@ -155,25 +155,25 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Update new or existing article
+     * Update new or existing book chapter
      * @param  int      $id
      * @param  stdClass $data
-     * @param  bool     $isNew Indicate whether this is a new article
-     * @return Article
+     * @param  bool     $isNew Indicate whether this is a new book chapter
+     * @return BookChapter
      */
-    public function update(int $id, stdClass $data, bool $isNew = false): Article
+    public function update(int $id, stdClass $data, bool $isNew = false): BookChapter
     {
         $this->dbs->beginTransaction();
         try {
             $old = $this->getFull($id);
             if ($old == null) {
-                throw new NotFoundHttpException('Article with id ' . $id .' not found.');
+                throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
             }
 
             $cacheReload = [
                 'mini' => $isNew,
             ];
-            $roles = $this->container->get('role_manager')->getRolesByType('article');
+            $roles = $this->container->get('role_manager')->getRolesByType('bookChapter');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
                     $cacheReload['mini'] = true;
@@ -188,17 +188,17 @@ class ArticleManager extends DocumentManager
                 $cacheReload['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            if (property_exists($data, 'journal')) {
-                // Journal is a required field
-                if (!is_object($data->journal)
-                    || !property_exists($data->journal, 'id')
-                    || !is_numeric($data->journal->id)
-                    || empty($data->journal->id)
+            if (property_exists($data, 'book')) {
+                // Book is a required field
+                if (!is_object($data->book)
+                    || !property_exists($data->book, 'id')
+                    || !is_numeric($data->book->id)
+                    || empty($data->book->id)
                 ) {
-                    throw new BadRequestHttpException('Incorrect journal data.');
+                    throw new BadRequestHttpException('Incorrect book data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->dbs->updateJournal($id, $data->journal->id);
+                $this->dbs->updateBook($id, $data->book->id);
             }
 
             // Throw error if none of above matched
@@ -230,7 +230,7 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Delete an article
+     * Delete a book chapter
      * @param int $id
      */
     public function delete(int $id): void

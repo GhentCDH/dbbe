@@ -23,7 +23,7 @@ trait CacheObjectTrait
         return $data;
     }
 
-    public static function unlinkCache($data)
+    public static function unlinkCache(array $data)
     {
         $object = (new ReflectionClass(static::class))->newInstance();
 

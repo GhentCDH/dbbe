@@ -176,12 +176,6 @@ class ObjectManager
                 }
             }
             switch ($matches[1]) {
-                case 'article':
-                    return $this->container->get('bibliography_manager')->getArticlesByIds([$matches[3]])[$matches[3]];
-                    break;
-                case 'book_chapter':
-                    return $this->container->get('bibliography_manager')->getBookChaptersByIds([$matches[3]])[$matches[3]];
-                    break;
                 case 'online_source':
                     return $this->container->get('bibliography_manager')->getOnlineSourcesByIds([$matches[3]])[$matches[3]];
                     break;

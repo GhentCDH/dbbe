@@ -180,6 +180,11 @@ export default {
             }
             if (this.submitModel.type === 'institution') {
                 depUrls['Manuscripts']['depUrl'] = this.urls['manuscript_deps_by_institution'].replace('institution_id', this.submitModel.institution.id)
+                depUrls['Manuscripts'] = {
+                    url: this.urls['online_source_get'],
+                    urlIdentifier: 'online_source_id',
+                    depUrl: this.urls['online_source_deps_by_institution'].replace('institution_id', this.submitModel.institution.id)
+                }
             }
             else {
                 depUrls['Manuscripts']['depUrl'] = this.urls['manuscript_deps_by_collection'].replace('collection_id', this.submitModel.collection.id)

@@ -121,6 +121,7 @@ export default {
         let data = {
             article: null,
             modernPersons: null,
+            journals: null,
             roles: JSON.parse(this.initRoles),
             model: {
                 personRoles: {},
@@ -145,13 +146,13 @@ export default {
         this.journals = this.data.journals
     },
     mounted () {
-        this.loadArticle()
+        this.loadData()
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
     },
     methods: {
-        loadArticle() {
+        loadData() {
             if (this.article != null) {
                 // PersonRoles
                 this.model.personRoles = {}

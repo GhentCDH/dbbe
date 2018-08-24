@@ -258,9 +258,9 @@ class ManuscriptController extends BasicController
     /**
      * Get all manuscripts that have a dependency on an article
      * (reference)
-     * @Route("/manuscripts/article/{id}", name="manuscript_deps_by_article")
+     * @Route("/manuscripts/articles/{id}", name="manuscript_deps_by_article")
      * @Method("GET")
-     * @param  int    $id bibliogrpahy id
+     * @param  int    $id article id
      * @param Request $request
      */
     public function getDepsByArticle(int $id, Request $request)
@@ -269,16 +269,42 @@ class ManuscriptController extends BasicController
     }
 
     /**
-     * Get all manuscripts that have a dependency on a book
-     * (reference)
-     * @Route("/manuscripts/book/{id}", name="manuscript_deps_by_book")
-     * @Method("GET")
-     * @param  int    $id bibliogrpahy id
-     * @param Request $request
-     */
+    * Get all manuscripts that have a dependency on a book
+    * (reference)
+    * @Route("/manuscripts/books/{id}", name="manuscript_deps_by_book")
+    * @Method("GET")
+    * @param  int    $id book id
+    * @param Request $request
+    */
     public function getDepsByBook(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on a book chapter
+     * (reference)
+     * @Route("/manuscripts/bookchapters/{id}", name="manuscript_deps_by_book_chapter")
+     * @Method("GET")
+     * @param  int    $id book chapter id
+     * @param Request $request
+     */
+    public function getDepsByBookChapter(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookChapterDependencies');
+    }
+
+    /**
+     * Get all manuscripts that have a dependency on an online source
+     * (reference)
+     * @Route("/manuscripts/onlinesources/{id}", name="manuscript_deps_by_online_source")
+     * @Method("GET")
+     * @param  int    $id online source id
+     * @param Request $request
+     */
+    public function getDepsByOnlineSource(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
     }
 
     /**
@@ -413,7 +439,7 @@ class ManuscriptController extends BasicController
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
+                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
                     'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),
                 ]),

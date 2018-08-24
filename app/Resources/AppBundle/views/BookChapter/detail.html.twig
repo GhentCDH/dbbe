@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            Book Chapter "{{ book_chapter.getTitle() }}"
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('book_chapter_edit', {'id': book_chapter.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? book_chapter.getPersonRoles() : book_chapter.getPublicPersonRoles()}
+                    only
+                %}
+                {% if book_chapter.getBook() is not empty %}
+                    <tr>
+                        <td>Book</td>
+                        <td><a href="{{ path('book_get', {'id': book_chapter.getBook().getId()}) }}">{{ book_chapter.getBook().getDescription() }}</a>
+                    </tr>
+                {% endif %}
+                {% set pages = book_chapter.formatStartEndPages('', book_chapter.getRawPages()) %}
+                {% if pages is not empty %}
+                    <tr>
+                        <td>Pages</td>
+                        <td>{{ pages }}</td>
+                    </tr>
+                {% endif %}
+                {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book_chapter.getInverseBibliographies()} only %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

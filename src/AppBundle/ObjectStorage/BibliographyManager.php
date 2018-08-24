@@ -2,6 +2,8 @@
 
 namespace AppBundle\ObjectStorage;
 
+use DateTime;
+
 use AppBundle\Model\Article;
 use AppBundle\Model\ArticleBibliography;
 use AppBundle\Model\BookBibliography;
@@ -104,7 +106,7 @@ class BibliographyManager extends ObjectManager
                 $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
 
                 $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id');
-                $bookChapters = $this->getBookChaptersByIds($bookChapterIds);
+                $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
 
                 foreach ($rawBibliographies as $rawBibliography) {
                     $bibliography =
@@ -119,63 +121,6 @@ class BibliographyManager extends ObjectManager
                 }
 
                 return $bibliographies;
-            }
-        );
-    }
-
-    public function getBookChaptersByIds(array $ids): array
-    {
-        return $this->wrapCache(
-            BookChapter::CACHENAME,
-            $ids,
-            function ($ids) {
-                $bookChapters = [];
-                $rawBookChapters = $this->dbs->getBookChaptersByIds($ids);
-
-                $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
-                $books = $this->container->get('book_manager')->getMini($bookIds);
-
-                $personIds = self::getUniqueIds($rawBookChapters, 'person_ids');
-                $persons = $this->container->get('person_manager')->getMini($personIds);
-
-                foreach ($rawBookChapters as $rawBookChapter) {
-                    $bookChapter = (new BookChapter(
-                        $rawBookChapter['book_chapter_id'],
-                        $rawBookChapter['book_chapter_title'],
-                        $books[$rawBookChapter['book_id']]
-                    ))
-                        ->setStartPage($rawBookChapter['book_chapter_page_start'])
-                        ->setEndPage($rawBookChapter['book_chapter_page_end']);
-                    foreach (json_decode($rawBookChapter['person_ids']) as $personId) {
-                        if (!empty($personId)) {
-                            $bookChapter->addAuthor($persons[$personId]);
-                        }
-                    }
-
-                    $bookChapters[$rawBookChapter['book_chapter_id']] = $bookChapter;
-                }
-
-                return $bookChapters;
-            }
-        );
-    }
-
-    public function getAllBookChapters(): array
-    {
-        return $this->wrapArrayCache(
-            'book_chapters',
-            ['book_chapters'],
-            function () {
-                $rawIds = $this->dbs->getBookChapterIds();
-                $ids = self::getUniqueIds($rawIds, 'book_chapter_id');
-                $bookChapters = $this->getBookChaptersByIds($ids);
-
-                // Sort by description
-                usort($bookChapters, function ($a, $b) {
-                    return strcmp($a->getDescription(), $b->getDescription());
-                });
-
-                return $bookChapters;
             }
         );
     }
@@ -213,49 +158,6 @@ class BibliographyManager extends ObjectManager
                 }
 
                 return $bibliographies;
-            }
-        );
-    }
-
-    public function getOnlineSourcesByIds(array $ids): array
-    {
-        return $this->wrapCache(
-            OnlineSource::CACHENAME,
-            $ids,
-            function ($ids) {
-                $onlineSources = [];
-                $rawOnlineSources = $this->dbs->getOnlineSourcesByIds($ids);
-
-                foreach ($rawOnlineSources as $rawOnlineSource) {
-                    $onlineSources[$rawOnlineSource['online_source_id']] = new OnlineSource(
-                        $rawOnlineSource['online_source_id'],
-                        $rawOnlineSource['url'],
-                        $rawOnlineSource['institution_name'],
-                        $rawOnlineSource['last_accessed']
-                    );
-                }
-
-                return $onlineSources;
-            }
-        );
-    }
-
-    public function getAllOnlineSources(): array
-    {
-        return $this->wrapArrayCache(
-            'online_sources',
-            ['online_sources'],
-            function () {
-                $rawIds = $this->dbs->getOnlineSourceIds();
-                $ids = self::getUniqueIds($rawIds, 'online_source_id');
-                $onlineSources = $this->getOnlineSourcesByIds($ids);
-
-                // Sort by description
-                usort($onlineSources, function ($a, $b) {
-                    return strcmp($a->getDescription(), $b->getDescription());
-                });
-
-                return $onlineSources;
             }
         );
     }

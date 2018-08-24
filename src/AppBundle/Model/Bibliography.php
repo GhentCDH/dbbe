@@ -44,7 +44,7 @@ abstract class Bibliography
 
     abstract public function getShortJson(): array;
 
-    public static function unlinkCache($data)
+    public static function unlinkCache(array $data)
     {
         $object = (new ReflectionClass(static::class))->newInstance($data['id']);
 

@@ -4,17 +4,33 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
+/**
+ */
 class Article extends Document
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'article';
 
     use CacheLinkTrait;
     use StartEndPagesTrait;
     use RawPagesTrait;
 
+    /**
+     * @var string
+     */
     protected $title;
+    /**
+     * @var Journal
+     */
     protected $journal;
 
+    /**
+     * @param int     $id
+     * @param string  $title
+     * @param Journal $journal
+     */
     public function __construct(
         int $id,
         string $title,
@@ -32,26 +48,33 @@ class Article extends Document
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getId(): int
     {
         return $this->id;
     }
 
-    public function getYear(): int
-    {
-        return $this->year;
-    }
-
+    /**
+     * @return string
+     */
     public function getTitle(): string
     {
         return $this->title;
     }
 
+    /**
+     * @return Journal
+     */
     public function getJournal(): Journal
     {
         return $this->journal;
     }
 
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         $authorNames = [];
@@ -78,6 +101,9 @@ class Article extends Document
             . $this->formatStartEndPages(', ', $this->rawPages);
     }
 
+    /**
+     * @return array
+     */
     public function getShortJson(): array
     {
         return [
@@ -86,6 +112,9 @@ class Article extends Document
         ];
     }
 
+    /**
+     * @return array
+     */
     public function getJson(): array
     {
         $result = parent::getJson();
@@ -100,6 +129,9 @@ class Article extends Document
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getElastic(): array
     {
         $result = parent::getElastic();
@@ -119,7 +151,11 @@ class Article extends Document
         return $result;
     }
 
-    public static function unlinkCache($data)
+    /**
+     * @param  array   $data
+     * @return Article
+     */
+    public static function unlinkCache(array $data)
     {
         $article = new Article($data['id'], $data['title'], $data['journal']);
 

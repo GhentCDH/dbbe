@@ -227,6 +227,16 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId));
     }
 
+    public function getBookChapterDependencies(int $bookChapterId): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId));
+    }
+
+    public function getOnlineSourceDependencies(int $onlineSourceId): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId));
+    }
+
     public function add(stdClass $data): Manuscript
     {
         $this->dbs->beginTransaction();

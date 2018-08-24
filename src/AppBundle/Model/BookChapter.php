@@ -2,51 +2,66 @@
 
 namespace AppBundle\Model;
 
-class BookChapter
+use AppBundle\Utils\ArrayToJson;
+
+/**
+ */
+class BookChapter extends Document
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'book_chapter';
 
-    use AuthorsTrait;
     use CacheLinkTrait;
-    use CacheObjectTrait;
     use StartEndPagesTrait;
+    use RawPagesTrait;
 
-    private $id;
-    private $title;
-    private $book;
+    /**
+     * @var Book
+     */
+    protected $book;
 
+    /**
+     * @param int    $id
+     * @param string $title
+     * @param Book   $book
+     */
     public function __construct(
         int $id,
         string $title,
         Book $book
     ) {
+        parent::__construct();
+
         $this->id = $id;
         $this->title = $title;
         $this->book = $book;
 
+        // All books are public
+        $this->public = true;
+
         return $this;
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
+    /**
+     * @return Book
+     */
     public function getBook(): Book
     {
         return $this->book;
     }
 
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         $authorNames = [];
-        foreach ($this->authors as $author) {
-            $authorNames[] = $author->getShortDescription();
+        if (isset($this->personRoles['author'])) {
+            foreach ($this->personRoles['author'][1] as $author) {
+                $authorNames[] = $author->getShortDescription();
+            }
         }
         return
             implode(', ', $authorNames)
@@ -63,6 +78,9 @@ class BookChapter
             . $this->formatStartEndPages(', ');
     }
 
+    /**
+     * @return array
+     */
     public function getShortJson(): array
     {
         return [
@@ -71,7 +89,51 @@ class BookChapter
         ];
     }
 
-    public static function unlinkCache($data)
+    /**
+     * @return array
+     */
+    public function getJson(): array
+    {
+        $result = parent::getJson();
+
+        if (!empty($this->title)) {
+            $result['title'] = $this->title;
+        }
+        if (!empty($this->book)) {
+            $result['book'] = $this->book->getShortJson();
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array
+     */
+    public function getElastic(): array
+    {
+        $result = parent::getElastic();
+
+        $result['type'] = [
+            'id' => 2,
+            'name' => 'Book chapter',
+        ];
+
+        $result['title'] = $this->title;
+        foreach ($this->getPersonRoles() as $roleName => $personRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array       $data
+     * @return BookChapter
+     */
+    public static function unlinkCache(array $data)
     {
         $bookChapter = new BookChapter($data['id'], $data['title'], $data['book']);
 

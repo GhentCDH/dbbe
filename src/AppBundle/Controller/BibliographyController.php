@@ -28,6 +28,8 @@ class BibliographyController extends Controller
                     'bibliographies_search_api' => $this->generateUrl('bibliographies_search_api'),
                     'manuscript_deps_by_article' => $this->generateUrl('manuscript_deps_by_article', ['id' => 'article_id']),
                     'manuscript_deps_by_book' => $this->generateUrl('manuscript_deps_by_book', ['id' => 'book_id']),
+                    'manuscript_deps_by_book_chapter' => $this->generateUrl('manuscript_deps_by_book_chapter', ['id' => 'book_chapter_id']),
+                    'manuscript_deps_by_online_source' => $this->generateUrl('manuscript_deps_by_online_source', ['id' => 'online_source_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
                     'article_edit' => $this->generateUrl('article_edit', ['id' => 'article_id']),
@@ -35,6 +37,12 @@ class BibliographyController extends Controller
                     'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
                     'book_edit' => $this->generateUrl('book_edit', ['id' => 'book_id']),
                     'book_delete' => $this->generateUrl('book_delete', ['id' => 'book_id']),
+                    'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => 'book_chapter_id']),
+                    'book_chapter_edit' => $this->generateUrl('book_chapter_edit', ['id' => 'book_chapter_id']),
+                    'book_chapter_delete' => $this->generateUrl('book_chapter_delete', ['id' => 'book_chapter_id']),
+                    'online_source_get' => $this->generateUrl('online_source_get', ['id' => 'online_source_id']),
+                    'online_source_edit' => $this->generateUrl('online_source_edit', ['id' => 'online_source_id']),
+                    'online_source_delete' => $this->generateUrl('online_source_delete', ['id' => 'online_source_id']),
                 ]),
                 'data' => json_encode(
                     $this->get('bibliography_elastic_service')->searchAndAggregate(

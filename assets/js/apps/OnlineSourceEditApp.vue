@@ -12,16 +12,7 @@
                 {{ item.message }}
             </alert>
 
-            <personPanel
-                id="persons"
-                header="Persons"
-                :roles="roles"
-                :model="model.personRoles"
-                :values="modernPersons"
-                @validated="validated"
-                ref="persons" />
-
-            <basicBookPanel
+            <basicOnlineSourcePanel
                 id="basic"
                 header="Basic Information"
                 :model="model.basic"
@@ -36,7 +27,7 @@
                 Reset
             </btn>
             <btn
-                v-if="book"
+                v-if="onlineSource"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()">
@@ -69,14 +60,13 @@
                 :style="stickyStyle">
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#persons">Persons</a></li>
                     <li><a href="#basic">Basic information</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
         <resetModal
-            title="book"
+            title="online source"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()" />
@@ -85,7 +75,7 @@
             @cancel="invalidModal=false"
             @confirm="invalidModal=false" />
         <saveModal
-            title="book"
+            title="online source"
             :show="saveModal"
             :diff="diff"
             :alerts="saveAlerts"
@@ -100,7 +90,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /(?:Person|BasicBook)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /(?:Person|BasicOnlineSource)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -109,43 +99,25 @@ for(let key of panelComponents.keys()) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
-    props: {
-        initRoles: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
         let data = {
-            book: null,
+            onlineSource: null,
             modernPersons: null,
-            roles: JSON.parse(this.initRoles),
             model: {
-                personRoles: {},
                 basic: {
-                    title: null,
-                    year: null,
-                    city: null,
-                    editor: null,
-                    publisher: null,
-                    series: null,
-                    volume: null,
-                    totalVolumes: null,
+                    url: null,
+                    name: null,
+                    lastAccessed: null,
                 },
             },
             forms: [
-                'persons',
                 'basic',
             ],
-        }
-        for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = null
         }
         return data
     },
     created () {
-        this.book = this.data.book
-        this.modernPersons = this.data.modernPersons
+        this.onlineSource = this.data.onlineSource
     },
     mounted () {
         this.loadData()
@@ -155,23 +127,12 @@ export default {
     },
     methods: {
         loadData() {
-            if (this.book != null) {
-                // PersonRoles
-                this.model.personRoles = {}
-                for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.book.personRoles != null ? this.book.personRoles[role.systemName] : null
-                }
-
+            if (this.onlineSource != null) {
                 // Basic info
                 this.model.basic = {
-                    title: this.book.title,
-                    year: this.book.year,
-                    city: this.book.city,
-                    editor: this.book.editor,
-                    publisher: this.book.publisher,
-                    series: this.book.series,
-                    volume: this.book.volume,
-                    totalVolumes: this.book.totalVolumes,
+                    url: this.onlineSource.url,
+                    name: this.onlineSource.name,
+                    lastAccessed: this.onlineSource.lastAccessed,
                 }
             }
 
@@ -180,31 +141,31 @@ export default {
         save() {
             this.openRequests++
             this.saveModal = false
-            if (this.book == null) {
-                axios.post(this.urls['book_post'], this.toSave())
+            if (this.onlineSource == null) {
+                axios.post(this.urls['online_source_post'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['book_get'].replace('book_id', response.data.id)
+                        window.location = this.urls['online_source_get'].replace('online_source_id', response.data.id)
                     })
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }
             else {
-                axios.put(this.urls['book_put'], this.toSave())
+                axios.put(this.urls['online_source_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['book_get']
+                        window.location = this.urls['online_source_get']
                     })
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }

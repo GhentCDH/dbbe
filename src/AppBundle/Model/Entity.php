@@ -132,23 +132,28 @@ class Entity implements IdJsonInterface
         }
         $this->inverseBibliographies[$type][$entity->getId()] = $entity;
 
-        usort(
-            $this->inverseBibliographies[$type],
-            function ($a, $b) use ($type) {
-                switch ($type) {
-                    case 'manuscript':
-                    case 'person':
-                        return strcmp($a->getDescription(), $b->getDescription());
-                        break;
-                    case 'occurrence':
-                    case 'type':
-                        return strcmp($a->getIncipit(), $b->getIncipit());
-                        break;
-                }
-            }
-        );
-
         return $this;
+    }
+
+    public function sortInverseBibliographies(): void
+    {
+        foreach ($this->inverseBibliographies as $type => $array) {
+            usort(
+                $this->inverseBibliographies[$type],
+                function ($a, $b) use ($type) {
+                    switch ($type) {
+                        case 'manuscript':
+                        case 'person':
+                            return strcmp($a->getDescription(), $b->getDescription());
+                            break;
+                        case 'occurrence':
+                        case 'type':
+                            return strcmp($a->getIncipit(), $b->getIncipit());
+                            break;
+                    }
+                }
+            );
+        }
     }
 
     public function getInverseBibliographies(): ?array

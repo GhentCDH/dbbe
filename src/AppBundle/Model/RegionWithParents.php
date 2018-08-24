@@ -72,7 +72,7 @@ class RegionWithParents extends IdNameObjectWithParents
         return $result;
     }
 
-    public static function unlinkCache($data)
+    public static function unlinkCache(array $data)
     {
         $regionWithParents = new RegionWithParents($data['array']);
 

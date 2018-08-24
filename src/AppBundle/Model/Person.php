@@ -421,11 +421,6 @@ class Person extends Entity implements SubjectInterface
         return $description;
     }
 
-    public function getDescription(): string
-    {
-        return $this->getFullDescriptionWithOffices();
-    }
-
     public function getShortDescription(): string
     {
         $nameArray = array_filter([
@@ -438,6 +433,11 @@ class Person extends Entity implements SubjectInterface
         }
 
         return implode(' ', $nameArray);
+    }
+
+    public function getDescription(): string
+    {
+        return $this->getFullDescriptionWithOffices();
     }
 
     public function getShortJson(): array

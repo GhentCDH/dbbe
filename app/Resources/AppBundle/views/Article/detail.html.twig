@@ -10,31 +10,21 @@
         </h2>
         <table class="table table-hover table-bordered">
             <tbody>
-                {% set personRoles = is_granted('ROLE_VIEW_INTERNAL') ? article.getPersonRoles() : article.getPublicPersonRoles() %}
-                {% if personRoles is not empty %}
-                    <tr>
-                        <td>Person(s)</td>
-                        <td>
-                            {% for rolename, personRole in personRoles %}
-                                <h6>{{ personRole[0].getName() }}:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
-                                    {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
-                                    {% endblock %}
-                                {% endembed %}
-                            {% endfor %}
-                        </td>
-                    </tr>
-                {% endif %}
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? article.getPersonRoles() : article.getPublicPersonRoles()}
+                    only
+                %}
                 {% if article.getJournal() is not empty %}
+                    {% set journal = article.getJournal() %}
                     <tr>
                         <td>Journal</td>
                         <td>
                             <dl>
-                                <dt>Title</dt><dd>{{ article.getJournal().getTitle() }}</dd></dt>
-                                <dt>Year</dt><dd>{{ article.getJournal().getYear() }}</dd></dt>
-                                {% if article.getJournal().getVolume() is not empty %}<dt>Volume</dt><dd>{{ article.getJournal().getVolume() }}</dd></dt>{% endif %}
-                                {% if article.getJournal().getNumber() is not empty %}<dt>Number</dt><dd>{{ article.getJournal().getNumber() }}</dd></dt>{% endif %}
+                                <dt>Title</dt><dd>{{ journal.getTitle() }}</dd></dt>
+                                <dt>Year</dt><dd>{{ journal.getYear() }}</dd></dt>
+                                {% if journal.getVolume() is not empty %}<dt>Volume</dt><dd>{{ journal.getVolume() }}</dd></dt>{% endif %}
+                                {% if journal.getNumber() is not empty %}<dt>Number</dt><dd>{{ journal.getNumber() }}</dd></dt>{% endif %}
                             </dl>
                         </td>
                     </tr>
@@ -55,7 +45,6 @@
                 feedback-url="{{ path('feedback') }}"
                 site-key=" {{ siteKey }}" />
         </div>
-
     </article>
 {% endblock %}
 

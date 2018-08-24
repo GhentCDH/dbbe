@@ -179,11 +179,15 @@ export default {
                 type: null,
                 article: {},
                 book: {},
+                book_chapter: {},
+                online_source: {},
             },
             defaultOrdering: 'title',
             types: {
                 0: 'article',
-                1: 'book'
+                1: 'book',
+                2: 'book_chapter',
+                3: 'online_source',
             }
         }
 

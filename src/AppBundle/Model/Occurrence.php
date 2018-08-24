@@ -134,18 +134,6 @@ class Occurrence extends Document
         return $this->incipit;
     }
 
-    public function setTitle(string $title = null): Occurrence
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
     public function setText(string $text = null): Occurrence
     {
         $this->text = $text;
