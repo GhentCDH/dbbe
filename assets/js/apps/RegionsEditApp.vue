@@ -207,14 +207,14 @@ export default {
                     urlIdentifier: 'manuscript_id',
                 },
                 'Institutions': {
-                    depUrl: this.urls['institutions_by_region'].replace('region_id', this.submitModel.region.id),
+                    depUrl: this.urls['institution_deps_by_region'].replace('region_id', this.submitModel.region.id),
                 },
                 'Offices': {
                     depUrl: this.urls['office_deps_by_region'].replace('region_id', this.submitModel.region.id),
                 },
                 // TODO: persons
                 'Regions': {
-                    depUrl: this.urls['regions_by_region'].replace('region_id', this.submitModel.region.id),
+                    depUrl: this.urls['region_deps_by_region'].replace('region_id', this.submitModel.region.id),
                 },
             }
         },

@@ -13,8 +13,17 @@ use AppBundle\Model\Office;
 use AppBundle\Model\OfficeWithParents;
 use AppBundle\Utils\ArrayToJson;
 
+/**
+ * ObjectManager for offices
+ * Servicename: office_manager
+ */
 class OfficeManager extends ObjectManager
 {
+    /**
+     * Get single offices with all information
+     * @param  array $ids
+     * @return array
+     */
     public function get(array $ids)
     {
         return $this->wrapCache(
@@ -30,6 +39,11 @@ class OfficeManager extends ObjectManager
         );
     }
 
+    /**
+     * Get single offices with all information from existing data
+     * @param  array $data
+     * @return array
+     */
     public function getWithData(array $data)
     {
         return $this->wrapDataCache(
@@ -60,6 +74,11 @@ class OfficeManager extends ObjectManager
         );
     }
 
+    /**
+     * Get offices with parents with all information
+     * @param  array $ids
+     * @return array
+     */
     public function getWithParents(array $ids)
     {
         return $this->wrapCache(
@@ -100,6 +119,10 @@ class OfficeManager extends ObjectManager
         );
     }
 
+    /**
+     * Get all offices with parents with all information
+     * @return array
+     */
     public function getAll(): array
     {
         return $this->wrapArrayCache(
@@ -120,23 +143,57 @@ class OfficeManager extends ObjectManager
         );
     }
 
-    public function getOfficesWithParentsByOffice(int $officeId): array
+    /**
+     * Get all offices that are dependent on a specific office
+     * @param  int   $officeId
+     * @return array
+     */
+    public function getOfficeDependencies(int $officeId): array
     {
-        $rawIds = $this->dbs->getOfficesByOfficeId($officeId);
-        $ids = self::getUniqueIds($rawIds, 'office_id');
-        return $this->getWithParents($ids);
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($regionId), 'getWithParents');
     }
 
+    /**
+     * Get all offices that are dependent on a specific region
+     * @param  int   $regionId
+     * @return array
+     */
     public function getRegionDependencies(int $regionId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId));
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), 'getWithParents');
     }
 
+    /**
+     * Get all offices that are dependent on a specific region or one of its children
+     * @param  int   $regionId
+     * @return array
+     */
     public function getRegionDependenciesWithChildren(int $regionId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId));
+        return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId), 'getWithParents');
     }
 
+    /**
+     * Clear cache
+     * @param array $ids
+     */
+    public function reset(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->deleteCache(Office::CACHENAME, $id);
+            $this->deleteCache(OfficeWithParents::CACHENAME, $id);
+        }
+
+        $this->getWithParents($ids);
+
+        $this->cache->invalidateTags(['offices']);
+    }
+
+    /**
+     * Add a new office
+     * @param  stdClass $data
+     * @return OfficeWithParents
+     */
     public function add(stdClass $data): OfficeWithParents
     {
         $this->dbs->beginTransaction();
@@ -159,14 +216,27 @@ class OfficeManager extends ObjectManager
                     !property_exists($data, 'parent')
                     || (
                         $data->parent == null
-                        || (is_object($data->parent) && property_exists($data->parent, 'id') && is_numeric($data->parent->id))
+                        || (
+                            is_object($data->parent)
+                            && property_exists($data->parent, 'id')
+                            && is_numeric($data->parent->id)
+                        )
                     )
                 )
             ) {
                 $id = $this->dbs->insert(
-                    (property_exists($data, 'parent') && $data->parent != null) ? $data->parent->id : null,
-                    (property_exists($data, 'individualName') && $data->individualName != null) ? $data->individualName : '',
-                    (property_exists($data, 'individualRegionWithParents') && $data->individualRegionWithParents != null) ? $data->individualRegionWithParents->id : null
+                    (property_exists($data, 'parent') && $data->parent != null)
+                        ? $data->parent->id
+                        : null,
+                    (property_exists($data, 'individualName') && $data->individualName != null)
+                        ? $data->individualName
+                        : '',
+                    (
+                        property_exists($data, 'individualRegionWithParents')
+                        && $data->individualRegionWithParents != null
+                    )
+                        ? $data->individualRegionWithParents->id
+                        : null
                 );
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
@@ -190,6 +260,12 @@ class OfficeManager extends ObjectManager
         return $new;
     }
 
+    /**
+     * Update an existing office
+     * @param  int      $id
+     * @param  stdClass $data
+     * @return OfficeWithParents
+     */
     public function update(int $id, stdClass $data): OfficeWithParents
     {
         $this->dbs->beginTransaction();
@@ -227,13 +303,21 @@ class OfficeManager extends ObjectManager
                     && $data->individualName !== ''
                 )
                 && (
-                    (!property_exists($data, 'individualRegionWithParents') && $old->getIndividualRegionWithParents() == null)
-                    || (property_exists($data, 'individualRegionWithParents') && $data->individualRegionWithParents == null)
+                    (
+                        !property_exists($data, 'individualRegionWithParents')
+                        && $old->getIndividualRegionWithParents() == null
+                    )
+                    || (
+                        property_exists($data, 'individualRegionWithParents')
+                        && $data->individualRegionWithParents == null
+                    )
                 )
             ) {
                 $correct = true;
                 $this->dbs->updateName($id, $data->individualName);
-                if (property_exists($data, 'individualRegionWithParents') && $data->individualRegionWithParents == null) {
+                if (property_exists($data, 'individualRegionWithParents')
+                    && $data->individualRegionWithParents == null
+                ) {
                     $this->dbs->updateRegion($id, null);
                 }
             }
@@ -245,13 +329,21 @@ class OfficeManager extends ObjectManager
                     && is_numeric($data->individualRegionWithParents->id)
                 )
                 && (
-                    (!property_exists($data, 'individualName') && ($old->getIndividualName() == null || $old->getIndividualName() === ''))
-                    || (property_exists($data, 'individualName') && ($data->individualName == null || $data->individualName === ''))
+                    (
+                        !property_exists($data, 'individualName')
+                        && ($old->getIndividualName() == null || $old->getIndividualName() === '')
+                    )
+                    || (
+                        property_exists($data, 'individualName')
+                        && ($data->individualName == null || $data->individualName === '')
+                    )
                 )
             ) {
                 $correct = true;
                 $this->dbs->updateRegion($id, $data->individualRegionWithParents->id);
-                if (property_exists($data, 'individualName') && ($data->individualName == null || $data->individualName === '')) {
+                if (property_exists($data, 'individualName')
+                    && ($data->individualName == null || $data->individualName === '')
+                ) {
                     $this->dbs->updateName($id, '');
                 }
             }
@@ -281,6 +373,12 @@ class OfficeManager extends ObjectManager
         return $new;
     }
 
+    /**
+     * Merge two offices
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return OfficeWithParents
+     */
     public function merge(int $primaryId, int $secondaryId): OfficeWithParents
     {
         $officesWithParents = $this->getWithParents([$primaryId, $secondaryId]);
@@ -305,9 +403,11 @@ class OfficeManager extends ObjectManager
             if (!empty($persons)) {
                 foreach ($persons as $person) {
                     $officeArray = ArrayToJson::arrayToShortJson($person->getOfficesWithParents());
-                    $officeArray = array_values(array_filter($officeArray, function ($officeItem) use ($secondaryId, $primaryId) {
-                        return $officeItem['id'] !== $secondaryId && $officeItem['id'] !== $primaryId;
-                    }));
+                    $officeArray = array_values(
+                        array_filter($officeArray, function ($officeItem) use ($secondaryId, $primaryId) {
+                            return $officeItem['id'] !== $secondaryId && $officeItem['id'] !== $primaryId;
+                        })
+                    );
                     $officeArray[] = ['id' => $primaryId];
                     $this->container->get('person_manager')->update(
                         $person->getId(),
@@ -329,13 +429,26 @@ class OfficeManager extends ObjectManager
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
-            // TODO: invalidate caches and revert elasticsearch updates when rolling back, because part of them can be updated
+
+            // Reset caches and elasticsearch
+            $this->reset([$primaryId]);
+            if (!empty($persons)) {
+                $this->container->get('person_manager')->reset(self::getIds($persons));
+            }
+            if (!empty($offices)) {
+                $this->reset(self::getIds($offices));
+            }
+
             throw $e;
         }
 
         return $primary;
     }
 
+    /**
+     * Delete an office
+     * @param int $id
+     */
     public function delete(int $id): void
     {
         $this->dbs->beginTransaction();

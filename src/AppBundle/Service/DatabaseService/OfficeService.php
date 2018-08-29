@@ -54,6 +54,22 @@ class OfficeService extends DatabaseService
     }
 
     /**
+     * Get all ids of offices that are dependent on a specific office
+     * @param  int   $officeId
+     * @return array
+     */
+    public function getDepIdsByOfficeId(int $officeId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                occupation.idoccupation as office_id
+            from data.occupation
+            where occupation.idparentoccupation = ?',
+            [$officeId]
+        )->fetchAll();
+    }
+
+    /**
      * Get all offices that are dependent on a specific region
      * @param  int   $regionId
      * @return array
@@ -108,6 +124,10 @@ class OfficeService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getOfficesByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -122,6 +142,10 @@ class OfficeService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getOfficesWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -148,31 +172,30 @@ class OfficeService extends DatabaseService
                 INNER JOIN data.occupation o
                 ON rec.id = o.idparentoccupation
             )
-            SELECT array_to_json(ids) as ids, array_to_json(names) as names, array_to_json(regions) as regions
-	        FROM rec r
+            SELECT
+                array_to_json(ids) as ids,
+                array_to_json(names) as names,
+                array_to_json(regions) as regions
+	        FROM rec
             INNER JOIN (
                 SELECT id, MAX(depth) AS maxdepth
                 FROM rec
                 GROUP BY id
-            ) rj
-            ON r.id = rj.id AND r.depth = rj.maxdepth
-            WHERE r.id in (?)',
+            ) rm
+            ON rec.id = rm.id AND rec.depth = rm.maxdepth
+            WHERE rec.id in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getOfficesByOfficeId(int $officeId): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                occupation.idoccupation as office_id
-            from data.occupation
-            where occupation.idparentoccupation = ?',
-            [$officeId]
-        )->fetchAll();
-    }
-
+    /**
+     * [insert description]
+     * @param  int      $parentId
+     * @param  string   $name     '' if unused
+     * @param  int|null $regionId
+     * @return int
+     */
     public function insert(int $parentId, string $name, int $regionId = null): int
     {
         $this->conn->executeUpdate(
@@ -194,6 +217,11 @@ class OfficeService extends DatabaseService
         return $id;
     }
 
+    /**
+     * @param  int      $id
+     * @param  int|null $parentId
+     * @return int
+     */
     public function updateParent(int $id, int $parentId = null): int
     {
         return $this->conn->executeUpdate(
@@ -207,6 +235,11 @@ class OfficeService extends DatabaseService
         );
     }
 
+    /**
+     * @param  int    $id
+     * @param  string $name '' if unused
+     * @return int
+     */
     public function updateName(int $id, string $name): int
     {
         return $this->conn->executeUpdate(
@@ -220,6 +253,11 @@ class OfficeService extends DatabaseService
         );
     }
 
+    /**
+     * @param  int      $id
+     * @param  int|null $regionId
+     * @return int
+     */
     public function updateRegion(int $id, int $regionId = null): int
     {
         return $this->conn->executeUpdate(
@@ -233,23 +271,38 @@ class OfficeService extends DatabaseService
         );
     }
 
-    public function delete(int $officeId): int
+    /**
+     * @param  int $id
+     * @return int
+     */
+    public function delete(int $id): int
     {
-        // don't delete if this occupation is used in person_occupation
+        // don't delete if this office is used in office (as parent)
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.occupation
+            where occupation.idparentoccupation = ?',
+            [$id]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This office has office dependencies.');
+        }
+        // don't delete if this office is used in person_occupation
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.person_occupation
             where person_occupation.idoccupation = ?',
-            [$officeId]
+            [$id]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This office has dependencies.');
+            throw new DependencyException('This office has person dependencies.');
         }
+
         return $this->conn->executeUpdate(
             'DELETE from data.occupation
             where occupation.idoccupation = ?',
             [
-                $officeId,
+                $id,
             ]
         );
     }

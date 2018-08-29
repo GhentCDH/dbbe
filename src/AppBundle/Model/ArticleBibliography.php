@@ -4,8 +4,6 @@ namespace AppBundle\Model;
 
 class ArticleBibliography extends Bibliography
 {
-    const CACHENAME = 'article_bibliography';
-
     use RawPagesTrait;
     use StartEndPagesTrait;
 

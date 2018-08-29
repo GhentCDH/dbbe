@@ -2,17 +2,6 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use PDO;
-
-use AppBundle\Model\Article;
-use AppBundle\Model\Book;
-use AppBundle\Model\BookChapter;
-use AppBundle\Model\Manuscript;
-use AppBundle\Model\Occurrence;
-use AppBundle\Model\OnlineSource;
-use AppBundle\Model\Person;
-use AppBundle\Model\Type;
-
 use Doctrine\DBAL\Connection;
 
 class EntityService extends DatabaseService
@@ -79,45 +68,11 @@ class EntityService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 reference.idtarget as entity_id,
-                reference.idreference as reference_id,
-	            coalesce(
-                    book_merge.type::text,
-                    article_merge.type::text,
-                    book_chapter_merge.type::text,
-                    online_source_merge.type::text
-                ) as type
+                reference.idreference as reference_id
             from data.reference
-            left join (
-                select
-                    article.identity as biblio_id,
-                    \'article\' as type
-                from data.article
-            ) article_merge on reference.idsource = article_merge.biblio_id
-            left join (
-                select
-                    book.identity as biblio_id,
-                    \'book\' as type
-                from data.book
-            ) book_merge on reference.idsource = book_merge.biblio_id
-            left join (
-                select
-                    bookchapter.identity as biblio_id,
-                    \'book_chapter\' as type
-                from data.bookchapter
-            ) book_chapter_merge on reference.idsource = book_chapter_merge.biblio_id
-            left join (
-                select
-                    online_source.identity as biblio_id,
-                    \'online_source\' as type
-                from data.online_source
-            ) online_source_merge on reference.idsource = online_source_merge.biblio_id
             where reference.idtarget in (?)',
-            [
-                $ids,
-            ],
-            [
-                Connection::PARAM_INT_ARRAY,
-            ]
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 

@@ -166,12 +166,12 @@ class PersonManager extends EntityManager
 
     public function getOfficeDependencies(int $officeId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), $short);
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), $short ? 'getShort' : 'getMini');
     }
 
     public function getOfficeDependenciesWithChildren(int $officeId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOfficeIdWithChildren($officeId), $short);
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeIdWithChildren($officeId), $short ? 'getShort' : 'getMini');
     }
 
     public function getAllHistoricalPersons(): array

@@ -237,12 +237,12 @@ class OccurrenceManager extends DocumentManager
 
     public function getManuscriptDependencies(int $manuscriptId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short);
+        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short ? 'getShort' : 'getMini');
     }
 
     public function getPersonDependencies(int $personId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short);
+        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
     }
 
     public function add(stdClass $data): Occurrence

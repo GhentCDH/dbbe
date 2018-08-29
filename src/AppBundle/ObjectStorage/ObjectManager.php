@@ -43,16 +43,9 @@ class ObjectManager
         $this->entityType = $entityType;
     }
 
-    protected function getDependencies(array $rawIds, bool $short = false): array
+    protected function getDependencies(array $rawIds, string $method): array
     {
-        if (method_exists($this, 'get')) {
-            return $this->get(self::getUniqueIds($rawIds, $this->entityType . '_id'));
-        }
-
-        if ($short) {
-            return $this->getShort(self::getUniqueIds($rawIds, $this->entityType . '_id'));
-        }
-        return $this->getMini(self::getUniqueIds($rawIds, $this->entityType . '_id'));
+        return $this->{$method}(self::getUniqueIds($rawIds, $this->entityType . '_id'));
     }
 
     protected function setCache(array $items, string $cacheKey): void
@@ -178,21 +171,6 @@ class ObjectManager
                 }
             }
             switch ($matches[1]) {
-                case 'online_source':
-                    return $this->container->get('bibliography_manager')->getOnlineSourcesByIds([$matches[3]])[$matches[3]];
-                    break;
-                case 'article_bibliography':
-                    return $this->container->get('bibliography_manager')->getArticleBibliographiesByIds([$matches[3]])[$matches[3]];
-                    break;
-                case 'book_bibliography':
-                    return $this->container->get('bibliography_manager')->getBookBibliographiesByIds([$matches[3]])[$matches[3]];
-                    break;
-                case 'book_chapter_bibliography':
-                    return $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds([$matches[3]])[$matches[3]];
-                    break;
-                case 'online_source_bibliography':
-                    return $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds([$matches[3]])[$matches[3]];
-                    break;
                 case 'content_with_parents':
                     return $this->container->get('content_manager')->getWithParents([$matches[3]])[$matches[3]];
                     break;
@@ -391,6 +369,15 @@ class ObjectManager
             }
         }
         return $uniqueIds;
+    }
+
+    protected static function getIds(array $entities): array
+    {
+        $ids = [];
+        foreach ($entities as $entity) {
+            $ids[] = $entity->getId();
+        }
+        return $ids;
     }
 
     protected static function calcDiff(array $newJsonArray, array $oldObjectArray): array

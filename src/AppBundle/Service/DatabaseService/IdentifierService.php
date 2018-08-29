@@ -19,8 +19,9 @@ class IdentifierService extends DatabaseService
                 identifier.regex,
                 identifier.description
             from data.identifier
-            where identifier.ididentifier = ?',
-            [$type]
+            where identifier.ididentifier in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 

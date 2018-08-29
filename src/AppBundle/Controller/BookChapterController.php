@@ -120,8 +120,8 @@ class BookChapterController extends BasicController
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => $id == null ? 'book_chapter_id' : $id]),
                     'book_chapter_post' => $this->generateUrl('book_chapter_post'),
                     'book_chapter_put' => $this->generateUrl('book_chapter_put', ['id' => $id == null ? 'book_chapter_id' : $id]),
-                    // @codingStandardsIgnoreEnd
                     'login' => $this->generateUrl('login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode([
                     'bookChapter' => empty($id)

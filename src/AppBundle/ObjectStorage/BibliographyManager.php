@@ -2,122 +2,69 @@
 
 namespace AppBundle\ObjectStorage;
 
-use DateTime;
-
-use AppBundle\Model\Article;
+use AppBundle\Model\Bibliography;
 use AppBundle\Model\ArticleBibliography;
 use AppBundle\Model\BookBibliography;
-use AppBundle\Model\BookChapter;
 use AppBundle\Model\BookChapterBibliography;
-use AppBundle\Model\OnlineSource;
 use AppBundle\Model\OnlineSourceBibliography;
 
 class BibliographyManager extends ObjectManager
 {
-    public function getArticleBibliographiesByIds(array $ids): array
+    public function get(array $ids): array
     {
         return $this->wrapCache(
-            ArticleBibliography::CACHENAME,
+            Bibliography::CACHENAME,
             $ids,
             function ($ids) {
                 $bibliographies = [];
                 $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
 
-                $articleIds = self::getUniqueIds($rawBibliographies, 'source_id');
+                $articleIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'article');
+                $bookIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book');
+                $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book_chapter');
+                $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'online_source');
+
                 $articles = $this->container->get('article_manager')->getMini($articleIds);
-
-                foreach ($rawBibliographies as $rawBibliography) {
-                    $bibliography =
-                        (new ArticleBibliography($rawBibliography['reference_id']))
-                            ->setArticle($articles[$rawBibliography['source_id']])
-                            ->setStartPage($rawBibliography['page_start'])
-                            ->setEndPage($rawBibliography['page_end'])
-                            ->setRawPages($rawBibliography['raw_pages'])
-                            ->setRefType($rawBibliography['type']);
-
-                    $bibliographies[$bibliography->getId()] = $bibliography;
-                }
-
-                return $bibliographies;
-            }
-        );
-    }
-
-    public function addArticleBibliography(int $documentId, int $articleId, string $startPage, string $endPage): void
-    {
-        $this->cache->invalidateTags(['article_bibliographies']);
-        $this->dbs->addBibliography($documentId, $articleId, $startPage, $endPage, null);
-    }
-
-    public function updateArticleBibliography(int $bibliographyId, int $articleId, string $startPage, string $endPage, string $rawPages): void
-    {
-        $this->deleteCache(Article::CACHENAME, $bibliographyId);
-        $this->dbs->updateBibliography($bibliographyId, $articleId, $startPage, $endPage, $rawPages, null);
-    }
-
-    public function getBookBibliographiesByIds(array $ids): array
-    {
-        return $this->wrapCache(
-            BookBibliography::CACHENAME,
-            $ids,
-            function ($ids) {
-                $bibliographies = [];
-                $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
-
-                $bookIds = self::getUniqueIds($rawBibliographies, 'source_id');
                 $books = $this->container->get('book_manager')->getMini($bookIds);
-
-                foreach ($rawBibliographies as $rawBibliography) {
-                    $bibliography =
-                        (new BookBibliography($rawBibliography['reference_id']))
-                            ->setBook($books[$rawBibliography['source_id']])
-                            ->setStartPage($rawBibliography['page_start'])
-                            ->setEndPage($rawBibliography['page_end'])
-                            ->setRawPages($rawBibliography['raw_pages'])
-                            ->setRefType($rawBibliography['type']);
-
-                    $bibliographies[$bibliography->getId()] = $bibliography;
-                }
-
-                return $bibliographies;
-            }
-        );
-    }
-
-    public function addBookBibliography(int $documentId, int $bookId, string $startPage, string $endPage): void
-    {
-        $this->cache->invalidateTags(['book_bibliographies']);
-        $this->dbs->addBibliography($documentId, $bookId, $startPage, $endPage, null);
-    }
-
-    public function updateBookBibliography(int $bibliographyId, int $bookId, string $startPage, string $endPage, string $rawPages): void
-    {
-        $this->deleteCache(BookBibliography::CACHENAME, $bibliographyId);
-        $this->dbs->updateBibliography($bibliographyId, $bookId, $startPage, $endPage, $rawPages, null);
-    }
-
-    public function getBookChapterBibliographiesByIds(array $ids): array
-    {
-        return $this->wrapCache(
-            BookChapterBibliography::CACHENAME,
-            $ids,
-            function ($ids) {
-                $bibliographies = [];
-                $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
-
-                $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id');
                 $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
+                $onlineSources = $this->container->get('online_source_manager')->getMini($onlineSourceIds);
 
                 foreach ($rawBibliographies as $rawBibliography) {
-                    $bibliography =
-                        (new BookChapterBibliography($rawBibliography['reference_id']))
-                            ->setBookChapter($bookChapters[$rawBibliography['source_id']])
-                            ->setStartPage($rawBibliography['page_start'])
-                            ->setEndPage($rawBibliography['page_end'])
-                            ->setRawPages($rawBibliography['raw_pages'])
-                            ->setRefType($rawBibliography['type']);
-
-                    $bibliographies[$bibliography->getId()] = $bibliography;
+                    switch ($rawBibliography['bib_type']) {
+                        case 'article':
+                            $bibliographies[$rawBibliography['reference_id']] =
+                                (new ArticleBibliography($rawBibliography['reference_id']))
+                                    ->setArticle($articles[$rawBibliography['source_id']])
+                                    ->setStartPage($rawBibliography['page_start'])
+                                    ->setEndPage($rawBibliography['page_end'])
+                                    ->setRawPages($rawBibliography['raw_pages'])
+                                    ->setRefType($rawBibliography['ref_type']);
+                            break;
+                        case 'book':
+                            $bibliographies[$rawBibliography['reference_id']] =
+                                (new BookBibliography($rawBibliography['reference_id']))
+                                    ->setBook($books[$rawBibliography['source_id']])
+                                    ->setStartPage($rawBibliography['page_start'])
+                                    ->setEndPage($rawBibliography['page_end'])
+                                    ->setRawPages($rawBibliography['raw_pages'])
+                                    ->setRefType($rawBibliography['ref_type']);
+                            break;
+                        case 'book_chapter':
+                            $bibliographies[$rawBibliography['reference_id']] =
+                                (new BookChapterBibliography($rawBibliography['reference_id']))
+                                    ->setBookChapter($bookChapters[$rawBibliography['source_id']])
+                                    ->setStartPage($rawBibliography['page_start'])
+                                    ->setEndPage($rawBibliography['page_end'])
+                                    ->setRawPages($rawBibliography['raw_pages'])
+                                    ->setRefType($rawBibliography['ref_type']);
+                            break;
+                        case 'online_source':
+                            $bibliographies[$rawBibliography['reference_id']] =
+                                (new OnlineSourceBibliography($rawBibliography['reference_id']))
+                                    ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
+                                    ->setRelUrl($rawBibliography['rel_url'])
+                                    ->setRefType($rawBibliography['ref_type']);
+                    }
                 }
 
                 return $bibliographies;
@@ -125,77 +72,26 @@ class BibliographyManager extends ObjectManager
         );
     }
 
-    public function addBookChapterBibliography(int $documentId, int $bookChapterId, string $startPage, string $endPage): void
+    public function add(int $targetId, int $sourceId, string $startPage = null, string $endPage = null, string $relUrl = null): Bibliography
     {
-        $this->cache->invalidateTags(['book_chapter_bibliographies']);
-        $this->dbs->addBibliography($documentId, $bookChapterId, $startPage, $endPage, null);
+        $id = $this->dbs->insert($targetId, $sourceId, $startPage, $endPage, $relUrl);
+        return $this->get([$id])[$id];
     }
 
-    public function updateBookChapterBibliography(int $bibliographyId, int $bookChapterId, string $startPage, string $endPage, string $rawPages): void
+    public function update(int $id, int $sourceId, string $startPage = null, string $endPage = null, string $rawPages = null, string $relUrl = null): Bibliography
     {
-        $this->deleteCache(BookChapterBibliography::CACHENAME, $bibliographyId);
-        $this->dbs->updateBibliography($bibliographyId, $bookChapterId, $startPage, $endPage, $rawPages, null);
+        $this->deleteCache(Bibliography::CACHENAME, $bibliographyId);
+        $this->dbs->update($id, $sourceId, $startPage, $endPage, $rawPages, $relUrl);
+        return $this->get([$id])[$id];
     }
 
-    public function getOnlineSourceBibliographiesByIds(array $ids): array
+
+    public function deleteMultiple(array $ids): void
     {
-        return $this->wrapCache(
-            OnlineSourceBibliography::CACHENAME,
-            $ids,
-            function ($ids) {
-                $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
-
-                $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id');
-                $onlineSources = $this->getOnlineSourcesByIds($onlineSourceIds);
-
-                foreach ($rawBibliographies as $rawBibliography) {
-                    $bibliography = (new OnlineSourceBibliography($rawBibliography['reference_id']))
-                        ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
-                        ->setRelUrl($rawBibliography['rel_url'])
-                        ->setRefType($rawBibliography['type']);
-
-                    $bibliographies[$bibliography->getId()] = $bibliography;
-                }
-
-                return $bibliographies;
-            }
-        );
-    }
-
-    public function addOnlineSourceBibliography(int $documentId, int $onlineSourceId, string $url): void
-    {
-        $this->cache->invalidateTags(['online_source_bibliographies']);
-        $this->dbs->addBibliography($documentId, $onlineSourceId, null, null, $url);
-    }
-
-    public function updateOnlineSourceBibliography(int $bibliographyId, int $onlineSourceId, string $url): void
-    {
-        $this->deleteCache(OnlineSourceBibliography::CACHENAME, $bibliographyId);
-        $this->dbs->updateBibliography($bibliographyId, $onlineSourceId, null, null, null, $url);
-    }
-
-    public function delBibliographies(array $bibliographies): void
-    {
-        foreach ($bibliographies as $bibliographyId => $bibliography) {
-            switch ($bibliography->getType()) {
-                case 'book':
-                    $this->cache->invalidateTags(['book_bibliographies']);
-                    $this->deleteCache(BookBibliography::CACHENAME, $bibliographyId);
-                    break;
-                case 'article':
-                    $this->cache->invalidateTags(['article_bibliographies']);
-                    $this->deleteCache(ArticleBibliography::CACHENAME, $bibliographyId);
-                    break;
-                case 'bookChapter':
-                    $this->cache->invalidateTags(['book_chapter_bibliographies']);
-                    $this->deleteCache(BookChapterBibliography::CACHENAME, $bibliographyId);
-                    break;
-                case 'onlineSource':
-                    $this->cache->invalidateTags(['online_source_bibliographies']);
-                    $this->deleteCache(OnlineSourceBibliography::CACHENAME, $bibliographyId);
-                    break;
-            }
+        foreach ($ids as $id) {
+            $this->deleteCache(Bibliography::CACHENAME, $id);
         }
-        $this->dbs->delBibliographies(array_keys($bibliographies));
+
+        $this->dbs->deleteMultiple($ids);
     }
 }

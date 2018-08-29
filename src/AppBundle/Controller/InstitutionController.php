@@ -18,7 +18,7 @@ use AppBundle\Utils\ArrayToJson;
 class InstitutionController extends Controller
 {
     /**
-     * @Route("/institutions/regions/{id}", name="institutions_by_region")
+     * @Route("/institutions/regions/{id}", name="institution_deps_by_region")
      * @param int $id The region id
      * @param Request $request
      */

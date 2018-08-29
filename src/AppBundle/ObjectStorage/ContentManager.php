@@ -14,8 +14,17 @@ use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Content;
 use AppBundle\Model\ContentWithParents;
 
+/**
+ * ObjectManager for contents
+ * Servicename: content_manager
+ */
 class ContentManager extends ObjectManager
 {
+    /**
+     * Get single contents with all information
+     * @param  array $ids
+     * @return array
+     */
     public function get(array $ids): array
     {
         return $this->wrapCache(
@@ -31,6 +40,11 @@ class ContentManager extends ObjectManager
         );
     }
 
+    /**
+     * Get single contents with all information from existing data
+     * @param  array $data
+     * @return array
+     */
     public function getWithData(array $data): array
     {
         return $this->wrapDataCache(
@@ -53,6 +67,11 @@ class ContentManager extends ObjectManager
         );
     }
 
+    /**
+     * Get contents with parents with all information
+     * @param  array $ids
+     * @return array
+     */
     public function getWithParents(array $ids)
     {
         return $this->wrapCache(
@@ -63,8 +82,8 @@ class ContentManager extends ObjectManager
                 $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
 
                 foreach ($rawContentsWithParents as $rawContentWithParents) {
-                    $ids = explode(':', $rawContentWithParents['ids']);
-                    $names = explode(':', $rawContentWithParents['names']);
+                    $ids = json_decode($rawContentWithParents['ids']);
+                    $names = json_decode($rawContentWithParents['names']);
 
                     $rawContents = [];
                     foreach (array_keys($ids) as $key) {
@@ -91,13 +110,17 @@ class ContentManager extends ObjectManager
         );
     }
 
-    public function getAllContentsWithParents(): array
+    /**
+     * Get all contents with parents with all information
+     * @return array
+     */
+    public function getAll(): array
     {
         return $this->wrapArrayCache(
             'contents_with_parents',
             ['contents'],
             function () {
-                $rawIds = $this->dbs->getContentIds();
+                $rawIds = $this->dbs->getIds();
                 $ids = self::getUniqueIds($rawIds, 'content_id');
                 $contentsWithParents = $this->getWithParents($ids);
 
@@ -111,14 +134,38 @@ class ContentManager extends ObjectManager
         );
     }
 
-    public function getContentsWithParentsByContent(int $contentId): array
+    /**
+     * Get all contents that are dependent on a specific content
+     * @param  int   $contentId
+     * @return array
+     */
+    public function getContentDependencies(int $contentId): array
     {
-        $rawIds = $this->dbs->getContentsByContentId($contentId);
-        $ids = self::getUniqueIds($rawIds, 'content_id');
-        return $this->getWithParents($ids);
+        return $this->getDependencies($this->dbs->getDepIdsByContentId($regionId), 'getWithParents');
     }
 
-    public function addContentWithParents(stdClass $data): ContentWithParents
+    /**
+     * Clear cache
+     * @param array $ids
+     */
+    public function reset(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->deleteCache(Content::CACHENAME, $id);
+            $this->deleteCache(ContentWithParents::CACHENAME, $id);
+        }
+
+        $this->getWithParents($ids);
+
+        $this->cache->invalidateTags(['contents']);
+    }
+
+    /**
+     * Add a new content
+     * @param  stdClass $data
+     * @return ContentWithParents
+     */
+    public function add(stdClass $data): ContentWithParents
     {
         $this->dbs->beginTransaction();
         try {
@@ -158,7 +205,13 @@ class ContentManager extends ObjectManager
         return $new;
     }
 
-    public function updateContentWithParents(int $id, stdClass $data): ContentWithParents
+    /**
+     * Update an existing content
+     * @param  int      $id
+     * @param  stdClass $data
+     * @return ContentWithParents
+     */
+    public function update(int $id, stdClass $data): ContentWithParents
     {
         $this->dbs->beginTransaction();
         try {
@@ -221,7 +274,13 @@ class ContentManager extends ObjectManager
         return $new;
     }
 
-    public function mergeContentsWithParents(int $primaryId, int $secondaryId): ContentWithParents
+    /**
+     * Merge two contents
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return ContentWithParents
+     */
+    public function merge(int $primaryId, int $secondaryId): ContentWithParents
     {
         $contentsWithParents = $this->getWithParents([$primaryId, $secondaryId]);
         if (count($contentsWithParents) != 2) {
@@ -238,16 +297,18 @@ class ContentManager extends ObjectManager
         list($primary, $secondary) = array_values($contentsWithParents);
 
         $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, true);
-        $contents = $this->getContentsWithParentsByContent($secondaryId);
+        $contents = $this->getContentDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
         try {
             if (!empty($manuscripts)) {
                 foreach ($manuscripts as $manuscript) {
                     $contentArray = ArrayToJson::arrayToShortJson($manuscript->getContentsWithParents());
-                    $contentArray = array_values(array_filter($contentArray, function ($contentItem) use ($secondaryId, $primaryId) {
-                        return $contentItem['id'] !== $secondaryId && $contentItem['id'] !== $primaryId;
-                    }));
+                    $contentArray = array_values(
+                        array_filter($contentArray, function ($contentItem) use ($secondaryId, $primaryId) {
+                            return $contentItem['id'] !== $secondaryId && $contentItem['id'] !== $primaryId;
+                        })
+                    );
                     $contentArray[] = ['id' => $primaryId];
                     $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
@@ -257,41 +318,54 @@ class ContentManager extends ObjectManager
             }
             if (!empty($contents)) {
                 foreach ($contents as $content) {
-                    $this->updateContentWithParents(
+                    $this->update(
                         $content->getId(),
                         json_decode(json_encode(['parent' => ['id' => $primaryId]]))
                     );
                 }
             }
-            $this->delContent($secondaryId);
+            $this->delete($secondaryId);
 
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
-            // TODO: invalidate caches and revert elasticsearch updates when rolling back, because part of them can be updated
+
+            // Reset caches and elasticsearch
+            $this->reset([$primaryId]);
+            if (!empty($persons)) {
+                $this->container->get('person_manager')->reset(self::getIds($persons));
+            }
+            if (!empty($offices)) {
+                $this->reset(self::getIds($offices));
+            }
+
             throw $e;
         }
 
         return $primary;
     }
 
-    public function delContent(int $contentId): void
+    /**
+     * Delete a content
+     * @param int $id
+     */
+    public function delete(int $id): void
     {
         $this->dbs->beginTransaction();
         try {
-            $contentsWithParents = $this->getWithParents([$contentId]);
+            $contentsWithParents = $this->getWithParents([$id]);
             if (count($contentsWithParents) == 0) {
-                throw new NotFoundHttpException('Content with id ' . $contentId .' not found.');
+                throw new NotFoundHttpException('Content with id ' . $id .' not found.');
             }
-            $contentWithParents = $contentsWithParents[$contentId];
+            $contentWithParents = $contentsWithParents[$id];
 
-            $this->dbs->delete($contentId);
+            $this->dbs->delete($id);
 
             // empty cache
             $this->cache->invalidateTags(['contents']);
-            $this->deleteCache(Content::CACHENAME, $contentId);
-            $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
+            $this->deleteCache(Content::CACHENAME, $id);
+            $this->deleteCache(ContentWithParents::CACHENAME, $id);
 
             $this->updateModified($contentWithParents, null);
 

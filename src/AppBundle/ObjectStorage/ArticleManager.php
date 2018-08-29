@@ -114,7 +114,7 @@ class ArticleManager extends DocumentManager
      */
     public function getJournalDependencies(int $journalId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId));
+        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId), 'get');
     }
 
     /**

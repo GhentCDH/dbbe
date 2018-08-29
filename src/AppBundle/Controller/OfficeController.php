@@ -48,7 +48,7 @@ class OfficeController extends BasicController
      * (occupation -> idregion)
      * @Route("/offices/regions/{id}", name="office_deps_by_region")
      * @Method("GET")
-     * @param  int    $id      region id
+     * @param int    $id      region id
      * @param Request $request
      */
     public function getDepsByRegion(int $id, Request $request)
@@ -69,6 +69,7 @@ class OfficeController extends BasicController
             self::TEMPLATE_FOLDER . 'edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'offices_get' => $this->generateUrl('offices_get'),
                     'office_deps_by_office' => $this->generateUrl('office_deps_by_office', ['id' => 'office_id']),
                     'person_deps_by_office' => $this->generateUrl('person_deps_by_office', ['id' => 'office_id']),
@@ -78,13 +79,14 @@ class OfficeController extends BasicController
                     'office_put' => $this->generateUrl('office_put', ['id' => 'office_id']),
                     'office_delete' => $this->generateUrl('office_delete', ['id' => 'office_id']),
                     'login' => $this->generateUrl('login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([
                     'offices' => ArrayToJson::arrayToJson(
                         $this->get('office_manager')->getAll()
                     ),
                     'regions' => ArrayToJson::arrayToShortJson(
-                        $this->get('region_manager')->getAllRegionsWithParents()
+                        $this->get('region_manager')->getAll()
                     ),
                 ]),
             ]
@@ -94,7 +96,7 @@ class OfficeController extends BasicController
     /**
      * @Route("/offices", name="office_post")
      * @Method("POST")
-     * @param Request $request
+     * @param  Request $request
      * @return JsonResponse
      */
     public function post(Request $request)
@@ -105,9 +107,9 @@ class OfficeController extends BasicController
     /**
      * @Route("/offices/{primaryId}/{secondaryId}", name="office_merge")
      * @Method("PUT")
-     * @param  int    $primaryId   first office id (will stay)
-     * @param  int    $secondaryId second office id (will be deleted)
-     * @param Request $request
+     * @param  int     $primaryId   first office id (will stay)
+     * @param  int     $secondaryId second office id (will be deleted)
+     * @param  Request $request
      * @return JsonResponse
      */
     public function merge(int $primaryId, int $secondaryId, Request $request)
@@ -118,8 +120,8 @@ class OfficeController extends BasicController
     /**
      * @Route("/offices/{id}", name="office_put")
      * @Method("PUT")
-     * @param  int    $id office id
-     * @param Request $request
+     * @param  int     $id office id
+     * @param  Request $request
      * @return JsonResponse
      */
     public function put(int $id, Request $request)
@@ -130,12 +132,12 @@ class OfficeController extends BasicController
     /**
      * @Route("/offices/{id}", name="office_delete")
      * @Method("DELETE")
-     * @param  int    $id office id
-     * @param Request $request
+     * @param  int     $id office id
+     * @param  Request $request
      * @return JsonResponse
      */
     public function delete(int $id, Request $request)
     {
-        return parent::delete($id);
+        return parent::delete($id, $request);
     }
 }

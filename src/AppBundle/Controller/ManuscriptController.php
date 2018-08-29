@@ -434,7 +434,7 @@ class ManuscriptController extends BasicController
                         ? null
                         : $this->get('manuscript_manager')->getFull($id)->getJson(),
                     'locations' => ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts()),
-                    'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAllContentsWithParents()),
+                    'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAll()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getAllOrigins()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),

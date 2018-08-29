@@ -8,6 +8,10 @@ use AppBundle\Exceptions\DependencyException;
 
 class RegionService extends DatabaseService
 {
+    /**
+     * Get all region ids
+     * @return array
+     */
     public function getIds(): array
     {
         return $this->conn->query(
@@ -48,6 +52,26 @@ class RegionService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * Get all ids of regions that are dependent on a specific region
+     * @param  int   $regionId
+     * @return array
+     */
+    public function getDepIdsByRegionId(int $regionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                region.identity as region_id
+            from data.region
+            where region.parent_idregion = ?',
+            [$regionId]
+        )->fetchAll();
+    }
+
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getRegionsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -71,17 +95,21 @@ class RegionService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getRegionsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
-            'WITH RECURSIVE rec (identity, ids, names, historical_names, is_cities, pleiades_ids, depth) AS (
+            'WITH RECURSIVE rec (id, ids, names, historical_names, is_cities, pleiades_ids, depth) AS (
                 SELECT
                     r.identity,
-                    r.identity::text AS ids,
-                    COALESCE(r.name, \'\') AS names,
-                    COALESCE(r.historical_name, \'\') AS historical_names,
-                    COALESCE(r.is_city::text, \'\') AS is_cities,
-                    COALESCE(p.identifier, \'\') AS pleiades_ids,
+                    ARRAY[r.identity],
+                    ARRAY[COALESCE(r.name, \'\')],
+                    ARRAY[COALESCE(r.historical_name, \'\')],
+                    ARRAY[COALESCE(r.is_city::text, \'\')],
+                    ARRAY[COALESCE(p.identifier, \'\')],
                     1
                 FROM data.region r
                 left join (
@@ -96,15 +124,16 @@ class RegionService extends DatabaseService
 
                 SELECT
                     r.identity,
-                    rec.ids || \':\' || r.identity::text AS ids,
-                    rec.names || \':\' || COALESCE(r.name, \'\') AS names,
-                    rec.historical_names || \':\' || COALESCE(r.historical_name, \'\') AS historical_names,
-                    rec.is_cities || \':\' || COALESCE(r.is_city::text, \'\') AS is_cities,
-                    rec.pleiades_ids || \':\' || COALESCE(p.identifier, \'\') AS pleiades_ids,
+                    array_append(rec.ids, r.identity),
+                    array_append(rec.names, COALESCE(r.name, \'\')),
+                    array_append(rec.historical_names, COALESCE(r.historical_name, \'\')),
+                    array_append(rec.is_cities, COALESCE(r.is_city::text, \'\')),
+                    array_append(rec.pleiades_ids, COALESCE(p.identifier, \'\')),
                     rec.depth + 1
 
                 FROM rec
-                INNER JOIN data.region r ON rec.identity = r.parent_idregion
+                INNER JOIN data.region r
+                ON rec.id = r.parent_idregion
                 left join (
                     select global_id.idsubject, global_id.identifier
                     from data.global_id
@@ -114,31 +143,32 @@ class RegionService extends DatabaseService
                 ) as p on r.identity = p.idsubject
 
             )
-            SELECT rec.identity, ids, names, historical_names, is_cities, pleiades_ids
+            SELECT
+                array_to_json(ids) as ids,
+                array_to_json(names) as names,
+                array_to_json(historical_names) as historical_names,
+                array_to_json(is_cities) as is_cities,
+                array_to_json(pleiades_ids) as pleiades_ids
             FROM rec
             INNER JOIN (
-                SELECT identity, MAX(depth) AS maxdepth
+                SELECT id, MAX(depth) AS maxdepth
                 FROM rec
-                GROUP BY identity
-            ) rj
-            ON rec.identity = rj.identity AND rec.depth = rj.maxdepth
-            WHERE rec.identity in (?)',
+                GROUP BY id
+            ) rm
+            ON rec.id = rm.id AND rec.depth = rm.maxdepth
+            WHERE rec.id in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getRegionsByRegion(int $regionId): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                region.identity as region_id
-            from data.region
-            where region.parent_idregion = ?',
-            [$regionId]
-        )->fetchAll();
-    }
-
+    /**
+     * @param  int|null    $parentId
+     * @param  string      $name
+     * @param  string|null $historicalName
+     * @param  bool        $isCity
+     * @return int
+     */
     public function insert(
         int $parentId = null,
         string $name,
@@ -157,17 +187,22 @@ class RegionService extends DatabaseService
                 $isCity ? 'TRUE': 'FALSE',
             ]
         );
-        $regionId = $this->conn->executeQuery(
+        $id = $this->conn->executeQuery(
             'SELECT
                 region.identity as region_id
             from data.region
             order by identity desc
             limit 1'
         )->fetch()['region_id'];
-        return $regionId;
+        return $id;
     }
 
-    public function updateParent(int $regionId, int $parentId = null): int
+    /**
+     * @param  int      $id
+     * @param  int|null $parentId
+     * @return int
+     */
+    public function updateParent(int $id, int $parentId = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.region
@@ -175,12 +210,17 @@ class RegionService extends DatabaseService
             where region.identity = ?',
             [
                 $parentId,
-                $regionId,
+                $id,
             ]
         );
     }
 
-    public function updateName(int $regionId, string $name): int
+    /**
+     * @param  int    $id
+     * @param  string $name
+     * @return int
+     */
+    public function updateName(int $id, string $name): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.region
@@ -188,12 +228,17 @@ class RegionService extends DatabaseService
             where region.identity = ?',
             [
                 $name,
-                $regionId,
+                $id,
             ]
         );
     }
 
-    public function updateHistoricalName(int $regionId, string $historicalName): int
+    /**
+     * @param  int    $id
+     * @param  string $historicalName
+     * @return int
+     */
+    public function updateHistoricalName(int $id, string $historicalName): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.region
@@ -201,12 +246,17 @@ class RegionService extends DatabaseService
             where region.identity = ?',
             [
                 $historicalName,
-                $regionId,
+                $id,
             ]
         );
     }
 
-    public function upsertPleiades(int $regionId, int $pleiades): int
+    /**
+     * @param  int $id
+     * @param  int $pleiades
+     * @return int
+     */
+    public function upsertPleiades(int $id, int $pleiades): int
     {
         return $this->conn->executeUpdate(
             'INSERT INTO data.global_id (idauthority, idsubject, identifier)
@@ -223,13 +273,18 @@ class RegionService extends DatabaseService
             on conflict (idauthority, idsubject) do update
             set identifier = excluded.identifier',
             [
-                $regionId,
+                $id,
                 $pleiades,
             ]
         );
     }
 
-    public function updateIsCity(int $regionId, bool $isCity): int
+    /**
+     * @param  int  $id
+     * @param  bool $isCity
+     * @return int
+     */
+    public function updateIsCity(int $id, bool $isCity): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.region
@@ -237,20 +292,34 @@ class RegionService extends DatabaseService
             where region.identity = ?',
             [
                 $isCity ? 'TRUE': 'FALSE',
-                $regionId,
+                $id,
             ]
         );
     }
 
-    public function delete(int $regionId): int
+    /**
+     * @param  int $id
+     * @return int
+     */
+    public function delete(int $id): int
     {
+        // don't delete if this region is used in region (as parent)
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.region
+            where region.parent_idregion = ?',
+            [$id]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This region has region dependencies.');
+        }
         // don't delete if this region is used in located_at
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.located_at
             inner join data.location on located_at.idlocation = location.idlocation
             where location.idregion = ?',
-            [$regionId]
+            [$id]
         )->fetchColumn(0);
         if ($count > 0) {
             throw new DependencyException('This region has located_at dependencies.');
@@ -261,7 +330,7 @@ class RegionService extends DatabaseService
             from data.factoid
             inner join data.location on factoid.idlocation = location.idlocation
             where location.idregion = ?',
-            [$regionId]
+            [$id]
         )->fetchColumn(0);
         if ($count > 0) {
             throw new DependencyException('This region has factoid dependencies.');
@@ -271,28 +340,19 @@ class RegionService extends DatabaseService
             'SELECT count(*)
             from data.institution
             where institution.idregion = ?',
-            [$regionId]
+            [$id]
         )->fetchColumn(0);
         if ($count > 0) {
             throw new DependencyException('This region has institution dependencies.');
         }
-        // don't delete if this region is used in region (as parent)
-        $count = $this->conn->executeQuery(
-            'SELECT count(*)
-            from data.region
-            where region.parent_idregion = ?',
-            [$regionId]
-        )->fetchColumn(0);
-        if ($count > 0) {
-            throw new DependencyException('This region has region dependencies.');
-        }
+        //TODO: person dependency
         // Set search_path for trigger delete_entity
         // Pleiades id is deleted by foreign key constraint
         $this->conn->exec('SET SEARCH_PATH TO data');
         return $this->conn->executeUpdate(
             'DELETE from data.region
             where region.identity = ?',
-            [$regionId]
+            [$id]
         );
     }
 }

@@ -12,8 +12,17 @@ use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Region;
 use AppBundle\Model\RegionWithParents;
 
+/**
+ * ObjectManager for regions
+ * Servicename: region_manager
+ */
 class RegionManager extends ObjectManager
 {
+    /**
+     * Get single regions with all information
+     * @param  array $ids
+     * @return array
+     */
     public function get(array $ids): array
     {
         return $this->wrapCache(
@@ -29,6 +38,11 @@ class RegionManager extends ObjectManager
         );
     }
 
+    /**
+     * Get single regions with all information from existing data
+     * @param  array $data
+     * @return array
+     */
     public function getWithData(array $data): array
     {
         return $this->wrapDataCache(
@@ -54,6 +68,11 @@ class RegionManager extends ObjectManager
         );
     }
 
+    /**
+     * Get regions with parents with all information
+     * @param  array $ids
+     * @return array
+     */
     public function getWithParents(array $ids): array
     {
         return $this->wrapCache(
@@ -64,11 +83,11 @@ class RegionManager extends ObjectManager
                 $rawRegionsWithParents = $this->dbs->getRegionsWithParentsByIds($ids);
 
                 foreach ($rawRegionsWithParents as $rawRegionWithParents) {
-                    $ids = explode(':', $rawRegionWithParents['ids']);
-                    $names = explode(':', $rawRegionWithParents['names']);
-                    $historicalNames = explode(':', $rawRegionWithParents['historical_names']);
-                    $isCities = explode(':', $rawRegionWithParents['is_cities']);
-                    $pleiadesIds = explode(':', $rawRegionWithParents['pleiades_ids']);
+                    $ids = json_decode($rawRegionWithParents['ids']);
+                    $names = json_decode($rawRegionWithParents['names']);
+                    $historicalNames = json_decode($rawRegionWithParents['historical_names']);
+                    $isCities = json_decode($rawRegionWithParents['is_cities']);
+                    $pleiadesIds = json_decode($rawRegionWithParents['pleiades_ids']);
 
                     $rawRegions = [];
                     foreach (array_keys($ids) as $key) {
@@ -98,7 +117,11 @@ class RegionManager extends ObjectManager
         );
     }
 
-    public function getAllRegionsWithParents(): array
+    /**
+     * Get all regions with parents with all information
+     * @return array
+     */
+    public function getAll(): array
     {
         return $this->wrapArrayCache(
             'regions_with_parents',
@@ -118,23 +141,19 @@ class RegionManager extends ObjectManager
         );
     }
 
-    public function getRegionsWithParentsByRegion(int $regionId): array
+    /**
+     * Get all regions that are dependent on a specific region
+     * @param  int   $regionId
+     * @return array
+     */
+    public function getRegionDependencies(int $regionId): array
     {
-        $rawIds = $this->dbs->getRegionsByRegion($regionId);
-        $ids = self::getUniqueIds($rawIds, 'region_id');
-        $regionsWithParents = $this->getWithParents($ids);
-
-        // Sort by name
-        usort($regionsWithParents, function ($a, $b) {
-            return strcmp($a->getNameHistoricalName(), $b->getNameHistoricalName());
-        });
-
-        return $regionsWithParents;
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), 'getWithParents');
     }
 
     /**
      * Clear cache
-     * @param array $ids manuscript ids
+     * @param array $ids
      */
     public function reset(array $ids): void
     {
@@ -148,7 +167,12 @@ class RegionManager extends ObjectManager
         $this->cache->invalidateTags(['regions']);
     }
 
-    public function addRegionWithParents(stdClass $data): RegionWithParents
+    /**
+     * Add a new region
+     * @param  stdClass $data
+     * @return RegionWithParents
+     */
+    public function add(stdClass $data): RegionWithParents
     {
         $this->dbs->beginTransaction();
         try {
@@ -205,7 +229,13 @@ class RegionManager extends ObjectManager
         return $newRegionWithParents;
     }
 
-    public function updateRegionWithParents(int $id, stdClass $data): RegionWithParents
+    /**
+     * Update an existing region
+     * @param  int      $id
+     * @param  stdClass $data
+     * @return RegionWithParents
+     */
+    public function update(int $id, stdClass $data): RegionWithParents
     {
         $this->dbs->beginTransaction();
         try {
@@ -279,7 +309,10 @@ class RegionManager extends ObjectManager
             $officesWithParents = $this->container->get('office_manager')->getRegionDependenciesWithChildren($id);
             $persons = [];
             foreach ($officesWithParents as $officesWithParent) {
-                $persons += $this->container->get('person_manager')->getOfficeDependenciesWithChildren($officesWithParent->getId(), true);
+                $persons += $this->container->get('person_manager')->getOfficeDependenciesWithChildren(
+                    $officesWithParent->getId(),
+                    true
+                );
             }
 
             // TODO: update Elastic persons
@@ -296,7 +329,13 @@ class RegionManager extends ObjectManager
         return $newRegionWithParents;
     }
 
-    public function mergeRegionsWithParents(int $primaryId, int $secondaryId): RegionWithParents
+    /**
+     * Merge two regions
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return RegionWithParents
+     */
+    public function merge(int $primaryId, int $secondaryId): RegionWithParents
     {
         $regionsWithParents = $this->getWithParents([$primaryId, $secondaryId]);
         if (count($regionsWithParents) != 2) {
@@ -334,7 +373,7 @@ class RegionManager extends ObjectManager
             return false;
         });
         $institutions = $this->container->get('institution_manager')->getInstitutionsByRegion($secondaryId);
-        $regions = $this->getRegionsWithParentsByRegion($secondaryId);
+        $regions = $this->getRegionDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
         try {
@@ -363,13 +402,13 @@ class RegionManager extends ObjectManager
             }
             if (!empty($regions)) {
                 foreach ($regions as $region) {
-                    $this->updateRegionWithParents(
+                    $this->update(
                         $region->getId(),
                         json_decode(json_encode(['parent' => ['id' => $primaryId]]))
                     );
                 }
             }
-            $this->delRegion($secondaryId);
+            $this->delete($secondaryId);
 
             // commit transaction
             $this->dbs->commit();
@@ -378,20 +417,14 @@ class RegionManager extends ObjectManager
             // Reset caches and elasticsearch
             $this->reset([$primaryId]);
             if (!empty($manuscripts)) {
-                $this->container->get('manuscript_manager')->reset(array_map(function ($manuscript) {
-                    return $manuscript->getId();
-                }, $manuscripts));
+                $this->container->get('manuscript_manager')->reset(self::getIds($manuscripts));
             }
             if (!empty($institutions)) {
-                $this->container->get('institution_manager')->reset(array_map(function ($institution) {
-                    return $institution->getId();
-                }, $institutions));
+                $this->container->get('institution_manager')->reset(self::getIds($institutions));
             }
             // TODO: reset persons
             if (!empty($regions)) {
-                $this->reset(array_map(function ($region) {
-                    return $region->getId();
-                }, $regions));
+                $this->reset(self::getIds($regions));
             }
             throw $e;
         }
@@ -399,22 +432,26 @@ class RegionManager extends ObjectManager
         return $primary;
     }
 
-    public function delRegion(int $regionId): void
+    /**
+     * Delete a region
+     * @param int $id
+     */
+    public function delete(int $id): void
     {
         $this->dbs->beginTransaction();
         try {
-            $regionsWithParents = $this->getWithParents([$regionId]);
+            $regionsWithParents = $this->getWithParents([$id]);
             if (count($regionsWithParents) == 0) {
-                throw new NotFoundHttpException('Region with id ' . $regionId .' not found.');
+                throw new NotFoundHttpException('Region with id ' . $id .' not found.');
             }
-            $regionWithParents = $regionsWithParents[$regionId];
+            $regionWithParents = $regionsWithParents[$id];
 
-            $this->dbs->delete($regionId);
+            $this->dbs->delete($id);
 
             // empty cache
             $this->cache->invalidateTags(['regions']);
-            $this->deleteCache(Region::CACHENAME, $regionId);
-            $this->deleteCache(RegionWithParents::CACHENAME, $regionId);
+            $this->deleteCache(Region::CACHENAME, $id);
+            $this->deleteCache(RegionWithParents::CACHENAME, $id);
 
             $this->updateModified($regionWithParents, null);
 

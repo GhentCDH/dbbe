@@ -6,6 +6,11 @@ use ReflectionClass;
 
 abstract class Bibliography
 {
+    /**
+     * @var string
+     */
+    const CACHENAME = 'bibliography';
+
     use CacheLinkTrait;
     use CacheObjectTrait;
 

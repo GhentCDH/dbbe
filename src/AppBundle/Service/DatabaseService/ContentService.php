@@ -8,7 +8,11 @@ use AppBundle\Exceptions\DependencyException;
 
 class ContentService extends DatabaseService
 {
-    public function getContentIds(): array
+    /**
+     * Get all office ids
+     * @return array
+     */
+    public function getIds(): array
     {
         return $this->conn->query(
             'SELECT
@@ -49,6 +53,26 @@ class ContentService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * Get all ids of contents that are dependent on a specific content
+     * @param  int   $contentId
+     * @return array
+     */
+    public function getDepIdsByContentId(int $contentId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                genre.idgenre as content_id
+            from data.genre
+            where genre.idparentgenre = ?',
+            [$contentId]
+        )->fetchAll();
+    }
+
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getContentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -62,16 +86,18 @@ class ContentService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * @param  array $ids
+     * @return array
+     */
     public function getContentsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
-            'WITH RECURSIVE rec (idgenre, idparentgenre, genre, ids, names, depth) AS (
+            'WITH RECURSIVE rec (id, ids, names, depth) AS (
             	SELECT
             		g.idgenre,
-            		g.idparentgenre,
-            		g.genre,
-                    g.idgenre::text as ids,
-                    g.genre AS names,
+                    ARRAY[g.idgenre],
+                    ARRAY[g.genre],
             		1
             	FROM data.genre g
 
@@ -80,41 +106,35 @@ class ContentService extends DatabaseService
 
             	SELECT
             		g.idgenre,
-            		g.idparentgenre,
-            		g.genre,
-                    r.ids || \':\' || g.idgenre::text AS ids,
-                    r.names || \':\' || g.genre AS names,
-            		r.depth + 1
+                    array_append(rec.ids, g.idgenre),
+                    array_append(rec.names, g.genre),
+            		rec.depth + 1
 
-            	FROM rec AS r
-            	INNER JOIN data.genre g
-            	ON r.idgenre = g.idparentgenre
-            )
-            SELECT r.idgenre, ids, names
-            FROM rec r
-            INNER JOIN (
-            	SELECT idgenre, MAX(depth) AS maxdepth
             	FROM rec
-            	GROUP BY idgenre
-            ) rj
-            ON r.idgenre = rj.idgenre AND r.depth = rj.maxdepth
-            WHERE r.idgenre in (?)',
+            	INNER JOIN data.genre g
+            	ON rec.id = g.idparentgenre
+            )
+            SELECT
+                array_to_json(ids) as ids,
+                array_to_json(names) as names
+            FROM rec
+            INNER JOIN (
+            	SELECT id, MAX(depth) AS maxdepth
+            	FROM rec
+            	GROUP BY id
+            ) rm
+            ON rec.id = rm.id AND rec.depth = rm.maxdepth
+            WHERE rec.id in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getContentsByContentId(int $contentId): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                genre.idgenre as content_id
-            from data.genre
-            where genre.idparentgenre = ?',
-            [$contentId]
-        )->fetchAll();
-    }
-
+    /**
+     * @param  int|null $parentId
+     * @param  string   $name
+     * @return int
+     */
     public function insert(
         int $parentId = null,
         string $name
@@ -129,17 +149,22 @@ class ContentService extends DatabaseService
                 $name
             ]
         );
-        $contentId = $this->conn->executeQuery(
+        $id = $this->conn->executeQuery(
             'SELECT
                 genre.idgenre as content_id
             from data.genre
             order by idgenre desc
             limit 1'
         )->fetch()['content_id'];
-        return $contentId;
+        return $id;
     }
 
-    public function updateParent(int $contentId, int $parentId = null): int
+    /**
+     * @param  int      $id
+     * @param  int|null $parentId
+     * @return int
+     */
+    public function updateParent(int $id, int $parentId = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.genre
@@ -147,12 +172,17 @@ class ContentService extends DatabaseService
             where genre.idgenre = ?',
             [
                 $parentId,
-                $contentId,
+                $id,
             ]
         );
     }
 
-    public function updateName(int $contentId, string $name): int
+    /**
+     * @param  int    $id
+     * @param  string $name
+     * @return int
+     */
+    public function updateName(int $id, string $name): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.genre
@@ -160,40 +190,42 @@ class ContentService extends DatabaseService
             where genre.idgenre = ?',
             [
                 $name,
-                $contentId,
+                $id,
             ]
         );
     }
 
-    public function delete(int $contentId): int
+    /**
+     * @param  int $id
+     * @return int
+     */
+    public function delete(int $id): int
     {
-        // don't delete if this content is used in document_genre
-        $count = $this->conn->executeQuery(
-            'SELECT count(*)
-            from data.document_genre
-            where document_genre.idgenre = ?',
-            [$contentId]
-        )->fetchColumn(0);
-        if ($count > 0) {
-            throw new DependencyException('This content has dependencies.');
-        }
         // don't delete if this content is used in content (as parent)
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.genre
             where genre.idparentgenre = ?',
-            [$contentId]
+            [$id]
         )->fetchColumn(0);
         if ($count > 0) {
             throw new DependencyException('This content has dependencies.');
         }
-        // Set search_path for trigger delete_entity
-        // Pleiades id is deleted by foreign key constraint
-        $this->conn->exec('SET SEARCH_PATH TO data');
+        // don't delete if this content is used in document_genre
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.document_genre
+            where document_genre.idgenre = ?',
+            [$id]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This content has dependencies.');
+        }
+
         return $this->conn->executeUpdate(
             'DELETE from data.genre
             where genre.idgenre = ?',
-            [$contentId]
+            [$id]
         );
     }
 }

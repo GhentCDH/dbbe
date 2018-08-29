@@ -47,6 +47,7 @@ class JournalManager extends DocumentManager
     }
 
     /**
+     * Get all journals with all information
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */

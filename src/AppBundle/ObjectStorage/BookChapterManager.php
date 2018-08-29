@@ -114,7 +114,7 @@ class BookChapterManager extends DocumentManager
      */
     public function getBookDependencies(int $bookId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId));
+        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), 'getMini');
     }
 
     /**

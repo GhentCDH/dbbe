@@ -101,17 +101,8 @@ class EntityManager extends ObjectManager
     {
         $rawBibliographies = $this->dbs->getBibliographies(self::getIds($entities));
         if (!empty($rawBibliographies)) {
-            $bookIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book');
-            $articleIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'article');
-            $bookChapterIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'book_chapter');
-            $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'reference_id', 'type', 'online_source');
-
-            $bookBibliographies = $this->container->get('bibliography_manager')->getBookBibliographiesByIds($bookIds);
-            $articleBibliographies = $this->container->get('bibliography_manager')->getArticleBibliographiesByIds($articleIds);
-            $bookChapterBibliographies = $this->container->get('bibliography_manager')->getBookChapterBibliographiesByIds($bookChapterIds);
-            $onlineSourceBibliographies = $this->container->get('bibliography_manager')->getOnlineSourceBibliographiesByIds($onlineSourceIds);
-
-            $bibliographies = $bookBibliographies + $articleBibliographies + $bookChapterBibliographies + $onlineSourceBibliographies;
+            $ids = self::getUniqueIds($rawBibliographies, 'reference_id');
+            $bibliographies = $this->container->get('bibliography_manager')->get($ids);
 
             foreach ($rawBibliographies as $rawBibliography) {
                 $entities[$rawBibliography['entity_id']]
@@ -319,6 +310,7 @@ class EntityManager extends ObjectManager
 
     protected function updateBibliography(Entity $entity, stdClass $bibliography): void
     {
+        // Verify input
         foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
             $plurBibType = $bibType . 's';
             if (!property_exists($bibliography, $plurBibType) || !is_array($bibliography->$plurBibType)) {
@@ -348,102 +340,63 @@ class EntityManager extends ObjectManager
             }
         }
 
-        $updateIds = [];
-        $origBibIds = array_keys($entity->getBibliographies());
         // Add and update
-        foreach ($bibliography->books as $bookBib) {
-            if (!property_exists($bookBib, 'id')) {
-                $this->container->get('bibliography_manager')->addBookBibliography(
-                    $entity->getId(),
-                    $bookBib->book->id,
-                    self::certainString($bookBib, 'startPage'),
-                    self::certainString($bookBib, 'endPage')
-                );
-            } elseif (in_array($bookBib->id, $origBibIds)) {
-                $updateIds[] = $bookBib->id;
-                $this->container->get('bibliography_manager')->updateBookBibliography(
-                    $bookBib->id,
-                    $bookBib->book->id,
-                    self::certainString($bookBib, 'startPage'),
-                    self::certainString($bookBib, 'endPage'),
-                    self::certainString($bookBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundHttpException(
-                    'Bibliography with id "' . $bookBib->id . '" not found '
-                    . ' in entity with id "' . $entity->getId() . '".'
-                );
+        $updateIds = [];
+        foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
+            $plurBibType = $bibType . 's';
+            foreach ($bibliography->$plurBibType as $bib) {
+                if (!property_exists($bib, 'id')) {
+                    // Add new
+                    if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
+                        $this->container->get('bibliography_manager')->add(
+                            $entity->getId(),
+                            $bib->{$bibType}->id,
+                            self::certainString($bib, 'startPage'),
+                            self::certainString($bib, 'endPage'),
+                            null
+                        );
+                    } else {
+                        // onlineSource
+                        $this->container->get('bibliography_manager')->add(
+                            $entity->getId(),
+                            $bib->{$bibType}->id,
+                            null,
+                            null,
+                            self::certainString($bib, 'relUrl')
+                        );
+                    }
+                } elseif (in_array($bib->id, $origBibIds)) {
+                    $updateIds[] = $bib->id;
+                    // Update
+                    if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
+                        $this->container->get('bibliography_manager')->update(
+                            $bib->id,
+                            $bib->{$bibType}->id,
+                            self::certainString($bib, 'startPage'),
+                            self::certainString($bib, 'endPage'),
+                            self::certainString($bib, 'rawPages'),
+                            null
+                        );
+                    } else {
+                        // onlineSource
+                        $this->container->get('bibliography_manager')->update(
+                            $bib->id,
+                            $bib->{$bibType}->id,
+                            null,
+                            null,
+                            null,
+                            self::certainString($bib, 'relUrl')
+                        );
+                    }
+                } else {
+                    throw new NotFoundHttpException(
+                        'Bibliography with id "' . $bib->id . '" not found '
+                        . ' in entity with id "' . $entity->getId() . '".'
+                    );
+                }
             }
         }
-        foreach ($bibliography->articles as $articleBib) {
-            if (!property_exists($articleBib, 'id')) {
-                $this->container->get('bibliography_manager')->addArticleBibliography(
-                    $entity->getId(),
-                    $articleBib->article->id,
-                    self::certainString($articleBib, 'startPage'),
-                    self::certainString($articleBib, 'endPage')
-                );
-            } elseif (in_array($articleBib->id, $origBibIds)) {
-                $updateIds[] = $articleBib->id;
-                $this->container->get('bibliography_manager')->updateArticleBibliography(
-                    $articleBib->id,
-                    $articleBib->article->id,
-                    self::certainString($articleBib, 'startPage'),
-                    self::certainString($articleBib, 'endPage'),
-                    self::certainString($articleBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundHttpException(
-                    'Bibliography with id "' . $articleBib->id . '" not found '
-                    . ' in entity with id "' . $entity->getId() . '".'
-                );
-            }
-        }
-        foreach ($bibliography->bookChapters as $bookChapterBib) {
-            if (!property_exists($bookChapterBib, 'id')) {
-                $this->container->get('bibliography_manager')->addBookChapterBibliography(
-                    $entity->getId(),
-                    $bookChapterBib->bookChapter->id,
-                    self::certainString($bookChapterBib, 'startPage'),
-                    self::certainString($bookChapterBib, 'endPage')
-                );
-            } elseif (in_array($bookChapterBib->id, $origBibIds)) {
-                $updateIds[] = $bookChapterBib->id;
-                $this->container->get('bibliography_manager')->updateBookChapterBibliography(
-                    $bookChapterBib->id,
-                    $bookChapterBib->bookChapter->id,
-                    self::certainString($bookChapterBib, 'startPage'),
-                    self::certainString($bookChapterBib, 'endPage'),
-                    self::certainString($bookChapterBib, 'rawPages')
-                );
-            } else {
-                throw new NotFoundHttpException(
-                    'Bibliography with id "' . $bookChapterBib->id . '" not found '
-                    . ' in entity with id "' . $entity->getId() . '".'
-                );
-            }
-        }
-        foreach ($bibliography->onlineSources as $onlineSourceBib) {
-            if (!property_exists($onlineSourceBib, 'id')) {
-                $this->container->get('bibliography_manager')->addOnlineSourceBibliography(
-                    $entity->getId(),
-                    $onlineSourceBib->onlineSource->id,
-                    self::certainString($onlineSourceBib, 'relUrl')
-                );
-            } elseif (in_array($onlineSourceBib->id, $origBibIds)) {
-                $updateIds[] = $onlineSourceBib->id;
-                $this->container->get('bibliography_manager')->updateOnlineSourceBibliography(
-                    $onlineSourceBib->id,
-                    $onlineSourceBib->onlineSource->id,
-                    self::certainString($onlineSourceBib, 'relUrl')
-                );
-            } else {
-                throw new NotFoundHttpException(
-                    'Bibliography with id "' . $onlineSourceBib->id . '" not found '
-                    . ' in entity with id "' . $entity->getId() . '".'
-                );
-            }
-        }
+
         // delete
         $delIds = [];
         foreach ($origBibIds as $origId) {
@@ -452,24 +405,8 @@ class EntityManager extends ObjectManager
             }
         }
         if (count($delIds) > 0) {
-            $this->container->get('bibliography_manager')->delBibliographies(
-                array_filter(
-                    $entity->getBibliographies(),
-                    function ($bibliography) use ($delIds) {
-                        return in_array($bibliography->getId(), $delIds);
-                    }
-                )
-            );
+            $this->container->get('bibliography_manager')->deleteMultiple($delIds);
         }
-    }
-
-    protected static function getIds(array $entities): array
-    {
-        $ids = [];
-        foreach ($entities as $entity) {
-            $ids[] = $entity->getId();
-        }
-        return $ids;
     }
 
     private static function certainString(stdClass $object, string $property): string
