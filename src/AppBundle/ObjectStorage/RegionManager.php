@@ -24,7 +24,7 @@ class RegionManager extends ObjectManager
                 $rawRegions = $this->dbs->getRegionsByIds($ids);
                 $regions = $this->getWithData($rawRegions);
 
-                return $regionsWithParents;
+                return $regions;
             }
         );
     }
@@ -154,9 +154,9 @@ class RegionManager extends ObjectManager
         try {
             if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
-                && !(
-                    property_exists($data, 'parent')
-                    && !(
+                && (
+                    !property_exists($data, 'parent')
+                    || (
                         $data->parent == null
                         || (property_exists($data->parent, 'id') && is_numeric($data->parent->id))
                     )
@@ -205,17 +205,16 @@ class RegionManager extends ObjectManager
         return $newRegionWithParents;
     }
 
-    public function updateRegionWithParents(int $regionId, stdClass $data): RegionWithParents
+    public function updateRegionWithParents(int $id, stdClass $data): RegionWithParents
     {
-        // TODO: make sure if a parent changes, the child changes as well
         $this->dbs->beginTransaction();
         try {
-            $regionsWithParents = $this->getWithParents([$regionId]);
+            $regionsWithParents = $this->getWithParents([$id]);
             if (count($regionsWithParents) == 0) {
                 $this->dbs->rollBack();
-                throw new NotFoundHttpException('Region with id ' . $regionId .' not found.');
+                throw new NotFoundHttpException('Region with id ' . $id .' not found.');
             }
-            $regionWithParents = $regionsWithParents[$regionId];
+            $regionWithParents = $regionsWithParents[$id];
 
             // update region data
             $correct = false;
@@ -223,40 +222,43 @@ class RegionManager extends ObjectManager
                 && $data->parent == null
             ) {
                 $correct = true;
-                $this->dbs->updateParent($regionId, null);
+                $this->dbs->updateParent($id, null);
             }
             if (property_exists($data, 'parent')
                 && $data->parent != null
                 && property_exists($data->parent, 'id')
                 && is_numeric($data->parent->id)
-                && $data->parent->id != $regionId
+                // Prevent cycles
+                && $data->parent->id != $id
+                // Prevent cycles
+                && !in_array($data->parent->id, self::getUniqueIds($this->dbs->getChildIds($id), 'child_id'))
             ) {
                 $correct = true;
-                $this->dbs->updateParent($regionId, $data->parent->id);
+                $this->dbs->updateParent($id, $data->parent->id);
             }
             if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
             ) {
                 $correct = true;
-                $this->dbs->updateName($regionId, $data->individualName);
+                $this->dbs->updateName($id, $data->individualName);
             }
             if (property_exists($data, 'individualHistoricalName')
                 && is_string($data->individualHistoricalName)
             ) {
                 $correct = true;
-                $this->dbs->updateHistoricalName($regionId, $data->individualHistoricalName);
+                $this->dbs->updateHistoricalName($id, $data->individualHistoricalName);
             }
             if (property_exists($data, 'pleiades')
                 && is_numeric($data->pleiades)
             ) {
                 $correct = true;
-                $this->dbs->upsertPleiades($regionId, $data->pleiades);
+                $this->dbs->upsertPleiades($id, $data->pleiades);
             }
             if (property_exists($data, 'isCity')
                 && is_bool($data->isCity)
             ) {
                 $correct = true;
-                $this->dbs->updateIsCity($regionId, $data->isCity);
+                $this->dbs->updateIsCity($id, $data->isCity);
             }
 
             if (!$correct) {
@@ -264,15 +266,25 @@ class RegionManager extends ObjectManager
             }
 
             // load new region data
-            $this->deleteCache(Region::CACHENAME, $regionId);
-            $this->deleteCache(RegionWithParents::CACHENAME, $regionId);
-            $newRegionWithParents = $this->getWithParents([$regionId])[$regionId];
+            $this->deleteCache(Region::CACHENAME, $id);
+            $this->deleteCache(RegionWithParents::CACHENAME, $id);
+            $newRegionWithParents = $this->getWithParents([$id])[$id];
 
             $this->updateModified($regionWithParents, $newRegionWithParents);
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getRegionDependencies($regionId);
+            $manuscripts = $this->container->get('manuscript_manager')->getRegionDependenciesWithChildren($id, true);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
+
+            $officesWithParents = $this->container->get('office_manager')->getRegionDependenciesWithChildren($id);
+            $persons = [];
+            foreach ($officesWithParents as $officesWithParent) {
+                $persons += $this->container->get('person_manager')->getOfficeDependenciesWithChildren($officesWithParent->getId(), true);
+            }
+
+            // TODO: update Elastic persons
+            // $persons += $this->container->get('person_manager')->getRegionDependenciesWithChildren($id, true);
+            $this->container->get('person_manager')->elasticIndex($persons);
 
             // commit transaction
             $this->dbs->commit();
@@ -364,7 +376,6 @@ class RegionManager extends ObjectManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
             // Reset caches and elasticsearch
-            // TODO: double check with new caching
             $this->reset([$primaryId]);
             if (!empty($manuscripts)) {
                 $this->container->get('manuscript_manager')->reset(array_map(function ($manuscript) {
@@ -376,6 +387,7 @@ class RegionManager extends ObjectManager
                     return $institution->getId();
                 }, $institutions));
             }
+            // TODO: reset persons
             if (!empty($regions)) {
                 $this->reset(array_map(function ($region) {
                     return $region->getId();

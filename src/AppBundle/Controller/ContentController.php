@@ -31,7 +31,7 @@ class ContentController extends Controller
                 ->getContentsWithParentsByContent($id);
             return new JsonResponse(ArrayToJson::arrayToShortJson($contentsWithParents));
         }
-        throw new Exception('Not implemented.');
+        throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
     /**

@@ -149,7 +149,7 @@ class InstitutionManager extends ObjectManager
             $this->updateModified($institution, $newInstitution);
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getInstitutionDependencies($institutionId);
+            $manuscripts = $this->container->get('manuscript_manager')->getInstitutionDependencies($institutionId, true);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction

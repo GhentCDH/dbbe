@@ -305,7 +305,7 @@ class PersonController extends Controller
                     'person' => empty($id)
                         ? null
                         : $this->get('person_manager')->getFull($id)->getJson(),
-                    'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAllOffices()),
+                    'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))

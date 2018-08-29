@@ -22,23 +22,33 @@ class ObjectManager
     protected $container;
     protected $ess;
     protected $ts;
+    /**
+     * @var string
+     */
+    protected $entityType;
 
     public function __construct(
         DatabaseServiceInterface $databaseService,
         CacheItemPoolInterface $cacheItemPool,
         ContainerInterface $container,
         ElasticSearchServiceInterface $elasticSearchService = null,
-        TokenStorageInterface $tokenStorage = null
+        TokenStorageInterface $tokenStorage = null,
+        string $entityType = null
     ) {
         $this->dbs = $databaseService;
         $this->cache = new TagAwareAdapter($cacheItemPool);
         $this->container = $container;
         $this->ess = $elasticSearchService;
         $this->ts = $tokenStorage;
+        $this->entityType = $entityType;
     }
 
     protected function getDependencies(array $rawIds, bool $short = false): array
     {
+        if (method_exists($this, 'get')) {
+            return $this->get(self::getUniqueIds($rawIds, $this->entityType . '_id'));
+        }
+
         if ($short) {
             return $this->getShort(self::getUniqueIds($rawIds, $this->entityType . '_id'));
         }
@@ -55,7 +65,6 @@ class ObjectManager
 
     protected function setArrayCache(array $items, string $cacheKey, array $tags): void
     {
-        // var_dump($cacheKey);
         $cache = $this->cache->getItem($cacheKey);
         $cache->tag($tags);
         $this->cache->save($cache->set($this->createCache($items)));
@@ -87,13 +96,6 @@ class ObjectManager
             return $this->linkCache($item);
         }
         if (is_array($item)) {
-            // var_dump($item);
-            // var_dump(array_map(
-            //     function ($element) {
-            //         return $this->createCache($element);
-            //     },
-            //     $item
-            // ));
             return array_map(
                 function ($element) {
                     return $this->createCache($element);
@@ -193,6 +195,9 @@ class ObjectManager
                     break;
                 case 'content_with_parents':
                     return $this->container->get('content_manager')->getWithParents([$matches[3]])[$matches[3]];
+                    break;
+                case 'office_with_parents':
+                    return $this->container->get('office_manager')->getWithParents([$matches[3]])[$matches[3]];
                     break;
                 case 'region_with_parents':
                     return $this->container->get('region_manager')->getWithParents([$matches[3]])[$matches[3]];

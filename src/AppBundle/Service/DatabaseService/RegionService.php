@@ -17,6 +17,37 @@ class RegionService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * Get the ids of all childs of a specific region
+     * @param  int $id
+     * @return array
+     */
+
+    public function getChildIds(int $id): array
+    {
+        return $this->conn->executeQuery(
+            'WITH RECURSIVE rec (id, idparent) AS (
+                SELECT
+                    r.identity,
+                    r.parent_idregion
+                FROM data.region r
+
+                UNION ALL
+
+                SELECT
+                    rec.id,
+                    r.parent_idregion
+                FROM rec
+                INNER JOIN data.region r
+                ON r.identity = rec.idparent
+            )
+            SELECT id as child_id
+            FROM rec
+            WHERE rec.idparent = ?',
+            [$id]
+        )->fetchAll();
+    }
+
     public function getRegionsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -25,7 +56,7 @@ class RegionService extends DatabaseService
                 region.name,
                 region.historical_name,
                 region.is_city,
-                global_id.identifier
+                p.identifier as pleiades_id
             from data.region
             left join (
                 select global_id.idsubject, global_id.identifier
@@ -33,7 +64,8 @@ class RegionService extends DatabaseService
                 inner join data.institution
                 on global_id.idauthority = institution.identity
                 and institution.name = \'Pleiades\'
-            ) as p on region.identity = p.idsubject',
+            ) as p on region.identity = p.idsubject
+            where region.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

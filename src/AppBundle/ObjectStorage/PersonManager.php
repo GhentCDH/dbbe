@@ -90,10 +90,10 @@ class PersonManager extends EntityManager
                 $offices = [];
                 if (count($rawOffices) > 0) {
                     $officeIds = self::getUniqueIds($rawOffices, 'office_id');
-                    $offices = $this->container->get('office_manager')->get($officeIds);
+                    $officesWithParents = $this->container->get('office_manager')->getWithParents($officeIds);
 
                     foreach ($rawOffices as $rawOffice) {
-                        $persons[$rawOffice['person_id']]->addOffice($offices[$rawOffice['office_id']]);
+                        $persons[$rawOffice['person_id']]->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
                     }
                 }
 
@@ -164,9 +164,14 @@ class PersonManager extends EntityManager
         return parent::getAllShort($sortFunction == null ? 'getName' : $sortFunction);
     }
 
-    public function getOfficeDependencies(int $officeId): array
+    public function getOfficeDependencies(int $officeId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId));
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), $short);
+    }
+
+    public function getOfficeDependenciesWithChildren(int $officeId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeIdWithChildren($officeId), $short);
     }
 
     public function getAllHistoricalPersons(): array
@@ -327,11 +332,11 @@ class PersonManager extends EntityManager
 
             if ($cacheReload['mini']) {
                 // update Elastic manuscripts
-                $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($id);
+                $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($id, true);
                 $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
                 // update Elastic occurrences
-                $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($id);
+                $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($id, true);
                 $this->container->get('occurrence_manager')->elasticIndex($occurrences);
             }
 
@@ -384,8 +389,8 @@ class PersonManager extends EntityManager
                 $updates[$identifier->getSystemName()] = implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()]->getIdentifications());
             }
         }
-        if (empty($primary->getOffices()) && !empty($secondary->getOffices())) {
-            $updates['offices'] = $secondary->getOffices();
+        if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
+            $updates['offices'] = $secondary->getOfficesWithParents();
         }
         if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
             $updates['publicComment'] = $secondary->getPublicComment();
@@ -507,7 +512,7 @@ class PersonManager extends EntityManager
                 throw new BadRequestHttpException('Incorrect offices data.');
             }
         }
-        list($delIds, $addIds) = self::calcDiff($offices, $person->getOffices());
+        list($delIds, $addIds) = self::calcDiff($offices, $person->getOfficesWithParents());
 
         if (count($delIds) > 0) {
             $this->dbs->delOffices($person->getId(), $delIds);

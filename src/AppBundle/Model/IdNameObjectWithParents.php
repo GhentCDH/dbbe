@@ -2,13 +2,23 @@
 
 namespace AppBundle\Model;
 
+use ReflectionClass;
+
 class IdNameObjectWithParents implements IdJsonInterface
 {
+    use CacheLinkTrait;
+    use CacheObjectTrait;
+
     protected $array;
 
     public function __construct(array $array)
     {
         $this->array = $array;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName();
     }
 
     public function getId(): int
@@ -19,13 +29,13 @@ class IdNameObjectWithParents implements IdJsonInterface
     public function getName(): string
     {
         $names = [];
-        foreach ($this->array as $content) {
-            $names[] = $content->getName();
+        foreach ($this->array as $idNameObject) {
+            $names[] = $idNameObject->getName();
         }
         return implode(' > ', $names);
     }
 
-    public function getIndividualName(): string
+    public function getIndividualName(): ?string
     {
         return $this->getLastChild()->getName();
     }
@@ -97,5 +107,16 @@ class IdNameObjectWithParents implements IdJsonInterface
         $child = end($this->array);
         reset($this->array);
         return $child;
+    }
+
+    public static function unlinkCache(array $data)
+    {
+        $idNameObjectWithParents = (new ReflectionClass(static::class))->newInstance($data['array']);
+
+        foreach ($data as $key => $value) {
+            $idNameObjectWithParents->set($key, $value);
+        }
+
+        return $idNameObjectWithParents;
     }
 }

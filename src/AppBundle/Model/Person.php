@@ -16,7 +16,7 @@ class Person extends Entity implements SubjectInterface
     protected $unprocessed;
     protected $bornDate;
     protected $deathDate;
-    protected $offices;
+    protected $officesWithParents;
     protected $historical;
     protected $modern;
     protected $roles;
@@ -156,23 +156,23 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
-    public function setOffices(array $offices): Person
+    public function setOfficesWithParents(array $officesWithParents): Person
     {
-        $this->offices = $offices;
+        $this->$officesWithParents = $officesWithParents;
 
         return $this;
     }
 
-    public function addOffice(Office $office): Person
+    public function addOfficeWithParents(OfficeWithParents $officeWithParents): Person
     {
-        $this->offices[$office->getId()] = $office;
+        $this->officesWithParents[$officeWithParents->getId()] = $officeWithParents;
 
         return $this;
     }
 
-    public function getOffices(): array
+    public function getOfficesWithParents(): array
     {
-        return $this->offices;
+        return $this->officesWithParents;
     }
 
     public function setHistorical(bool $historical = null): Person
@@ -414,8 +414,8 @@ class Person extends Entity implements SubjectInterface
     {
         $description = $this->getFullDescription();
 
-        if (!empty($this->offices)) {
-            $description .= ' (' . implode(', ', $this->offices) . ')';
+        if (!empty($this->officesWithParents)) {
+            $description .= ' (' . implode(', ', $this->officesWithParents) . ')';
         }
 
         return $description;
@@ -474,8 +474,8 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
         }
-        if (!empty($this->offices)) {
-            $result['office'] = ArrayToJson::arrayToShortJson($this->offices);
+        if (!empty($this->officesWithParents)) {
+            $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
         }
 
         return $result;
@@ -504,8 +504,8 @@ class Person extends Entity implements SubjectInterface
         if (!empty($this->roles)) {
             $result['role'] = ArrayToJson::arrayToShortJson($this->roles);
         }
-        if (!empty($this->offices)) {
-            $result['office'] = ArrayToJson::arrayToShortJson($this->offices);
+        if (!empty($this->officesWithParents)) {
+            $result['office'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
         }
 
         return $result;

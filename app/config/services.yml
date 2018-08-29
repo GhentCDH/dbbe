@@ -135,7 +135,7 @@ services:
 
     office_manager:
         class: AppBundle\ObjectStorage\OfficeManager
-        arguments: ['@office_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        arguments: ['@office_service', '@cache.app', '@service_container', null, '@security.token_storage', 'office']
         public: true
 
     identifier_manager:

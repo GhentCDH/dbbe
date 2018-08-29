@@ -6,17 +6,19 @@
                 @dismiss="alerts.splice($event, 1)" />
             <panel header="Edit offices">
                 <editListRow
-                    :schema="officeSchema"
+                    :schema="schema"
                     :model="model"
-                    name="origin"
+                    name="office"
                     :conditions="{
                         add: true,
                         edit: model.office,
+                        merge: model.office,
                         del: model.office,
                     }"
-                    @add="editOffice(true)"
-                    @edit="editOffice()"
-                    @del="delOffice()" />
+                    @add="edit(true)"
+                    @edit="edit()"
+                    @merge="merge()"
+                    @del="del()" />
             </panel>
             <div
                 class="loading-overlay"
@@ -26,14 +28,43 @@
         </article>
         <editModal
             :show="editModal"
-            :schema="editOfficeSchema"
+            :schema="editSchema"
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :alerts="editAlerts"
             @cancel="cancelEdit()"
             @reset="resetEdit()"
             @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)" />
+            @dismiss-alert="editAlerts.splice($event, 1)"
+            ref="edit" />
+        <mergeModal
+            :show="mergeModal"
+            :schema="mergeSchema"
+            :merge-model="mergeModel"
+            :original-merge-model="originalMergeModel"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
+            @reset="resetMerge()"
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)">
+            <table
+                v-if="mergeModel.primary && mergeModel.secondary"
+                slot="preview"
+                class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ mergeModel.primary.name || mergeModel.secondary.name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </mergeModal>
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -57,24 +88,39 @@ export default {
         AbstractListEdit,
     ],
     data() {
+        let data = JSON.parse(this.initData)
         return {
-            officeSchema: {
+            values: data.offices,
+            regions: data.regions,
+            schema: {
                 fields: {
-                    // TODO: Select a office -> select an office
                     office: this.createMultiSelect('Office'),
                 },
             },
-            editOfficeSchema: {
+            editSchema: {
                 fields: {
-                    name: {
+                    individualName: {
                         type: 'input',
                         inputType: 'text',
                         label: 'Office name',
                         labelClasses: 'control-label',
-                        model: 'office.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
+                        model: 'office.individualName',
+                        validator: [VueFormGenerator.validators.string, this.nameOrRegionWithParents, this.uniqueName],
                     },
+                    individualRegionWithParents: this.createMultiSelect(
+                        'Region',
+                        {
+                            model: 'office.individualRegionWithParents',
+                            validator: [this.nameOrRegionWithParents, this.uniqueRegionWithParents]
+                        }
+                    ),
+                    parent: this.createMultiSelect('Parent', {model: 'office.parent'}),
+                },
+            },
+            mergeSchema: {
+                fields: {
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -84,11 +130,19 @@ export default {
                 type: 'office',
                 office: null,
             },
+            mergeModel: {
+                type: 'offices',
+                primary: null,
+                secondary: null,
+            },
         }
     },
     computed: {
         depUrls: function() {
             return {
+                'Offices': {
+                    depUrl: this.urls['office_deps_by_office'].replace('office_id', this.submitModel.office.id),
+                },
                 'Persons': {
                     depUrl: this.urls['person_deps_by_office'].replace('office_id', this.submitModel.office.id),
                     url: this.urls['person_get'],
@@ -97,12 +151,20 @@ export default {
             }
         },
     },
+    watch: {
+        'model.office'() {
+            // set full parent, so the name can be formatted correctly
+            if (this.model.office != null && this.model.office.parent != null) {
+                this.model.office.parent = this.values.filter((officeWithParents) => officeWithParents.id === this.model.office.parent.id)[0]
+            }
+        },
+    },
     mounted () {
-        this.officeSchema.fields.office.values = this.values
-        this.enableField(this.officeSchema.fields.office)
+        this.schema.fields.office.values = this.values
+        this.enableField(this.schema.fields.office)
     },
     methods: {
-        editOffice(add = false) {
+        edit(add = false) {
             // TODO: check if name already exists
             this.submitModel = {
                 type: 'office',
@@ -110,17 +172,34 @@ export default {
             }
             if (add) {
                 this.submitModel.office =  {
-                    name: null,
+                    id: null,
+                    individualName: null,
+                    individualRegionWithParents: null,
+                    parent: this.model.office,
                 }
             }
             else {
-                this.submitModel.office = this.model.office
+                this.submitModel.office = JSON.parse(JSON.stringify(this.model.office))
             }
+            this.editSchema.fields.individualRegionWithParents.values = this.regions
+            this.enableField(this.editSchema.fields.individualRegionWithParents)
+            this.editSchema.fields.parent.values = this.values
+                .filter((office) => !this.isOrIsChild(office, this.model.office)) // Remove values that create cycles
+            this.enableField(this.editSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
-        // TODO: merge
-        delOffice() {
+        merge() {
+            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.office))
+            this.mergeModel.secondary = null
+            this.mergeSchema.fields.primary.values = this.values
+            this.mergeSchema.fields.secondary.values = this.values
+            this.enableField(this.mergeSchema.fields.primary)
+            this.enableField(this.mergeSchema.fields.secondary)
+            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
+            this.mergeModal = true
+        },
+        del() {
             this.submitModel.office = JSON.parse(JSON.stringify(this.model.office))
             this.deleteDependencies()
         },
@@ -129,7 +208,13 @@ export default {
             this.openRequests++
             if (this.submitModel.office.id == null) {
                 axios.post(this.urls['office_post'], {
-                    name: this.submitModel.office.name
+                    parent: this.submitModel.office.parent == null ? null : {
+                        id: this.submitModel.office.parent.id,
+                    },
+                    individualName: this.submitModel.office.individualName,
+                    individualRegionWithParents: this.submitModel.office.individualRegionWithParents == null ? null : {
+                        id: this.submitModel.office.individualRegionWithParents.id,
+                    },
                 })
                     .then( (response) => {
                         this.submitModel.office = response.data
@@ -146,9 +231,31 @@ export default {
                     })
             }
             else {
-                axios.put(this.urls['office_put'].replace('office_id', this.submitModel.office.id), {
-                    name: this.submitModel.office.name,
-                })
+                let data = {}
+                if (JSON.stringify(this.submitModel.office.parent) !== JSON.stringify(this.originalSubmitModel.office.parent)) {
+                    if (this.submitModel.office.parent == null) {
+                        data.parent = null
+                    }
+                    else {
+                        data.parent = {
+                            id: this.submitModel.office.parent.id
+                        }
+                    }
+                }
+                if (this.submitModel.office.individualName !== this.originalSubmitModel.office.individualName) {
+                    data.individualName = this.submitModel.office.individualName
+                }
+                if (JSON.stringify(this.submitModel.office.individualRegionWithParents) !== JSON.stringify(this.originalSubmitModel.office.individualRegionWithParents)) {
+                    if (this.submitModel.office.individualRegionWithParents == null) {
+                        data.individualRegionWithParents = null
+                    }
+                    else {
+                        data.individualRegionWithParents = {
+                            id: this.submitModel.office.individualRegionWithParents.id
+                        }
+                    }
+                }
+                axios.put(this.urls['office_put'].replace('office_id', this.submitModel.office.id), data)
                     .then( (response) => {
                         this.submitModel.office = response.data
                         this.update()
@@ -163,6 +270,24 @@ export default {
                         console.log(error)
                     })
             }
+        },
+        submitMerge() {
+            this.mergeModal = false
+            this.openRequests++
+            axios.put(this.urls['office_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
+                .then( (response) => {
+                    this.submitModel.office = response.data
+                    this.update()
+                    this.mergeAlerts = []
+                    this.alerts.push({type: 'success', message: 'Merge successful.'})
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.mergeModal = true
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the office.', login: this.isLoginError(error)})
+                    console.log(error)
+                })
         },
         submitDelete() {
             this.deleteModal = false
@@ -187,7 +312,7 @@ export default {
             axios.get(this.urls['offices_get'])
                 .then( (response) => {
                     this.values = response.data
-                    this.officeSchema.fields.office.values = this.values
+                    this.schema.fields.office.values = this.values
                     this.model.office = JSON.parse(JSON.stringify(this.submitModel.office))
                     this.openRequests--
                 })
@@ -196,6 +321,54 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something went wrong while renewing the office data.', login: this.isLoginError(error)})
                     console.log(error)
                 })
+        },
+        nameOrRegionWithParents(value, field, model) {
+            if (!model.revalidate) {
+                this.$refs.edit.revalidate()
+            }
+            if (
+                ((model.office.individualName == null || model.office.individualName === '') && model.office.individualRegionWithParents == null)
+                || ((model.office.individualName !== null && model.office.individualName !== '') && model.office.individualRegionWithParents != null)
+            ) {
+                return ['Exactly one of the fields "Office Name", "Region" is required.']
+            }
+            return []
+        },
+        uniqueName(value, field, model) {
+            if (value == null) {
+                return []
+            }
+
+            let id = model.office.id
+            let name = value
+            if (model.office.parent != null) {
+                name = model.office.parent.name + ' > ' + name
+            }
+
+            // Check if there is any other value (different id) with the same name
+            if (this.values.filter((value) => value.id !== id && value.name === name).length > 0) {
+                return ['An office with this name already exists.']
+            }
+
+            return []
+        },
+        uniqueRegionWithParents(value, field, model) {
+            if (value == null) {
+                return []
+            }
+
+            let id = model.office.id
+            let name = 'of ' + value.name
+            if (model.office.parent != null) {
+                name = model.office.parent.name + ' > ' + name
+            }
+
+            // Check if there is any other value (different id) with the same constructed name
+            if (this.values.filter((value) => value.id !== id && value.name === name).length > 0) {
+                return ['An office with this region already exists.']
+            }
+
+            return []
         },
     }
 }

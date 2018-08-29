@@ -50,6 +50,39 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByOfficeIdWithChildren(int $officeId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person_occupation.idperson as person_id
+            from data.person_occupation
+            where person_occupation.idoccupation in (
+                WITH RECURSIVE rec (id, idparent) AS (
+                    SELECT
+                        o.idoccupation,
+                        o.idparentoccupation
+                    FROM data.occupation as o
+
+                    UNION ALL
+
+                    SELECT
+                        rec.id,
+                        o.idparentoccupation
+                    FROM rec
+                    INNER JOIN data.occupation o
+                    ON o.idoccupation = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idparent = ? or rec.id = ?
+            )',
+            [
+                $officeId,
+                $officeId,
+            ]
+        )->fetchAll();
+    }
+
     public function getBasicInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(

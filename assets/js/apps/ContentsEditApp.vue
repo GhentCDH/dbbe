@@ -134,13 +134,13 @@ export default {
     computed: {
         depUrls: function () {
             return {
+                'Contents': {
+                    depUrl: this.urls['contents_by_content'].replace('content_id', this.submitModel.content.id),
+                },
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_content'].replace('content_id', this.submitModel.content.id),
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
-                },
-                'Contents': {
-                    depUrl: this.urls['contents_by_content'].replace('content_id', this.submitModel.content.id),
                 },
             }
         },
@@ -172,7 +172,7 @@ export default {
                 this.submitModel.content = JSON.parse(JSON.stringify(this.model.content))
             }
             this.editContentSchema.fields.parent.values = this.values
-                .filter(content => content.id != this.submitModel.content.id) // Remove current content
+                .filter((content) => !this.isOrIsChild(content, this.model.content)) // Remove values that create cycles
             this.enableField(this.editContentSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true

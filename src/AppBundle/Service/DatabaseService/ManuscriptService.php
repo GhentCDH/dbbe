@@ -19,6 +19,11 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    /**
+     * Get all manuscripts that are dependent on a specific region
+     * @param  int   $regionId
+     * @return array
+     */
     public function getDepIdsByRegionId(int $regionId): array
     {
         return $this->conn->executeQuery(
@@ -46,8 +51,68 @@ class ManuscriptService extends DocumentService
                 left join data.institution on location.idinstitution = institution.identity
                 inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
             ) as manreg
-            where manreg.region_id = ?',
+            where manreg.region_id = ?
+            )',
             [$regionId]
+        )->fetchAll();
+    }
+
+    /**
+     * Get all manuscripts that are dependent on a specific region or one of its children
+     * @param  int   $regionId
+     * @return array
+     */
+    public function getDepIdsByRegionIdWithChildren(int $regionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manreg.manuscript_id
+            from (
+                select
+                    manuscript.identity as manuscript_id,
+                    region.identity as region_id
+                from data.manuscript
+                inner join data.located_at on manuscript.identity = located_at.iddocument
+                inner join data.location on located_at.idlocation = location.idlocation
+                left join data.fund on location.idfund = fund.idfund
+                left join data.institution on coalesce(location.idinstitution, fund.idlibrary) = institution.identity
+                inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
+
+                union
+
+                select
+                    manuscript.identity as manuscript_id,
+                    region.identity as region_id
+                from data.manuscript
+                inner join data.factoid on manuscript.identity = factoid.subject_identity
+                inner join data.location on factoid.idlocation = location.idlocation
+                left join data.institution on location.idinstitution = institution.identity
+                inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
+            ) as manreg
+            where manreg.region_id in (
+                WITH RECURSIVE rec (id, idparent) AS (
+                    SELECT
+                        r.identity,
+                        r.parent_idregion
+                    FROM data.region r
+
+                    UNION ALL
+
+                    SELECT
+                        rec.id,
+                        r.parent_idregion
+                    FROM rec
+                    INNER JOIN data.region r
+                    ON r.identity = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idparent = ? or rec.id = ?
+            )',
+            [
+                $regionId,
+                $regionId,
+            ]
         )->fetchAll();
     }
 
@@ -108,6 +173,11 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    /**
+     * Get all manuscripts that are dependent on a specific content
+     * @param  int   $contentId
+     * @return array
+     */
     public function getDepIdsByContentId(int $contentId): array
     {
         return $this->conn->executeQuery(
@@ -115,8 +185,48 @@ class ManuscriptService extends DocumentService
                 manuscript.identity as manuscript_id
             from data.manuscript
             inner join data.document_genre on manuscript.identity = document_genre.iddocument
-            where document_genre.idgenre = ?',
+            where document_genre.idgenre = ?
+            )',
             [$contentId]
+        )->fetchAll();
+    }
+
+    /**
+     * Get all manuscripts that are dependent on a specific content or one of its children
+     * @param  int   $contentId
+     * @return array
+     */
+    public function getDepIdsByContentIdWithChildren(int $contentId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.document_genre on manuscript.identity = document_genre.iddocument
+            where document_genre.idgenre in (
+                WITH RECURSIVE rec (id, idparent) AS (
+                    SELECT
+                        g.idgenre,
+                        g.idparentgenre
+                    FROM data.genre g
+
+                    UNION ALL
+
+                    SELECT
+                        rec.id,
+                        g.idparentgenre
+                    FROM rec
+                    INNER JOIN data.genre g
+                    ON g.idgenre = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idparent = ? or rec.id = ?
+            )',
+            [
+                $contentId,
+                $contentId,
+            ]
         )->fetchAll();
     }
 

@@ -88,7 +88,12 @@ export default {
             if (this.$refs.edit.validate()) {
                 this.$emit('confirm')
             }
-        }
+        },
+        revalidate() {
+            this.submitModel.revalidate = true
+            this.$refs.edit.validate()
+            this.submitModel.revalidate = false
+        },
     }
 }
 </script>

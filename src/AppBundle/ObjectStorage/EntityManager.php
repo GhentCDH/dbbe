@@ -4,40 +4,16 @@ namespace AppBundle\ObjectStorage;
 
 use Exception;
 use stdClass;
-
-use Psr\Cache\CacheItemPoolInterface;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use AppBundle\Model\Entity;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Identification;
 use AppBundle\Model\Identifier;
-use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
-use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
 
 class EntityManager extends ObjectManager
 {
-    /**
-     * @var string
-     */
-    protected $entityType;
-
-    public function __construct(
-        DatabaseServiceInterface $databaseService,
-        CacheItemPoolInterface $cacheItemPool,
-        ContainerInterface $container,
-        ElasticSearchServiceInterface $elasticSearchService = null,
-        TokenStorageInterface $tokenStorage = null,
-        string $entityType
-    ) {
-        parent::__construct($databaseService, $cacheItemPool, $container, $elasticSearchService, $tokenStorage);
-        $this->entityType = $entityType;
-    }
-
     public function getAll(string $sortFunction = null): array
     {
         return $this->getAllCombined('all', $sortFunction);
@@ -182,17 +158,11 @@ class EntityManager extends ObjectManager
 
     /**
      * (Re-)index elasticsearch
-     * @param array $miniEntities
+     * @param array $shortEntities
      */
-    public function elasticIndex(array $miniEntities): void
+    public function elasticIndex(array $shortEntities): void
     {
-        $entityIds = array_map(
-            function ($miniEntity) {
-                return $miniEntity->getId();
-            },
-            $miniEntities
-        );
-        $this->elasticIndexByIds($entityIds);
+        $this->ess->addMultiple($shortEntities);
     }
 
     /**

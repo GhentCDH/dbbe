@@ -209,6 +209,10 @@ export default {
                 'Institutions': {
                     depUrl: this.urls['institutions_by_region'].replace('region_id', this.submitModel.region.id),
                 },
+                'Offices': {
+                    depUrl: this.urls['office_deps_by_region'].replace('region_id', this.submitModel.region.id),
+                },
+                // TODO: persons
                 'Regions': {
                     depUrl: this.urls['regions_by_region'].replace('region_id', this.submitModel.region.id),
                 },
@@ -262,7 +266,7 @@ export default {
                 this.submitModel.region = JSON.parse(JSON.stringify(this.model.region))
             }
             this.editRegionSchema.fields.parent.values = this.values
-                .filter(region => region.id != this.submitModel.region.id) // Remove current region
+                .filter((region) => !this.isOrIsChild(region, this.model.region)) // Remove values that create cycles
             this.enableField(this.editRegionSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true

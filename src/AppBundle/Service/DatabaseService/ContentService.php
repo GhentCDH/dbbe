@@ -18,6 +18,50 @@ class ContentService extends DatabaseService
         )->fetchAll();
     }
 
+    /**
+     * Get the ids of all childs of a specific content
+     * @param  int $id
+     * @return array
+     */
+
+    public function getChildIds(int $id): array
+    {
+        return $this->conn->executeQuery(
+            'WITH RECURSIVE rec (id, idparent) AS (
+                SELECT
+                    g.idgenre,
+                    g.idparentgenre
+                FROM data.genre g
+
+                UNION ALL
+
+                SELECT
+                    rec.id,
+                    g.idparentgenre
+                FROM rec
+                INNER JOIN data.genre g
+                ON g.idgenre = rec.idparent
+            )
+            SELECT id as child_id
+            FROM rec
+            WHERE rec.idparent = ?',
+            [$id]
+        )->fetchAll();
+    }
+
+    public function getContentsByIds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                genre.identity as content_id,
+                genre.name
+            from data.genre
+            where genre.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getContentsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -47,7 +91,7 @@ class ContentService extends DatabaseService
             	ON r.idgenre = g.idparentgenre
             )
             SELECT r.idgenre, ids, names
-	        FROM rec r
+            FROM rec r
             INNER JOIN (
             	SELECT idgenre, MAX(depth) AS maxdepth
             	FROM rec
@@ -60,7 +104,7 @@ class ContentService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getContentsByContent(int $contentId): array
+    public function getContentsByContentId(int $contentId): array
     {
         return $this->conn->executeQuery(
             'SELECT

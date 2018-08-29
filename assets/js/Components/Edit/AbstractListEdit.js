@@ -114,5 +114,17 @@ export default {
         isLoginError(error) {
             return error.message === 'Network Error'
         },
+        isOrIsChild(valueFromList, value) {
+            if (value == null) {
+                return false
+            }
+            if (valueFromList.id === value.id) {
+                return true
+            }
+            if (valueFromList.parent != null) {
+                return (this.isOrIsChild(this.values.filter((value) => value.id === valueFromList.parent.id)[0], value))
+            }
+            return false
+        },
     },
 }

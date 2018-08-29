@@ -83,7 +83,6 @@ class BasicController extends Controller
         return new JsonResponse(ArrayToJson::arrayToShortJson($objects));
     }
 
-
     /**
      * @param Request $request
      * @return JsonResponse
@@ -104,6 +103,30 @@ class BasicController extends Controller
             );
         }
 
+        return new JsonResponse($object->getJson());
+    }
+
+    /**
+     * @param  int    $primaryId   first object id (will stay)
+     * @param  int    $secondaryId second object id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        try {
+            $object = $this
+                ->get(static::MANAGER)
+                ->merge($primaryId, $secondaryId);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        }
         return new JsonResponse($object->getJson());
     }
 

@@ -182,24 +182,34 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short);
     }
 
-    public function getInstitutionDependencies(int $institutionId): array
+    public function getRegionDependenciesWithChildren(int $regionId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByInstitutionId($institutionId));
+        return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId), $short);
     }
 
-    public function getCollectionDependencies(int $collectionId): array
+    public function getInstitutionDependencies(int $institutionId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByCollectionId($collectionId));
+        return $this->getDependencies($this->dbs->getDepIdsByInstitutionId($institutionId), $short);
     }
 
-    public function getContentDependencies(int $contentId): array
+    public function getCollectionDependencies(int $collectionId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId));
+        return $this->getDependencies($this->dbs->getDepIdsByCollectionId($collectionId), $short);
     }
 
-    public function getStatusDependencies(int $statusId): array
+    public function getContentDependencies(int $contentId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId));
+        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId), $short);
+    }
+
+    public function getContentDependenciesWithChildren(int $contentId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByContentIdWithChildren($contentId), $short);
+    }
+
+    public function getStatusDependencies(int $statusId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId), $short);
     }
 
     public function getPersonDependencies(int $personId, bool $short = false): array
@@ -207,34 +217,34 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short);
     }
 
-    public function getRoleDependencies(int $roleId): array
+    public function getRoleDependencies(int $roleId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId));
+        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $short);
     }
 
-    public function getOccurrenceDependencies(int $occurrenceId): array
+    public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId));
+        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short);
     }
 
-    public function getArticleDependencies(int $articleId): array
+    public function getArticleDependencies(int $articleId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId));
+        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $short);
     }
 
-    public function getBookDependencies(int $bookId): array
+    public function getBookDependencies(int $bookId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId));
+        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $short);
     }
 
-    public function getBookChapterDependencies(int $bookChapterId): array
+    public function getBookChapterDependencies(int $bookChapterId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId));
+        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId), $short);
     }
 
-    public function getOnlineSourceDependencies(int $onlineSourceId): array
+    public function getOnlineSourceDependencies(int $onlineSourceId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId));
+        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $short);
     }
 
     public function add(stdClass $data): Manuscript
@@ -368,7 +378,7 @@ class ManuscriptManager extends DocumentManager
 
             // update Elastic occurrences
             if ($cacheReload['mini']) {
-                $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id);
+                $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id, true);
                 $this->container->get('occurrence_manager')->elasticIndex($occurrences);
             }
 

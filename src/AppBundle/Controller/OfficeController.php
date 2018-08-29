@@ -4,34 +4,56 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class OfficeController extends Controller
+class OfficeController extends BasicController
 {
+    /**
+     * @var string
+     */
+    const MANAGER = 'office_manager';
+    /**
+     * @var string
+     */
+    const TEMPLATE_FOLDER = 'AppBundle:Office:';
+
     /**
      * @Route("/offices", name="offices_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function getOffices(Request $request)
+    public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        return parent::getAll($request);
+    }
 
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('office_manager')->getAllOffices()
-                )
-            );
-        }
-        throw new BadRequestHttpException('Only JSON requests allowed.');
+    /**
+     * Get all offices that have a dependency on an office
+     * (occupation ->idparentoccupation)
+     * @Route("/offices/offices/{id}", name="office_deps_by_office")
+     * @Method("GET")
+     * @param int     $id      office id
+     * @param Request $request
+     */
+    public function getDepsByOffice(int $id, Request $request)
+    {
+        $this->getDependencies($id, $request, 'getOfficeDependencies');
+    }
+
+    /**
+     * Get all offices that have a dependency on a region
+     * (occupation -> idregion)
+     * @Route("/offices/regions/{id}", name="office_deps_by_region")
+     * @Method("GET")
+     * @param  int    $id      region id
+     * @param Request $request
+     */
+    public function getDepsByRegion(int $id, Request $request)
+    {
+        $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**
@@ -39,27 +61,32 @@ class OfficeController extends Controller
      * @Method("GET")
      * @param Request $request
      */
-    public function editOffices(Request $request)
+    public function edit(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Office:edit.html.twig',
+            self::TEMPLATE_FOLDER . 'edit.html.twig',
             [
                 'urls' => json_encode([
                     'offices_get' => $this->generateUrl('offices_get'),
+                    'office_deps_by_office' => $this->generateUrl('office_deps_by_office', ['id' => 'office_id']),
                     'person_deps_by_office' => $this->generateUrl('person_deps_by_office', ['id' => 'office_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'office_post' => $this->generateUrl('office_post'),
+                    'office_merge' => $this->generateUrl('office_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
                     'office_put' => $this->generateUrl('office_put', ['id' => 'office_id']),
                     'office_delete' => $this->generateUrl('office_delete', ['id' => 'office_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
-                'offices' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('office_manager')->getAllOffices()
-                    )
-                ),
+                'data'=> json_encode([
+                    'offices' => ArrayToJson::arrayToJson(
+                        $this->get('office_manager')->getAll()
+                    ),
+                    'regions' => ArrayToJson::arrayToShortJson(
+                        $this->get('region_manager')->getAllRegionsWithParents()
+                    ),
+                ]),
             ]
         );
     }
@@ -70,22 +97,22 @@ class OfficeController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function postOffice(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        return parent::post($request);
+    }
 
-        try {
-            $office = $this
-                ->get('office_manager')
-                ->addOffice(json_decode($request->getContent()));
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse($office->getJson());
+    /**
+     * @Route("/offices/{primaryId}/{secondaryId}", name="office_merge")
+     * @Method("PUT")
+     * @param  int    $primaryId   first office id (will stay)
+     * @param  int    $secondaryId second office id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
@@ -95,55 +122,20 @@ class OfficeController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function putOffice(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $office = $this
-                ->get('office_manager')
-                ->updateOffice($id, json_decode($request->getContent()));
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse($office->getJson());
+        return parent::put($id, $request);
     }
 
     /**
      * @Route("/offices/{id}", name="office_delete")
      * @Method("DELETE")
      * @param  int    $id office id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteOffice(int $id)
+    public function delete(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $this
-                ->get('office_manager')
-                ->delOffice($id);
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return parent::delete($id);
     }
 }

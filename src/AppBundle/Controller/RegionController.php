@@ -69,6 +69,8 @@ class RegionController extends Controller
                     'manuscript_deps_by_region' => $this->generateUrl('manuscript_deps_by_region', ['id' => 'region_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'institutions_by_region' => $this->generateUrl('institutions_by_region', ['id' => 'region_id']),
+                    'office_deps_by_region' => $this->generateUrl('office_deps_by_region', ['id' => 'region_id']),
+                    // TODO: persons
                     'regions_by_region' => $this->generateUrl('regions_by_region', ['id' => 'region_id']),
                     'region_post' => $this->generateUrl('region_post'),
                     'region_merge' => $this->generateUrl('region_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),

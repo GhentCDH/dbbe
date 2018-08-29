@@ -16,7 +16,42 @@ use AppBundle\Model\ContentWithParents;
 
 class ContentManager extends ObjectManager
 {
-    // TODO: get for individual content
+    public function get(array $ids): array
+    {
+        return $this->wrapCache(
+            Content::CACHENAME,
+            $ids,
+            function ($ids) {
+                $contents = [];
+                $rawContents = $this->dbs->getContentsByIds($ids);
+                $contents = $this->getWithData($rawContents);
+
+                return $contents;
+            }
+        );
+    }
+
+    public function getWithData(array $data): array
+    {
+        return $this->wrapDataCache(
+            Content::CACHENAME,
+            $data,
+            'content_id',
+            function ($data) {
+                $contents = [];
+                foreach ($data as $rawContent) {
+                    if (isset($rawContent['content_id'])) {
+                        $contents[$rawContent['content_id']] = new Content(
+                            $rawContent['content_id'],
+                            $rawContent['name']
+                        );
+                    }
+                }
+
+                return $contents;
+            }
+        );
+    }
 
     public function getWithParents(array $ids)
     {
@@ -31,11 +66,22 @@ class ContentManager extends ObjectManager
                     $ids = explode(':', $rawContentWithParents['ids']);
                     $names = explode(':', $rawContentWithParents['names']);
 
-                    $contents = [];
+                    $rawContents = [];
                     foreach (array_keys($ids) as $key) {
-                        $contents[] = new Content($ids[$key], $names[$key]);
+                        $rawContents[] = [
+                            'content_id' => (int)$ids[$key],
+                            'name' => $names[$key],
+                        ];
                     }
-                    $contentWithParents = new ContentWithParents($contents);
+
+                    $contents = $this->getWithData($rawContents);
+
+                    $orderedContents = [];
+                    foreach ($ids as $id) {
+                        $orderedContents[] = $contents[(int)$id];
+                    }
+
+                    $contentWithParents = new ContentWithParents($orderedContents);
 
                     $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
                 }
@@ -67,7 +113,7 @@ class ContentManager extends ObjectManager
 
     public function getContentsWithParentsByContent(int $contentId): array
     {
-        $rawIds = $this->dbs->getContentsByContent($contentId);
+        $rawIds = $this->dbs->getContentsByContentId($contentId);
         $ids = self::getUniqueIds($rawIds, 'content_id');
         return $this->getWithParents($ids);
     }
@@ -78,15 +124,15 @@ class ContentManager extends ObjectManager
         try {
             if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
-                && !(
-                    property_exists($data, 'parent')
-                    && !(
+                && (
+                    !property_exists($data, 'parent')
+                    || (
                         $data->parent == null
                         || (property_exists($data->parent, 'id') && is_numeric($data->parent->id))
                     )
                 )
             ) {
-                $contentId = $this->dbs->insert(
+                $id = $this->dbs->insert(
                     (property_exists($data, 'parent') && $data->parent != null) ? $data->parent->id : null,
                     $data->individualName
                 );
@@ -95,9 +141,9 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $newContentWithParents = $this->getWithParents([$contentId])[$contentId];
+            $new = $this->getWithParents([$id])[$id];
 
-            $this->updateModified(null, $newContentWithParents);
+            $this->updateModified(null, $new);
 
             // update cache
             $this->cache->invalidateTags(['contents']);
@@ -109,20 +155,19 @@ class ContentManager extends ObjectManager
             throw $e;
         }
 
-        return $newContentWithParents;
+        return $new;
     }
 
-    public function updateContentWithParents(int $contentId, stdClass $data): ContentWithParents
+    public function updateContentWithParents(int $id, stdClass $data): ContentWithParents
     {
-        // TODO: make sure if a parent changes, the child changes as well
         $this->dbs->beginTransaction();
         try {
-            $contentsWithParents = $this->getWithParents([$contentId]);
+            $contentsWithParents = $this->getWithParents([$id]);
             if (count($contentsWithParents) == 0) {
                 $this->dbs->rollBack();
-                throw new NotFoundHttpException('Content with id ' . $contentId .' not found.');
+                throw new NotFoundHttpException('Content with id ' . $id .' not found.');
             }
-            $contentWithParents = $contentsWithParents[$contentId];
+            $old = $contentsWithParents[$id];
 
             // update content data
             $correct = false;
@@ -130,22 +175,25 @@ class ContentManager extends ObjectManager
                 && $data->parent == null
             ) {
                 $correct = true;
-                $this->dbs->updateParent($contentId, null);
+                $this->dbs->updateParent($id, null);
             }
             if (property_exists($data, 'parent')
                 && $data->parent != null
                 && property_exists($data->parent, 'id')
                 && is_numeric($data->parent->id)
-                && $data->parent->id != $contentId
+                // Prevent cycles
+                && $data->parent->id != $id
+                // Prevent cycles
+                && !in_array($data->parent->id, self::getUniqueIds($this->dbs->getChildIds($id), 'child_id'))
             ) {
                 $correct = true;
-                $this->dbs->updateParent($contentId, $data->parent->id);
+                $this->dbs->updateParent($id, $data->parent->id);
             }
             if (property_exists($data, 'individualName')
                 && is_string($data->individualName)
             ) {
                 $correct = true;
-                $this->dbs->updateName($contentId, $data->individualName);
+                $this->dbs->updateName($id, $data->individualName);
             }
 
             if (!$correct) {
@@ -153,13 +201,14 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
-            $newContentWithParents = $this->getWithParents([$contentId])[$contentId];
+            $this->deleteCache(Content::CACHENAME, $id);
+            $this->deleteCache(ContentWithParents::CACHENAME, $id);
+            $new = $this->getWithParents([$id])[$id];
 
-            $this->updateModified($contentWithParents, $newContentWithParents);
+            $this->updateModified($old, $new);
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($contentId);
+            $manuscripts = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($id, true);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
             // commit transaction
@@ -169,12 +218,11 @@ class ContentManager extends ObjectManager
             throw $e;
         }
 
-        return $newContentWithParents;
+        return $new;
     }
 
     public function mergeContentsWithParents(int $primaryId, int $secondaryId): ContentWithParents
     {
-        // TODO: make sure if a parent changes, the child changes as well
         $contentsWithParents = $this->getWithParents([$primaryId, $secondaryId]);
         if (count($contentsWithParents) != 2) {
             if (!array_key_exists($primaryId, $contentsWithParents)) {
@@ -189,21 +237,16 @@ class ContentManager extends ObjectManager
         }
         list($primary, $secondary) = array_values($contentsWithParents);
 
-        $miniManuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId);
-        $shortManuscripts = $this->container->get('manuscript_manager')->getShort(
-            array_map(function ($miniManuscript) {
-                return $miniManuscript->getId();
-            }, $miniManuscripts)
-        );
+        $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, true);
         $contents = $this->getContentsWithParentsByContent($secondaryId);
 
         $this->dbs->beginTransaction();
         try {
-            if (!empty($shortManuscripts)) {
-                foreach ($shortManuscripts as $manuscript) {
+            if (!empty($manuscripts)) {
+                foreach ($manuscripts as $manuscript) {
                     $contentArray = ArrayToJson::arrayToShortJson($manuscript->getContentsWithParents());
-                    $contentArray = array_values(array_filter($contentArray, function ($contentItem) use ($secondaryId) {
-                        return $contentItem['id'] !== $secondaryId;
+                    $contentArray = array_values(array_filter($contentArray, function ($contentItem) use ($secondaryId, $primaryId) {
+                        return $contentItem['id'] !== $secondaryId && $contentItem['id'] !== $primaryId;
                     }));
                     $contentArray[] = ['id' => $primaryId];
                     $this->container->get('manuscript_manager')->update(
@@ -247,6 +290,7 @@ class ContentManager extends ObjectManager
 
             // empty cache
             $this->cache->invalidateTags(['contents']);
+            $this->deleteCache(Content::CACHENAME, $contentId);
             $this->deleteCache(ContentWithParents::CACHENAME, $contentId);
 
             $this->updateModified($contentWithParents, null);

@@ -235,9 +235,9 @@ class OccurrenceManager extends DocumentManager
         );
     }
 
-    public function getManuscriptDependencies(int $manuscriptId): array
+    public function getManuscriptDependencies(int $manuscriptId, bool $short = false): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId));
+        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short);
     }
 
     public function getPersonDependencies(int $personId, bool $short = false): array
@@ -289,8 +289,8 @@ class OccurrenceManager extends DocumentManager
             $this->ess->add($newOccurrence);
 
             if ($cacheReload['mini']) {
-                // update Elastic manuscripts
-                $manuscripts = $this->container->get('manuscript_manager')->getOccurrenceDependencies($id);
+                // update Elastic manuscripts (scribe, patron)
+                $manuscripts = $this->container->get('manuscript_manager')->getOccurrenceDependencies($id, $short);
                 $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
             }
 
