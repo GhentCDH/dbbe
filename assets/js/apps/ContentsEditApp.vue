@@ -135,7 +135,7 @@ export default {
         depUrls: function () {
             return {
                 'Contents': {
-                    depUrl: this.urls['contents_by_content'].replace('content_id', this.submitModel.content.id),
+                    depUrl: this.urls['content_deps_by_content'].replace('content_id', this.submitModel.content.id),
                 },
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_content'].replace('content_id', this.submitModel.content.id),

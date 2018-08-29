@@ -151,7 +151,7 @@ export default {
                     city: this.createMultiSelect('City'),
                     library: this.createMultiSelect('Library', {dependency: 'city'}),
                     collection: this.createMultiSelect('Collection', {dependency: 'library'}),
-                    shelf: this.createMultiSelect('Shelf', {dependency: 'library'}),
+                    shelf: this.createMultiSelect('Shelf', {dependency: 'collection'}),
                     year_from: {
                         type: 'input',
                         inputType: 'number',
