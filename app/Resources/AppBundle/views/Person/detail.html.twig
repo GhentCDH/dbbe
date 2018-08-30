@@ -19,17 +19,23 @@
                         <td>{{ person.getName() }}</td>
                     </tr>
                 {% endif %}
+                {% if person.getSelfDesignations() is not empty %}
+                    <tr>
+                        <td>Self designation</td>
+                        <td>{{ person.getSelfDesignations()|join(', ') }}</td>
+                    </tr>
+                {% endif %}
                 {% if person.getInterval() is not empty %}
                     <tr>
                         <td>Date</td>
                         <td>{{ person.getInterval() }}</td>
                     </tr>
                 {% endif %}
-                {% if person.getOffices() is not empty %}
+                {% if person.getOfficesWithParents() is not empty %}
                     <tr>
                         <td>Office</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getOffices()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getOfficesWithParents()} only %}
                                 {% block renderItem %}
                                     {{ item.getName() }}
                                 {% endblock %}

@@ -62,7 +62,7 @@ class ContentController extends BasicController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'content_deps_by_content' => $this->generateUrl('content_deps_by_content', ['id' => 'content_id']),
                     'content_post' => $this->generateUrl('content_post'),
-                    'content_merge' => $this->generateUrl('content_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'content_merge' => $this->generateUrl('content_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'content_put' => $this->generateUrl('content_put', ['id' => 'content_id']),
                     'content_delete' => $this->generateUrl('content_delete', ['id' => 'content_id']),
                     'login' => $this->generateUrl('login'),

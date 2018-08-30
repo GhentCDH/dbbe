@@ -67,7 +67,7 @@ class RegionController extends BasicController
                     // TODO: persons
                     'region_deps_by_region' => $this->generateUrl('region_deps_by_region', ['id' => 'region_id']),
                     'region_post' => $this->generateUrl('region_post'),
-                    'region_merge' => $this->generateUrl('region_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'region_merge' => $this->generateUrl('region_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'region_put' => $this->generateUrl('region_put', ['id' => 'region_id']),
                     'region_delete' => $this->generateUrl('region_delete', ['id' => 'region_id']),
                     'login' => $this->generateUrl('login'),

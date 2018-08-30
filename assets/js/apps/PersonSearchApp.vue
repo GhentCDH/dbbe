@@ -95,13 +95,28 @@
                     slot-scope="props">
                     <ul v-if="props.row.office.length > 1">
                         <li
-                            v-for="(func, index) in props.row.office"
+                            v-for="(office, index) in props.row.office"
                             :key="index">
-                            {{ func.name }}
+                            {{ office.name }}
                         </li>
                     </ul>
                     <template v-else>
                         {{ props.row.office[0].name }}
+                    </template>
+                </template>
+                <template
+                    v-if="props.row.self_designation"
+                    slot="self designation"
+                    slot-scope="props">
+                    <ul v-if="props.row.self_designation.length > 1">
+                        <li
+                            v-for="(designation, index) in props.row.self_designation"
+                            :key="index">
+                            {{ designation }}
+                        </li>
+                    </ul>
+                    <template v-else>
+                        {{ props.row.self_designation[0] }}
                     </template>
                 </template>
                 <template
@@ -309,6 +324,8 @@ export default {
                     },
                     role: this.createMultiSelect('Role'),
                     office: this.createMultiSelect('Office'),
+                    self_designation: this.createMultiSelect('Self designation', {model: 'self_designation'}),
+                    origin: this.createMultiSelect('Origination', {model: 'origin'}),
                     comment: {
                         type: 'input',
                         inputType: 'text',
@@ -392,7 +409,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'offices', 'date']
+            let columns = ['name', 'identification', 'offices', 'self designation', 'date']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }

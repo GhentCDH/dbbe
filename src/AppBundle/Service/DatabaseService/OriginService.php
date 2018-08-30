@@ -12,7 +12,7 @@ class OriginService extends DatabaseService
      * * need a region with a historical name (not name)
      * @return array
      */
-    public function getOriginIds(): array
+    public function getOriginIdsForManuscripts(): array
     {
         return $this->conn->query(
             'SELECT
@@ -29,6 +29,23 @@ class OriginService extends DatabaseService
             inner join data.region on coalesce(moninst.city_id, location.idregion) = region.identity
             where region.historical_name is not null
             order by region.historical_name, moninst.institution_name'
+        )->fetchAll();
+    }
+
+    /**
+     * Locations that can be used as origination in a person
+     * * need a region with a historical name (not name)
+     * @return array
+     */
+    public function getOriginIdsForPersons(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                location.idlocation as origin_id
+            from data.location
+            inner join data.region on location.idregion = region.identity
+            where region.historical_name is not null
+            order by region.historical_name'
         )->fetchAll();
     }
 }

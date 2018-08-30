@@ -2,10 +2,6 @@
 
 namespace AppBundle\ObjectStorage;
 
-use stdClass;
-
-use AppBundle\Model\Collection;
-use AppBundle\Model\Institution;
 use AppBundle\Model\Location;
 
 class LocationManager extends ObjectManager
@@ -49,16 +45,16 @@ class LocationManager extends ObjectManager
             'locations_for_manuscripts',
             ['regions', 'institutions', 'collections'],
             function () {
-                $rawLocationsForManuscripts = $this->dbs->getLocationIdsForManuscripts();
-                $locationIds = self::getUniqueIds($rawLocationsForManuscripts, 'location_id');
-                $locationsForManuscripts = $this->get($locationIds);
+                $rawLocations = $this->dbs->getLocationIdsForManuscripts();
+                $locationIds = self::getUniqueIds($rawLocations, 'location_id');
+                $locations = $this->get($locationIds);
 
                 // Sort by name
-                usort($locationsForManuscripts, function ($a, $b) {
+                usort($locations, function ($a, $b) {
                     return strcmp($a->getName(), $b->getName());
                 });
 
-                return $locationsForManuscripts;
+                return $locations;
             }
         );
     }
@@ -69,16 +65,16 @@ class LocationManager extends ObjectManager
             'locations_for_locations',
             ['regions', 'institutions', 'collections'],
             function () {
-                $rawLocationsForLocations = $this->dbs->getLocationIdsForLocations();
-                $locationIds = self::getUniqueIds($rawLocationsForLocations, 'location_id');
-                $locationsForLocations = $this->get($locationIds);
+                $rawLocations = $this->dbs->getLocationIdsForLocations();
+                $locationIds = self::getUniqueIds($rawLocations, 'location_id');
+                $locations = $this->get($locationIds);
 
                 // Sort by name
-                usort($locationsForLocations, function ($a, $b) {
+                usort($locations, function ($a, $b) {
                     return strcmp($a->getName(), $b->getName());
                 });
 
-                return $locationsForLocations;
+                return $locations;
             }
         );
     }

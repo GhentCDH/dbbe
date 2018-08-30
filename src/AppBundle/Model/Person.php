@@ -4,21 +4,64 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
+/**
+ */
 class Person extends Entity implements SubjectInterface
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'person';
 
     use CacheLinkTrait;
 
+    /**
+     * @var string
+     */
     protected $firstName;
+    /**
+     * @var string
+     */
     protected $lastName;
+    /**
+     * @var array
+     */
+    protected $selfDesignations;
+    /**
+     * @var Origin
+     */
+    protected $origin;
+    /**
+     * @var string
+     */
     protected $extra;
+    /**
+     * @var string
+     */
     protected $unprocessed;
+    /**
+     * @var FuzzyDate
+     */
     protected $bornDate;
+    /**
+     * @var FuzzyDate
+     */
     protected $deathDate;
+    /**
+     * @var array
+     */
     protected $officesWithParents;
+    /**
+     * @var bool
+     */
     protected $historical;
+    /**
+     * @var bool
+     */
     protected $modern;
+    /**
+     * @var array
+     */
     protected $roles;
     /**
      * Array containing all manuscriptroles
@@ -59,17 +102,24 @@ class Person extends Entity implements SubjectInterface
     // TODO: occurrences, types
     // TODO: articles, books, bookChapters
 
+    /**
+     */
     public function __construct()
     {
         parent::__construct();
 
-        $this->offices = [];
+        $this->selfDesignations = [];
+        $this->officesWithParents = [];
         $this->manuscriptRoles = [];
         $this->occurrenceManuscriptRoles = [];
 
         return $this;
     }
 
+    /**
+     * @param  string|null $firstName
+     * @return Person
+     */
     public function setFirstName(string $firstName = null): Person
     {
         $this->firstName = $firstName;
@@ -77,11 +127,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getFirstName(): ?string
     {
         return $this->firstName;
     }
 
+    /**
+     * @param  string|null $lastName
+     * @return Person
+     */
     public function setLastName(string $lastName = null): Person
     {
         $this->lastName = $lastName;
@@ -89,11 +146,56 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getLastName(): ?string
     {
         return $this->lastName;
     }
 
+    /**
+     * @param  array $selfDesignations
+     * @return Person
+     */
+    public function setSelfDesignations(array $selfDesignations): Person
+    {
+        $this->selfDesignations = $selfDesignations;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSelfDesignations(): array
+    {
+        return $this->selfDesignations;
+    }
+
+    /**
+     * @param  Origin $origin
+     * @return Person
+     */
+    public function setOrigin(Origin $origin): Person
+    {
+        $this->origin = $origin;
+
+        return $this;
+    }
+
+    /**
+     * @return Origin|null
+     */
+    public function getOrigin(): ?Origin
+    {
+        return $this->origin;
+    }
+
+    /**
+     * @param  string|null $extra
+     * @return Person
+     */
     public function setExtra(string $extra = null): Person
     {
         $this->extra = $extra;
@@ -101,11 +203,19 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+
+    /**
+     * @return string|null
+     */
     public function getExtra(): ?string
     {
         return $this->extra;
     }
 
+    /**
+     * @param  string|null $unprocessed
+     * @return Person
+     */
     public function setUnprocessed(string $unprocessed = null): Person
     {
         $this->unprocessed = $unprocessed;
@@ -113,11 +223,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getUnprocessed(): ?string
     {
         return $this->unprocessed;
     }
 
+    /**
+     * @param  FuzzyDate|null $bornDate
+     * @return Person
+     */
     public function setBornDate(FuzzyDate $bornDate = null): Person
     {
         $this->bornDate = $bornDate;
@@ -125,11 +242,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return FuzzyDate|null
+     */
     public function getBornDate(): ?FuzzyDate
     {
         return $this->bornDate;
     }
 
+    /**
+     * @param  FuzzyDate|null $deathDate
+     * @return Person
+     */
     public function setDeathDate(FuzzyDate $deathDate = null): Person
     {
         $this->deathDate = $deathDate;
@@ -137,11 +261,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return FuzzyDate|null
+     */
     public function getDeathDate(): ?FuzzyDate
     {
         return $this->deathDate;
     }
 
+    /**
+     * @param  array $roles
+     * @return Person
+     */
     public function setRoles(array $roles): Person
     {
         $this->roles = $roles;
@@ -149,6 +280,10 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @param  Role   $role
+     * @return Person
+     */
     public function addRole(Role $role): Person
     {
         $this->roles[$role->getId()] = $role;
@@ -156,13 +291,21 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @param  array $officesWithParents
+     * @return Person
+     */
     public function setOfficesWithParents(array $officesWithParents): Person
     {
-        $this->$officesWithParents = $officesWithParents;
+        $this->officesWithParents = $officesWithParents;
 
         return $this;
     }
 
+    /**
+     * @param  OfficeWithParents $officeWithParents
+     * @return Person
+     */
     public function addOfficeWithParents(OfficeWithParents $officeWithParents): Person
     {
         $this->officesWithParents[$officeWithParents->getId()] = $officeWithParents;
@@ -170,11 +313,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getOfficesWithParents(): array
     {
         return $this->officesWithParents;
     }
 
+    /**
+     * @param bool|null $historical
+     * @return Person
+     */
     public function setHistorical(bool $historical = null): Person
     {
         $this->historical = empty($historical) ? false : $historical;
@@ -182,11 +332,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function getHistorical(): bool
     {
         return $this->historical;
     }
 
+    /**
+     * @param bool|null $modern
+     * @return Person
+     */
     public function setModern(bool $modern = null): Person
     {
         $this->modern = empty($modern) ? false : $modern;
@@ -194,11 +351,18 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function getModern(): bool
     {
         return $this->modern;
     }
 
+    /**
+     * @param  array $manuscriptRoles
+     * @return Person
+     */
     public function setManuscriptRoles(array $manuscriptRoles): Person
     {
         $this->manuscriptRoles = $manuscriptRoles;
@@ -206,6 +370,11 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @param  Role       $role
+     * @param  Manuscript $manuscript
+     * @return Person
+     */
     public function addManuscriptRole(Role $role, Manuscript $manuscript): Person
     {
         if (!isset($this->manuscriptRoles[$role->getSystemName()])) {
@@ -218,6 +387,10 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @param  array $occurrenceManuscriptRoles
+     * @return Person
+     */
     public function setOccurrenceManuscriptRoles(array $occurrenceManuscriptRoles): Person
     {
         $this->occurrenceManuscriptRoles = $occurrenceManuscriptRoles;
@@ -225,6 +398,12 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @param  Role       $role
+     * @param  Manuscript $manuscript
+     * @param  Occurrence $occurrence
+     * @return Person
+     */
     public function addOccurrenceManuscriptRole(Role $role, Manuscript $manuscript, Occurrence $occurrence): Person
     {
         if (!isset($this->occurrenceManuscriptRoles[$role->getSystemName()])) {
@@ -238,6 +417,9 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getAllManuscriptRoles(): array
     {
         $manuscriptRoles = $this->manuscriptRoles;
@@ -269,6 +451,9 @@ class Person extends Entity implements SubjectInterface
         return $manuscriptRoles;
     }
 
+    /**
+     * @return array
+     */
     public function getAllPublicManuscriptRoles(): array
     {
         $manuscriptRoles = $this->getAllManuscriptRoles();
@@ -285,6 +470,9 @@ class Person extends Entity implements SubjectInterface
         return $manuscriptRoles;
     }
 
+    /**
+     * @return array
+     */
     public function getOnlyRelatedManuscripts(): array
     {
         if (!isset($this->manuscriptRoles['related'])) {
@@ -311,6 +499,9 @@ class Person extends Entity implements SubjectInterface
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getOnlyRelatedPublicManuscripts(): array
     {
         if (!isset($this->manuscriptRoles['related'])) {
@@ -340,6 +531,9 @@ class Person extends Entity implements SubjectInterface
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getFixedRelatedManuscriptRoles(): array
     {
         $allManuscriptRoles = $this->getAllManuscriptRoles();
@@ -354,6 +548,9 @@ class Person extends Entity implements SubjectInterface
         return $allManuscriptRoles;
     }
 
+    /**
+     * @return array
+     */
     public function getFixedRelatedPublicManuscriptRoles(): array
     {
         $allManuscriptRoles = $this->getAllPublicManuscriptRoles();
@@ -368,6 +565,9 @@ class Person extends Entity implements SubjectInterface
         return $allManuscriptRoles;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         $nameArray = array_filter([
@@ -381,18 +581,26 @@ class Person extends Entity implements SubjectInterface
         return implode(' ', $nameArray);
     }
 
+    /**
+     * @return FuzzyInterval
+     */
     public function getInterval(): FuzzyInterval
     {
         return new FuzzyInterval($this->bornDate, $this->deathDate);
     }
 
+    /**
+     * @return string
+     */
     public function getFullDescription(): string
     {
         $nameArray = array_filter([
             $this->firstName,
             $this->lastName,
+            $this->origin ? ' of ' . $this->origin->getName() : null,
             $this->extra,
         ]);
+        $nameArray = array_filter($nameArray);
         if (empty($nameArray)) {
             $description = $this->unprocessed;
         } else {
@@ -403,13 +611,20 @@ class Person extends Entity implements SubjectInterface
         }
         foreach ($this->identifications as $identification) {
             if ($identification->getIdentifier()->getPrimary()) {
-                $description .= ' - ' . $identification->getIdentifier()->getName() . ': ' . implode(', ', $identification->getIdentifications());
+                $description .=
+                    ' - ' .
+                    $identification->getIdentifier()->getName() .
+                    ': ' .
+                    implode(', ', $identification->getIdentifications());
             }
         }
 
         return $description;
     }
 
+    /**
+     * @return string
+     */
     public function getFullDescriptionWithOffices(): string
     {
         $description = $this->getFullDescription();
@@ -421,6 +636,9 @@ class Person extends Entity implements SubjectInterface
         return $description;
     }
 
+    /**
+     * @return string
+     */
     public function getShortDescription(): string
     {
         $nameArray = array_filter([
@@ -435,11 +653,17 @@ class Person extends Entity implements SubjectInterface
         return implode(' ', $nameArray);
     }
 
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         return $this->getFullDescriptionWithOffices();
     }
 
+    /**
+     * @return array
+     */
     public function getShortJson(): array
     {
         return [
@@ -448,6 +672,9 @@ class Person extends Entity implements SubjectInterface
         ];
     }
 
+    /**
+     * @return array
+     */
     public function getJson(): array
     {
         $result = parent::getJson();
@@ -461,6 +688,12 @@ class Person extends Entity implements SubjectInterface
         }
         if (isset($this->lastName)) {
             $result['lastName'] = $this->lastName;
+        }
+        if (isset($this->selfDesignations)) {
+            $result['selfDesignations'] = implode(', ', $this->selfDesignations);
+        }
+        if (isset($this->origin)) {
+            $result['origin'] = $this->origin->getShortJson();
         }
         if (isset($this->extra)) {
             $result['extra'] = $this->extra;
@@ -481,6 +714,9 @@ class Person extends Entity implements SubjectInterface
         return $result;
     }
 
+    /**
+     * @return array
+     */
     public function getElastic(): array
     {
         $result = parent::getElastic();
@@ -507,11 +743,22 @@ class Person extends Entity implements SubjectInterface
         if (!empty($this->officesWithParents)) {
             $result['office'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
         }
+        if (!empty($this->selfDesignations)) {
+            $result['self_designation'] = $this->selfDesignations;
+        }
+        if (!empty($this->origin)) {
+            $result['origin'] = $this->origin->getShortJson();
+        }
 
         return $result;
     }
 
-    public static function sortByFullDescription($a, $b)
+    /**
+     * @param  Person $a
+     * @param  Person $b
+     * @return bool
+     */
+    public static function cmpByFullDescription(Person $a, Person $b)
     {
         return strcmp($a->getFullDescription(), $b->getFullDescription());
     }

@@ -90,6 +90,8 @@ class PersonService extends EntityService
                 person.identity as person_id,
                 name.first_name,
                 name.last_name,
+                name.self_designations,
+                factoid_origination.location_id,
                 name.extra,
                 name.unprocessed,
                 person.is_historical,
@@ -114,6 +116,14 @@ class PersonService extends EntityService
                 inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
                 where factoid_type.type = \'died\'
             ) as factoid_died on person.identity = factoid_died.subject_identity
+            left join (
+                select
+                    factoid.subject_identity,
+                    factoid.idlocation as location_id
+                from data.factoid
+                inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+                where factoid_type.type = \'origination\'
+            ) as factoid_origination on person.identity = factoid_origination.subject_identity
             where person.identity in (?)',
             [
                 $ids,
@@ -211,7 +221,7 @@ class PersonService extends EntityService
             $this->conn->executeUpdate(
                 'INSERT INTO data.person default values'
             );
-            $personId = $this->conn->executeQuery(
+            $id = $this->conn->executeQuery(
                 'SELECT
                     person.identity as person_id
                 from data.person
@@ -221,7 +231,7 @@ class PersonService extends EntityService
             $this->conn->executeUpdate(
                 'INSERT INTO data.name (idperson) values (?)',
                 [
-                    $personId,
+                    $id,
                 ]
             );
             $this->commit();
@@ -229,10 +239,10 @@ class PersonService extends EntityService
             $this->rollBack();
             throw $e;
         }
-        return $personId;
+        return $id;
     }
 
-    public function updateFirstName(int $personId, string $firstName = null): int
+    public function updateFirstName(int $id, string $firstName = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.name
@@ -240,12 +250,12 @@ class PersonService extends EntityService
             where name.idperson = ?',
             [
                 $firstName,
-                $personId,
+                $id,
             ]
         );
     }
 
-    public function updateLastName(int $personId, string $lastName = null): int
+    public function updateLastName(int $id, string $lastName = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.name
@@ -253,12 +263,71 @@ class PersonService extends EntityService
             where name.idperson = ?',
             [
                 $lastName,
-                $personId,
+                $id,
             ]
         );
     }
 
-    public function updateExtra(int $personId, string $extra = null): int
+    public function updateSelfDesignations(int $id, string $selfDesignations = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.name
+            set self_designations = ?
+            where name.idperson = ?',
+            [
+                $selfDesignations,
+                $id,
+            ]
+        );
+    }
+
+    public function insertOrigin(int $id, int $locationId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.factoid (subject_identity, idlocation, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (select factoid_type.idfactoid_type from data.factoid_type where factoid_type.type = \'origination\')
+            )',
+            [
+                $id,
+                $locationId,
+            ]
+        );
+    }
+
+    public function updateOrigin(int $id, int $locationId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set idlocation = ?
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'origination\'',
+            [
+                $locationId,
+                $id,
+            ]
+        );
+    }
+
+    public function deleteOrigin(int $id): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'origination\'',
+            [
+                $id,
+            ]
+        );
+    }
+
+    public function updateExtra(int $id, string $extra = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.name
@@ -266,12 +335,12 @@ class PersonService extends EntityService
             where name.idperson = ?',
             [
                 $extra,
-                $personId,
+                $id,
             ]
         );
     }
 
-    public function updateHistorical(int $personId, bool $historical): int
+    public function updateHistorical(int $id, bool $historical): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.person
@@ -279,12 +348,12 @@ class PersonService extends EntityService
             where person.identity = ?',
             [
                 $historical ? 'TRUE': 'FALSE',
-                $personId,
+                $id,
             ]
         );
     }
 
-    public function updateModern(int $personId, bool $modern): int
+    public function updateModern(int $id, bool $modern): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.person
@@ -292,12 +361,12 @@ class PersonService extends EntityService
             where person.identity = ?',
             [
                 $modern ? 'TRUE': 'FALSE',
-                $personId,
+                $id,
             ]
         );
     }
 
-    public function delOffices(int $personId, array $officeIds): int
+    public function delOffices(int $id, array $officeIds): int
     {
         return $this->conn->executeUpdate(
             'DELETE
@@ -305,7 +374,7 @@ class PersonService extends EntityService
             where person_occupation.idperson = ?
             and person_occupation.idoccupation in (?)',
             [
-                $personId,
+                $id,
                 $officeIds,
             ],
             [
@@ -315,19 +384,19 @@ class PersonService extends EntityService
         );
     }
 
-    public function addOffice(int $personId, int $officeId): int
+    public function addOffice(int $id, int $officeId): int
     {
         return $this->conn->executeUpdate(
             'INSERT INTO data.person_occupation (idperson, idoccupation)
             values (?, ?)',
             [
-                $personId,
+                $id,
                 $officeId,
             ]
         );
     }
 
-    public function delete(int $personId): int
+    public function delete(int $id): int
     {
         $this->beginTransaction();
         try {
@@ -336,7 +405,7 @@ class PersonService extends EntityService
                 'SELECT count(*)
                 from data.bibrole
                 where bibrole.idperson = ?',
-                [$personId]
+                [$id]
             )->fetchColumn(0);
             if ($count > 0) {
                 throw new DependencyException('This person has bibrole dependencies.');
@@ -346,7 +415,7 @@ class PersonService extends EntityService
                 'SELECT count(*)
                 from data.factoid
                 where factoid.object_identity = ?',
-                [$personId]
+                [$id]
             )->fetchColumn(0);
             if ($count > 0) {
                 throw new DependencyException('This person has factoid dependencies.');
@@ -356,12 +425,12 @@ class PersonService extends EntityService
             // $this->conn->executeUpdate(
             //     'DELETE from data.factoid
             //     where factoid.subject_identity = ?',
-            //     [$personId]
+            //     [$id]
             // );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.person
                 where person.identity = ?',
-                [$personId]
+                [$id]
             );
             $this->commit();
         } catch (Exception $e) {

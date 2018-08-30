@@ -16,14 +16,38 @@ class OriginManager extends ObjectManager
         );
     }
 
-    public function getAllOrigins(): array
+    public function getOriginsForManuscripts(): array
     {
         return $this->wrapArrayCache(
-            'origins',
-            ['locations'],
+            'origins_for_manuscripts',
+            ['regions', 'institutions'],
             function () {
                 $origins = [];
-                $rawOrigins = $this->dbs->getOriginIds();
+                $rawOrigins = $this->dbs->getOriginIdsForManuscripts();
+                $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
+                $locations = $this->container->get('location_manager')->get($originIds);
+                foreach ($locations as $location) {
+                    $origins[$location->getId()] = Origin::fromLocation($location);
+                }
+
+                // Sort by name
+                usort($origins, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
+
+                return $origins;
+            }
+        );
+    }
+
+    public function getOriginsForPersons(): array
+    {
+        return $this->wrapArrayCache(
+            'origins_for_persons',
+            ['regions'],
+            function () {
+                $origins = [];
+                $rawOrigins = $this->dbs->getOriginIdsForPersons();
                 $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
                 $locations = $this->container->get('location_manager')->get($originIds);
                 foreach ($locations as $location) {

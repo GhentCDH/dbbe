@@ -75,7 +75,7 @@ class OfficeController extends BasicController
                     'person_deps_by_office' => $this->generateUrl('person_deps_by_office', ['id' => 'office_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'office_post' => $this->generateUrl('office_post'),
-                    'office_merge' => $this->generateUrl('office_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'office_merge' => $this->generateUrl('office_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'office_put' => $this->generateUrl('office_put', ['id' => 'office_id']),
                     'office_delete' => $this->generateUrl('office_delete', ['id' => 'office_id']),
                     'login' => $this->generateUrl('login'),

@@ -35,7 +35,7 @@ class PersonController extends Controller
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'person_edit' => $this->generateUrl('person_edit', ['id' => 'person_id']),
-                    'person_merge' => $this->generateUrl('person_merge', ['primary' => 'primary_id', 'secondary' => 'secondary_id']),
+                    'person_merge' => $this->generateUrl('person_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
                     'persons_get' => $this->generateUrl('persons_get'),
                     'login' => $this->generateUrl('login'),
@@ -187,21 +187,21 @@ class PersonController extends Controller
     }
 
     /**
-     * @Route("/persons/{primary}/{secondary}", name="person_merge")
+     * @Route("/persons/{primaryId}/{secondaryId}", name="person_merge")
      * @Method("PUT")
-     * @param  int    $primary first person id (will stay)
-     * @param  int    $secondary second person id (will be deleted)
+     * @param  int    $primaryId   first person id (will stay)
+     * @param  int    $secondaryId second person id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function mergePersons(int $primary, int $secondary, Request $request)
+    public function mergePersons(int $primaryId, int $secondaryId, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         try {
             $person = $this
                 ->get('person_manager')
-                ->merge($primary, $secondary);
+                ->merge($primaryId, $secondaryId);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -299,6 +299,7 @@ class PersonController extends Controller
                     'person_post' => $this->generateUrl('person_post'),
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
                     'offices_edit' => $this->generateUrl('offices_edit'),
+                    'origins_edit' => $this->generateUrl('origins_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -306,6 +307,7 @@ class PersonController extends Controller
                         ? null
                         : $this->get('person_manager')->getFull($id)->getJson(),
                     'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAll()),
+                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getOriginsForPersons()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))

@@ -1,5 +1,7 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :link="link">
         <vue-form-generator
             :schema="schema"
             :model="model"
@@ -57,6 +59,19 @@ export default {
                         model: 'lastName',
                         validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
+                    selfDesignations: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Self designation',
+                        labelClasses: 'control-label',
+                        model: 'selfDesignations',
+                        validator: [VueFormGenerator.validators.string],
+                        hint: 'Comma separated list',
+                    },
+                    origin:  this.createMultiSelect(
+                        'Origin',
+                        {values: this.values}
+                    ),
                     extra: {
                         type: 'input',
                         inputType: 'text',
@@ -88,6 +103,12 @@ export default {
                 }
             },
         }
+    },
+    methods: {
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableField(this.schema.fields.origin)
+        },
     },
 }
 </script>

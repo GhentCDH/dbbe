@@ -60,7 +60,7 @@ class ElasticPersonService extends ElasticEntityService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'modern', 'role', 'office', 'public'])),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'modern', 'role', 'office', 'self_designation', 'origin', 'public'])),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -123,6 +123,20 @@ class ElasticPersonService extends ElasticEntityService
                             $result['nested'][] = $value;
                         } else {
                             $result['nested'][$key] = $value;
+                        }
+                        break;
+                    case 'self_designation':
+                        if (is_int($key)) {
+                            $result['exact_text'][] = $value;
+                        } else {
+                            $result['exact_text'][$key] = $value;
+                        }
+                        break;
+                    case 'origin':
+                        if (is_int($key)) {
+                            $result['object'][] = $value;
+                        } else {
+                            $result['object'][$key] = $value;
                         }
                         break;
                     case 'name':

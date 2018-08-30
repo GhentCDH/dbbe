@@ -15,7 +15,9 @@
             <basicPersonPanel
                 id="basic"
                 header="Basic Information"
+                :link="{url: urls['origins_edit'], text: 'Edit origins'}"
                 :model="model.basic"
+                :values="origins"
                 @validated="validated"
                 ref="basic" />
 
@@ -137,7 +139,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /(?:BasicPerson|Date|Identification|Office|GeneralPerson)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|GeneralPerson)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -150,10 +152,13 @@ export default {
         let data = {
             person: null,
             offices: null,
+            origins: null,
             model: {
                 basic: {
                     firstName: null,
                     lastName: null,
+                    selfDesignations: null,
+                    origin: null,
                     extra: null,
                     unprocessed: null,
                     historical: null,
@@ -204,6 +209,7 @@ export default {
     created () {
         this.person = this.data.person
         this.offices = this.data.offices
+        this.origins = this.data.origins
     },
     mounted () {
         this.loadPerson()
@@ -218,6 +224,8 @@ export default {
                 this.model.basic = {
                     firstName: this.person.firstName,
                     lastName: this.person.lastName,
+                    selfDesignations: this.person.selfDesignations,
+                    origin: this.person.origin,
                     extra: this.person.extra,
                     unprocessed: this.person.unprocessed,
                     historical: this.person.historical,

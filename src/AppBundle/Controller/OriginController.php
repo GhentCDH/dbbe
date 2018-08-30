@@ -26,7 +26,7 @@ class OriginController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
                 ArrayToJson::arrayToJson(
-                    $this->get('origin_manager')->getAllOrigins()
+                    $this->get('origin_manager')->getOriginsForManuscripts()
                 )
             );
         }
@@ -46,19 +46,21 @@ class OriginController extends Controller
             'AppBundle:Origin:edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'origins_get' => $this->generateUrl('origins_get'),
                     'manuscript_deps_by_institution' => $this->generateUrl('manuscript_deps_by_institution', ['id' => 'institution_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                    'regions_get' => $this->generateUrl('regions_get'),
+                    'regions_edit' => $this->generateUrl('regions_edit'),
                     'region_put' => $this->generateUrl('region_put', ['id' => 'region_id']),
                     'monastery_post' => $this->generateUrl('monastery_post'),
                     'monastery_put' => $this->generateUrl('monastery_put', ['id' => 'monastery_id']),
                     'monastery_delete' => $this->generateUrl('monastery_delete', ['id' => 'monastery_id']),
                     'login' => $this->generateUrl('login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'origins' => json_encode(
                     ArrayToJson::arrayToJson(
-                        $this->get('origin_manager')->getAllOrigins()
+                        $this->get('origin_manager')->getOriginsForManuscripts()
                     )
                 ),
             ]

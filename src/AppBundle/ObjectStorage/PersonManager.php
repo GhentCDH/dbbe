@@ -11,7 +11,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
+use AppBundle\Model\Origin;
 
+/**
+ * ObjectManager for persons
+ * Servicename: person_manager
+ */
 class PersonManager extends EntityManager
 {
     /**
@@ -29,6 +34,9 @@ class PersonManager extends EntityManager
                 $persons = [];
                 $rawPersons = $this->dbs->getBasicInfoByIds($ids);
 
+                $locationIds = self::getUniqueIds($rawPersons, 'location_id');
+                $locations = $this->container->get('location_manager')->get($locationIds);
+
                 foreach ($rawPersons as $rawPerson) {
                      $person = (new Person())
                         ->setId($rawPerson['person_id'])
@@ -40,6 +48,14 @@ class PersonManager extends EntityManager
                         ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
                         ->setHistorical($rawPerson['is_historical'])
                         ->setModern($rawPerson['is_modern']);
+
+                    if ($rawPerson['self_designations'] != null) {
+                        $person->setSelfDesignations(explode(',', $rawPerson['self_designations']));
+                    }
+
+                    if ($rawPerson['location_id'] != null) {
+                        $person->setOrigin(Origin::fromLocation($locations[$rawPerson['location_id']]));
+                    }
 
                     $persons[$rawPerson['person_id']] = $person;
                 }
@@ -93,7 +109,8 @@ class PersonManager extends EntityManager
                     $officesWithParents = $this->container->get('office_manager')->getWithParents($officeIds);
 
                     foreach ($rawOffices as $rawOffice) {
-                        $persons[$rawOffice['person_id']]->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
+                        $persons[$rawOffice['person_id']]
+                            ->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
                     }
                 }
 
@@ -185,7 +202,7 @@ class PersonManager extends EntityManager
 
                 $persons = array_values($this->getMini($ids));
 
-                usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+                usort($persons, ['AppBundle\Model\Person', 'cmpByFullDescription']);
 
                 return $persons;
             }
@@ -203,7 +220,7 @@ class PersonManager extends EntityManager
 
                 $persons = array_values($this->getMini($ids));
 
-                usort($persons, ['AppBundle\Model\Person', 'sortByFullDescription']);
+                usort($persons, ['AppBundle\Model\Person', 'cmpByFullDescription']);
 
                 return $persons;
             }
@@ -228,92 +245,122 @@ class PersonManager extends EntityManager
         return $newPerson;
     }
 
-    public function update(int $id, stdClass $data, bool $new = false): Person
+    public function update(int $id, stdClass $data, bool $isNew = false): Person
     {
         $this->dbs->beginTransaction();
         try {
-            $person = $this->getFull($id);
-            if ($person == null) {
+            $old = $this->getFull($id);
+            if ($old == null) {
                 throw new NotFoundHttpException('Person with id ' . $id .' not found.');
             }
 
             // update person data
             $cacheReload = [
-                'mini' => $new,
-                'short' => $new,
-                'full' => $new,
+                'mini' => $isNew,
+                'short' => $isNew,
+                'full' => $isNew,
             ];
             if (property_exists($data, 'public')) {
+                if (!is_bool($data->firstName)) {
+                    throw new BadRequestHttpException('Incorrect public data.');
+                }
                 $cacheReload['mini'] = true;
-                $this->updatePublic($person, $data->public);
+                $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'firstName')) {
                 if (!is_string($data->firstName)) {
                     throw new BadRequestHttpException('Incorrect first name data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateFirstName($person, $data->firstName);
+                $this->dbs->updateFirstName($id, $data->firstName);
             }
             if (property_exists($data, 'lastName')) {
                 if (!is_string($data->lastName)) {
                     throw new BadRequestHttpException('Incorrect last name data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateLastName($person, $data->lastName);
+                $this->dbs->updateLastName($id, $data->lastName);
+            }
+            if (property_exists($data, 'selfDesignations')) {
+                if (!is_string($data->selfDesignations)) {
+                    throw new BadRequestHttpException('Incorrect self designation data.');
+                }
+                $cacheReload['mini'] = true;
+                // Remove spaces before and after commas
+                $this->dbs->updateSelfDesignations($id, preg_replace('/\s*,\s*/', ',', $data->selfDesignations));
+            }
+            if (property_exists($data, 'origin')) {
+                if (!is_object($data->origin) && !empty($data->origin)) {
+                    throw new BadRequestHttpException('Incorrect origin data.');
+                }
+                $cacheReload['mini'] = true;
+                $this->updateOrigin($old, $data->origin);
             }
             if (property_exists($data, 'extra')) {
                 if (!is_string($data->extra)) {
                     throw new BadRequestHttpException('Incorrect extra data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateExtra($person, $data->extra);
+                $this->dbs->updateExtra($id, $data->extra);
             }
             if (property_exists($data, 'historical')) {
                 if (!is_bool($data->historical)) {
                     throw new BadRequestHttpException('Incorrect historical data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateHistorical($person, $data->historical);
+                $this->updateHistorical($old, $data->historical);
             }
             if (property_exists($data, 'modern')) {
                 if (!is_bool($data->modern)) {
                     throw new BadRequestHttpException('Incorrect modern data.');
                 }
                 $cacheReload['mini'] = true;
-                $this->updateModern($person, $data->modern);
+                $this->updateModern($old, $data->modern);
             }
             if (property_exists($data, 'bornDate')) {
+                if (!is_object($data->bornDate)) {
+                    throw new BadRequestHttpException('Incorrect born date data.');
+                }
                 $cacheReload['mini'] = true;
-                $this->updateDate($person, 'born', $person->getBornDate(), $data->bornDate);
+                $this->updateDate($old, 'born', $old->getBornDate(), $data->bornDate);
             }
             if (property_exists($data, 'deathDate')) {
+                if (!is_object($data->deathDate)) {
+                    throw new BadRequestHttpException('Incorrect death date data.');
+                }
                 $cacheReload['mini'] = true;
-                $this->updateDate($person, 'died', $person->getDeathDate(), $data->deathDate);
+                $this->updateDate($old, 'died', $old->getDeathDate(), $data->deathDate);
             }
             $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
             foreach ($identifiers as $identifier) {
                 if (property_exists($data, $identifier->getSystemName())) {
+                    if (!is_string($data->{$identifier->getSystemName()})) {
+                        throw new BadRequestHttpException('Incorrect identification data.');
+                    }
                     $cacheReload['mini'] = true;
-                    $this->updateIdentification($person, $identifier, $data->{$identifier->getSystemName()});
+                    $this->updateIdentification($old, $identifier, $data->{$identifier->getSystemName()});
                 }
             }
             if (property_exists($data, 'offices')) {
+                if (!is_array($data->offices)) {
+                    throw new BadRequestHttpException('Incorrect office data.');
+                }
                 $cacheReload['short'] = true;
-                $this->updateOffices($person, $data->offices);
+                $this->updateOffices($old, $data->offices);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePublicComment($person, $data->publicComment);
+                $this->updatePublicComment($old, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePrivateComment($person, $data->privateComment);
+                $this->updatePrivateComment($old, $data->privateComment);
             }
 
             // Throw error if none of above matched
@@ -323,12 +370,12 @@ class PersonManager extends EntityManager
 
             // load new person data
             $this->clearCache($id, $cacheReload);
-            $newPerson = $this->getFull($id);
+            $new = $this->getFull($id);
 
-            $this->updateModified($new ? null : $person, $newPerson);
+            $this->updateModified($isNew ? null : $old, $new);
 
-            // Reset cache and elasticsearch
-            $this->ess->add($newPerson);
+            // Reset elasticsearch
+            $this->ess->add($new);
 
             if ($cacheReload['mini']) {
                 // update Elastic manuscripts
@@ -345,13 +392,13 @@ class PersonManager extends EntityManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
             // Reset cache on elasticsearch error
-            if (isset($newPerson)) {
+            if (isset($new)) {
                 $this->reset([$id]);
             }
             throw $e;
         }
 
-        return $newPerson;
+        return $new;
     }
 
     public function merge(int $primaryId, int $secondaryId): Person
@@ -464,19 +511,21 @@ class PersonManager extends EntityManager
         return $primary;
     }
 
-    private function updateFirstName(Person $person, string $firstName = null): void
+    private function updateOrigin(Person $person, stdClass $origin = null): void
     {
-        $this->dbs->updateFirstName($person->getId(), $firstName);
-    }
-
-    private function updateLastName(Person $person, string $lastName = null): void
-    {
-        $this->dbs->updateLastName($person->getId(), $lastName);
-    }
-
-    private function updateExtra(Person $person, string $extra = null): void
-    {
-        $this->dbs->updateExtra($person->getId(), $extra);
+        if (empty($origin)) {
+            if (!empty($person->getOrigin())) {
+                $this->dbs->deleteOrigin($person->getId());
+            }
+        } elseif (!property_exists($origin, 'id') || !is_numeric($origin->id)) {
+            throw new BadRequestHttpException('Incorrect origin data.');
+        } else {
+            if (empty($person->getOrigin())) {
+                $this->dbs->insertOrigin($person->getId(), $origin->id);
+            } else {
+                $this->dbs->updateOrigin($person->getId(), $origin->id);
+            }
+        }
     }
 
     private function updateHistorical(Person $person, bool $historical): void
