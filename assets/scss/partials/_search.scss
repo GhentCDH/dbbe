@@ -8,6 +8,8 @@
 
   .VueTables {
     .row:first-child {
+      display: block !important;
+
       .col-md-12:first-child {
         min-height: 3.667em;
       }
