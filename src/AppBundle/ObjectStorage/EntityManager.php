@@ -123,7 +123,10 @@ class EntityManager extends ObjectManager
 
             foreach ($rawInverseBibliographies as $rawInverseBibliography) {
                 $entities[$rawInverseBibliography['biblio_id']]
-                    ->addInverseBibliography($inverseBibliographies[$rawInverseBibliography['entity_id']], $rawInverseBibliography['type']);
+                    ->addInverseBibliography(
+                        $inverseBibliographies[$rawInverseBibliography['entity_id']],
+                        $rawInverseBibliography['type']
+                    );
             }
 
             $biblioIds = self::getUniqueIds($rawInverseBibliographies, 'biblio_id');
@@ -340,9 +343,12 @@ class EntityManager extends ObjectManager
             }
         }
 
+        // TODO: reset article, book, bookchapter, onlinesource on add or delete (for inversebibliographies)
+
         // Add and update
         $updateIds = [];
-        foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
+        $origBibIds = array_keys($entity->getBibliographies());
+        foreach (['article', 'book', 'bookChapter', 'onlineSource'] as $bibType) {
             $plurBibType = $bibType . 's';
             foreach ($bibliography->$plurBibType as $bib) {
                 if (!property_exists($bib, 'id')) {

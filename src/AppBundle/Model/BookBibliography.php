@@ -4,8 +4,6 @@ namespace AppBundle\Model;
 
 class BookBibliography extends Bibliography
 {
-    const CACHENAME = 'book_bibliography';
-
     use RawPagesTrait;
     use StartEndPagesTrait;
 

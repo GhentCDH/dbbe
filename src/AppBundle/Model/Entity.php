@@ -21,6 +21,8 @@ class Entity implements IdJsonInterface
     public function __construct()
     {
         $this->identifications = [];
+        $this->bibliographies = [];
+        $this->inverseBibliographies = [];
 
         return $this;
     }
@@ -113,7 +115,7 @@ class Entity implements IdJsonInterface
         return $this;
     }
 
-    public function getBibliographies(): ?array
+    public function getBibliographies(): array
     {
         return $this->bibliographies;
     }
@@ -156,7 +158,7 @@ class Entity implements IdJsonInterface
         }
     }
 
-    public function getInverseBibliographies(): ?array
+    public function getInverseBibliographies(): array
     {
         return $this->inverseBibliographies;
     }

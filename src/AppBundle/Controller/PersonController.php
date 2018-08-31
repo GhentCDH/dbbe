@@ -223,11 +223,16 @@ class PersonController extends BasicController
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
-                    'person' => empty($id)
+                    'person' =>
+                        empty($id)
                         ? null
                         : $this->get('person_manager')->getFull($id)->getJson(),
                     'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAll()),
                     'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getOriginsForPersons()),
+                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
+                    'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
+                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
+                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))

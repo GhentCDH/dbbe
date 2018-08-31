@@ -142,6 +142,9 @@ class PersonManager extends EntityManager
                 if (count($persons) == 0) {
                     throw new NotFoundHttpException('Person with id ' . $id .' not found.');
                 }
+
+                $this->setBibliographies($persons);
+
                 $person = $persons[$id];
 
                 // Manuscript roles
@@ -483,6 +486,10 @@ class PersonManager extends EntityManager
                 }
                 $cacheReload['short'] = true;
                 $this->updateOffices($old, $data->offices);
+            }
+            if (property_exists($data, 'bibliography')) {
+                $cacheReload['full'] = true;
+                $this->updateBibliography($old, $data->bibliography);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {

@@ -114,6 +114,18 @@
                         </tr>
                     {% endif %}
                 {% endfor %}
+                {% if person.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getBibliographies()} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if person.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>

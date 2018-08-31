@@ -57,6 +57,7 @@
                         <td>{{ book.getTotalVolumes() }}</td>
                     </tr>
                 {% endif %}
+                {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book.getInverseBibliographies()} only %}
             </tbody>
         </table>
         <div id="feedback-app">

@@ -68,6 +68,14 @@
                 @validated="validated"
                 ref="offices" />
 
+            <bibliographyPanel
+                id="bibliography"
+                header="Bibliography"
+                :model="model.bibliography"
+                :values="bibliographies"
+                @validated="validated"
+                ref="bibliography" />
+
             <generalPersonPanel
                 id="general"
                 header="General"
@@ -122,6 +130,7 @@
                     <li v-if="model.unknownDate || model.unknownInterval"><a href="#unknownDate">Unknown date or interval</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#offices">Offices</a></li>
+                    <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -152,7 +161,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|GeneralPerson)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|Bibliography|GeneralPerson)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -166,6 +175,7 @@ export default {
             person: null,
             offices: null,
             origins: null,
+            bibliographies: null,
             model: {
                 basic: {
                     firstName: null,
@@ -201,6 +211,12 @@ export default {
                 unknownInterval: null,
                 identification: {},
                 offices: {offices: null},
+                bibliography: {
+                    books: [],
+                    articles: [],
+                    bookChapters: [],
+                    onlineSources: [],
+                },
                 general: {
                     publicComment: null,
                     privateComment: null,
@@ -213,6 +229,7 @@ export default {
                 'deathDate',
                 'identification',
                 'offices',
+                'bibliography',
                 'general',
             ],
         }
@@ -225,6 +242,12 @@ export default {
         this.person = this.data.person
         this.offices = this.data.offices
         this.origins = this.data.origins
+        this.bibliographies = {
+            books: this.data.books,
+            articles: this.data.articles,
+            bookChapters: this.data.bookChapters,
+            onlineSources: this.data.onlineSources,
+        }
     },
     mounted () {
         this.loadPerson()
@@ -284,6 +307,32 @@ export default {
                 // Identification
                 this.model.offices = {
                     offices: this.person.office
+                }
+
+                // Bibliography
+                this.model.bibliography = {
+                    books: [],
+                    articles: [],
+                    bookChapters: [],
+                    onlineSources: [],
+                }
+                if (this.person.bibliography != null) {
+                    for (let bib of this.person.bibliography) {
+                        switch (bib['type']) {
+                        case 'book':
+                            this.model.bibliography.books.push(bib)
+                            break
+                        case 'article':
+                            this.model.bibliography.articles.push(bib)
+                            break
+                        case 'bookChapter':
+                            this.model.bibliography.bookChapters.push(bib)
+                            break
+                        case 'onlineSource':
+                            this.model.bibliography.onlineSources.push(bib)
+                            break
+                        }
+                    }
                 }
 
                 // General
