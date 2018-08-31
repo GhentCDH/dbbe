@@ -2,8 +2,9 @@
 
 namespace AppBundle\Model;
 
-use AppBundle\Utils\ArrayToJson;
-
+/**
+ * Role with id 0 is reserved for the pseudo role 'subject'
+ */
 class Role extends IdNameObject
 {
     const CACHENAME = 'role';

@@ -5,11 +5,10 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use AppBundle\Exceptions\DependencyException;
-
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Role;
 
 class RoleManager extends ObjectManager

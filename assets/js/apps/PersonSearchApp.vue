@@ -8,7 +8,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
-                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
+                    v-if="showReset"
                     class="form-group">
                     <button
                         class="btn btn-block"
@@ -354,8 +354,30 @@ export default {
             },
             mergePersonSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: this.createMultiSelect(
+                        'Primary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return '[' + id + '] ' + name
+                            },
+                        }
+                    ),
+                    secondary: this.createMultiSelect(
+                        'Secondary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return '[' + id + '] ' + name
+                            },
+                        }
+                    ),
                 },
             },
             mergeModel: {
@@ -393,7 +415,7 @@ export default {
         return data
     },
     computed: {
-        depUrls: function () {
+        depUrls() {
             return {
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_person'].replace('person_id', this.submitModel.person.id),
@@ -405,7 +427,22 @@ export default {
                     url: this.urls['occurrence_get'],
                     urlIdentifier: 'occurrence_id',
                 },
-                // TODO: books, bookchapters, article
+                // TODO: types
+                'Articles': {
+                    depUrl: this.urls['article_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['article_get'],
+                    urlIdentifier: 'article_id',
+                },
+                'Books': {
+                    depUrl: this.urls['book_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['book_get'],
+                    urlIdentifier: 'book_id',
+                },
+                'Book chapters': {
+                    depUrl: this.urls['book_chapter_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['book_chapter_get'],
+                    urlIdentifier: 'book_chapter_id',
+                },
             }
         },
         tableColumns() {

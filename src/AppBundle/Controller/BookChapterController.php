@@ -55,6 +55,20 @@ class BookChapterController extends BasicController
     }
 
     /**
+     * Get all book chapters that have a dependency on a person
+     * (bibrole)
+     * @Route("/bookchapters/persons/{id}", name="book_chapter_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByPerson(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
+    }
+
+    /**
      * @Route("/bookchapters", name="book_chapter_post")
      * @Method("POST")
      * @param Request $request

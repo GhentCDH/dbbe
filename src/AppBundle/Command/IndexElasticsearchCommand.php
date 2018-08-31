@@ -43,7 +43,7 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
 
         // (Re)index persons
         if ($index == null || $index == 'person') {
-            $persons = $this->getContainer()->get('person_manager')->getAllShort();
+            $persons = $this->getContainer()->get('person_manager')->getAll();
 
             $personElasticService = $this->getContainer()->get('person_elastic_service');
             $personElasticService->setupPersons();

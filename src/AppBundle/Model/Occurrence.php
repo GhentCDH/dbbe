@@ -309,16 +309,9 @@ class Occurrence extends Document
 
     public function getJson(): array
     {
-        $result = [
-            'id' => $this->id,
-            'name' => $this->getDescription(),
-            'patrons' => ArrayToJson::arrayToShortJson($this->patrons),
-            'scribes' => ArrayToJson::arrayToShortJson($this->scribes),
-            'bibliography' => ArrayToJson::arrayToShortJson($this->getBibliographies()),
-            'public' => $this->getPublic(),
-        ];
+        $result = parent::getJson();
 
-        if (isset($this->date)) {
+        if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
 

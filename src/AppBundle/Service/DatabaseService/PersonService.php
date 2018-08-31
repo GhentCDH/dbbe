@@ -97,7 +97,9 @@ class PersonService extends EntityService
                 person.is_historical,
                 person.is_modern,
                 factoid_born.born_date,
-                factoid_died.death_date
+                factoid_died.death_date,
+                factoid_unknown.unknown_date,
+                factoid_unknown.unknown_interval
             from data.person
             inner join data.name on name.idperson = person.identity
             left join (
@@ -116,6 +118,15 @@ class PersonService extends EntityService
                 inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
                 where factoid_type.type = \'died\'
             ) as factoid_died on person.identity = factoid_died.subject_identity
+            left join (
+                select
+                    factoid.subject_identity,
+                    factoid.date as unknown_date,
+                    factoid.interval as unknown_interval
+                from data.factoid
+                inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+                where factoid_type.type = \'unknown\'
+            ) as factoid_unknown on person.identity = factoid_unknown.subject_identity
             left join (
                 select
                     factoid.subject_identity,
@@ -175,31 +186,23 @@ class PersonService extends EntityService
         return $this->conn->executeQuery(
             'SELECT -- bibrole of manuscript
                 bibrole.idperson as person_id,
-                manuscript.identity as manuscript_id,
+                bibrole.iddocument as manuscript_id,
                 null as occurrence_id,
-                role.idrole as role_id,
-                array_to_json(role.type) as role_usage,
-                role.system_name as role_system_name,
-                role.name as role_name
+                bibrole.idrole as role_id
             from data.bibrole
             inner join data.manuscript on bibrole.iddocument = manuscript.identity
-            inner join data.role on bibrole.idrole = role.idrole
             where bibrole.idperson in (?)
 
             union all
 
             SELECT -- bibrole of occurrence in manuscript
                 bibrole.idperson as person_id,
-                manuscript.identity as manuscript_id,
-                document_contains.idcontent as occurrence_id,
-                role.idrole as role_id,
-                array_to_json(role.type) as role_usage,
-                role.system_name as role_system_name,
-                role.name as role_name
+                document_contains.idcontainer as manuscript_id,
+                bibrole.iddocument as occurrence_id,
+                bibrole.idrole as role_id
             from data.bibrole
             inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            inner join data.role on bibrole.idrole = role.idrole
             where bibrole.idperson in (?)',
             [
                 $ids,
@@ -207,6 +210,102 @@ class PersonService extends EntityService
             ],
             [
                 Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getOccurrencesAsRoles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as occurrence_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.original_poem on bibrole.iddocument = original_poem.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getOccurrencesAsSubjects(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                factoid.subject_identity as person_id,
+                factoid.object_identity as occurrence_id
+            from data.factoid
+            inner join data.original_poem on factoid.object_identity = original_poem.identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            where factoid.subject_identity in (?)
+            and factoid_type.type = \'subject of\'',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getArticles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as article_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.article on bibrole.iddocument = article.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getBooks(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as book_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.book on bibrole.iddocument = book.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getBookChapters(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as book_chapter_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.bookchapter on bibrole.iddocument = bookchapter.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
                 Connection::PARAM_INT_ARRAY,
             ]
         )->fetchAll();
@@ -340,6 +439,19 @@ class PersonService extends EntityService
         );
     }
 
+    public function updateUnprocessed(int $id, string $unprocessed = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.name
+            set unprocessed = ?
+            where name.idperson = ?',
+            [
+                $unprocessed,
+                $id,
+            ]
+        );
+    }
+
     public function updateHistorical(int $id, bool $historical): int
     {
         return $this->conn->executeUpdate(
@@ -411,6 +523,7 @@ class PersonService extends EntityService
                 throw new DependencyException('This person has bibrole dependencies.');
             }
             // don't delete if this person is used in factoid
+            // as object
             $count = $this->conn->executeQuery(
                 'SELECT count(*)
                 from data.factoid
@@ -420,13 +533,25 @@ class PersonService extends EntityService
             if ($count > 0) {
                 throw new DependencyException('This person has factoid dependencies.');
             }
+            // as subject with type subject of
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.factoid
+                inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+                where factoid_type.type = \'subject of\'
+                and factoid.subject_identity = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This person has factoid dependencies.');
+            }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');
-            // $this->conn->executeUpdate(
-            //     'DELETE from data.factoid
-            //     where factoid.subject_identity = ?',
-            //     [$id]
-            // );
+            $this->conn->executeUpdate(
+                'DELETE from data.factoid
+                where factoid.subject_identity = ?',
+                [$id]
+            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.person
                 where person.identity = ?',

@@ -48,6 +48,14 @@ class Person extends Entity implements SubjectInterface
      */
     protected $deathDate;
     /**
+     * @var FuzzyDate
+     */
+    protected $unknownDate;
+    /**
+     * @var FuzzyInterval
+     */
+    protected $unknownInterval;
+    /**
      * @var array
      */
     protected $officesWithParents;
@@ -99,8 +107,25 @@ class Person extends Entity implements SubjectInterface
      * @var array
      */
     protected $occurrenceManuscriptRoles;
-    // TODO: occurrences, types
-    // TODO: articles, books, bookChapters
+    /**
+     * Array containing all document roles (except for manuscripts)
+     * Structure:
+     *  [
+     *      document_type => [
+     *          role_system_name => [
+     *              role,
+     *              [
+     *                  occurrence_id => occurrence,
+     *                  occurrence_id => occurrence,
+     *              ],
+     *          ],
+     *          role_system_name => [...],
+     *      ],
+     *      document_type => [...],
+     *  ]
+     * @var array
+     */
+    protected $documentRoles;
 
     /**
      */
@@ -112,6 +137,7 @@ class Person extends Entity implements SubjectInterface
         $this->officesWithParents = [];
         $this->manuscriptRoles = [];
         $this->occurrenceManuscriptRoles = [];
+        $this->documentRoles = [];
 
         return $this;
     }
@@ -267,6 +293,44 @@ class Person extends Entity implements SubjectInterface
     public function getDeathDate(): ?FuzzyDate
     {
         return $this->deathDate;
+    }
+
+    /**
+     * @param  FuzzyDate|null $unknownDate
+     * @return Person
+     */
+    public function setUnknownDate(FuzzyDate $unknownDate = null): Person
+    {
+        $this->unknownDate = $unknownDate;
+
+        return $this;
+    }
+
+    /**
+     * @return FuzzyDate|null
+     */
+    public function getUnknownDate(): ?FuzzyDate
+    {
+        return $this->unknownDate;
+    }
+
+    /**
+     * @param  FuzzyInterval|null $unknownInterval
+     * @return Person
+     */
+    public function setUnknownInterval(FuzzyInterval $unknownInterval = null): Person
+    {
+        $this->unknownInterval = $unknownInterval;
+
+        return $this;
+    }
+
+    /**
+     * @return FuzzyInterval|null
+     */
+    public function getUnknownInterval(): ?FuzzyInterval
+    {
+        return $this->unknownInterval;
     }
 
     /**
@@ -566,6 +630,70 @@ class Person extends Entity implements SubjectInterface
     }
 
     /**
+     * @param  array $documentRoles
+     * @return Person
+     */
+    public function setDocumentRoles(array $documentRoles): Person
+    {
+        $this->documentRoles = $documentRoles;
+
+        return $this;
+    }
+
+    /**
+     * @param  string   $documentType
+     * @param  Role     $role
+     * @param  Document $document
+     * @return Person
+     */
+    public function addDocumentRole(string $documentType, Role $role, Document $document): Person
+    {
+        if (!isset($this->documentRoles[$documentType])) {
+            $this->documentRoles[$documentType] = [];
+        }
+        if (!isset($this->documentRoles[$documentType][$role->getSystemName()])) {
+            $this->documentRoles[$documentType][$role->getSystemName()] = [$role, []];
+        }
+        if (!isset($this->documentRoles[$documentType][$role->getSystemName()][1][$document->getId()])) {
+            $this->documentRoles[$documentType][$role->getSystemName()][1][$document->getId()] = $document;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  string $documentType
+     * @return array
+     */
+    public function getDocumentRoles(string $documentType): array
+    {
+        if (isset($this->documentRoles[$documentType])) {
+            return $this->documentRoles[$documentType];
+        }
+        return [];
+    }
+
+    /**
+     * @param  string $documentType
+     * @return array
+     */
+    public function getPublicDocumentRoles(string $documentType): array
+    {
+        $documentRolesForType = $this->getDocumentRoles($documentType);
+        foreach ($documentRolesForType as $roleName => $documentRole) {
+            foreach ($documentRole[1] as $documentId => $document) {
+                if (!$document->getPublic()) {
+                    unset($documentRolesForType[$roleName][1][$documentId]);
+                }
+            }
+            if (empty($documentRolesForType[$roleName][1])) {
+                unset($documentRolesForType[$roleName]);
+            }
+        }
+        return $documentRolesForType;
+    }
+
+    /**
      * @return string
      */
     public function getName(): string
@@ -573,8 +701,10 @@ class Person extends Entity implements SubjectInterface
         $nameArray = array_filter([
             $this->firstName,
             $this->lastName,
+            $this->origin ? ' of ' . $this->origin->getName() : null,
             $this->extra,
         ]);
+        $nameArray = array_filter($nameArray);
         if (empty($nameArray)) {
             return $this->unprocessed;
         }
@@ -706,6 +836,12 @@ class Person extends Entity implements SubjectInterface
         }
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
+        }
+        if (isset($this->unknownDate) && !($this->unknownDate->isEmpty())) {
+            $result['unknownDate'] = $this->unknownDate->__toString();
+        }
+        if (isset($this->unknownInterval) && !($this->unknownInterval->isEmpty())) {
+            $result['unknownInterval'] = $this->unknownInterval->__toString();
         }
         if (!empty($this->officesWithParents)) {
             $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);

@@ -24,6 +24,23 @@ class BookService extends DocumentService
     }
 
     /**
+     * Get all ids of books that are dependent on a specific person
+     * @param  int   $personId
+     * @return array
+     */
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book.identity as book_id
+            from data.book
+            inner join data.bibrole on book.identity = bibrole.iddocument
+            where bibrole.idperson = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */

@@ -41,6 +41,23 @@ class BookChapterService extends DocumentService
     }
 
     /**
+     * Get all ids of book chapters that are dependent on a specific person
+     * @param  int   $personId
+     * @return array
+     */
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bookchapter.identity as book_chapter_id
+            from data.bookchapter
+            inner join data.bibrole on bookchapter.identity = bibrole.iddocument
+            where bibrole.idperson = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */

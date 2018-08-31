@@ -48,10 +48,25 @@ class ArticleController extends BasicController
      * @Method("GET")
      * @param  int    $id journal id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByJournal(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getJournalDependencies');
+    }
+
+    /**
+     * Get all articles that have a dependency on a person
+     * (bibrole)
+     * @Route("/articles/persons/{id}", name="article_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByPerson(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
 
     /**

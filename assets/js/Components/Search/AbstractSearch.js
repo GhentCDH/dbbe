@@ -83,6 +83,21 @@ export default {
             roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
         }
     },
+    computed: {
+        showReset() {
+            for (let key in this.model) {
+                if (this.model.hasOwnProperty(key)) {
+                    if (
+                        (this.model[key] != null && (!(key in this.originalModel) || this.model[key] !== this.originalModel[key]))
+                        || (this.model[key] == null && (key in this.originalModel) && this.originalModel[key] != null)
+                    ) {
+                        return true
+                    }
+                }
+            }
+            return false
+        },
+    },
     mounted () {
         this.originalModel = JSON.parse(JSON.stringify(this.model))
         window.onpopstate = ((event) => {this.popHistory(event)})

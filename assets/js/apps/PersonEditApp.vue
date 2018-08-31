@@ -39,6 +39,18 @@
                 @validated="validated"
                 ref="deathDate" />
 
+            <panel
+                id="unknownDate"
+                v-if="model.unknownDate || model.unknownInterval"
+                header="Unkown date or interval">
+                <p v-if="model.unknownDate">
+                    Unknown date: {{ model.unknownDate }}
+                </p>
+                <p v-if="model.unknownInterval">
+                    Unknown interval: {{ model.unknownInterval }}
+                </p>
+            </panel>
+
             <identificationPanel
                 id="identification"
                 header="Identification"
@@ -107,6 +119,7 @@
                     <li><a href="#basic">Basic Information</a></li>
                     <li><a href="#bornDate">Born Date</a></li>
                     <li><a href="#deathDate">Death Date</a></li>
+                    <li v-if="model.unknownDate || model.unknownInterval"><a href="#unknownDate">Unknown date or interval</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#offices">Offices</a></li>
                     <li><a href="#general">General</a></li>
@@ -184,6 +197,8 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
+                unknownDate: null,
+                unknownInterval: null,
                 identification: {},
                 offices: {offices: null},
                 general: {
@@ -255,6 +270,10 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 }
+
+                // Unkown date and interval
+                this.model.unknownDate = this.person.unknownDate
+                this.model.unknownInterval = this.person.unknownInterval
 
                 // Identification
                 this.model.identification = {}

@@ -31,6 +31,20 @@
                         <td>{{ person.getInterval() }}</td>
                     </tr>
                 {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if person.getUnknownDate() is not empty %}
+                        <tr class="warning">
+                            <td>Unkown date</td>
+                            <td>{{ person.getUnknownDate() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if person.getUnknownInterval() is not empty %}
+                        <tr class="warning">
+                            <td>Unkown interval</td>
+                            <td>{{ person.getUnknownInterval() }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
                 {% if person.getOfficesWithParents() is not empty %}
                     <tr>
                         <td>Office</td>
@@ -55,7 +69,6 @@
                         </td>
                     </tr>
                 {% endif %}
-                <!-- TODO: occurrences, types -->
                 {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
                 {% if manuscriptRoles is not empty %}
                     <tr>
@@ -72,6 +85,35 @@
                         </td>
                     </tr>
                 {% endif %}
+                <!-- TODO: types -->
+                {% for documentType in ['occurrence', 'article', 'book', 'bookChapter'] %}
+                    {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
+                    {% if documentRoles is not empty %}
+                        <tr>
+                            <td>
+                                {% if documentType == 'occurrence' %}
+                                    Occurrence(s)
+                                {% elseif documentType == 'article' %}
+                                    Article(s)
+                                {% elseif documentType == 'book' %}
+                                    Book(s)
+                                {% elseif documentType == 'bookChapter' %}
+                                    Book chapter(s)
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for rolename, documentRole in documentRoles %}
+                                    <h6>As {{ documentRole[0].getName() }}:</h6>
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1]} only %}
+                                        {% block renderItem %}
+                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getDescription()} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
                 {% if person.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>

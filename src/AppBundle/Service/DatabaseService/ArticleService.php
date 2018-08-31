@@ -41,6 +41,23 @@ class ArticleService extends DocumentService
     }
 
     /**
+     * Get all ids of articles that are dependent on a specific person
+     * @param  int   $personId
+     * @return array
+     */
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                article.identity as article_id
+            from data.article
+            inner join data.bibrole on article.identity = bibrole.iddocument
+            where bibrole.idperson = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */

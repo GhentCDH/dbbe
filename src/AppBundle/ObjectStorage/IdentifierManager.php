@@ -6,21 +6,6 @@ use AppBundle\Model\Identifier;
 
 class IdentifierManager extends ObjectManager
 {
-    public function getIdentifiersByType(string $type): array
-    {
-        return $this->wrapArrayTypeCache(
-            'identifiers',
-            $type,
-            ['identifiers'],
-            function ($type) {
-                $rawIdentifiers = $this->dbs->getIdentifiersByType($type);
-                $identifiers = $this->getWithData($rawIdentifiers);
-
-                return $identifiers;
-            }
-        );
-    }
-
     public function get(array $ids)
     {
         return $this->wrapCache(
@@ -56,6 +41,27 @@ class IdentifierManager extends ObjectManager
                             $rawIdentifier['description']
                         );
                     }
+                }
+
+                return $identifiers;
+            }
+        );
+    }
+
+    public function getIdentifiersByType(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            'identifiers',
+            $type,
+            ['identifiers'],
+            function ($type) {
+                $identifiers = [];
+                $rawIdentifiers = $this->dbs->getIdentifiersByType($type);
+
+                // Keys in this array must be systemnames as they are used in queries
+                $identifiersWithId = $this->getWithData($rawIdentifiers);
+                foreach ($identifiersWithId as $identifierWithId) {
+                    $identifiers[$identifierWithId->getSystemName()] = $identifierWithId;
                 }
 
                 return $identifiers;

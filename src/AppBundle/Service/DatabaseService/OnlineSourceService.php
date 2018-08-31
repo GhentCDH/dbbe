@@ -23,22 +23,6 @@ class OnlineSourceService extends EntityService
         )->fetchAll();
     }
 
-    public function getOnlineSourcesByIds(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                online_source.identity as online_source_id,
-                online_source.url,
-                online_source.last_accessed,
-                institution.name as institution_name
-            from data.online_source
-            inner join data.institution on online_source.identity = institution.identity
-            where online_source.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     /**
      * @param  array $ids
      * @return array

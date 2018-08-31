@@ -4,23 +4,30 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class PersonController extends Controller
+class PersonController extends BasicController
 {
+    /**
+     * @var string
+     */
+    const MANAGER = 'person_manager';
+    /**
+     * @var string
+     */
+    const TEMPLATE_FOLDER = 'AppBundle:Person:';
+
     /**
      * @Route("/persons/search", name="persons_search")
      * @Method("GET")
      * @param Request $request
+     * @return Response
      */
-    public function searchPersons(Request $request)
+    public function search(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
 
@@ -28,17 +35,25 @@ class PersonController extends Controller
             'AppBundle:Person:overview.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'persons_search_api' => $this->generateUrl('persons_search_api'),
                     'manuscript_deps_by_person' => $this->generateUrl('manuscript_deps_by_person', ['id' => 'person_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'occurrence_deps_by_person' => $this->generateUrl('occurrence_deps_by_person', ['id' => 'person_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'article_deps_by_person' => $this->generateUrl('article_deps_by_person', ['id' => 'person_id']),
+                    'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
+                    'book_deps_by_person' => $this->generateUrl('book_deps_by_person', ['id' => 'person_id']),
+                    'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
+                    'book_chapter_deps_by_person' => $this->generateUrl('book_chapter_deps_by_person', ['id' => 'person_id']),
+                    'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => 'book_chapter_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'person_edit' => $this->generateUrl('person_edit', ['id' => 'person_id']),
                     'person_merge' => $this->generateUrl('person_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
                     'persons_get' => $this->generateUrl('persons_get'),
                     'login' => $this->generateUrl('login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode(
                     $this->get('person_elastic_service')->searchAndAggregate(
@@ -47,7 +62,9 @@ class PersonController extends Controller
                     )
                 ),
                 'persons' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllShort()) : []
+                    $this->isGranted('ROLE_EDITOR_VIEW')
+                        ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllShort())
+                        : []
                 ),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'))
@@ -60,8 +77,9 @@ class PersonController extends Controller
      * @Route("/persons/search_api", name="persons_search_api")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
-    public function searchPersonsAPI(Request $request)
+    public function searchAPI(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
 
@@ -77,31 +95,22 @@ class PersonController extends Controller
      * @Route("/persons", name="persons_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
-    public function getPersons(Request $request)
+    public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('person_manager')->getAllShort()
-                )
-            );
-        }
-        throw new BadRequestHttpException('Only JSON requests allowed.');
+        return parent::getAll($request);
     }
 
     /**
      * @Route("/persons/add", name="person_add")
      * @Method("GET")
      * @param Request $request
+     * @return Response
      */
-    public function addPerson(Request $request)
+    public function add(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-
-        return $this->editPerson(null, $request);
+        return parent::add($request);
     }
 
     /**
@@ -109,31 +118,11 @@ class PersonController extends Controller
      * @Method("GET")
      * @param  int    $id person id
      * @param Request $request
+     * @return Response
      */
-    public function getPerson(int $id, Request $request)
+    public function getSingle(int $id, Request $request)
     {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-            try {
-                $person = $this->get('person_manager')->getFull($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-            return new JsonResponse($person->getJson());
-        } else {
-            // Let the 404 page handle the not found exception
-            $person = $this->get('person_manager')->getFull($id);
-            if (!$person->getPublic()) {
-                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-            }
-            return $this->render(
-                'AppBundle:Person:detail.html.twig',
-                ['person' => $person]
-            );
-        }
+        return parent::getSingle($id, $request);
     }
 
     /**
@@ -143,18 +132,11 @@ class PersonController extends Controller
      * @Method("GET")
      * @param  int    $id office id
      * @param Request $request
+     * @return JsonResponse
      */
-    public function getPersonDepsByOffice(int $id, Request $request)
+    public function getDepsByOffice(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $persons = $this
-                ->get('person_manager')
-                ->getOfficeDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($persons));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getOfficeDependencies');
     }
 
     /**
@@ -163,27 +145,15 @@ class PersonController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function postPerson(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $person = $this
-                    ->get('person_manager')
-                    ->add(json_decode($request->getContent()));
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::post($request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Person added successfully.');
-
-            return new JsonResponse($person->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -194,21 +164,9 @@ class PersonController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function mergePersons(int $primaryId, int $secondaryId, Request $request)
+    public function merge(int $primaryId, int $secondaryId, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $person = $this
-                ->get('person_manager')
-                ->merge($primaryId, $secondaryId);
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        }
-        return new JsonResponse($person->getJson());
+        return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
@@ -218,32 +176,15 @@ class PersonController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function putPerson(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $person = $this
-                    ->get('person_manager')
-                    ->update($id, json_decode($request->getContent()));
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::put($id, $request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Person data successfully saved.');
-
-            return new JsonResponse($person->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -251,32 +192,11 @@ class PersonController extends Controller
      * @Method("DELETE")
      * @param  int    $id person id
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function deletePerson(int $id, Request $request)
+    public function delete(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $person = $this
-                    ->get('person_manager')
-                    ->delete($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
-
-            return new Response(null, 204);
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return parent::delete($id, $request);
     }
 
     /**
@@ -286,7 +206,7 @@ class PersonController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function editPerson(int $id = null, Request $request)
+    public function edit(int $id = null, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
@@ -316,6 +236,11 @@ class PersonController extends Controller
         );
     }
 
+    /**
+     * Sanitize data from request string
+     * @param  array $params [description]
+     * @return array         [description]
+     */
     private function sanitize(array $params): array
     {
         $defaults = [
@@ -338,7 +263,6 @@ class PersonController extends Controller
             $esParams['page'] = $defaults['page'];
         }
 
-
         // Sorting
         if (isset($params['orderBy'])) {
             if (isset($params['ascending']) && is_numeric($params['ascending'])) {
@@ -351,23 +275,62 @@ class PersonController extends Controller
             } elseif (($params['orderBy']) == 'date') {
                 // when sorting in descending order => sort by ceiling, else: sort by floor
                 if (isset($params['ascending']) && $params['ascending'] == 0) {
-                    $esParams['orderBy'] = ['death_date_ceiling_year', 'death_date_floor_year', 'born_date_ceiling_year', 'born_date_floor_year'];
+                    $esParams['orderBy'] = [
+                        'death_date_ceiling_year',
+                        'death_date_floor_year',
+                        'born_date_ceiling_year',
+                        'born_date_floor_year',
+                    ];
                 } else {
-                    $esParams['orderBy'] = ['born_date_floor_year', 'born_date_ceiling_year', 'death_date_floor_year', 'death_date_ceiling_year'];
+                    $esParams['orderBy'] = [
+                        'born_date_floor_year',
+                        'born_date_ceiling_year',
+                        'death_date_floor_year',
+                        'death_date_ceiling_year',
+                    ];
                 }
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
         // Don't set default order if there is a text field filter
-        } else if (!(isset($params['filters']['comment']))) {
+        } elseif (!(isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
 
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            // TODO: detailed sanitation?
-            $filters = $params['filters'];
+            $identifiers = array_keys($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'));
+
+            foreach (array_keys($params['filters']) as $key) {
+                switch ($key) {
+                    case 'name':
+                    case 'self_designation':
+                    case 'comment':
+                        if (is_string($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'historical':
+                    case 'modern':
+                    case 'year_from':
+                    case 'year_to':
+                    case 'role':
+                    case 'office':
+                    case 'origin':
+                    case 'public':
+                        if (is_numeric($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                }
+
+                if (in_array($key, $identifiers)) {
+                    if (is_string($params['filters'][$key])) {
+                        $filters[$key] = $params['filters'][$key];
+                    }
+                }
+            }
         }
 
         // limit results to public if no access rights
@@ -383,9 +346,7 @@ class PersonController extends Controller
             }
         }
 
-        if (isset($filters) && is_array($filters)) {
-            $esParams['filters'] = $filters;
-        }
+        $esParams['filters'] = $filters;
 
         return $esParams;
     }

@@ -6,9 +6,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
@@ -39,6 +36,7 @@ class RegionController extends BasicController
      * @Route("/regions/regions/{id}", name="region_deps_by_region")
      * @param int     $id      region id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRegion(int $id, Request $request)
     {

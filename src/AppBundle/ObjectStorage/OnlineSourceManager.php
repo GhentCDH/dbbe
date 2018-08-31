@@ -107,7 +107,7 @@ class OnlineSourceManager extends EntityManager
      */
     public function getInstitutionDependencies(int $institutionId): array
     {
-        return $this->getDependencies([$institutionId]);
+        return $this->getDependencies([$institutionId], 'getMini');
     }
 
     /**
