@@ -99,13 +99,11 @@
                                                     <span>Manuscripts</span>
                                                 </a>
                                             </li>
-                                            {% if is_granted('ROLE_EDITOR_VIEW') %}
-                                                <li class="{{ app.request.get('_route') == 'persons_search' ? 'active' }}">
-                                                    <a href="{{ path('persons_search') }}">
-                                                        <span>Persons</span>
-                                                    </a>
-                                                </li>
-                                            {% endif %}
+                                            <li class="{{ app.request.get('_route') == 'persons_search' ? 'active' }}">
+                                                <a href="{{ path('persons_search') }}">
+                                                    <span>Persons</span>
+                                                </a>
+                                            </li>
                                             {% if is_granted('ROLE_EDITOR_VIEW') %}
                                                 <li class="{{ app.request.get('_route') == 'bibliographies_search' ? 'active' }}">
                                                     <a href="{{ path('bibliographies_search') }}">

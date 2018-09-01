@@ -286,24 +286,6 @@ export default {
                         label: 'Name',
                         model: 'name',
                     },
-                    historical: this.createMultiSelect(
-                        'Historical',
-                        {},
-                        {
-                            customLabel: ({id, name}) => {
-                                return name === 'true' ? 'Historical only' : 'Non-historical only'
-                            },
-                        }
-                    ),
-                    modern: this.createMultiSelect(
-                        'Modern',
-                        {},
-                        {
-                            customLabel: ({id, name}) => {
-                                return name === 'true' ? 'Modern only' : 'Non-modern only'
-                            },
-                        }
-                    ),
                     year_from: {
                         type: 'input',
                         inputType: 'number',
@@ -399,6 +381,24 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
+            data.schema.fields['historical'] = this.createMultiSelect(
+                'Historical',
+                {},
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Historical only' : 'Non-historical only'
+                    },
+                }
+            )
+            data.schema.fields['modern'] = this.createMultiSelect(
+                'Modern',
+                {},
+                {
+                    customLabel: ({id, name}) => {
+                        return name === 'true' ? 'Modern only' : 'Non-modern only'
+                    },
+                }
+            )
             data.schema.fields['public'] = this.createMultiSelect(
                 'Public',
                 {

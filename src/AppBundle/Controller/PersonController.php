@@ -29,8 +29,6 @@ class PersonController extends BasicController
      */
     public function search(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-
         return $this->render(
             'AppBundle:Person:overview.html.twig',
             [
@@ -81,8 +79,6 @@ class PersonController extends BasicController
      */
     public function searchAPI(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-
         $result = $this->get('person_elastic_service')->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
@@ -341,6 +337,7 @@ class PersonController extends BasicController
         // limit results to public if no access rights
         if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
             $filters['public'] = '1';
+            $filters['historical'] = '1';
         }
 
         // set which comments should be searched
