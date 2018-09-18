@@ -283,6 +283,7 @@ export default {
                     privateComment: null,
                     textStatus: null,
                     recordStatus: null,
+                    dividedStatus: null,
                     public: null,
                 },
             },
@@ -330,6 +331,7 @@ export default {
         this.statuses = {
             textStatuses: this.data.textStatuses,
             recordStatuses: this.data.recordStatuses,
+            dividedStatuses: this.data.dividedStatuses,
         }
     },
     mounted () {
@@ -442,6 +444,7 @@ export default {
                     privateComment: this.occurrence.privateComment,
                     textStatus: this.occurrence.textStatus,
                     recordStatus: this.occurrence.recordStatus,
+                    dividedStatus: this.occurrence.dividedStatus,
                     public: this.occurrence.public,
                 }
             }

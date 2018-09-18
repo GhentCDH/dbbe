@@ -51,7 +51,7 @@ class MeterManager extends ObjectManager
             function ($data) {
                 $meters = [];
                 foreach ($data as $rawMeter) {
-                    if (isset($rawMeter['meter_id'])) {
+                    if (isset($rawMeter['meter_id']) && !isset($meters[$rawMeter['meter_id']])) {
                         $meters[$rawMeter['meter_id']] = new Meter(
                             $rawMeter['meter_id'],
                             $rawMeter['name']

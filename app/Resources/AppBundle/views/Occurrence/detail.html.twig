@@ -246,6 +246,12 @@
                             <td>{{ occurrence.getRecordStatus() }}</td>
                         </tr>
                     {% endif %}
+                    {% if occurrence.getDividedStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Verses correctly divided</td>
+                            <td>{{ occurrence.getDividedStatus() }}</td>
+                        </tr>
+                    {% endif %}
                     {% if occurrence.getPublic()|default is not null %}
                         <tr class="danger">
                             <td>Publication state</td>

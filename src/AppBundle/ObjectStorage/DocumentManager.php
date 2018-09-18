@@ -3,6 +3,7 @@
 namespace AppBundle\ObjectStorage;
 
 use Exception;
+use stdClass;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -100,6 +101,19 @@ class DocumentManager extends EntityManager
             if (!isset($oldPersons[$index]) || $oldPersons[$index]->getId() != $person->id) {
                 $this->dbs->updatePersonRoleRank($document->getId(), $person->id, $index + 1);
             }
+        }
+    }
+
+    protected function updateStatus(Document $document, stdClass $status = null, string $statusType): void
+    {
+        if (empty($status)) {
+            $this->dbs->deleteStatus($document->getId(), $statusType);
+        } elseif (!property_exists($status, 'id')
+            || !is_numeric($status->id)
+        ) {
+            throw new BadRequestHttpException('Incorrect record status data.');
+        } else {
+            $this->dbs->upsertStatus($document->getId(), $status->id, $statusType);
         }
     }
 }

@@ -79,6 +79,7 @@ export default {
                     },
                     textStatus: this.createMultiSelect('Text Status', {model: 'textStatus', values: this.values.textStatuses}),
                     recordStatus: this.createMultiSelect('Record Status', {model: 'recordStatus', values: this.values.recordStatuses}),
+                    dividedStatus: this.createMultiSelect('Verses correctly divided', {model: 'dividedStatus', values: this.values.dividedStatuses}),
                     public: {
                         type: 'checkbox',
                         styleClasses: 'has-error',
@@ -95,6 +96,7 @@ export default {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.textStatus)
             this.enableField(this.schema.fields.recordStatus)
+            this.enableField(this.schema.fields.dividedStatus)
         },
     }
 }

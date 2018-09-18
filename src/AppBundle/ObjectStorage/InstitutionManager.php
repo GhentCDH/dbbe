@@ -43,7 +43,9 @@ class InstitutionManager extends ObjectManager
             function ($data) {
                 $institutions = [];
                 foreach ($data as $rawInstitution) {
-                    if (isset($rawInstitution['institution_id'])) {
+                    if (isset($rawInstitution['institution_id'])
+                        && !isset($institutions[$rawInstitution['institution_id']])
+                    ) {
                         $institutions[$rawInstitution['institution_id']] = new Institution(
                             $rawInstitution['institution_id'],
                             $rawInstitution['institution_name']

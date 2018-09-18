@@ -44,7 +44,7 @@ class StatusManager extends ObjectManager
             function ($data) {
                 $statuses = [];
                 foreach ($data as $rawStatus) {
-                    if (isset($rawStatus['status_id'])) {
+                    if (isset($rawStatus['status_id']) && !isset($statuses[$rawStatus['status_id']])) {
                         $statuses[$rawStatus['status_id']] = new Status(
                             $rawStatus['status_id'],
                             $rawStatus['status_name'],
@@ -83,21 +83,28 @@ class StatusManager extends ObjectManager
     public function getAllManuscriptStatuses(): array
     {
         return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == 'manuscript';
+            return $status->getType() == Status::MANUSCRIPT;
         });
     }
 
     public function getAllOccurrenceTextStatuses(): array
     {
         return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == 'occurrence_text';
+            return $status->getType() == Status::OCCURRENCE_TEXT;
         });
     }
 
     public function getAllOccurrenceRecordStatuses(): array
     {
         return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == 'occurrence_record';
+            return $status->getType() == Status::OCCURRENCE_RECORD;
+        });
+    }
+
+    public function getAllOccurrenceDividedStatuses(): array
+    {
+        return array_filter($this->getAllStatuses(), function ($status) {
+            return $status->getType() == Status::OCCURRENCE_DIVIDED;
         });
     }
 
@@ -109,7 +116,13 @@ class StatusManager extends ObjectManager
                 && is_string($data->name)
                 && property_exists($data, 'type')
                 && is_string($data->type)
-                && in_array($data->type, ['manuscript', 'occurrence_text', 'occurrence_record', 'type_text'])
+                && in_array($data->type, [
+                    Status::MANUSCRIPT,
+                    Status::OCCURRENCE_DIVIDED,
+                    Status::OCCURRENCE_RECORD,
+                    Status::OCCURRENCE_TEXT,
+                    Status::TYPE_TEXT,
+                ])
             ) {
                 $statusId = $this->dbs->insert(
                     $data->name,

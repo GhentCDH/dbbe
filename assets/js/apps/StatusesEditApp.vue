@@ -225,7 +225,7 @@ export default {
                 })
         },
         loadStatusTypeField(field) {
-            let statusTypes = ['manuscript', 'occurrence_record', 'occurrence_text', 'type_text']
+            let statusTypes = ['manuscript', 'occurrence_record', 'occurrence_text', 'occurrence_divided','type_text']
             field.values = statusTypes
                 .map((statusType) => {
                     return {

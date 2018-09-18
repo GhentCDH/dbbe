@@ -4,6 +4,8 @@ namespace AppBundle\ObjectStorage;
 
 use Exception;
 use stdClass;
+use AppBundle\Model\Status;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -356,8 +358,11 @@ class ManuscriptManager extends DocumentManager
                 $this->updateBibliography($old, $data->bibliography);
             }
             if (property_exists($data, 'status')) {
+                if (!(is_object($data->status) || empty($data->status))) {
+                    throw new BadRequestHttpException('Incorrect text status data.');
+                }
                 $cacheReload['full'] = true;
-                $this->updateStatus($old, $data);
+                $this->updateStatus($old, $data->status, Status::MANUSCRIPT);
             }
             if (property_exists($data, 'illustrated')) {
                 if (!is_bool($data->illustrated)) {
@@ -468,20 +473,6 @@ class ManuscriptManager extends DocumentManager
                 ];
             }, $occurrenceOrder, array_keys($occurrenceOrder))
         );
-    }
-
-    private function updateStatus(Manuscript $manuscript, stdClass $data): void
-    {
-        if ($data->status == null) {
-            $this->dbs->deleteStatus($manuscript->getId());
-        } elseif (!is_object($data->status)
-            || !property_exists($data->status, 'id')
-            || !is_numeric($data->status->id)
-        ) {
-            throw new BadRequestHttpException('Incorrect status data.');
-        } else {
-            $this->dbs->upsertStatus($manuscript->getId(), $data->status->id);
-        }
     }
 
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void

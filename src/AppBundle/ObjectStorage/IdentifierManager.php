@@ -29,7 +29,9 @@ class IdentifierManager extends ObjectManager
             function ($data) {
                 $identifiers = [];
                 foreach ($data as $rawIdentifier) {
-                    if (isset($rawIdentifier['identifier_id'])) {
+                    if (isset($rawIdentifier['identifier_id'])
+                        && !isset($identifiers[$rawIdentifier['identifier_id']])
+                    ) {
                         $identifiers[$rawIdentifier['identifier_id']] = new Identifier(
                             $rawIdentifier['identifier_id'],
                             $rawIdentifier['system_name'],

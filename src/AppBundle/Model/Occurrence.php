@@ -111,6 +111,10 @@ class Occurrence extends Document
      */
     protected $recordStatus;
     /**
+     * @var Status
+     */
+    protected $dividedStatus;
+    /**
      * @var string
      */
     protected $paleographicalInfo;
@@ -497,6 +501,18 @@ class Occurrence extends Document
         return $this->recordStatus;
     }
 
+    public function setDividedStatus(Status $dividedStatus = null): Occurrence
+    {
+        $this->dividedStatus = $dividedStatus;
+
+        return $this;
+    }
+
+    public function getDividedStatus(): ?Status
+    {
+        return $this->dividedStatus;
+    }
+
     public function setPaleographicalInfo(string $paleographicalInfo = null): Occurrence
     {
         $this->paleographicalInfo = $paleographicalInfo;
@@ -673,6 +689,9 @@ class Occurrence extends Document
         }
         if (isset($this->recordStatus)) {
             $result['recordStatus'] = $this->recordStatus->getShortJson();
+        }
+        if (isset($this->dividedStatus)) {
+            $result['dividedStatus'] = $this->dividedStatus->getShortJson();
         }
 
         return $result;

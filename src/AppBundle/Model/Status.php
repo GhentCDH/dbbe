@@ -2,10 +2,38 @@
 
 namespace AppBundle\Model;
 
+/**
+ */
 class Status extends IdNameObject
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'status';
-    
+    /**
+     * @var string
+     */
+    const OCCURRENCE_DIVIDED = 'occurrence_divided';
+    /**
+     * @var string
+     */
+    const OCCURRENCE_RECORD = 'occurrence_record';
+    /**
+     * @var string
+     */
+    const OCCURRENCE_TEXT = 'occurrence_text';
+    /**
+     * @var string
+     */
+    const MANUSCRIPT = 'manuscript';
+    /**
+     * @var string
+     */
+    const TYPE_TEXT = 'type_text';
+
+    /**
+     * @var string
+     */
     private $type;
 
     public function __construct(int $id, string $name, string $type = null)

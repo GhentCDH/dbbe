@@ -231,11 +231,11 @@ class OccurrenceService extends DocumentService
                 document_status.iddocument as occurrence_id,
                 status.idstatus as status_id,
                 status.status as status_name,
-                status.type
+                status.type as status_type
             from data.document_status
             inner join data.status on document_status.idstatus = status.idstatus
             where document_status.iddocument in (?)
-            and status.type in (\'occurrence_text\', \'occurrence_record\')',
+            and status.type in (\'occurrence_text\', \'occurrence_record\', \'occurrence_divided\')',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

@@ -43,7 +43,9 @@ class CollectionManager extends ObjectManager
             function ($data) {
                 $collections = [];
                 foreach ($data as $rawCollection) {
-                    if (isset($rawCollection['collection_id'])) {
+                    if (isset($rawCollection['collection_id'])
+                        && !isset($collections[$rawCollection['collection_id']])
+                    ) {
                         $collections[$rawCollection['collection_id']] = new Collection(
                             $rawCollection['collection_id'],
                             $rawCollection['collection_name']

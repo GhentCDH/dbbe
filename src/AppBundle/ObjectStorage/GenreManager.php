@@ -51,7 +51,7 @@ class GenreManager extends ObjectManager
             function ($data) {
                 $genres = [];
                 foreach ($data as $rawGenre) {
-                    if (isset($rawGenre['genre_id'])) {
+                    if (isset($rawGenre['genre_id']) && !isset($genres[$rawGenre['genre_id']])) {
                         $genres[$rawGenre['genre_id']] = new Genre(
                             $rawGenre['genre_id'],
                             $rawGenre['name']

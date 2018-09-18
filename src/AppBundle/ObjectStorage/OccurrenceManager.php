@@ -167,14 +167,21 @@ class OccurrenceManager extends DocumentManager
 
                 // text and record status
                 $rawStatuses = $this->dbs->getStatuses($ids);
+                $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
                 foreach ($rawStatuses as $rawStatus) {
-                    if ($rawStatus['type'] == 'occurrence_text') {
-                        $occurrences[$rawStatus['occurrence_id']]
-                            ->setTextStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']));
-                    }
-                    if ($rawStatus['type'] == 'occurrence_record') {
-                        $occurrences[$rawStatus['occurrence_id']]
-                            ->setRecordStatus(new Status($rawStatus['status_id'], $rawStatus['status_name']));
+                    switch ($rawStatus['status_type']) {
+                        case Status::OCCURRENCE_TEXT:
+                            $occurrences[$rawStatus['occurrence_id']]
+                                ->setTextStatus($statuses[$rawStatus['status_id']]);
+                            break;
+                        case Status::OCCURRENCE_RECORD:
+                            $occurrences[$rawStatus['occurrence_id']]
+                                ->setRecordStatus($statuses[$rawStatus['status_id']]);
+                            break;
+                        case Status::OCCURRENCE_DIVIDED:
+                            $occurrences[$rawStatus['occurrence_id']]
+                                ->setDividedStatus($statuses[$rawStatus['status_id']]);
+                            break;
                     }
                 }
 
@@ -564,6 +571,27 @@ class OccurrenceManager extends DocumentManager
                 }
                 $cacheReload['full'] = true;
                 $this->dbs->updateAcknowledgement($id, $data->acknowledgement);
+            }
+            if (property_exists($data, 'recordStatus')) {
+                if (!(is_object($data->recordStatus) || empty($data->recordStatus))) {
+                    throw new BadRequestHttpException('Incorrect record status data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateStatus($old, $data->recordStatus, Status::OCCURRENCE_RECORD);
+            }
+            if (property_exists($data, 'textStatus')) {
+                if (!(is_object($data->textStatus) || empty($data->textStatus))) {
+                    throw new BadRequestHttpException('Incorrect text status data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateStatus($old, $data->textStatus, Status::OCCURRENCE_TEXT);
+            }
+            if (property_exists($data, 'dividedStatus')) {
+                if (!(is_object($data->dividedStatus) || empty($data->dividedStatus))) {
+                    throw new BadRequestHttpException('Incorrect divided status data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateStatus($old, $data->dividedStatus, Status::OCCURRENCE_DIVIDED);
             }
 
             // TODO: other information

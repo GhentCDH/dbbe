@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 class DocumentService extends EntityService
@@ -118,6 +120,67 @@ class DocumentService extends EntityService
             [
                 $title,
                 $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  int    $statusId
+     * @param  string $statusType
+     * @return int
+     */
+    public function upsertStatus(int $id, int $statusId, string $statusType): int
+    {
+        $this->beginTransaction();
+        try {
+            $upsert = $this->conn->executeUpdate(
+                'UPDATE data.document_status
+                set idstatus = ?
+                from data.status
+                where iddocument = ?
+                and document_status.idstatus = status.idstatus
+                and status.type = ?',
+                [
+                    $statusId,
+                    $id,
+                    $statusType,
+                ]
+            );
+            if (!$upsert) {
+                $upsert = $this->conn->executeUpdate(
+                    'INSERT into data.document_status (iddocument, idstatus)
+                    values (?, ?)',
+                    [
+                        $manuscriptId,
+                        $statusId,
+                    ]
+                );
+            }
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $upsert;
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $statusType
+     * @return int
+     */
+    public function deleteStatus(int $id, string $statusType): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.document_status
+            using data.status
+            where iddocument = ?
+            and document_status.idstatus = status.idstatus
+            and status.type = ?',
+            [
+                $manuscriptId,
+                $statusType,
             ]
         );
     }

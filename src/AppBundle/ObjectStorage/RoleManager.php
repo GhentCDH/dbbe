@@ -34,7 +34,7 @@ class RoleManager extends ObjectManager
             function ($data) {
                 $roles = [];
                 foreach ($data as $rawRole) {
-                    if (isset($rawRole['role_id'])) {
+                    if (isset($rawRole['role_id']) && !isset($roles[$rawRole['role_id']])) {
                         $roles[$rawRole['role_id']] = new Role(
                             $rawRole['role_id'],
                             json_decode($rawRole['role_usage']),

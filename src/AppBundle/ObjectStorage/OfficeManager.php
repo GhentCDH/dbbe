@@ -60,7 +60,7 @@ class OfficeManager extends ObjectManager
                 $regionsWithParents = $this->container->get('region_manager')->getWithParents($regionIds);
 
                 foreach ($data as $rawOffice) {
-                    if (isset($rawOffice['office_id'])) {
+                    if (isset($rawOffice['office_id']) && !isset($offices[$rawOffice['office_id']])) {
                         $offices[$rawOffice['office_id']] = new Office(
                             $rawOffice['office_id'],
                             $rawOffice['name'] !== '' ? $rawOffice['name'] : null,

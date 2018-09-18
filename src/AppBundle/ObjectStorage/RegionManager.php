@@ -52,7 +52,7 @@ class RegionManager extends ObjectManager
             function ($data) {
                 $regions = [];
                 foreach ($data as $rawRegion) {
-                    if (isset($rawRegion['region_id'])) {
+                    if (isset($rawRegion['region_id']) && !isset($regions[$rawRegion['region_id']])) {
                         $regions[$rawRegion['region_id']] = new Region(
                             $rawRegion['region_id'],
                             $rawRegion['name'],

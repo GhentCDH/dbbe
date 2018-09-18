@@ -54,7 +54,7 @@ class ContentManager extends ObjectManager
             function ($data) {
                 $contents = [];
                 foreach ($data as $rawContent) {
-                    if (isset($rawContent['content_id'])) {
+                    if (isset($rawContent['content_id']) && !isset($contents[$rawContent['content_id']])) {
                         $contents[$rawContent['content_id']] = new Content(
                             $rawContent['content_id'],
                             $rawContent['name']

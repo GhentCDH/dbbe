@@ -613,54 +613,6 @@ class ManuscriptService extends DocumentService
         );
     }
 
-    public function deleteStatus(int $manuscriptId): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE from data.document_status
-            using data.status
-            where iddocument = ?
-            and document_status.idstatus = status.idstatus
-            and status.type = \'manuscript\'',
-            [
-                $manuscriptId,
-            ]
-        );
-    }
-
-    public function upsertStatus(int $manuscriptId, int $statusId): int
-    {
-        $this->beginTransaction();
-        try {
-            $upsert = $this->conn->executeUpdate(
-                'UPDATE data.document_status
-                set idstatus = ?
-                from data.status
-                where iddocument = ?
-                and document_status.idstatus = status.idstatus
-                and status.type = \'manuscript\'',
-                [
-                    $statusId,
-                    $manuscriptId,
-                ]
-            );
-            if (!$upsert) {
-                $upsert = $this->conn->executeUpdate(
-                    'INSERT into data.document_status (iddocument, idstatus)
-                    values (?, ?)',
-                    [
-                        $manuscriptId,
-                        $statusId,
-                    ]
-                );
-            }
-            $this->commit();
-        } catch (Exception $e) {
-            $this->rollBack();
-            throw $e;
-        }
-        return $upsert;
-    }
-
     public function updateIllustrated(int $manuscriptId, bool $illustrated): int
     {
         return $this->conn->executeUpdate(
