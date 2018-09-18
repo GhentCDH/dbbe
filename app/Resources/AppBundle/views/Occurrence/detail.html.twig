@@ -139,13 +139,13 @@
                 {% if occurrence.getPaleographicalInfo() is not empty %}
                     <tr>
                         <td>Paleographical information</td>
-                        <td>{{ occurrence.getPaleographicalInfo() }}</td>
+                        <td>{{ occurrence.getPaleographicalInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getContextualInfo() is not empty %}
                     <tr>
                         <td>Contextual information</td>
-                        <td>{{ occurrence.getContextualInfo() }}</td>
+                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getMeters() is not empty %}
@@ -252,6 +252,12 @@
                             <td>{{ occurrence.getPublic() ? 'Public': 'Not public' }}</td>
                         </tr>
                     {% endif %}
+                {% endif %}
+                {% if occurrence.getAcknowledgement() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>{{ occurrence.getAcknowledgement()|nl2br }}</td>
+                    </tr>
                 {% endif %}
                 <tr>
                     <td>Permalink</td>

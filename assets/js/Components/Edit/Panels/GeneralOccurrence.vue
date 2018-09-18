@@ -36,6 +36,30 @@ export default {
         return {
             schema: {
                 fields: {
+                    paleographicalInfo: {
+                        type: 'textArea',
+                        label: 'Paleographical information',
+                        labelClasses: 'control-label',
+                        model: 'paleographicalInfo',
+                        rows: 4,
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    contextualInfo: {
+                        type: 'textArea',
+                        label: 'Contextual information',
+                        labelClasses: 'control-label',
+                        model: 'contextualInfo',
+                        rows: 4,
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    acknowledgement: {
+                        type: 'textArea',
+                        label: 'Acknowledgements',
+                        labelClasses: 'control-label',
+                        model: 'acknowledgement',
+                        rows: 4,
+                        validator: VueFormGenerator.validators.string,
+                    },
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',

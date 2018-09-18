@@ -337,6 +337,20 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getAcknowledgements(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id,
+                document.acknowledgements as acknowledgement
+            from data.original_poem
+            inner join data.document on original_poem.identity = document.identity
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getNumberOfVerses(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -826,6 +840,60 @@ class OccurrenceService extends DocumentService
             [
                 Connection::PARAM_INT_ARRAY,
                 \PDO::PARAM_INT,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $paleographicalInfo
+     * @return int
+     */
+    public function updatePaleographicalInfo(int $id, string $paleographicalInfo): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.original_poem
+            set paleographical_info = ?
+            where identity = ?',
+            [
+                $paleographicalInfo,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $contextualInfo
+     * @return int
+     */
+    public function updateContextualInfo(int $id, string $contextualInfo): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set contextual_info = ?
+            where idcontent = ?',
+            [
+                $contextualInfo,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $acknowledgement
+     * @return int
+     */
+    public function updateAcknowledgement(int $id, string $acknowledgement): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document
+            set acknowledgements = ?
+            where identity = ?',
+            [
+                $acknowledgement,
+                $id,
             ]
         );
     }

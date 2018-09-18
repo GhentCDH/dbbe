@@ -277,6 +277,8 @@ export default {
                     onlineSources: [],
                 },
                 general: {
+                    paleographicalInfo: null,
+                    contextualInfo: null,
                     publicComment: null,
                     privateComment: null,
                     textStatus: null,
@@ -433,6 +435,9 @@ export default {
 
                 // General
                 this.model.general = {
+                    paleographicalInfo: this.occurrence.paleographicalInfo,
+                    contextualInfo: this.occurrence.contextualInfo,
+                    acknowledgement: this.occurrence.acknowledgement,
                     publicComment: this.occurrence.publicComment,
                     privateComment: this.occurrence.privateComment,
                     textStatus: this.occurrence.textStatus,

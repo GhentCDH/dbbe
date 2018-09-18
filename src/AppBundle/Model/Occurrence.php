@@ -115,6 +115,10 @@ class Occurrence extends Document
      */
     protected $paleographicalInfo;
     /**
+     * @var string
+     */
+    protected $acknowledgement;
+    /**
      * @var int
      */
     protected $numberOfVerses;
@@ -505,6 +509,18 @@ class Occurrence extends Document
         return $this->paleographicalInfo;
     }
 
+    public function setAcknowledgement(string $acknowledgement = null): Occurrence
+    {
+        $this->acknowledgement = $acknowledgement;
+
+        return $this;
+    }
+
+    public function getAcknowledgement(): ?string
+    {
+        return $this->acknowledgement;
+    }
+
     public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
     {
         $this->numberOfVerses = $numberOfVerses;
@@ -642,6 +658,15 @@ class Occurrence extends Document
         }
         if (isset($this->genres)) {
             $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
+        }
+        if (isset($this->paleographicalInfo)) {
+            $result['paleographicalInfo'] = $this->paleographicalInfo;
+        }
+        if (isset($this->contextualInfo)) {
+            $result['contextualInfo'] = $this->contextualInfo;
+        }
+        if (isset($this->acknowledgement)) {
+            $result['acknowledgement'] = $this->acknowledgement;
         }
         if (isset($this->textStatus)) {
             $result['textStatus'] = $this->textStatus->getShortJson();

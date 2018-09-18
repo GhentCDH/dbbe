@@ -243,6 +243,13 @@ class OccurrenceManager extends DocumentManager
                         ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
                 }
 
+                // acknowledgement
+                $rawAcknowledgements = $this->dbs->getAcknowledgements([$id]);
+                if (count($rawAcknowledgements) == 1) {
+                    $occurrence
+                        ->setAcknowledgement($rawAcknowledgements[0]['acknowledgement']);
+                }
+
                 // images
                 $rawImages = $this->dbs->getImages([$id]);
                 foreach ($rawImages as $rawImage) {
@@ -252,7 +259,7 @@ class OccurrenceManager extends DocumentManager
                     } elseif (strpos($rawImage['url'], 'png') === false
                         && strpos($rawImage['url'], 'jpg') === false
                         && strpos($rawImage['url'], 'JPG') === false
-                ) {
+                    ) {
                         $occurrence
                             ->addImageText(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
                     } else {
@@ -536,6 +543,27 @@ class OccurrenceManager extends DocumentManager
                 }
                 $cacheReload['short'] = true;
                 $this->updateKeywordSubjects($old, $data->keywords);
+            }
+            if (property_exists($data, 'paleographicalInfo')) {
+                if (!is_string($data->paleographicalInfo)) {
+                    throw new BadRequestHttpException('Incorrect paleographical information data.');
+                }
+                $cacheReload['full'] = true;
+                $this->dbs->updatePaleographicalInfo($id, $data->paleographicalInfo);
+            }
+            if (property_exists($data, 'contextualInfo')) {
+                if (!is_string($data->contextualInfo)) {
+                    throw new BadRequestHttpException('Incorrect contextual information data.');
+                }
+                $cacheReload['full'] = true;
+                $this->dbs->updateContextualInfo($id, $data->contextualInfo);
+            }
+            if (property_exists($data, 'acknowledgement')) {
+                if (!is_string($data->acknowledgement)) {
+                    throw new BadRequestHttpException('Incorrect acknowledgement data.');
+                }
+                $cacheReload['full'] = true;
+                $this->dbs->updateAcknowledgement($id, $data->acknowledgement);
             }
 
             // TODO: other information
