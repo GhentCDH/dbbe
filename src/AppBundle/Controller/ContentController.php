@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use AppBundle\Utils\ArrayToJson;
 
-class ContentController extends BasicController
+class ContentController extends BaseController
 {
     /**
      * @var string

@@ -100,14 +100,6 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * @return array
-     */
-    public function getAllShort(): array
-    {
-        return parent::getAllShort();
-    }
-
-    /**
      * Get all articles that are dependent on a specific journal
      * @param  int   $journalId
      * @return array
@@ -174,23 +166,24 @@ class ArticleManager extends DocumentManager
      */
     public function update(int $id, stdClass $data, bool $isNew = false): Article
     {
+        $old = $this->getFull($id);
+        if ($old == null) {
+            throw new NotFoundHttpException('Article with id ' . $id .' not found.');
+        }
+
+        $cacheReload = [
+            'mini' => $isNew,
+        ];
+        $roles = $this->container->get('role_manager')->getRolesByType('article');
+        foreach ($roles as $role) {
+            if (property_exists($data, $role->getSystemName())) {
+                $cacheReload['mini'] = true;
+                $this->updatePersonRoleWithRank($old, $role, $data->{$role->getSystemName()});
+            }
+        }
+
         $this->dbs->beginTransaction();
         try {
-            $old = $this->getFull($id);
-            if ($old == null) {
-                throw new NotFoundHttpException('Article with id ' . $id .' not found.');
-            }
-
-            $cacheReload = [
-                'mini' => $isNew,
-            ];
-            $roles = $this->container->get('role_manager')->getRolesByType('article');
-            foreach ($roles as $role) {
-                if (property_exists($data, $role->getSystemName())) {
-                    $cacheReload['mini'] = true;
-                    $this->updatePersonRoleWithRank($old, $role, $data->{$role->getSystemName()});
-                }
-            }
             if (property_exists($data, 'title')) {
                 // Title is a required field
                 if (!is_string($data->title) || empty($data->title)) {
@@ -218,7 +211,9 @@ class ArticleManager extends DocumentManager
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
+            if (!$isNew) {
+                $this->clearCache($id, $cacheReload);
+            }
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -255,11 +250,8 @@ class ArticleManager extends DocumentManager
 
             $this->updateModified($old, null);
 
-            // empty cache
-            $this->clearCache($id);
-
-            // delete from elastic search
-            $this->ess->delete($old);
+            // empty cache and remove from elasticsearch
+            $this->reset([$id]);
 
             // commit transaction
             $this->dbs->commit();

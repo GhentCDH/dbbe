@@ -199,7 +199,9 @@ class OnlineSourceManager extends EntityManager
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
+            if (!$isNew) {
+                $this->clearCache($id, $cacheReload);
+            }
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -236,11 +238,8 @@ class OnlineSourceManager extends EntityManager
 
             $this->updateModified($old, null);
 
-            // empty cache
-            $this->clearCache($id);
-
-            // delete from elastic search
-            $this->ess->delete($old);
+            // empty cache and remove from elasticsearch
+            $this->reset([$id]);
 
             // commit transaction
             $this->dbs->commit();

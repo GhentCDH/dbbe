@@ -9,7 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class OnlineSourceController extends BasicController
+class OnlineSourceController extends BaseController
 {
     /**
      * @var string
@@ -130,6 +130,11 @@ class OnlineSourceController extends BasicController
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson(
                         $this->get('identifier_manager')->getIdentifiersByType('onlineSource')
+                    )
+                ),
+                'roles' => json_encode(
+                    ArrayToJson::arrayToJson(
+                        $this->get('role_manager')->getRolesByType('onlineSource')
                     )
                 ),
             ]

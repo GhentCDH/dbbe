@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use AppBundle\Utils\ArrayToJson;
 
-class BookController extends BasicController
+class BookController extends BaseController
 {
     /**
      * @var string

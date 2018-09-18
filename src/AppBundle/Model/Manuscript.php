@@ -6,12 +6,24 @@ use AppBundle\Utils\ArrayToJson;
 
 class Manuscript extends Document
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'manuscript';
 
     use CacheLinkTrait;
 
+    /**
+     * @var LocatedAt
+     */
     protected $locatedAt;
-    protected $contentsWithParents;
+    /**
+     * @var array
+     */
+    protected $contentsWithParents = [];
+    /**
+     * @var Origin
+     */
     protected $origin;
     /**
      * Array containing all personroles inherited via occurrences
@@ -32,24 +44,20 @@ class Manuscript extends Document
      *  ]
      * @var array
      */
-    protected $occurrencePersonRoles;
+    protected $occurrencePersonRoles = [];
     /**
      * Array of occurrences, in order
      * @var array
      */
-    protected $occurrences;
+    protected $occurrences = [];
+    /**
+     * @var Status
+     */
     protected $status;
+    /**
+     * @var bool
+     */
     protected $illustrated;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->contentsWithParents = [];
-        $this->occurrencePersonRoles = [];
-
-        return $this;
-    }
 
     public function setLocatedAt(LocatedAt $locatedAt): Manuscript
     {

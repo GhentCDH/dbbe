@@ -172,6 +172,7 @@ export default {
     mixins: [ AbstractEntityEdit ],
     data() {
         let data = {
+            identifiers: JSON.parse(this.initIdentifiers),
             person: null,
             offices: null,
             origins: null,
@@ -233,7 +234,7 @@ export default {
                 'general',
             ],
         }
-        for (let identifier of JSON.parse(this.initIdentifiers)) {
+        for (let identifier of data.identifiers) {
             data.model.identification[identifier.systemName] = null
         }
         return data

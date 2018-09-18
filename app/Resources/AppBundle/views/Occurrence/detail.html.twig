@@ -15,8 +15,8 @@
         <div class="row pbottom-default">
             {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
             <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %} greek">
-                {% if (occurrence.getTitle() or occurrence.getText()) %}
-                     {% include '@App/Helpers/renderLineNumbers.html.twig' with {'title': occurrence.getTitle(), 'text': occurrence.getText()} only %}
+                {% if (occurrence.getTitle() or occurrence.getVerses()) %}
+                     {% include '@App/Helpers/renderTitleVerses.html.twig' with {'title': occurrence.getTitle(), 'verses': occurrence.getVerses()} only %}
                 {% endif %}
             </div>
             {% if images is not empty %}
@@ -24,9 +24,9 @@
                     <div class="row">
                         {% for image in images %}
                             <div class="{{ images|length == 1 ? 'col-xs-12' : 'col-md-6' }}">
-                                <div class="thumbnail hidden">
-                                    <a href="{{ path('image_get', {'url': image.getUrl()}) }}" data-type="image" data-gallery="gallery" data-toggle="lightbox" data-title="{{ image.getUrl() }}">
-                                        <img src="{{ path('image_get', {'url': image.getUrl()}) }}" alt="{{ image.getUrl() }}">
+                                <div class="{{ 'thumbnail hidden' ~ (image.getPublic() ? '' : ' bg-warning') }}">
+                                    <a href="{{ path('image_get', {'id': image.getId()}) }}" data-type="image" data-gallery="gallery" data-toggle="lightbox" data-title="{{ image.getUrl() }}">
+                                        <img src="{{ path('image_get', {'id': image.getId()}) }}" alt="{{ image.getUrl() }}">
                                     </a>
                                 </div>
                             </div>
@@ -37,6 +37,49 @@
         </div>
         <table class="table table-hover table-bordered">
             <tbody>
+                {% set relOccurrences = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getRelatedOccurrences() : occurrence.getPublicRelatedOccurrences() %}
+                {% if relOccurrences is not empty %}
+                    <tr>
+                        <td>Related occurrence(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': relOccurrences}%}
+                                {% block renderItem %}
+                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item[0], 'path': 'occurrence_get','display': item[0].getDescription()} only %}</span>
+                                    {% if item[0].getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item[0].getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else  %}
+                                        ({{ item[0].getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                    {% if item[1] %}
+                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() }}{% endif %})
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set types = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getTypes() : occurrence.getTypes()|public %}
+                {% if types is not empty %}
+                    <tr>
+                        <td>Type(s)</td>
+                        <td class="greek">
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': types} only %}
+                                {% block renderItem %}
+                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get','display': item.getDescription()} only %}</span>
+                                    {% if item.getNumberOfVerses() is not empty %}
+                                        {% if item.getNumberOfVerses() == 1 %}
+                                            (1 verse)
+                                        {% else %}
+                                            ({{ item.getNumberOfVerses() }} verses)
+                                        {% endif %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if occurrence.getTextSource() is not empty %}
                     <tr>
                         <td>Text source</td>
@@ -53,15 +96,6 @@
                     <tr>
                         <td>Text status</td>
                         <td>{{ occurrence.getTextStatus() }}</td>
-                    </tr>
-                {% endif %}
-                {% set type = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getType() : occurrence.getType()|public %}
-                {% if type is not empty %}
-                    <tr>
-                        <td>Type</td>
-                        <td class="greek">
-                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': type, 'path': 'type_get','display': type.getDescription()} only %}
-                        </td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getGenre() is not empty %}
@@ -114,10 +148,10 @@
                         <td>{{ occurrence.getMeter().getName() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getVerses() is not empty %}
+                {% if occurrence.getNumberOfVerses() is not empty %}
                     <tr>
-                        <td>Verses</td>
-                        <td>{{ occurrence.getVerses() }}</td>
+                        <td>Number of verses</td>
+                        <td>{{ occurrence.getNumberOfVerses() }}</td>
                     </tr>
                 {% endif %}
                 {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}

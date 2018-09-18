@@ -1,117 +1,133 @@
 <template>
     <div>
         <article
+            ref="target"
             class="col-sm-9 mbottom-large"
-            ref="target">
+        >
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
 
             <locatedAtPanel
                 id="location"
+                ref="locatedAt"
                 header="Location"
                 :link="{url: urls['locations_edit'], text: 'Edit locations'}"
                 :model="model.locatedAt"
                 :values="locations"
                 @validated="validated"
-                ref="locatedAt" />
+            />
 
             <contentPanel
                 id="content"
+                ref="content"
                 header="Content"
                 :link="{url: urls['contents_edit'], text: 'Edit contents'}"
                 :model="model.content"
                 :values="contents"
                 @validated="validated"
-                ref="content" />
+            />
 
             <personPanel
                 id="persons"
+                ref="persons"
                 header="Persons"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
                 :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : {}"
                 @validated="validated"
-                ref="persons" />
+            />
 
             <datePanel
                 id="date"
+                ref="date"
                 header="Date"
                 :model="model.date"
                 @validated="validated"
-                ref="date" />
+            />
 
             <originPanel
                 id="origin"
+                ref="origin"
                 header="Origin"
                 :link="{url: urls['origins_edit'], text: 'Edit origins'}"
                 :model="model.origin"
                 :values="origins"
                 @validated="validated"
-                ref="origin" />
+            />
 
             <occurrenceOrderPanel
                 id="occurrenceOrder"
+                ref="occurrenceOrder"
                 header="Occurrence Order"
                 :model="model.occurrenceOrder"
                 @validated="validated"
-                ref="occurrenceOrder" />
+            />
 
             <identificationPanel
                 id="identification"
+                ref="identification"
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
                 @validated="validated"
-                ref="identification" />
+            />
 
             <bibliographyPanel
                 id="bibliography"
+                ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
                 @validated="validated"
-                ref="bibliography" />
+            />
 
             <generalManuscriptPanel
                 id="general"
+                ref="general"
                 header="General"
                 :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
                 :model="model.general"
                 :values="statuses"
                 @validated="validated"
-                ref="general" />
+            />
 
             <btn
                 id="actions"
                 type="warning"
                 :disabled="diff.length === 0"
-                @click="resetModal=true">
+                @click="resetModal=true"
+            >
                 Reset
             </btn>
             <btn
                 v-if="manuscript"
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save changes
             </btn>
             <btn
                 v-else
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save
             </btn>
             <btn
                 :disabled="(diff.length !== 0)"
-                @click="reload()">
+                @click="reload()"
+            >
                 Refresh all data
             </btn>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -121,7 +137,8 @@
                 v-scrollspy
                 role="navigation"
                 :class="isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
-                :style="stickyStyle">
+                :style="stickyStyle"
+            >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#location">Location</a></li>
@@ -141,11 +158,13 @@
             title="manuscript"
             :show="resetModal"
             @cancel="resetModal=false"
-            @confirm="reset()" />
+            @confirm="reset()"
+        />
         <invalidModal
             :show="invalidModal"
             @cancel="invalidModal=false"
-            @confirm="invalidModal=false" />
+            @confirm="invalidModal=false"
+        />
         <saveModal
             title="manuscript"
             :show="saveModal"
@@ -153,7 +172,8 @@
             :alerts="saveAlerts"
             @cancel="cancelSave()"
             @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)" />
+            @dismiss-alert="saveAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -171,14 +191,10 @@ for(let key of panelComponents.keys()) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
-    props: {
-        initRoles: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
         let data = {
+            identifiers: JSON.parse(this.initIdentifiers),
+            roles: JSON.parse(this.initRoles),
             manuscript: null,
             locations: null,
             contents: null,
@@ -186,7 +202,6 @@ export default {
             origins: null,
             bibliographies: null,
             statuses: null,
-            roles: JSON.parse(this.initRoles),
             model: {
                 locatedAt: {
                     location: {
@@ -239,7 +254,7 @@ export default {
                 'general',
             ],
         }
-        for (let identifier of JSON.parse(this.initIdentifiers)) {
+        for (let identifier of data.identifiers) {
             data.model.identification[identifier.systemName] = null
         }
         for (let role of data.roles) {
@@ -285,10 +300,10 @@ export default {
                 }
 
                 // PersonRoles
-                this.model.personRoles = {}
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.manuscript.personRoles != null ? this.manuscript.personRoles[role.systemName] : null
                 }
+                this.$refs.persons.init();
 
                 // Date
                 this.model.date = {

@@ -29,16 +29,14 @@
                             <ul v-if="row[key].length > 0">
                                 <li
                                     v-for="(item, index) in row[key]"
-                                    :key="index">
-                                    {{ getDisplay(item) }}
-                                </li>
+                                    :key="index"
+                                    v-html="getDisplay(item)" />
                             </ul>
                         </td>
                         <td
                             v-else
-                            :key="key">
-                            {{ getDisplay(row[key]) }}
-                        </td>
+                            :key="key"
+                            v-html="getDisplay(row[key])" />
                     </template>
                 </tr>
             </tbody>

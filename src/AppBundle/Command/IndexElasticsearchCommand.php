@@ -43,7 +43,7 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
 
         // (Re)index persons
         if ($index == null || $index == 'person') {
-            $persons = $this->getContainer()->get('person_manager')->getAll();
+            $persons = $this->getContainer()->get('person_manager')->getAllShort();
 
             $personElasticService = $this->getContainer()->get('person_elastic_service');
             $personElasticService->setupPersons();
@@ -59,6 +59,15 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
                 $items = $this->getContainer()->get($type . '_manager')->getAllShort();
                 $bibliographyElasticService->addMultiple($items);
             }
+        }
+
+        // (Re)index verses
+        if ($index == null || $index == 'verse') {
+            $verses = $this->getContainer()->get('verse_manager')->getAllShort();
+
+            $verseElasticService = $this->getContainer()->get('verse_elastic_service');
+            $verseElasticService->setupVerses();
+            $verseElasticService->addMultiple($verses);
         }
     }
 }

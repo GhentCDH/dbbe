@@ -2,11 +2,9 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use Doctrine\DBAL\Connection;
-
 class ImageService extends DatabaseService
 {
-    public function getByUrl(string $url): array
+    public function getById(int $id): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -14,8 +12,8 @@ class ImageService extends DatabaseService
                 image.url,
                 image.is_private
             from data.image
-            where image.url = ?',
-            [$url]
+            where image.idimage = ?',
+            [$id]
         )->fetchAll();
     }
 }

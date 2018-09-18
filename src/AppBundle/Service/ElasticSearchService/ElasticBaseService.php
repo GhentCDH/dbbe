@@ -4,30 +4,29 @@ namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Document;
 
-use AppBundle\Model\Entity;
+use AppBundle\Model\IdElasticInterface;
 
-class ElasticEntityService extends ElasticSearchService
+class ElasticBaseService extends ElasticSearchService
 {
     public function addMultiple(array $entities): void
     {
-        $elastic = [];
+        $elastics = [];
         foreach ($entities as $entity) {
-            $elastic [] = $entity->getElastic();
+            $elastics [] = $entity->getElastic();
         }
 
-        $this->bulkAdd($elastic);
+        $this->bulkAdd($elastics);
     }
 
-    public function add(Entity $entity)
+    public function add(IdElasticInterface $entity)
     {
         $indexingContent = $entity->getElastic();
         $document = new Document($indexingContent['id'], $indexingContent);
         $this->type->addDocument($document);
     }
 
-    public function delete(Entity $entity)
+    public function deleteMultiple(array $ids)
     {
-        $document = new Document($entity->getId(), []);
-        $this->type->deleteDocument($document);
+        $this->type->deleteIds($ids);
     }
 }

@@ -4,28 +4,38 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
-class Entity implements IdJsonInterface
+class Entity implements IdJsonInterface, IdElasticInterface
 {
     use CacheObjectTrait;
 
+    /**
+     * @var int
+     */
     protected $id;
+    /**
+     * @var string
+     */
     protected $publicComment;
+    /**
+     * @var string
+     */
     protected $privateComment;
+    /**
+     * @var bool
+     */
     protected $public;
-    protected $identifications;
-    protected $bibliographies;
-    protected $inverseBibliographies;
-
-    protected $cacheLevel;
-
-    public function __construct()
-    {
-        $this->identifications = [];
-        $this->bibliographies = [];
-        $this->inverseBibliographies = [];
-
-        return $this;
-    }
+    /**
+     * @var array
+     */
+    protected $identifications = [];
+    /**
+     * @var array
+     */
+    protected $bibliographies = [];
+    /**
+     * @var array
+     */
+    protected $inverseBibliographies = [];
 
     public function setId(int $id): Entity
     {
@@ -37,13 +47,6 @@ class Entity implements IdJsonInterface
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function setCacheLevel(string $cacheLevel): Entity
-    {
-        $this->cacheLevel = $cacheLevel;
-
-        return $this;
     }
 
     public function setPublicComment(string $publicComment = null): Entity

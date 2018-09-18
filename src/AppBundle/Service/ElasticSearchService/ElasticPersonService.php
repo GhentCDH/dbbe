@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticPersonService extends ElasticEntityService
+class ElasticPersonService extends ElasticBaseService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -20,7 +20,7 @@ class ElasticPersonService extends ElasticEntityService
 
     public function setupPersons(): void
     {
-        $index = $this->getIndex('persons');
+        $index = $this->getIndex();
         if ($index->exists()) {
             $index->delete();
         }

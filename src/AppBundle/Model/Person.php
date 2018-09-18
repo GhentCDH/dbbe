@@ -26,7 +26,7 @@ class Person extends Entity implements SubjectInterface
     /**
      * @var array
      */
-    protected $selfDesignations;
+    protected $selfDesignations = [];
     /**
      * @var Origin
      */
@@ -58,7 +58,7 @@ class Person extends Entity implements SubjectInterface
     /**
      * @var array
      */
-    protected $officesWithParents;
+    protected $officesWithParents = [];
     /**
      * @var bool
      */
@@ -70,7 +70,7 @@ class Person extends Entity implements SubjectInterface
     /**
      * @var array
      */
-    protected $roles;
+    protected $roles = [];
     /**
      * Array containing all manuscriptroles
      * Structure:
@@ -86,7 +86,7 @@ class Person extends Entity implements SubjectInterface
      *  ]
      * @var array
      */
-    protected $manuscriptRoles;
+    protected $manuscriptRoles = [];
     /**
      * Array containing all manuscriptroles inherited via occurrences
      * Structure:
@@ -106,7 +106,7 @@ class Person extends Entity implements SubjectInterface
      *  ]
      * @var array
      */
-    protected $occurrenceManuscriptRoles;
+    protected $occurrenceManuscriptRoles = [];
     /**
      * Array containing all document roles (except for manuscripts)
      * Structure:
@@ -125,22 +125,7 @@ class Person extends Entity implements SubjectInterface
      *  ]
      * @var array
      */
-    protected $documentRoles;
-
-    /**
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->selfDesignations = [];
-        $this->officesWithParents = [];
-        $this->manuscriptRoles = [];
-        $this->occurrenceManuscriptRoles = [];
-        $this->documentRoles = [];
-
-        return $this;
-    }
+    protected $documentRoles = [];
 
     /**
      * @param  string|null $firstName
@@ -877,7 +862,11 @@ class Person extends Entity implements SubjectInterface
             $result['role'] = ArrayToJson::arrayToShortJson($this->roles);
         }
         if (!empty($this->officesWithParents)) {
-            $result['office'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
+            $offices = [];
+            foreach ($this->officesWithParents as $officeWithParents) {
+                $offices = array_merge($offices, $officeWithParents->getShortElastic());
+            }
+            $result['office'] = $offices;
         }
         if (!empty($this->selfDesignations)) {
             $result['self_designation'] = $this->selfDesignations;

@@ -4,46 +4,140 @@ namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
 
+/**
+ */
 class Occurrence extends Document
 {
+    /**
+     * @var string
+     */
     const CACHENAME = 'occurrence';
 
     use CacheLinkTrait;
 
+    /**
+     * @var string
+     */
     protected $foliumStart;
+    /**
+     * @var bool
+     */
     protected $foliumStartRecto;
+    /**
+     * @var string
+     */
     protected $foliumEnd;
+    /**
+     * @var bool
+     */
     protected $foliumEndRecto;
+    /**
+     * @var bool
+     */
+    protected $unsure;
+    /**
+     * @var string
+     */
     protected $generalLocation;
-    protected $type;
-    protected $manuscript;
-    protected $incipit;
-    protected $title;
-    protected $text;
-    protected $meter;
-    protected $genre;
-    protected $subjects;
-    protected $textStatus;
-    protected $recordStatus;
-    protected $paleographicalInfo;
+    /**
+     * @var string
+     */
     protected $contextualInfo;
-    protected $verses;
-    // Links to images on the server itself
-    protected $images;
-    // Link to images hosted externally
-    protected $imageLinks;
+    /**
+     * @var string
+     */
+    protected $alternativeFoliumStart;
+    /**
+     * @var bool
+     */
+    protected $alternativeFoliumStartRecto;
+    /**
+     * @var string
+     */
+    protected $alternativeFoliumEnd;
+    /**
+     * @var bool
+     */
+    protected $alternativeFoliumEndRecto;
+    /**
+     * @var Manuscript
+     */
+    protected $manuscript;
+    /**
+     * Array containing related occurrences and the number of common verses
+     * Structure:
+     *  [
+     *      [occurrence, count],
+     *      [occurrence, count],
+     *      ...
+     *  ]
+     * @var array
+     */
+    protected $relatedOccurrences = [];
+    /**
+     * @var array
+     */
+    protected $types = [];
+    /**
+     * @var string
+     */
+    protected $incipit;
+    /**
+     * @var string
+     */
+    protected $title;
+    /**
+     * @var array
+     */
+    protected $verses = [];
+    /**
+     * @var Meter
+     */
+    protected $meter;
+    /**
+     * @var Genre
+     */
+    protected $genre;
+    /**
+     * @var array
+     */
+    protected $subjects = [];
+    /**
+     * @var Status
+     */
+    protected $textStatus;
+    /**
+     * @var Status
+     */
+    protected $recordStatus;
+    /**
+     * @var string
+     */
+    protected $paleographicalInfo;
+    /**
+     * @var int
+     */
+    protected $numberOfVerses;
+    /**
+     * Links to images on the server itself
+     * @var array
+     */
+    protected $images = [];
+    /**
+     * Link to images hosted externally
+     * @var array
+     */
+    protected $imageLinks = [];
+    /**
+     * Free text in image field
+     * @var array
+     */
+    protected $imageTexts = [];
 
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->subjects = [];
-        $this->images = [];
-        $this->imageLinks = [];
-
-        return $this;
-    }
-
+    /**
+     * @param  string|null $foliumStart
+     * @return Occurrence
+     */
     public function setFoliumStart(string $foliumStart = null): Occurrence
     {
         $this->foliumStart = $foliumStart;
@@ -51,13 +145,21 @@ class Occurrence extends Document
         return $this;
     }
 
-    public function setFoliumStartRecto(string $foliumStartRecto = null): Occurrence
+    /**
+     * @param  bool|null $foliumStartRecto
+     * @return Occurrence
+     */
+    public function setFoliumStartRecto(bool $foliumStartRecto = null): Occurrence
     {
         $this->foliumStartRecto = $foliumStartRecto;
 
         return $this;
     }
 
+    /**
+     * @param  string|null $foliumEnd
+     * @return Occurrence
+     */
     public function setFoliumEnd(string $foliumEnd = null): Occurrence
     {
         $this->foliumEnd = $foliumEnd;
@@ -65,13 +167,32 @@ class Occurrence extends Document
         return $this;
     }
 
-    public function setFoliumEndRecto(string $foliumEndRecto = null): Occurrence
+    /**
+     * @param  bool|null $foliumEndRecto
+     * @return Occurrence
+     */
+    public function setFoliumEndRecto(bool $foliumEndRecto = null): Occurrence
     {
         $this->foliumEndRecto = $foliumEndRecto;
 
         return $this;
     }
 
+    /**
+     * @param  bool|null $unsure
+     * @return Occurrence
+     */
+    public function setUnsure(bool $unsure = null): Occurrence
+    {
+        $this->unsure = $unsure;
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $generalLocation
+     * @return Occurrence
+     */
     public function setGeneralLocation(string $generalLocation = null): Occurrence
     {
         $this->generalLocation = $generalLocation;
@@ -79,35 +200,148 @@ class Occurrence extends Document
         return $this;
     }
 
-    public function getLocation(): ?string
+    /**
+     * @param  string|null $alternativeFoliumStart
+     * @return Occurrence
+     */
+    public function setAlternativeFoliumStart(string $alternativeFoliumStart = null): Occurrence
     {
-        $result = '';
-        if (!empty($this->foliumStart)) {
-            if (!empty($this->foliumEnd)) {
-                $result .= 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
-                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto);
-            } else {
-                $result .= 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto);
-            }
-        }
-
-        if (!empty($this->generalLocation)) {
-            $result .= $this->generalLocation;
-        }
-
-        return $result;
-    }
-
-    public function setType(Type $type = null): Occurrence
-    {
-        $this->type = $type;
+        $this->alternativeFoliumStart = $alternativeFoliumStart;
 
         return $this;
     }
 
-    public function getType(): ?Type
+    /**
+     * @param  bool|null $alternativeFoliumStartRecto
+     * @return Occurrence
+     */
+    public function setAlternativeFoliumStartRecto(bool $alternativeFoliumStartRecto = null): Occurrence
     {
-        return $this->type;
+        $this->alternativeFoliumStartRecto = $alternativeFoliumStartRecto;
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $alternativeFoliumEnd
+     * @return Occurrence
+     */
+    public function setAlternativeFoliumEnd(string $alternativeFoliumEnd = null): Occurrence
+    {
+        $this->alternativeFoliumEnd = $alternativeFoliumEnd;
+
+        return $this;
+    }
+
+    /**
+     * @param  bool|null $alternativeFoliumEndRecto
+     * @return Occurrence
+     */
+    public function setAlternativeFoliumEndRecto(bool $alternativeFoliumEndRecto = null): Occurrence
+    {
+        $this->alternativeFoliumEndRecto = $alternativeFoliumEndRecto;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLocation(): ?string
+    {
+        $resultArray = [];
+        if (!empty($this->foliumStart)) {
+            if (!empty($this->foliumEnd)) {
+                $resultArray[] = 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
+                    . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto);
+            } else {
+                $resultArray[] = 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto);
+            }
+        }
+
+        if (!empty($this->generalLocation)) {
+            $resultArray[] = '(gen.) ' . $this->generalLocation;
+        }
+
+        if (!empty($this->alternativeFoliumStart)) {
+            if (!empty($this->alternativeFoliumEnd)) {
+                $resultArray[] = '(alt.) f. '
+                    . $this->alternativeFoliumStart
+                    . self::formatRecto($this->alternativeFoliumStartRecto)
+                    . '-' . $this->alternativeFoliumEnd
+                    . self::formatRecto($this->alternativeFoliumEndRecto);
+            } else {
+                $resultArray[] = '(alt.) f. '
+                    . $this->alternativeFoliumStart
+                    . self::formatRecto($this->alternativeFoliumStartRecto);
+            }
+        }
+
+        if (isset($this->unsure) && $this->unsure) {
+            return '(unsure) ' . implode(' -- ', $resultArray);
+        } else {
+            return implode(' -- ', $resultArray);
+        }
+    }
+
+    /**
+     * @param  string|null $contextualInfo
+     * @return Occurrence
+     */
+    public function setContextualInfo(string $contextualInfo = null): Occurrence
+    {
+        $this->contextualInfo = $contextualInfo;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getContextualInfo(): ?string
+    {
+        return $this->contextualInfo;
+    }
+
+    public function setRelatedOccurrences(array $relatedOccurrences): Occurrence
+    {
+        $this->relatedOccurrences = $relatedOccurrences;
+
+        return $this;
+    }
+
+    public function addRelatedOccurrence(Occurrence $relatedOccurrence, int $count): Occurrence
+    {
+        $this->relatedOccurrences[] = [$relatedOccurrence, $count];
+
+        return $this;
+    }
+
+    public function getRelatedOccurrences(): array
+    {
+        return $this->relatedOccurrences;
+    }
+
+    public function getPublicRelatedOccurrences(): array
+    {
+        return array_filter(
+            $this->relatedOccurrences,
+            function ($relatedOccurrence) {
+                return $relatedOccurrence[0]->getPublic();
+            }
+        );
+    }
+
+    public function setTypes(array $types): Occurrence
+    {
+        $this->types = $types;
+
+        return $this;
+    }
+
+    public function getTypes(): array
+    {
+        return $this->types;
     }
 
     public function setManuscript(Manuscript $manuscript = null): Occurrence
@@ -134,16 +368,23 @@ class Occurrence extends Document
         return $this->incipit;
     }
 
-    public function setText(string $text = null): Occurrence
+    public function setVerses(array $verses): Occurrence
     {
-        $this->text = $text;
+        $this->verses = $verses;
 
         return $this;
     }
 
-    public function getText(): string
+    public function addVerse(Verse $verse): Occurrence
     {
-        return $this->text;
+        $this->verses[$verse->getId()] = $verse;
+
+        return $this;
+    }
+
+    public function getVerses(): array
+    {
+        return $this->verses;
     }
 
     public function setMeter(Meter $meter = null): Occurrence
@@ -229,28 +470,16 @@ class Occurrence extends Document
         return $this->paleographicalInfo;
     }
 
-    public function setContextualInfo(string $contextualInfo = null): Occurrence
+    public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
     {
-        $this->contextualInfo = $contextualInfo;
+        $this->numberOfVerses = $numberOfVerses;
 
         return $this;
     }
 
-    public function getContextualInfo(): ?string
+    public function getNumberOfVerses(): int
     {
-        return $this->contextualInfo;
-    }
-
-    public function setVerses(int $verses = null): Occurrence
-    {
-        $this->verses = $verses;
-
-        return $this;
-    }
-
-    public function getVerses(): ?int
-    {
-        return $this->verses;
+        return isset($this->numberOfVerses) ? $this->numberOfVerses : count($this->verses);
     }
 
     public function addImage(Image $image): Occurrence
@@ -277,6 +506,18 @@ class Occurrence extends Document
         return $this->imageLinks;
     }
 
+    public function addImageText(Image $image): Occurrence
+    {
+        $this->imageTexts[$image->getId()] = $image;
+
+        return $this;
+    }
+
+    public function getImageTexts(): array
+    {
+        return $this->imageTexts;
+    }
+
     public function getDBBE(): bool
     {
         $textSource = $this->getTextSource();
@@ -288,22 +529,15 @@ class Occurrence extends Document
 
     public function getDescription(): string
     {
-        $result = '';
-        if (!empty($this->getLocation())) {
-            $result .= '(' . $this->getLocation() . ')';
-        }
-
-        if (!empty($this->incipit)) {
-            $result .= ' ' . $this->incipit;
-        }
-        return $result;
+        return $this->incipit;
     }
 
     public function getShortJson(): array
     {
         return [
             'id' => $this->id,
-            'name' => $this->getDescription(),
+            'name' => $this->incipit,
+            'location' => $this->getLocation(),
         ];
     }
 
@@ -311,8 +545,71 @@ class Occurrence extends Document
     {
         $result = parent::getJson();
 
+        if (isset($this->incipit)) {
+            $result['incipit'] = $this->incipit;
+        }
+        if (isset($this->title)) {
+            $result['title'] = $this->title;
+        }
+        if (isset($this->manuscript)) {
+            $result['manuscript'] = $this->manuscript->getShortJson();
+        }
+        if (isset($this->foliumStart)) {
+            $result['foliumStart'] = $this->foliumStart;
+        }
+        if (isset($this->foliumStartRecto)) {
+            $result['foliumStartRecto'] = $this->foliumStartRecto;
+        }
+        if (isset($this->foliumEnd)) {
+            $result['foliumEnd'] = $this->foliumEnd;
+        }
+        if (isset($this->foliumEndRecto)) {
+            $result['foliumEndRecto'] = $this->foliumEndRecto;
+        }
+        if (isset($this->unsure)) {
+            $result['unsure'] = $this->unsure;
+        }
+        if (isset($this->generalLocation)) {
+            $result['generalLocation'] = $this->generalLocation;
+        }
+        if (isset($this->alternativeFoliumStart)) {
+            $result['alternativeFoliumStart'] = $this->alternativeFoliumStart;
+        }
+        if (isset($this->alternativeFoliumStartRecto)) {
+            $result['alternativeFoliumStartRecto'] = $this->alternativeFoliumStartRecto;
+        }
+        if (isset($this->alternativeFoliumEnd)) {
+            $result['alternativeFoliumEnd'] = $this->alternativeFoliumEnd;
+        }
+        if (isset($this->alternativeFoliumEndRecto)) {
+            $result['alternativeFoliumEndRecto'] = $this->alternativeFoliumEndRecto;
+        }
+        if (!empty($this->numberOfVerses)) {
+            $result['numberOfVerses'] = $this->numberOfVerses;
+        }
+        if (!empty($this->verses)) {
+            $result['verses'] = ArrayToJson::arrayToJson($this->verses);
+        }
+        if (!empty($this->types)) {
+            $result['types'] = ArrayToJson::arrayToShortJson($this->types);
+        }
+        if (isset($this->meter)) {
+            $result['meter'] = $this->meter->getShortJson();
+        }
+        if (!empty($this->subjects)) {
+            $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
+        }
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
+        }
+        if (isset($this->genre)) {
+            $result['genre'] = $this->genre->getShortJson();
+        }
+        if (isset($this->textStatus)) {
+            $result['textStatus'] = $this->textStatus->getShortJson();
+        }
+        if (isset($this->recordStatus)) {
+            $result['recordStatus'] = $this->recordStatus->getShortJson();
         }
 
         return $result;
@@ -332,8 +629,8 @@ class Occurrence extends Document
         if (isset($this->title)) {
             $result['title'] = $this->title;
         }
-        if (isset($this->text)) {
-            $result['text'] = $this->text;
+        if (!empty($this->verses)) {
+            $result['text'] = Verse::getText($this->verses);
         }
         if (isset($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
@@ -380,11 +677,7 @@ class Occurrence extends Document
 
     private static function formatRecto(bool $recto = null): string
     {
-        if (empty($recto)) {
-            return '';
-        }
-
-        if ($recto) {
+        if (!empty($recto) && $recto) {
             return 'r';
         } else {
             return 'v';

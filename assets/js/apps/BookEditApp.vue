@@ -109,17 +109,11 @@ for(let key of panelComponents.keys()) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
-    props: {
-        initRoles: {
-            type: String,
-            default: '',
-        },
-    },
     data() {
         let data = {
+            roles: JSON.parse(this.initRoles),
             book: null,
             modernPersons: null,
-            roles: JSON.parse(this.initRoles),
             model: {
                 personRoles: {},
                 basic: {
@@ -157,10 +151,10 @@ export default {
         loadData() {
             if (this.book != null) {
                 // PersonRoles
-                this.model.personRoles = {}
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.book.personRoles != null ? this.book.personRoles[role.systemName] : null
                 }
+                this.$refs.persons.init();
 
                 // Basic info
                 this.model.basic = {

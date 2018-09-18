@@ -14,28 +14,30 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 {
     private $client;
     private $indexPrefix;
+    private $indexName;
     protected $type;
     protected $primaryIdentifiers;
     protected $roles;
 
-    public function __construct(
+    protected function __construct(
         array $config,
         string $indexPrefix,
         string $indexName,
         string $typeName,
-        array $primaryIdentifiers,
+        array $primaryIdentifiers = null,
         array $roles = null
     ) {
         $this->client = new Client($config);
         $this->indexPrefix = $indexPrefix;
-        $this->type = $this->getIndex($indexName)->getType($typeName);
+        $this->indexName = $indexName;
+        $this->type = $this->getIndex()->getType($typeName);
         $this->primaryIdentifiers = $primaryIdentifiers;
         $this->roles = $roles;
     }
 
-    public function getIndex($indexName)
+    protected function getIndex()
     {
-        return $this->client->getIndex($this->indexPrefix . '_'. $indexName);
+        return $this->client->getIndex($this->indexPrefix . '_'. $this->indexName);
     }
 
     protected function bulkAdd(array $indexingContents)
@@ -52,7 +54,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $this->type->getIndex()->refresh();
     }
 
-    public function search(array $params = null): array
+    protected function search(array $params = null): array
     {
         // Construct query
         $query = new Query();
@@ -108,10 +110,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         return $response;
     }
 
-    public function aggregate(array $fieldTypes, array $filterValues): array
+    protected function aggregate(array $fieldTypes, array $filterValues): array
     {
         $query = (new Query())
-            ->setQuery(self::createQuery($filterValues));
+            ->setQuery(self::createQuery($filterValues))
+            // Only aggregation will be used
+            ->setSize(0);
 
         foreach ($fieldTypes as $fieldType => $fieldNames) {
             switch ($fieldType) {
@@ -291,7 +295,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         return $results;
     }
 
-    private static function createQuery(array $filterTypes): Query\BoolQuery
+    protected static function createQuery(array $filterTypes): Query\BoolQuery
     {
         $filterQuery = new Query\BoolQuery();
         foreach ($filterTypes as $filterType => $filterValues) {
@@ -452,7 +456,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         );
     }
 
-    private static function createHighlight(array $filterTypes): array
+    protected static function createHighlight(array $filterTypes): array
     {
         $highlights = [
             'number_of_fragments' => 0,
@@ -501,7 +505,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
      * @param  array               $value Array with [type] of match (any, all, phrase) and the [text] to search for
      * @return AbstractQuery
      */
-    private static function contstructTextQuery($key, $value): AbstractQuery
+    protected static function contstructTextQuery($key, $value): AbstractQuery
     {
         $textQuery = new Query\BoolQuery();
         $anyQuery = new Query\Match($key, $value['text']);

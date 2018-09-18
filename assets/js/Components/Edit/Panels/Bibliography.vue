@@ -395,17 +395,6 @@ export default {
             )
         }
     },
-    watch: {
-        values() {
-            this.init()
-        },
-        model() {
-            this.init()
-        }
-    },
-    mounted () {
-        this.init()
-    },
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
@@ -460,9 +449,11 @@ export default {
                 if (this.editBib.startPage != null) {
                     this.editBib.rawPages = null
                 }
+                // Edit existing bibliography
                 if (this.bibIndex > -1) {
                     this.model[this.editBib.type + "s"][this.bibIndex] = JSON.parse(JSON.stringify(this.editBib))
                 }
+                // Add new bibliography
                 else {
                     this.model[this.editBib.type + "s"].push(JSON.parse(JSON.stringify(this.editBib)))
                 }

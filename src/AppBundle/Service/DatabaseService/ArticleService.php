@@ -94,7 +94,7 @@ class ArticleService extends DocumentService
     /**
      * @param  string $title
      * @param  int    $journalId
-     * @return int
+     * @return int    id of the new article
      */
     public function insert(string $title, int $journalId): int
     {

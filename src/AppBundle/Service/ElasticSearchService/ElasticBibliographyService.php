@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticBibliographyService extends ElasticEntityService
+class ElasticBibliographyService extends ElasticBaseService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -29,7 +29,7 @@ class ElasticBibliographyService extends ElasticEntityService
 
     public function setupBibliographies(): void
     {
-        $index = $this->getIndex('bibliographies');
+        $index = $this->getIndex();
         if ($index->exists()) {
             $index->delete();
         }

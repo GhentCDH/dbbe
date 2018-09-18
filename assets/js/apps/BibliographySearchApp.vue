@@ -196,21 +196,6 @@ export default {
             data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
         }
 
-        // Add view internal only fields
-        // if (this.isViewInternal) {
-        //     data.schema.fields['public'] = this.createMultiSelect(
-        //         'Public',
-        //         {
-        //             styleClasses: 'has-warning',
-        //         },
-        //         {
-        //             customLabel: ({id, name}) => {
-        //                 return name === 'true' ? 'Public only' : 'Internal only'
-        //             },
-        //         }
-        //     )
-        // }
-
         return data
     },
     computed: {

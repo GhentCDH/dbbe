@@ -62,8 +62,6 @@ class Book extends Document
         string $city,
         string $editor = null
     ) {
-        parent::__construct();
-
         $this->id = $id;
         $this->year = $year;
         $this->title = $title;

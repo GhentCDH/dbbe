@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticManuscriptService extends ElasticEntityService
+class ElasticManuscriptService extends ElasticBaseService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -21,7 +21,7 @@ class ElasticManuscriptService extends ElasticEntityService
 
     public function setupManuscripts(): void
     {
-        $index = $this->getIndex('manuscripts');
+        $index = $this->getIndex();
         if ($index->exists()) {
             $index->delete();
         }

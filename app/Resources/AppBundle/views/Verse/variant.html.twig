@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">Verse variants</h2>
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Verse</th>
+                    <th>Line</th>
+                    <th>Occurrence</th>
+                    <th>Occurrence Location</th>
+                    <th>Manuscript</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for verse in group %}
+                    <tr>
+                        <td class="greek">{{ verse.getVerse() }}</td>
+                        <td>{{ verse.getOccurrence().getNumberOfVerses() == 0 ? '?' : verse.getOrder() + 1 }}/{{verse.getOccurrence().getNumberOfVerses() == 0 ? '?' : verse.getOccurrence().getNumberOfVerses()}}</td>
+                        <td class="greek">
+                            <a href="{{ path('occurrence_get', {'id': verse.getOccurrence().getId()}) }}">
+                                [{{ verse.getOccurrence().getId() }}] {{ verse.getOccurrence().getDescription() }}
+                            </a>
+                        </td>
+                        <td>{{ verse.getOccurrence().getLocation() }}</td>
+                        <td>
+                            <a href="{{ path('manuscript_get', {'id': verse.getManuscript().getId()}) }}">
+                                {{ verse.getManuscript().getDescription() }}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

@@ -91,17 +91,22 @@
                 </template>
                 <template
                     v-if="props.row.office"
-                    slot="offices"
+                    slot="office"
                     slot-scope="props">
-                    <ul v-if="props.row.office.length > 1">
-                        <li
-                            v-for="(office, index) in props.row.office"
+                    <!-- set displayContent using a v-for -->
+                    <template v-for="(displayOffice, index) in [props.row.office.filter((office) => office['display'])]">
+                        <ul
+                            v-if="displayOffice.length > 1"
                             :key="index">
-                            {{ office.name }}
-                        </li>
-                    </ul>
-                    <template v-else>
-                        {{ props.row.office[0].name }}
+                            <li
+                                v-for="(office, officeIndex) in displayOffice"
+                                :key="officeIndex">
+                                {{ office.name }}
+                            </li>
+                        </ul>
+                        <template v-else>
+                            {{ displayOffice[0].name }}
+                        </template>
                     </template>
                 </template>
                 <template
@@ -446,7 +451,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'offices', 'self designation', 'date']
+            let columns = ['name', 'identification', 'office', 'self designation', 'date']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }

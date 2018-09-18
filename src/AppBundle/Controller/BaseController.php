@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class BasicController extends Controller
+class BaseController extends Controller
 {
     /**
      * @param Request $request

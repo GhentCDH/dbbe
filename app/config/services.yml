@@ -63,6 +63,11 @@ services:
         arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    meter_manager:
+        class: AppBundle\ObjectStorage\MeterManager
+        arguments: ['@meter_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -148,6 +153,11 @@ services:
         arguments: ['@image_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    verse_manager:
+        class: AppBundle\ObjectStorage\VerseManager
+        arguments: ['@verse_service', '@cache.app', '@service_container', '@verse_elastic_service', '@security.token_storage', 'verse']
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
         arguments: ['@doctrine.orm.entity_manager']
@@ -162,6 +172,10 @@ services:
 
     content_service:
         class: AppBundle\Service\DatabaseService\ContentService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    meter_service:
+        class: AppBundle\Service\DatabaseService\MeterService
         arguments: ['@doctrine.orm.entity_manager']
 
     person_service:
@@ -240,6 +254,10 @@ services:
         class: AppBundle\Service\DatabaseService\IdentifierService
         arguments: ['@doctrine.orm.entity_manager']
 
+    verse_service:
+        class: AppBundle\Service\DatabaseService\VerseService
+        arguments: ['@doctrine.orm.entity_manager']
+
     feedback_service:
         class: AppBundle\Service\DatabaseService\FeedbackService
         arguments: ['@doctrine.orm.entity_manager']
@@ -263,4 +281,9 @@ services:
     bibliography_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticBibliographyService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
+        public: true
+
+    verse_elastic_service:
+        class: AppBundle\Service\ElasticSearchService\ElasticVerseService
+        arguments: ['%elastic_hosts%', '%elastic_index%']
         public: true

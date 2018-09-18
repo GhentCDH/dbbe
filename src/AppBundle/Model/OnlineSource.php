@@ -41,7 +41,6 @@ class OnlineSource extends Entity
         string $name,
         DateTime $lastAccessed
     ) {
-        parent::__construct();
         $this->id = $id;
         $this->url = $url;
         $this->name = $name;

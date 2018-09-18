@@ -9,19 +9,19 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ImageManager extends ObjectManager
 {
     /**
-     * Get image by url
-     * @param  string $url
+     * Get image by id
+     * @param  int    $id
      * @return Image
      */
-    public function getImageByUrl(string $url): Image
+    public function getImageById(int $id): Image
     {
         return $this->wrapSingleCache(
-            'image_url',
-            $url,
-            function ($url) {
-                $rawImages = $this->dbs->getByUrl($url);
+            'image_id',
+            $id,
+            function ($id) {
+                $rawImages = $this->dbs->getById($id);
                 if (count($rawImages) !== 1) {
-                    throw new NotFoundHttpException('Image with url "' . $url . '" not found');
+                    throw new NotFoundHttpException('Image with id "' . $id . '" not found');
                 }
 
                 $rawImage = $rawImages[0];

@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class ManuscriptController extends BasicController
+class ManuscriptController extends BaseController
 {
     const MANAGER = 'manuscript_manager';
     const TEMPLATE_FOLDER = 'AppBundle:Manuscript:';

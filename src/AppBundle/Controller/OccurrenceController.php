@@ -4,28 +4,34 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
-class OccurrenceController extends Controller
+class OccurrenceController extends BaseController
 {
+    /**
+     * @var string
+     */
+    const MANAGER = 'occurrence_manager';
+    /**
+     * @var string
+     */
+    const TEMPLATE_FOLDER = 'AppBundle:Occurrence:';
+
     /**
      * @Route("/occurrences/search", name="occurrences_search")
      * @Method("GET")
      * @param Request $request
      */
-    public function searchOccurrences(Request $request)
+    public function search(Request $request)
     {
         return $this->render(
             'AppBundle:Occurrence:overview.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
                     'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
@@ -42,6 +48,7 @@ class OccurrenceController extends Controller
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('occurrence'))
                 ),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }
@@ -51,7 +58,7 @@ class OccurrenceController extends Controller
      * @Method("GET")
      * @param Request $request
      */
-    public function searchOccurrencesAPI(Request $request)
+    public function searchAPI(Request $request)
     {
         $result = $this->get('occurrence_elastic_service')->searchAndAggregate(
             $this->sanitize($request->query->all()),
@@ -66,43 +73,20 @@ class OccurrenceController extends Controller
      * @Method("GET")
      * @param Request $request
      */
-    public function addOccurrence(Request $request)
+    public function add(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-
-        return $this->editOccurrence(null, $request);
+        return parent::add($request);
     }
 
     /**
      * @Route("/occurrences/{id}", name="occurrence_get")
      * @Method("GET")
-     * @param  int    $id occurrence id
+     * @param  int    $id
      * @param Request $request
      */
-    public function getOccurrence(int $id, Request $request)
+    public function getSingle(int $id, Request $request)
     {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-            try {
-                $occurrence = $this->get('occurrence_manager')->getFull($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-            return new JsonResponse($occurrence->getJson());
-        } else {
-            // Let the 404 page handle the not found exception
-            $occurrence = $this->get('occurrence_manager')->getFull($id);
-            if (!$occurrence->getPublic()) {
-                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-            }
-            return $this->render(
-                'AppBundle:Occurrence:detail.html.twig',
-                ['occurrence' => $occurrence]
-            );
-        }
+        return parent::getSingle($id, $request);
     }
 
     /**
@@ -113,17 +97,9 @@ class OccurrenceController extends Controller
      * @param  int    $id manuscript id
      * @param Request $request
      */
-    public function getOccurrenceDepsByManuscript(int $id, Request $request)
+    public function getDepsByManuscript(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $occurrences = $this
-                ->get('occurrence_manager')
-                ->getManuscriptDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getManuscriptDependencies');
     }
 
     /**
@@ -134,17 +110,22 @@ class OccurrenceController extends Controller
      * @param  int    $id person id
      * @param Request $request
      */
-    public function getOccurrenceDepsByPerson(int $id, Request $request)
+    public function getDepsByPerson(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $occurrences = $this
-                ->get('occurrence_manager')
-                ->getPersonDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($occurrences));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
+    }
+
+    /**
+     * Get all occurrences that have a dependency on a meter
+     * (poem_meter)
+     * @Route("/occurrences/meters/{id}", name="occurrence_deps_by_meter")
+     * @Method("GET")
+     * @param  int    $id meter id
+     * @param Request $request
+     */
+    public function getDepsByMeter(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getMeterDependencies');
     }
 
     /**
@@ -153,27 +134,15 @@ class OccurrenceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function postOccurrence(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $occurrence = $this
-                    ->get('occurrence_manager')
-                    ->add(json_decode($request->getContent()));
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::post($request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Occurrence added successfully.');
-
-            return new JsonResponse($occurrence->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -183,32 +152,15 @@ class OccurrenceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function putOccurrence(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $occurrence = $this
-                    ->get('occurrence_manager')
-                    ->update($id, json_decode($request->getContent()));
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::put($id, $request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Occurrence data successfully saved.');
-
-            return new JsonResponse($occurrence->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -218,9 +170,9 @@ class OccurrenceController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function deleteOccurrence(int $id, Request $request)
+    public function delete(int $id, Request $request)
     {
-        throw new \Exception('Not implemented');
+        return parent::delete($id, $request);
     }
 
     /**
@@ -230,41 +182,56 @@ class OccurrenceController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function editOccurrence(int $id = null, Request $request)
+    public function edit(int $id = null, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             'AppBundle:Occurrence:edit.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
                 'urls' => json_encode([
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => $id == null ? 'occurrence_id' : $id]),
                     'occurrence_post' => $this->generateUrl('occurrence_post'),
                     'occurrence_put' => $this->generateUrl('occurrence_put', ['id' => $id]),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'verse_variant_get' => $this->generateUrl('verse_variant_get', ['groupId' => 'verse_variant_id']),
+                    'verse_search' => $this->generateUrl('verse_search'),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'occurrence' => empty($id)
                         ? null
                         : $this->get('occurrence_manager')->getFull($id)->getJson(),
+                    'manuscripts' => ArrayToJson::arrayToShortJson($this->get('manuscript_manager')->getAllMini()),
+                    'types' => ArrayToJson::arrayToShortJson($this->get('type_manager')->getAllMini()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
-                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getOriginsForManuscripts()),
+                    'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
+                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'articles' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllArticles()),
-                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllBookChapters()),
-                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('bibliography_manager')->getAllOnlineSources()),
+                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
+                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))
                 ),
+                'roles' => json_encode(
+                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('occurrence'))
+                ),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }
 
+    /**
+     * Sanitize data from request string
+     * @param  array $params
+     * @return array
+     */
     private function sanitize(array $params): array
     {
         $defaults = [
@@ -310,7 +277,7 @@ class OccurrenceController extends Controller
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
         // Don't set default order if there is a text field filter
-        } else if (!(isset($params['filters']['text']) || isset($params['filters']['comment']))) {
+        } elseif (!(isset($params['filters']['text']) || isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
 

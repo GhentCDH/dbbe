@@ -19,11 +19,8 @@ class RoleManager extends ObjectManager
             Role::CACHENAME,
             $ids,
             function ($ids) {
-                $roles = [];
                 $rawRoles = $this->dbs->getRolesByIds($ids);
-                $roles = $this->getWithData($rawRoles);
-
-                return $roles;
+                return $this->getWithData($rawRoles);
             }
         );
     }

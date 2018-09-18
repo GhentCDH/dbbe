@@ -272,15 +272,6 @@ class PersonManager extends EntityManager
     }
 
     /**
-     * @param  string|null $sortFunction Name of the optional method to call for sorting
-     * @return array
-     */
-    public function getAll(string $sortFunction = null): array
-    {
-        return parent::getAllShort($sortFunction == null ? 'getName' : $sortFunction);
-    }
-
-    /**
      * Get all persons that are dependent on a specific office
      * @param  int   $officeId
      * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
@@ -511,8 +502,10 @@ class PersonManager extends EntityManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
-            // load new person data
-            $this->clearCache($id, $cacheReload);
+            // load new data
+            if (!$isNew) {
+                $this->clearCache($id, $cacheReload);
+            }
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -851,12 +844,9 @@ class PersonManager extends EntityManager
 
             $this->updateModified($person, null);
 
-            // empty cache
-            $this->clearCache($id);
+            // empty cache and remove from elasticsearch
+            $this->reset([$id]);
             $this->cache->invalidateTags(['persons']);
-
-            // delete from elastic search
-            $this->ess->delete($person);
 
             // commit transaction
             $this->dbs->commit();

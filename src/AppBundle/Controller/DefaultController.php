@@ -59,7 +59,7 @@ class DefaultController extends Controller
         $target = urlencode($this->generateUrl('force', [], UrlGeneratorInterface::ABSOLUTE_URL));
         $url = 'https://'.$this->container->getParameter('cas_host') . '/login?service=';
 
-        if ($request->get('close') === 'true') {
+        if ($request->get('close') == 'true') {
             return $this->redirect(
                 $url . $target . urlencode('?referer=/close')
             );

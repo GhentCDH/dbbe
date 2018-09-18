@@ -28,4 +28,18 @@ class TypeService extends DocumentService
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
+
+    public function getNumberOfVerses(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id,
+                poem.verses
+            from data.reconstructed_poem
+            inner join data.poem on reconstructed_poem.identity = poem.identity
+            where reconstructed_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
 }

@@ -108,14 +108,6 @@ class BookManager extends DocumentManager
     }
 
     /**
-     * @return array
-     */
-    public function getAllShort(): array
-    {
-        return parent::getAllShort();
-    }
-
-    /**
      * Get all books that are dependent on a specific person
      * @param  int   $personId
      * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
@@ -258,7 +250,9 @@ class BookManager extends DocumentManager
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
+            if (!$isNew) {
+                $this->clearCache($id, $cacheReload);
+            }
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -297,11 +291,8 @@ class BookManager extends DocumentManager
 
             $this->updateModified($old, null);
 
-            // empty cache
-            $this->clearCache($id);
-
-            // delete from elastic search
-            $this->ess->delete($old);
+            // empty cache and remove from elasticsearch
+            $this->reset([$id]);
 
             // commit transaction
             $this->dbs->commit();

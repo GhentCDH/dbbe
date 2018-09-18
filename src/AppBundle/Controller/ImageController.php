@@ -13,15 +13,15 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ImageController extends Controller
 {
     /**
-     * @Route("/occ_images/{url}", name="image_get")
+     * @Route("/occ_images/{id}", name="image_get")
      * @Method("GET")
-     * @param  string    $url image relative url
+     * @param  int    $id
      * @param Request $request
      */
-    public function getImage(string $url, Request $request)
+    public function getImage(int $id, Request $request)
     {
         // Let the 404 page handle the not found exception
-        $image = $this->get('image_manager')->getImageByUrl($url);
+        $image = $this->get('image_manager')->getImageById($id);
         if (!$image->getPublic()) {
             $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
         }

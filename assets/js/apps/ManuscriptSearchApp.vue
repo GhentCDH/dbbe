@@ -83,6 +83,7 @@
                     v-if="props.row.content"
                     slot="content"
                     slot-scope="props">
+                    <!-- set displayContent using a v-for -->
                     <template v-for="(displayContent, index) in [props.row.content.filter((content) => content['display'])]">
                         <ul
                             v-if="displayContent.length > 1"

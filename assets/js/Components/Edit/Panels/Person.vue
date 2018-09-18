@@ -2,27 +2,31 @@
     <panel :header="header">
         <template v-for="role in roles">
             <vue-form-generator
+                ref="forms"
                 :key="'form_' + role.systemName"
                 :schema="schemas[role.systemName]"
                 :model="model"
                 :options="formOptions"
-                ref="forms"
-                @validated="validated" />
+                @validated="validated"
+            />
             <div
-                :key="'occ_' + role.systemName"
                 v-if="occurrencePersonRoles[role.systemName]"
-                class="small">
+                :key="'occ_' + role.systemName"
+                class="small"
+            >
                 <p>{{ role.name }}(s) provided by occurrences:</p>
                 <ul>
                     <li
                         v-for="person in occurrencePersonRoles[role.systemName]"
-                        :key="person.id">
+                        :key="person.id"
+                    >
                         {{ person.name }}
                         <ul>
                             <li
                                 v-for="(occurrence, index) in person.occurrences"
                                 :key="index"
-                                class="greek">
+                                class="greek"
+                            >
                                 {{ occurrence }}
                             </li>
                         </ul>
@@ -67,14 +71,20 @@ export default {
             refs: {},
         }
         for (let role of this.roles) {
-            let fields = {}
-            fields[role.systemName] = this.createMultiSelect(
-                role.name,
-                {values: this.values},
-                {multiple: true, closeOnSelect: false}
-            )
             data.schemas[role.systemName] = {
-                fields: fields,
+                fields: {
+                    [role.systemName]: this.createMultiSelect(
+                        role.name,
+                        {
+                            model: role.systemName,
+                            values: this.values,
+                        },
+                        {
+                            multiple: true,
+                            closeOnSelect: false,
+                        }
+                    )
+                },
             }
             data.refs[role.systemName] = role.systemName + 'Form'
         }

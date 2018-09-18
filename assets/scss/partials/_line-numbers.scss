@@ -1,27 +1,28 @@
-.line-numbers {
-  background: none;
-  border: 0;
-  counter-reset: linenumbers;
-  margin: 0;
-  padding: 1em 0 2em 3.8em;
-
-  code {
-    position: relative;
+.line-number {
+  &::before {
+    content: attr(data-line-number);
   }
 }
 
-.line-numbers-rows {
-  border-right: 1px solid $border-color;
-  left: -3.8em;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  width: 3em;
-
-  span {
+.table {
+  .line-number {
+    border-right: 1px solid $border-color;
+    border-top: 0;
     color: $border-color;
-    display: block;
-    padding-right: .8em;
-    text-align: right;
+    padding: 2px 4px;
+  }
+
+  .verse {
+    border-top: 0;
+    padding: 2px 4px 2px 16px;
+
+    a {
+      border-bottom: 0;
+      color: inherit;
+
+      &:hover {
+        border-bottom: 1px solid;
+      }
+    }
   }
 }

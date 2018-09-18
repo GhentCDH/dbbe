@@ -18,7 +18,7 @@ abstract class Bibliography
     protected $type;
     protected $refType;
 
-    public function __construct(int $id, string $type)
+    protected function __construct(int $id, string $type)
     {
         $this->id = $id;
         $this->type = $type;

@@ -25,17 +25,7 @@ class Document extends Entity
      *  ]
      * @var array
      */
-    protected $personRoles;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->personRoles = [];
-        $this->bibliographies = [];
-
-        return $this;
-    }
+    protected $personRoles = [];
 
     /**
      * @param  string|null $title

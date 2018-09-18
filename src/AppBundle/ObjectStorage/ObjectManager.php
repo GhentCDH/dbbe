@@ -256,6 +256,27 @@ class ObjectManager
         return $cached + $levelObjects;
     }
 
+    protected function wrapLevelDataCache(string $cacheKey, string $cacheLevel, array $data, string $idKey, callable $function): array
+    {
+        $ids = self::getUniqueIds($data, $idKey);
+        list($cached, $ids) = $this->getCache($ids, $cacheKey . '_' . $cacheLevel);
+        if (empty($ids)) {
+            return $cached;
+        }
+
+        $levelObjects = array_map(
+            function ($levelObject) use ($cacheLevel) {
+                $levelObject->setCacheLevel($cacheLevel);
+                return $levelObject;
+            },
+            $function($data)
+        );
+
+        $this->setCache($levelObjects, $cacheKey . '_' . $cacheLevel);
+
+        return $cached + $levelObjects;
+    }
+
     protected function wrapSingleLevelCache(string $cacheKey, string $cacheLevel, int $id, callable $function)
     {
         $cache = $this->getSingleCache($id, $cacheKey . '_' . $cacheLevel);
@@ -322,6 +343,45 @@ class ObjectManager
     {
         foreach ($specifics as $specific) {
             $this->deleteCache($this->entityType . '_' . $specific, $id);
+        }
+    }
+
+    /**
+     * Clear cache and (re-)index elasticsearch
+     * When something goes wrong with an update
+     * @param array $ids
+     */
+    public function reset(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->clearCache($id);
+        }
+
+        $this->elasticIndexByIds($ids);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param array $shortEntities
+     */
+    public function elasticIndex(array $shortEntities): void
+    {
+        $this->ess->addMultiple($shortEntities);
+    }
+
+    /**
+     * (Re-)index elasticsearch
+     * @param  array  $ids
+     */
+    public function elasticIndexByIds(array $ids): void
+    {
+        $shorts = $this->getShort($ids);
+        $delIds = array_diff($ids, array_keys($shorts));
+        if (count($shorts) > 0) {
+            $this->ess->addMultiple($shorts);
+        }
+        if (count($delIds) > 0) {
+            $this->ess->deleteMultiple($delIds);
         }
     }
 

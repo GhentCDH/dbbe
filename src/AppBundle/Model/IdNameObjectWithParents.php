@@ -87,7 +87,7 @@ class IdNameObjectWithParents implements IdJsonInterface
         $array = $this->array;
         $last = true;
         while (count($array) > 0) {
-            $object = new IdNameObjectWithParents($array);
+            $object = (new ReflectionClass(static::class))->newInstance($array);
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getName(),

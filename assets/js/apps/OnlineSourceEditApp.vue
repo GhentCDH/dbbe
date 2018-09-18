@@ -100,7 +100,7 @@ for(let key of panelComponents.keys()) {
 export default {
     mixins: [ AbstractEntityEdit ],
     data() {
-        let data = {
+        return {
             onlineSource: null,
             modernPersons: null,
             model: {
@@ -114,7 +114,6 @@ export default {
                 'basic',
             ],
         }
-        return data
     },
     created () {
         this.onlineSource = this.data.onlineSource

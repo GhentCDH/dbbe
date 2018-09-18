@@ -17,7 +17,6 @@
     </panel>
 </template>
 <script>
-window.sortablejs = require('sortablejs')
 import Vue from 'vue'
 import draggable from 'vuedraggable'
 

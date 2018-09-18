@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use AppBundle\Utils\ArrayToJson;
 
-class PersonController extends BasicController
+class PersonController extends BaseController
 {
     /**
      * @var string
@@ -233,14 +233,15 @@ class PersonController extends BasicController
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))
                 ),
+                'roles' => json_encode([]),
             ]
         );
     }
 
     /**
      * Sanitize data from request string
-     * @param  array $params [description]
-     * @return array         [description]
+     * @param  array $params
+     * @return array
      */
     private function sanitize(array $params): array
     {

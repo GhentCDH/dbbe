@@ -37,6 +37,7 @@
   "build/main.js": "/build/main.js",
   "build/manuscriptedit.js": "/build/manuscriptedit.js",
   "build/manuscriptsearch.js": "/build/manuscriptsearch.js",
+  "build/metersedit.js": "/build/metersedit.js",
   "build/occurrenceedit.js": "/build/occurrenceedit.js",
   "build/occurrencesearch.js": "/build/occurrencesearch.js",
   "build/officesedit.js": "/build/officesedit.js",

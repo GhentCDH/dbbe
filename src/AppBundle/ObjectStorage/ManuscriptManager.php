@@ -177,6 +177,11 @@ class ManuscriptManager extends DocumentManager
         );
     }
 
+    public function getAllMini(string $sortFunction = null): array
+    {
+        return parent::getAllMini($sortFunction == null ? 'getDescription' : $sortFunction);
+    }
+
     public function getRegionDependencies(int $regionId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short ? 'getShort' : 'getMini');
@@ -255,111 +260,111 @@ class ManuscriptManager extends DocumentManager
             if (!property_exists($data, 'locatedAt')) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
-            $manuscriptId = $this->dbs->insert();
+            $id = $this->dbs->insert();
             // Located at needs to be saved in order for getFull
             $this->container->get('located_at_manager')->addLocatedAt(
-                $manuscriptId,
+                $id,
                 $data->locatedAt
             );
             // prevent locatedAt from being updated unnecessarily
             unset($data->locatedAt);
 
-            $newManuscript = $this->update($manuscriptId, $data, true);
+            $newManuscript = $this->update($id, $data, true);
 
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
+
             throw $e;
         }
 
         return $newManuscript;
     }
 
-    public function update(int $id, stdClass $data, bool $new = false): Manuscript
+    public function update(int $id, stdClass $data, bool $isNew = false): Manuscript
     {
         $this->dbs->beginTransaction();
         try {
-            $manuscript = $this->getFull($id);
-            if ($manuscript == null) {
+            $old = $this->getFull($id);
+            if ($old == null) {
                 throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
             }
 
-            // update manuscript data
             $cacheReload = [
-                'mini' => $new,
-                'short' => $new,
-                'full' => $new,
+                'mini' => $isNew,
+                'short' => $isNew,
+                'full' => $isNew,
             ];
             if (property_exists($data, 'locatedAt')) {
                 $cacheReload['mini'] = true;
                 $this->container->get('located_at_manager')->updateLocatedAt(
-                    $manuscript->getLocatedAt()->getId(),
+                    $old->getLocatedAt()->getId(),
                     $data->locatedAt
                 );
             }
             if (property_exists($data, 'public')) {
                 $cacheReload['mini'] = true;
-                $this->updatePublic($manuscript, $data->public);
+                $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'content')) {
                 $cacheReload['short'] = true;
-                $this->updateContent($manuscript, $data->content);
+                $this->updateContent($old, $data->content);
             }
             $roles = $this->container->get('role_manager')->getRolesByType('manuscript');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
                     $cacheReload['short'] = true;
-                    $this->updatePersonRole($manuscript, $role, $data->{$role->getSystemName()});
+                    $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
             if (property_exists($data, 'date')) {
                 $cacheReload['short'] = true;
-                $this->updateDate($manuscript, 'completed at', $manuscript->getDate(), $data->date);
+                $this->updateDate($old, 'completed at', $old->getDate(), $data->date);
             }
             if (property_exists($data, 'origin')) {
                 $cacheReload['short'] = true;
-                $this->updateOrigin($manuscript, $data->origin);
+                $this->updateOrigin($old, $data->origin);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePublicComment($manuscript, $data->publicComment);
+                $this->updatePublicComment($old, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePrivateComment($manuscript, $data->privateComment);
+                $this->updatePrivateComment($old, $data->privateComment);
             }
             if (property_exists($data, 'occurrenceOrder')) {
                 $cacheReload['full'] = true;
-                $this->updateOccurrenceOrder($manuscript, $data->occurrenceOrder);
+                $this->updateOccurrenceOrder($old, $data->occurrenceOrder);
             }
             $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('manuscript');
             foreach ($identifiers as $identifier) {
                 if (property_exists($data, $identifier->getSystemName())) {
                     $cacheReload['full'] = true;
-                    $this->updateIdentification($manuscript, $identifier, $data->{$identifier->getSystemName()});
+                    $this->updateIdentification($old, $identifier, $data->{$identifier->getSystemName()});
                 }
             }
             if (property_exists($data, 'bibliography')) {
                 $cacheReload['full'] = true;
-                $this->updateBibliography($manuscript, $data->bibliography);
+                $this->updateBibliography($old, $data->bibliography);
             }
             if (property_exists($data, 'status')) {
                 $cacheReload['full'] = true;
-                $this->updateStatus($manuscript, $data);
+                $this->updateStatus($old, $data);
             }
             if (property_exists($data, 'illustrated')) {
                 if (!is_bool($data->illustrated)) {
                     throw new BadRequestHttpException('Incorrect illustrated data.');
                 }
                 $cacheReload['full'] = true;
-                $this->updateIllustrated($manuscript, $data->illustrated);
+                $this->updateIllustrated($old, $data->illustrated);
             }
 
             // Throw error if none of above matched
@@ -367,14 +372,18 @@ class ManuscriptManager extends DocumentManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
-            // load new manuscript data
-            $this->clearCache($id, $cacheReload);
-            $newManuscript = $this->getFull($id);
+            // load new data
+            if (!$isNew) {
+                $this->clearCache($id, $cacheReload);
+            }
+            $new = $this->getFull($id);
 
-            $this->updateModified($new ? null : $manuscript, $newManuscript);
+            $this->updateModified($isNew ? null : $old, $new);
 
             // (re-)index in elastic search
-            $this->ess->add($newManuscript);
+            if ($cacheReload['mini'] || $cacheReload['short']) {
+                $this->ess->add($new);
+            }
 
             // update Elastic occurrences
             if ($cacheReload['mini']) {
@@ -386,14 +395,23 @@ class ManuscriptManager extends DocumentManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
+
             // Reset cache and elasticsearch on elasticsearch error
-            if (isset($newManuscript)) {
+            if (isset($new)) {
                 $this->reset([$id]);
+
+                // New manuscripts cannot have occurrence dependencies
+                // Elastic occurrences are only updated when mini information is modified
+                if (!$isNew && $cacheReload['mini']) {
+                    $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id, true);
+                    $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+                }
             }
+
             throw $e;
         }
 
-        return $newManuscript;
+        return $new;
     }
 
     private function updateContent(Manuscript $manuscript, array $contents): void
@@ -482,11 +500,8 @@ class ManuscriptManager extends DocumentManager
 
             $this->updateModified($manuscript, null);
 
-            // empty cache
-            $this->clearCache($manuscriptId);
-
-            // delete from elastic search
-            $this->ess->delete($manuscript);
+            // empty cache and remove from elasticsearch
+            $this->reset([$id]);
 
             // commit transaction
             $this->dbs->commit();

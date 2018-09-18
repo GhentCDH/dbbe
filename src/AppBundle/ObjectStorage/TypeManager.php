@@ -15,7 +15,7 @@ class TypeManager extends DocumentManager
     {
         return $this->wrapLevelCache(
             Type::CACHENAME,
-            'full',
+            'mini',
             $ids,
             function ($ids) {
                 $types = [];
@@ -27,6 +27,15 @@ class TypeManager extends DocumentManager
                     $types[$rawIncipit['type_id']] = (new Type())
                         ->setId($rawIncipit['type_id'])
                         ->setIncipit($rawIncipit['incipit']);
+                }
+
+                // number of verses
+                $rawVerses = $this->dbs->getNumberOfVerses($ids);
+                if (count($rawVerses) > 0) {
+                    foreach ($rawVerses as $rawVerse) {
+                        $types[$rawVerse['type_id']]
+                            ->setNumberOfVerses($rawVerse['verses']);
+                    }
                 }
 
                 $this->setPublics($types);

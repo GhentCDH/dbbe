@@ -136,38 +136,6 @@ class EntityManager extends ObjectManager
         }
     }
 
-    /**
-     * Clear cache and (re-)index elasticsearch
-     * When something goes wrong with an update
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->clearCache($id);
-        }
-
-        $this->elasticIndexByIds($ids);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param array $shortEntities
-     */
-    public function elasticIndex(array $shortEntities): void
-    {
-        $this->ess->addMultiple($shortEntities);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param  array  $ids
-     */
-    private function elasticIndexByIds(array $ids): void
-    {
-        $this->ess->addMultiple($this->getShort($ids));
-    }
-
     protected function updatePublic(Entity $entity, bool $public): void
     {
         $this->dbs->updatePublic($entity->getId(), $public);

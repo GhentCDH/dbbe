@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticOccurrenceService extends ElasticEntityService
+class ElasticOccurrenceService extends ElasticBaseService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -21,47 +21,12 @@ class ElasticOccurrenceService extends ElasticEntityService
 
     public function setupOccurrences(): void
     {
-        $index = $this->getIndex('occurrences');
+        $index = $this->getIndex();
         if ($index->exists()) {
             $index->delete();
         }
-        // Configure analysis: remove parentheses and square brackets
-        $index->create([
-            'analysis' => [
-                'filter' => [
-                    'greek_stemmer' => [
-                        'type' => 'stemmer',
-                        'language' => 'greek',
-                    ],
-                ],
-                'char_filter' => [
-                    'remove_par_brackets_filter' => [
-                        'type' => 'mapping',
-                        'mappings' => [
-                            '( =>',
-                            ') =>',
-                            '[ =>',
-                            '] =>',
-                            '< =>',
-                            '> =>',
-                        ],
-                    ],
-                ],
-                'analyzer' => [
-                    'custom_greek' => [
-                        'tokenizer' => 'icu_tokenizer',
-                        'char_filter' => [
-                            'remove_par_brackets_filter'
-                        ],
-                        'filter' => [
-                            'icu_folding',
-                            'lowercase',
-                            'greek_stemmer',
-                        ],
-                    ],
-                ],
-            ],
-        ]);
+        // Configure analysis
+        $index->create(GreekAnalysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);

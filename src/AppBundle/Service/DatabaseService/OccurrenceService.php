@@ -56,6 +56,19 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByMeterId(int $meterId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.poem on original_poem.identity = poem.identity
+            inner join data.poem_meter on poem.identity = poem_meter.idpoem
+            where poem_meter.idmeter = ?',
+            [$meterId]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -65,7 +78,12 @@ class OccurrenceService extends DocumentService
                 document_contains.folium_start_recto,
                 document_contains.folium_end,
                 document_contains.folium_end_recto,
+                document_contains.unsure,
                 document_contains.general_location,
+                document_contains.alternative_folium_start,
+                document_contains.alternative_folium_start_recto,
+                document_contains.alternative_folium_end,
+                document_contains.alternative_folium_end_recto,
                 document_contains.idcontainer as manuscript_id
             from data.original_poem
             inner join data.document_contains on original_poem.identity = document_contains.idcontent
@@ -93,25 +111,27 @@ class OccurrenceService extends DocumentService
     {
         return $this->conn->executeQuery(
             'SELECT
-                original_poem.identity as occurrence_id,
+                document_title.iddocument as occurrence_id,
                 document_title.title
-            from data.original_poem
-            inner join data.document_title on original_poem.identity = document_title.iddocument
-            where original_poem.identity in (?)',
+            from data.document_title
+            where document_title.iddocument in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getTexts(array $ids): array
+    public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                original_poem.identity as occurrence_id,
-                document.text_content
-            from data.original_poem
-            inner join data.document on original_poem.identity = document.identity
-            where original_poem.identity in (?)',
+                original_poem_verse.idoriginal_poem as occurrence_id,
+                original_poem_verse.id as verse_id,
+                original_poem_verse.idgroup as group_id,
+                original_poem_verse.verse,
+                original_poem_verse.order
+            from data.original_poem_verse
+            where original_poem_verse.idoriginal_poem in (?)
+            order by "order"',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -198,6 +218,59 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getRelatedOccurrences(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT * from (
+                -- verse variants
+                select
+                count(a.id) as count,
+                b.idoriginal_poem as related_occurrence_id
+                from data.original_poem_verse a
+                inner join data.original_poem_verse b on a.idgroup = b.idgroup
+                where a.idoriginal_poem in (?)
+                and b.idoriginal_poem <> a.idoriginal_poem
+                group by a.idoriginal_poem, b.idoriginal_poem
+
+                union
+
+                -- common type, no verse variants
+                select
+                0 as count,
+                fb.subject_identity as related_occurrence_id
+                from data.factoid fa
+                inner join data.factoid_type fta on fa.idfactoid_type = fta.idfactoid_type
+                inner join data.factoid fb on fa.object_identity = fb.object_identity
+                inner join data.factoid_type ftb on fa.idfactoid_type = ftb.idfactoid_type
+                inner join data.original_poem opb on fb.subject_identity = opb.identity
+                where fa.subject_identity in (?)
+                and fta.type = \'reconstruction of\'
+                and ftb.type = \'reconstruction of\'
+                and fb.subject_identity <> fa.subject_identity
+                and fb.subject_identity not in (
+                    select
+                    b.idoriginal_poem
+                    from data.original_poem_verse a
+                    inner join data.original_poem_verse b on a.idgroup = b.idgroup
+                    where a.idoriginal_poem in (?)
+                    and b.idoriginal_poem <> a.idoriginal_poem
+                    group by a.idoriginal_poem, b.idoriginal_poem
+                )
+            ) as relocc
+            order by count desc',
+            [
+                $ids,
+                $ids,
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
     public function getTypes(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -241,7 +314,7 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function getVerses(array $ids): array
+    public function getNumberOfVerses(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -272,7 +345,7 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function insert(): int
+    public function insert(int $manuscriptId): int
     {
         $this->beginTransaction();
         try {
@@ -289,8 +362,11 @@ class OccurrenceService extends DocumentService
                 limit 1'
             )->fetch()['occurrence_id'];
             $this->conn->executeUpdate(
-                'INSERT INTO data.document_contains (idcontent) values (?)',
-                [$occurrenceId]
+                'INSERT INTO data.document_contains (idcontainer, idcontent) values (?, ?)',
+                [
+                    $manuscriptId,
+                    $occurrenceId,
+                ]
             );
             $this->commit();
         } catch (Exception $e) {
@@ -298,5 +374,307 @@ class OccurrenceService extends DocumentService
             throw $e;
         }
         return $occurrenceId;
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $incipit
+     * @return int
+     */
+    public function updateIncipit(int $id, string $incipit): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.poem
+            set incipit = ?
+            where poem.identity = ?',
+            [
+                $incipit,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $title
+     * @return int
+     */
+    public function updateTitle(int $id, string $title): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_title
+            set title = ?
+            where document_title.iddocument = ?',
+            [
+                $title,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $manuscriptId
+     * @return int
+     */
+    public function updateManuscript(int $id, int $manuscriptId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set idcontainer = ?
+            where document_contains.idcontent = ?',
+            [
+                $manuscriptId,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $foliumStart
+     * @return int
+     */
+    public function updateFoliumStart(int $id, string $foliumStart): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set folium_start = ?
+            where document_contains.idcontent = ?',
+            [
+                $foliumStart,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $foliumStartRecto
+     * @return int
+     */
+    public function updateFoliumStartRecto(int $id, bool $foliumStartRecto): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set folium_start_recto = ?
+            where document_contains.idcontent = ?',
+            [
+                $foliumStartRecto ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $foliumEnd
+     * @return int
+     */
+    public function updateFoliumEnd(int $id, string $foliumEnd): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set folium_end = ?
+            where document_contains.idcontent = ?',
+            [
+                $foliumEnd,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $foliumEndRecto
+     * @return int
+     */
+    public function updateFoliumEndRecto(int $id, bool $foliumEndRecto): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set folium_end_recto = ?
+            where document_contains.idcontent = ?',
+            [
+                $foliumEndRecto ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $unsure
+     * @return int
+     */
+    public function updateUnsure(int $id, bool $unsure): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set unsure = ?
+            where document_contains.idcontent = ?',
+            [
+                $unsure ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $generalLocation
+     * @return int
+     */
+    public function updateGeneralLocation(int $id, string $generalLocation): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set general_location = ?
+            where document_contains.idcontent = ?',
+            [
+                $generalLocation,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $alternativeFoliumStart
+     * @return int
+     */
+    public function updateAlternativeFoliumStart(int $id, string $alternativeFoliumStart): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_folium_start = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativeFoliumStart,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $alternativeFoliumStartRecto
+     * @return int
+     */
+    public function updateAlternativeFoliumStartRecto(int $id, bool $alternativeFoliumStartRecto): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_folium_start_recto = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativeFoliumStartRecto ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $alternativeFoliumEnd
+     * @return int
+     */
+    public function updateAlternativeFoliumEnd(int $id, string $alternativeFoliumEnd): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_folium_end = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativeFoliumEnd,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $alternativeFoliumEndRecto
+     * @return int
+     */
+    public function updateAlternativeFoliumEndRecto(int $id, bool $alternativeFoliumEndRecto): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_folium_end_recto = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativeFoliumEndRecto ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $numberOfVerses
+     * @return int
+     */
+    public function updateNumberOfVerses(int $id, int $numberOfVerses): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.poem
+            set verses = ?
+            where poem.identity = ?',
+            [
+                $numberOfVerses,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $typeId
+     * @return int
+     */
+    public function addType(int $id, int $typeId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.factoid (subject_identity, object_identity, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (
+                    select
+                        factoid_type.idfactoid_type
+                    from data.factoid_type
+                    where factoid_type.type = \'reconstruction of\'
+                )
+            )',
+            [
+                $id,
+                $typeId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $typeIds
+     * @return int
+     */
+    public function delTypes(int $id, array $typeIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.object_identity in (?)
+            and factoid_type.type = \'reconstruction of\'',
+            [
+                $id,
+                $typeIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
     }
 }

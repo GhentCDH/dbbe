@@ -12,11 +12,9 @@
             </p>
             <p v-if="item.login">
                 Is it possible your login timed out? Try
-                <a
-                    href="#"
-                    @click="login(index)">
-                    loggin in
-                </a>
+                <btn @click="login(index)">
+                    logging in
+                </btn>
                 again.
             </p>
         </alert>

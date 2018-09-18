@@ -1,78 +1,137 @@
 <template>
     <div>
         <article
+            ref="target"
             class="col-sm-9 mbottom-large"
-            ref="target">
+        >
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
                 :type="item.type"
                 dismissible
-                @dismissed="alerts.splice(index, 1)">
+                @dismissed="alerts.splice(index, 1)"
+            >
                 {{ item.message }}
             </alert>
 
+            <basicOccurrencePanel
+                id="basic"
+                ref="basic"
+                header="Basic information"
+                :model="model.basic"
+                :values="manuscripts"
+                @validated="validated"
+            />
+
+            <versesPanel
+                id="verses"
+                ref="verses"
+                header="Verses"
+                :model="model.verses"
+                :urls="urls"
+                @validated="validated"
+            />
+
+            <typesPanel
+                id="types"
+                ref="types"
+                header="Types"
+                :model="model.types"
+                :values="types"
+                @validated="validated"
+            />
+
             <personPanel
                 id="persons"
+                ref="persons"
                 header="Persons"
-                :model="model.person"
-                :values="persons"
+                :roles="roles"
+                :model="model.personRoles"
+                :values="historicalPersons"
                 @validated="validated"
-                ref="persons" />
+            />
 
             <datePanel
                 id="date"
+                ref="date"
                 header="Date"
                 :model="model.date"
                 @validated="validated"
-                ref="date" />
+            />
+
+            <meterPanel
+                id="meter"
+                ref="meter"
+                header="Meter"
+                :link="{url: urls['meters_edit'], text: 'Edit meters'}"
+                :model="model.meter"
+                :values="meters"
+                @validated="validated"
+            />
+
+            <identificationPanel
+                v-if="identifiers.length > 0"
+                id="identification"
+                ref="identification"
+                header="Identification"
+                :identifiers="identifiers"
+                :model="model.identification"
+                @validated="validated"
+            />
 
             <bibliographyPanel
                 id="bibliography"
+                ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
                 @validated="validated"
-                ref="bibliography" />
+            />
 
             <generalOccurrencePanel
                 id="general"
+                ref="general"
                 header="General"
                 :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
                 :model="model.general"
                 :values="statuses"
                 @validated="validated"
-                ref="general" />
+            />
 
             <btn
                 id="actions"
                 type="warning"
                 :disabled="diff.length === 0"
-                @click="resetModal=true">
+                @click="resetModal=true"
+            >
                 Reset
             </btn>
             <btn
                 v-if="occurrence"
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save changes
             </btn>
             <btn
                 v-else
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save
             </btn>
             <btn
                 :disabled="(diff.length !== 0)"
-                @click="reload()">
+                @click="reload()"
+            >
                 Refresh all data
             </btn>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -82,11 +141,16 @@
                 v-scrollspy
                 role="navigation"
                 :class="isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
-                :style="stickyStyle">
+                :style="stickyStyle"
+            >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
+                    <li><a href="#basic">Basic information</a></li>
+                    <li><a href="#verses">Verses</a></li>
+                    <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#date">Date</a></li>
+                    <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -97,11 +161,13 @@
             title="occurrence"
             :show="resetModal"
             @cancel="resetModal=false"
-            @confirm="reset()" />
+            @confirm="reset()"
+        />
         <invalidModal
             :show="invalidModal"
             @cancel="invalidModal=false"
-            @confirm="invalidModal=false" />
+            @confirm="invalidModal=false"
+        />
         <saveModal
             title="occurrence"
             :show="saveModal"
@@ -109,7 +175,8 @@
             :alerts="saveAlerts"
             @cancel="cancelSave()"
             @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)" />
+            @dismiss-alert="saveAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -118,7 +185,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|Date|Origin|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -128,16 +195,37 @@ for(let key of panelComponents.keys()) {
 export default {
     mixins: [ AbstractEntityEdit ],
     data() {
-        return {
+        let data = {
+            identifiers: JSON.parse(this.initIdentifiers),
+            roles: JSON.parse(this.initRoles),
             occurrence: null,
-            persons: null,
+            manuscripts: null,
+            types: null,
+            historicalPersons: null,
             bibliographies: null,
             statuses: null,
             model: {
-                person: {
-                    patrons: [],
-                    scribes: [],
+                basic: {
+                    incipit: null,
+                    title: null,
+                    manuscript: null,
+                    foliumStart:  null,
+                    foliumStartRecto:  null,
+                    foliumEnd:  null,
+                    foliumEndRecto:  null,
+                    unsure:  null,
+                    generalLocation:  null,
+                    alternativeFoliumStart:  null,
+                    alternativeFoliumStartRecto:  null,
+                    alternativeFoliumEnd:  null,
+                    alternativeFoliumEndRecto:  null,
                 },
+                verses: {
+                    verses: [],
+                    numberOfVerses: null,
+                },
+                types: {types: null},
+                personRoles: {},
                 date: {
                     floor: null,
                     ceiling: null,
@@ -148,6 +236,7 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
+                identification: {},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -163,16 +252,32 @@ export default {
                 },
             },
             forms: [
+                'basic',
+                'verses',
+                'types',
                 'persons',
                 'date',
+                'meter',
                 'bibliography',
                 'general',
             ],
         }
+        for (let identifier of data.identifiers) {
+            data.model.identification[identifier.systemName] = null
+        }
+        if (data.identifiers.length > 0) {
+            data.forms.push('identification')
+        }
+        for (let role of data.roles) {
+            data.model.personRoles[role.systemName] = null
+        }
+        return data
     },
     created () {
         this.occurrence = this.data.occurrence
-        this.persons = this.data.historicalPersons
+        this.manuscripts = this.data.manuscripts
+        this.types = this.data.types
+        this.historicalPersons = this.data.historicalPersons
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -193,11 +298,39 @@ export default {
     methods: {
         loadOccurrence() {
             if (this.occurrence != null) {
-                // Person
-                this.model.person = {
-                    patrons: this.occurrence.patrons,
-                    scribes: this.occurrence.scribes,
+                // Basic information
+                this.model.basic = {
+                    incipit: this.occurrence.incipit,
+                    title: this.occurrence.title,
+                    manuscript: this.occurrence.manuscript,
+                    foliumStart: this.occurrence.foliumStart,
+                    foliumStartRecto: this.occurrence.foliumStartRecto,
+                    foliumEnd: this.occurrence.foliumEnd,
+                    foliumEndRecto: this.occurrence.foliumEndRecto,
+                    unsure: this.occurrence.unsure,
+                    generalLocation: this.occurrence.generalLocation,
+                    alternativeFoliumStart: this.occurrence.alternativeFoliumStart,
+                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
+                    alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
+                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
                 }
+
+                // Verses
+                this.model.verses = {
+                    verses: this.occurrence.verses,
+                    numberOfVerses: this.occurrence.numberOfVerses,
+                }
+
+                // Types
+                this.model.types = {
+                    types: this.occurrence.types,
+                }
+
+                // PersonRoles
+                for (let role of this.roles) {
+                    this.model.personRoles[role.systemName] = this.occurrence.personRoles != null ? this.occurrence.personRoles[role.systemName] : null
+                }
+                this.$refs.persons.init();
 
                 // Date
                 this.model.date = {
@@ -209,6 +342,17 @@ export default {
                     floorDayMonth: null,
                     ceilingYear: null,
                     ceilingDayMonth: null,
+                }
+
+                // Meter
+                this.model.meter = {
+                    meter: this.occurrence.meter,
+                }
+
+                // Identification
+                this.model.identification = {}
+                for (let identifier of this.identifiers) {
+                    this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
                 }
 
                 // Bibliography

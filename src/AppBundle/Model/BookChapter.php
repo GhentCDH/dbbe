@@ -32,8 +32,6 @@ class BookChapter extends Document
         string $title,
         Book $book
     ) {
-        parent::__construct();
-
         $this->id = $id;
         $this->title = $title;
         $this->book = $book;

@@ -34,11 +34,19 @@ $nau-font-path: '../../fonts/new-athena-unicode';
 
 .greek {
   font-family: NewAthenaUnicode, Arial, sans-serif;
-  font-size: 15px;
 
-  code {
-    font-family: NewAthenaUnicode, Menlo, Monaco, Consolas, "Courier New", monospace;
-    font-size: $fz-default;
-    white-space: pre;
+  &.form-group {
+    font-family: $default-font-family;
+
+    .form-control {
+      font-family: NewAthenaUnicode, Arial, sans-serif;
+    }
+  }
+}
+
+.modal-title {
+  .greek {
+    font-size: $fz-medium;
+    font-weight: 500;
   }
 }

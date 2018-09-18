@@ -36,8 +36,6 @@ class Article extends Document
         string $title,
         Journal $journal
     ) {
-        parent::__construct();
-
         $this->id = $id;
         $this->title = $title;
         $this->journal = $journal;

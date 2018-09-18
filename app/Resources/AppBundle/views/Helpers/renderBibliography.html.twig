@@ -5,5 +5,5 @@
 {% elseif item.getType() == 'bookChapter' %}
     <a href="{{ path('book_chapter_get', {'id': item.getBookChapter().getId()}) }}">{{ item.getDescription() }}</a>
 {% elseif item.getType() == 'onlineSource' %}
-    <a href="{{ path('onine_source_get', {'id': item.getOnlineSource().getId()}) }}">{{ item.getDescription() }}</a>
+    <a href="{{ path('online_source_get', {'id': item.getOnlineSource().getId()}) }}">{{ item.getDescription() }}</a>
 {% endif %}
