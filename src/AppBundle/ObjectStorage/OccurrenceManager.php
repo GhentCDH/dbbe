@@ -499,6 +499,13 @@ class OccurrenceManager extends DocumentManager
                 }
                 $this->container->get('manuscript_manager')->elasticIndexByIds([$manuscriptId]);
             }
+            if (property_exists($data, 'meter')) {
+                if (!(empty($data->meter) || is_object($data->meter))) {
+                    throw new BadRequestHttpException('Incorrect meter data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateMeter($old, $data->meter);
+            }
 
             // TODO: other information
 
@@ -651,6 +658,23 @@ class OccurrenceManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addType($occurrence->getId(), $addId);
+        }
+    }
+
+    private function updateMeter(Occurrence $occurrence, stdClass $meter = null): void
+    {
+        if (empty($meter)) {
+            if (!empty($occurrence->getMeter())) {
+                $this->dbs->deleteMeter($occurrence->getId());
+            }
+        } elseif (!property_exists($meter, 'id') || !is_numeric($meter->id)) {
+            throw new BadRequestHttpException('Incorrect meter data.');
+        } else {
+            if (empty($occurrence->getMeter())) {
+                $this->dbs->insertMeter($occurrence->getId(), $meter->id);
+            } else {
+                $this->dbs->updateMeter($occurrence->getId(), $meter->id);
+            }
         }
     }
 

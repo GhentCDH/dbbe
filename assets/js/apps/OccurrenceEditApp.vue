@@ -150,6 +150,7 @@
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#date">Date</a></li>
+                    <li><a href="#meter">Meter</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
@@ -202,6 +203,7 @@ export default {
             manuscripts: null,
             types: null,
             historicalPersons: null,
+            meters: null,
             bibliographies: null,
             statuses: null,
             model: {
@@ -236,6 +238,7 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
+                meter: {meter: null},
                 identification: {},
                 bibliography: {
                     books: [],
@@ -278,6 +281,7 @@ export default {
         this.manuscripts = this.data.manuscripts
         this.types = this.data.types
         this.historicalPersons = this.data.historicalPersons
+        this.meters = this.data.meters
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,

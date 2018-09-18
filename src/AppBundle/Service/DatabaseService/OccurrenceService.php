@@ -677,4 +677,57 @@ class OccurrenceService extends DocumentService
             ]
         );
     }
+
+    /**
+     * @param  int $id
+     * @param  int $meterId
+     * @return int
+     */
+    public function insertMeter(int $id, int $meterId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.poem_meter (idpoem, idmeter)
+            values (
+                ?,
+                ?
+            )',
+            [
+                $id,
+                $meterId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $meterId
+     * @return int
+     */
+    public function updateMeter(int $id, int $meterId): int
+    {
+        return $this->conn->executeUpdate(
+            'Update data.poem_meter
+            set idmeter = ?
+            where idpoem = ?',
+            [
+                $meterId,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @return int
+     */
+    public function deleteMeter(int $id): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.poem_meter
+            where idpoem = ?',
+            [
+                $id,
+            ]
+        );
+    }
 }
