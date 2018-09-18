@@ -129,6 +129,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on a genre
+     * (document_genre)
+     * @Route("/occurrences/genres/{id}", name="occurrence_deps_by_genre")
+     * @Method("GET")
+     * @param  int    $id genre id
+     * @param Request $request
+     */
+    public function getDepsByGenre(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getGenreDependencies');
+    }
+
+    /**
      * @Route("/occurrences", name="occurrence_post")
      * @Method("POST")
      * @param Request $request
@@ -209,6 +222,7 @@ class OccurrenceController extends BaseController
                     'types' => ArrayToJson::arrayToShortJson($this->get('type_manager')->getAllMini()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
+                    'genres' => ArrayToJson::arrayToShortJson($this->get('genre_manager')->getAll()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),

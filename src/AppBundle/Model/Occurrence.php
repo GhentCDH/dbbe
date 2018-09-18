@@ -91,13 +91,13 @@ class Occurrence extends Document
      */
     protected $verses = [];
     /**
-     * @var Meter
+     * @var array
      */
-    protected $meter;
+    protected $meters = [];
     /**
-     * @var Genre
+     * @var array
      */
-    protected $genre;
+    protected $genres = [];
     /**
      * @var array
      */
@@ -387,28 +387,42 @@ class Occurrence extends Document
         return $this->verses;
     }
 
-    public function setMeter(Meter $meter = null): Occurrence
+    public function setMeters(array $meters): Occurrence
     {
-        $this->meter = $meter;
+        $this->meters = $meters;
 
         return $this;
     }
 
-    public function getMeter(): ?Meter
+    public function addMeter(Meter $meter = null): Occurrence
     {
-        return $this->meter;
-    }
-
-    public function setGenre(Genre $genre): Occurrence
-    {
-        $this->genre = $genre;
+        $this->meters[$meter->getId()] = $meter;
 
         return $this;
     }
 
-    public function getGenre(): ?Genre
+    public function getMeters(): array
     {
-        return $this->genre;
+        return $this->meters;
+    }
+
+    public function setGenres(array $genres): Occurrence
+    {
+        $this->genres = $genres;
+
+        return $this;
+    }
+
+    public function addGenre(Genre $genre): Occurrence
+    {
+        $this->genres[$genre->getId()] = $genre;
+
+        return $this;
+    }
+
+    public function getGenres(): array
+    {
+        return $this->genres;
     }
 
     public function addSubject(SubjectInterface $subject): Occurrence
@@ -593,8 +607,8 @@ class Occurrence extends Document
         if (!empty($this->types)) {
             $result['types'] = ArrayToJson::arrayToShortJson($this->types);
         }
-        if (isset($this->meter)) {
-            $result['meter'] = $this->meter->getShortJson();
+        if (isset($this->meters)) {
+            $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
         }
         if (!empty($this->subjects)) {
             $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
@@ -602,8 +616,8 @@ class Occurrence extends Document
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
-        if (isset($this->genre)) {
-            $result['genre'] = $this->genre->getShortJson();
+        if (isset($this->genres)) {
+            $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
         }
         if (isset($this->textStatus)) {
             $result['textStatus'] = $this->textStatus->getShortJson();
@@ -635,8 +649,8 @@ class Occurrence extends Document
         if (isset($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
         }
-        if (isset($this->meter)) {
-            $result['meter'] = $this->meter->getShortJson();
+        if (isset($this->meters)) {
+            $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);
         }
         if (!empty($this->subjects)) {
             $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
@@ -662,8 +676,8 @@ class Occurrence extends Document
         if (isset($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
-        if (isset($this->genre)) {
-            $result['genre'] = $this->genre->getShortJson();
+        if (isset($this->genres)) {
+            $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
         }
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;

@@ -19,6 +19,7 @@ Encore
     .addEntry('bookchapteredit', './assets/js/main/bookchapteredit.js')
     .addEntry('contentsedit', './assets/js/main/contentsedit.js')
     .addEntry('feedback', './assets/js/main/feedback.js')
+    .addEntry('genresedit', './assets/js/main/genresedit.js')
     .addEntry('journalsedit', './assets/js/main/journalsedit.js')
     .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')

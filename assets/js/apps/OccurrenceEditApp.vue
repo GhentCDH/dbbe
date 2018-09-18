@@ -60,15 +60,24 @@
             />
 
             <meterPanel
-                id="meter"
-                ref="meter"
-                header="Meter"
+                id="meters"
+                ref="meters"
+                header="Meters"
                 :link="{url: urls['meters_edit'], text: 'Edit meters'}"
-                :model="model.meter"
+                :model="model.meters"
                 :values="meters"
                 @validated="validated"
             />
 
+            <genrePanel
+                id="genres"
+                ref="genres"
+                header="Genres"
+                :link="{url: urls['genres_edit'], text: 'Edit genres'}"
+                :model="model.genres"
+                :values="genres"
+                @validated="validated"
+            />
             <identificationPanel
                 v-if="identifiers.length > 0"
                 id="identification"
@@ -150,7 +159,8 @@
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#date">Date</a></li>
-                    <li><a href="#meter">Meter</a></li>
+                    <li><a href="#meters">Meters</a></li>
+                    <li><a href="#genres">Genres</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
@@ -186,7 +196,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Genre|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -204,6 +214,7 @@ export default {
             types: null,
             historicalPersons: null,
             meters: null,
+            genres: null,
             bibliographies: null,
             statuses: null,
             model: {
@@ -238,7 +249,8 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                meter: {meter: null},
+                meters: {meters: null},
+                genres: {genres: null},
                 identification: {},
                 bibliography: {
                     books: [],
@@ -260,7 +272,8 @@ export default {
                 'types',
                 'persons',
                 'date',
-                'meter',
+                'meters',
+                'genres',
                 'bibliography',
                 'general',
             ],
@@ -282,6 +295,7 @@ export default {
         this.types = this.data.types
         this.historicalPersons = this.data.historicalPersons
         this.meters = this.data.meters
+        this.genres = this.data.genres
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -349,8 +363,14 @@ export default {
                 }
 
                 // Meter
-                this.model.meter = {
-                    meter: this.occurrence.meter,
+                this.model.meters = {
+                    meters: this.occurrence.meters,
+                }
+
+                // Genre
+                this.model.genres = {
+                    genres: this.occurrence.genres,
+                }
                 }
 
                 // Identification

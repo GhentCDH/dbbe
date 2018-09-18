@@ -38,6 +38,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             'subject' => ['type' => 'nested'],
             'manuscript_content' => ['type' => 'nested'],
             'manuscript_content_public' => ['type' => 'nested'],
+            'genre' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -177,7 +178,6 @@ class ElasticOccurrenceService extends ElasticBaseService
                         break;
                     case 'meter':
                     case 'manuscript':
-                    case 'genre':
                     case 'text_status':
                         if (is_int($key)) {
                             $result['object'][] = $value;
@@ -199,6 +199,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                         $result['date_range'][] = $date_result;
                         break;
                     case 'subject':
+                    case 'genre':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

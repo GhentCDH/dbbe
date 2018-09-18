@@ -6,9 +6,7 @@ use stdClass;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Model\Genre;
 use AppBundle\Model\Image;
-use AppBundle\Model\Meter;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
 
@@ -126,10 +124,9 @@ class OccurrenceManager extends DocumentManager
 
                 // Meter
                 $rawMeters = $this->dbs->getMeters($ids);
+                $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
                 foreach ($rawMeters as $rawMeter) {
-                    // TODO: getwithdata meter
-                    $occurrences[$rawMeter['occurrence_id']]
-                        ->setMeter(new Meter($rawMeter['meter_id'], $rawMeter['meter_name']));
+                    $occurrences[$rawMeter['occurrence_id']]->addMeter($meters[$rawMeter['meter_id']]);
                 }
 
                 // Subject
@@ -158,9 +155,9 @@ class OccurrenceManager extends DocumentManager
 
                 // Genre
                 $rawGenres = $this->dbs->getGenres($ids);
+                $genres = $this->container->get('genre_manager')->getWithData($rawGenres);
                 foreach ($rawGenres as $rawGenre) {
-                    $occurrences[$rawGenre['occurrence_id']]
-                        ->setGenre(new Genre($rawGenre['genre_id'], $rawGenre['genre_name']));
+                    $occurrences[$rawGenre['occurrence_id']]->addGenre($genres[$rawGenre['genre_id']]);
                 }
 
                 $this->setComments($occurrences);
@@ -279,6 +276,11 @@ class OccurrenceManager extends DocumentManager
     public function getMeterDependencies(int $meterId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $short ? 'getShort' : 'getMini');
+    }
+
+    public function getGenreDependencies(int $genreId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByGenreId($genreId), $short ? 'getShort' : 'getMini');
     }
 
     public function add(stdClass $data): Occurrence
@@ -499,12 +501,19 @@ class OccurrenceManager extends DocumentManager
                 }
                 $this->container->get('manuscript_manager')->elasticIndexByIds([$manuscriptId]);
             }
-            if (property_exists($data, 'meter')) {
-                if (!(empty($data->meter) || is_object($data->meter))) {
+            if (property_exists($data, 'meters')) {
+                if (!is_array($data->meters)) {
                     throw new BadRequestHttpException('Incorrect meter data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updateMeter($old, $data->meter);
+                $this->updateMeters($old, $data->meters);
+            }
+            if (property_exists($data, 'genres')) {
+                if (!is_array($data->genres)) {
+                    throw new BadRequestHttpException('Incorrect genre data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateGenres($old, $data->genres);
             }
 
             // TODO: other information
@@ -661,20 +670,43 @@ class OccurrenceManager extends DocumentManager
         }
     }
 
-    private function updateMeter(Occurrence $occurrence, stdClass $meter = null): void
+    private function updateMeters(Occurrence $occurrence, array $meters): void
     {
-        if (empty($meter)) {
-            if (!empty($occurrence->getMeter())) {
-                $this->dbs->deleteMeter($occurrence->getId());
+        foreach ($meters as $meter) {
+            if (!is_object($meter)
+                || !property_exists($meter, 'id')
+                || !is_numeric($meter->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect meter data.');
             }
-        } elseif (!property_exists($meter, 'id') || !is_numeric($meter->id)) {
-            throw new BadRequestHttpException('Incorrect meter data.');
-        } else {
-            if (empty($occurrence->getMeter())) {
-                $this->dbs->insertMeter($occurrence->getId(), $meter->id);
-            } else {
-                $this->dbs->updateMeter($occurrence->getId(), $meter->id);
+        }
+        list($delIds, $addIds) = self::calcDiff($meters, $occurrence->getMeters());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delMeters($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addMeter($occurrence->getId(), $addId);
+        }
+    }
+
+    private function updateGenres(Occurrence $occurrence, array $genres): void
+    {
+        foreach ($genres as $genre) {
+            if (!is_object($genre)
+                || !property_exists($genre, 'id')
+                || !is_numeric($genre->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect genre data.');
             }
+        }
+        list($delIds, $addIds) = self::calcDiff($genres, $occurrence->getGenres());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delGenres($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addGenre($occurrence->getId(), $addId);
         }
     }
 

@@ -98,10 +98,16 @@
                         <td>{{ occurrence.getTextStatus() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getGenre() is not empty %}
+                {% if occurrence.getGenres() is not empty %}
                     <tr>
-                        <td>Genre</td>
-                        <td><a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ occurrence.getGenre().getId() }}" title="Search for all occurrences with this genre">{{ occurrence.getGenre().getName() }}</a></td>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
@@ -142,10 +148,16 @@
                         <td>{{ occurrence.getContextualInfo() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getMeter() is not empty %}
+                {% if occurrence.getMeters() is not empty %}
                     <tr>
-                        <td>Meter</td>
-                        <td><a href="{{ path('occurrences_search') ~ '?' ~ 'filters[meter]'|url_encode ~ '=' ~ occurrence.getMeter().getId() }}" title="Search for all occurrences with this meter">{{ occurrence.getMeter().getName() }}</a></td>
+                        <td>Meter(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getMeters()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[meter]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this meter">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getNumberOfVerses() is not empty %}

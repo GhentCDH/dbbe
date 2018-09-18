@@ -62,10 +62,21 @@ class OccurrenceService extends DocumentService
             'SELECT
                 original_poem.identity as occurrence_id
             from data.original_poem
-            inner join data.poem on original_poem.identity = poem.identity
             inner join data.poem_meter on poem.identity = poem_meter.idpoem
             where poem_meter.idmeter = ?',
             [$meterId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByGenreId(int $genreId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.document_genre on original_poem.identity = document_genre.iddocument
+            where document_genre.idgenre = ?',
+            [$genreId]
         )->fetchAll();
     }
 
@@ -143,7 +154,7 @@ class OccurrenceService extends DocumentService
             'SELECT
                 original_poem.identity as occurrence_id,
                 meter.idmeter as meter_id,
-                meter.name as meter_name
+                meter.name as name
                 from data.original_poem
             inner join data.poem_meter on original_poem.identity = poem_meter.idpoem
             inner join data.meter on poem_meter.idmeter = meter.idmeter
@@ -178,7 +189,7 @@ class OccurrenceService extends DocumentService
             'SELECT
                 original_poem.identity as occurrence_id,
                 genre.idgenre as genre_id,
-                genre.genre as genre_name
+                genre.genre as name
             from data.original_poem
             inner join data.document_genre on original_poem.identity = document_genre.iddocument
             inner join data.genre on document_genre.idgenre = genre.idgenre
@@ -683,14 +694,11 @@ class OccurrenceService extends DocumentService
      * @param  int $meterId
      * @return int
      */
-    public function insertMeter(int $id, int $meterId): int
+    public function addMeter(int $id, int $meterId): int
     {
         return $this->conn->executeUpdate(
             'INSERT into data.poem_meter (idpoem, idmeter)
-            values (
-                ?,
-                ?
-            )',
+            values (?, ?)',
             [
                 $id,
                 $meterId,
@@ -699,34 +707,64 @@ class OccurrenceService extends DocumentService
     }
 
     /**
-     * @param  int $id
-     * @param  int $meterId
+     * @param  int   $id
+     * @param  array $meterIds
      * @return int
      */
-    public function updateMeter(int $id, int $meterId): int
+    public function delMeters(int $id, array $meterIds): int
     {
         return $this->conn->executeUpdate(
-            'Update data.poem_meter
-            set idmeter = ?
-            where idpoem = ?',
+            'DELETE
+            from data.poem_meter
+            where idpoem = ?
+            and idmeter in (?)',
             [
-                $meterId,
                 $id,
+                $meterIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
             ]
         );
     }
 
     /**
      * @param  int $id
+     * @param  int $genreId
      * @return int
      */
-    public function deleteMeter(int $id): int
+    public function addGenre(int $id, int $genreId): int
     {
         return $this->conn->executeUpdate(
-            'DELETE from data.poem_meter
-            where idpoem = ?',
+            'INSERT into data.document_genre (iddocument, idgenre)
+            values (?, ?)',
             [
                 $id,
+                $genreId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $genreIds
+     * @return int
+     */
+    public function delGenres(int $id, array $genreIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.document_genre
+            where iddocument = ?
+            and idgenre in (?)',
+            [
+                $id,
+                $genreIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

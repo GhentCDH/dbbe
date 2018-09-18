@@ -9,81 +9,81 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
-use AppBundle\Model\Meter;
+use AppBundle\Model\Genre;
 
 /**
- * ObjectManager for meters
- * Servicename: meter_manager
+ * ObjectManager for genres
+ * Servicename: genre_manager
  */
-class MeterManager extends ObjectManager
+class GenreManager extends ObjectManager
 {
     /**
-     * Get single meters with all information
+     * Get single genres with all information
      * @param  array $ids
      * @return array
      */
     public function get(array $ids): array
     {
         return $this->wrapCache(
-            Meter::CACHENAME,
+            Genre::CACHENAME,
             $ids,
             function ($ids) {
-                $meters = [];
-                $rawMeters = $this->dbs->getMetersByIds($ids);
-                $meters = $this->getWithData($rawMeters);
+                $genres = [];
+                $rawGenres = $this->dbs->getGenresByIds($ids);
+                $genres = $this->getWithData($rawGenres);
 
-                return $meters;
+                return $genres;
             }
         );
     }
 
     /**
-     * Get single meters with all information from existing data
+     * Get single genres with all information from existing data
      * @param  array $data
      * @return array
      */
     public function getWithData(array $data): array
     {
         return $this->wrapDataCache(
-            Meter::CACHENAME,
+            Genre::CACHENAME,
             $data,
-            'meter_id',
+            'genre_id',
             function ($data) {
-                $meters = [];
-                foreach ($data as $rawMeter) {
-                    if (isset($rawMeter['meter_id'])) {
-                        $meters[$rawMeter['meter_id']] = new Meter(
-                            $rawMeter['meter_id'],
-                            $rawMeter['name']
+                $genres = [];
+                foreach ($data as $rawGenre) {
+                    if (isset($rawGenre['genre_id'])) {
+                        $genres[$rawGenre['genre_id']] = new Genre(
+                            $rawGenre['genre_id'],
+                            $rawGenre['name']
                         );
                     }
                 }
 
-                return $meters;
+                return $genres;
             }
         );
     }
 
     /**
-     * Get all meters with all information
+     * Get all genres with all information
      * @return array
      */
     public function getAll(): array
     {
         return $this->wrapArrayCache(
-            'meters',
-            ['meters'],
+            'genres',
+            ['genres'],
             function () {
                 $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'meter_id');
-                $meters = $this->get($ids);
+                $ids = self::getUniqueIds($rawIds, 'genre_id');
+                $genres = $this->get($ids);
 
                 // Sort by name
-                usort($meters, function ($a, $b) {
+                usort($genres, function ($a, $b) {
                     return strcmp($a->getName(), $b->getName());
                 });
 
-                return $meters;
+                return $genres;
             }
         );
     }
@@ -95,20 +95,20 @@ class MeterManager extends ObjectManager
     public function reset(array $ids): void
     {
         foreach ($ids as $id) {
-            $this->deleteCache(Meter::CACHENAME, $id);
+            $this->deleteCache(Genre::CACHENAME, $id);
         }
 
         $this->get($ids);
 
-        $this->cache->invalidateTags(['meters']);
+        $this->cache->invalidateTags(['genres']);
     }
 
     /**
-     * Add a new meter
+     * Add a new genre
      * @param  stdClass $data
-     * @return Meter
+     * @return Genre
      */
-    public function add(stdClass $data): Meter
+    public function add(stdClass $data): Genre
     {
         $this->dbs->beginTransaction();
         try {
@@ -126,7 +126,7 @@ class MeterManager extends ObjectManager
             $this->updateModified(null, $new);
 
             // update cache
-            $this->cache->invalidateTags(['meters']);
+            $this->cache->invalidateTags(['genres']);
 
             // commit transaction
             $this->dbs->commit();
@@ -139,21 +139,21 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Update an existing meter
+     * Update an existing genre
      * @param  int      $id
      * @param  stdClass $data
-     * @return Meter
+     * @return Genre
      */
-    public function update(int $id, stdClass $data): Meter
+    public function update(int $id, stdClass $data): Genre
     {
         $this->dbs->beginTransaction();
         try {
-            $meters = $this->get([$id]);
-            if (count($meters) == 0) {
+            $genres = $this->get([$id]);
+            if (count($genres) == 0) {
                 $this->dbs->rollBack();
-                throw new NotFoundHttpException('Meter with id ' . $id .' not found.');
+                throw new NotFoundHttpException('Genre with id ' . $id .' not found.');
             }
-            $old = $meters[$id];
+            $old = $genres[$id];
 
             if (property_exists($data, 'name')
                 && is_string($data->name)
@@ -164,13 +164,13 @@ class MeterManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Meter::CACHENAME, $id);
+            $this->deleteCache(Genre::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
 
             // update Elastic occurrences
-            $occurrences = $this->container->get('occurrence_manager')->getMeterDependencies($id, true);
+            $occurrences = $this->container->get('occurrence_manager')->getGenreDependencies($id, true);
             $this->container->get('occurrence_manager')->elasticIndex($occurrences);
 
             // TODO: types
@@ -186,24 +186,24 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Delete a meter
+     * Delete a genre
      * @param int $id
      */
     public function delete(int $id): void
     {
         $this->dbs->beginTransaction();
         try {
-            $meters = $this->get([$id]);
-            if (count($meters) == 0) {
-                throw new NotFoundHttpException('Meter with id ' . $id .' not found.');
+            $genres = $this->get([$id]);
+            if (count($genres) == 0) {
+                throw new NotFoundHttpException('Genre with id ' . $id .' not found.');
             }
-            $old = $meters[$id];
+            $old = $genres[$id];
 
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['meters']);
-            $this->deleteCache(Meter::CACHENAME, $id);
+            $this->cache->invalidateTags(['genres']);
+            $this->deleteCache(Genre::CACHENAME, $id);
 
             $this->updateModified($old, null);
 

@@ -68,6 +68,11 @@ services:
         arguments: ['@meter_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    genre_manager:
+        class: AppBundle\ObjectStorage\GenreManager
+        arguments: ['@genre_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -176,6 +181,10 @@ services:
 
     meter_service:
         class: AppBundle\Service\DatabaseService\MeterService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    genre_service:
+        class: AppBundle\Service\DatabaseService\GenreService
         arguments: ['@doctrine.orm.entity_manager']
 
     person_service:

@@ -6,18 +6,19 @@ use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
 
-class MeterService extends DatabaseService
+class GenreService extends DatabaseService
 {
     /**
-     * Get all meter ids
+     * Get all genre ids
      * @return array
      */
     public function getIds(): array
     {
         return $this->conn->query(
             'SELECT
-                meter.idmeter as meter_id
-            from data.meter'
+                genre.idgenre as genre_id
+            from data.genre
+            where genre.is_content = FALSE'
         )->fetchAll();
     }
 
@@ -25,14 +26,14 @@ class MeterService extends DatabaseService
      * @param  array $ids
      * @return array
      */
-    public function getMetersByIds(array $ids): array
+    public function getGenresByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                meter.idmeter as meter_id,
-                meter.name
-            from data.meter
-            where meter.idmeter in (?)',
+                genre.idgenre as genre_id,
+                genre.genre as name
+            from data.genre
+            where genre.idgenre in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -46,19 +47,23 @@ class MeterService extends DatabaseService
         string $name
     ): int {
         $this->conn->executeUpdate(
-            'INSERT INTO data.meter (name)
-            values (?)',
+            'INSERT INTO data.genre (idparentgenre, genre, is_content)
+            values (
+                (select genre.idgenre from data.genre where genre.genre = \'DBBE system\'),
+                ?,
+                FALSE
+            )',
             [
-                $name
+                $name,
             ]
         );
         $id = $this->conn->executeQuery(
             'SELECT
-                meter.idmeter as meter_id
-            from data.meter
-            order by idmeter desc
+                genre.idgenre as genre_id
+            from data.genre
+            order by idgenre desc
             limit 1'
-        )->fetch()['meter_id'];
+        )->fetch()['genre_id'];
         return $id;
     }
 
@@ -70,9 +75,9 @@ class MeterService extends DatabaseService
     public function updateName(int $id, string $name): int
     {
         return $this->conn->executeUpdate(
-            'UPDATE data.meter
-            set name = ?
-            where meter.idmeter = ?',
+            'UPDATE data.genre
+            set genre = ?
+            where genre.idgenre = ?',
             [
                 $name,
                 $id,
@@ -86,20 +91,20 @@ class MeterService extends DatabaseService
      */
     public function delete(int $id): int
     {
-        // don't delete if this meter is used in poem_meter
+        // don't delete if this genre is used in document_genre
         $count = $this->conn->executeQuery(
             'SELECT count(*)
-            from data.poem_meter
-            where poem_meter.idmeter = ?',
+            from data.document_genre
+            where document_genre.idgenre = ?',
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This meter has dependencies.');
+            throw new DependencyException('This genre has dependencies.');
         }
 
         return $this->conn->executeUpdate(
-            'DELETE from data.meter
-            where meter.idmeter = ?',
+            'DELETE from data.genre
+            where genre.idgenre = ?',
             [$id]
         );
     }
