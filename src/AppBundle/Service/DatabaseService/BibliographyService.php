@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 class BibliographyService extends DatabaseService
@@ -62,24 +64,31 @@ class BibliographyService extends DatabaseService
         string $endPage = null,
         string $url = null
     ): int {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.reference (idtarget, idsource, page_start, page_end, url)
-            values (?, ?, ?, ?, ?)',
-            [
-                $targetId,
-                $sourceId,
-                $startPage,
-                $endPage,
-                $url,
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                reference.idreference as reference_id
-            from data.reference
-            order by idreference desc
-            limit 1'
-        )->fetch()['reference_id'];
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.reference (idtarget, idsource, page_start, page_end, url)
+                values (?, ?, ?, ?, ?)',
+                [
+                    $targetId,
+                    $sourceId,
+                    $startPage,
+                    $endPage,
+                    $url,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    reference.idreference as reference_id
+                from data.reference
+                order by idreference desc
+                limit 1'
+            )->fetch()['reference_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

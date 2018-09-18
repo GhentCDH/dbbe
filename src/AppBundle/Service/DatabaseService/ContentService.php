@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -135,27 +137,32 @@ class ContentService extends DatabaseService
      * @param  string   $name
      * @return int
      */
-    public function insert(
-        int $parentId = null,
-        string $name
-    ): int {
-        // Set search_path for trigger ensure_entity_presence
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'INSERT INTO data.genre (idparentgenre, genre, is_content)
-            values (?, ?, TRUE)',
-            [
-                $parentId,
-                $name
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                genre.idgenre as content_id
-            from data.genre
-            order by idgenre desc
-            limit 1'
-        )->fetch()['content_id'];
+    public function insert(int $parentId = null, string $name): int
+    {
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_entity_presence
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.genre (idparentgenre, genre, is_content)
+                values (?, ?, TRUE)',
+                [
+                    $parentId,
+                    $name
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    genre.idgenre as content_id
+                from data.genre
+                order by idgenre desc
+                limit 1'
+            )->fetch()['content_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

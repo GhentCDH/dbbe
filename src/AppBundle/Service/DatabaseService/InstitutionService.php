@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -34,40 +36,47 @@ class InstitutionService extends DatabaseService
 
     public function insert(string $name, int $regionId, bool $library = false, bool $monastery = false): int
     {
-        // Set search_path for trigger ensure_institution_has_location
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'INSERT INTO data.institution (name, idregion)
-            values (?, ?)',
-            [
-                $name,
-                $regionId,
-            ]
-        );
-        $institutionId = $this->conn->executeQuery(
-            'SELECT
-                institution.identity as institution_id
-            from data.institution
-            order by identity desc
-            limit 1'
-        )->fetch()['institution_id'];
-        if ($library) {
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_institution_has_location
+            $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.library (identity)
-                values (?)',
+                'INSERT INTO data.institution (name, idregion)
+                values (?, ?)',
                 [
-                    $institutionId,
+                    $name,
+                    $regionId,
                 ]
             );
-        }
-        if ($monastery) {
-            $this->conn->executeUpdate(
-                'INSERT INTO data.monastery (identity)
-                values (?)',
-                [
-                    $institutionId,
-                ]
-            );
+            $institutionId = $this->conn->executeQuery(
+                'SELECT
+                    institution.identity as institution_id
+                from data.institution
+                order by identity desc
+                limit 1'
+            )->fetch()['institution_id'];
+            if ($library) {
+                $this->conn->executeUpdate(
+                    'INSERT INTO data.library (identity)
+                    values (?)',
+                    [
+                        $institutionId,
+                    ]
+                );
+            }
+            if ($monastery) {
+                $this->conn->executeUpdate(
+                    'INSERT INTO data.monastery (identity)
+                    values (?)',
+                    [
+                        $institutionId,
+                    ]
+                );
+            }
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
         }
         return $institutionId;
     }

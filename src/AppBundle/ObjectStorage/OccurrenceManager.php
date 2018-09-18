@@ -148,6 +148,9 @@ class OccurrenceManager extends DocumentManager
                         $occurrences[$rawSubject['occurrence_id']]->addSubject($keywords[$rawSubject['keyword_id']]);
                     }
                 }
+                foreach (array_keys($occurrences) as $occurrenceId) {
+                    $occurrences[$occurrenceId]->sortSubjects();
+                }
 
                 $this->setPersonRoles($occurrences);
 
@@ -281,6 +284,11 @@ class OccurrenceManager extends DocumentManager
     public function getGenreDependencies(int $genreId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByGenreId($genreId), $short ? 'getShort' : 'getMini');
+    }
+
+    public function getKeywordDependencies(int $keywordId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $short ? 'getShort' : 'getMini');
     }
 
     public function add(stdClass $data): Occurrence
@@ -515,6 +523,20 @@ class OccurrenceManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateGenres($old, $data->genres);
             }
+            if (property_exists($data, 'persons')) {
+                if (!is_array($data->persons)) {
+                    throw new BadRequestHttpException('Incorrect person subject data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updatePersonSubjects($old, $data->persons);
+            }
+            if (property_exists($data, 'keywords')) {
+                if (!is_array($data->keywords)) {
+                    throw new BadRequestHttpException('Incorrect keyword subject data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateKeywordSubjects($old, $data->keywords);
+            }
 
             // TODO: other information
 
@@ -707,6 +729,46 @@ class OccurrenceManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addGenre($occurrence->getId(), $addId);
+        }
+    }
+
+    private function updatePersonSubjects(Occurrence $occurrence, array $persons): void
+    {
+        foreach ($persons as $person) {
+            if (!is_object($person)
+                || !property_exists($person, 'id')
+                || !is_numeric($person->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect person subject data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($persons, $occurrence->getPersonSubjects());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delSubjects($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addSubject($occurrence->getId(), $addId);
+        }
+    }
+
+    private function updateKeywordSubjects(Occurrence $occurrence, array $keywords): void
+    {
+        foreach ($keywords as $keyword) {
+            if (!is_object($keyword)
+                || !property_exists($keyword, 'id')
+                || !is_numeric($keyword->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect keyword subject data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($keywords, $occurrence->getKeywordSubjects());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delSubjects($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addSubject($occurrence->getId(), $addId);
         }
     }
 

@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -35,21 +37,29 @@ class StatusService extends DatabaseService
 
     public function insert(string $name, string $type): int
     {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.status (status, type)
-            values (?, ?)',
-            [
-                $name,
-                $type,
-            ]
-        );
-        return $this->conn->executeQuery(
-            'SELECT
-                status.idstatus as status_id
-            from data.status
-            order by idstatus desc
-            limit 1'
-        )->fetch()['status_id'];
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.status (status, type)
+                values (?, ?)',
+                [
+                    $name,
+                    $type,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    status.idstatus as status_id
+                from data.status
+                order by idstatus desc
+                limit 1'
+            )->fetch()['status_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $id;
     }
 
     public function updateName(int $statusId, string $name): int

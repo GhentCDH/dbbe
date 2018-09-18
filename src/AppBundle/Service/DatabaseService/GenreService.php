@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -43,27 +45,33 @@ class GenreService extends DatabaseService
      * @param  string   $name
      * @return int
      */
-    public function insert(
-        string $name
-    ): int {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.genre (idparentgenre, genre, is_content)
-            values (
-                (select genre.idgenre from data.genre where genre.genre = \'DBBE system\'),
-                ?,
-                FALSE
-            )',
-            [
-                $name,
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                genre.idgenre as genre_id
-            from data.genre
-            order by idgenre desc
-            limit 1'
-        )->fetch()['genre_id'];
+    public function insert(string $name): int
+    {
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.genre (idparentgenre, genre, is_content)
+                values (
+                    (select genre.idgenre from data.genre where genre.genre = \'DBBE system\'),
+                    ?,
+                    FALSE
+                )',
+                [
+                    $name,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    genre.idgenre as genre_id
+                from data.genre
+                order by idgenre desc
+                limit 1'
+            )->fetch()['genre_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

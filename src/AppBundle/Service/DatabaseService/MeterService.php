@@ -42,23 +42,29 @@ class MeterService extends DatabaseService
      * @param  string   $name
      * @return int
      */
-    public function insert(
-        string $name
-    ): int {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.meter (name)
-            values (?)',
-            [
-                $name
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                meter.idmeter as meter_id
-            from data.meter
-            order by idmeter desc
-            limit 1'
-        )->fetch()['meter_id'];
+    public function insert(string $name): int
+    {
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.meter (name)
+                values (?)',
+                [
+                    $name
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    meter.idmeter as meter_id
+                from data.meter
+                order by idmeter desc
+                limit 1'
+            )->fetch()['meter_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

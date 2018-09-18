@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -198,22 +200,29 @@ class OfficeService extends DatabaseService
      */
     public function insert(int $parentId, string $name, int $regionId = null): int
     {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.occupation (idparentoccupation, occupation, idregion)
-            values (?, ?, ?)',
-            [
-                $parentId,
-                $name,
-                $regionId,
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                occupation.idoccupation as office_id
-            from data.occupation
-            order by idoccupation desc
-            limit 1'
-        )->fetch()['office_id'];
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.occupation (idparentoccupation, occupation, idregion)
+                values (?, ?, ?)',
+                [
+                    $parentId,
+                    $name,
+                    $regionId,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    occupation.idoccupation as office_id
+                from data.occupation
+                order by idoccupation desc
+                limit 1'
+            )->fetch()['office_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

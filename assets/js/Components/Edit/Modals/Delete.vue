@@ -14,7 +14,8 @@
                 <ul :key="'list-' + key">
                     <li
                         v-for="dependency in dependencyCategory.list"
-                        :key="dependency.id">
+                        :key="dependency.id"
+                        :class="{greek: ['Occurrences', 'Types'].includes(key)}">
                         <a
                             v-if="dependencyCategory.url"
                             :href="dependencyCategory.url.replace(dependencyCategory.urlIdentifier, dependency.id)">

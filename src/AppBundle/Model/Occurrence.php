@@ -368,13 +368,6 @@ class Occurrence extends Document
         return $this->incipit;
     }
 
-    public function setVerses(array $verses): Occurrence
-    {
-        $this->verses = $verses;
-
-        return $this;
-    }
-
     public function addVerse(Verse $verse): Occurrence
     {
         $this->verses[$verse->getId()] = $verse;
@@ -387,13 +380,6 @@ class Occurrence extends Document
         return $this->verses;
     }
 
-    public function setMeters(array $meters): Occurrence
-    {
-        $this->meters = $meters;
-
-        return $this;
-    }
-
     public function addMeter(Meter $meter = null): Occurrence
     {
         $this->meters[$meter->getId()] = $meter;
@@ -404,13 +390,6 @@ class Occurrence extends Document
     public function getMeters(): array
     {
         return $this->meters;
-    }
-
-    public function setGenres(array $genres): Occurrence
-    {
-        $this->genres = $genres;
-
-        return $this;
     }
 
     public function addGenre(Genre $genre): Occurrence
@@ -435,6 +414,48 @@ class Occurrence extends Document
     public function getSubjects(): array
     {
         return $this->subjects;
+    }
+
+    public function sortSubjects(): void
+    {
+        usort(
+            $this->subjects,
+            function ($a, $b) {
+                if (is_a($a, Person::class)) {
+                    if (!is_a($b, Person::class)) {
+                        return -1;
+                    } else {
+                        return strcmp($a->getFullDescriptionWithOffices(), $b->getFullDescriptionWithOffices());
+                    }
+                } else {
+                    if (is_a($b, Person::class)) {
+                        return 1;
+                    } else {
+                        return strcmp($a->getName(), $b->getName());
+                    }
+                }
+            }
+        );
+    }
+
+    public function getPersonSubjects(): array
+    {
+        return array_filter(
+            $this->subjects,
+            function ($subject) {
+                return is_a($subject, Person::class);
+            }
+        );
+    }
+
+    public function getKeywordSubjects(): array
+    {
+        return array_filter(
+            $this->subjects,
+            function ($subject) {
+                return is_a($subject, Keyword::class);
+            }
+        );
     }
 
     public function getTextSource(): ?Bibliography
@@ -611,7 +632,10 @@ class Occurrence extends Document
             $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
         }
         if (!empty($this->subjects)) {
-            $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
+            $result['subjects'] = [
+                'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
+                'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
+            ];
         }
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();

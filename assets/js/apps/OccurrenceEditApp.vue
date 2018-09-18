@@ -78,6 +78,17 @@
                 :values="genres"
                 @validated="validated"
             />
+
+            <subjectPanel
+                id="subjects"
+                ref="subjects"
+                header="Subjects"
+                :link="{url: urls['keywords_edit'], text: 'Edit keywords'}"
+                :model="model.subjects"
+                :values="subjects"
+                @validated="validated"
+            />
+
             <identificationPanel
                 v-if="identifiers.length > 0"
                 id="identification"
@@ -149,7 +160,8 @@
             <nav
                 v-scrollspy
                 role="navigation"
-                :class="isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
+                class="padding-default bg-tertiary"
+                :class="{stick: isSticky}"
                 :style="stickyStyle"
             >
                 <h2>Quick navigation</h2>
@@ -161,6 +173,7 @@
                     <li><a href="#date">Date</a></li>
                     <li><a href="#meters">Meters</a></li>
                     <li><a href="#genres">Genres</a></li>
+                    <li><a href="#subjects">Subjects</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
@@ -196,7 +209,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Genre|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Genre|Subject|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -215,6 +228,7 @@ export default {
             historicalPersons: null,
             meters: null,
             genres: null,
+            subjects: null,
             bibliographies: null,
             statuses: null,
             model: {
@@ -251,6 +265,10 @@ export default {
                 },
                 meters: {meters: null},
                 genres: {genres: null},
+                subjects: {
+                    persons: null,
+                    keywords: null,
+                },
                 identification: {},
                 bibliography: {
                     books: [],
@@ -274,6 +292,7 @@ export default {
                 'date',
                 'meters',
                 'genres',
+                'subjects',
                 'bibliography',
                 'general',
             ],
@@ -296,6 +315,10 @@ export default {
         this.historicalPersons = this.data.historicalPersons
         this.meters = this.data.meters
         this.genres = this.data.genres
+        this.subjects = {
+            persons: this.historicalPersons,
+            keywords: this.data.keywords,
+        }
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -371,6 +394,11 @@ export default {
                 this.model.genres = {
                     genres: this.occurrence.genres,
                 }
+
+                // Subject
+                this.model.subjects = {
+                    persons: this.occurrence.subjects.persons,
+                    keywords: this.occurrence.subjects.keywords,
                 }
 
                 // Identification

@@ -3,6 +3,7 @@
 namespace AppBundle\Service\DatabaseService;
 
 use DateTime;
+use Exception;
 
 use Doctrine\DBAL\Connection;
 
@@ -25,29 +26,37 @@ class CollectionService extends DatabaseService
 
     public function insert(string $name, int $libraryId): int
     {
-        // Set search_path for trigger ensure_fund_has_location
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'INSERT INTO data.fund (name, created, idlibrary)
-            values (?, ?, ?)',
-            [
-                $name,
-                new DateTime(),
-                $libraryId,
-            ],
-            [
-                \PDO::PARAM_STR,
-                'datetime',
-                \PDO::PARAM_INT,
-            ]
-        );
-        return $this->conn->executeQuery(
-            'SELECT
-                fund.idfund as collection_id
-            from data.fund
-            order by idfund desc
-            limit 1'
-        )->fetch()['collection_id'];
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_fund_has_location
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.fund (name, created, idlibrary)
+                values (?, ?, ?)',
+                [
+                    $name,
+                    new DateTime(),
+                    $libraryId,
+                ],
+                [
+                    \PDO::PARAM_STR,
+                    'datetime',
+                    \PDO::PARAM_INT,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    fund.idfund as collection_id
+                from data.fund
+                order by idfund desc
+                limit 1'
+            )->fetch()['collection_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $id;
     }
 
     public function updateName(int $collectionId, string $name): int

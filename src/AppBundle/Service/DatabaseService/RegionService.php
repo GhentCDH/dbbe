@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -175,25 +177,32 @@ class RegionService extends DatabaseService
         string $historicalName = null,
         bool $isCity = false
     ): int {
-        // Set search_path for trigger ensure_entity_presence
-        $this->conn->exec('SET SEARCH_PATH TO data');
-        $this->conn->executeUpdate(
-            'INSERT INTO data.region (parent_idregion, name, historical_name, is_city)
-            values (?, ?, ?, ?)',
-            [
-                $parentId,
-                $name,
-                $historicalName,
-                $isCity ? 'TRUE': 'FALSE',
-            ]
-        );
-        $id = $this->conn->executeQuery(
-            'SELECT
-                region.identity as region_id
-            from data.region
-            order by identity desc
-            limit 1'
-        )->fetch()['region_id'];
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_entity_presence
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.region (parent_idregion, name, historical_name, is_city)
+                values (?, ?, ?, ?)',
+                [
+                    $parentId,
+                    $name,
+                    $historicalName,
+                    $isCity ? 'TRUE': 'FALSE',
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    region.identity as region_id
+                from data.region
+                order by identity desc
+                limit 1'
+            )->fetch()['region_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
         return $id;
     }
 

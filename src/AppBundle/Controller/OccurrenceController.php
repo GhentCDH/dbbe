@@ -142,6 +142,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on a keyword
+     * (factoid)
+     * @Route("/occurrences/keywords/{id}", name="occurrence_deps_by_keyword")
+     * @Method("GET")
+     * @param  int    $id keyword id
+     * @param Request $request
+     */
+    public function getDepsByKeyword(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getKeywordDependencies');
+    }
+
+    /**
      * @Route("/occurrences", name="occurrence_post")
      * @Method("POST")
      * @param Request $request
@@ -223,6 +236,7 @@ class OccurrenceController extends BaseController
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
                     'genres' => ArrayToJson::arrayToShortJson($this->get('genre_manager')->getAll()),
+                    'keywords' => ArrayToJson::arrayToShortJson($this->get('keyword_manager')->getAll()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),

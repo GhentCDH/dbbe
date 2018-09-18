@@ -1,5 +1,5 @@
 <template>
-    <div class="dropdown" v-bind:class="{'open':open}">
+    <div class="dropdown" :class="{open: open}">
         <input
             class="form-control"
             type="text"
@@ -17,7 +17,7 @@
                 @click="suggestionClick(suggestion)"
                 @mouseover="mouseOver(index)"
             >
-              <a :class="{'selected':isSelected(index)}" href="#">{{ suggestion }}
+              <a :class="{selected: isSelected(index)}" href="#">{{ suggestion }}
               </a>
             </li>
         </ul>

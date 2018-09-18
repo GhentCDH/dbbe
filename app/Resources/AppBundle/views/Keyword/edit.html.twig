@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-12">
+        <h2 class="h1">
+            Edit keywords
+        </h2>
+    </div>
+    <div id="keywords-edit-app">
+        <keywords-edit-app
+            init-urls="{{ urls }}"
+            init-data="{{ keywords }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/keywordsedit.js") }}"></script>
+{% endblock %}

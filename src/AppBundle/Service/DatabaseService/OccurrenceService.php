@@ -80,6 +80,18 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByKeywordId(int $keywordId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.factoid on original_poem.identity = factoid.object_identity
+            where factoid.subject_identity = ?',
+            [$keywordId]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -765,6 +777,55 @@ class OccurrenceService extends DocumentService
             [
                 \PDO::PARAM_INT,
                 Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $subjectId
+     * @return int
+     */
+    public function addSubject(int $id, int $subjectId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.factoid (subject_identity, object_identity, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (
+                    select
+                        factoid_type.idfactoid_type
+                    from data.factoid_type
+                    where factoid_type.type = \'subject of\'
+                )
+            )',
+            [
+                $subjectId,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $subjectIds
+     * @return int
+     */
+    public function delSubjects(int $id, array $subjectIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.factoid
+            where subject_identity in (?)
+            and object_identity = ?',
+            [
+                $subjectIds,
+                $id,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+                \PDO::PARAM_INT,
             ]
         );
     }

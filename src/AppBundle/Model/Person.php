@@ -877,14 +877,4 @@ class Person extends Entity implements SubjectInterface
 
         return $result;
     }
-
-    /**
-     * @param  Person $a
-     * @param  Person $b
-     * @return bool
-     */
-    public static function cmpByFullDescription(Person $a, Person $b)
-    {
-        return strcmp($a->getFullDescription(), $b->getFullDescription());
-    }
 }

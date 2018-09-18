@@ -310,7 +310,9 @@ class PersonManager extends EntityManager
 
                 $persons = array_values($this->getMini($ids));
 
-                usort($persons, ['AppBundle\Model\Person', 'cmpByFullDescription']);
+                usort($persons, function ($a, $b) {
+                    return strcmp($a->getFullDescription(), $b->getFullDescription());
+                });
 
                 return $persons;
             }
@@ -331,7 +333,9 @@ class PersonManager extends EntityManager
 
                 $persons = array_values($this->getMini($ids));
 
-                usort($persons, ['AppBundle\Model\Person', 'cmpByFullDescription']);
+                usort($persons, function ($a, $b) {
+                    return strcmp($a->getFullDescription(), $b->getFullDescription());
+                });
 
                 return $persons;
             }

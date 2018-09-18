@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
@@ -51,22 +53,30 @@ class RoleService extends DatabaseService
 
     public function insert(array $usage, string $systemName, string $name): int
     {
-        $this->conn->executeUpdate(
-            'INSERT INTO data.role (type, system_name, name)
-            values (?, ?, ?)',
-            [
-                '{' . implode(',', $usage) . '}',
-                $systemName,
-                $name,
-            ]
-        );
-        return $this->conn->executeQuery(
-            'SELECT
-                role.idrole as role_id
-            from data.role
-            order by idrole desc
-            limit 1'
-        )->fetch()['role_id'];
+        $this->beginTransaction();
+        try {
+            $this->conn->executeUpdate(
+                'INSERT INTO data.role (type, system_name, name)
+                values (?, ?, ?)',
+                [
+                    '{' . implode(',', $usage) . '}',
+                    $systemName,
+                    $name,
+                ]
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    role.idrole as role_id
+                from data.role
+                order by idrole desc
+                limit 1'
+            )->fetch()['role_id'];
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $id;
     }
 
     public function updateUsage(int $roleId, array $usage): int

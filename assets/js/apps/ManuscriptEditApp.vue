@@ -136,7 +136,8 @@
             <nav
                 v-scrollspy
                 role="navigation"
-                :class="isSticky ? 'stick padding-default bg-tertiary' : 'padding-default bg-tertiary'"
+                class="padding-default bg-tertiary"
+                :class="{stick: isSticky}"
                 :style="stickyStyle"
             >
                 <h2>Quick navigation</h2>
