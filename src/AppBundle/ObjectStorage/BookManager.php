@@ -119,6 +119,16 @@ class BookManager extends DocumentManager
     }
 
     /**
+     * Get all books that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getReferenceDependencies(array $referenceIds): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
+    }
+
+    /**
      * Add a new book
      * @param  stdClass $data
      * @return Book

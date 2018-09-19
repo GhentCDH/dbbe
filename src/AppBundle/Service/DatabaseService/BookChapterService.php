@@ -58,6 +58,24 @@ class BookChapterService extends DocumentService
     }
 
     /**
+     * Get all ids of book chapters that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getDepIdsByReferenceIds(array $referenceIds): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bookchapter.identity as book_chapter_id
+            from data.bookchapter
+            inner join data.reference on bookchapter.identity = reference.idsource
+            where reference.idreference in (?)',
+            [$referenceIds],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */

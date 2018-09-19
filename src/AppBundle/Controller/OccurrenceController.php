@@ -241,6 +241,7 @@ class OccurrenceController extends BaseController
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
+                    'referenceTypes' => ArrayToJson::arrayToShortJson($this->get('reference_type_manager')->getAll()),
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                     'dividedStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceDividedStatuses()),

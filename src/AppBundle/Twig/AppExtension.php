@@ -36,16 +36,6 @@ class AppExtension extends Twig_Extension
                     }
                 }
             }),
-            new Twig_SimpleFilter('primary', function ($array) {
-                return array_filter($array, function ($item) {
-                    return $item->getRefType() == 'Primary source';
-                });
-            }),
-            new Twig_SimpleFilter('secondary', function ($array) {
-                return array_filter($array, function ($item) {
-                    return $item->getRefType() == 'Secondary source';
-                });
-            }),
         ];
     }
 }

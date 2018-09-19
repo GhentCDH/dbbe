@@ -101,13 +101,23 @@ class OnlineSourceManager extends EntityManager
 
     /**
      * Get the online source that is dependent on a specific institution
-     * This online osurce and instution will have the same id
+     * This online source and instution will have the same id
      * @param  int   $institutionId
      * @return array
      */
     public function getInstitutionDependencies(int $institutionId): array
     {
         return $this->getDependencies([$institutionId], 'getMini');
+    }
+
+    /**
+     * Get all online sources that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getReferenceDependencies(array $referenceIds): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
     }
 
     /**

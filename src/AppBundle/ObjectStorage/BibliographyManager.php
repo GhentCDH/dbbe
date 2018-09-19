@@ -23,11 +23,13 @@ class BibliographyManager extends ObjectManager
                 $bookIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book');
                 $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book_chapter');
                 $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'online_source');
+                $referenceTypeIds = self::getUniqueIds($rawBibliographies, 'reference_type_id');
 
                 $articles = $this->container->get('article_manager')->getMini($articleIds);
                 $books = $this->container->get('book_manager')->getMini($bookIds);
                 $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
                 $onlineSources = $this->container->get('online_source_manager')->getMini($onlineSourceIds);
+                $referenceTypes = $this->container->get('reference_type_manager')->get($referenceTypeIds);
 
                 foreach ($rawBibliographies as $rawBibliography) {
                     switch ($rawBibliography['bib_type']) {
@@ -37,8 +39,7 @@ class BibliographyManager extends ObjectManager
                                     ->setArticle($articles[$rawBibliography['source_id']])
                                     ->setStartPage($rawBibliography['page_start'])
                                     ->setEndPage($rawBibliography['page_end'])
-                                    ->setRawPages($rawBibliography['raw_pages'])
-                                    ->setRefType($rawBibliography['ref_type']);
+                                    ->setRawPages($rawBibliography['raw_pages']);
                             break;
                         case 'book':
                             $bibliographies[$rawBibliography['reference_id']] =
@@ -46,8 +47,7 @@ class BibliographyManager extends ObjectManager
                                     ->setBook($books[$rawBibliography['source_id']])
                                     ->setStartPage($rawBibliography['page_start'])
                                     ->setEndPage($rawBibliography['page_end'])
-                                    ->setRawPages($rawBibliography['raw_pages'])
-                                    ->setRefType($rawBibliography['ref_type']);
+                                    ->setRawPages($rawBibliography['raw_pages']);
                             break;
                         case 'book_chapter':
                             $bibliographies[$rawBibliography['reference_id']] =
@@ -55,15 +55,18 @@ class BibliographyManager extends ObjectManager
                                     ->setBookChapter($bookChapters[$rawBibliography['source_id']])
                                     ->setStartPage($rawBibliography['page_start'])
                                     ->setEndPage($rawBibliography['page_end'])
-                                    ->setRawPages($rawBibliography['raw_pages'])
-                                    ->setRefType($rawBibliography['ref_type']);
+                                    ->setRawPages($rawBibliography['raw_pages']);
                             break;
                         case 'online_source':
                             $bibliographies[$rawBibliography['reference_id']] =
                                 (new OnlineSourceBibliography($rawBibliography['reference_id']))
                                     ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
-                                    ->setRelUrl($rawBibliography['rel_url'])
-                                    ->setRefType($rawBibliography['ref_type']);
+                                    ->setRelUrl($rawBibliography['rel_url']);
+                            break;
+                    }
+                    if (!empty($rawBibliography['reference_type_id'])) {
+                        $bibliographies[$rawBibliography['reference_id']]
+                            ->setReferenceType($referenceTypes[$rawBibliography['reference_type_id']]);
                     }
                 }
 
@@ -72,16 +75,29 @@ class BibliographyManager extends ObjectManager
         );
     }
 
-    public function add(int $targetId, int $sourceId, string $startPage = null, string $endPage = null, string $relUrl = null): Bibliography
-    {
-        $id = $this->dbs->insert($targetId, $sourceId, $startPage, $endPage, $relUrl);
+    public function add(
+        int $targetId,
+        int $sourceId,
+        string $startPage = null,
+        string $endPage = null,
+        string $relUrl = null,
+        int $referenceTypeId = null
+    ): Bibliography {
+        $id = $this->dbs->insert($targetId, $sourceId, $startPage, $endPage, $relUrl, $referenceTypeId);
         return $this->get([$id])[$id];
     }
 
-    public function update(int $id, int $sourceId, string $startPage = null, string $endPage = null, string $rawPages = null, string $relUrl = null): Bibliography
-    {
-        $this->deleteCache(Bibliography::CACHENAME, $bibliographyId);
-        $this->dbs->update($id, $sourceId, $startPage, $endPage, $rawPages, $relUrl);
+    public function update(
+        int $id,
+        int $sourceId,
+        string $startPage = null,
+        string $endPage = null,
+        string $rawPages = null,
+        string $relUrl = null,
+        int $referenceTypeId = null
+    ): Bibliography {
+        $this->deleteCache(Bibliography::CACHENAME, $id);
+        $this->dbs->update($id, $sourceId, $startPage, $endPage, $rawPages, $relUrl, $referenceTypeId);
         return $this->get([$id])[$id];
     }
 

@@ -279,8 +279,11 @@ class EntityManager extends ObjectManager
         }
     }
 
-    protected function updateBibliography(Entity $entity, stdClass $bibliography): void
-    {
+    protected function updateBibliography(
+        Entity $entity,
+        stdClass $bibliography,
+        bool $referenceTypeRequired = false
+    ): void {
         // Verify input
         foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
             $plurBibType = $bibType . 's';
@@ -292,6 +295,14 @@ class EntityManager extends ObjectManager
                     || (property_exists($bib, 'id') && !is_numeric($bib->id))
                     || !property_exists($bib, $bibType) || !is_object($bib->$bibType)
                     || !property_exists($bib->$bibType, 'id') || !is_numeric($bib->$bibType->id)
+                    || ($referenceTypeRequired
+                        && (
+                            !property_exists($bib, 'referenceType')
+                            || !is_object($bib->referenceType)
+                            || !property_exists($bib->referenceType, 'id')
+                            || !is_numeric($bib->referenceType->id)
+                        )
+                    )
                 ) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
@@ -303,7 +314,7 @@ class EntityManager extends ObjectManager
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
                 } else {
-                    if (!property_exists($bib, 'relUrl') || !is_string($bib->relUrl)
+                    if (!property_exists($bib, 'relUrl') || !(empty($bib->startPage) ||is_string($bib->relUrl))
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
@@ -311,75 +322,103 @@ class EntityManager extends ObjectManager
             }
         }
 
-        // TODO: reset article, book, bookchapter, onlinesource on add or delete (for inversebibliographies)
-
         // Add and update
-        $updateIds = [];
-        $origBibIds = array_keys($entity->getBibliographies());
-        foreach (['article', 'book', 'bookChapter', 'onlineSource'] as $bibType) {
-            $plurBibType = $bibType . 's';
-            foreach ($bibliography->$plurBibType as $bib) {
-                if (!property_exists($bib, 'id')) {
-                    // Add new
-                    if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
-                        $this->container->get('bibliography_manager')->add(
-                            $entity->getId(),
-                            $bib->{$bibType}->id,
-                            self::certainString($bib, 'startPage'),
-                            self::certainString($bib, 'endPage'),
-                            null
-                        );
+        $oldBibIds = array_keys($entity->getBibliographies());
+        $newBibIds = [];
+        $this->dbs->beginTransaction();
+        try {
+            foreach (['article', 'book', 'bookChapter', 'onlineSource'] as $bibType) {
+                $plurBibType = $bibType . 's';
+                foreach ($bibliography->$plurBibType as $bib) {
+                    if (!property_exists($bib, 'id')) {
+                        // Add new
+                        if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
+                            $newBib = $this->container->get('bibliography_manager')->add(
+                                $entity->getId(),
+                                $bib->{$bibType}->id,
+                                self::certainString($bib, 'startPage'),
+                                self::certainString($bib, 'endPage'),
+                                null,
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                            );
+                            $newBibIds[] = $newBib->getId();
+                        } else {
+                            // onlineSource
+                            $newBib = $this->container->get('bibliography_manager')->add(
+                                $entity->getId(),
+                                $bib->{$bibType}->id,
+                                null,
+                                null,
+                                self::certainString($bib, 'relUrl'),
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                            );
+                            $newBibIds[] = $newBib->getId();
+                        }
+                    } elseif (in_array($bib->id, $oldBibIds)) {
+                        $newBibIds[] = $bib->id;
+                        // Update
+                        if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
+                            $this->container->get('bibliography_manager')->update(
+                                $bib->id,
+                                $bib->{$bibType}->id,
+                                self::certainString($bib, 'startPage'),
+                                self::certainString($bib, 'endPage'),
+                                self::certainString($bib, 'rawPages'),
+                                null,
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                            );
+                        } else {
+                            // onlineSource
+                            $this->container->get('bibliography_manager')->update(
+                                $bib->id,
+                                $bib->{$bibType}->id,
+                                null,
+                                null,
+                                null,
+                                self::certainString($bib, 'relUrl'),
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                            );
+                        }
                     } else {
-                        // onlineSource
-                        $this->container->get('bibliography_manager')->add(
-                            $entity->getId(),
-                            $bib->{$bibType}->id,
-                            null,
-                            null,
-                            self::certainString($bib, 'relUrl')
+                        throw new NotFoundHttpException(
+                            'Bibliography with id "' . $bib->id . '" not found '
+                            . ' in entity with id "' . $entity->getId() . '".'
                         );
                     }
-                } elseif (in_array($bib->id, $origBibIds)) {
-                    $updateIds[] = $bib->id;
-                    // Update
-                    if (in_array($bibType, ['book', 'article', 'bookChapter'])) {
-                        $this->container->get('bibliography_manager')->update(
-                            $bib->id,
-                            $bib->{$bibType}->id,
-                            self::certainString($bib, 'startPage'),
-                            self::certainString($bib, 'endPage'),
-                            self::certainString($bib, 'rawPages'),
-                            null
-                        );
-                    } else {
-                        // onlineSource
-                        $this->container->get('bibliography_manager')->update(
-                            $bib->id,
-                            $bib->{$bibType}->id,
-                            null,
-                            null,
-                            null,
-                            self::certainString($bib, 'relUrl')
-                        );
-                    }
-                } else {
-                    throw new NotFoundHttpException(
-                        'Bibliography with id "' . $bib->id . '" not found '
-                        . ' in entity with id "' . $entity->getId() . '".'
-                    );
                 }
             }
-        }
 
-        // delete
-        $delIds = [];
-        foreach ($origBibIds as $origId) {
-            if (!in_array($origId, $updateIds)) {
-                $delIds[] = $origId;
+            // Reset bibliography item full caches (recalculate inverseBibliographies)
+            $addIds = array_diff($newBibIds, $oldBibIds);
+            $delIds = array_diff($oldBibIds, $newBibIds);
+            $resetIds = array_merge($addIds, $delIds);
+            if (count($resetIds) > 0) {
+                foreach (['article', 'book', 'book_chapter', 'online_source'] as $bibType) {
+                    $bibItems = $this->container->get($bibType . '_manager')->getReferenceDependencies($resetIds);
+                    if (count($bibItems) > 0) {
+                        array_map(
+                            function ($bibItemId) use ($bibType) {
+                                $this->container->get($bibType . '_manager')->clearCache($bibItemId, ['full' => true]);
+                            },
+                            $this->getIds($bibItems)
+                        );
+                    }
+                }
             }
-        }
-        if (count($delIds) > 0) {
-            $this->container->get('bibliography_manager')->deleteMultiple($delIds);
+
+            // delete
+            if (count($delIds) > 0) {
+                $this->container->get('bibliography_manager')->deleteMultiple($delIds);
+            }
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+
+            // clear article, book, bookchapter, onlinesource caches
+
+            throw $e;
         }
     }
 

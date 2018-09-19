@@ -466,17 +466,6 @@ class Occurrence extends Document
         );
     }
 
-    public function getTextSource(): ?Bibliography
-    {
-        $textSources = array_filter($this->bibliographies, function ($bibliography) {
-            return $bibliography->getRefType() == 'Text source';
-        });
-        if (count($textSources) == 1) {
-            return reset($textSources);
-        }
-        return null;
-    }
-
     public function setTextStatus(Status $textStatus = null): Occurrence
     {
         $this->textStatus = $textStatus;
@@ -587,9 +576,11 @@ class Occurrence extends Document
 
     public function getDBBE(): bool
     {
-        $textSource = $this->getTextSource();
-        if (isset($textSource) && $textSource->getType() == 'onlineSource' && $textSource->getOnlineSource()->getName() == 'DBBE') {
-            return true;
+        $textSources = $this->getTextSources();
+        foreach ($textSources as $textSource) {
+            if ($textSource->getType() == 'onlineSource' && $textSource->getOnlineSource()->getName() == 'DBBE') {
+                return true;
+            }
         }
         return false;
     }

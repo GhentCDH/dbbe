@@ -14,9 +14,19 @@ abstract class Bibliography
     use CacheLinkTrait;
     use CacheObjectTrait;
 
+    /**
+     * @var int
+     */
     protected $id;
+    /**
+     * article, book, bookChapter or onlineSource
+     * @var string
+     */
     protected $type;
-    protected $refType;
+    /**
+     * @var ReferenceType
+     */
+    protected $referenceType;
 
     protected function __construct(int $id, string $type)
     {
@@ -34,15 +44,15 @@ abstract class Bibliography
         return $this->type;
     }
 
-    public function setRefType(string $refType = null): Bibliography
+    public function setReferenceType(ReferenceType $referenceType = null): Bibliography
     {
-        $this->refType = $refType;
+        $this->referenceType = $referenceType;
         return $this;
     }
 
-    public function getRefType(): ?string
+    public function getReferenceType(): ?ReferenceType
     {
-        return $this->refType;
+        return $this->referenceType;
     }
 
     abstract public function getDescription(): string;

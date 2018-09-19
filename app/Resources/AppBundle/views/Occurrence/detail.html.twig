@@ -80,15 +80,19 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getTextSource() is not empty %}
+                {% if occurrence.getTextSources() is not empty %}
                     <tr>
                         <td>Text source</td>
                         <td>
-                            {% if occurrence.getTextSource().getType() == 'onlineSource' and occurrence.getTextSource().getOnlineSource().getName() == 'DBBE' %}
-                                <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with this text source">{{ occurrence.getTextSource().getOnlineSource().getName() }}</a>
-                            {% else %}
-                            {% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getTextSource()} only %}
-                            {% endif %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getTextSources()} only %}
+                                {% block renderItem %}
+                                    {% if item.getType() == 'onlineSource' and item.getOnlineSource().getName() == 'DBBE' %}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with text source {{ item.getOnlineSource().getName() }}">{{ item.getOnlineSource().getName() }}</a>
+                                    {% else %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
@@ -210,21 +214,21 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getBibliographies() is not empty %}
+                {% if occurrence.getPrimarySources() is not empty or occurrence.getSecondarySources() is not empty%}
                     <tr>
                         <td>Bibliography</td>
                         <td>
-                            {% if occurrence.getBibliographies()|primary is not empty %}
+                            {% if occurrence.getPrimarySources() is not empty %}
                                 <p><em>Primary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographies()|primary} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getPrimarySources()} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}
                                 {% endembed %}
                             {% endif %}
-                            {% if occurrence.getBibliographies()|secondary is not empty %}
+                            {% if occurrence.getSecondarySources() is not empty %}
                                 <p><em>Secondary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographies()|secondary} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getSecondarySources()} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}

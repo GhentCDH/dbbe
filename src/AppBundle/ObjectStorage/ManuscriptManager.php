@@ -354,6 +354,9 @@ class ManuscriptManager extends DocumentManager
                 }
             }
             if (property_exists($data, 'bibliography')) {
+                if (!is_object($data->bibliography)) {
+                    throw new BadRequestHttpException('Incorrect bibliography data.');
+                }
                 $cacheReload['full'] = true;
                 $this->updateBibliography($old, $data->bibliography);
             }

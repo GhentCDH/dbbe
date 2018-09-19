@@ -4,37 +4,43 @@
             <h3>Books</h3>
             <table
                 v-if="model.books.length > 0"
-                class="table table-striped table-bordered table-hover">
+                class="table table-striped table-bordered table-hover"
+            >
                 <thead>
                     <tr>
                         <th>Book</th>
                         <th>Start page</th>
                         <th>End page</th>
                         <th>Raw pages</th>
+                        <th v-if="referenceType">Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
                         v-for="(item, index) in model.books"
-                        :key="index">
+                        :key="index"
+                    >
                         <td>{{ item.book.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
+                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
                         <td>
                             <a
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="updateBib(item, index)">
+                                @click.prevent="updateBib(item, index)"
+                            >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
                             <a
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delBib(item, index)">
+                                @click.prevent="delBib(item, index)"
+                            >
                                 <i class="fa fa-trash-o" />
                             </a>
                         </td>
@@ -47,37 +53,43 @@
             <h3>Articles</h3>
             <table
                 v-if="model.articles.length > 0"
-                class="table table-striped table-bordered table-hover">
+                class="table table-striped table-bordered table-hover"
+            >
                 <thead>
                     <tr>
                         <th>Article</th>
                         <th>Start page</th>
                         <th>End page</th>
                         <th>Raw pages</th>
+                        <th v-if="referenceType">Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
                         v-for="(item, index) in model.articles"
-                        :key="index">
+                        :key="index"
+                    >
                         <td>{{ item.article.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
+                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
                         <td>
                             <a
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="updateBib(item, index)">
+                                @click.prevent="updateBib(item, index)"
+                            >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
                             <a
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delBib(item, index)">
+                                @click.prevent="delBib(item, index)"
+                            >
                                 <i class="fa fa-trash-o" />
                             </a>
                         </td>
@@ -90,37 +102,43 @@
             <h3>Book chapters</h3>
             <table
                 v-if="model.bookChapters.length > 0"
-                class="table table-striped table-bordered table-hover">
+                class="table table-striped table-bordered table-hover"
+            >
                 <thead>
                     <tr>
                         <th>Book Chapter</th>
                         <th>Start page</th>
                         <th>End page</th>
                         <th>Raw pages</th>
+                        <th v-if="referenceType">Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
                         v-for="(item, index) in model.bookChapters"
-                        :key="index">
+                        :key="index"
+                    >
                         <td>{{ item.bookChapter.name }}</td>
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
+                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
                         <td>
                             <a
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="updateBib(item, index)">
+                                @click.prevent="updateBib(item, index)"
+                            >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
                             <a
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delBib(item, index)">
+                                @click.prevent="delBib(item, index)"
+                            >
                                 <i class="fa fa-trash-o" />
                             </a>
                         </td>
@@ -133,35 +151,41 @@
             <h3>Online sources</h3>
             <table
                 v-if="model.onlineSources.length > 0"
-                class="table table-striped table-bordered table-hover">
+                class="table table-striped table-bordered table-hover"
+            >
                 <thead>
                     <tr>
                         <th>Online source</th>
                         <th>Source link</th>
                         <th>Relative link</th>
+                        <th v-if="referenceType">Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
                         v-for="(item, index) in model.onlineSources"
-                        :key="index">
+                        :key="index"
+                    >
                         <td>{{ item.onlineSource.name }}</td>
                         <td>{{ item.onlineSource.url }}</td>
                         <td>{{ item.relUrl }}</td>
+                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
                         <td>
                             <a
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="updateBib(item, index)">
+                                @click.prevent="updateBib(item, index)"
+                            >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
                             <a
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delBib(item, index)">
+                                @click.prevent="delBib(item, index)"
+                            >
                                 <i class="fa fa-trash-o" />
                             </a>
                         </td>
@@ -173,44 +197,51 @@
         <modal
             v-model="editBibModal"
             size="lg"
-            auto-focus>
+            auto-focus
+        >
             <vue-form-generator
                 v-if="editBib.type === 'book'"
+                ref="editBibForm"
                 :schema="editBookBibSchema"
                 :model="editBib"
                 :options="formOptions"
-                ref="editBibForm"
-                @validated="validated" />
+                @validated="validated"
+            />
             <vue-form-generator
                 v-if="editBib.type === 'article'"
+                ref="editBibForm"
                 :schema="editArticleBibSchema"
                 :model="editBib"
                 :options="formOptions"
-                ref="editBibForm"
-                @validated="validated" />
+                @validated="validated"
+            />
             <vue-form-generator
                 v-if="editBib.type === 'bookChapter'"
+                ref="editBibForm"
                 :schema="editBookChapterBibSchema"
                 :model="editBib"
                 :options="formOptions"
-                ref="editBibForm"
-                @validated="validated" />
+                @validated="validated"
+            />
             <vue-form-generator
                 v-if="editBib.type === 'onlineSource'"
-                :schema="editOnlineSourceSchema"
+                ref="editBibForm"
+                :schema="editOnlineSourceBibSchema"
                 :model="editBib"
                 :options="formOptions"
-                ref="editBibForm"
-                @validated="validated" />
+                @validated="validated"
+            />
             <div slot="header">
                 <h4
+                    v-if="editBib.id"
                     class="modal-title"
-                    v-if="editBib.id">
+                >
                     Edit bibliography
                 </h4>
                 <h4
+                    v-if="!editBib.id"
                     class="modal-title"
-                    v-if="!editBib.id">
+                >
                     Add a new bibliography item
                 </h4>
             </div>
@@ -219,7 +250,8 @@
                 <btn
                     type="success"
                     :disabled="!isValid"
-                    @click="submitBib()">
+                    @click="submitBib()"
+                >
                     {{ bibIndex > -1 ? 'Update' : 'Add' }}
                 </btn>
             </div>
@@ -227,13 +259,15 @@
         <modal
             v-model="delBibModal"
             title="Delete bibliography"
-            auto-focus>
+            auto-focus
+        >
             <p>Are you sure you want to delete this bibliography?</p>
             <div slot="footer">
                 <btn @click="delBibModal=false">Cancel</btn>
                 <btn
                     type="danger"
-                    @click="submitDeleteBib()">
+                    @click="submitDeleteBib()"
+                >
                     Delete
                 </btn>
             </div>
@@ -260,16 +294,27 @@ export default {
         AbstractPanelForm,
     ],
     props: {
+        referenceType: {
+            type: Boolean,
+            default: false,
+        },
         values: {
             type: Object,
             default: () => {return {}}
         },
     },
     data() {
-        return {
+        let data = {
             editBookBibSchema: {
                 fields: {
-                    book: this.createMultiSelect('Book', {values: this.values.books, required: true, validator: VueFormGenerator.validators.required}),
+                    book: this.createMultiSelect(
+                        'Book',
+                        {
+                            values: this.values.books,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -299,7 +344,14 @@ export default {
             },
             editArticleBibSchema: {
                 fields: {
-                    article: this.createMultiSelect('Article', {values: this.values.articles, required: true, validator: VueFormGenerator.validators.required}),
+                    article: this.createMultiSelect(
+                        'Article',
+                        {
+                            values: this.values.articles,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -329,7 +381,14 @@ export default {
             },
             editBookChapterBibSchema: {
                 fields: {
-                    bookChapter: this.createMultiSelect('Book Chapter', {values: this.values.bookChapters, required: true, validator: VueFormGenerator.validators.required}),
+                    bookChapter: this.createMultiSelect(
+                        'Book Chapter',
+                        {
+                            values: this.values.bookChapters,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
                     startPage: {
                         type: 'input',
                         inputType: 'text',
@@ -357,9 +416,16 @@ export default {
                     },
                 }
             },
-            editOnlineSourceSchema: {
+            editOnlineSourceBibSchema: {
                 fields: {
-                    onlineSource: this.createMultiSelect('Online Source', {values: this.values.onlineSources, required: true, validator: VueFormGenerator.validators.required}),
+                    onlineSource: this.createMultiSelect(
+                        'Online Source',
+                        {
+                            values: this.values.onlineSources,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
                     sourceLink: {
                         type: 'input',
                         inputType: 'text',
@@ -383,6 +449,19 @@ export default {
             bibIndex: null,
             editBib: {},
         }
+        if (this.referenceType) {
+            let referenceTypeField = this.createMultiSelect('Type', {
+                model: 'referenceType',
+                values: this.values.referenceTypes,
+                required: true,
+                validator: VueFormGenerator.validators.required,
+            })
+            data.editBookBibSchema.fields['referenceType'] = referenceTypeField
+            data.editArticleBibSchema.fields['referenceType'] = referenceTypeField
+            data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
+            data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
+        }
+        return data
     },
     computed: {
         fields() {
@@ -391,7 +470,7 @@ export default {
                 this.editBookBibSchema.fields,
                 this.editArticleBibSchema.fields,
                 this.editBookChapterBibSchema.fields,
-                this.editOnlineSourceSchema.fields
+                this.editOnlineSourceBibSchema.fields
             )
         }
     },
@@ -404,7 +483,13 @@ export default {
             this.enableField(this.editBookBibSchema.fields.book)
             this.enableField(this.editArticleBibSchema.fields.article)
             this.enableField(this.editBookChapterBibSchema.fields.bookChapter)
-            this.enableField(this.editOnlineSourceSchema.fields.onlineSource)
+            this.enableField(this.editOnlineSourceBibSchema.fields.onlineSource)
+            if (this.referenceType) {
+                this.enableField(this.editBookBibSchema.fields.referenceType)
+                this.enableField(this.editArticleBibSchema.fields.referenceType)
+                this.enableField(this.editBookChapterBibSchema.fields.referenceType)
+                this.enableField(this.editOnlineSourceBibSchema.fields.referenceType)
+            }
         },
         validate() {},
         calcChanges() {
@@ -438,6 +523,13 @@ export default {
             this.editBib = {
                 type: type
             }
+            if (type === 'onlineSource') {
+                this.editBib.relUrl = ''
+            }
+            else {
+                this.editBib.startPage = ''
+                this.editBib.endPage = ''
+            }
             this.editBibModal = true
         },
         validated(isValid, errors) {
@@ -470,17 +562,37 @@ export default {
         },
         displayBibliography(bibliography) {
             let result = []
-            for (let bookBibliography of bibliography['books']) {
-                result.push(bookBibliography.book.name + this.formatPages(bookBibliography.startPage, bookBibliography.endPage, bookBibliography.rawPages, ': ') + '.')
+            for (let bib of bibliography['books']) {
+                result.push(
+                    bib.book.name
+                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
+                        + '.'
+                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                )
             }
-            for (let articleBibliography of bibliography['articles']) {
-                result.push(articleBibliography.article.name + this.formatPages(articleBibliography.startPage, articleBibliography.endPage, articleBibliography.rawPages, ': ') + '.')
+            for (let bib of bibliography['articles']) {
+                result.push(
+                    bib.article.name
+                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
+                        + '.'
+                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                )
             }
-            for (let bookChapterBibliography of bibliography['bookChapters']) {
-                result.push(bookChapterBibliography.bookChapter.name + this.formatPages(bookChapterBibliography.startPage, bookChapterBibliography.endPage, bookChapterBibliography.rawPages, ': ') + '.')
+            for (let bib of bibliography['bookChapters']) {
+                result.push(
+                    bib.bookChapter.name
+                        + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
+                        + '.'
+                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                )
             }
-            for (let onlineSourceBibliography of bibliography['onlineSources']) {
-                result.push(onlineSourceBibliography.onlineSource.url + (onlineSourceBibliography.relUrl == null ? '' : onlineSourceBibliography.relUrl) + '.')
+            for (let bib of bibliography['onlineSources']) {
+                result.push(
+                    bib.onlineSource.url
+                        + (bib.relUrl == null ? '' : bib.relUrl)
+                        + '.'
+                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                )
             }
             return result
         },

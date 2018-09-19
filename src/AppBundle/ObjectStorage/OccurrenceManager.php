@@ -551,6 +551,14 @@ class OccurrenceManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateKeywordSubjects($old, $data->keywords);
             }
+            if (property_exists($data, 'bibliography')) {
+                if (!is_object($data->bibliography)) {
+                    throw new BadRequestHttpException('Incorrect bibliography data.');
+                }
+                // short is needed here to index DBBE in elasticsearch
+                $cacheReload['short'] = true;
+                $this->updateBibliography($old, $data->bibliography, true);
+            }
             if (property_exists($data, 'paleographicalInfo')) {
                 if (!is_string($data->paleographicalInfo)) {
                     throw new BadRequestHttpException('Incorrect paleographical information data.');

@@ -123,6 +123,45 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this->bibliographies;
     }
 
+    public function getTextSources(): array
+    {
+        return array_filter(
+            $this->bibliographies,
+            function ($bibliography) {
+                return (
+                    !empty($bibliography->getReferenceType())
+                    && $bibliography->getReferenceType()->getName() == ReferenceType::TEXT_SOURCE
+                );
+            }
+        );
+    }
+
+    public function getPrimarySources(): array
+    {
+        return array_filter(
+            $this->bibliographies,
+            function ($bibliography) {
+                return (
+                    !empty($bibliography->getReferenceType())
+                    && $bibliography->getReferenceType()->getName() == ReferenceType::PRIMARY_SOURCE
+                );
+            }
+        );
+    }
+
+    public function getSecondarySources(): array
+    {
+        return array_filter(
+            $this->bibliographies,
+            function ($bibliography) {
+                return (
+                    !empty($bibliography->getReferenceType())
+                    && $bibliography->getReferenceType()->getName() == ReferenceType::SECONDARY_SOURCE
+                );
+            }
+        );
+    }
+
     public function setInverseBibliographies(array $inverseBibliographies): Entity
     {
         $this->inverseBibliographies = $inverseBibliographies;

@@ -41,6 +41,24 @@ class BookService extends DocumentService
     }
 
     /**
+     * Get all ids of books that aredependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getDepIdsByReferenceIds(array $referenceIds): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book.identity as book_id
+            from data.book
+            inner join data.reference on book.identity = reference.idsource
+            where reference.idreference in (?)',
+            [$referenceIds],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */

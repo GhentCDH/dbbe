@@ -18,7 +18,7 @@ class BibliographyService extends DatabaseService
                 reference.page_end,
                 case when reference.page_start is null then reference.temp_page_removeme else null end as raw_pages,
                 reference.url as rel_url,
-                reference_type.type as ref_type,
+                reference.idreference_type as reference_type_id,
 	            coalesce(
                     book_merge.type::text,
                     article_merge.type::text,
@@ -26,7 +26,6 @@ class BibliographyService extends DatabaseService
                     online_source_merge.type::text
                 ) as bib_type
             from data.reference
-            left join data.reference_type on reference.idreference_type = reference_type.idreference_type
             left join (
                 select
                     article.identity as biblio_id,
@@ -62,19 +61,21 @@ class BibliographyService extends DatabaseService
         int $sourceId,
         string $startPage = null,
         string $endPage = null,
-        string $url = null
+        string $url = null,
+        int $referenceTypeId = null
     ): int {
         $this->beginTransaction();
         try {
             $this->conn->executeUpdate(
-                'INSERT INTO data.reference (idtarget, idsource, page_start, page_end, url)
-                values (?, ?, ?, ?, ?)',
+                'INSERT INTO data.reference (idtarget, idsource, page_start, page_end, url, idreference_type)
+                values (?, ?, ?, ?, ?, ?)',
                 [
                     $targetId,
                     $sourceId,
                     $startPage,
                     $endPage,
                     $url,
+                    $referenceTypeId,
                 ]
             );
             $id = $this->conn->executeQuery(
@@ -98,11 +99,12 @@ class BibliographyService extends DatabaseService
         string $startPage = null,
         string $endPage = null,
         string $rawPages = null,
-        string $url = null
+        string $url = null,
+        int $referenceTypeId = null
     ): int {
         return $this->conn->executeUpdate(
             'UPDATE data.reference
-            set idsource = ?, page_start = ?, page_end = ?, temp_page_removeme = ?, url = ?
+            set idsource = ?, page_start = ?, page_end = ?, temp_page_removeme = ?, url = ?, idreference_type = ?
             where idreference = ?',
             [
                 $sourceId,
@@ -110,6 +112,7 @@ class BibliographyService extends DatabaseService
                 $endPage,
                 $rawPages,
                 $url,
+                $referenceTypeId,
                 $referenceId,
             ]
         );

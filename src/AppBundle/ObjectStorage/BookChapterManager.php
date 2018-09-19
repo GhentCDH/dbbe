@@ -121,6 +121,16 @@ class BookChapterManager extends DocumentManager
     }
 
     /**
+     * Get all book chapters that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getReferenceDependencies(array $referenceIds): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
+    }
+
+    /**
      * Add a new book chapter
      * @param  stdClass $data
      * @return BookChapter

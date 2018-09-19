@@ -44,11 +44,17 @@ class OnlineSourceBibliography extends Bibliography
 
     public function getShortJson(): array
     {
-        return [
+        $result = [
             'id' => $this->id,
             'type' => $this->type,
             'onlineSource' => $this->onlineSource->getShortJson(),
             'relUrl' => $this->relUrl,
         ];
+
+        if (isset($this->referenceType)) {
+            $result['referenceType'] = $this->referenceType->getShortJson();
+        }
+
+        return $result;
     }
 }

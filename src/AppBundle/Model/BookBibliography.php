@@ -36,7 +36,7 @@ class BookBibliography extends Bibliography
 
     public function getShortJson(): array
     {
-        return [
+        $result = [
             'id' => $this->id,
             'type' => $this->type,
             'book' => $this->book->getShortJson(),
@@ -44,5 +44,11 @@ class BookBibliography extends Bibliography
             'endPage' => $this->endPage,
             'rawPages' => $this->rawPages,
         ];
+
+        if (isset($this->referenceType)) {
+            $result['referenceType'] = $this->referenceType->getShortJson();
+        }
+
+        return $result;
     }
 }

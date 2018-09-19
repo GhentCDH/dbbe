@@ -44,6 +44,24 @@ class OnlineSourceService extends EntityService
     }
 
     /**
+     * Get all ids of online sources that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getDepIdsByReferenceIds(array $referenceIds): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                online_source.identity as online_source_id
+            from data.online_source
+            inner join data.reference on online_source.identity = reference.idsource
+            where reference.idreference in (?)',
+            [$referenceIds],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    /**
      * @param  string $url
      * @param  string $name
      * @param  string $lastAccessed

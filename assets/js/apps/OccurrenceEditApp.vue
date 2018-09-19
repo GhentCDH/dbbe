@@ -104,6 +104,7 @@
                 ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
+                :referenceType="true"
                 :values="bibliographies"
                 @validated="validated"
             />
@@ -327,6 +328,7 @@ export default {
             articles: this.data.articles,
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
+            referenceTypes: this.data.referenceTypes,
         }
         this.statuses = {
             textStatuses: this.data.textStatuses,

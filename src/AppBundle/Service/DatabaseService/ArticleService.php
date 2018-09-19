@@ -58,6 +58,24 @@ class ArticleService extends DocumentService
     }
 
     /**
+     * Get all ids of articles that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
+     */
+    public function getDepIdsByReferenceIds(array $referenceIds): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                article.identity as article_id
+            from data.article
+            inner join data.reference on article.identity = reference.idsource
+            where reference.idreference in (?)',
+            [$referenceIds],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */
