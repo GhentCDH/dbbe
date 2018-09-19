@@ -115,6 +115,10 @@ class Occurrence extends Document
      */
     protected $dividedStatus;
     /**
+     * @var Status
+     */
+    protected $sourceStatus;
+    /**
      * @var string
      */
     protected $paleographicalInfo;
@@ -502,6 +506,18 @@ class Occurrence extends Document
         return $this->dividedStatus;
     }
 
+    public function setSourceStatus(Status $sourceStatus = null): Occurrence
+    {
+        $this->sourceStatus = $sourceStatus;
+
+        return $this;
+    }
+
+    public function getSourceStatus(): ?Status
+    {
+        return $this->sourceStatus;
+    }
+
     public function setPaleographicalInfo(string $paleographicalInfo = null): Occurrence
     {
         $this->paleographicalInfo = $paleographicalInfo;
@@ -654,12 +670,10 @@ class Occurrence extends Document
         if (isset($this->meters)) {
             $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
         }
-        if (!empty($this->subjects)) {
-            $result['subjects'] = [
-                'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
-                'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
-            ];
-        }
+        $result['subjects'] = [
+            'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
+            'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
+        ];
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
@@ -683,6 +697,9 @@ class Occurrence extends Document
         }
         if (isset($this->dividedStatus)) {
             $result['dividedStatus'] = $this->dividedStatus->getShortJson();
+        }
+        if (isset($this->sourceStatus)) {
+            $result['sourceStatus'] = $this->sourceStatus->getShortJson();
         }
 
         return $result;

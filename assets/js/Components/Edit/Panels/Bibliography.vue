@@ -13,6 +13,8 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
+                        <th>Remark</th>
+                        <th>Note</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -26,6 +28,8 @@
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
                         <td v-if="referenceType">{{ item.referenceType.name }}</td>
+                        <td>{{ item.sourceRemark }}</td>
+                        <td>{{ item.note }}</td>
                         <td>
                             <a
                                 href="#"
@@ -62,6 +66,8 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
+                        <th>Remark</th>
+                        <th>Note</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -75,6 +81,8 @@
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
                         <td v-if="referenceType">{{ item.referenceType.name }}</td>
+                        <td>{{ item.sourceRemark }}</td>
+                        <td>{{ item.note }}</td>
                         <td>
                             <a
                                 href="#"
@@ -111,6 +119,8 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
+                        <th>Remark</th>
+                        <th>Note</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -124,6 +134,8 @@
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
                         <td v-if="referenceType">{{ item.referenceType.name }}</td>
+                        <td>{{ item.sourceRemark }}</td>
+                        <td>{{ item.note }}</td>
                         <td>
                             <a
                                 href="#"
@@ -159,6 +171,8 @@
                         <th>Source link</th>
                         <th>Relative link</th>
                         <th v-if="referenceType">Type</th>
+                        <th>Remark</th>
+                        <th>Note</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -171,6 +185,8 @@
                         <td>{{ item.onlineSource.url }}</td>
                         <td>{{ item.relUrl }}</td>
                         <td v-if="referenceType">{{ item.referenceType.name }}</td>
+                        <td>{{ item.sourceRemark }}</td>
+                        <td>{{ item.note }}</td>
                         <td>
                             <a
                                 href="#"
@@ -315,31 +331,6 @@ export default {
                             validator: VueFormGenerator.validators.required
                         }
                     ),
-                    startPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Start page',
-                        labelClasses: 'control-label',
-                        model: 'startPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    endPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'End page',
-                        labelClasses: 'control-label',
-                        model: 'endPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    rawPages: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Raw Pages',
-                        labelClasses: 'control-label',
-                        model: 'rawPages',
-                        disabled: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
                 }
             },
             editArticleBibSchema: {
@@ -352,31 +343,6 @@ export default {
                             validator: VueFormGenerator.validators.required
                         }
                     ),
-                    startPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Start page',
-                        labelClasses: 'control-label',
-                        model: 'startPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    endPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'End page',
-                        labelClasses: 'control-label',
-                        model: 'endPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    rawPages: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Raw Pages',
-                        labelClasses: 'control-label',
-                        model: 'rawPages',
-                        disabled: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
                 }
             },
             editBookChapterBibSchema: {
@@ -389,31 +355,6 @@ export default {
                             validator: VueFormGenerator.validators.required
                         }
                     ),
-                    startPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Start page',
-                        labelClasses: 'control-label',
-                        model: 'startPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    endPage: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'End page',
-                        labelClasses: 'control-label',
-                        model: 'endPage',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    rawPages: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Raw Pages',
-                        labelClasses: 'control-label',
-                        model: 'rawPages',
-                        disabled: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
                 }
             },
             editOnlineSourceBibSchema: {
@@ -449,6 +390,40 @@ export default {
             bibIndex: null,
             editBib: {},
         }
+        let startPageField = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Start page',
+            labelClasses: 'control-label',
+            model: 'startPage',
+            validator: VueFormGenerator.validators.string,
+        }
+        data.editBookBibSchema.fields['startPage'] = startPageField
+        data.editArticleBibSchema.fields['startPage'] = startPageField
+        data.editBookChapterBibSchema.fields['startPage'] = startPageField
+        let endPageField = {
+            type: 'input',
+            inputType: 'text',
+            label: 'End page',
+            labelClasses: 'control-label',
+            model: 'endPage',
+            validator: VueFormGenerator.validators.string,
+        }
+        data.editBookBibSchema.fields['endPage'] = endPageField
+        data.editArticleBibSchema.fields['endPage'] = endPageField
+        data.editBookChapterBibSchema.fields['endPage'] = endPageField
+        let rawPagesField = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Raw Pages',
+            labelClasses: 'control-label',
+            model: 'rawPages',
+            disabled: true,
+            validator: VueFormGenerator.validators.string,
+        }
+        data.editBookBibSchema.fields['rawPages'] = rawPagesField
+        data.editArticleBibSchema.fields['rawPages'] = rawPagesField
+        data.editBookChapterBibSchema.fields['rawPages'] = rawPagesField
         if (this.referenceType) {
             let referenceTypeField = this.createMultiSelect('Type', {
                 model: 'referenceType',
@@ -461,6 +436,30 @@ export default {
             data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
             data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
         }
+        let sourceRemarkField = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Source Remark',
+            labelClasses: 'control-label',
+            model: 'sourceRemark',
+            validator: VueFormGenerator.validators.string,
+        }
+        data.editBookBibSchema.fields['sourceRemark'] = sourceRemarkField
+        data.editArticleBibSchema.fields['sourceRemark'] = sourceRemarkField
+        data.editBookChapterBibSchema.fields['sourceRemark'] = sourceRemarkField
+        data.editOnlineSourceBibSchema.fields['sourceRemark'] = sourceRemarkField
+        let noteField = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Note',
+            labelClasses: 'control-label',
+            model: 'note',
+            validator: VueFormGenerator.validators.string,
+        }
+        data.editBookBibSchema.fields['note'] = noteField
+        data.editArticleBibSchema.fields['note'] = noteField
+        data.editBookChapterBibSchema.fields['note'] = noteField
+        data.editOnlineSourceBibSchema.fields['note'] = noteField
         return data
     },
     computed: {
@@ -567,7 +566,9 @@ export default {
                     bib.book.name
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
-                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
+                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
                 )
             }
             for (let bib of bibliography['articles']) {
@@ -575,7 +576,9 @@ export default {
                     bib.article.name
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
-                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
+                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
                 )
             }
             for (let bib of bibliography['bookChapters']) {
@@ -583,7 +586,9 @@ export default {
                     bib.bookChapter.name
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
-                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
+                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
                 )
             }
             for (let bib of bibliography['onlineSources']) {
@@ -591,7 +596,9 @@ export default {
                     bib.onlineSource.url
                         + (bib.relUrl == null ? '' : bib.relUrl)
                         + '.'
-                        + (bib.referenceType ? ' (Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
+                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
                 )
             }
             return result

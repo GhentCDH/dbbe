@@ -26,7 +26,7 @@ class ImageManager extends ObjectManager
 
                 $rawImage = $rawImages[0];
 
-                $image = new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']);
+                $image = new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']);
 
                 return $image;
             }

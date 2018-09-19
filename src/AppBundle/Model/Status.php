@@ -21,6 +21,10 @@ class Status extends IdNameObject
     /**
      * @var string
      */
+    const OCCURRENCE_SOURCE = 'occurrence_source';
+    /**
+     * @var string
+     */
     const OCCURRENCE_TEXT = 'occurrence_text';
     /**
      * @var string

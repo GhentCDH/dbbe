@@ -31,7 +31,9 @@ class BookChapterBibliography extends Bibliography
         return
             $this->bookChapter->getDescription()
             . $this->formatStartEndPages(': ')
-            . '.';
+            . '.'
+            . (!empty($this->sourceRemark) ? ' (' . $this->sourceRemark . ')' : '')
+            . (!empty($this->note) ? ' (' . $this->note . ')' : '');
     }
 
     public function getShortJson(): array
@@ -46,6 +48,12 @@ class BookChapterBibliography extends Bibliography
 
         if (isset($this->referenceType)) {
             $result['referenceType'] = $this->referenceType->getShortJson();
+        }
+        if (isset($this->sourceRemark)) {
+            $result['sourceRemark'] = $this->sourceRemark;
+        }
+        if (isset($this->note)) {
+            $result['note'] = $this->note;
         }
 
         return $result;

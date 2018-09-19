@@ -165,7 +165,7 @@ class OccurrenceManager extends DocumentManager
 
                 $this->setComments($occurrences);
 
-                // text and record status
+                // statuses
                 $rawStatuses = $this->dbs->getStatuses($ids);
                 $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
                 foreach ($rawStatuses as $rawStatus) {
@@ -181,6 +181,10 @@ class OccurrenceManager extends DocumentManager
                         case Status::OCCURRENCE_DIVIDED:
                             $occurrences[$rawStatus['occurrence_id']]
                                 ->setDividedStatus($statuses[$rawStatus['status_id']]);
+                            break;
+                        case Status::OCCURRENCE_SOURCE:
+                            $occurrences[$rawStatus['occurrence_id']]
+                                ->setSourceStatus($statuses[$rawStatus['status_id']]);
                             break;
                     }
                 }
@@ -262,16 +266,16 @@ class OccurrenceManager extends DocumentManager
                 foreach ($rawImages as $rawImage) {
                     if (strpos($rawImage['url'], 'http') === 0) {
                         $occurrence
-                            ->addImageLink(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                            ->addImageLink(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
                     } elseif (strpos($rawImage['url'], 'png') === false
                         && strpos($rawImage['url'], 'jpg') === false
                         && strpos($rawImage['url'], 'JPG') === false
                     ) {
                         $occurrence
-                            ->addImageText(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                            ->addImageText(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
                     } else {
                         $occurrence
-                            ->addImage(new Image($rawImage['image_id'], $rawImage['url'], !$rawImage['is_private']));
+                            ->addImage(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
                     }
                 }
 
@@ -601,8 +605,13 @@ class OccurrenceManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateStatus($old, $data->dividedStatus, Status::OCCURRENCE_DIVIDED);
             }
-
-            // TODO: other information
+            if (property_exists($data, 'sourceStatus')) {
+                if (!(is_object($data->sourceStatus) || empty($data->sourceStatus))) {
+                    throw new BadRequestHttpException('Incorrect source status data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateStatus($old, $data->sourceStatus, Status::OCCURRENCE_SOURCE);
+            }
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

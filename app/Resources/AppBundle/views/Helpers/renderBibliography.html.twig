@@ -1,9 +1,21 @@
 {% if item.getType() == 'book' %}
-    <a href="{{ path('book_get', {'id': item.getBook().getId()}) }}">{{ item.getDescription() }}</a>
+    <a href="{{ path('book_get', {'id': item.getBook().getId()}) }}">
+        {{ item.getDescription() }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}({{ sourceStatus.getName() }}){% endif %}
+    </a>
 {% elseif item.getType() == 'article' %}
-    <a href="{{ path('article_get', {'id': item.getArticle().getId()}) }}">{{ item.getDescription() }}</a>
+    <a href="{{ path('article_get', {'id': item.getArticle().getId()}) }}">
+        {{ item.getDescription() }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}({{ sourceStatus.getName() }}){% endif %}
+    </a>
 {% elseif item.getType() == 'bookChapter' %}
-    <a href="{{ path('book_chapter_get', {'id': item.getBookChapter().getId()}) }}">{{ item.getDescription() }}</a>
+    <a href="{{ path('book_chapter_get', {'id': item.getBookChapter().getId()}) }}">
+        {{ item.getDescription() }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}({{ sourceStatus.getName() }}){% endif %}
+    </a>
 {% elseif item.getType() == 'onlineSource' %}
-    <a href="{{ path('online_source_get', {'id': item.getOnlineSource().getId()}) }}">{{ item.getDescription() }}</a>
+    <a href="{{ path('online_source_get', {'id': item.getOnlineSource().getId()}) }}">
+        {{ item.getDescription() }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}({{ sourceStatus.getName() }}){% endif %}
+    </a>
 {% endif %}

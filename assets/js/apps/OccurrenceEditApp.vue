@@ -285,6 +285,7 @@ export default {
                     textStatus: null,
                     recordStatus: null,
                     dividedStatus: null,
+                    sourceStatus: null,
                     public: null,
                 },
             },
@@ -334,6 +335,7 @@ export default {
             textStatuses: this.data.textStatuses,
             recordStatuses: this.data.recordStatuses,
             dividedStatuses: this.data.dividedStatuses,
+            sourceStatuses: this.data.sourceStatuses,
         }
     },
     mounted () {
@@ -447,6 +449,7 @@ export default {
                     textStatus: this.occurrence.textStatus,
                     recordStatus: this.occurrence.recordStatus,
                     dividedStatus: this.occurrence.dividedStatus,
+                    sourceStatus: this.occurrence.sourceStatus,
                     public: this.occurrence.public,
                 }
             }

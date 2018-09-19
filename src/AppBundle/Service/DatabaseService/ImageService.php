@@ -9,6 +9,7 @@ class ImageService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 image.idimage as image_id,
+                image.filename,
                 image.url,
                 image.is_private
             from data.image

@@ -68,6 +68,14 @@ class BibliographyManager extends ObjectManager
                         $bibliographies[$rawBibliography['reference_id']]
                             ->setReferenceType($referenceTypes[$rawBibliography['reference_type_id']]);
                     }
+                    if (!empty($rawBibliography['source_remark'])) {
+                        $bibliographies[$rawBibliography['reference_id']]
+                            ->setSourceRemark($rawBibliography['source_remark']);
+                    }
+                    if (!empty($rawBibliography['note'])) {
+                        $bibliographies[$rawBibliography['reference_id']]
+                            ->setNote($rawBibliography['note']);
+                    }
                 }
 
                 return $bibliographies;
@@ -81,9 +89,20 @@ class BibliographyManager extends ObjectManager
         string $startPage = null,
         string $endPage = null,
         string $relUrl = null,
-        int $referenceTypeId = null
+        int $referenceTypeId = null,
+        string $sourceRemark = null,
+        string $note = null
     ): Bibliography {
-        $id = $this->dbs->insert($targetId, $sourceId, $startPage, $endPage, $relUrl, $referenceTypeId);
+        $id = $this->dbs->insert(
+            $targetId,
+            $sourceId,
+            $startPage,
+            $endPage,
+            $relUrl,
+            $referenceTypeId,
+            $sourceRemark,
+            $note
+        );
         return $this->get([$id])[$id];
     }
 
@@ -94,10 +113,22 @@ class BibliographyManager extends ObjectManager
         string $endPage = null,
         string $rawPages = null,
         string $relUrl = null,
-        int $referenceTypeId = null
+        int $referenceTypeId = null,
+        string $sourceRemark = null,
+        string $note = null
     ): Bibliography {
         $this->deleteCache(Bibliography::CACHENAME, $id);
-        $this->dbs->update($id, $sourceId, $startPage, $endPage, $rawPages, $relUrl, $referenceTypeId);
+        $this->dbs->update(
+            $id,
+            $sourceId,
+            $startPage,
+            $endPage,
+            $rawPages,
+            $relUrl,
+            $referenceTypeId,
+            $sourceRemark,
+            $note
+        );
         return $this->get([$id])[$id];
     }
 

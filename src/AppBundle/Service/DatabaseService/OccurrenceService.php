@@ -235,7 +235,12 @@ class OccurrenceService extends DocumentService
             from data.document_status
             inner join data.status on document_status.idstatus = status.idstatus
             where document_status.iddocument in (?)
-            and status.type in (\'occurrence_text\', \'occurrence_record\', \'occurrence_divided\')',
+            and status.type in (
+                \'occurrence_text\',
+                \'occurrence_record\',
+                \'occurrence_divided\',
+                \'occurrence_source\'
+            )',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -371,6 +376,7 @@ class OccurrenceService extends DocumentService
             'SELECT
                 original_poem.identity as occurrence_id,
                 image.idimage as image_id,
+                image.filename,
                 image.url,
                 image.is_private
             from data.original_poem

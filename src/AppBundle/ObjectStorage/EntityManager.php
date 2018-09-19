@@ -303,6 +303,8 @@ class EntityManager extends ObjectManager
                             || !is_numeric($bib->referenceType->id)
                         )
                     )
+                    || (property_exists($bib, 'sourceRemark') && !is_string($bib->sourceRemark))
+                    || (property_exists($bib, 'note') && !is_string($bib->note))
                 ) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
@@ -339,7 +341,9 @@ class EntityManager extends ObjectManager
                                 self::certainString($bib, 'startPage'),
                                 self::certainString($bib, 'endPage'),
                                 null,
-                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
+                                property_exists($bib, 'note') ? $bib->note : null
                             );
                             $newBibIds[] = $newBib->getId();
                         } else {
@@ -350,7 +354,9 @@ class EntityManager extends ObjectManager
                                 null,
                                 null,
                                 self::certainString($bib, 'relUrl'),
-                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
+                                property_exists($bib, 'note') ? $bib->note : null
                             );
                             $newBibIds[] = $newBib->getId();
                         }
@@ -365,7 +371,9 @@ class EntityManager extends ObjectManager
                                 self::certainString($bib, 'endPage'),
                                 self::certainString($bib, 'rawPages'),
                                 null,
-                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
+                                property_exists($bib, 'note') ? $bib->note : null
                             );
                         } else {
                             // onlineSource
@@ -376,7 +384,9 @@ class EntityManager extends ObjectManager
                                 null,
                                 null,
                                 self::certainString($bib, 'relUrl'),
-                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
+                                property_exists($bib, 'note') ? $bib->note : null
                             );
                         }
                     } else {

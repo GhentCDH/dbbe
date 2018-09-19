@@ -245,6 +245,7 @@ class OccurrenceController extends BaseController
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                     'dividedStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceDividedStatuses()),
+                    'sourceStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceSourceStatuses()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))

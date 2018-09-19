@@ -108,6 +108,13 @@ class StatusManager extends ObjectManager
         });
     }
 
+    public function getAllOccurrenceSourceStatuses(): array
+    {
+        return array_filter($this->getAllStatuses(), function ($status) {
+            return $status->getType() == Status::OCCURRENCE_SOURCE;
+        });
+    }
+
     public function addStatus(stdClass $data): Status
     {
         $this->dbs->beginTransaction();
@@ -121,6 +128,7 @@ class StatusManager extends ObjectManager
                     Status::OCCURRENCE_DIVIDED,
                     Status::OCCURRENCE_RECORD,
                     Status::OCCURRENCE_TEXT,
+                    Status::OCCURRENCE_SOURCE,
                     Status::TYPE_TEXT,
                 ])
             ) {

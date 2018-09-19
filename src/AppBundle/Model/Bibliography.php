@@ -27,6 +27,14 @@ abstract class Bibliography
      * @var ReferenceType
      */
     protected $referenceType;
+    /**
+     * @var string
+     */
+    protected $sourceRemark;
+    /**
+     * @var string
+     */
+    protected $note;
 
     protected function __construct(int $id, string $type)
     {
@@ -53,6 +61,28 @@ abstract class Bibliography
     public function getReferenceType(): ?ReferenceType
     {
         return $this->referenceType;
+    }
+
+    public function setSourceremark(string $sourceRemark = null): Bibliography
+    {
+        $this->sourceRemark = $sourceRemark;
+        return $this;
+    }
+
+    public function getSourceRemark(): ?string
+    {
+        return $this->sourceRemark;
+    }
+
+    public function setNote(string $note = null): Bibliography
+    {
+        $this->note = $note;
+        return $this;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
     }
 
     abstract public function getDescription(): string;

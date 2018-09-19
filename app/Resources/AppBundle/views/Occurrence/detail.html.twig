@@ -84,12 +84,17 @@
                     <tr>
                         <td>Text source</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getTextSources()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getTextSources()} %}
                                 {% block renderItem %}
                                     {% if item.getType() == 'onlineSource' and item.getOnlineSource().getName() == 'DBBE' %}
-                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with text source {{ item.getOnlineSource().getName() }}">{{ item.getOnlineSource().getName() }}</a>
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with text source {{ item.getOnlineSource().getName() }}">
+                                        {{ item.getOnlineSource().getName() }}
+                                        {% if occurrence.getSourceStatus() is not empty %}({{ occurrence.getSourceStatus().getName() }}){% endif %}
+                                        {% if item.getSourceRemark() is not empty %}({{ item.getSourceRemark() }}){% endif %}
+                                        {% if item.getNote() is not empty %}({{ item.getNote() }}){% endif %}
+                                        </a>
                                     {% else %}
-                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item, 'sourceStatus': occurrence.getSourceStatus() } only %}
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
