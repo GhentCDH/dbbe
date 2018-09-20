@@ -18,7 +18,7 @@ use AppBundle\Model\Meter;
 class MeterManager extends ObjectManager
 {
     /**
-     * Get single meters with all information
+     * Get meters with all information
      * @param  array $ids
      * @return array
      */
@@ -38,7 +38,7 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Get single meters with all information from existing data
+     * Get meters with all information from existing data
      * @param  array $data
      * @return array
      */

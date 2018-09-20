@@ -903,4 +903,43 @@ class OccurrenceService extends DocumentService
             ]
         );
     }
+
+    /**
+     * @param  int $id
+     * @param  int $imageId
+     * @return int
+     */
+    public function addImage(int $id, int $imageId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.document_image (iddocument, idimage)
+            values (?, ?)',
+            [
+                $id,
+                $imageId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $imageIds
+     * @return int
+     */
+    public function delImages(int $id, array $imageIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.document_image
+            where iddocument = ?
+            and idimage in (?)',
+            [
+                $id,
+                $imageIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
 }

@@ -99,12 +99,21 @@
                 @validated="validated"
             />
 
+            <imagePanel
+                id="images"
+                ref="images"
+                header="Images"
+                :model="model.images"
+                :urls="urls"
+                @validated="validated"
+            />
+
             <bibliographyPanel
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
-                :referenceType="true"
+                :reference-type="true"
                 :values="bibliographies"
                 @validated="validated"
             />
@@ -176,6 +185,7 @@
                     <li><a href="#genres">Genres</a></li>
                     <li><a href="#subjects">Subjects</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
+                    <li><a href="#images">Images</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -210,7 +220,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Genre|Subject|Identification|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|Verses|Types|Person|Date|Meter|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -271,6 +281,10 @@ export default {
                     keywords: null,
                 },
                 identification: {},
+                images: {
+                    images: null,
+                    imageLinks: null,
+                },
                 bibliography: {
                     books: [],
                     articles: [],
@@ -298,6 +312,7 @@ export default {
                 'meters',
                 'genres',
                 'subjects',
+                'images',
                 'bibliography',
                 'general',
             ],
@@ -413,6 +428,12 @@ export default {
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
                     this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
+                }
+
+                // Images
+                this.model.images = {
+                    images: this.occurrence.images.images,
+                    imageLinks: this.occurrence.images.imageLinks,
                 }
 
                 // Bibliography

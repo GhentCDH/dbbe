@@ -1,0 +1,29 @@
+.image-delete,
+.image-public {
+  border: 0;
+  color: $white;
+  cursor: pointer;
+  position: absolute;
+
+  .fa {
+    margin: 0;
+  }
+}
+
+.image-delete {
+  right: 20px;
+  top: 10px;
+
+  &:hover {
+    color: $state-danger-text;
+  }
+}
+
+.image-public {
+  right: 40px;
+  top: 10px;
+
+  &:hover {
+    color: $state-warning-text;
+  }
+}

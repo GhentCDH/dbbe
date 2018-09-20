@@ -6,7 +6,6 @@ use stdClass;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Model\Image;
 use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
 
@@ -263,19 +262,14 @@ class OccurrenceManager extends DocumentManager
 
                 // images
                 $rawImages = $this->dbs->getImages([$id]);
+                $images = $this->container->get('image_manager')->getWithData($rawImages);
                 foreach ($rawImages as $rawImage) {
-                    if (strpos($rawImage['url'], 'http') === 0) {
+                    if (!empty($rawImage['filename'])) {
                         $occurrence
-                            ->addImageLink(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
-                    } elseif (strpos($rawImage['url'], 'png') === false
-                        && strpos($rawImage['url'], 'jpg') === false
-                        && strpos($rawImage['url'], 'JPG') === false
-                    ) {
-                        $occurrence
-                            ->addImageText(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
+                            ->addImage($images[$rawImage['image_id']]);
                     } else {
                         $occurrence
-                            ->addImage(new Image($rawImage['image_id'], $rawImage['filename'], $rawImage['url'], !$rawImage['is_private']));
+                            ->addImageLink($images[$rawImage['image_id']]);
                     }
                 }
 
@@ -612,6 +606,13 @@ class OccurrenceManager extends DocumentManager
                 $cacheReload['short'] = true;
                 $this->updateStatus($old, $data->sourceStatus, Status::OCCURRENCE_SOURCE);
             }
+            if (property_exists($data, 'images')) {
+                if (!(is_array($data->images))) {
+                    throw new BadRequestHttpException('Incorrect images data.');
+                }
+                $cacheReload['short'] = true;
+                $this->updateImages($old, $data->images);
+            }
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {
@@ -842,6 +843,42 @@ class OccurrenceManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addSubject($occurrence->getId(), $addId);
+        }
+    }
+
+    private function updateImages(Occurrence $occurrence, array $images): void
+    {
+        $newIds = [];
+        foreach ($images as $image) {
+            if (!is_object($image)
+                || !property_exists($image, 'id')
+                || !is_numeric($image->id)
+                || (property_exists($image, 'public') && !is_bool($image->public))
+            ) {
+                throw new BadRequestHttpException('Incorrect image data.');
+            } else {
+                $newIds[] = $image->id;
+            }
+        }
+
+        list($delIds, $addIds) = self::calcDiff($images, $occurrence->getImages());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delImages($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addImage($occurrence->getId(), $addId);
+        }
+
+        // Update public state if necessary
+        $oldImages = $this->container->get('image_manager')->get($newIds);
+        foreach ($images as $image) {
+            if (property_exists($image, 'public') && $image->public != $oldImages[$image->id]->getPublic()) {
+                $this->container->get('image_manager')->update(
+                    $image->id,
+                    json_decode(json_encode(['public' => $image->public]))
+                );
+            }
         }
     }
 

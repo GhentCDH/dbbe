@@ -4,31 +4,64 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class ImageController extends Controller
+class ImageController extends BaseController
 {
     /**
-     * @Route("/occ_images/{id}", name="image_get")
+     * @var string
+     */
+    const MANAGER = 'image_manager';
+
+    /**
+     * @Route("/images/{id}", name="image_get")
      * @Method("GET")
      * @param  int    $id
      * @param Request $request
      */
     public function getImage(int $id, Request $request)
     {
-        // Let the 404 page handle the not found exception
-        $image = $this->get('image_manager')->getImageById($id);
+        $images = $this->get('image_manager')->get([$id]);
+        if (count($images) != 1) {
+            throw new NotFoundHttpException('Image with id "' . $id . '" not found');
+        }
+        $image = $images[$id];
+
         if (!$image->getPublic()) {
             $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
         }
         try {
-            return new BinaryFileResponse($this->get('kernel')->getRootDir() . '/../images/' . $image->getUrl());
+            return new BinaryFileResponse($this->get('kernel')->getRootDir() . '/../images/' . $image->getFilename());
         } catch (FileNotFoundException $e) {
-            throw new NotFoundHttpException('Image with url "' . $image->getUrl()  . '" not found');
+            throw new NotFoundHttpException('Image with filename "' . $image->getFilename() . '" not found');
         }
+    }
+
+    /**
+     * @Route("/images", name="image_post")
+     * @Method("POST")
+     * @param Request $request
+     */
+    public function post(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        $file = $request->files->get('file');
+        try {
+            $image = $this->get('image_manager')->getImageByFile($file);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return new JsonResponse($image->getJson());
     }
 }

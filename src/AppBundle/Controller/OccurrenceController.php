@@ -225,6 +225,8 @@ class OccurrenceController extends BaseController
                     'verse_variant_get' => $this->generateUrl('verse_variant_get', ['groupId' => 'verse_variant_id']),
                     'verse_search' => $this->generateUrl('verse_search'),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'image_get' => $this->generateUrl('image_get', ['id' => 'image_id']),
+                    'image_post' => $this->generateUrl('image_post'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([

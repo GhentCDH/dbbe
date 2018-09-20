@@ -140,11 +140,6 @@ class Occurrence extends Document
      * @var array
      */
     protected $imageLinks = [];
-    /**
-     * Free text in image field
-     * @var array
-     */
-    protected $imageTexts = [];
 
     /**
      * @param  string|null $foliumStart
@@ -578,18 +573,6 @@ class Occurrence extends Document
         return $this->imageLinks;
     }
 
-    public function addImageText(Image $image): Occurrence
-    {
-        $this->imageTexts[$image->getId()] = $image;
-
-        return $this;
-    }
-
-    public function getImageTexts(): array
-    {
-        return $this->imageTexts;
-    }
-
     public function getDBBE(): bool
     {
         $textSources = $this->getTextSources();
@@ -673,6 +656,10 @@ class Occurrence extends Document
         $result['subjects'] = [
             'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
             'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
+        ];
+        $result['images'] = [
+            'images' => ArrayToJson::arrayToJson($this->getImages()),
+            'imageLinks' => ArrayToJson::arrayToJson($this->getImageLinks()),
         ];
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();

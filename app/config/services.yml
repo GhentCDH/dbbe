@@ -160,7 +160,7 @@ services:
 
     image_manager:
         class: AppBundle\ObjectStorage\ImageManager
-        arguments: ['@image_service', '@cache.app', '@service_container', null, null]
+        arguments: ['@image_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
     verse_manager:

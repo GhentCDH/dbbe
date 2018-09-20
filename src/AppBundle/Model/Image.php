@@ -4,12 +4,33 @@ namespace AppBundle\Model;
 
 use TypeError;
 
-class Image
+/**
+ */
+class Image implements IdJsonInterface
 {
-    private $id;
-    private $filename;
-    private $url;
-    private $public;
+    /**
+     * @var string
+     */
+    const CACHENAME = 'image';
+
+    use CacheLinkTrait;
+
+    /**
+     * @var int
+     */
+    protected $id;
+    /**
+     * @var string
+     */
+    protected $filename;
+    /**
+     * @var string
+     */
+    protected $url;
+    /**
+     * @var bool
+     */
+    protected $public;
 
     public function __construct(int $id, string $filename = null, string $url = null, bool $public)
     {
@@ -40,5 +61,37 @@ class Image
     public function getPublic(): bool
     {
         return $this->public;
+    }
+
+    public function getJson(): array
+    {
+        $result = [
+            'id' => $this->id,
+            'public' => $this->public,
+        ];
+
+        if (!empty($this->filename)) {
+            $result['filename'] = $this->filename;
+        }
+        if (!empty($this->url)) {
+            $result['url'] = $this->url;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $data
+     * @return Book
+     */
+    public static function unlinkCache(array $data)
+    {
+        $image = new Image($data['id'], $data['filename'], $data['url'], $data['public']);
+
+        foreach ($data as $key => $value) {
+            $image->set($key, $value);
+        }
+
+        return $image;
     }
 }
