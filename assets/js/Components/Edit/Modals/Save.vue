@@ -25,6 +25,7 @@
                     <template v-for="key in ['old', 'new']">
                         <td
                             v-if="Array.isArray(row[key])"
+                            class="word-break"
                             :key="key">
                             <ul v-if="row[key].length > 0">
                                 <li

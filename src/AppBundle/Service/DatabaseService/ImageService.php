@@ -23,7 +23,7 @@ class ImageService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getIdByFileName(string $filename): array
+    public function getImagesByFileName(string $filename): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -34,6 +34,20 @@ class ImageService extends DatabaseService
             from data.image
             where image.filename = ?',
             [$filename]
+        )->fetchAll();
+    }
+
+    public function getImagesByUrl(string $url): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                image.idimage as image_id,
+                image.filename,
+                image.url,
+                image.is_private
+            from data.image
+            where image.url = ?',
+            [$url]
         )->fetchAll();
     }
 
@@ -73,6 +87,19 @@ class ImageService extends DatabaseService
             where idimage = ?',
             [
                 $public ? 'FALSE' : 'TRUE',
+                $id,
+            ]
+        );
+    }
+
+    public function updateUrl(int $id, string $url)
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.image
+            set url = ?
+            where idimage = ?',
+            [
+                $url,
                 $id,
             ]
         );

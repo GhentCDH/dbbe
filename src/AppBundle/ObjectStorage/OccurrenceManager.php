@@ -610,8 +610,15 @@ class OccurrenceManager extends DocumentManager
                 if (!(is_array($data->images))) {
                     throw new BadRequestHttpException('Incorrect images data.');
                 }
-                $cacheReload['short'] = true;
+                $cacheReload['full'] = true;
                 $this->updateImages($old, $data->images);
+            }
+            if (property_exists($data, 'imageLinks')) {
+                if (!(is_array($data->imageLinks))) {
+                    throw new BadRequestHttpException('Incorrect image links data.');
+                }
+                $cacheReload['full'] = true;
+                $this->updateImageLinks($old, $data->imageLinks);
             }
 
             // Throw error if none of above matched
@@ -879,6 +886,70 @@ class OccurrenceManager extends DocumentManager
                     json_decode(json_encode(['public' => $image->public]))
                 );
             }
+        }
+    }
+
+    private function updateImageLinks(Occurrence $occurrence, array $imageLinks): void
+    {
+        $updateIds = [];
+        $updateLinks = [];
+        $newLinks = [];
+        foreach ($imageLinks as $link) {
+            if (!is_object($link)
+                || (property_exists($link, 'id') && !is_numeric($link->id))
+                || (property_exists($link, 'url') && !is_string($link->url))
+                || (property_exists($link, 'public') && !is_bool($link->public))
+                // If it is a new imageLink, both url and public are mandatory
+                || (
+                    !property_exists($link, 'id')
+                    && (
+                        !property_exists($link, 'url')
+                        || empty($link->url)
+                        || !property_exists($link, 'public')
+                    )
+                )
+            ) {
+                throw new BadRequestHttpException('Incorrect image link data.');
+            } elseif (property_exists($link, 'id')) {
+                $updateIds[] = $link->id;
+                $updateLinks[] = $link;
+            } else {
+                $newLinks[] = $link;
+            }
+        }
+
+        // Remove and add existing image links
+        list($delIds, $addIds) = self::calcDiff($updateLinks, $occurrence->getImageLinks());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delImages($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addImage($occurrence->getId(), $addId);
+        }
+
+        // Update url and public state if necessary
+        $oldImageLinks = $this->container->get('image_manager')->get($updateIds);
+        foreach ($updateLinks as $link) {
+            $data = [];
+            if (property_exists($link, 'public') && $link->public != $oldImageLinks[$link->id]->getPublic()) {
+                $data['public'] = $link->public;
+            }
+            if (property_exists($link, 'url') && $link->url != $oldImageLinks[$link->id]->getPublic()) {
+                $data['url'] = $link->url;
+            }
+            if (!empty($data)) {
+                $this->container->get('image_manager')->update(
+                    $link->id,
+                    json_decode(json_encode($data))
+                );
+            }
+        }
+
+        // Add new image links
+        foreach ($newLinks as $link) {
+            $imageLink = $this->container->get('image_manager')->add($link);
+            $this->dbs->addImage($occurrence->getId(), $imageLink->getId());
         }
     }
 

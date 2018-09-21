@@ -83,15 +83,70 @@ class ImageManager extends ObjectManager
         }
 
         // Make sure image exists in database
-        $rawImages = $this->dbs->getIdByFileName($filename);
-        if (count($rawImages) > 1) {
-            throw new NotFoundHttpException('Multiple images already exsist with filename "' . $filename . '"');
-        } elseif (count($rawImages) == 1) {
-            return $this->getWithData($rawImages)[$rawImages[0]['image_id']];
-        } else {
-            $id = $this->dbs->insert($filename, null, false);
-            return $this->get([$id])[$id];
+        $this->dbs->beginTransaction();
+        try {
+            $rawImages = $this->dbs->getImagesByFileName($filename);
+            if (count($rawImages) > 1) {
+                throw new NotFoundHttpException('Multiple images already exsist with filename "' . $filename . '"');
+            } elseif (count($rawImages) == 1) {
+                $new = $this->getWithData($rawImages)[$rawImages[0]['image_id']];
+            } else {
+                $id = $this->dbs->insert($filename, null, false);
+                $new = $this->get([$id])[$id];
+
+                $this->updateModified(null, $new);
+
+                $this->dbs->commit();
+            }
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
         }
+        return $new;
+    }
+
+    /**
+     * Add a new image to the database or return an (updated if necessary) existing image
+     * Only imagelinks (url) are allowed; images (filename) should be added using getImageByFile
+     * @param  stdClass $data
+     * @return Image
+     */
+    public function add(stdClass $data): Image
+    {
+        if (!property_exists($data, 'url')
+            || !is_string($data->url)
+            || empty($data->url)
+            || !property_exists($data, 'public')
+            || !is_bool($data->public)
+        ) {
+            throw new BadRequestHttpException('Incorrect image link data.');
+        }
+        $this->dbs->beginTransaction();
+        try {
+            $rawImages = $this->dbs->getImagesByUrl($data->url);
+            if (count($rawImages) > 1) {
+                throw new NotFoundHttpException('Multiple images with url ' . $data->url .' found.');
+            } elseif (count($rawImages) == 1) {
+                $new = $this->getWithData($rawImages)[$rawImages[0]['image_id']];
+                if ($data->public != $new->getPublic()) {
+                    $this->update(
+                        $new->getId(),
+                        json_decode(json_encode(['public' => $data->public]))
+                    );
+                }
+            } else {
+                $id = $this->dbs->insert(null, $data->url, $data->public);
+                $new = $this->get([$id])[$id];
+
+                $this->updateModified(null, $new);
+
+                $this->dbs->commit();
+            }
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+        return $new;
     }
 
     /**
@@ -106,16 +161,28 @@ class ImageManager extends ObjectManager
         try {
             $images = $this->get([$id]);
             if (count($images) == 0) {
-                $this->dbs->rollBack();
                 throw new NotFoundHttpException('Image with id ' . $id .' not found.');
             }
             $old = $images[$id];
+            $correct = false;
 
-            if (property_exists($data, 'public')
-                && is_bool($data->public)
-            ) {
+            if (property_exists($data, 'public')) {
+                if (!is_bool($data->public)) {
+                    throw new BadRequestHttpException('Incorrect public data.');
+                }
                 $this->dbs->updatePublic($id, $data->public);
-            } else {
+                $correct = true;
+            }
+
+            if (property_exists($data, 'url')) {
+                if (!is_string($data->url)) {
+                    throw new BadRequestHttpException('Incorrect url data.');
+                }
+                $this->dbs->updateUrl($id, $data->url);
+                $correct = true;
+            }
+
+            if (!$correct) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
@@ -134,4 +201,6 @@ class ImageManager extends ObjectManager
 
         return $new;
     }
+
+    // TODO: cleanup unused images in database and on filesystem (after delimages in occurrence?)
 }

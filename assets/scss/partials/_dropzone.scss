@@ -124,6 +124,7 @@
   }
 
   .dz-message {
+    color: $border-color;
     margin: 2em 0;
     text-align: center;
   }
@@ -355,7 +356,7 @@
       @include prefix((transition: opacity .3s ease));
       background-color: $state-danger-bg;
       border-radius: 8px;
-      color: $black;
+      color: $state-danger-text;
       display: none;
       font-size: 13px;
       left: -10px;
