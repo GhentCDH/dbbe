@@ -28,7 +28,7 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $manuscripts = $this->getContainer()->get('manuscript_manager')->getAllShort();
 
             $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
-            $manuscriptElasticService->setupManuscripts();
+            $manuscriptElasticService->setup();
             $manuscriptElasticService->addMultiple($manuscripts);
         }
 
@@ -37,7 +37,16 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $occurrences = $this->getContainer()->get('occurrence_manager')->getAllShort();
 
             $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
-            $occurrenceElasticService->setupOccurrences();
+            $occurrenceElasticService->setup();
+            $occurrenceElasticService->addMultiple($occurrences);
+        }
+
+        // (Re)index types
+        if ($index == null || $index == 'type') {
+            $occurrences = $this->getContainer()->get('type_manager')->getAllShort();
+
+            $occurrenceElasticService = $this->getContainer()->get('type_elastic_service');
+            $occurrenceElasticService->setup();
             $occurrenceElasticService->addMultiple($occurrences);
         }
 
@@ -46,14 +55,14 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $persons = $this->getContainer()->get('person_manager')->getAllShort();
 
             $personElasticService = $this->getContainer()->get('person_elastic_service');
-            $personElasticService->setupPersons();
+            $personElasticService->setup();
             $personElasticService->addMultiple($persons);
         }
 
         // (Re)index bibliography items
         if ($index == null || $index == 'bibliography') {
             $bibliographyElasticService = $this->getContainer()->get('bibliography_elastic_service');
-            $bibliographyElasticService->setupBibliographies();
+            $bibliographyElasticService->setup();
 
             foreach (['article', 'book', 'book_chapter', 'online_source'] as $type) {
                 $items = $this->getContainer()->get($type . '_manager')->getAllShort();

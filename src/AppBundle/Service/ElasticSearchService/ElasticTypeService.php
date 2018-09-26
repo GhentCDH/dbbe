@@ -5,17 +5,17 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticManuscriptService extends ElasticBaseService
+class ElasticTypeService extends ElasticBaseService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
         parent::__construct(
             $config,
             $indexPrefix,
-            'manuscripts',
-            'manuscript',
-            $container->get('identifier_manager')->getIdentifiersByType('manuscript'),
-            $container->get('role_manager')->getRolesByType('manuscript')
+            'types',
+            'type',
+            $container->get('identifier_manager')->getIdentifiersByType('type'),
+            $container->get('role_manager')->getRolesByType('type')
         );
     }
 
@@ -25,13 +25,20 @@ class ElasticManuscriptService extends ElasticBaseService
         if ($index->exists()) {
             $index->delete();
         }
-        $index->create();
+        // Configure analysis
+        $index->create(GreekAnalysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
-            'content' => ['type' => 'nested'],
-            'origin' => ['type' => 'nested'],
+            'text' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek',
+            ],
+            'meter' => ['type' => 'nested'],
+            'subject' => ['type' => 'nested'],
+            'keyword' => ['type' => 'nested'],
+            'genre' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -43,17 +50,6 @@ class ElasticManuscriptService extends ElasticBaseService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $aggregationFilters = ['city', 'content', 'person', 'origin', 'public'];
-        if (!empty($params['filters']) && isset($params['filters']['city'])) {
-            $aggregationFilters[] = 'library';
-        }
-        if (!empty($params['filters']) && isset($params['filters']['library'])) {
-            $aggregationFilters[] = 'collection';
-        }
-        if (!empty($params['filters']) && isset($params['filters']['collection'])) {
-            $aggregationFilters[] = 'shelf';
-        }
-
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifyFilters($params['filters'], $viewInternal);
         }
@@ -62,14 +58,21 @@ class ElasticManuscriptService extends ElasticBaseService
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
-            unset($result['data'][$key]['city']);
-            unset($result['data'][$key]['library']);
-            unset($result['data'][$key]['collection']);
-            unset($result['data'][$key]['shelf']);
-            unset($result['data'][$key]['origin']);
+            unset($result['data'][$key]['genre']);
+            unset($result['data'][$key]['meter']);
+            unset($result['data'][$key]['subject']);
+            unset($result['data'][$key]['text_status']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
                 unset($result['data'][$key][$role . '_public']);
+            }
+
+            // Keep text / title if there was a search, then these will be an array
+            if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
+                unset($result['data'][$key]['text']);
+            }
+            if (isset($result['data'][$key]['title']) && is_string($result['data'][$key]['title'])) {
+                unset($result['data'][$key]['title']);
             }
 
             // Keep comments if there was a search, then these will be an array
@@ -79,36 +82,44 @@ class ElasticManuscriptService extends ElasticBaseService
             if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
                 unset($result['data'][$key]['private_comment']);
             }
+
+            // Number of (public) occurrences
+            if ($viewInternal) {
+                unset($result['data'][$key]['number_of_occurrences_public']);
+            } else {
+                $result['data'][$key]['number_of_occurrences'] = $result['data'][$key]['number_of_occurrences_public'];
+                unset($result['data'][$key]['number_of_occurrences_public']);
+            }
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
+            $this->classifyFilters(
+                array_merge(
+                    $this->getIdentifierSystemNames(),
+                    ['meter', 'subject', 'keyword', 'person', 'genre', 'public', 'text_status']
+                ),
+                $viewInternal
+            ),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
-        // Add 'No collection' when necessary
-        // When a library has been selected and no collection has been selected
-        if ((!empty($params['filters'])
-                && array_key_exists('object', $params['filters'])
-                && array_key_exists('library', $params['filters']['object'])
-                && !array_key_exists('collection', $params['filters']['object'])
-            )
-            // When the 'no collection' has been selected
+        // Add 'No genre' when necessary
+        if (array_key_exists('genre', $result['aggregation'])
             || (
                 !empty($params['filters'])
                 && array_key_exists('object', $params['filters'])
-                && array_key_exists('collection', $params['filters']['object'])
-                && $params['filters']['object']['collection'] == -1
+                && array_key_exists('genre', $params['filters']['object'])
+                && $params['filters']['object']['genre'] == -1
             )
         ) {
-            $result['aggregation']['collection'][] = [
+            $result['aggregation']['genre'][] = [
                 'id' => -1,
-                'name' => 'No collection',
+                'name' => 'No genre',
             ];
         }
 
         // Remove non public fields if no access rights
-        // Add 'no-selectors' for primary identifiers if access rights
+        // Add 'no-selectors' for primary identifiers
         if (!$viewInternal) {
             unset($result['aggregation']['public']);
             foreach ($result['data'] as $key => $value) {
@@ -160,20 +171,23 @@ class ElasticManuscriptService extends ElasticBaseService
                             }
                         }
                         break;
-                    case 'city':
-                    case 'library':
-                    case 'collection':
+                    case 'text':
+                        $result['multiple_text'][$key] = [
+                            'text' => [
+                                'text' => $value,
+                                'type' => $filters['text_type'],
+                            ],
+                            'title' => [
+                                'text' => $value,
+                                'type' => $filters['text_type'],
+                            ],
+                        ];
+                        break;
+                    case 'text_status':
                         if (is_int($key)) {
                             $result['object'][] = $value;
                         } else {
                             $result['object'][$key] = $value;
-                        }
-                        break;
-                    case 'shelf':
-                        if (is_int($key)) {
-                            $result['exact_text'][] = $value;
-                        } else {
-                            $result['exact_text'][$key] = $value;
                         }
                         break;
                     case 'date':
@@ -189,8 +203,10 @@ class ElasticManuscriptService extends ElasticBaseService
                         }
                         $result['date_range'][] = $date_result;
                         break;
-                    case 'content':
-                    case 'origin':
+                    case 'meter':
+                    case 'subject':
+                    case 'keyword':
+                    case 'genre':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

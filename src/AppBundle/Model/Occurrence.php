@@ -6,7 +6,7 @@ use AppBundle\Utils\ArrayToJson;
 
 /**
  */
-class Occurrence extends Document
+class Occurrence extends Poem
 {
     /**
      * @var string
@@ -79,34 +79,6 @@ class Occurrence extends Document
      */
     protected $types = [];
     /**
-     * @var string
-     */
-    protected $incipit;
-    /**
-     * @var string
-     */
-    protected $title;
-    /**
-     * @var array
-     */
-    protected $verses = [];
-    /**
-     * @var array
-     */
-    protected $meters = [];
-    /**
-     * @var array
-     */
-    protected $genres = [];
-    /**
-     * @var array
-     */
-    protected $subjects = [];
-    /**
-     * @var Status
-     */
-    protected $textStatus;
-    /**
      * @var Status
      */
     protected $recordStatus;
@@ -122,10 +94,6 @@ class Occurrence extends Document
      * @var string
      */
     protected $paleographicalInfo;
-    /**
-     * @var string
-     */
-    protected $acknowledgement;
     /**
      * @var int
      */
@@ -291,6 +259,13 @@ class Occurrence extends Document
         }
     }
 
+    public function addVerse(Verse $verse): Occurrence
+    {
+        $this->verses[$verse->getId()] = $verse;
+
+        return $this;
+    }
+
     /**
      * @param  string|null $contextualInfo
      * @return Occurrence
@@ -363,120 +338,6 @@ class Occurrence extends Document
         return $this->manuscript;
     }
 
-    public function setIncipit(string $incipit): Occurrence
-    {
-        $this->incipit = $incipit;
-
-        return $this;
-    }
-
-    public function getIncipit(): string
-    {
-        return $this->incipit;
-    }
-
-    public function addVerse(Verse $verse): Occurrence
-    {
-        $this->verses[$verse->getId()] = $verse;
-
-        return $this;
-    }
-
-    public function getVerses(): array
-    {
-        return $this->verses;
-    }
-
-    public function addMeter(Meter $meter = null): Occurrence
-    {
-        $this->meters[$meter->getId()] = $meter;
-
-        return $this;
-    }
-
-    public function getMeters(): array
-    {
-        return $this->meters;
-    }
-
-    public function addGenre(Genre $genre): Occurrence
-    {
-        $this->genres[$genre->getId()] = $genre;
-
-        return $this;
-    }
-
-    public function getGenres(): array
-    {
-        return $this->genres;
-    }
-
-    public function addSubject(SubjectInterface $subject): Occurrence
-    {
-        $this->subjects[$subject->getId()] = $subject;
-
-        return $this;
-    }
-
-    public function getSubjects(): array
-    {
-        return $this->subjects;
-    }
-
-    public function sortSubjects(): void
-    {
-        usort(
-            $this->subjects,
-            function ($a, $b) {
-                if (is_a($a, Person::class)) {
-                    if (!is_a($b, Person::class)) {
-                        return -1;
-                    } else {
-                        return strcmp($a->getFullDescriptionWithOffices(), $b->getFullDescriptionWithOffices());
-                    }
-                } else {
-                    if (is_a($b, Person::class)) {
-                        return 1;
-                    } else {
-                        return strcmp($a->getName(), $b->getName());
-                    }
-                }
-            }
-        );
-    }
-
-    public function getPersonSubjects(): array
-    {
-        return array_filter(
-            $this->subjects,
-            function ($subject) {
-                return is_a($subject, Person::class);
-            }
-        );
-    }
-
-    public function getKeywordSubjects(): array
-    {
-        return array_filter(
-            $this->subjects,
-            function ($subject) {
-                return is_a($subject, Keyword::class);
-            }
-        );
-    }
-
-    public function setTextStatus(Status $textStatus = null): Occurrence
-    {
-        $this->textStatus = $textStatus;
-
-        return $this;
-    }
-
-    public function getTextStatus(): ?Status
-    {
-        return $this->textStatus;
-    }
-
     public function setRecordStatus(Status $recordStatus = null): Occurrence
     {
         $this->recordStatus = $recordStatus;
@@ -525,18 +386,6 @@ class Occurrence extends Document
         return $this->paleographicalInfo;
     }
 
-    public function setAcknowledgement(string $acknowledgement = null): Occurrence
-    {
-        $this->acknowledgement = $acknowledgement;
-
-        return $this;
-    }
-
-    public function getAcknowledgement(): ?string
-    {
-        return $this->acknowledgement;
-    }
-
     public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
     {
         $this->numberOfVerses = $numberOfVerses;
@@ -582,11 +431,6 @@ class Occurrence extends Document
             }
         }
         return false;
-    }
-
-    public function getDescription(): string
-    {
-        return $this->incipit;
     }
 
     public function getShortJson(): array

@@ -38,6 +38,7 @@ Encore
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('rolesedit', './assets/js/main/rolesedit.js')
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')
+    .addEntry('typesearch', './assets/js/main/typesearch.js')
     .addEntry('usersedit', './assets/js/main/usersedit.js')
 
     // allow sass/scss files to be processed

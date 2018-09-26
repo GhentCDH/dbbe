@@ -6,7 +6,7 @@ use Exception;
 
 use Doctrine\DBAL\Connection;
 
-class OccurrenceService extends DocumentService
+class OccurrenceService extends PoemService
 {
     public function getIds(): array
     {
@@ -36,7 +36,7 @@ class OccurrenceService extends DocumentService
             'SELECT
                 occpers.occurrence_id
             from (
-                SELECT
+                select
                     original_poem.identity as occurrence_id,
                     bibrole.idperson as person_id
                 from data.original_poem
@@ -62,7 +62,7 @@ class OccurrenceService extends DocumentService
             'SELECT
                 original_poem.identity as occurrence_id
             from data.original_poem
-            inner join data.poem_meter on poem.identity = poem_meter.idpoem
+            inner join data.poem_meter on original_poem.identity = poem_meter.idpoem
             where poem_meter.idmeter = ?',
             [$meterId]
         )->fetchAll();
@@ -116,33 +116,6 @@ class OccurrenceService extends DocumentService
         )->fetchAll();
     }
 
-    public function getIncipits(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                poem.incipit
-            from data.original_poem
-            inner join data.poem on original_poem.identity = poem.identity
-            where original_poem.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getTitles(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                document_title.iddocument as occurrence_id,
-                document_title.title
-            from data.document_title
-            where document_title.iddocument in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -155,57 +128,6 @@ class OccurrenceService extends DocumentService
             from data.original_poem_verse
             where original_poem_verse.idoriginal_poem in (?)
             order by "order"',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getMeters(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                meter.idmeter as meter_id,
-                meter.name as name
-                from data.original_poem
-            inner join data.poem_meter on original_poem.identity = poem_meter.idpoem
-            inner join data.meter on poem_meter.idmeter = meter.idmeter
-            where original_poem.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getSubjects(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                person.identity as person_id,
-                keyword.identity as keyword_id
-            from data.original_poem
-            inner join data.factoid on original_poem.identity = factoid.object_identity
-            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
-            left join data.person on factoid.subject_identity = person.identity
-            left join data.keyword on factoid.subject_identity = keyword.identity
-            where original_poem.identity in (?)
-            and factoid_type.type = \'subject of\'',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getGenres(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                genre.idgenre as genre_id,
-                genre.genre as name
-            from data.original_poem
-            inner join data.document_genre on original_poem.identity = document_genre.iddocument
-            inner join data.genre on document_genre.idgenre = genre.idgenre
-            where original_poem.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -336,20 +258,6 @@ class OccurrenceService extends DocumentService
                 document_contains.contextual_info
             from data.original_poem
             inner join data.document_contains on original_poem.identity = document_contains.idcontent
-            where original_poem.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
-    public function getAcknowledgements(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                document.acknowledgements as acknowledgement
-            from data.original_poem
-            inner join data.document on original_poem.identity = document.identity
             where original_poem.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]

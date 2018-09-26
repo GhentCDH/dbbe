@@ -39,6 +39,8 @@ class PersonController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'occurrence_deps_by_person' => $this->generateUrl('occurrence_deps_by_person', ['id' => 'person_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_person' => $this->generateUrl('type_deps_by_person', ['id' => 'person_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'article_deps_by_person' => $this->generateUrl('article_deps_by_person', ['id' => 'person_id']),
                     'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
                     'book_deps_by_person' => $this->generateUrl('book_deps_by_person', ['id' => 'person_id']),
@@ -267,8 +269,8 @@ class PersonController extends BaseController
 
         // Sorting
         if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
-                $esParams['ascending'] = $params['ascending'];
+            if (isset($params['ascending']) && ($params['ascending'] == '0' || $params['ascending'] == '1')) {
+                $esParams['ascending'] = intval($params['ascending']);
             } else {
                 $esParams['ascending'] = $defaults['ascending'];
             }

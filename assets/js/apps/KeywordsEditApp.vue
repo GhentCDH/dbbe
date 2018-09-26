@@ -3,7 +3,8 @@
         <article class="col-sm-9 mbottom-large">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
             <panel header="Edit keywords">
                 <editListRow
                     :schema="schema"
@@ -16,11 +17,13 @@
                     }"
                     @add="edit(true)"
                     @edit="edit()"
-                    @del="del()" />
+                    @del="del()"
+                />
             </panel>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -33,7 +36,8 @@
             @cancel="cancelEdit()"
             @reset="resetEdit()"
             @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)" />
+            @dismiss-alert="editAlerts.splice($event, 1)"
+        />
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -41,7 +45,8 @@
             :alerts="deleteAlerts"
             @cancel="cancelDelete()"
             @confirm="submitDelete()"
-            @dismiss-alert="deleteAlerts.splice($event, 1)" />
+            @dismiss-alert="deleteAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -56,8 +61,15 @@ export default {
         AbstractField,
         AbstractListEdit,
     ],
+    props: {
+        initIsSubject: {
+            type: String,
+            default: "true",
+        },
+    },
     data() {
         return {
+            isSubject: JSON.parse(this.initIsSubject),
             schema: {
                 fields: {
                     keyword: this.createMultiSelect('Keyword'),
@@ -96,6 +108,11 @@ export default {
                     url: this.urls['occurrence_get'],
                     urlIdentifier: 'occurrence_id',
                 },
+                'Types': {
+                    depUrl: this.urls['type_deps_by_keyword'].replace('keyword_id', this.submitModel.keyword.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
             }
         },
     },
@@ -128,6 +145,7 @@ export default {
             if (this.submitModel.keyword.id == null) {
                 axios.post(this.urls['keyword_post'], {
                     name: this.submitModel.keyword.name,
+                    isSubject: this.isSubject,
                 })
                     .then( (response) => {
                         this.submitModel.keyword = response.data

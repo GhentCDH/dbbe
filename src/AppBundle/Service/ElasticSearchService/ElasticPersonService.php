@@ -18,7 +18,7 @@ class ElasticPersonService extends ElasticBaseService
         );
     }
 
-    public function setupPersons(): void
+    public function setup(): void
     {
         $index = $this->getIndex();
         if ($index->exists()) {

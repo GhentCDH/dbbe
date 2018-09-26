@@ -478,8 +478,8 @@ class ManuscriptController extends BaseController
 
         // Sorting
         if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending'])) {
-                $esParams['ascending'] = $params['ascending'];
+            if (isset($params['ascending']) && ($params['ascending'] == '0' || $params['ascending'] == '1')) {
+                $esParams['ascending'] = intval($params['ascending']);
             } else {
                 $esParams['ascending'] = $defaults['ascending'];
             }

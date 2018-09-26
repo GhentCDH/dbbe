@@ -19,7 +19,7 @@ class ElasticOccurrenceService extends ElasticBaseService
         );
     }
 
-    public function setupOccurrences(): void
+    public function setup(): void
     {
         $index = $this->getIndex();
         if ($index->exists()) {
@@ -35,6 +35,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                 'type' => 'text',
                 'analyzer' => 'custom_greek',
             ],
+            'meter' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'manuscript_content' => ['type' => 'nested'],
             'manuscript_content_public' => ['type' => 'nested'],
@@ -88,7 +89,13 @@ class ElasticOccurrenceService extends ElasticBaseService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status']), $viewInternal),
+            $this->classifyFilters(
+                array_merge(
+                    $this->getIdentifierSystemNames(),
+                    ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status']
+                ),
+                $viewInternal
+            ),
             !empty($params['filters']) ? $params['filters'] : []
         );
         if (!$viewInternal && isset($result['aggregation']['manuscript_content_public'])) {
@@ -176,7 +183,6 @@ class ElasticOccurrenceService extends ElasticBaseService
                             ],
                         ];
                         break;
-                    case 'meter':
                     case 'manuscript':
                     case 'text_status':
                         if (is_int($key)) {
@@ -198,6 +204,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                         }
                         $result['date_range'][] = $date_result;
                         break;
+                    case 'meter':
                     case 'subject':
                     case 'genre':
                         if (is_int($key)) {

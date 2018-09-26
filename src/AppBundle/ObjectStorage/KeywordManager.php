@@ -44,16 +44,40 @@ class KeywordManager extends ObjectManager
     }
 
     /**
-     * Get all keywords with all information
+     * Get all subject keywords with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllSubjectKeywords(): array
     {
         return $this->wrapArrayCache(
-            'keywords',
+            'subject_keywords',
             ['keywords'],
             function () {
-                $rawIds = $this->dbs->getIds();
+                $rawIds = $this->dbs->getSubjectIds();
+                $ids = self::getUniqueIds($rawIds, 'keyword_id');
+                $keywords = $this->get($ids);
+
+                // Sort by name
+                usort($keywords, function ($a, $b) {
+                    return strcmp($a->getName(), $b->getName());
+                });
+
+                return $keywords;
+            }
+        );
+    }
+
+    /**
+     * Get all subject keywords with all information
+     * @return array
+     */
+    public function getAllTypeKeywords(): array
+    {
+        return $this->wrapArrayCache(
+            'type_keywords',
+            ['keywords'],
+            function () {
+                $rawIds = $this->dbs->getTypeIds();
                 $ids = self::getUniqueIds($rawIds, 'keyword_id');
                 $keywords = $this->get($ids);
 
@@ -93,8 +117,10 @@ class KeywordManager extends ObjectManager
         try {
             if (property_exists($data, 'name')
                 && is_string($data->name)
+                && property_exists($data, 'isSubject')
+                && is_bool($data->isSubject)
             ) {
-                $id = $this->dbs->insert($data->name);
+                $id = $this->dbs->insert($data->name, $data->isSubject);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }

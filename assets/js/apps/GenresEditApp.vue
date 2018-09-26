@@ -96,6 +96,11 @@ export default {
                     url: this.urls['occurrence_get'],
                     urlIdentifier: 'occurrence_id',
                 },
+                'Types': {
+                    depUrl: this.urls['type_deps_by_genre'].replace('genre_id', this.submitModel.genre.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
             }
         },
     },

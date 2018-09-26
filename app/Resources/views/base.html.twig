@@ -94,6 +94,11 @@
                                                     <span>Occurrences</span>
                                                 </a>
                                             </li>
+                                            <li class="{{ app.request.get('_route') == 'types_search' ? 'active' }}">
+                                                <a href="{{ path('types_search') }}">
+                                                    <span>Types</span>
+                                                </a>
+                                            </li>
                                             <li class="{{ app.request.get('_route') == 'manuscripts_search' ? 'active' }}">
                                                 <a href="{{ path('manuscripts_search') }}">
                                                     <span>Manuscripts</span>
@@ -157,8 +162,13 @@
                                                           </a>
                                                         </li>
                                                         <li>
-                                                          <a href="{{ path('keywords_edit') }}">
-                                                            <span>Keywords</span>
+                                                          <a href="{{ path('keywords_subject_edit') }}">
+                                                            <span>Keywords (subject)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li>
+                                                          <a href="{{ path('keywords_type_edit') }}">
+                                                            <span>Keywords (type)</span>
                                                           </a>
                                                         </li>
                                                         <li>

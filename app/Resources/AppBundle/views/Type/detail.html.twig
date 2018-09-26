@@ -1,0 +1,179 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1{% if not type.getPublic() %} text-danger{% endif %}">
+            Type {{ type.getId() }}
+            {% if type.getPrevId() is not empty %}<small>(formerly typ/{{ type.getPrevId() }})</small>{% endif %}
+            {% if not type.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('occurrence_edit', {'id': type.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? type.getOccurrences() : type.getOccurrences()|public %}
+                {% if occurrences is not empty %}
+                    <tr>
+                        <td>Occurrence(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences}%}
+                                {% block renderItem %}
+                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get','display': item.getDescription()} only %}</span>
+                                    {% if item.getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item.getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else  %}
+                                        ({{ item.getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set types = is_granted('ROLE_VIEW_INTERNAL') ? type.getRelatedTypes() : type.getRelatedTypes()|public %}
+                {% if types is not empty %}
+                    <tr>
+                        <td>Type(s)</td>
+                        <td class="greek">
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': types} only %}
+                                {% block renderItem %}
+                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get','display': item.getDescription()} only %}</span>
+                                    {% if item.getNumberOfVerses() is not empty %}
+                                        {% if item.getNumberOfVerses() == 1 %}
+                                            (1 verse)
+                                        {% else %}
+                                            ({{ item.getNumberOfVerses() }} verses)
+                                        {% endif %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getTextStatus() is not empty %}
+                    <tr>
+                        <td>Text status</td>
+                        <td>{{ type.getTextStatus() }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getGenres() is not empty %}
+                    <tr>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? type.getPersonRoles() : type.getPublicPersonRoles()}
+                    only
+                %}
+                {% if type.getMeters() is not empty %}
+                    <tr>
+                        <td>Meter(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getMeters()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[meter]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this meter">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getNumberOfVerses() is not empty %}
+                    <tr>
+                        <td>Number of verses</td>
+                        <td>{{ type.getNumberOfVerses() }}</td>
+                    </tr>
+                {% endif %}
+                {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? type.getSubjects() : type.getSubjects()|public %}
+                {% if subjects is not empty %}
+                    <tr>
+                        <td>Subjects</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': subjects} only %}
+                                {% block renderItem %}
+                                    {% if item is person %}
+                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
+                                    {% else %}
+                                        {{ item.getName() }}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getKeywords() is not empty %}
+                    <tr>
+                        <td>Keywords</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getKeywords()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ type.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getBibliographies()} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if type.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ type.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+                {% if type.getAcknowledgement() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>{{ type.getAcknowledgement()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Permalink</td>
+                    <td><a href="{{ path('type_get', {'id': type.getId()}) }}">{{ absolute_url(path('type_get', {'id': type.getId()})) }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/feedback.js") }}"></script>
+{% endblock %}

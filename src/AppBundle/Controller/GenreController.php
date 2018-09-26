@@ -47,6 +47,8 @@ class GenreController extends BaseController
                     'genres_get' => $this->generateUrl('genres_get'),
                     'occurrence_deps_by_genre' => $this->generateUrl('occurrence_deps_by_genre', ['id' => 'genre_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_genre' => $this->generateUrl('type_deps_by_genre', ['id' => 'genre_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'genre_post' => $this->generateUrl('genre_post'),
                     'genre_put' => $this->generateUrl('genre_put', ['id' => 'genre_id']),
                     'genre_delete' => $this->generateUrl('genre_delete', ['id' => 'genre_id']),

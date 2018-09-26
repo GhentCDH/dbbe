@@ -3,13 +3,14 @@
 {% block content %}
     <div class="col-xs-12">
         <h2 class="h1">
-            Edit keywords
+            Edit {{ isSubject == "true" ? 'subject' : 'type' }} keywords
         </h2>
     </div>
     <div id="keywords-edit-app">
         <keywords-edit-app
             init-urls="{{ urls }}"
             init-data="{{ keywords }}"
+            init-is-subject="{{ isSubject }}"
         />
     </div>
 {% endblock %}

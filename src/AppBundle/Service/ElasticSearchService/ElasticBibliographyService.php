@@ -27,7 +27,7 @@ class ElasticBibliographyService extends ElasticBaseService
         );
     }
 
-    public function setupBibliographies(): void
+    public function setup(): void
     {
         $index = $this->getIndex();
         if ($index->exists()) {

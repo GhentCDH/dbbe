@@ -11,15 +11,30 @@ use AppBundle\Exceptions\DependencyException;
 class KeywordService extends DatabaseService
 {
     /**
-     * Get all keyword ids
+     * Get all subject keyword ids
      * @return array
      */
-    public function getIds(): array
+    public function getSubjectIds(): array
     {
         return $this->conn->query(
             'SELECT
                 keyword.identity as keyword_id
-            from data.keyword'
+            from data.keyword
+            where keyword.is_subject = TRUE'
+        )->fetchAll();
+    }
+
+    /**
+     * Get all type keyword ids
+     * @return array
+     */
+    public function getTypeIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                keyword.identity as keyword_id
+            from data.keyword
+            where keyword.is_subject = FALSE'
         )->fetchAll();
     }
 
@@ -41,20 +56,22 @@ class KeywordService extends DatabaseService
     }
 
     /**
-     * @param  string   $name
+     * @param  string $name
+     * @param  bool   $isSubject
      * @return int
      */
-    public function insert(string $name): int
+    public function insert(string $name, bool $isSubject): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_keyword_has_identity
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.keyword (keyword)
-                values (?)',
+                'INSERT INTO data.keyword (keyword, is_subject)
+                values (?, ?)',
                 [
-                    $name
+                    $name,
+                    $isSubject ? 'TRUE': 'FALSE',
                 ]
             );
             $id = $this->conn->executeQuery(

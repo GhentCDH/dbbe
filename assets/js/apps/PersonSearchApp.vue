@@ -432,7 +432,11 @@ export default {
                     url: this.urls['occurrence_get'],
                     urlIdentifier: 'occurrence_id',
                 },
-                // TODO: types
+                'Types': {
+                    depUrl: this.urls['type_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
                 'Articles': {
                     depUrl: this.urls['article_deps_by_person'].replace('person_id', this.submitModel.person.id),
                     url: this.urls['article_get'],

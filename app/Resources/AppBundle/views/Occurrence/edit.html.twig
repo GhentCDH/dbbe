@@ -4,7 +4,7 @@
     <div class="col-sm-9">
         <h2 class="h1">
             {% if id is not empty %}
-                Edit Occurrence
+                Edit occurrence
                 <a
                     href="{{ path('occurrence_get', {'id': id}) }}"
                     class="action pull-right"
@@ -12,7 +12,7 @@
                     <i class="fa fa-eye"></i>
                 </a>
             {% else %}
-                Add Occurrence
+                Add occurrence
             {% endif %}
         </h2>
     </div>

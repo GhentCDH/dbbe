@@ -174,7 +174,7 @@ class OccurrenceController extends BaseController
     /**
      * @Route("/occurrences/{id}", name="occurrence_put")
      * @Method("PUT")
-     * @param  int    $id occurrence id
+     * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
@@ -192,7 +192,7 @@ class OccurrenceController extends BaseController
     /**
      * @Route("/occurrences/{id}", name="occurrence_delete")
      * @Method("DELETE")
-     * @param  int    $id occurrnence id
+     * @param  int    $id
      * @param Request $request
      * @return Response
      */
@@ -204,7 +204,7 @@ class OccurrenceController extends BaseController
     /**
      * @Route("/occurrences/{id}/edit", name="occurrence_edit")
      * @Method("GET")
-     * @param  int|null $id occurrence id
+     * @param  int|null $id
      * @param Request $request
      * @return Response
      */
@@ -238,7 +238,7 @@ class OccurrenceController extends BaseController
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
                     'genres' => ArrayToJson::arrayToShortJson($this->get('genre_manager')->getAll()),
-                    'keywords' => ArrayToJson::arrayToShortJson($this->get('keyword_manager')->getAll()),
+                    'keywords' => ArrayToJson::arrayToShortJson($this->get('keyword_manager')->getAllSubjectKeywords()),
                     'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
@@ -290,8 +290,8 @@ class OccurrenceController extends BaseController
 
         // Sorting
         if (isset($params['orderBy']) && is_string($params['orderBy'])) {
-            if (isset($params['ascending']) && is_numeric($params['ascending']) && $params['ascending'] === 0) {
-                $esParams['ascending'] = $params['ascending'];
+            if (isset($params['ascending']) && ($params['ascending'] == '0' || $params['ascending'] == '1')) {
+                $esParams['ascending'] = intval($params['ascending']);
             } else {
                 $esParams['ascending'] = $defaults['ascending'];
             }

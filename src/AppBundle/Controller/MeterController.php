@@ -47,6 +47,8 @@ class MeterController extends BaseController
                     'meters_get' => $this->generateUrl('meters_get'),
                     'occurrence_deps_by_meter' => $this->generateUrl('occurrence_deps_by_meter', ['id' => 'meter_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_meter' => $this->generateUrl('type_deps_by_meter', ['id' => 'meter_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'meter_post' => $this->generateUrl('meter_post'),
                     'meter_put' => $this->generateUrl('meter_put', ['id' => 'meter_id']),
                     'meter_delete' => $this->generateUrl('meter_delete', ['id' => 'meter_id']),

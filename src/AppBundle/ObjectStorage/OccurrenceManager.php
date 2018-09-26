@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  * ObjectManager for occurrences
  * Servicename: occurrence_manager
  */
-class OccurrenceManager extends DocumentManager
+class OccurrenceManager extends PoemManager
 {
     /**
      * Get occurrences with enough information to get an id and a description
@@ -52,28 +52,23 @@ class OccurrenceManager extends DocumentManager
                 // Remove all ids that did not match above
                 $ids = array_keys($occurrences);
 
-                $rawIncipits = $this->dbs->getIncipits($ids);
-                if (count($rawIncipits) > 0) {
-                    foreach ($rawIncipits as $rawIncipit) {
-                        $occurrences[$rawIncipit['occurrence_id']]
-                            ->setIncipit($rawIncipit['incipit']);
-                    }
-                }
+                $this->setIncipits($occurrences);
 
                 // number of verses
-                $rawVerses = $this->dbs->getNumberOfVerses($ids);
-                if (count($rawVerses) > 0) {
-                    foreach ($rawVerses as $rawVerse) {
-                        $occurrences[$rawVerse['occurrence_id']]
-                            ->setNumberOfVerses($rawVerse['verses']);
+                $rawNumbersOfVerses = $this->dbs->getNumberOfVerses($ids);
+                if (count($rawNumbersOfVerses) > 0) {
+                    foreach ($rawNumbersOfVerses as $rawNumberOfVerses) {
+                        $occurrences[$rawNumberOfVerses['occurrence_id']]
+                            ->setNumberOfVerses($rawNumberOfVerses['verses']);
                     }
                 }
 
-                // Verses (needed in mini to calculate number of verses correctly)
+                // Verses (needed in mini to calculate number of verses)
                 $rawVerses = $this->dbs->getVerses($ids);
                 $verses = $this->container->get('verse_manager')->getMiniWithData($rawVerses);
                 foreach ($rawVerses as $rawVerse) {
-                    $occurrences[$rawVerse['occurrence_id']]->addVerse($verses[$rawVerse['verse_id']]);
+                    $occurrences[$rawVerse['occurrence_id']]
+                        ->addVerse($verses[$rawVerse['verse_id']]);
                 }
 
                 $this->setPublics($occurrences);
@@ -114,53 +109,17 @@ class OccurrenceManager extends DocumentManager
                     }
                 }
 
-                // Title
-                $rawTitles = $this->dbs->getTitles($ids);
-                foreach ($rawTitles as $rawTitle) {
-                    $occurrences[$rawTitle['occurrence_id']]
-                        ->setTitle($rawTitle['title']);
-                }
+                $this->setTitles($occurrences);
 
-                // Meter
-                $rawMeters = $this->dbs->getMeters($ids);
-                $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
-                foreach ($rawMeters as $rawMeter) {
-                    $occurrences[$rawMeter['occurrence_id']]->addMeter($meters[$rawMeter['meter_id']]);
-                }
+                $this->setMeters($occurrences);
 
-                // Subject
-                $rawSubjects = $this->dbs->getSubjects($ids);
-                $personIds = self::getUniqueIds($rawSubjects, 'person_id');
-                $persons = [];
-                if (count($personIds) > 0) {
-                    $persons = $this->container->get('person_manager')->getShort($personIds);
-                }
-                $keywordIds = self::getUniqueIds($rawSubjects, 'keyword_id');
-                $keywords = [];
-                if (count($keywordIds) > 0) {
-                    $keywords = $this->container->get('keyword_manager')->get($keywordIds);
-                }
-                foreach ($rawSubjects as $rawSubject) {
-                    if (isset($rawSubject['person_id'])) {
-                        $occurrences[$rawSubject['occurrence_id']]->addSubject($persons[$rawSubject['person_id']]);
-                    } elseif (isset($rawSubject['keyword_id'])) {
-                        $occurrences[$rawSubject['occurrence_id']]->addSubject($keywords[$rawSubject['keyword_id']]);
-                    }
-                }
-                foreach (array_keys($occurrences) as $occurrenceId) {
-                    $occurrences[$occurrenceId]->sortSubjects();
-                }
+                $this->setSubjects($occurrences);
 
                 $this->setPersonRoles($occurrences);
 
                 $this->setDates($occurrences);
 
-                // Genre
-                $rawGenres = $this->dbs->getGenres($ids);
-                $genres = $this->container->get('genre_manager')->getWithData($rawGenres);
-                foreach ($rawGenres as $rawGenre) {
-                    $occurrences[$rawGenre['occurrence_id']]->addGenre($genres[$rawGenre['genre_id']]);
-                }
+                $this->setGenres($occurrences);
 
                 $this->setComments($occurrences);
 
@@ -214,6 +173,10 @@ class OccurrenceManager extends DocumentManager
                     throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
                 }
 
+                $this->setAcknowledgements($occurrences);
+
+                $this->setIdentifications($occurrences);
+
                 $this->setPrevIds($occurrences);
 
                 $occurrence = $occurrences[$id];
@@ -253,13 +216,6 @@ class OccurrenceManager extends DocumentManager
                         ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
                 }
 
-                // acknowledgement
-                $rawAcknowledgements = $this->dbs->getAcknowledgements([$id]);
-                if (count($rawAcknowledgements) == 1) {
-                    $occurrence
-                        ->setAcknowledgement($rawAcknowledgements[0]['acknowledgement']);
-                }
-
                 // images
                 $rawImages = $this->dbs->getImages([$id]);
                 $images = $this->container->get('image_manager')->getWithData($rawImages);
@@ -281,26 +237,6 @@ class OccurrenceManager extends DocumentManager
     public function getManuscriptDependencies(int $manuscriptId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getPersonDependencies(int $personId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getMeterDependencies(int $meterId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getGenreDependencies(int $genreId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByGenreId($genreId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getKeywordDependencies(int $keywordId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $short ? 'getShort' : 'getMini');
     }
 
     public function add(stdClass $data): Occurrence

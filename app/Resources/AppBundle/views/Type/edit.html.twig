@@ -4,20 +4,20 @@
     <div class="col-sm-9">
         <h2 class="h1">
             {% if id is not empty %}
-                Edit manuscript
+                Edit type
                 <a
-                    href="{{ path('manuscript_get', {'id': id}) }}"
+                    href="{{ path('type_get', {'id': id}) }}"
                     class="action pull-right"
-                    title="View the manuscript">
+                    title="View the type">
                     <i class="fa fa-eye"></i>
                 </a>
             {% else %}
-                Add Manuscript
+                Add type
             {% endif %}
         </h2>
     </div>
-    <div id="manuscript-edit-app">
-        <manuscript-edit-app
+    <div id="type-edit-app">
+        <type-edit-app
             init-urls = "{{ urls }}"
             init-data="{{ data }}"
             init-identifiers="{{ identifiers }}"
@@ -28,5 +28,5 @@
 
 {% block javascript %}
     <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("/build/manuscriptedit.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/typeedit.js") }}"></script>
 {% endblock %}
