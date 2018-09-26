@@ -152,7 +152,7 @@ class DocumentService extends EntityService
                     'INSERT into data.document_status (iddocument, idstatus)
                     values (?, ?)',
                     [
-                        $manuscriptId,
+                        $id,
                         $statusId,
                     ]
                 );
