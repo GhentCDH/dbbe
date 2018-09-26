@@ -93,6 +93,8 @@ class TypeManager extends PoemManager
                     }
                 }
 
+                $this->setAcknowledgements($types);
+
                 // occurrences (needed in short to calculate number of occurrences)
                 $rawOccurrences = $this->dbs->getOccurrences($ids);
                 if (!empty($rawOccurrences)) {
@@ -125,8 +127,6 @@ class TypeManager extends PoemManager
                 if (count($types) == 0) {
                     throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
                 }
-
-                $this->setAcknowledgements($types);
 
                 $this->setIdentifications($types);
 

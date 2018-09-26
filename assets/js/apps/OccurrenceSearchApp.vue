@@ -207,6 +207,7 @@ export default {
                         validator: VueFormGenerator.validators.number,
                     },
                     genre: this.createMultiSelect('Genre'),
+                    acknowledgement: this.createMultiSelect('Acknowledgement'),
                     comment: {
                         type: 'input',
                         inputType: 'text',

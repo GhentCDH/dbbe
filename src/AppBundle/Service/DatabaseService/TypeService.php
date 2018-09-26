@@ -91,6 +91,18 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByAcknowledgementId(int $acknowledgementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.document_acknowledgement on reconstructed_poem.identity = document_acknowledgement.iddocument
+            where document_acknowledgement.idacknowledgement = ?',
+            [$acknowledgementId]
+        )->fetchAll();
+    }
+
     public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(

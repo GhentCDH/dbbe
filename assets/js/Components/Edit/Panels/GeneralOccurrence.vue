@@ -52,14 +52,17 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    acknowledgement: {
-                        type: 'textArea',
-                        label: 'Acknowledgements',
-                        labelClasses: 'control-label',
-                        model: 'acknowledgement',
-                        rows: 4,
-                        validator: VueFormGenerator.validators.string,
-                    },
+                    acknowledgements: this.createMultiSelect(
+                        'Acknowledgements',
+                        {
+                            model: 'acknowledgements',
+                            values: this.values.acknowledgements,
+                        },
+                        {
+                            multiple: true,
+                            closeOnSelect: false,
+                        }
+                    ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -95,6 +98,7 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableField(this.schema.fields.acknowledgements)
             this.enableField(this.schema.fields.textStatus)
             this.enableField(this.schema.fields.recordStatus)
             this.enableField(this.schema.fields.dividedStatus)

@@ -92,6 +92,18 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByAcknowledgementId(int $acknowledgementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.document_acknowledgement on original_poem.identity = document_acknowledgement.iddocument
+            where document_acknowledgement.idacknowledgement = ?',
+            [$acknowledgementId]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -795,19 +807,41 @@ class OccurrenceService extends PoemService
     }
 
     /**
-     * @param  int    $id
-     * @param  string $acknowledgement
+     * @param  int $id
+     * @param  int $acknowledgementId
      * @return int
      */
-    public function updateAcknowledgement(int $id, string $acknowledgement): int
+    public function addAcknowledgement(int $id, int $acknowledgementId): int
     {
         return $this->conn->executeUpdate(
-            'UPDATE data.document
-            set acknowledgements = ?
-            where identity = ?',
+            'INSERT into data.document_acknowledgement (iddocument, idacknowledgement)
+            values (?, ?)',
             [
-                $acknowledgement,
                 $id,
+                $acknowledgementId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $acknowledgementIds
+     * @return int
+     */
+    public function delAcknowledgements(int $id, array $acknowledgementIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.document_genre
+            where iddocument = ?
+            and idacknowledgement in (?)',
+            [
+                $id,
+                $acknowledgementIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

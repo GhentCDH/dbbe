@@ -155,6 +155,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on an acknowledgement
+     * (document_acknowledgement)
+     * @Route("/occurrences/acknowledgements/{id}", name="occurrence_deps_by_acknowledgement")
+     * @Method("GET")
+     * @param  int    $id acknowledgement id
+     * @param Request $request
+     */
+    public function getDepsByAcknowledgement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getAcknowledgementDependencies');
+    }
+
+    /**
      * @Route("/occurrences", name="occurrence_post")
      * @Method("POST")
      * @param Request $request
@@ -244,6 +257,7 @@ class OccurrenceController extends BaseController
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
                     'referenceTypes' => ArrayToJson::arrayToShortJson($this->get('reference_type_manager')->getAll()),
+                    'acknowledgements' => ArrayToJson::arrayToShortJson($this->get('acknowledgement_manager')->getAll()),
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                     'dividedStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceDividedStatuses()),

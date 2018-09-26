@@ -37,9 +37,9 @@ class Poem extends Document
      */
     protected $textStatus;
     /**
-     * @var string
+     * @var array
      */
-    protected $acknowledgement;
+    protected $acknowledgements = [];
 
     public function setIncipit(string $incipit): Poem
     {
@@ -153,15 +153,25 @@ class Poem extends Document
         return $this->incipit;
     }
 
-    public function setAcknowledgement(string $acknowledgement = null): Poem
+    public function addAcknowledgement(Acknowledgement $acknowledgement): Poem
     {
-        $this->acknowledgement = $acknowledgement;
+        $this->acknowledgements[] = $acknowledgement;
 
         return $this;
     }
 
-    public function getAcknowledgement(): ?string
+    public function getAcknowledgements(): array
     {
-        return $this->acknowledgement;
+        return $this->acknowledgements;
+    }
+
+    public function sortAcknowledgements(): void
+    {
+        usort(
+            $this->acknowledgements,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
     }
 }

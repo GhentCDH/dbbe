@@ -124,7 +124,7 @@
                 header="General"
                 :link="{url: urls['statuses_edit'], text: 'Edit statuses'}"
                 :model="model.general"
-                :values="statuses"
+                :values="generals"
                 @validated="validated"
             />
 
@@ -241,7 +241,7 @@ export default {
             genres: null,
             subjects: null,
             bibliographies: null,
-            statuses: null,
+            generals: null,
             model: {
                 basic: {
                     incipit: null,
@@ -346,7 +346,8 @@ export default {
             onlineSources: this.data.onlineSources,
             referenceTypes: this.data.referenceTypes,
         }
-        this.statuses = {
+        this.generals = {
+            acknowledgements: this.data.acknowledgements,
             textStatuses: this.data.textStatuses,
             recordStatuses: this.data.recordStatuses,
             dividedStatuses: this.data.dividedStatuses,
@@ -464,7 +465,7 @@ export default {
                 this.model.general = {
                     paleographicalInfo: this.occurrence.paleographicalInfo,
                     contextualInfo: this.occurrence.contextualInfo,
-                    acknowledgement: this.occurrence.acknowledgement,
+                    acknowledgements: this.occurrence.acknowledgements,
                     publicComment: this.occurrence.publicComment,
                     privateComment: this.occurrence.privateComment,
                     textStatus: this.occurrence.textStatus,

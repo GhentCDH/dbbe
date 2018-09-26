@@ -126,6 +126,9 @@ class Type extends Poem
         if (isset($this->genres)) {
             $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
         }
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
         if (!empty($this->occurrences)) {
             $result['number_of_occurrences'] = count($this->occurrences);
         }

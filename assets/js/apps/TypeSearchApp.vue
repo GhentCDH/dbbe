@@ -205,6 +205,7 @@ export default {
                     person: this.createMultiSelect('Person'),
                     role: this.createMultiSelect('Role', {dependency: 'person'}),
                     genre: this.createMultiSelect('Genre'),
+                    acknowledgement: this.createMultiSelect('Acknowledgement'),
                     comment: {
                         type: 'input',
                         inputType: 'text',

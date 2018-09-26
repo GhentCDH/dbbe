@@ -142,6 +142,19 @@ class TypeController extends BaseController
     }
 
     /**
+     * Get all types that have a dependency on an acknowledgement
+     * (document_acknowledgement)
+     * @Route("/types/acknowledgements/{id}", name="type_deps_by_acknowledgement")
+     * @Method("GET")
+     * @param  int    $id acknowledgement id
+     * @param Request $request
+     */
+    public function getDepsByAcknowledgement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getAcknowledgementDependencies');
+    }
+
+    /**
      * @Route("/types", name="type_post")
      * @Method("POST")
      * @param Request $request

@@ -39,6 +39,7 @@ class ElasticTypeService extends ElasticBaseService
             'subject' => ['type' => 'nested'],
             'keyword' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
+            'acknowledgement' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -62,6 +63,7 @@ class ElasticTypeService extends ElasticBaseService
             unset($result['data'][$key]['meter']);
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['text_status']);
+            unset($result['data'][$key]['acknowledgement']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
                 unset($result['data'][$key][$role . '_public']);
@@ -96,7 +98,7 @@ class ElasticTypeService extends ElasticBaseService
             $this->classifyFilters(
                 array_merge(
                     $this->getIdentifierSystemNames(),
-                    ['meter', 'subject', 'keyword', 'person', 'genre', 'public', 'text_status']
+                    ['meter', 'subject', 'keyword', 'person', 'genre', 'public', 'text_status', 'acknowledgement']
                 ),
                 $viewInternal
             ),
@@ -207,6 +209,7 @@ class ElasticTypeService extends ElasticBaseService
                     case 'subject':
                     case 'keyword':
                     case 'genre':
+                    case 'acknowledgement':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

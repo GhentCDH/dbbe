@@ -73,6 +73,11 @@ services:
         arguments: ['@genre_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    acknowledgement_manager:
+        class: AppBundle\ObjectStorage\AcknowledgementManager
+        arguments: ['@acknowledgement_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -190,6 +195,10 @@ services:
 
     genre_service:
         class: AppBundle\Service\DatabaseService\GenreService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    acknowledgement_service:
+        class: AppBundle\Service\DatabaseService\AcknowledgementService
         arguments: ['@doctrine.orm.entity_manager']
 
     person_service:

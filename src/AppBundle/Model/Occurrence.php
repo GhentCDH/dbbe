@@ -517,8 +517,8 @@ class Occurrence extends Poem
         if (isset($this->contextualInfo)) {
             $result['contextualInfo'] = $this->contextualInfo;
         }
-        if (isset($this->acknowledgement)) {
-            $result['acknowledgement'] = $this->acknowledgement;
+        if (isset($this->acknowledgements)) {
+            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
         if (isset($this->textStatus)) {
             $result['textStatus'] = $this->textStatus->getShortJson();
@@ -585,6 +585,9 @@ class Occurrence extends Poem
         }
         if (isset($this->genres)) {
             $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
+        }
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;

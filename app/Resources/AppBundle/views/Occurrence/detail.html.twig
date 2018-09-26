@@ -268,10 +268,16 @@
                         </tr>
                     {% endif %}
                 {% endif %}
-                {% if occurrence.getAcknowledgement() is not empty %}
+                {% if occurrence.getAcknowledgements() is not empty %}
                     <tr>
                         <td>Acknowledgements</td>
-                        <td>{{ occurrence.getAcknowledgement()|nl2br }}</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 <tr>

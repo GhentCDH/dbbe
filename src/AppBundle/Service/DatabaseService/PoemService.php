@@ -89,10 +89,12 @@ class PoemService extends DocumentService
     {
         return $this->conn->executeQuery(
             'SELECT
-                document.identity as poem_id,
-                document.acknowledgements as acknowledgement
-            from data.document
-            where document.identity in (?)',
+                document_acknowledgement.iddocument as poem_id,
+                document_acknowledgement.idacknowledgement as acknowledgement_id,
+                acknowledgement.acknowledgement as name
+            from data.document_acknowledgement
+            inner join data.acknowledgement on document_acknowledgement.idacknowledgement = acknowledgement.id
+            where document_acknowledgement.iddocument in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();

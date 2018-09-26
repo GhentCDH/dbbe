@@ -27,6 +27,11 @@ class PoemManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $short ? 'getShort' : 'getMini');
     }
 
+    public function getAcknowledgementDependencies(int $acknowledgementId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByAcknowledgementId($acknowledgementId), $short ? 'getShort' : 'getMini');
+    }
+
     protected function setIncipits(array &$poems): void
     {
         $rawIncipits = $this->dbs->getIncipits(self::getIds($poems));
@@ -97,9 +102,13 @@ class PoemManager extends DocumentManager
     protected function setAcknowledgements(array &$poems)
     {
         $rawAcknowledgements = $this->dbs->getAcknowledgements(self::getIds($poems));
+        $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
         foreach ($rawAcknowledgements as $rawAcknowledgement) {
             $poems[$rawAcknowledgement['poem_id']]
-                ->setAcknowledgement($rawAcknowledgement['acknowledgement']);
+                ->addAcknowledgement($acknowledgements[$rawAcknowledgement['acknowledgement_id']]);
+        }
+        foreach (array_keys($poems) as $poemId) {
+            $poems[$poemId]->sortAcknowledgements();
         }
     }
 }

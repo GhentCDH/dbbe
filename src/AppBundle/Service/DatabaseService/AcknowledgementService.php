@@ -8,18 +8,18 @@ use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
 
-class MeterService extends DatabaseService
+class AcknowledgementService extends DatabaseService
 {
     /**
-     * Get all meter ids
+     * Get all acknowledgement ids
      * @return array
      */
     public function getIds(): array
     {
         return $this->conn->query(
             'SELECT
-                meter.idmeter as meter_id
-            from data.meter'
+                acknowledgement.id as acknowledgement_id
+            from data.acknowledgement'
         )->fetchAll();
     }
 
@@ -27,14 +27,14 @@ class MeterService extends DatabaseService
      * @param  array $ids
      * @return array
      */
-    public function getMetersByIds(array $ids): array
+    public function getAcknowledgementsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                meter.idmeter as meter_id,
-                meter.name
-            from data.meter
-            where meter.idmeter in (?)',
+                acknowledgement.id as acknowledgement_id,
+                acknowledgement.acknowledgement as name
+            from data.acknowledgement
+            where acknowledgement.id in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -49,7 +49,7 @@ class MeterService extends DatabaseService
         $this->beginTransaction();
         try {
             $this->conn->executeUpdate(
-                'INSERT INTO data.meter (name)
+                'INSERT INTO data.acknowledgement (acknowledgement)
                 values (?)',
                 [
                     $name
@@ -57,11 +57,11 @@ class MeterService extends DatabaseService
             );
             $id = $this->conn->executeQuery(
                 'SELECT
-                    meter.idmeter as meter_id
-                from data.meter
-                order by idmeter desc
+                    acknowledgement.id as acknowledgement_id
+                from data.acknowledgement
+                order by id desc
                 limit 1'
-            )->fetch()['meter_id'];
+            )->fetch()['acknowledgement_id'];
             $this->commit();
         } catch (Exception $e) {
             $this->rollBack();
@@ -78,9 +78,9 @@ class MeterService extends DatabaseService
     public function updateName(int $id, string $name): int
     {
         return $this->conn->executeUpdate(
-            'UPDATE data.meter
-            set name = ?
-            where meter.idmeter = ?',
+            'UPDATE data.acknowledgement
+            set acknowledgement = ?
+            where acknowledgement.id = ?',
             [
                 $name,
                 $id,
@@ -94,20 +94,20 @@ class MeterService extends DatabaseService
      */
     public function delete(int $id): int
     {
-        // don't delete if this meter is used in poem_meter
+        // don't delete if this acknowledgement is used in poem_acknowledgement
         $count = $this->conn->executeQuery(
             'SELECT count(*)
-            from data.poem_meter
-            where poem_meter.idmeter = ?',
+            from data.poem_acknowledgement
+            where poem_acknowledgement.id = ?',
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This meter has dependencies.');
+            throw new DependencyException('This acknowledgement has dependencies.');
         }
 
         return $this->conn->executeUpdate(
-            'DELETE from data.meter
-            where meter.idmeter = ?',
+            'DELETE from data.acknowledgement
+            where acknowledgement.id = ?',
             [$id]
         );
     }

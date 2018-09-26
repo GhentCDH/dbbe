@@ -147,6 +147,8 @@ class OccurrenceManager extends PoemManager
                     }
                 }
 
+                $this->setAcknowledgements($occurrences);
+
                 // Needed to index DBBE in elasticsearch
                 $this->setBibliographies($occurrences);
 
@@ -172,8 +174,6 @@ class OccurrenceManager extends PoemManager
                 if (count($occurrences) == 0) {
                     throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
                 }
-
-                $this->setAcknowledgements($occurrences);
 
                 $this->setIdentifications($occurrences);
 
@@ -507,12 +507,12 @@ class OccurrenceManager extends PoemManager
                 $cacheReload['full'] = true;
                 $this->dbs->updateContextualInfo($id, $data->contextualInfo);
             }
-            if (property_exists($data, 'acknowledgement')) {
-                if (!is_string($data->acknowledgement)) {
-                    throw new BadRequestHttpException('Incorrect acknowledgement data.');
+            if (property_exists($data, 'acknowledgements')) {
+                if (!is_array($data->acknowledgements)) {
+                    throw new BadRequestHttpException('Incorrect acknowledgements data.');
                 }
-                $cacheReload['full'] = true;
-                $this->dbs->updateAcknowledgement($id, $data->acknowledgement);
+                $cacheReload['short'] = true;
+                $this->updateAcknowledgements($old, $data->acknowledgements);
             }
             if (property_exists($data, 'recordStatus')) {
                 if (!(is_object($data->recordStatus) || empty($data->recordStatus))) {
@@ -886,6 +886,26 @@ class OccurrenceManager extends PoemManager
         foreach ($newLinks as $link) {
             $imageLink = $this->container->get('image_manager')->add($link);
             $this->dbs->addImage($occurrence->getId(), $imageLink->getId());
+        }
+    }
+
+    private function updateAcknowledgements(Occurrence $occurrence, array $acknowledgements): void
+    {
+        foreach ($acknowledgements as $acknowledgement) {
+            if (!is_object($acknowledgement)
+                || !property_exists($acknowledgement, 'id')
+                || !is_numeric($acknowledgement->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect acknowledgement data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($acknowledgements, $occurrence->getAcknowledgements());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delAcknowledgements($occurrence->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addAcknowledgement($occurrence->getId(), $addId);
         }
     }
 

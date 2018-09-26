@@ -40,6 +40,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             'manuscript_content' => ['type' => 'nested'],
             'manuscript_content_public' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
+            'acknowledgement' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -66,6 +67,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
+            unset($result['data'][$key]['acknowledgement']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
                 unset($result['data'][$key][$role . '_public']);
@@ -92,7 +94,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             $this->classifyFilters(
                 array_merge(
                     $this->getIdentifierSystemNames(),
-                    ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status']
+                    ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status', 'acknowledgement']
                 ),
                 $viewInternal
             ),
@@ -207,6 +209,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                     case 'meter':
                     case 'subject':
                     case 'genre':
+                    case 'acknowledgement':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {
