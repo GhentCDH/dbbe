@@ -13,6 +13,7 @@ Encore
 
     // Add javascripts
     .autoProvidejQuery()
+    .addEntry('acknowledgementsedit', './assets/js/main/acknowledgementsedit.js')
     .addEntry('articleedit', './assets/js/main/articleedit.js')
     .addEntry('bibliographysearch', './assets/js/main/bibliographysearch.js')
     .addEntry('bookedit', './assets/js/main/bookedit.js')

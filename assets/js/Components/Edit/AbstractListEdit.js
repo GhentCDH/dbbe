@@ -10,8 +10,6 @@ import Alerts from '../Alerts'
 import EditListRow from './EditListRow'
 import Panel from './Panel'
 
-const modalComponents = require.context('./Modals', false, /[.]vue$/)
-
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
 
@@ -21,11 +19,10 @@ Vue.component('alerts', Alerts)
 Vue.component('editListRow', EditListRow)
 Vue.component('panel', Panel)
 
+const modalComponents = require.context('./Modals', false, /[/](?:Edit|Merge|Migrate|Delete)[.]vue$/)
 for(let key of modalComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['Edit', 'Merge', 'Delete'].includes(compName)) {
-        Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', modalComponents(key).default)
-    }
+    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', modalComponents(key).default)
 }
 
 export default {
@@ -46,14 +43,17 @@ export default {
             alerts: [],
             editAlerts: [],
             mergeAlerts: [],
+            migrateAlerts: [],
             deleteAlerts: [],
             delDependencies: {},
             deleteModal: false,
             editModal: false,
             mergeModal: false,
+            migrateModal: false,
             originalMergeModel: {},
-            openRequests: 0,
+            originalMigrateModel: {},
             originalSubmitModel: {},
+            openRequests: 0,
         }
     },
     methods: {
@@ -62,6 +62,9 @@ export default {
         },
         resetMerge() {
             this.mergeModel = JSON.parse(JSON.stringify(this.originalMergeModel))
+        },
+        resetMigrate() {
+            this.migrateModel = JSON.parse(JSON.stringify(this.originalMigrateModel))
         },
         // depUrls format: {
         //   CategoryName: {
@@ -106,6 +109,10 @@ export default {
         cancelMerge() {
             this.mergeModal = false
             this.mergeAlerts = []
+        },
+        cancelMigrate() {
+            this.migrateModal = false
+            this.migrateAlerts = []
         },
         cancelDelete() {
             this.deleteModal = false

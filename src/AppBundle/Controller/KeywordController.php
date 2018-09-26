@@ -6,6 +6,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
@@ -75,6 +77,7 @@ class KeywordController extends BaseController
                     'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'keyword_post' => $this->generateUrl('keyword_post'),
                     'keyword_put' => $this->generateUrl('keyword_put', ['id' => 'keyword_id']),
+                    'keyword_migrate_person' => $this->generateUrl('keyword_migrate_person', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'keyword_delete' => $this->generateUrl('keyword_delete', ['id' => 'keyword_id']),
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
@@ -82,6 +85,11 @@ class KeywordController extends BaseController
                 'keywords' => json_encode(
                     ArrayToJson::arrayToJson(
                         $this->get(self::MANAGER)->getAllSubjectKeywords()
+                    )
+                ),
+                'persons' => json_encode(
+                    ArrayToJson::arrayToJson(
+                        $this->get('person_manager')->getAllHistoricalPersons()
                     )
                 ),
                 'isSubject' => json_encode(true),
@@ -145,6 +153,33 @@ class KeywordController extends BaseController
     public function put(int $id, Request $request)
     {
         return parent::put($id, $request);
+    }
+
+    /**
+     * @Route("/keywords/{primaryId}/persons/{secondaryId}", name="keyword_migrate_person")
+     * @Method("PUT")
+     * @param  int    $primaryId   keyword id (will be deleted)
+     * @param  int    $secondaryId person id (will stay)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function migrate(int $primaryId, int $secondaryId, Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        try {
+            $object = $this
+                ->get(static::MANAGER)
+                ->migratePerson($primaryId, $secondaryId);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**

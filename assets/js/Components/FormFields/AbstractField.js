@@ -18,7 +18,7 @@ export default {
                     loading: true,
                     trackBy: 'id',
                 },
-                // Will be enabled when list of scribes is loaded
+                // Will be enabled by enableField
                 disabled: true
             }
             if (extra != null) {

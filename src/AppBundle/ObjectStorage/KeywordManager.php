@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Keyword;
+use AppBundle\Model\Person;
+use AppBundle\Utils\ArrayToJson;
 
 /**
  * ObjectManager for keywords
@@ -188,6 +190,83 @@ class KeywordManager extends ObjectManager
         }
 
         return $new;
+    }
+
+    /**
+     * Migrate a keyword to a person
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return Person
+     */
+    public function migratePerson(int $primaryId, int $secondaryId): Person
+    {
+        $keywords = $this->get([$primaryId]);
+        if (count($keywords) != 1) {
+            throw new NotFoundHttpException('Keyword with id ' . $primaryId .' not found.');
+        }
+        $keyword = $keywords[$primaryId];
+        // Will throw an exception if not found
+        $person = $this->container->get('person_manager')->getFull($secondaryId);
+
+        $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($primaryId, true);
+        $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, true);
+        $poems = $occurrences + $types;
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($poems)) {
+                foreach ($poems as $poem) {
+                    $keywordArray = ArrayToJson::arrayToShortJson($poem->getKeywordSubjects());
+                    // filter out the keywords that are not equal to the selected keyword
+                    $keywordArray = array_values(
+                        array_filter(
+                            $keywordArray,
+                            function ($keywordItem) use ($primaryId) {
+                                return $keywordItem['id'] != $primaryId;
+                            }
+                        )
+                    );
+                    $personArray = ArrayToJson::arrayToShortJson($poem->getPersonSubjects());
+                    // filter out the keywords that are not equal to the selected person
+                    // (preventing a possible duplicate)
+                    $personArray = array_values(
+                        array_filter(
+                            $personArray,
+                            function ($personItem) use ($secondaryId) {
+                                return $personItem['id'] != $secondaryId;
+                            }
+                        )
+                    );
+                    $personArray[] = ['id' => $secondaryId];
+                    $this->container->get($poem::CACHENAME . '_manager')->update(
+                        $poem->getId(),
+                        json_decode(json_encode([
+                            'keywords' => $keywordArray,
+                            'persons' => $personArray,
+                        ]))
+                    );
+                }
+            }
+            $this->delete($primaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+
+            // Reset caches and elasticsearch
+            $this->reset([$primaryId]);
+            if (!empty($occurrences)) {
+                $this->container->get('occurrence_manager')->reset(self::getIds($poems));
+            }
+            if (!empty($types)) {
+                $this->container->get('type_manager')->reset(self::getIds($poems));
+            }
+
+            throw $e;
+        }
+
+        return $person;
     }
 
     /**

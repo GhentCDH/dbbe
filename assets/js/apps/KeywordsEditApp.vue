@@ -10,13 +10,16 @@
                     :schema="schema"
                     :model="model"
                     name="keyword"
+                    to-name="person"
                     :conditions="{
                         add: true,
                         edit: model.keyword,
                         del: model.keyword,
+                        migrate: isSubject && model.keyword,
                     }"
                     @add="edit(true)"
                     @edit="edit()"
+                    @migrate="migrate()"
                     @del="del()"
                 />
             </panel>
@@ -37,6 +40,17 @@
             @reset="resetEdit()"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
+        />
+        <migrateModal
+            :show="migrateModal"
+            :schema="migrateSchema"
+            :migrate-model="migrateModel"
+            :original-migrate-model="originalMigrateModel"
+            :alerts="migrateAlerts"
+            @cancel="cancelMigrate()"
+            @reset="resetMigrate()"
+            @confirm="submitMigrate()"
+            @dismiss-alert="migrateAlerts.splice($event, 1)"
         />
         <deleteModal
             :show="deleteModal"
@@ -62,13 +76,18 @@ export default {
         AbstractListEdit,
     ],
     props: {
+        initPersons: {
+            type: String,
+            default: '',
+        },
         initIsSubject: {
             type: String,
-            default: "true",
+            default: 'true',
         },
     },
     data() {
         return {
+            persons: JSON.parse(this.initPersons),
             isSubject: JSON.parse(this.initIsSubject),
             schema: {
                 fields: {
@@ -88,6 +107,12 @@ export default {
                     },
                 },
             },
+            migrateSchema: {
+                fields: {
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                },
+            },
             model: {
                 keyword: null,
             },
@@ -97,6 +122,12 @@ export default {
                     id: null,
                     name: null,
                 }
+            },
+            migrateModel: {
+                type: 'keyword',
+                toType: 'person',
+                primary: null,
+                secondary: null,
             },
         }
     },
@@ -134,6 +165,17 @@ export default {
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
+        },
+        migrate() {
+            this.migrateModel.primary = JSON.parse(JSON.stringify(this.model.keyword))
+            this.migrateModel.secondary = null
+            this.migrateSchema.fields.primary.values = this.values
+            this.migrateSchema.fields.secondary.values = this.persons
+            this.enableField(this.migrateSchema.fields.primary)
+            this.migrateSchema.fields.primary.disabled = true
+            this.enableField(this.migrateSchema.fields.secondary)
+            this.originalMigrateModel = JSON.parse(JSON.stringify(this.migrateModel))
+            this.migrateModal = true
         },
         del() {
             this.submitModel.keyword = this.model.keyword
@@ -179,6 +221,24 @@ export default {
                         console.log(error)
                     })
             }
+        },
+        submitMigrate() {
+            this.migrateModal = false
+            this.openRequests++
+            axios.put(this.urls['keyword_migrate_person'].replace('primary_id', this.migrateModel.primary.id).replace('secondary_id', this.migrateModel.secondary.id))
+                .then( (response) => {
+                    this.submitModel.keyword = null
+                    this.update()
+                    this.migrateAlerts = []
+                    this.alerts.push({type: 'success', message: 'Migration successful.'})
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.migrateModal = true
+                    this.migrateAlerts.push({type: 'error', message: 'Something went wrong while migrating the keyword.', login: this.isLoginError(error)})
+                    console.log(error)
+                })
         },
         submitDelete() {
             this.deleteModal = false
