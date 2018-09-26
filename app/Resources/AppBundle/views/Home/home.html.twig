@@ -7,13 +7,15 @@
 </div>
 <article class="col-sm-9 mbottom-large">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-sm-12">
             <div class="bg-primary padding-default">
                 <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing project that makes available textual and contextual data of book epigrams (or: metrical paratexts) from medieval Greek manuscripts (seventh to fifteenth century). We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found. They record, react to, or motivate the production, the contents and the use of the book. Further explanation of this definition is to be found on the Help page.</p>
-                <p><a class="pull-right" href="#TODO">Read more</a></p>
+                <p><a href="#TODO"><i class="glyphicon panno-arrow-right" aria-hidden="true"></i>Read more</a></p>
             </div>
         </div>
-        <div class="col-xs-6">
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
             <div class="padding-default">
                 <a href="{{ path('occurrences_search') }}">
                     <h2>Occurrences</h2>
@@ -21,11 +23,29 @@
                 </a>
             </div>
         </div>
-        <div class="col-xs-6">
+        <div class="col-sm-6">
+            <div class="padding-default">
+                <a href="{{ path('types_search') }}">
+                    <h2>Types</h2>
+                    <p class="text-muted">Normalised versions of the poems, often regrouping several similar occurrences. This part of the database is still very provisional. The types are meant to evolve into a corpus of editions over the next years.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
             <div class="padding-default">
                 <a href="{{ path('manuscripts_search') }}">
                     <h2>Manuscripts</h2>
                     <p class="text-muted">Manuscript identifications are given according to city, library, name of the collection, shelf number: it basically follows the system of the Pinakes database.</p>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="padding-default">
+                <a href="{{ path('persons_search') }}">
+                    <h2>Persons</h2>
+                    <p class="text-muted">...</p>
                 </a>
             </div>
         </div>

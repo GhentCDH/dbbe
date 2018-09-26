@@ -28,3 +28,12 @@
 .modal-title {
   text-transform: none;
 }
+
+.bg-primary {
+  a,
+  .panno-arrow-right,
+  .panno-arrow-left,
+  .panno-plus {
+    color: $white;
+  }
+}
