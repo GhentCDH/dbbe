@@ -20,7 +20,7 @@ class BibliographyService extends DatabaseService
                 reference.url as rel_url,
                 reference.idreference_type as reference_type_id,
                 reference.source_remark,
-                reference.note,
+                reference.image,
 	            coalesce(
                     book_merge.type::text,
                     article_merge.type::text,
@@ -65,8 +65,7 @@ class BibliographyService extends DatabaseService
         string $endPage = null,
         string $url = null,
         int $referenceTypeId = null,
-        string $sourceRemark = null,
-        string $note = null
+        string $image = null
     ): int {
         $this->beginTransaction();
         try {
@@ -78,8 +77,7 @@ class BibliographyService extends DatabaseService
                     page_end,
                     url,
                     idreference_type,
-                    source_remark,
-                    note
+                    image
                 )
                 values (?, ?, ?, ?, ?, ?, ?, ?)',
                 [
@@ -89,8 +87,7 @@ class BibliographyService extends DatabaseService
                     $endPage,
                     $url,
                     $referenceTypeId,
-                    $sourceRemark,
-                    $note,
+                    $image,
                 ]
             );
             $id = $this->conn->executeQuery(
@@ -116,8 +113,7 @@ class BibliographyService extends DatabaseService
         string $rawPages = null,
         string $url = null,
         int $referenceTypeId = null,
-        string $sourceRemark = null,
-        string $note = null
+        string $image = null
     ): int {
         return $this->conn->executeUpdate(
             'UPDATE data.reference
@@ -129,7 +125,7 @@ class BibliographyService extends DatabaseService
                 url = ?,
                 idreference_type = ?,
                 source_remark = ?,
-                note = ?
+                image = ?
             where idreference = ?',
             [
                 $sourceId,
@@ -138,8 +134,7 @@ class BibliographyService extends DatabaseService
                 $rawPages,
                 $url,
                 $referenceTypeId,
-                $sourceRemark,
-                $note,
+                $image,
                 $referenceId,
             ]
         );

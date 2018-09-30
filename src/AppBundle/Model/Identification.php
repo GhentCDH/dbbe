@@ -6,32 +6,45 @@ class Identification
 {
     use CacheObjectTrait;
 
-    private $identifier;
-    private $identifications;
+    protected $identifier;
+    protected $identifications;
+    protected $extra;
 
-    public static function constructFromDB(Identifier $identifier, array $identifications, array $authorityIds, array $identificationIds)
-    {
+    public static function constructFromDB(
+        Identifier $identifier,
+        array $identifications,
+        array $authorityIds,
+        string $extra = null,
+        array $identificationIds
+    ) {
         $identification = new Identification();
 
         $identification->identifier = $identifier;
         $identification->identifications = [];
         if (count($identificationIds) > 1) {
             foreach ($identifications as $key => $value) {
-                $identification->identifications[] = self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
+                $identification->identifications[] =
+                    self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
             }
         } else {
             $identification->identifications = explode(', ', $identifications[0]);
+        }
+        if ($extra != null && $extra != '') {
+            $identification->extra = $extra;
         }
 
         return $identification;
     }
 
-    private static function constructFromCache(Identifier $identifier, array $identifications)
+    private static function constructFromCache(Identifier $identifier, array $identifications, string $extra = null)
     {
         $identification = new Identification();
 
         $identification->identifier = $identifier;
         $identification->identifications = $identifications;
+        if ($extra != null) {
+            $identification->extra = $extra;
+        }
 
         return $identification;
     }
@@ -44,6 +57,11 @@ class Identification
     public function getIdentifications(): array
     {
         return $this->identifications;
+    }
+
+    public function getExtra(): ?string
+    {
+        return $this->extra;
     }
 
     /**
@@ -69,7 +87,11 @@ class Identification
 
     public static function unlinkCache(array $data)
     {
-        $identification = self::constructFromCache($data['identifier'], $data['identifications']);
+        $identification = self::constructFromCache(
+            $data['identifier'],
+            $data['identifications'],
+            isset($data['extra']) ? $data['extra'] : null
+        );
 
         foreach ($data as $key => $value) {
             $identification->set($key, $value);

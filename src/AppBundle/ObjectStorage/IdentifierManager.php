@@ -40,7 +40,8 @@ class IdentifierManager extends ObjectManager
                             $rawIdentifier['link'],
                             $rawIdentifier['volumes'],
                             $rawIdentifier['regex'],
-                            $rawIdentifier['description']
+                            $rawIdentifier['description'],
+                            $rawIdentifier['extra']
                         );
                     }
                 }

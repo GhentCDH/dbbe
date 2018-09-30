@@ -14,16 +14,7 @@
                 {{ item.message }}
             </alert>
 
-            <basicOccurrencePanel
-                id="basic"
-                ref="basic"
-                header="Basic information"
-                :model="model.basic"
-                :values="manuscripts"
-                @validated="validated"
-            />
-
-            <occurrenceVersesPanel
+            <typeVersesPanel
                 id="verses"
                 ref="verses"
                 header="Verses"
@@ -32,7 +23,7 @@
                 @validated="validated"
             />
 
-            <occurrenceTypesPanel
+            <typeTypesPanel
                 id="types"
                 ref="types"
                 header="Types"
@@ -48,14 +39,6 @@
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
-                @validated="validated"
-            />
-
-            <datePanel
-                id="date"
-                ref="date"
-                header="Date"
-                :model="model.date"
                 @validated="validated"
             />
 
@@ -83,9 +66,19 @@
                 id="subjects"
                 ref="subjects"
                 header="Subjects"
-                :link="{url: urls['keywords_edit'], text: 'Edit keywords'}"
+                :link="{url: urls['keywords_subject_edit'], text: 'Edit subject keywords'}"
                 :model="model.subjects"
                 :values="subjects"
+                @validated="validated"
+            />
+
+            <keywordPanel
+                id="keywords"
+                ref="keywords"
+                header="Keywords"
+                :link="{url: urls['keywords_type_edit'], text: 'Edit type keywords'}"
+                :model="model.keywords"
+                :values="keywords"
                 @validated="validated"
             />
 
@@ -99,27 +92,17 @@
                 @validated="validated"
             />
 
-            <imagePanel
-                id="images"
-                ref="images"
-                header="Images"
-                :model="model.images"
-                :urls="urls"
-                @validated="validated"
-            />
-
             <bibliographyPanel
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
                 :reference-type="true"
-                :image="true"
                 :values="bibliographies"
                 @validated="validated"
             />
 
-            <generalOccurrencePanel
+            <generalTypePanel
                 id="general"
                 ref="general"
                 header="General"
@@ -138,7 +121,7 @@
                 Reset
             </btn>
             <btn
-                v-if="occurrence"
+                v-if="type"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()"
@@ -177,16 +160,14 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#basic">Basic information</a></li>
                     <li><a href="#verses">Verses</a></li>
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
-                    <li><a href="#date">Date</a></li>
                     <li><a href="#meters">Meters</a></li>
                     <li><a href="#genres">Genres</a></li>
                     <li><a href="#subjects">Subjects</a></li>
+                    <li><a href="#keywords">Keywords</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
-                    <li><a href="#images">Images</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -194,7 +175,7 @@
             </nav>
         </aside>
         <resetModal
-            title="occurrence"
+            title="type"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()"
@@ -205,7 +186,7 @@
             @confirm="invalidModal=false"
         />
         <saveModal
-            title="occurrence"
+            title="type"
             :show="saveModal"
             :diff="diff"
             :alerts="saveAlerts"
@@ -221,7 +202,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Meter|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -234,58 +215,33 @@ export default {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
-            occurrence: null,
+            type: null,
             manuscripts: null,
             types: null,
             historicalPersons: null,
             meters: null,
             genres: null,
             subjects: null,
+            keywords: null,
             bibliographies: null,
             generals: null,
             model: {
-                basic: {
-                    incipit: null,
-                    title: null,
-                    manuscript: null,
-                    foliumStart:  null,
-                    foliumStartRecto:  null,
-                    foliumEnd:  null,
-                    foliumEndRecto:  null,
-                    unsure:  null,
-                    generalLocation:  null,
-                    alternativeFoliumStart:  null,
-                    alternativeFoliumStartRecto:  null,
-                    alternativeFoliumEnd:  null,
-                    alternativeFoliumEndRecto:  null,
-                },
                 verses: {
                     verses: [],
                     numberOfVerses: null,
                 },
                 types: {types: null},
                 personRoles: {},
-                date: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
                 meters: {meters: null},
                 genres: {genres: null},
                 subjects: {
                     persons: null,
                     keywords: null,
                 },
-                identification: {},
-                images: {
-                    images: null,
-                    imageLinks: null,
+                keywords: {
+                    keywords: null,
                 },
+                identification: {},
                 bibliography: {
                     books: [],
                     articles: [],
@@ -293,28 +249,25 @@ export default {
                     onlineSources: [],
                 },
                 general: {
-                    paleographicalInfo: null,
-                    contextualInfo: null,
+                    translation: null,
+                    criticalApparatus: null,
                     acknowledgements: null,
                     publicComment: null,
                     privateComment: null,
                     textStatus: null,
-                    recordStatus: null,
-                    dividedStatus: null,
-                    sourceStatus: null,
+                    criticalStatus: null,
+                    basedOn: null,
                     public: null,
                 },
             },
             forms: [
-                'basic',
                 'verses',
                 'types',
                 'persons',
-                'date',
                 'meters',
                 'genres',
                 'subjects',
-                'images',
+                'keywords',
                 'bibliography',
                 'general',
             ],
@@ -334,16 +287,20 @@ export default {
         return data
     },
     created () {
-        this.occurrence = this.data.occurrence
+        this.type = this.data.type
         this.manuscripts = this.data.manuscripts
-        this.types = this.data.types
+        this.types = {
+            types: this.data.types,
+            relationTypes: this.data.typeRelationTypes,
+        }
         this.historicalPersons = this.data.historicalPersons
         this.meters = this.data.meters
         this.genres = this.data.genres
         this.subjects = {
             persons: this.historicalPersons,
-            keywords: this.data.keywords,
+            keywords: this.data.subjectKeywords,
         }
+        this.keywords = this.data.typeKeywords
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -354,95 +311,64 @@ export default {
         this.generals = {
             acknowledgements: this.data.acknowledgements,
             textStatuses: this.data.textStatuses,
-            recordStatuses: this.data.recordStatuses,
-            dividedStatuses: this.data.dividedStatuses,
-            sourceStatuses: this.data.sourceStatuses,
+            criticalStatuses: this.data.criticalStatuses,
+            occurrences: this.data.occurrences,
         }
     },
     mounted () {
-        this.loadOccurrence()
+        this.loadType()
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
     },
     methods: {
-        loadOccurrence() {
-            if (this.occurrence != null) {
-                // Basic information
-                this.model.basic = {
-                    incipit: this.occurrence.incipit,
-                    title: this.occurrence.title,
-                    manuscript: this.occurrence.manuscript,
-                    foliumStart: this.occurrence.foliumStart,
-                    foliumStartRecto: this.occurrence.foliumStartRecto,
-                    foliumEnd: this.occurrence.foliumEnd,
-                    foliumEndRecto: this.occurrence.foliumEndRecto,
-                    unsure: this.occurrence.unsure,
-                    generalLocation: this.occurrence.generalLocation,
-                    alternativeFoliumStart: this.occurrence.alternativeFoliumStart,
-                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
-                    alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
-                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
-                }
-
+        loadType() {
+            if (this.type != null) {
                 // Verses
                 this.model.verses = {
-                    verses: this.occurrence.verses,
-                    numberOfVerses: this.occurrence.numberOfVerses,
+                    verses: this.type.verses,
+                    numberOfVerses: this.type.numberOfVerses,
                 }
 
                 // Types
                 this.model.types = {
-                    types: this.occurrence.types,
+                    relatedTypes: this.type.relatedTypes,
                 }
 
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.occurrence.personRoles != null ? this.occurrence.personRoles[role.systemName] : null
+                    this.model.personRoles[role.systemName] = this.type.personRoles != null ? this.type.personRoles[role.systemName] : null
                 }
                 this.$refs.persons.init();
 
-                // Date
-                this.model.date = {
-                    floor: this.occurrence.date != null ? this.occurrence.date.floor : null,
-                    ceiling: this.occurrence.date != null ? this.occurrence.date.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                }
-
                 // Meter
                 this.model.meters = {
-                    meters: this.occurrence.meters,
+                    meters: this.type.meters,
                 }
 
                 // Genre
                 this.model.genres = {
-                    genres: this.occurrence.genres,
+                    genres: this.type.genres,
                 }
 
                 // Subject
                 this.model.subjects = {
-                    persons: this.occurrence.subjects.persons,
-                    keywords: this.occurrence.subjects.keywords,
+                    persons: this.type.subjects.persons,
+                    keywords: this.type.subjects.keywords,
+                }
+
+                // Keyword
+                this.model.keywords = {
+                    keywords: this.type.subjects.keywords,
                 }
 
                 // Identification
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.occurrence.identifications != null ? this.occurrence.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.type.identifications != null ? this.type.identifications[identifier.systemName] : null
                     if (identifier.extra) {
-                        this.model.identification[identifier.systemName + '_extra'] = this.occurrence.identifications != null ? this.occurrence.identifications[identifier.systemName + '_extra'] : null
+                        this.model.identification[identifier.systemName + '_extra'] = this.type.identifications != null ? this.type.identifications[identifier.systemName + '_extra'] : null
                     }
-                }
-
-                // Images
-                this.model.images = {
-                    images: this.occurrence.images.images,
-                    imageLinks: this.occurrence.images.imageLinks,
                 }
 
                 // Bibliography
@@ -452,8 +378,8 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                 }
-                if (this.occurrence.bibliography != null) {
-                    for (let bib of this.occurrence.bibliography) {
+                if (this.type.bibliography != null) {
+                    for (let bib of this.type.bibliography) {
                         switch (bib['type']) {
                         case 'book':
                             this.model.bibliography.books.push(bib)
@@ -473,16 +399,15 @@ export default {
 
                 // General
                 this.model.general = {
-                    paleographicalInfo: this.occurrence.paleographicalInfo,
-                    contextualInfo: this.occurrence.contextualInfo,
-                    acknowledgements: this.occurrence.acknowledgements,
-                    publicComment: this.occurrence.publicComment,
-                    privateComment: this.occurrence.privateComment,
-                    textStatus: this.occurrence.textStatus,
-                    recordStatus: this.occurrence.recordStatus,
-                    dividedStatus: this.occurrence.dividedStatus,
-                    sourceStatus: this.occurrence.sourceStatus,
-                    public: this.occurrence.public,
+                    translation: this.type.translation,
+                    criticalApparatus: this.type.criticalApparatus,
+                    acknowledgements: this.type.acknowledgements,
+                    publicComment: this.type.publicComment,
+                    privateComment: this.type.privateComment,
+                    textStatus: this.type.textStatus,
+                    criticalStatus: this.type.criticalStatus,
+                    basedOn: this.type.basedOn,
+                    public: this.type.public,
                 }
             }
 
@@ -495,31 +420,31 @@ export default {
         save() {
             this.openRequests++
             this.saveModal = false
-            if (this.occurrence == null) {
-                axios.post(this.urls['occurrence_post'], this.toSave())
+            if (this.type == null) {
+                axios.post(this.urls['type_post'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['occurrence_get'].replace('occurrence_id', response.data.id)
+                        window.location = this.urls['type_get'].replace('type_id', response.data.id)
                     })
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }
             else {
-                axios.put(this.urls['occurrence_put'], this.toSave())
+                axios.put(this.urls['type_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}
                         // redirect to the detail page
-                        window.location = this.urls['occurrence_get']
+                        window.location = this.urls['type_get']
                     })
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }

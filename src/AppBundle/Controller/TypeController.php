@@ -221,6 +221,10 @@ class TypeController extends BaseController
                     'type_get' => $this->generateUrl('type_get', ['id' => $id == null ? 'type_id' : $id]),
                     'type_post' => $this->generateUrl('type_post'),
                     'type_put' => $this->generateUrl('type_put', ['id' => $id]),
+                    'meters_edit' => $this->generateUrl('meters_edit'),
+                    'genres_edit' => $this->generateUrl('genres_edit'),
+                    'keywords_subject_edit' => $this->generateUrl('keywords_subject_edit'),
+                    'keywords_type_edit' => $this->generateUrl('keywords_type_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -228,6 +232,8 @@ class TypeController extends BaseController
                     'type' => empty($id)
                         ? null
                         : $this->get('type_manager')->getFull($id)->getJson(),
+                    'types' => ArrayToJson::arrayToShortJson($this->get('type_manager')->getAllMini()),
+                    'typeRelationTypes' => ArrayToJson::arrayToShortJson($this->get('type_relation_type_manager')->getAll()),
                     'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
                     'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
                     'genres' => ArrayToJson::arrayToShortJson($this->get('genre_manager')->getAll()),
@@ -238,13 +244,16 @@ class TypeController extends BaseController
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
                     'referenceTypes' => ArrayToJson::arrayToShortJson($this->get('reference_type_manager')->getAll()),
+                    'acknowledgements' => ArrayToJson::arrayToShortJson($this->get('acknowledgement_manager')->getAll()),
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllTypeTextStatuses()),
+                    'criticalStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllTypeCriticalStatuses()),
+                    'occurrences' => ArrayToJson::arrayToShortJson($this->get('occurrence_manager')->getAllMini()),
                 ]),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))
+                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('type'))
                 ),
                 'roles' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('occurrence'))
+                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('type'))
                 ),
                 // @codingStandardsIgnoreEnd
             ]

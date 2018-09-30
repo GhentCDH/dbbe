@@ -485,6 +485,7 @@ class OccurrenceManager extends PoemManager
                 $cacheReload['short'] = true;
                 $this->updateKeywordSubjects($old, $data->keywords);
             }
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'occurrence');
             if (property_exists($data, 'bibliography')) {
                 if (!is_object($data->bibliography)) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');

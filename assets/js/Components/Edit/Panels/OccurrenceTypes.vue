@@ -36,7 +36,6 @@ export default {
                         'Types',
                         {
                             values: this.values,
-                            labelClasses: 'control-label',
                             styleClasses: 'greek',
                         },
                         {

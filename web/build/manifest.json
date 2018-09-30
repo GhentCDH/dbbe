@@ -53,6 +53,7 @@
   "build/rolesedit.js": "/build/rolesedit.js",
   "build/screen.css": "/build/screen.css",
   "build/statusesedit.js": "/build/statusesedit.js",
+  "build/typeedit.js": "/build/typeedit.js",
   "build/typesearch.js": "/build/typesearch.js",
   "build/usersedit.js": "/build/usersedit.js"
 }

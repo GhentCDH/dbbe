@@ -162,6 +162,26 @@ class Entity implements IdJsonInterface, IdElasticInterface
         );
     }
 
+    public function getOtherSources(): array
+    {
+        return array_filter(
+            $this->bibliographies,
+            function ($bibliography) {
+                return (empty($bibliography->getReferenceType()));
+            }
+        );
+    }
+
+    public function getImageBibliographies(): array
+    {
+        return array_filter(
+            $this->bibliographies,
+            function ($bibliography) {
+                return (!empty($bibliography->getImage()));
+            }
+        );
+    }
+
     public function setInverseBibliographies(array $inverseBibliographies): Entity
     {
         $this->inverseBibliographies = $inverseBibliographies;
@@ -223,7 +243,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
         if (!empty($this->identifications)) {
             $result['identifications'] = [];
             foreach ($this->identifications as $identification) {
-                $result['identifications'][$identification->getIdentifier()->getSystemName()] = implode(', ', $identification->getIdentifications());
+                $result['identifications'][$identification->getIdentifier()->getSystemName()] =
+                    implode(', ', $identification->getIdentifications());
+                $result['identifications'][$identification->getIdentifier()->getSystemName() . '_extra'] =
+                    $identification->getExtra();
             }
         }
         if (!empty($this->getBibliographies())) {

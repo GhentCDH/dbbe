@@ -257,6 +257,9 @@ export default {
         }
         for (let identifier of data.identifiers) {
             data.model.identification[identifier.systemName] = null
+            if (identifier.extra) {
+                data.model.identification[identifier.systemName + '_extra'] = null
+            }
         }
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
@@ -292,12 +295,6 @@ export default {
                 // Content
                 this.model.content = {
                     content: this.manuscript.content,
-                }
-
-                // Identification
-                this.model.identification = {}
-                for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
                 }
 
                 // PersonRoles
@@ -358,6 +355,9 @@ export default {
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
                     this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
+                    if (identifier.extra) {
+                        this.model.identification[identifier.systemName + '_extra'] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName + '_extra'] : null
+                    }
                 }
 
                 // General

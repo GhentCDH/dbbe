@@ -34,6 +34,10 @@ class Status extends IdNameObject
      * @var string
      */
     const TYPE_TEXT = 'type_text';
+    /**
+     * @var string
+     */
+    const TYPE_CRITICAL = 'type_critical';
 
     /**
      * @var string

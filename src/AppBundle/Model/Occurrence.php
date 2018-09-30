@@ -386,18 +386,6 @@ class Occurrence extends Poem
         return $this->paleographicalInfo;
     }
 
-    public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
-    {
-        $this->numberOfVerses = $numberOfVerses;
-
-        return $this;
-    }
-
-    public function getNumberOfVerses(): int
-    {
-        return isset($this->numberOfVerses) ? $this->numberOfVerses : count($this->verses);
-    }
-
     public function addImage(Image $image): Occurrence
     {
         $this->images[$image->getId()] = $image;
@@ -422,17 +410,6 @@ class Occurrence extends Poem
         return $this->imageLinks;
     }
 
-    public function getDBBE(): bool
-    {
-        $textSources = $this->getTextSources();
-        foreach ($textSources as $textSource) {
-            if ($textSource->getType() == 'onlineSource' && $textSource->getOnlineSource()->getName() == 'DBBE') {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public function getShortJson(): array
     {
         return [
@@ -446,12 +423,6 @@ class Occurrence extends Poem
     {
         $result = parent::getJson();
 
-        if (isset($this->incipit)) {
-            $result['incipit'] = $this->incipit;
-        }
-        if (isset($this->title)) {
-            $result['title'] = $this->title;
-        }
         if (isset($this->manuscript)) {
             $result['manuscript'] = $this->manuscript->getShortJson();
         }
@@ -485,22 +456,12 @@ class Occurrence extends Poem
         if (isset($this->alternativeFoliumEndRecto)) {
             $result['alternativeFoliumEndRecto'] = $this->alternativeFoliumEndRecto;
         }
-        if (!empty($this->numberOfVerses)) {
-            $result['numberOfVerses'] = $this->numberOfVerses;
-        }
         if (!empty($this->verses)) {
             $result['verses'] = ArrayToJson::arrayToJson($this->verses);
         }
         if (!empty($this->types)) {
             $result['types'] = ArrayToJson::arrayToShortJson($this->types);
         }
-        if (isset($this->meters)) {
-            $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
-        }
-        $result['subjects'] = [
-            'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
-            'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
-        ];
         $result['images'] = [
             'images' => ArrayToJson::arrayToJson($this->getImages()),
             'imageLinks' => ArrayToJson::arrayToJson($this->getImageLinks()),
@@ -508,17 +469,11 @@ class Occurrence extends Poem
         if (isset($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
-        if (isset($this->genres)) {
-            $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
-        }
         if (isset($this->paleographicalInfo)) {
             $result['paleographicalInfo'] = $this->paleographicalInfo;
         }
         if (isset($this->contextualInfo)) {
             $result['contextualInfo'] = $this->contextualInfo;
-        }
-        if (isset($this->acknowledgements)) {
-            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
         if (isset($this->textStatus)) {
             $result['textStatus'] = $this->textStatus->getShortJson();

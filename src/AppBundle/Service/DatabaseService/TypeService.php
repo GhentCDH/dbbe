@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\DatabaseService;
 
+use Exception;
+
 use Doctrine\DBAL\Connection;
 
 class TypeService extends PoemService
@@ -12,6 +14,18 @@ class TypeService extends PoemService
             'SELECT
                 reconstructed_poem.identity as type_id
             from data.reconstructed_poem'
+        )->fetchAll();
+    }
+
+    public function getIdsByIds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            where reconstructed_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
@@ -154,7 +168,8 @@ class TypeService extends PoemService
             inner join data.status on document_status.idstatus = status.idstatus
             where document_status.iddocument in (?)
             and status.type in (
-                \'type_text\'
+                \'type_text\',
+                \'type_critical\'
             )',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
@@ -182,14 +197,89 @@ class TypeService extends PoemService
         return $this->conn->executeQuery(
             'SELECT
                 reconstructed_poem.identity as type_id,
-                factoid.subject_identity as rel_type_id
+                factoid.subject_identity as rel_type_id,
+                factoid.idfactoid_type as type_relation_type_id,
+                factoid_type.type as name
             from data.reconstructed_poem
             inner join data.factoid on reconstructed_poem.identity = factoid.object_identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
             where reconstructed_poem.identity in (?)
-            and factoid_type.type = \'related to\'',
+            and factoid_type.group = \'reconstructed_poem_related_to_reconstructed_poem\'',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
+    }
+
+    public function getCriticalApparatuses(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id,
+                reconstructed_poem.critical_apparatus
+            from data.reconstructed_poem
+            where reconstructed_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getTranslations(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id,
+                document.text_content as translation
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.document on translation_of.idtranslation = document.identity
+            where reconstructed_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function getBasedOns(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                factoid.subject_identity as type_id,
+                factoid.object_identity as occurrence_id
+            from data.factoid
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            where factoid_type.type = \'based on\'
+            and factoid.subject_identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function insert(): int
+    {
+        $this->beginTransaction();
+        try {
+            // Set search_path for trigger ensure_reconstructed_poem_has_identity
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'INSERT INTO data.type default values'
+            );
+            $id = $this->conn->executeQuery(
+                'SELECT
+                    person.identity as person_id
+                from data.person
+                order by identity desc
+                limit 1'
+            )->fetch()['person_id'];
+            $this->conn->executeUpdate(
+                'INSERT INTO data.name (idperson) values (?)',
+                [
+                    $id,
+                ]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $id;
     }
 }

@@ -79,9 +79,12 @@ class BookChapterManager extends DocumentManager
             function ($id) {
                 // Get basic information
                 $bookChapters = $this->getShort([$id]);
+
                 if (count($bookChapters) == 0) {
                     throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
                 }
+
+                $this->setIdentifications($bookChapters);
 
                 $this->setInverseBibliographies($bookChapters);
 
@@ -213,6 +216,7 @@ class BookChapterManager extends DocumentManager
                 $cacheReload['mini'] = true;
                 $this->dbs->updateBook($id, $data->book->id);
             }
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'bookChapter');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

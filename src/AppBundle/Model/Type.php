@@ -24,20 +24,38 @@ class Type extends Poem
      */
     protected $occurrences = [];
     /**
+     * Array containing related types and the relation type
+     * Structure:
+     *  [
+     *      [type, typeRelationType],
+     *      [type, typeRelationType],
+     *      ...
+     *  ]
      * @var array
      */
     protected $relatedTypes = [];
+    /**
+     * @var Status
+     */
+    protected $criticalStatus;
+    /**
+     * @var string
+     */
+    protected $criticalApparatus;
+    /**
+     * @var string
+     */
+    protected $translation;
+    /**
+     * @var Occurrence
+     */
+    protected $basedOn;
 
     public function setVerses(array $verses): Type
     {
         $this->verses = $verses;
 
         return $this;
-    }
-
-    public function getNumberOfVerses(): ?int
-    {
-        return count($this->verses);
     }
 
     public function addKeyword(Keyword $keyword): Type
@@ -64,9 +82,9 @@ class Type extends Poem
         return $this->occurrences;
     }
 
-    public function setRelatedTypes(array $types): Type
+    public function addRelatedType(Type $type, TypeRelationType $relationType): Type
     {
-        $this->relatedTypes = $types;
+        $this->relatedTypes[] = [$type, $relationType];
 
         return $this;
     }
@@ -74,6 +92,64 @@ class Type extends Poem
     public function getRelatedTypes(): array
     {
         return $this->relatedTypes;
+    }
+
+    public function getPublicRelatedTypes(): array
+    {
+        return array_filter(
+            $this->relatedTypes,
+            function ($relatedType) {
+                return $relatedType[0]->getPublic();
+            }
+        );
+    }
+
+    public function setCriticalStatus(Status $criticalStatus = null): Type
+    {
+        $this->criticalStatus = $criticalStatus;
+
+        return $this;
+    }
+
+    public function getCriticalStatus(): ?Status
+    {
+        return $this->criticalStatus;
+    }
+
+    public function setCriticalApparatus(string $criticalApparatus = null): Type
+    {
+        $this->criticalApparatus = $criticalApparatus;
+
+        return $this;
+    }
+
+    public function getCriticalApparatus(): ?string
+    {
+        return $this->criticalApparatus;
+    }
+
+    public function setTranslation(string $translation = null): Type
+    {
+        $this->translation = $translation;
+
+        return $this;
+    }
+
+    public function getTranslation(): ?string
+    {
+        return $this->translation;
+    }
+
+    public function setBasedOn(Occurrence $basedOn = null): Type
+    {
+        $this->basedOn = $basedOn;
+
+        return $this;
+    }
+
+    public function getBasedOn(): ?Occurrence
+    {
+        return $this->basedOn;
     }
 
     public function getDescription(): string
@@ -89,11 +165,52 @@ class Type extends Poem
         ];
     }
 
+    public function getJson(): array
+    {
+        $result = parent::getJson();
+
+        if (!empty($this->verses)) {
+            $result['verses'] = implode("\n", $this->verses);
+        }
+
+        if (!empty($this->keywords)) {
+            $result['keywords'] = ArrayToJson::arrayToShortJson($this->keywords);
+        }
+
+        if (!empty($this->relatedTypes)) {
+            $result['relatedTypes'] = [];
+            foreach ($this->relatedTypes as $relationType) {
+                $result['relatedTypes'][] = [
+                    'type' => $relationType[0]->getShortJson(),
+                    'relationType' => $relationType[1]->getShortJson(),
+                ];
+            }
+        }
+        if (isset($this->textStatus)) {
+            $result['textStatus'] = $this->textStatus->getShortJson();
+        }
+        if (isset($this->criticalStatus)) {
+            $result['criticalStatus'] = $this->criticalStatus->getShortJson();
+        }
+        if (isset($this->translation)) {
+            $result['translation'] = $this->translation;
+        }
+        if (isset($this->criticalApparatus)) {
+            $result['criticalApparatus'] = $this->criticalApparatus;
+        }
+        if (isset($this->basedOn)) {
+            $result['basedOn'] = $this->basedOn->getShortJson();
+        }
+
+        return $result;
+    }
+
     public function getElastic(): array
     {
         $result = [
             'id' => $this->id,
             'public' => $this->public,
+            'dbbe' => $this->getDBBE(),
         ];
 
         if (isset($this->incipit)) {
@@ -103,10 +220,13 @@ class Type extends Poem
             $result['title'] = $this->title;
         }
         if (!empty($this->verses)) {
-            $result['text'] = implode("\n", $this->verses);
+            $result['verses'] = implode("\n", $this->verses);
         }
         if (isset($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
+        }
+        if (isset($this->criticalStatus)) {
+            $result['critical_status'] = $this->criticalStatus->getShortJson();
         }
         if (isset($this->meters)) {
             $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);

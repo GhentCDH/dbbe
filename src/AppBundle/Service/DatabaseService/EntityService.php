@@ -46,13 +46,15 @@ class EntityService extends DatabaseService
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
                 identifier.description,
+                identifier.extra,
                 array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifications,
                 array_to_json(array_agg(global_id.idauthority ORDER BY array_position(identifier.ids, global_id.idauthority))) as authority_ids,
+                global_id.extra as identification_extra,
                 array_to_json(identifier.ids) as identification_ids
             from data.global_id
             inner join data.identifier on global_id.idauthority = ANY(identifier.ids)
             where global_id.idsubject in (?)
-            group by global_id.idsubject, identifier.ididentifier
+            group by global_id.idsubject, identifier.ididentifier, global_id.extra
             order by identifier.order',
             [
                 $ids,
@@ -232,8 +234,12 @@ class EntityService extends DatabaseService
         );
     }
 
-    public function upsertIdentification(int $entityId, int $identifierId, int $volume, string $identification): int
-    {
+    public function upsertIdentification(
+        int $entityId,
+        int $identifierId,
+        int $volume,
+        string $identification
+    ): int {
         return $this->conn->executeUpdate(
             'INSERT into data.global_id (idauthority, idsubject, identifier)
             VALUES (
@@ -253,6 +259,35 @@ class EntityService extends DatabaseService
                 $identifierId,
                 $entityId,
                 $identification,
+            ]
+        );
+    }
+
+    /**
+     * Extra is not allowed on identifiers with multiple volumes
+     * @param  int    $entityId
+     * @param  int    $identifierId
+     * @param  string $extra
+     * @return int
+     */
+    public function updateIdentificationExtra(
+        int $entityId,
+        int $identifierId,
+        string $extra
+    ): int {
+        return $this->conn->executeUpdate(
+            'UPDATE data.global_id
+            set etra = ?
+            where idauthority = (
+                select identifier.ids[1]
+                from data.identifier
+                where identifier.ididentifier = ?
+            )
+            and idsubject = ?',
+            [
+                $identifierId,
+                $entityId,
+                $extra,
             ]
         );
     }

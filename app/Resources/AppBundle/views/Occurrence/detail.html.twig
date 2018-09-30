@@ -64,16 +64,16 @@
                 {% if types is not empty %}
                     <tr>
                         <td>Type(s)</td>
-                        <td class="greek">
+                        <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': types} only %}
                                 {% block renderItem %}
                                     <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get','display': item.getDescription()} only %}</span>
-                                    {% if item.getNumberOfVerses() is not empty %}
-                                        {% if item.getNumberOfVerses() == 1 %}
-                                            (1 verse)
-                                        {% else %}
-                                            ({{ item.getNumberOfVerses() }} verses)
-                                        {% endif %}
+                                    {% if item.getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item.getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else %}
+                                        ({{ item.getNumberOfVerses() }} verses)
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
@@ -90,8 +90,6 @@
                                         <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with text source {{ item.getOnlineSource().getName() }}">
                                         {{ item.getOnlineSource().getName() }}
                                         {% if occurrence.getSourceStatus() is not empty %}({{ occurrence.getSourceStatus().getName() }}){% endif %}
-                                        {% if item.getSourceRemark() is not empty %}({{ item.getSourceRemark() }}){% endif %}
-                                        {% if item.getNote() is not empty %}({{ item.getNote() }}){% endif %}
                                         </a>
                                     {% else %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item, 'sourceStatus': occurrence.getSourceStatus() } only %}
@@ -178,7 +176,7 @@
                 {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}
                 {% if subjects is not empty %}
                     <tr>
-                        <td>Subjects</td>
+                        <td>Subject(s)</td>
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': subjects} only %}
                                 {% block renderItem %}
@@ -199,27 +197,40 @@
                     </tr>
                 {% endif %}
                 {% set imageLinks = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImageLinks() : occurrence.getImageLinks()|public %}
-                {% if imageLinks is not empty %}
+                {% set bibliographyImages = occurrence.getImageBibliographies() %}
+                {% if imageLinks is not empty or bibliographyImages is not empty %}
                     <tr>
-                        <td>Image sources</td>
+                        <td>Image source(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': imageLinks} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': imageLinks|merge(bibliographyImages)} only %}
                                 {% block renderItem %}
+                                {% if item is image %}
                                     {% if not item.getPublic() %}
                                         {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                            <a href="{{ item.getUrl() }}">
+                                            {% if item.getUrl() matches '/^http/' %}
+                                                <a href="{{ item.getUrl() }}">
+                                                    <span class="bg-warning">{{ item.getUrl() }}</span>
+                                                </a>
+                                            {% else %}
                                                 <span class="bg-warning">{{ item.getUrl() }}</span>
-                                            </a>
+                                            {% endif %}
                                         {% endif %}
                                     {% else %}
-                                        <a href="{{ item.getUrl() }}">{{ item.getUrl() }}</a>
+                                        {% if item.getUrl() matches '/^http/' %}
+                                            <a href="{{ item.getUrl() }}">{{ item.getUrl() }}</a>
+                                        {% else %}
+                                            {{ item.getUrl() }}
+                                        {% endif %}
                                     {% endif %}
+                                {% else %}
+                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %} ({{ item.getImage() }})
+                                {% endif %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getPrimarySources() is not empty or occurrence.getSecondarySources() is not empty%}
+                {% if occurrence.getPrimarySources() is not empty or occurrence.getSecondarySources() is not empty or occurrence.getOtherSources() is not empty %}
                     <tr>
                         <td>Bibliography</td>
                         <td>
@@ -234,6 +245,14 @@
                             {% if occurrence.getSecondarySources() is not empty %}
                                 <p><em>Secondary</em></p>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getSecondarySources()} only %}
+                                    {% block renderItem %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                    {% endblock %}
+                                {% endembed %}
+                            {% endif %}
+                            {% if occurrence.getOtherSources() is not empty %}
+                                <p><em>To be revised</em></p>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getOtherSources()} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}

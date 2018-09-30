@@ -36,6 +36,18 @@
                         <td>{{ pages }}</td>
                     </tr>
                 {% endif %}
+                {% if article.getIdentifications() is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getIdentifications()} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': article.getInverseBibliographies()} only %}
             </tbody>
         </table>

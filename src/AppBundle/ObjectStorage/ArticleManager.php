@@ -79,9 +79,12 @@ class ArticleManager extends DocumentManager
             function ($id) {
                 // Get basic information
                 $articles = $this->getShort([$id]);
+
                 if (count($articles) == 0) {
                     throw new NotFoundHttpException('Article with id ' . $id .' not found.');
                 }
+
+                $this->setIdentifications($articles);
 
                 $this->setInverseBibliographies($articles);
 
@@ -213,6 +216,8 @@ class ArticleManager extends DocumentManager
                 $cacheReload['mini'] = true;
                 $this->dbs->updateJournal($id, $data->journal->id);
             }
+
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'article');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

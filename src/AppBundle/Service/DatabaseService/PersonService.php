@@ -315,7 +315,7 @@ class PersonService extends EntityService
     {
         $this->beginTransaction();
         try {
-            // Set search_path for trigger ensure_manuscript_has_document
+            // Set search_path for trigger ensure_person_has_identity
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
                 'INSERT INTO data.person default values'

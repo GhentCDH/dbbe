@@ -75,9 +75,12 @@ class BookManager extends DocumentManager
             function ($id) {
                 // Get basic book information
                 $books = $this->getShort([$id]);
+
                 if (count($books) == 0) {
                     throw new NotFoundHttpException('Book with id ' . $id .' not found.');
                 }
+
+                $this->setIdentifications($books);
 
                 $this->setInverseBibliographies($books);
 
@@ -253,6 +256,7 @@ class BookManager extends DocumentManager
                 $cacheReload['full'] = true;
                 $this->dbs->updateTotalVolumes($id, $data->totalVolumes);
             }
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'book');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

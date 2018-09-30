@@ -231,7 +231,8 @@ export default {
                 'occurrence_text',
                 'occurrence_divided',
                 'occurrence_source',
-                'type_text'
+                'type_text',
+                'type_critical'
             ]
             field.values = statusTypes
                 .map((statusType) => {

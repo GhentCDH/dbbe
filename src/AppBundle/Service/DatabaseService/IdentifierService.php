@@ -17,7 +17,8 @@ class IdentifierService extends DatabaseService
                 identifier.link,
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
-                identifier.description
+                identifier.description,
+                identifier.extra
             from data.identifier
             where identifier.ididentifier in (?)',
             [$ids],
@@ -36,9 +37,10 @@ class IdentifierService extends DatabaseService
                 identifier.link,
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
-                identifier.description
+                identifier.description,
+                identifier.extra
             from data.identifier
-            where identifier.type = ?
+            where ? = ANY(identifier.type)
             order by identifier.order',
             [$type]
         )->fetchAll();

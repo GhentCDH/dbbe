@@ -1,63 +1,82 @@
 <template>
     <div>
         <article
+            ref="target"
             class="col-sm-9 mbottom-large"
-            ref="target">
+        >
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
                 :type="item.type"
                 dismissible
-                @dismissed="alerts.splice(index, 1)">
+                @dismissed="alerts.splice(index, 1)"
+            >
                 {{ item.message }}
             </alert>
 
             <personPanel
                 id="persons"
+                ref="persons"
                 header="Persons"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="modernPersons"
                 @validated="validated"
-                ref="persons" />
+            />
 
             <basicBookChapterPanel
                 id="basic"
+                ref="basic"
                 header="Basic Information"
                 :model="model.basic"
                 :values="books"
                 @validated="validated"
-                ref="basic" />
+            />
+
+            <identificationPanel
+                v-if="identifiers.length > 0"
+                id="identification"
+                ref="identification"
+                header="Identification"
+                :identifiers="identifiers"
+                :model="model.identification"
+                @validated="validated"
+            />
 
             <btn
                 id="actions"
                 type="warning"
                 :disabled="diff.length === 0"
-                @click="resetModal=true">
+                @click="resetModal=true"
+            >
                 Reset
             </btn>
             <btn
                 v-if="bookChapter"
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save changes
             </btn>
             <btn
                 v-else
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save
             </btn>
             <btn
                 :disabled="(diff.length !== 0)"
-                @click="reload()">
+                @click="reload()"
+            >
                 Refresh all data
             </btn>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -68,7 +87,8 @@
                 role="navigation"
                 class="padding-default bg-tertiary"
                 :class="{stick: isSticky}"
-                :style="stickyStyle">
+                :style="stickyStyle"
+            >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#persons">Persons</a></li>
@@ -81,11 +101,13 @@
             title="book chapter"
             :show="resetModal"
             @cancel="resetModal=false"
-            @confirm="reset()" />
+            @confirm="reset()"
+        />
         <invalidModal
             :show="invalidModal"
             @cancel="invalidModal=false"
-            @confirm="invalidModal=false" />
+            @confirm="invalidModal=false"
+        />
         <saveModal
             title="book chapter"
             :show="saveModal"
@@ -93,7 +115,8 @@
             :alerts="saveAlerts"
             @cancel="cancelSave()"
             @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)" />
+            @dismiss-alert="saveAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -102,7 +125,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -123,11 +146,21 @@ export default {
                     title: null,
                     book: null,
                 },
+                identification: {},
             },
             forms: [
                 'persons',
                 'basic',
             ],
+        }
+        for (let identifier of data.identifiers) {
+            data.model.identification[identifier.systemName] = null
+            if (identifier.extra) {
+                data.model.identification[identifier.systemName + '_extra'] = null
+            }
+        }
+        if (data.identifiers.length > 0) {
+            data.forms.push('identification')
         }
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
@@ -158,6 +191,15 @@ export default {
                 this.model.basic = {
                     title: this.bookChapter.title,
                     book: this.bookChapter.book,
+                }
+
+                // Identification
+                this.model.identification = {}
+                for (let identifier of this.identifiers) {
+                    this.model.identification[identifier.systemName] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName] : null
+                    if (identifier.extra) {
+                        this.model.identification[identifier.systemName + '_extra'] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName + '_extra'] : null
+                    }
                 }
             }
 

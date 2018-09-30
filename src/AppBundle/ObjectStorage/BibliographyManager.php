@@ -68,13 +68,9 @@ class BibliographyManager extends ObjectManager
                         $bibliographies[$rawBibliography['reference_id']]
                             ->setReferenceType($referenceTypes[$rawBibliography['reference_type_id']]);
                     }
-                    if (!empty($rawBibliography['source_remark'])) {
+                    if (!empty($rawBibliography['image'])) {
                         $bibliographies[$rawBibliography['reference_id']]
-                            ->setSourceRemark($rawBibliography['source_remark']);
-                    }
-                    if (!empty($rawBibliography['note'])) {
-                        $bibliographies[$rawBibliography['reference_id']]
-                            ->setNote($rawBibliography['note']);
+                            ->setImage($rawBibliography['image']);
                     }
                 }
 
@@ -90,8 +86,7 @@ class BibliographyManager extends ObjectManager
         string $endPage = null,
         string $relUrl = null,
         int $referenceTypeId = null,
-        string $sourceRemark = null,
-        string $note = null
+        string $image = null
     ): Bibliography {
         $id = $this->dbs->insert(
             $targetId,
@@ -100,8 +95,7 @@ class BibliographyManager extends ObjectManager
             $endPage,
             $relUrl,
             $referenceTypeId,
-            $sourceRemark,
-            $note
+            $image
         );
         return $this->get([$id])[$id];
     }
@@ -114,8 +108,7 @@ class BibliographyManager extends ObjectManager
         string $rawPages = null,
         string $relUrl = null,
         int $referenceTypeId = null,
-        string $sourceRemark = null,
-        string $note = null
+        string $image = null
     ): Bibliography {
         $this->deleteCache(Bibliography::CACHENAME, $id);
         $this->dbs->update(
@@ -126,8 +119,7 @@ class BibliographyManager extends ObjectManager
             $rawPages,
             $relUrl,
             $referenceTypeId,
-            $sourceRemark,
-            $note
+            $image
         );
         return $this->get([$id])[$id];
     }

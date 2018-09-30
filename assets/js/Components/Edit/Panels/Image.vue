@@ -53,6 +53,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div>
             <h3>Image links</h3>
             <table
                 v-if="model.imageLinks && model.imageLinks.length > 0"

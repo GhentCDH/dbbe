@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 /**
  */
 class Poem extends Document
@@ -56,6 +58,18 @@ class Poem extends Document
     public function getVerses(): array
     {
         return $this->verses;
+    }
+
+    public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
+    {
+        $this->numberOfVerses = $numberOfVerses;
+
+        return $this;
+    }
+
+    public function getNumberOfVerses(): int
+    {
+        return isset($this->numberOfVerses) ? $this->numberOfVerses : count($this->verses);
     }
 
     public function addMeter(Meter $meter = null): Poem
@@ -148,11 +162,6 @@ class Poem extends Document
         return $this->textStatus;
     }
 
-    public function getDescription(): string
-    {
-        return $this->incipit;
-    }
-
     public function addAcknowledgement(Acknowledgement $acknowledgement): Poem
     {
         $this->acknowledgements[] = $acknowledgement;
@@ -173,5 +182,51 @@ class Poem extends Document
                 return strcmp($a->getName(), $b->getName());
             }
         );
+    }
+
+    public function getDescription(): string
+    {
+        return $this->incipit;
+    }
+
+    public function getDBBE(): bool
+    {
+        $textSources = $this->getTextSources();
+        foreach ($textSources as $textSource) {
+            if ($textSource->getType() == 'onlineSource' && $textSource->getOnlineSource()->getName() == 'DBBE') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function getJson(): array
+    {
+        $result = parent::getJson();
+
+        if (isset($this->incipit)) {
+            $result['incipit'] = $this->incipit;
+        }
+        if (isset($this->title)) {
+            $result['title'] = $this->title;
+        }
+        if (!empty($this->numberOfVerses)) {
+            $result['numberOfVerses'] = $this->numberOfVerses;
+        }
+        if (isset($this->meters)) {
+            $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
+        }
+        $result['subjects'] = [
+            'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
+            'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
+        ];
+        if (isset($this->genres)) {
+            $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
+        }
+        if (isset($this->acknowledgements)) {
+            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
+        return $result;
     }
 }

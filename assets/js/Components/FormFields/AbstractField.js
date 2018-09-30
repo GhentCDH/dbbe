@@ -85,7 +85,7 @@ export default {
             field.selectOptions.loading = false
             field.disabled = false
             let label = field.label.toLowerCase()
-            let article = ['office', 'origin'].indexOf(label) < 0 ? 'a ' : 'an '
+            let article = ['office', 'origin', 'editorial status'].indexOf(label) < 0 ? 'a ' : 'an '
             field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label
         },
         loadLocationField(field, model = null) {

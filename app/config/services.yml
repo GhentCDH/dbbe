@@ -118,6 +118,11 @@ services:
         arguments: ['@reference_type_service', '@cache.app', '@service_container', null, null]
         public: true
 
+    type_relation_type_manager:
+        class: AppBundle\ObjectStorage\TypeRelationTypeManager
+        arguments: ['@type_relation_type_service', '@cache.app', '@service_container', null, null]
+        public: true
+
     institution_manager:
         class: AppBundle\ObjectStorage\InstitutionManager
         arguments: ['@institution_service', '@cache.app', '@service_container', null, '@security.token_storage']
@@ -235,6 +240,10 @@ services:
 
     reference_type_service:
         class: AppBundle\Service\DatabaseService\ReferenceTypeService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    type_relation_type_service:
+        class: AppBundle\Service\DatabaseService\TypeRelationTypeService
         arguments: ['@doctrine.orm.entity_manager']
 
     occurrence_service:

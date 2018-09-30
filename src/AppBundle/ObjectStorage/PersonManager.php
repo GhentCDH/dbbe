@@ -465,16 +465,7 @@ class PersonManager extends EntityManager
                 $cacheReload['mini'] = true;
                 $this->updateDate($old, 'died', $old->getDeathDate(), $data->deathDate);
             }
-            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
-            foreach ($identifiers as $identifier) {
-                if (property_exists($data, $identifier->getSystemName())) {
-                    if (!is_string($data->{$identifier->getSystemName()})) {
-                        throw new BadRequestHttpException('Incorrect identification data.');
-                    }
-                    $cacheReload['mini'] = true;
-                    $this->updateIdentification($old, $identifier, $data->{$identifier->getSystemName()});
-                }
-            }
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'mini', 'person');
             if (property_exists($data, 'offices')) {
                 if (!is_array($data->offices)) {
                     throw new BadRequestHttpException('Incorrect office data.');

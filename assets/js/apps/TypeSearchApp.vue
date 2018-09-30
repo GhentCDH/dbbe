@@ -213,6 +213,17 @@ export default {
                         model: 'comment',
                         validator: VueFormGenerator.validators.string,
                     },
+                    dbbe: this.createMultiSelect(
+                        'Transcribed by DBBE',
+                        {
+                            model: 'dbbe',
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return name === 'true' ? 'Yes' : 'No'
+                            },
+                        }
+                    )
                 }
             },
             tableOptions: {
@@ -246,6 +257,13 @@ export default {
                 'Text Status',
                 {
                     model: 'text_status',
+                    styleClasses: 'has-warning',
+                }
+            )
+            data.schema.fields['critical_status'] = this.createMultiSelect(
+                'Editorial Status',
+                {
+                    model: 'critical_status',
                     styleClasses: 'has-warning',
                 }
             )

@@ -4,7 +4,7 @@
         {% if displayEntities is not empty %}
             <tr>
                 <td>{{ type|capitalize }}(s)</td>
-                <td>
+                <td class="{{ type in ['occurrence', 'type'] ? 'greek' }}">
                     {% embed '@App/Helpers/renderList.html.twig' with {'list': displayEntities} only %}
                         {% block renderItem %}
                             {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': constant('CACHENAME', item) ~ '_get','display': item.getDescription()} only %}

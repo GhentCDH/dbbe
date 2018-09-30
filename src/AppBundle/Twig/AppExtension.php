@@ -6,6 +6,7 @@ use Twig_Extension;
 use Twig_SimpleFilter;
 use Twig_SimpleTest;
 
+use AppBundle\Model\Image;
 use AppBundle\Model\Person;
 use AppBundle\Model\SubjectInterface;
 
@@ -16,6 +17,9 @@ class AppExtension extends Twig_Extension
         return [
             new Twig_SimpleTest('person', function (SubjectInterface $object) {
                 return $object instanceof Person;
+            }),
+            new Twig_SimpleTest('image', function ($object) {
+                return $object instanceof Image;
             }),
         ];
     }

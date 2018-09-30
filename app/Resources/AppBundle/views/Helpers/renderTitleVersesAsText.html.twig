@@ -1,0 +1,9 @@
+<table class="table">
+    {% if title %}
+        <tr><td class="line-number" data-line-number="T"></td><td class="verse">{{ title }}</td></tr>
+        <tr><td class="line-number"></td><td class="verse">&nbsp;</td></tr>
+    {% endif %}
+    {% for index, verse in verses %}
+        <tr><td class="line-number" data-line-number="{{ index +1 }}"></td><td class="verse">{{ verse }}</td></tr>
+    {% endfor %}
+</table>

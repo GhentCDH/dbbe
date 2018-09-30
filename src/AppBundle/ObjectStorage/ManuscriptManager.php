@@ -346,13 +346,7 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['full'] = true;
                 $this->updateOccurrenceOrder($old, $data->occurrenceOrder);
             }
-            $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('manuscript');
-            foreach ($identifiers as $identifier) {
-                if (property_exists($data, $identifier->getSystemName())) {
-                    $cacheReload['full'] = true;
-                    $this->updateIdentification($old, $identifier, $data->{$identifier->getSystemName()});
-                }
-            }
+            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'manuscript');
             if (property_exists($data, 'bibliography')) {
                 if (!is_object($data->bibliography)) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');

@@ -13,8 +13,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th>Remark</th>
-                        <th>Note</th>
+                        <th v-if="image">Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -27,9 +26,16 @@
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
-                        <td>{{ item.sourceRemark }}</td>
-                        <td>{{ item.note }}</td>
+                        <td v-if="referenceType">
+                            <template v-if="item.referenceType != null">
+                                {{ item.referenceType.name }}
+                            </template>
+                        </td>
+                        <td v-if="image">
+                            <template v-if="item.image != null">
+                                {{ item.image }}
+                            </template>
+                        </td>
                         <td>
                             <a
                                 href="#"
@@ -66,8 +72,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th>Remark</th>
-                        <th>Note</th>
+                        <th v-if="image">Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -80,9 +85,16 @@
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
-                        <td>{{ item.sourceRemark }}</td>
-                        <td>{{ item.note }}</td>
+                        <td v-if="referenceType">
+                            <template v-if="item.referenceTyp != null">
+                                {{ item.referenceType.name }}
+                            </template>
+                        </td>
+                        <td v-if="image">
+                            <template v-if="item.image != null">
+                                {{ item.image }}
+                            </template>
+                        </td>
                         <td>
                             <a
                                 href="#"
@@ -119,8 +131,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th>Remark</th>
-                        <th>Note</th>
+                        <th v-if="image">Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -133,9 +144,16 @@
                         <td>{{ item.startPage }}</td>
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
-                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
-                        <td>{{ item.sourceRemark }}</td>
-                        <td>{{ item.note }}</td>
+                        <td v-if="referenceType">
+                            <template v-if="item.referenceTyp != null">
+                                {{ item.referenceType.name }}
+                            </template>
+                        </td>
+                        <td v-if="image">
+                            <template v-if="item.image != null">
+                                {{ item.image }}
+                            </template>
+                        </td>
                         <td>
                             <a
                                 href="#"
@@ -171,8 +189,7 @@
                         <th>Source link</th>
                         <th>Relative link</th>
                         <th v-if="referenceType">Type</th>
-                        <th>Remark</th>
-                        <th>Note</th>
+                        <th v-if="image">Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -184,9 +201,16 @@
                         <td>{{ item.onlineSource.name }}</td>
                         <td>{{ item.onlineSource.url }}</td>
                         <td>{{ item.relUrl }}</td>
-                        <td v-if="referenceType">{{ item.referenceType.name }}</td>
-                        <td>{{ item.sourceRemark }}</td>
-                        <td>{{ item.note }}</td>
+                        <td v-if="referenceType">
+                            <template v-if="item.referenceTyp != null">
+                                {{ item.referenceType.name }}
+                            </template>
+                        </td>
+                        <td v-if="image">
+                            <template v-if="item.image != null">
+                                {{ item.image }}
+                            </template>
+                        </td>
                         <td>
                             <a
                                 href="#"
@@ -314,6 +338,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        image: {
+            type: Boolean,
+            default: false,
+        },
         values: {
             type: Object,
             default: () => {return {}}
@@ -436,30 +464,20 @@ export default {
             data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
             data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
         }
-        let sourceRemarkField = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Source Remark',
-            labelClasses: 'control-label',
-            model: 'sourceRemark',
-            validator: VueFormGenerator.validators.string,
+        if (this.image) {
+            let imageField = {
+                type: 'input',
+                inputType: 'text',
+                label: 'Image',
+                labelClasses: 'control-label',
+                model: 'image',
+                validator: VueFormGenerator.validators.string,
+            }
+            data.editBookBibSchema.fields['image'] = imageField
+            data.editArticleBibSchema.fields['image'] = imageField
+            data.editBookChapterBibSchema.fields['image'] = imageField
+            data.editOnlineSourceBibSchema.fields['image'] = imageField
         }
-        data.editBookBibSchema.fields['sourceRemark'] = sourceRemarkField
-        data.editArticleBibSchema.fields['sourceRemark'] = sourceRemarkField
-        data.editBookChapterBibSchema.fields['sourceRemark'] = sourceRemarkField
-        data.editOnlineSourceBibSchema.fields['sourceRemark'] = sourceRemarkField
-        let noteField = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Note',
-            labelClasses: 'control-label',
-            model: 'note',
-            validator: VueFormGenerator.validators.string,
-        }
-        data.editBookBibSchema.fields['note'] = noteField
-        data.editArticleBibSchema.fields['note'] = noteField
-        data.editBookChapterBibSchema.fields['note'] = noteField
-        data.editOnlineSourceBibSchema.fields['note'] = noteField
         return data
     },
     computed: {
@@ -567,8 +585,7 @@ export default {
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
-                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
+                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
             }
             for (let bib of bibliography['articles']) {
@@ -577,8 +594,7 @@ export default {
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
-                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
+                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
             }
             for (let bib of bibliography['bookChapters']) {
@@ -587,8 +603,7 @@ export default {
                         + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                         + '.'
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
-                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
+                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
             }
             for (let bib of bibliography['onlineSources']) {
@@ -597,8 +612,7 @@ export default {
                         + (bib.relUrl == null ? '' : bib.relUrl)
                         + '.'
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
-                        + (bib.sourceRemark ? '\n(Remark: ' + bib.sourceRemark + ')' : '')
-                        + (bib.note ? '\n(Note: ' + bib.note + ')' : '')
+                        + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
             }
             return result

@@ -62,7 +62,9 @@ class ElasticTypeService extends ElasticBaseService
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['meter']);
             unset($result['data'][$key]['subject']);
+            unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
+            unset($result['data'][$key]['critical_status']);
             unset($result['data'][$key]['acknowledgement']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
@@ -98,7 +100,7 @@ class ElasticTypeService extends ElasticBaseService
             $this->classifyFilters(
                 array_merge(
                     $this->getIdentifierSystemNames(),
-                    ['meter', 'subject', 'keyword', 'person', 'genre', 'public', 'text_status', 'acknowledgement']
+                    ['meter', 'subject', 'keyword', 'person', 'genre', 'dbbe', 'public', 'text_status', 'critical_status', 'acknowledgement']
                 ),
                 $viewInternal
             ),
@@ -186,6 +188,7 @@ class ElasticTypeService extends ElasticBaseService
                         ];
                         break;
                     case 'text_status':
+                    case 'critical_status':
                         if (is_int($key)) {
                             $result['object'][] = $value;
                         } else {
@@ -235,6 +238,7 @@ class ElasticTypeService extends ElasticBaseService
                         ];
                         break;
                     case 'public':
+                    case 'dbbe':
                         if (is_int($key)) {
                             $result['boolean'][] = $value;
                         } else {

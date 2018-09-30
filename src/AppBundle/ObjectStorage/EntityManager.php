@@ -91,6 +91,7 @@ class EntityManager extends ObjectManager
                     $identifiers[$rawIdentification['identifier_id']],
                     json_decode($rawIdentification['identifications']),
                     json_decode($rawIdentification['authority_ids']),
+                    $rawIdentification['identification_extra'],
                     json_decode($rawIdentification['identification_ids'])
                 )
             );
@@ -185,6 +186,55 @@ class EntityManager extends ObjectManager
         }
     }
 
+    protected function updateIdentificationwrapper(
+        Entity $entity,
+        stdClass $data,
+        array &$cacheReload,
+        string $cacheLevel,
+        string $entityType
+    ): void {
+        $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType($entityType);
+        foreach ($identifiers as $identifier) {
+            if (property_exists($data, $identifier->getSystemName())
+                || property_exists($data, $identifier->getSystemName() . '_extra')
+            ) {
+                if ((
+                    property_exists($data, $identifier->getSystemName())
+                    && !is_string($data->{$identifier->getSystemName()})
+                ) || (
+                    property_exists($data, $identifier->getSystemName() . '_extra')
+                    && !is_string($data->{$identifier->getSystemName() . '_extra'})
+                ) || ((
+                        // identification must exist if an extra is to be set
+                        property_exists($data, $identifier->getSystemName() . '_extra')
+                        && !empty($data->{$identifier->getSystemName() . '_extra'})
+                    ) && (
+                        !property_exists($data, $identifier->getSystemName())
+                        && empty($entity->getIdentifications()[$identifier->getSystemName()])
+                    )
+                )
+                ) {
+                    throw new BadRequestHttpException('Incorrect identification data.');
+                }
+                $cacheReload[$cacheLevel] = true;
+                if (property_exists($data, $identifier->getSystemName())) {
+                    $this->updateIdentification(
+                        $entity,
+                        $identifier,
+                        $data->{$identifier->getSystemName()}
+                    );
+                }
+                if (property_exists($data, $identifier->getSystemName() . '_extra')) {
+                    $this->updateIdentificationExtra(
+                        $entity,
+                        $identifier,
+                        $data->{$identifier->getSystemName() . '_extra'}
+                    );
+                }
+            }
+        }
+    }
+
     protected function updateIdentification(Entity $entity, Identifier $identifier, string $value): void
     {
         if (!empty($value) && !preg_match(
@@ -193,7 +243,6 @@ class EntityManager extends ObjectManager
         )) {
             throw new BadRequestHttpException('Incorrect identification data.');
         }
-
 
         if ($identifier->getVolumes() > 1) {
             $newIdentifications = empty($value) ? [] : explode(', ', $value);
@@ -279,6 +328,20 @@ class EntityManager extends ObjectManager
         }
     }
 
+    protected function updateIdentificationExtra(Entity $entity, Identifier $identifier, string $extra): void
+    {
+        $this->dbs->beginTransaction();
+        try {
+            $this->dbs->updateIdentificationExtra($entity->getId(), $identifier->getId(), $extra);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+    }
+
     protected function updateBibliography(
         Entity $entity,
         stdClass $bibliography,
@@ -303,8 +366,7 @@ class EntityManager extends ObjectManager
                             || !is_numeric($bib->referenceType->id)
                         )
                     )
-                    || (property_exists($bib, 'sourceRemark') && !is_string($bib->sourceRemark))
-                    || (property_exists($bib, 'note') && !is_string($bib->note))
+                    || (property_exists($bib, 'image') && !is_string($bib->image))
                 ) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
@@ -342,8 +404,7 @@ class EntityManager extends ObjectManager
                                 self::certainString($bib, 'endPage'),
                                 null,
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
-                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
-                                property_exists($bib, 'note') ? $bib->note : null
+                                property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
                         } else {
@@ -355,8 +416,7 @@ class EntityManager extends ObjectManager
                                 null,
                                 self::certainString($bib, 'relUrl'),
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
-                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
-                                property_exists($bib, 'note') ? $bib->note : null
+                                property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
                         }
@@ -372,8 +432,7 @@ class EntityManager extends ObjectManager
                                 self::certainString($bib, 'rawPages'),
                                 null,
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
-                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
-                                property_exists($bib, 'note') ? $bib->note : null
+                                property_exists($bib, 'image') ? $bib->image : null
                             );
                         } else {
                             // onlineSource
@@ -385,8 +444,7 @@ class EntityManager extends ObjectManager
                                 null,
                                 self::certainString($bib, 'relUrl'),
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
-                                property_exists($bib, 'sourceRemark') ? $bib->sourceRemark : null,
-                                property_exists($bib, 'note') ? $bib->note : null
+                                property_exists($bib, 'image') ? $bib->image : null
                             );
                         }
                     } else {
