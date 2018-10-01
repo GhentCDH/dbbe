@@ -136,6 +136,7 @@ export default {
     mixins: [ AbstractEntityEdit ],
     data() {
         let data = {
+            identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
             bookChapter: null,
             modernPersons: null,
