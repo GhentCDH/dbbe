@@ -363,9 +363,9 @@ class ContentManager extends ObjectManager
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['contents']);
             $this->deleteCache(Content::CACHENAME, $id);
             $this->deleteCache(ContentWithParents::CACHENAME, $id);
+            $this->cache->invalidateTags(['contents']);
 
             $this->updateModified($contentWithParents, null);
 

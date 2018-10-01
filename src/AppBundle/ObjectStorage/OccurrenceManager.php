@@ -257,6 +257,9 @@ class OccurrenceManager extends PoemManager
 
             $new = $this->update($id, $data, true);
 
+            // update cache
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
@@ -824,4 +827,5 @@ class OccurrenceManager extends PoemManager
 
     // TODO: delete
     // also delete verses
+    // also delete cache . 's'
 }

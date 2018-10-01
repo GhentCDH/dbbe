@@ -163,8 +163,6 @@ class RegionManager extends ObjectManager
         }
 
         $this->getWithParents($ids);
-
-        $this->cache->invalidateTags(['regions']);
     }
 
     /**
@@ -416,13 +414,14 @@ class RegionManager extends ObjectManager
             $this->dbs->rollBack();
             // Reset caches and elasticsearch
             $this->reset([$primaryId]);
+            $this->cache->invalidateTags(['regions']);
             if (!empty($manuscripts)) {
                 $this->container->get('manuscript_manager')->reset(self::getIds($manuscripts));
             }
             if (!empty($institutions)) {
                 $this->container->get('institution_manager')->reset(self::getIds($institutions));
             }
-            // TODO: reset persons
+            // TODO: reset persons and offices
             if (!empty($regions)) {
                 $this->reset(self::getIds($regions));
             }
@@ -449,9 +448,9 @@ class RegionManager extends ObjectManager
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['regions']);
             $this->deleteCache(Region::CACHENAME, $id);
             $this->deleteCache(RegionWithParents::CACHENAME, $id);
+            $this->cache->invalidateTags(['regions']);
 
             $this->updateModified($regionWithParents, null);
 

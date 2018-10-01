@@ -159,6 +159,9 @@ class ArticleManager extends DocumentManager
 
             $new = $this->update($id, $data, true);
 
+            // update cache
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -264,6 +267,7 @@ class ArticleManager extends DocumentManager
 
             // empty cache and remove from elasticsearch
             $this->reset([$id]);
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // commit transaction
             $this->dbs->commit();

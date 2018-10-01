@@ -286,8 +286,8 @@ class KeywordManager extends ObjectManager
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['keywords']);
             $this->deleteCache(Keyword::CACHENAME, $id);
+            $this->cache->invalidateTags(['keywords']);
 
             $this->updateModified($old, null);
 

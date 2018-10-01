@@ -185,8 +185,6 @@ class OfficeManager extends ObjectManager
         }
 
         $this->getWithParents($ids);
-
-        $this->cache->invalidateTags(['offices']);
     }
 
     /**
@@ -432,6 +430,7 @@ class OfficeManager extends ObjectManager
 
             // Reset caches and elasticsearch
             $this->reset([$primaryId]);
+            $this->cache->invalidateTags(['offices']);
             if (!empty($persons)) {
                 $this->container->get('person_manager')->reset(self::getIds($persons));
             }
@@ -462,9 +461,9 @@ class OfficeManager extends ObjectManager
             $this->dbs->delete($id);
 
             // clear cache
-            $this->cache->invalidateTags(['offices']);
             $this->deleteCache(Office::CACHENAME, $id);
             $this->deleteCache(OfficeWithParents::CACHENAME, $id);
+            $this->cache->invalidateTags(['offices']);
 
             $this->updateModified($old, null);
 

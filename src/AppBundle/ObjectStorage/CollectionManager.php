@@ -154,8 +154,8 @@ class CollectionManager extends ObjectManager
             $this->dbs->delete($collectionId);
 
             // clear cache
-            $this->cache->invalidateTags(['collections']);
             $this->deleteCache(Collection::CACHENAME, $collectionId);
+            $this->cache->invalidateTags(['collections']);
 
             $this->updateModified($collection, null);
 

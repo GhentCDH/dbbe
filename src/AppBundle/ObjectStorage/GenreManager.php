@@ -202,8 +202,8 @@ class GenreManager extends ObjectManager
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['genres']);
             $this->deleteCache(Genre::CACHENAME, $id);
+            $this->cache->invalidateTags(['genres']);
 
             $this->updateModified($old, null);
 

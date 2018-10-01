@@ -355,6 +355,9 @@ class PersonManager extends EntityManager
 
             $newPerson = $this->update($personId, $data, true);
 
+            // update cache
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -839,7 +842,7 @@ class PersonManager extends EntityManager
 
             // empty cache and remove from elasticsearch
             $this->reset([$id]);
-            $this->cache->invalidateTags(['persons']);
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // commit transaction
             $this->dbs->commit();

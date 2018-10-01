@@ -203,8 +203,8 @@ class RoleManager extends ObjectManager
             $this->dbs->delete($roleId);
 
             // clear cache
-            $this->cache->invalidateTags(['roles']);
             $this->deleteCache(Role::CACHENAME, $roleId);
+            $this->cache->invalidateTags(['roles']);
 
             $this->updateModified($role, null);
 

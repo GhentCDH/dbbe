@@ -202,8 +202,8 @@ class MeterManager extends ObjectManager
             $this->dbs->delete($id);
 
             // empty cache
-            $this->cache->invalidateTags(['meters']);
             $this->deleteCache(Meter::CACHENAME, $id);
+            $this->cache->invalidateTags(['meters']);
 
             $this->updateModified($old, null);
 

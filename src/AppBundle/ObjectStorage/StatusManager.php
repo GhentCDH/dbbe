@@ -225,8 +225,8 @@ class StatusManager extends ObjectManager
             $this->dbs->delete($statusId);
 
             // clear cache
-            $this->cache->invalidateTags(['statuses']);
             $this->deleteCache(Status::CACHENAME, $statusId);
+            $this->cache->invalidateTags(['statuses']);
 
             $this->updateModified($status, null);
 

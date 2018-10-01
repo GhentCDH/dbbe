@@ -86,7 +86,7 @@ class JournalManager extends DocumentManager
             $this->updateModified(null, $newOffice);
 
             // update cache
-            $this->cache->invalidateTags(['offices']);
+            $this->cache->invalidateTags(['journals']);
 
             // commit transaction
             $this->dbs->commit();
@@ -178,8 +178,8 @@ class JournalManager extends DocumentManager
             $this->dbs->delete($id);
 
             // clear cache
-            $this->cache->invalidateTags(['journals']);
             $this->deleteCache(Journal::CACHENAME, $id);
+            $this->cache->invalidateTags(['journals']);
 
             $this->updateModified($journal, null);
 

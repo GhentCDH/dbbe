@@ -59,7 +59,6 @@ class LocatedAtManager extends ObjectManager
             $this->updateModified(null, $newLocatedAt);
 
             // update cache
-            $this->cache->invalidateTags('located_ats');
             $this->setCache([$newLocatedAt->getId() => $newLocatedAt], LocatedAt::CACHENAME);
 
             // commit transaction

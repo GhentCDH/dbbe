@@ -326,12 +326,11 @@ class ObjectManager
     {
         if (empty($range) || (isset($range['mini']) && $range['mini'])) {
             $this->clearSpecificCaches($id, ['mini', 'short', 'full']);
-        } else if (isset($range['short']) && $range['short']) {
+        } elseif (isset($range['short']) && $range['short']) {
             $this->clearSpecificCaches($id, ['short', 'full']);
-        } else if (isset($range['full']) && $range['full']) {
+        } elseif (isset($range['full']) && $range['full']) {
             $this->clearSpecificCaches($id, ['full']);
         }
-        $this->cache->invalidateTags([$this->entityType . 's']);
     }
 
     /**

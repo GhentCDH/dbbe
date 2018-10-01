@@ -177,8 +177,8 @@ class InstitutionManager extends ObjectManager
             $this->dbs->delete($institutionId);
 
             // clear cache
-            $this->cache->invalidateTags(['institutions']);
             $this->deleteCache(Institution::CACHENAME, $institutionId);
+            $this->cache->invalidateTags(['institutions']);
 
             $this->updateModified($institution, null);
 

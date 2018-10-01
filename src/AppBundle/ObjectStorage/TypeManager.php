@@ -213,6 +213,9 @@ class TypeManager extends PoemManager
 
             $new = $this->update($id, $data, true);
 
+            // update cache
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -564,4 +567,5 @@ class TypeManager extends PoemManager
     }
 
     // TODO: delete
+    // delete cache . 's'
 }
