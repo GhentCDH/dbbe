@@ -4,18 +4,31 @@
     <div class="col-sm-12 ">
         <h2 class="h1">Search Bibliographies</h2>
         {% if is_granted('ROLE_EDITOR_VIEW') %}
-        <div class="pbottom-default">
-            <a
-                href="{{ path('article_add') }}"
-                class="action">
-                <i class="fa fa-plus"></i> Add a new article
-            </a>
-            <a
-                href="{{ path('book_add') }}"
-                class="action">
-                <i class="fa fa-plus"></i> Add a new book
-            </a>
-        </div>
+            <div class="pbottom-default">
+                <a
+                    href="{{ path('article_add') }}"
+                    class="action">
+                    <i class="fa fa-plus"></i> Add a new article
+                </a>
+                &nbsp;&nbsp;&nbsp;
+                <a
+                    href="{{ path('book_add') }}"
+                    class="action">
+                    <i class="fa fa-plus"></i> Add a new book
+                </a>
+                &nbsp;&nbsp;&nbsp;
+                <a
+                    href="{{ path('book_chapter_add') }}"
+                    class="action">
+                    <i class="fa fa-plus"></i> Add a new book chapter
+                </a>
+                &nbsp;&nbsp;&nbsp;
+                <a
+                    href="{{ path('online_source_add') }}"
+                    class="action">
+                    <i class="fa fa-plus"></i> Add a new online source
+                </a>
+            </div>
         {% endif %}
     </div>
     <div id="bibliography-search-app">
