@@ -196,14 +196,13 @@ class TypeService extends PoemService
     {
         return $this->conn->executeQuery(
             'SELECT
-                reconstructed_poem.identity as type_id,
-                factoid.subject_identity as rel_type_id,
+                factoid.subject_identity as type_id,
+                factoid.object_identity as rel_type_id,
                 factoid.idfactoid_type as type_relation_type_id,
                 factoid_type.type as name
-            from data.reconstructed_poem
-            inner join data.factoid on reconstructed_poem.identity = factoid.object_identity
+            from data.factoid
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
-            where reconstructed_poem.identity in (?)
+            where factoid.subject_identity in (?)
             and factoid_type.group = \'reconstructed_poem_related_to_reconstructed_poem\'',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
@@ -253,25 +252,28 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
-    public function insert(): int
+    public function insert(string $incipit): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_reconstructed_poem_has_identity
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.type default values'
+                'INSERT INTO data.reconstructed_poem default values'
             );
             $id = $this->conn->executeQuery(
                 'SELECT
-                    person.identity as person_id
-                from data.person
+                    reconstructed_poem.identity as type_id
+                from data.reconstructed_poem
                 order by identity desc
                 limit 1'
-            )->fetch()['person_id'];
+            )->fetch()['type_id'];
             $this->conn->executeUpdate(
-                'INSERT INTO data.name (idperson) values (?)',
+                'UPDATE data.poem
+                set incipit = ?
+                where identity = ?',
                 [
+                    $incipit,
                     $id,
                 ]
             );
@@ -281,5 +283,305 @@ class TypeService extends PoemService
             throw $e;
         }
         return $id;
+    }
+
+    public function updateVerses(int $id, string $verses): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document
+            set text_content = ?
+            where document.identity = ?',
+            [
+                $verses,
+                $id,
+            ]
+        );
+    }
+
+    public function delRelatedTypes(int $id, array $relTypeIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using data.factoid_type
+            where
+            (
+                (
+                    factoid.subject_identity = ?
+                    and factoid.object_identity in (?)
+                ) or
+                (
+                    factoid.subject_identity in (?)
+                    and factoid_object_identity = ?
+                )
+            )
+            and factoid_type.group = \'reconstructed_poem_related_to_reconstructed_poem\'',
+            [
+                $id,
+                $relTypeIds,
+                $relTypeIds,
+                $id,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+                Connection::PARAM_INT_ARRAY,
+                \PDO::PARAM_INT,
+            ]
+        );
+    }
+
+    public function delRelatedTypeRelations(int $id, int $relTypeId, array $relationTypeIds): int
+    {
+        $counter = 0;
+        $this->beginTransaction();
+        try {
+            foreach ($relationTypeIds as $relationTypeId) {
+                $counter += $this->conn->executeUpdate(
+                    'DELETE from data.factoid
+                    using data.factoid_type
+                    where
+                    (
+                        factoid.subject_identity = ?
+                        and factoid.object_identity = ?
+                        and factoid.idfactoid_type = ?
+                    ) or
+                    (
+                        factoid.subject_identity = ?
+                        and factoid_object_identity = ?
+                        and factoid.idfactoid_type = coalesce(
+                            (select idinverse from data.factoid_type where idfactoid_type = ?),
+                            ?
+                        )
+                    )',
+                    [
+                        $id,
+                        $relTypeId,
+                        $relationTypeId,
+                        $relTypeId,
+                        $id,
+                        $relationTypeId,
+                        $relationTypeId,
+                    ]
+                );
+            }
+
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+
+        return $counter;
+    }
+
+    public function addRelatedType(int $id, int $relTypeId, array $relationTypeIds): int
+    {
+        $counter = 0;
+        $this->beginTransaction();
+        try {
+            foreach ($relationTypeIds as $relationTypeId) {
+                $counter += $this->conn->executeUpdate(
+                    'INSERT INTO data.factoid (subject_identity, object_identity, idfactoid_type)
+                    values (?, ?, ?)',
+                    [
+                        $id,
+                        $relTypeId,
+                        $relationTypeId,
+                    ]
+                );
+                $counter += $this->conn->executeUpdate(
+                    'INSERT INTO data.factoid (subject_identity, object_identity, idfactoid_type)
+                    values (
+                        ?,
+                        ?,
+                        coalesce((select idinverse from data.factoid_type where idfactoid_type = ?), ?)
+                    )',
+                    [
+                        $relTypeId,
+                        $id,
+                        $relationTypeId,
+                        $relationTypeId,
+                    ]
+                );
+            }
+
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+
+        return $counter;
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $keywordId
+     * @return int
+     */
+    public function addKeyword(int $id, int $keywordId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.document_keyword (iddocument, idkeyword)
+            values (?, ?)',
+            [
+                $id,
+                $keywordId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $keywordIds
+     * @return int
+     */
+    public function delKeywords(int $id, array $keywordIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.document_keyword
+            where iddocument  = ?
+            and idkeyword in (?)',
+            [
+                $id,
+                $keywordIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $criticalApparatus
+     * @return int
+     */
+    public function updateCriticalApparatus(int $id, string $criticalApparatus): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.reconstructed_poem
+            set critical_apparatus = ?
+            where identity = ?',
+            [
+                $criticalApparatus,
+                $id,
+            ]
+        );
+    }
+
+    public function addTranslation(int $id, string $translation): int
+    {
+        $counter = 0;
+        $this->beginTransaction();
+        try {
+            $counter += $this->conn->executeUpdate('INSERT INTO data.translation default values');
+            $translationId = $this->conn->executeQuery(
+                'SELECT
+                    translation.identity as translation_id
+                from data.translation
+                order by identity desc
+                limit 1'
+            )->fetch()['translation_id'];
+            $counter += $this->conn->executeUpdate(
+                'INSERT INTO data.document_translation (iddocument, idtranslation) values (?, ?)',
+                [
+                    $id,
+                    $translationId,
+                ]
+            );
+            $counter += $this->conn->executeUpdate(
+                'UPDATE data.document
+                set text_content = ?
+                where identity = ?',
+                [
+                    $translation,
+                    $translationId,
+                ]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $counter;
+    }
+
+    public function updateTranslation(int $id, string $translation): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document
+            set text_content = ?
+            from data.translation_of
+            where translation_of.idtranslation = document.identity
+            and translation_of.iddocument = ?',
+            [
+                $translation,
+                $id,
+            ]
+        );
+    }
+
+    public function delTranslation(int $id): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.translation
+            using data.translation_of
+            where translation.identity = translation_of.idtranslation
+            and translation_of.iddocument = ?',
+            [
+                $id,
+            ]
+        );
+    }
+
+    public function addBasedOn(int $id, int $basedOnId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.factoid (subject_identity, object_identity, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (select idfactoid_type from data.factoid_type where type = \'based on\')
+            )',
+            [
+                $id,
+                $basedOnId,
+            ]
+        );
+    }
+
+    public function updateBasedOn(int $id, int $basedOnId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set object_identity = ?
+            from data.factoid_type
+            where subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type =  \'based on\'
+            )',
+            [
+                $basedOnId,
+                $id,
+            ]
+        );
+    }
+
+    public function delBasedOn(int $id): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.factoid
+            using factoid_type
+            where subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type =  \'based on\'
+            )',
+            [
+                $id,
+            ]
+        );
     }
 }

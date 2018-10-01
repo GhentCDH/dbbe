@@ -17,8 +17,8 @@
                         v-for="(relatedType, index) in model.relatedTypes"
                         :key="index"
                     >
-                        <td class="greek">{{ relatedType.type.name }}</td>
-                        <td>{{ relatedType.relationType.name }}</td>
+                        <td class="greek">{{ relatedType.type.id }} - {{ relatedType.type.name }}</td>
+                        <td>{{ relatedType.relationTypes.map(relationType => relationType.name).join(', ') }}</td>
                         <td>
                             <a
                                 href="#"
@@ -123,18 +123,20 @@ export default {
                             styleClasses: 'greek',
                         },
                         {
-                            multiple: true,
-                            closeOnSelect: false,
                             customLabel: ({id, name}) => {
                                 return id + ' - ' + name
                             },
                         }
                     ),
-                    relationType: this.createMultiSelect(
-                        'Relation type',
+                    relationTypes: this.createMultiSelect(
+                        'Relation types',
                         {
-                            model: 'relationType',
+                            model: 'relationTypes',
                             values: this.values.relationTypes,
+                        },
+                        {
+                            multiple: true,
+                            closeOnSelect: false,
                         }
                     ),
                 }
@@ -145,7 +147,7 @@ export default {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.type)
-            this.enableField(this.schema.fields.relationType)
+            this.enableField(this.schema.fields.relationTypes)
         },
         validate() {},
         calcChanges() {
@@ -158,14 +160,23 @@ export default {
                         'label': 'Related types',
                         'old': this.displayRelatedTypes(this.originalModel),
                         'new': this.displayRelatedTypes(this.model),
-                        'value': this.model,
+                        'value': this.model.relatedTypes,
                     })
                     break
                 }
             }
         },
         validated(isValid, errors) {
+            // TODO: check if a related type is present multiple times
             this.isValid = isValid
+        },
+        newRelatedType() {
+            this.relatedTypeIndex = -1
+            this.editRelatedType = {
+                type: null,
+                relationTypes: null,
+            }
+            this.updateRelatedTypeModal = true
         },
         updateRelatedType(relatedType, index) {
             this.relatedTypeIndex = index
@@ -195,7 +206,7 @@ export default {
         displayRelatedTypes(relatedTypes) {
             let result = []
             for (let relatedType of relatedTypes.relatedTypes) {
-                result.push('<span class="greek">' + relatedType.type.name + '</span>' + '<br />' + relatedType.relationType.name)
+                result.push('<span class="greek">' + relatedType.type.id + ' - ' + relatedType.type.name + '</span>' + '<br />' + relatedType.relationTypes.map(relationType => relationType.name).join(', '))
             }
             return result
         }

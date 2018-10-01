@@ -14,6 +14,14 @@
                 {{ item.message }}
             </alert>
 
+            <basicTypePanel
+                id="basic"
+                ref="basic"
+                header="Basic information"
+                :model="model.basic"
+                @validated="validated"
+            />
+
             <typeVersesPanel
                 id="verses"
                 ref="verses"
@@ -160,6 +168,7 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
+                    <li><a href="#basic">Basic information</a></li>
                     <li><a href="#verses">Verses</a></li>
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
@@ -202,7 +211,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -226,8 +235,12 @@ export default {
             bibliographies: null,
             generals: null,
             model: {
+                basic: {
+                    incipit: null,
+                    title: null,
+                },
                 verses: {
-                    verses: [],
+                    verses: '',
                     numberOfVerses: null,
                 },
                 types: {types: null},
@@ -261,6 +274,7 @@ export default {
                 },
             },
             forms: [
+                'basic',
                 'verses',
                 'types',
                 'persons',
@@ -297,8 +311,8 @@ export default {
         this.meters = this.data.meters
         this.genres = this.data.genres
         this.subjects = {
-            persons: this.historicalPersons,
-            keywords: this.data.subjectKeywords,
+            personSubjects: this.historicalPersons,
+            keywordSubjects: this.data.subjectKeywords,
         }
         this.keywords = this.data.typeKeywords
         this.bibliographies = {
@@ -324,6 +338,12 @@ export default {
     methods: {
         loadType() {
             if (this.type != null) {
+                // Basic information
+                this.model.basic = {
+                    incipit: this.type.incipit,
+                    title: this.type.title,
+                }
+
                 // Verses
                 this.model.verses = {
                     verses: this.type.verses,
@@ -353,8 +373,8 @@ export default {
 
                 // Subject
                 this.model.subjects = {
-                    persons: this.type.subjects.persons,
-                    keywords: this.type.subjects.keywords,
+                    personSubjects: this.type.subjects.persons,
+                    keywordSubjects: this.type.subjects.keywords,
                 }
 
                 // Keyword

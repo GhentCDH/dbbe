@@ -135,7 +135,7 @@ services:
 
     type_manager:
         class: AppBundle\ObjectStorage\TypeManager
-        arguments: ['@type_service', '@cache.app', '@service_container', null, null, 'type']
+        arguments: ['@type_service', '@cache.app', '@service_container', '@type_elastic_service', '@security.token_storage', 'type']
         public: true
 
     origin_manager:

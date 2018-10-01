@@ -277,7 +277,7 @@ class EntityService extends DatabaseService
     ): int {
         return $this->conn->executeUpdate(
             'UPDATE data.global_id
-            set etra = ?
+            set extra = ?
             where idauthority = (
                 select identifier.ids[1]
                 from data.identifier
@@ -285,9 +285,9 @@ class EntityService extends DatabaseService
             )
             and idsubject = ?',
             [
+                $extra,
                 $identifierId,
                 $entityId,
-                $extra,
             ]
         );
     }

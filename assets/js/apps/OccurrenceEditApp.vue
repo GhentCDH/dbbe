@@ -83,7 +83,7 @@
                 id="subjects"
                 ref="subjects"
                 header="Subjects"
-                :link="{url: urls['keywords_edit'], text: 'Edit keywords'}"
+                :link="{url: urls['keywords_subject_get'], text: 'Edit keywords'}"
                 :model="model.subjects"
                 :values="subjects"
                 @validated="validated"
@@ -278,8 +278,8 @@ export default {
                 meters: {meters: null},
                 genres: {genres: null},
                 subjects: {
-                    persons: null,
-                    keywords: null,
+                    personSubjects: null,
+                    keywordSubjects: null,
                 },
                 identification: {},
                 images: {
@@ -341,8 +341,8 @@ export default {
         this.meters = this.data.meters
         this.genres = this.data.genres
         this.subjects = {
-            persons: this.historicalPersons,
-            keywords: this.data.keywords,
+            personSubjects: this.historicalPersons,
+            keywordSubjects: this.data.keywords,
         }
         this.bibliographies = {
             books: this.data.books,
@@ -426,8 +426,8 @@ export default {
 
                 // Subject
                 this.model.subjects = {
-                    persons: this.occurrence.subjects.persons,
-                    keywords: this.occurrence.subjects.keywords,
+                    personSubjects: this.occurrence.subjects.persons,
+                    keywordSubjects: this.occurrence.subjects.keywords,
                 }
 
                 // Identification

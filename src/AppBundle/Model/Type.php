@@ -24,11 +24,11 @@ class Type extends Poem
      */
     protected $occurrences = [];
     /**
-     * Array containing related types and the relation type
+     * Array containing related types and relation types
      * Structure:
      *  [
-     *      [type, typeRelationType],
-     *      [type, typeRelationType],
+     *      [type, [typeRelationType, typeRelationType]],
+     *      [type, [typeRelationType, typeRelationType]],
      *      ...
      *  ]
      * @var array
@@ -84,7 +84,10 @@ class Type extends Poem
 
     public function addRelatedType(Type $type, TypeRelationType $relationType): Type
     {
-        $this->relatedTypes[] = [$type, $relationType];
+        if (!isset($this->relatedTypes[$type->getId()])) {
+            $this->relatedTypes[$type->getId()] = [$type, []];
+        }
+        $this->relatedTypes[$type->getId()][1][] = $relationType;
 
         return $this;
     }
@@ -182,7 +185,7 @@ class Type extends Poem
             foreach ($this->relatedTypes as $relationType) {
                 $result['relatedTypes'][] = [
                     'type' => $relationType[0]->getShortJson(),
-                    'relationType' => $relationType[1]->getShortJson(),
+                    'relationTypes' =>  ArrayToJson::arrayToShortJson($relationType[1]),
                 ];
             }
         }

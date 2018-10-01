@@ -209,9 +209,7 @@ class OnlineSourceManager extends EntityManager
             }
 
             // load new data
-            if (!$isNew) {
-                $this->clearCache($id, $cacheReload);
-            }
+            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);

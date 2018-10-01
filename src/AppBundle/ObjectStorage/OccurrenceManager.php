@@ -54,14 +54,7 @@ class OccurrenceManager extends PoemManager
 
                 $this->setIncipits($occurrences);
 
-                // number of verses
-                $rawNumbersOfVerses = $this->dbs->getNumberOfVerses($ids);
-                if (count($rawNumbersOfVerses) > 0) {
-                    foreach ($rawNumbersOfVerses as $rawNumberOfVerses) {
-                        $occurrences[$rawNumberOfVerses['occurrence_id']]
-                            ->setNumberOfVerses($rawNumberOfVerses['verses']);
-                    }
-                }
+                $this->setNumberOfVerses($occurrences);
 
                 // Verses (needed in mini to calculate number of verses)
                 $rawVerses = $this->dbs->getVerses($ids);
@@ -255,7 +248,7 @@ class OccurrenceManager extends PoemManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->manuscript->id);
+            $id = $this->dbs->insert($data->manuscript->id, $data->incipit);
 
             // Clear manuscript cache so occurrences will be reloaded
             $this->container->get('manuscript_manager')->clearCache($data->manuscript->id, ['short' => true]);
@@ -291,6 +284,13 @@ class OccurrenceManager extends PoemManager
                 'short' => $isNew,
                 'full' => $isNew,
             ];
+            if (property_exists($data, 'public')) {
+                if (!is_bool($data->public)) {
+                    throw new BadRequestHttpException('Incorrect public data.');
+                }
+                $cacheReload['mini'] = true;
+                $this->updatePublic($old, $data->public);
+            }
             if (property_exists($data, 'incipit')) {
                 // Incipit is a required field
                 if (!is_string($data->incipit)
@@ -308,7 +308,7 @@ class OccurrenceManager extends PoemManager
                 }
 
                 $cacheReload['short'] = true;
-                $this->dbs->updateTitle($id, $data->title);
+                $this->dbs->upsertTitle($id, 'GR', $data->title);
             }
             if (property_exists($data, 'manuscript')) {
                 // Manuscript is a required field
@@ -420,7 +420,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!is_numeric($data->numberOfVerses)) {
-                    throw new BadRequestHttpException('Incorrect verses data.');
+                    throw new BadRequestHttpException('Incorrect number of verses data.');
                 }
                 $cacheReload['mini'] = true;
                 $this->dbs->updateNumberOfVerses($id, $data->numberOfVerses);
@@ -471,19 +471,19 @@ class OccurrenceManager extends PoemManager
                 $cacheReload['short'] = true;
                 $this->updateGenres($old, $data->genres);
             }
-            if (property_exists($data, 'persons')) {
-                if (!is_array($data->persons)) {
+            if (property_exists($data, 'personSubjects')) {
+                if (!is_array($data->personSubjects)) {
                     throw new BadRequestHttpException('Incorrect person subject data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePersonSubjects($old, $data->persons);
+                $this->updatePersonSubjects($old, $data->personSubjects);
             }
-            if (property_exists($data, 'keywords')) {
-                if (!is_array($data->keywords)) {
+            if (property_exists($data, 'keywordSubjects')) {
+                if (!is_array($data->keywordSubjects)) {
                     throw new BadRequestHttpException('Incorrect keyword subject data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updateKeywordSubjects($old, $data->keywords);
+                $this->updateKeywordSubjects($old, $data->keywordSubjects);
             }
             $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'occurrence');
             if (property_exists($data, 'bibliography')) {
@@ -493,6 +493,20 @@ class OccurrenceManager extends PoemManager
                 // short is needed here to index DBBE in elasticsearch
                 $cacheReload['short'] = true;
                 $this->updateBibliography($old, $data->bibliography, true);
+            }
+            if (property_exists($data, 'publicComment')) {
+                if (!is_string($data->publicComment)) {
+                    throw new BadRequestHttpException('Incorrect public comment data.');
+                }
+                $cacheReload['short'] = true;
+                $this->dbs->updatePublicComment($id, $data->publicComment);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $cacheReload['short'] = true;
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             if (property_exists($data, 'paleographicalInfo')) {
                 if (!is_string($data->paleographicalInfo)) {
@@ -564,9 +578,7 @@ class OccurrenceManager extends PoemManager
             }
 
             // load new data
-            if (!$isNew) {
-                $this->clearCache($id, $cacheReload);
-            }
+            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -612,7 +624,7 @@ class OccurrenceManager extends PoemManager
                 || !is_string($verse->verse)
                 || (
                     property_exists($verse, 'id')
-                    && !is_numeric($verse->id)
+                    && !(empty($verse->id) || is_numeric($verse->id))
                 )
             ) {
                 throw new BadRequestHttpException('Incorrect verses data.');
@@ -622,7 +634,7 @@ class OccurrenceManager extends PoemManager
         $oldVerses = $occurrence->getVerses();
         $ids = [];
         foreach ($verses as $order => $verse) {
-            if (!property_exists($verse, 'id')) {
+            if (!property_exists($verse, 'id') || empty($verse->id)) {
                 // new verses
                 $verse->occurrence = json_decode(json_encode(['id' => $occurrence->getId()]));
                 $verse->order = $order;
@@ -707,86 +719,6 @@ class OccurrenceManager extends PoemManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addType($occurrence->getId(), $addId);
-        }
-    }
-
-    private function updateMeters(Occurrence $occurrence, array $meters): void
-    {
-        foreach ($meters as $meter) {
-            if (!is_object($meter)
-                || !property_exists($meter, 'id')
-                || !is_numeric($meter->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect meter data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($meters, $occurrence->getMeters());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delMeters($occurrence->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addMeter($occurrence->getId(), $addId);
-        }
-    }
-
-    private function updateGenres(Occurrence $occurrence, array $genres): void
-    {
-        foreach ($genres as $genre) {
-            if (!is_object($genre)
-                || !property_exists($genre, 'id')
-                || !is_numeric($genre->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect genre data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($genres, $occurrence->getGenres());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delGenres($occurrence->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addGenre($occurrence->getId(), $addId);
-        }
-    }
-
-    private function updatePersonSubjects(Occurrence $occurrence, array $persons): void
-    {
-        foreach ($persons as $person) {
-            if (!is_object($person)
-                || !property_exists($person, 'id')
-                || !is_numeric($person->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect person subject data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($persons, $occurrence->getPersonSubjects());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delSubjects($occurrence->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addSubject($occurrence->getId(), $addId);
-        }
-    }
-
-    private function updateKeywordSubjects(Occurrence $occurrence, array $keywords): void
-    {
-        foreach ($keywords as $keyword) {
-            if (!is_object($keyword)
-                || !property_exists($keyword, 'id')
-                || !is_numeric($keyword->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect keyword subject data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($keywords, $occurrence->getKeywordSubjects());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delSubjects($occurrence->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addSubject($occurrence->getId(), $addId);
         }
     }
 
@@ -887,26 +819,6 @@ class OccurrenceManager extends PoemManager
         foreach ($newLinks as $link) {
             $imageLink = $this->container->get('image_manager')->add($link);
             $this->dbs->addImage($occurrence->getId(), $imageLink->getId());
-        }
-    }
-
-    private function updateAcknowledgements(Occurrence $occurrence, array $acknowledgements): void
-    {
-        foreach ($acknowledgements as $acknowledgement) {
-            if (!is_object($acknowledgement)
-                || !property_exists($acknowledgement, 'id')
-                || !is_numeric($acknowledgement->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect acknowledgement data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($acknowledgements, $occurrence->getAcknowledgements());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delAcknowledgements($occurrence->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addAcknowledgement($occurrence->getId(), $addId);
         }
     }
 

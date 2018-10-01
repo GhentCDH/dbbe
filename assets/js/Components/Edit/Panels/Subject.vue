@@ -41,20 +41,22 @@ export default {
         return {
             schema: {
                 fields: {
-                    persons: this.createMultiSelect(
+                    personSubjects: this.createMultiSelect(
                         'Persons',
                         {
-                            values: this.values.persons
+                            model: 'personSubjects',
+                            values: this.values.personSubjects,
                         },
                         {
                             multiple: true,
                             closeOnSelect: false,
                         }
                     ),
-                    keywords: this.createMultiSelect(
+                    keywordSubjects: this.createMultiSelect(
                         'Keywords',
                         {
-                            values: this.values.keywords
+                            model: 'keywordSubjects',
+                            values: this.values.keywordSubjects,
                         },
                         {
                             multiple: true,
@@ -68,8 +70,8 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.persons)
-            this.enableField(this.schema.fields.keywords)
+            this.enableField(this.schema.fields.personSubjects)
+            this.enableField(this.schema.fields.keywordSubjects)
         },
     }
 }

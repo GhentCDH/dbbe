@@ -388,7 +388,7 @@ class PersonManager extends EntityManager
                 'full' => $isNew,
             ];
             if (property_exists($data, 'public')) {
-                if (!is_bool($data->firstName)) {
+                if (!is_bool($data->bool)) {
                     throw new BadRequestHttpException('Incorrect public data.');
                 }
                 $cacheReload['mini'] = true;
@@ -482,14 +482,14 @@ class PersonManager extends EntityManager
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePublicComment($old, $data->publicComment);
+                $this->dbs->updatePublicComment($id, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
                 $cacheReload['short'] = true;
-                $this->updatePrivateComment($old, $data->privateComment);
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
 
             // Throw error if none of above matched
@@ -498,9 +498,7 @@ class PersonManager extends EntityManager
             }
 
             // load new data
-            if (!$isNew) {
-                $this->clearCache($id, $cacheReload);
-            }
+            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);

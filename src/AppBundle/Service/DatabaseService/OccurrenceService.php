@@ -276,20 +276,6 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
-    public function getNumberOfVerses(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                original_poem.identity as occurrence_id,
-                poem.verses
-            from data.original_poem
-            inner join data.poem on original_poem.identity = poem.identity
-            where original_poem.identity in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     public function getImages(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -308,7 +294,7 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
-    public function insert(int $manuscriptId): int
+    public function insert(int $manuscriptId, string $incipit): int
     {
         $this->beginTransaction();
         try {
@@ -317,7 +303,7 @@ class OccurrenceService extends PoemService
             $this->conn->executeUpdate(
                 'INSERT INTO data.original_poem default values'
             );
-            $occurrenceId = $this->conn->executeQuery(
+            $id = $this->conn->executeQuery(
                 'SELECT
                     original_poem.identity as occurrence_id
                 from data.original_poem
@@ -328,7 +314,16 @@ class OccurrenceService extends PoemService
                 'INSERT INTO data.document_contains (idcontainer, idcontent) values (?, ?)',
                 [
                     $manuscriptId,
-                    $occurrenceId,
+                    $id,
+                ]
+            );
+            $this->conn->executeUpdate(
+                'UPDATE data.poem
+                set incipit = ?
+                where identity = ?',
+                [
+                    $incipit,
+                    $id,
                 ]
             );
             $this->commit();
@@ -336,43 +331,7 @@ class OccurrenceService extends PoemService
             $this->rollBack();
             throw $e;
         }
-        return $occurrenceId;
-    }
-
-    /**
-     * @param  int    $id
-     * @param  string $incipit
-     * @return int
-     */
-    public function updateIncipit(int $id, string $incipit): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.poem
-            set incipit = ?
-            where poem.identity = ?',
-            [
-                $incipit,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int    $id
-     * @param  string $title
-     * @return int
-     */
-    public function updateTitle(int $id, string $title): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.document_title
-            set title = ?
-            where document_title.iddocument = ?',
-            [
-                $title,
-                $id,
-            ]
-        );
+        return $id;
     }
 
     /**
@@ -575,24 +534,6 @@ class OccurrenceService extends PoemService
 
     /**
      * @param  int $id
-     * @param  int $numberOfVerses
-     * @return int
-     */
-    public function updateNumberOfVerses(int $id, int $numberOfVerses): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.poem
-            set verses = ?
-            where poem.identity = ?',
-            [
-                $numberOfVerses,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
      * @param  int $typeId
      * @return int
      */
@@ -642,135 +583,6 @@ class OccurrenceService extends PoemService
     }
 
     /**
-     * @param  int $id
-     * @param  int $meterId
-     * @return int
-     */
-    public function addMeter(int $id, int $meterId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.poem_meter (idpoem, idmeter)
-            values (?, ?)',
-            [
-                $id,
-                $meterId,
-            ]
-        );
-    }
-
-    /**
-     * @param  int   $id
-     * @param  array $meterIds
-     * @return int
-     */
-    public function delMeters(int $id, array $meterIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.poem_meter
-            where idpoem = ?
-            and idmeter in (?)',
-            [
-                $id,
-                $meterIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_INT_ARRAY,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
-     * @param  int $genreId
-     * @return int
-     */
-    public function addGenre(int $id, int $genreId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.document_genre (iddocument, idgenre)
-            values (?, ?)',
-            [
-                $id,
-                $genreId,
-            ]
-        );
-    }
-
-    /**
-     * @param  int   $id
-     * @param  array $genreIds
-     * @return int
-     */
-    public function delGenres(int $id, array $genreIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.document_genre
-            where iddocument = ?
-            and idgenre in (?)',
-            [
-                $id,
-                $genreIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_INT_ARRAY,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
-     * @param  int $subjectId
-     * @return int
-     */
-    public function addSubject(int $id, int $subjectId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.factoid (subject_identity, object_identity, idfactoid_type)
-            values (
-                ?,
-                ?,
-                (
-                    select
-                        factoid_type.idfactoid_type
-                    from data.factoid_type
-                    where factoid_type.type = \'subject of\'
-                )
-            )',
-            [
-                $subjectId,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int   $id
-     * @param  array $subjectIds
-     * @return int
-     */
-    public function delSubjects(int $id, array $subjectIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.factoid
-            where subject_identity in (?)
-            and object_identity = ?',
-            [
-                $subjectIds,
-                $id,
-            ],
-            [
-                Connection::PARAM_INT_ARRAY,
-                \PDO::PARAM_INT,
-            ]
-        );
-    }
-
-    /**
      * @param  int    $id
      * @param  string $paleographicalInfo
      * @return int
@@ -802,46 +614,6 @@ class OccurrenceService extends PoemService
             [
                 $contextualInfo,
                 $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
-     * @param  int $acknowledgementId
-     * @return int
-     */
-    public function addAcknowledgement(int $id, int $acknowledgementId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.document_acknowledgement (iddocument, idacknowledgement)
-            values (?, ?)',
-            [
-                $id,
-                $acknowledgementId,
-            ]
-        );
-    }
-
-    /**
-     * @param  int   $id
-     * @param  array $acknowledgementIds
-     * @return int
-     */
-    public function delAcknowledgements(int $id, array $acknowledgementIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.document_genre
-            where iddocument = ?
-            and idacknowledgement in (?)',
-            [
-                $id,
-                $acknowledgementIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

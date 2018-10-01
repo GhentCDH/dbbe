@@ -55,7 +55,7 @@
                                         ({{ item[0].getNumberOfVerses() }} verses)
                                     {% endif %}
                                     {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                        <span class="bg-warning">({{ item[1].getName() }})</span>
+                                        <span class="bg-warning">({{ item[1]|name|join(', ') }})</span>
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}

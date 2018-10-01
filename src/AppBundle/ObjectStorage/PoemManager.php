@@ -2,6 +2,10 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\Poem;
+
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
 /**
  * ObjectManager for poems (occurrences and types)
  */
@@ -39,6 +43,17 @@ class PoemManager extends DocumentManager
             foreach ($rawIncipits as $rawIncipit) {
                 $poems[$rawIncipit['poem_id']]
                     ->setIncipit($rawIncipit['incipit']);
+            }
+        }
+    }
+
+    protected function setNumberOfVerses(array &$poems): void
+    {
+        $rawNumbersOfVerses = $this->dbs->getNumberOfVerses(self::getIds($poems));
+        if (count($rawNumbersOfVerses) > 0) {
+            foreach ($rawNumbersOfVerses as $rawNumberOfVerses) {
+                $poems[$rawNumberOfVerses['poem_id']]
+                    ->setNumberOfVerses($rawNumberOfVerses['verses']);
             }
         }
     }
@@ -109,6 +124,106 @@ class PoemManager extends DocumentManager
         }
         foreach (array_keys($poems) as $poemId) {
             $poems[$poemId]->sortAcknowledgements();
+        }
+    }
+
+    protected function updateMeters(Poem $poem, array $meters): void
+    {
+        foreach ($meters as $meter) {
+            if (!is_object($meter)
+                || !property_exists($meter, 'id')
+                || !is_numeric($meter->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect meter data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($meters, $poem->getMeters());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delMeters($poem->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addMeter($poem->getId(), $addId);
+        }
+    }
+
+    protected function updateGenres(Poem $poem, array $genres): void
+    {
+        foreach ($genres as $genre) {
+            if (!is_object($genre)
+                || !property_exists($genre, 'id')
+                || !is_numeric($genre->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect genre data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($genres, $poem->getGenres());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delGenres($poem->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addGenre($poem->getId(), $addId);
+        }
+    }
+
+    protected function updatePersonSubjects(Poem $poem, array $persons): void
+    {
+        foreach ($persons as $person) {
+            if (!is_object($person)
+                || !property_exists($person, 'id')
+                || !is_numeric($person->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect person subject data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($persons, $poem->getPersonSubjects());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delSubjects($poem->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addSubject($poem->getId(), $addId);
+        }
+    }
+
+    protected function updateKeywordSubjects(Poem $poem, array $keywords): void
+    {
+        foreach ($keywords as $keyword) {
+            if (!is_object($keyword)
+                || !property_exists($keyword, 'id')
+                || !is_numeric($keyword->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect keyword subject data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($keywords, $poem->getKeywordSubjects());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delSubjects($poem->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addSubject($poem->getId(), $addId);
+        }
+    }
+
+    protected function updateAcknowledgements(Poem $poem, array $acknowledgements): void
+    {
+        foreach ($acknowledgements as $acknowledgement) {
+            if (!is_object($acknowledgement)
+                || !property_exists($acknowledgement, 'id')
+                || !is_numeric($acknowledgement->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect acknowledgement data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($acknowledgements, $poem->getAcknowledgements());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delAcknowledgements($poem->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addAcknowledgement($poem->getId(), $addId);
         }
     }
 }

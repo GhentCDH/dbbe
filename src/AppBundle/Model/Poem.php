@@ -13,10 +13,6 @@ class Poem extends Document
      */
     protected $incipit;
     /**
-     * @var string
-     */
-    protected $title;
-    /**
      * Array of Verses for Occurrence
      * Array of strings for Type
      * @var array
@@ -60,7 +56,7 @@ class Poem extends Document
         return $this->verses;
     }
 
-    public function setNumberOfVerses(int $numberOfVerses = null): Occurrence
+    public function setNumberOfVerses(int $numberOfVerses = null): Poem
     {
         $this->numberOfVerses = $numberOfVerses;
 

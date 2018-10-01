@@ -186,6 +186,7 @@ export default {
                     text: {
                         type: 'input',
                         inputType: 'text',
+                        styleClasses: 'greek',
                         label: 'Text',
                         model: 'text',
                     },

@@ -40,6 +40,14 @@ class AppExtension extends Twig_Extension
                     }
                 }
             }),
+            new Twig_SimpleFilter('name', function ($array) {
+                return array_map(
+                    function ($item) {
+                        return $item->getName();
+                    },
+                    $array
+                );
+            }),
         ];
     }
 }

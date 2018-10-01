@@ -32,7 +32,7 @@ class EntityManager extends ObjectManager
     private function getAllCombined(string $level, string $sortFunction = null): array
     {
         return $this->wrapArrayCache(
-            $this->entityType . 's_' . $level,
+            $this->entityType . 's_' . $level . (!empty($sortFunction) ? '_' . $sortFunction : ''),
             [$this->entityType . 's'],
             function () use ($level, $sortFunction) {
                 $rawIds = $this->dbs->getIds();
@@ -52,6 +52,9 @@ class EntityManager extends ObjectManager
 
                 if (!empty($sortFunction)) {
                     usort($objects, function ($a, $b) use ($sortFunction) {
+                        if ($sortFunction == 'getId') {
+                            return $a->{$sortFunction}() > $b->{$sortFunction}();
+                        }
                         return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
                     });
                 }
@@ -164,28 +167,6 @@ class EntityManager extends ObjectManager
         }
     }
 
-    protected function updatePublicComment(Entity $entity, string $publicComment = null): void
-    {
-        if (empty($publicComment)) {
-            if (!empty($entity->getPublicComment())) {
-                $this->dbs->updatePublicComment($entity->getId(), '');
-            }
-        } else {
-            $this->dbs->updatePublicComment($entity->getId(), $publicComment);
-        }
-    }
-
-    protected function updatePrivateComment(Entity $entity, string $privateComment = null): void
-    {
-        if (empty($privateComment)) {
-            if (!empty($entity->getPrivateComment())) {
-                $this->dbs->updatePrivateComment($entity->getId(), '');
-            }
-        } else {
-            $this->dbs->updatePrivateComment($entity->getId(), $privateComment);
-        }
-    }
-
     protected function updateIdentificationwrapper(
         Entity $entity,
         stdClass $data,
@@ -238,7 +219,7 @@ class EntityManager extends ObjectManager
     protected function updateIdentification(Entity $entity, Identifier $identifier, string $value): void
     {
         if (!empty($value) && !preg_match(
-            '/' . $identifier->getRegex() . '/',
+            '~' . $identifier->getRegex() . '~',
             $value
         )) {
             throw new BadRequestHttpException('Incorrect identification data.');
