@@ -212,7 +212,11 @@ export default {
                 'Offices': {
                     depUrl: this.urls['office_deps_by_region'].replace('region_id', this.submitModel.region.id),
                 },
-                // TODO: persons
+                'Persons': {
+                    depUrl: this.urls['person_deps_by_region'].replace('region_id', this.submitModel.region.id),
+                    url: this.urls['persons_get'],
+                    urlIdentifier: 'person_id',
+                },
                 'Regions': {
                     depUrl: this.urls['region_deps_by_region'].replace('region_id', this.submitModel.region.id),
                 },

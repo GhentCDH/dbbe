@@ -83,6 +83,110 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByRegionId(int $regionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.factoid on person.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.location on factoid.idlocation = location.idlocation
+            where factoid_type.type =  \'origination\'
+            and location.idregion = ?',
+            [$regionId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByRegionIdWithChildren(int $regionId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.factoid on person.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.location on factoid.idlocation = location.idlocation
+            where factoid_type.type =  \'origination\'
+            and location.idregion in (
+                WITH RECURSIVE rec (id, idparent) AS (
+                    SELECT
+                        r.identity,
+                        r.parent_idregion
+                    FROM data.region r
+
+                    UNION ALL
+
+                    SELECT
+                        rec.id,
+                        r.parent_idregion
+                    FROM rec
+                    INNER JOIN data.region r
+                    ON r.identity = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idparent = ? or rec.id = ?
+            )',
+            [
+                $regionId,
+                $regionId,
+            ]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByArticleId(int $articleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.reference on person.identity = reference.idtarget
+            inner join data.article on reference.idsource = article.identity
+            where article.identity = ?',
+            [$articleId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByBookId(int $bookId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.reference on person.identity = reference.idtarget
+            inner join data.book on reference.idsource = book.identity
+            where book.identity = ?',
+            [$bookId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByBookChapterId(int $bookChapterId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.reference on person.identity = reference.idtarget
+            inner join data.bookchapter on reference.idsource = bookchapter.identity
+            where bookchapter.identity = ?',
+            [$bookChapterId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByOnlineSourceId(int $onlineSourceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.reference on person.identity = reference.idtarget
+            inner join data.online_source on reference.idsource = online_source.identity
+            where online_source.identity = ?',
+            [$onlineSourceId]
+        )->fetchAll();
+    }
+
     public function getBasicInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -242,6 +346,45 @@ class PersonService extends EntityService
                 factoid.object_identity as occurrence_id
             from data.factoid
             inner join data.original_poem on factoid.object_identity = original_poem.identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            where factoid.subject_identity in (?)
+            and factoid_type.type = \'subject of\'',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getTypesAsRoles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as type_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getTypesAsSubjects(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                factoid.subject_identity as person_id,
+                factoid.object_identity as type_id
+            from data.factoid
+            inner join data.reconstructed_poem on factoid.object_identity = reconstructed_poem.identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
             where factoid.subject_identity in (?)
             and factoid_type.type = \'subject of\'',
@@ -421,6 +564,28 @@ class PersonService extends EntityService
             and factoid.idfactoid_type = factoid_type.idfactoid_type
             and factoid_type.type = \'origination\'',
             [
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * Helper for regionmanager -> merge
+     * @param  int $id
+     * @param  int $regionId
+     * @return int
+     */
+    public function updateRegion(int $id, int $regionId): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set idlocation = (select idlocation from data.location where idregion = ?)
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = \'origination\'',
+            [
+                $regionId,
                 $id,
             ]
         );

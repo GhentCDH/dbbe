@@ -170,6 +170,58 @@ class TypeController extends BaseController
     }
 
     /**
+     * Get all types that have a dependency on an article
+     * (reference)
+     * @Route("/types/articles/{id}", name="type_deps_by_article")
+     * @Method("GET")
+     * @param  int    $id article id
+     * @param Request $request
+     */
+    public function getDepsByArticle(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getArticleDependencies');
+    }
+
+    /**
+    * Get all types that have a dependency on a book
+    * (reference)
+    * @Route("/types/books/{id}", name="type_deps_by_book")
+    * @Method("GET")
+    * @param  int    $id book id
+    * @param Request $request
+    */
+    public function getDepsByBook(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookDependencies');
+    }
+
+    /**
+     * Get all types that have a dependency on a book chapter
+     * (reference)
+     * @Route("/types/bookchapters/{id}", name="type_deps_by_book_chapter")
+     * @Method("GET")
+     * @param  int    $id book chapter id
+     * @param Request $request
+     */
+    public function getDepsByBookChapter(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookChapterDependencies');
+    }
+
+    /**
+     * Get all types that have a dependency on an online source
+     * (reference)
+     * @Route("/types/onlinesources/{id}", name="type_deps_by_online_source")
+     * @Method("GET")
+     * @param  int    $id online source id
+     * @param Request $request
+     */
+    public function getDepsByOnlineSource(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
+    }
+
+    /**
      * @Route("/types", name="type_post")
      * @Method("POST")
      * @param Request $request

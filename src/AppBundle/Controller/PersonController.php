@@ -138,6 +138,72 @@ class PersonController extends BaseController
     }
 
     /**
+     * Get all persons that have a dependency on a region
+     * (factoid: origination)
+     * @Route("/persons/regions/{id}", name="person_deps_by_region")
+     * @Method("GET")
+     * @param  int    $id region id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByRegion(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getRegionDependencies');
+    }
+
+    /**
+     * Get all persons that have a dependency on an article
+     * (reference)
+     * @Route("/persons/articles/{id}", name="person_deps_by_article")
+     * @Method("GET")
+     * @param  int    $id article id
+     * @param Request $request
+     */
+    public function getDepsByArticle(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getArticleDependencies');
+    }
+
+    /**
+    * Get all persons that have a dependency on a book
+    * (reference)
+    * @Route("/persons/books/{id}", name="person_deps_by_book")
+    * @Method("GET")
+    * @param  int    $id book id
+    * @param Request $request
+    */
+    public function getDepsByBook(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookDependencies');
+    }
+
+    /**
+     * Get all persons that have a dependency on a book chapter
+     * (reference)
+     * @Route("/persons/bookchapters/{id}", name="person_deps_by_book_chapter")
+     * @Method("GET")
+     * @param  int    $id book chapter id
+     * @param Request $request
+     */
+    public function getDepsByBookChapter(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookChapterDependencies');
+    }
+
+    /**
+     * Get all persons that have a dependency on an online source
+     * (reference)
+     * @Route("/persons/onlinesources/{id}", name="person_deps_by_online_source")
+     * @Method("GET")
+     * @param  int    $id online source id
+     * @param Request $request
+     */
+    public function getDepsByOnlineSource(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
+    }
+
+    /**
      * @Route("/persons", name="person_post")
      * @Method("POST")
      * @param Request $request

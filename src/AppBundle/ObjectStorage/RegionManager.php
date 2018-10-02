@@ -304,6 +304,8 @@ class RegionManager extends ObjectManager
             $manuscripts = $this->container->get('manuscript_manager')->getRegionDependenciesWithChildren($id, true);
             $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
 
+            // Update Elastic persons
+            // via office
             $officesWithParents = $this->container->get('office_manager')->getRegionDependenciesWithChildren($id);
             $persons = [];
             foreach ($officesWithParents as $officesWithParent) {
@@ -313,8 +315,8 @@ class RegionManager extends ObjectManager
                 );
             }
 
-            // TODO: update Elastic persons
-            // $persons += $this->container->get('person_manager')->getRegionDependenciesWithChildren($id, true);
+            // via origin
+            $persons += $this->container->get('person_manager')->getRegionDependenciesWithChildren($id, true);
             $this->container->get('person_manager')->elasticIndex($persons);
 
             // commit transaction
@@ -370,13 +372,17 @@ class RegionManager extends ObjectManager
             }
             return false;
         });
+
+
         $institutions = $this->container->get('institution_manager')->getInstitutionsByRegion($secondaryId);
         $regions = $this->getRegionDependencies($secondaryId);
+        $offices = $this->container->get('office_manager')->getRegionDependencies($secondaryId, true);
+        $persons = $this->container->get('person_manager')->getRegionDependencies($secondaryId, true);
 
         $this->dbs->beginTransaction();
         try {
             if (!empty($updates)) {
-                $primary = $this->updateRegionWithParents($primaryId, json_decode(json_encode($updates)));
+                $primary = $this->update($primaryId, json_decode(json_encode($updates)));
             }
             if (!empty($manuscripts)) {
                 foreach ($manuscripts as $manuscript) {
@@ -403,6 +409,22 @@ class RegionManager extends ObjectManager
                     $this->update(
                         $region->getId(),
                         json_decode(json_encode(['parent' => ['id' => $primaryId]]))
+                    );
+                }
+            }
+            if (!empty($offices)) {
+                foreach ($offices as $office) {
+                    $this->container->get('office_manager')->update(
+                        $office->getId(),
+                        json_decode(json_encode(['individualRegionWithParents' => ['id' => $primaryId]]))
+                    );
+                }
+            }
+            if (!empty($persons)) {
+                foreach ($persons as $person) {
+                    $this->container->get('person_manager')->update(
+                        $person->getId(),
+                        json_decode(json_encode(['region' => ['id' => $primaryId]]))
                     );
                 }
             }

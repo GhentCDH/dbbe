@@ -111,17 +111,6 @@ class BookManager extends DocumentManager
     }
 
     /**
-     * Get all books that are dependent on a specific person
-     * @param  int   $personId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
-     * @return array
-     */
-    public function getPersonDependencies(int $personId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
-    }
-
-    /**
      * Get all books that are dependent on specific references
      * @param  array $referenceIds
      * @return array

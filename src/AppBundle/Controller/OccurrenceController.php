@@ -183,6 +183,58 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on an article
+     * (reference)
+     * @Route("/occurrences/articles/{id}", name="occurrence_deps_by_article")
+     * @Method("GET")
+     * @param  int    $id article id
+     * @param Request $request
+     */
+    public function getDepsByArticle(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getArticleDependencies');
+    }
+
+    /**
+    * Get all occurrences that have a dependency on a book
+    * (reference)
+    * @Route("/occurrences/books/{id}", name="occurrence_deps_by_book")
+    * @Method("GET")
+    * @param  int    $id book id
+    * @param Request $request
+    */
+    public function getDepsByBook(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookDependencies');
+    }
+
+    /**
+     * Get all occurrences that have a dependency on a book chapter
+     * (reference)
+     * @Route("/occurrences/bookchapters/{id}", name="occurrence_deps_by_book_chapter")
+     * @Method("GET")
+     * @param  int    $id book chapter id
+     * @param Request $request
+     */
+    public function getDepsByBookChapter(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookChapterDependencies');
+    }
+
+    /**
+     * Get all occurrences that have a dependency on an online source
+     * (reference)
+     * @Route("/occurrences/onlinesources/{id}", name="occurrence_deps_by_online_source")
+     * @Method("GET")
+     * @param  int    $id online source id
+     * @param Request $request
+     */
+    public function getDepsByOnlineSource(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
+    }
+
+    /**
      * @Route("/occurrences", name="occurrence_post")
      * @Method("POST")
      * @param Request $request

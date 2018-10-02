@@ -51,8 +51,7 @@ class ManuscriptService extends DocumentService
                 left join data.institution on location.idinstitution = institution.identity
                 inner join data.region on coalesce(location.idregion, institution.idregion) = region.identity
             ) as manreg
-            where manreg.region_id = ?
-            )',
+            where manreg.region_id = ?',
             [$regionId]
         )->fetchAll();
     }

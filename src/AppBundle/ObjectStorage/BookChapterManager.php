@@ -103,27 +103,6 @@ class BookChapterManager extends DocumentManager
     }
 
     /**
-     * Get all book chapters that are dependent on a specific book
-     * @param  int   $bookId
-     * @return array
-     */
-    public function getBookDependencies(int $bookId): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), 'getMini');
-    }
-
-    /**
-     * Get all book chapters that are dependent on a specific person
-     * @param  int   $personId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
-     * @return array
-     */
-    public function getPersonDependencies(int $personId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
-    }
-
-    /**
      * Get all book chapters that are dependent on specific references
      * @param  array $referenceIds
      * @return array

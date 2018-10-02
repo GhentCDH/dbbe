@@ -113,16 +113,6 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Get all articles that are dependent on a specific person
-     * @param  int   $personId
-     * @return array
-     */
-    public function getPersonDependencies(int $personId): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), 'getMini');
-    }
-
-    /**
      * Get all articles that are dependent on specific references
      * @param  array $referenceIds
      * @return array

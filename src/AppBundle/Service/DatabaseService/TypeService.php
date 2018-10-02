@@ -134,6 +134,58 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByArticleId(int $articleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.reference on reconstructed_poem.identity = reference.idtarget
+            inner join data.article on reference.idsource = article.identity
+            where article.identity = ?',
+            [$articleId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByBookId(int $bookId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.reference on reconstructed_poem.identity = reference.idtarget
+            inner join data.book on reference.idsource = book.identity
+            where book.identity = ?',
+            [$bookId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByBookChapterId(int $bookChapterId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.reference on reconstructed_poem.identity = reference.idtarget
+            inner join data.bookchapter on reference.idsource = bookchapter.identity
+            where bookchapter.identity = ?',
+            [$bookChapterId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByOnlineSourceId(int $onlineSourceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.reference on reconstructed_poem.identity = reference.idtarget
+            inner join data.online_source on reference.idsource = online_source.identity
+            where online_source.identity = ?',
+            [$onlineSourceId]
+        )->fetchAll();
+    }
+
     public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(

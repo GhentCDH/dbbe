@@ -82,8 +82,7 @@ class OfficeService extends DatabaseService
             'SELECT
                 occupation.idoccupation as office_id
             from data.occupation
-            where occupation.idregion = ?
-            )',
+            where occupation.idregion = ?',
             [$regionId]
         )->fetchAll();
     }

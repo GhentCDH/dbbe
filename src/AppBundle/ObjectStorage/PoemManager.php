@@ -11,11 +11,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class PoemManager extends DocumentManager
 {
-    public function getPersonDependencies(int $personId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
-    }
-
     public function getMeterDependencies(int $meterId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $short ? 'getShort' : 'getMini');

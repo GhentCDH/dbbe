@@ -206,7 +206,21 @@ export default {
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 },
-                // TODO: occurrence, type, person
+                'Occurrences': {
+                    depUrl: this.urls['occurrence_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls['occurrence_get'],
+                    urlIdentifier: 'occurrence_id',
+                },
+                'Types': {
+                    depUrl: this.urls['type_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
+                'Persons': {
+                    depUrl: this.urls['person_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls['person_get'],
+                    urlIdentifier: 'person_id',
+                },
             }
         },
         tableColumns() {
@@ -224,7 +238,12 @@ export default {
         del(row) {
             this.submitModel.submitType = this.types[row.type.id]
             this.submitModel[this.types[row.type.id]] = row
-            this.submitModel[this.types[row.type.id]].name = this.formatTitle(this.submitModel[this.types[row.type.id]].title, true)
+            if (Array.isArray(this.submitModel[this.types[row.type.id]].title)) {
+                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].original_title
+            }
+            else {
+                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].title
+            }
             AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
@@ -244,14 +263,9 @@ export default {
                     console.log(error)
                 })
         },
-        formatTitle(title, strip = false) {
+        formatTitle(title) {
             if (Array.isArray(title)) {
-                if (strip) {
-                    return title[0].replace('<mark>', '').replace('</mark>', '')
-                }
-                else {
-                    return title[0]
-                }
+                return title[0]
             }
             else {
                 return title

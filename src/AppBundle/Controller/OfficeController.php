@@ -40,7 +40,7 @@ class OfficeController extends BaseController
      */
     public function getDepsByOffice(int $id, Request $request)
     {
-        $this->getDependencies($id, $request, 'getOfficeDependencies');
+        return $this->getDependencies($id, $request, 'getOfficeDependencies');
     }
 
     /**
@@ -53,7 +53,7 @@ class OfficeController extends BaseController
      */
     public function getDepsByRegion(int $id, Request $request)
     {
-        $this->getDependencies($id, $request, 'getRegionDependencies');
+        return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**

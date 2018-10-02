@@ -85,14 +85,15 @@
                         </td>
                     </tr>
                 {% endif %}
-                <!-- TODO: types -->
-                {% for documentType in ['occurrence', 'article', 'book', 'bookChapter'] %}
+                {% for documentType in ['occurrence', 'type', 'article', 'book', 'bookChapter'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
                             <td>
                                 {% if documentType == 'occurrence' %}
                                     Occurrence(s)
+                                {% elseif documentType == 'type' %}
+                                    Type(s)
                                 {% elseif documentType == 'article' %}
                                     Article(s)
                                 {% elseif documentType == 'book' %}
@@ -104,9 +105,9 @@
                             <td>
                                 {% for rolename, documentRole in documentRoles %}
                                     <h6>As {{ documentRole[0].getName() }}:</h6>
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1]} only %}
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1]} %}
                                         {% block renderItem %}
-                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getDescription()} only %}
+                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': documentType ~ '_get', 'display': item.getDescription(), 'class': documentType in ['occurrence', 'type'] ? 'greek' : ''} only %}
                                         {% endblock %}
                                     {% endembed %}
                                 {% endfor %}

@@ -10,7 +10,6 @@ use AppBundle\Model\FuzzyInterval;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
 use AppBundle\Model\Origin;
@@ -213,6 +212,45 @@ class PersonManager extends EntityManager
                         );
                 }
 
+                // Type roles
+                $rawTypes = $this->dbs->getTypesAsRoles([$id]);
+                $typeIds = self::getUniqueIds($rawTypes, 'type_id');
+                $roleIds = self::getUniqueIds($rawTypes, 'role_id');
+
+                $types = $this->container->get('type_manager')->getMini($typeIds);
+                $roles = $this->container->get('role_manager')->get($roleIds);
+
+                foreach ($rawTypes as $rawType) {
+                    $person
+                        ->addDocumentRole(
+                            'type',
+                            $roles[$rawType['role_id']],
+                            $types[$rawType['type_id']]
+                        );
+                }
+
+                // type subjects
+                // Add 'subject' as pseudo role
+                $rawTypes = $this->dbs->getTypesAsSubjects([$id]);
+                $typeIds = self::getUniqueIds($rawTypes, 'type_id');
+
+                $types = $this->container->get('type_manager')->getMini($typeIds);
+                $role = $this->container->get('role_manager')->getWithData([[
+                    'role_id' => 0,
+                    'role_usage' => json_encode(['type']),
+                    'role_system_name' => 'subject',
+                    'role_name' => 'Subject',
+                ]])[0];
+
+                foreach ($rawTypes as $rawType) {
+                    $person
+                        ->addDocumentRole(
+                            'type',
+                            $role,
+                            $types[$rawType['type_id']]
+                        );
+                }
+
                 // TODO: type
 
                 // Article roles
@@ -292,6 +330,31 @@ class PersonManager extends EntityManager
     {
         return $this->getDependencies(
             $this->dbs->getDepIdsByOfficeIdWithChildren($officeId),
+            $short ? 'getShort' : 'getMini'
+        );
+    }
+
+    /**
+     * Get all persons that are dependent on a specific region
+     * @param  int   $regionId
+     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @return array
+     */
+    public function getRegionDependencies(int $regionId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short ? 'getShort' : 'getMini');
+    }
+
+    /**
+     * Get all persons that are dependent on a specific region or one of its children
+     * @param  int   $regionId
+     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @return array
+     */
+    public function getRegionDependenciesWithChildren(int $regionId, bool $short = false): array
+    {
+        return $this->getDependencies(
+            $this->dbs->getDepIdsByRegionIdWithChildren($regionId),
             $short ? 'getShort' : 'getMini'
         );
     }
@@ -426,6 +489,14 @@ class PersonManager extends EntityManager
                 $cacheReload['mini'] = true;
                 $this->updateOrigin($old, $data->origin);
             }
+            // Helper for regionmanager -> merge
+            if (property_exists($data, 'region')) {
+                if (empty($data->region) || !is_object($data->region)) {
+                    throw new BadRequestHttpException('Incorrect region data.');
+                }
+                $cacheReload['mini'] = true;
+                $this->updateRegion($old, $data->region);
+            }
             if (property_exists($data, 'extra')) {
                 if (!is_string($data->extra)) {
                     throw new BadRequestHttpException('Incorrect extra data.');
@@ -517,7 +588,8 @@ class PersonManager extends EntityManager
                 $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($id, true);
                 $this->container->get('occurrence_manager')->elasticIndex($occurrences);
 
-                // TODO: types
+                $types = $this->container->get('type_manager')->getPersonDependencies($id, true);
+                $this->container->get('type_manager')->elasticIndex($types);
 
                 $articles = $this->container->get('article_manager')->getPersonDependencies($id, true);
                 $this->container->get('article_manager')->elasticIndex($articles);
@@ -761,6 +833,19 @@ class PersonManager extends EntityManager
                 $this->dbs->updateOrigin($person->getId(), $origin->id);
             }
         }
+    }
+
+    /**
+     * Helper for regionmanager -> merge
+     * @param Person   $person
+     * @param stdClass $region
+     */
+    private function updateRegion(Person $person, stdClass $region): void
+    {
+        if (!property_exists($region, 'id') || !is_numeric($region->id)) {
+            throw new BadRequestHttpException('Incorrect region data.');
+        }
+        $this->dbs->updateRegion($person->getId(), $region->id);
     }
 
     /**

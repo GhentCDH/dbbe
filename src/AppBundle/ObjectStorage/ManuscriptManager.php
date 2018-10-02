@@ -218,11 +218,6 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId), $short ? 'getShort' : 'getMini');
     }
 
-    public function getPersonDependencies(int $personId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
-    }
-
     public function getRoleDependencies(int $roleId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $short ? 'getShort' : 'getMini');
@@ -231,26 +226,6 @@ class ManuscriptManager extends DocumentManager
     public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getArticleDependencies(int $articleId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getBookDependencies(int $bookId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getBookChapterDependencies(int $bookChapterId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getOnlineSourceDependencies(int $onlineSourceId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $short ? 'getShort' : 'getMini');
     }
 
     public function add(stdClass $data): Manuscript

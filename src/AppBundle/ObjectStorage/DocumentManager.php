@@ -13,6 +13,11 @@ use AppBundle\Model\Role;
 
 class DocumentManager extends EntityManager
 {
+    public function getPersonDependencies(int $personId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
+    }
+    
     protected function setDates(array &$documents): void
     {
         $rawCompletionDates = $this->dbs->getCompletionDates(self::getIds($documents));

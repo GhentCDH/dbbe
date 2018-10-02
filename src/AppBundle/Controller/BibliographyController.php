@@ -24,6 +24,7 @@ class BibliographyController extends Controller
         return $this->render(
             'AppBundle:Bibliography:overview.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
                     'bibliographies_search_api' => $this->generateUrl('bibliographies_search_api'),
                     'manuscript_deps_by_article' => $this->generateUrl('manuscript_deps_by_article', ['id' => 'article_id']),
@@ -31,6 +32,21 @@ class BibliographyController extends Controller
                     'manuscript_deps_by_book_chapter' => $this->generateUrl('manuscript_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'manuscript_deps_by_online_source' => $this->generateUrl('manuscript_deps_by_online_source', ['id' => 'online_source_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'occurrence_deps_by_article' => $this->generateUrl('occurrence_deps_by_article', ['id' => 'article_id']),
+                    'occurrence_deps_by_book' => $this->generateUrl('occurrence_deps_by_book', ['id' => 'book_id']),
+                    'occurrence_deps_by_book_chapter' => $this->generateUrl('occurrence_deps_by_book_chapter', ['id' => 'book_chapter_id']),
+                    'occurrence_deps_by_online_source' => $this->generateUrl('occurrence_deps_by_online_source', ['id' => 'online_source_id']),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_article' => $this->generateUrl('type_deps_by_article', ['id' => 'article_id']),
+                    'type_deps_by_book' => $this->generateUrl('type_deps_by_book', ['id' => 'book_id']),
+                    'type_deps_by_book_chapter' => $this->generateUrl('type_deps_by_book_chapter', ['id' => 'book_chapter_id']),
+                    'type_deps_by_online_source' => $this->generateUrl('type_deps_by_online_source', ['id' => 'online_source_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
+                    'person_deps_by_article' => $this->generateUrl('person_deps_by_article', ['id' => 'article_id']),
+                    'person_deps_by_book' => $this->generateUrl('person_deps_by_book', ['id' => 'book_id']),
+                    'person_deps_by_book_chapter' => $this->generateUrl('person_deps_by_book_chapter', ['id' => 'book_chapter_id']),
+                    'person_deps_by_online_source' => $this->generateUrl('person_deps_by_online_source', ['id' => 'online_source_id']),
+                    'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
                     'article_edit' => $this->generateUrl('article_edit', ['id' => 'article_id']),
                     'article_delete' => $this->generateUrl('article_delete', ['id' => 'article_id']),
@@ -53,6 +69,7 @@ class BibliographyController extends Controller
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('book'))
                 ),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }

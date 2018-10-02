@@ -132,7 +132,7 @@ export default {
                     url: this.urls['manuscrip_get'],
                     urlIdentifier: 'manuscript_id',
                 }
-                // TODO: occurrences, types
+                // TODO: occurrences, types, articles, books, bookChapters
             }
         },
     },

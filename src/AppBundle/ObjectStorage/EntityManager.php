@@ -66,6 +66,26 @@ class EntityManager extends ObjectManager
         );
     }
 
+    public function getArticleDependencies(int $articleId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $short ? 'getShort' : 'getMini');
+    }
+
+    public function getBookDependencies(int $bookId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $short ? 'getShort' : 'getMini');
+    }
+
+    public function getBookChapterDependencies(int $bookChapterId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId), $short ? 'getShort' : 'getMini');
+    }
+
+    public function getOnlineSourceDependencies(int $onlineSourceId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $short ? 'getShort' : 'getMini');
+    }
+
     protected function setPublics(array &$entities): void
     {
         $rawPublics = $this->dbs->getPublics(self::getIds($entities));

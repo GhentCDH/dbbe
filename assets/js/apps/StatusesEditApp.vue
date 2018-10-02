@@ -99,12 +99,12 @@ export default {
     computed: {
         depUrls: function() {
             return {
-                // TODO: add occurrence and type dependencies
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_status'].replace('status_id', this.submitModel.status.id),
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 }
+                // TODO: add occurrence and type dependencies
             }
         },
     },

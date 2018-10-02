@@ -40,7 +40,7 @@ class RegionController extends BaseController
      */
     public function getDepsByRegion(int $id, Request $request)
     {
-        $this->getDependencies($id, $request, 'getRegionDependencies');
+        return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**
@@ -62,7 +62,8 @@ class RegionController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'institution_deps_by_region' => $this->generateUrl('institution_deps_by_region', ['id' => 'region_id']),
                     'office_deps_by_region' => $this->generateUrl('office_deps_by_region', ['id' => 'region_id']),
-                    // TODO: persons
+                    'person_deps_by_region' => $this->generateUrl('person_deps_by_region', ['id' => 'region_id']),
+                    'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'region_deps_by_region' => $this->generateUrl('region_deps_by_region', ['id' => 'region_id']),
                     'region_post' => $this->generateUrl('region_post'),
                     'region_merge' => $this->generateUrl('region_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
