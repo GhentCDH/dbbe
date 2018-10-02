@@ -90,7 +90,7 @@ export default {
                 status: null,
             },
             submitModel: {
-                type: 'status',
+                submitType: 'status',
                 statusType: null,
                 status: null,
             },
@@ -128,7 +128,7 @@ export default {
         editStatus(add = false) {
             // TODO: check if name already exists
             this.submitModel = {
-                type: 'status',
+                submitType: 'status',
                 statusType: null,
                 status: null,
             }

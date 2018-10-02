@@ -6,6 +6,8 @@ use Exception;
 
 use Doctrine\DBAL\Connection;
 
+use AppBundle\Exceptions\DependencyException;
+
 class TypeService extends PoemService
 {
     public function getIds(): array
@@ -114,6 +116,21 @@ class TypeService extends PoemService
             inner join data.document_acknowledgement on reconstructed_poem.identity = document_acknowledgement.iddocument
             where document_acknowledgement.idacknowledgement = ?',
             [$acknowledgementId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByOccurrenceId(int $occurrenceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.factoid on reconstructed_poem.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.original_poem on factoid.object_identity = original_poem.identity
+            where original_poem.identity = ?
+            and factoid_type.type = \'based on\'',
+            [$occurrenceId]
         )->fetchAll();
     }
 
@@ -583,5 +600,50 @@ class TypeService extends PoemService
                 $id,
             ]
         );
+    }
+
+    public function delete(int $id): int
+    {
+        $this->beginTransaction();
+        try {
+            // don't delete if this type is used as reconstruction of
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.factoid
+                inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+                where factoid.subject_identity = ?
+                and factoid_type.type = \'reconstruction of\'',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This type has dependencies.');
+            }
+            // Set search_path for triggers
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'DELETE from data.factoid
+                using factoid_type
+                where factoid.subject_identity = ?
+                or (
+                    factoid.object_identity = ?
+                    and factoid.idfactoid_type = factoid_type.idfactoid_type
+                    and factoid_type.type = \'subject of\'
+                )',
+                [
+                    $id,
+                    $id,
+                ]
+            );
+            $delete = $this->conn->executeUpdate(
+                'DELETE from data.document
+                where document.identity = ?',
+                [$id]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $delete;
     }
 }

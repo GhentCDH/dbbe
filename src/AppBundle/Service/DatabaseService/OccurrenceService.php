@@ -4,6 +4,8 @@ namespace AppBundle\Service\DatabaseService;
 
 use Exception;
 
+use AppBundle\Exceptions\DependencyException;
+
 use Doctrine\DBAL\Connection;
 
 class OccurrenceService extends PoemService
@@ -101,6 +103,21 @@ class OccurrenceService extends PoemService
             inner join data.document_acknowledgement on original_poem.identity = document_acknowledgement.iddocument
             where document_acknowledgement.idacknowledgement = ?',
             [$acknowledgementId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByTypeId(int $typeId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.factoid on original_poem.identity = factoid.subject_identity
+            inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+            inner join data.reconstructed_poem on factoid.object_identity = reconstructed_poem.identity
+            where reconstructed_poem.identity = ?
+            and factoid_type.type = \'reconstruction of\'',
+            [$typeId]
         )->fetchAll();
     }
 
@@ -655,5 +672,55 @@ class OccurrenceService extends PoemService
                 Connection::PARAM_INT_ARRAY,
             ]
         );
+    }
+
+    public function delete(int $id): int
+    {
+        $this->beginTransaction();
+        try {
+            // don't delete if this occurrence is used as based on
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.factoid
+                inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
+                where factoid.object_identity = ?
+                and factoid_type.type = \'based on\'',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This occurrence has dependencies.');
+            }
+            // Set search_path for triggers
+            $this->conn->exec('SET SEARCH_PATH TO data');
+            $this->conn->executeUpdate(
+                'DELETE from data.factoid
+                using factoid_type
+                where factoid.subject_identity = ?
+                or (
+                    factoid.object_identity = ?
+                    and factoid.idfactoid_type = factoid_type.idfactoid_type
+                    and factoid_type.type = \'subject of\'
+                )',
+                [
+                    $id,
+                    $id,
+                ]
+            );
+            $this->conn->executeUpdate(
+                'DELETE from data.original_poem_verse
+                where original_poem_verse.idoriginal_poem = ?',
+                [$id]
+            );
+            $delete = $this->conn->executeUpdate(
+                'DELETE from data.document
+                where document.identity = ?',
+                [$id]
+            );
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $delete;
     }
 }

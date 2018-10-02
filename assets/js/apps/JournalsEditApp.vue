@@ -105,7 +105,7 @@ export default {
                 journal: null,
             },
             submitModel: {
-                type: 'journal',
+                submitType: 'journal',
                 journal: null,
             },
         }
@@ -129,7 +129,7 @@ export default {
         edit(add = false) {
             // TODO: check if title already exists
             this.submitModel = {
-                type: 'journal',
+                submitType: 'journal',
                 journal: null,
             }
             if (add) {

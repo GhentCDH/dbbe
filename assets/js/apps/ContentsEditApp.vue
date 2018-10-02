@@ -117,7 +117,7 @@ export default {
                 content: null,
             },
             submitModel: {
-                type: 'content',
+                submitType: 'content',
                 content: {
                     id: null,
                     parent: null,
@@ -125,7 +125,7 @@ export default {
                 }
             },
             mergeModel: {
-                type: 'contents',
+                submitType: 'contents',
                 primary: null,
                 secondary: null,
             },

@@ -119,7 +119,7 @@ export default {
                 role: null,
             },
             submitModel: {
-                type: 'role',
+                submitType: 'role',
                 role: null,
             },
         }
@@ -144,7 +144,7 @@ export default {
         editRole(add = false) {
             // TODO: check if systemName already exists
             this.submitModel = {
-                type: 'role',
+                submitType: 'role',
                 role: null,
             }
             if (add) {

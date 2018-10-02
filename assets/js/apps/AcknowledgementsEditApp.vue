@@ -80,7 +80,7 @@ export default {
                 acknowledgement: null,
             },
             submitModel: {
-                type: 'acknowledgement',
+                submitType: 'acknowledgement',
                 acknowledgement: {
                     id: null,
                     name: null,

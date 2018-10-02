@@ -80,7 +80,7 @@ export default {
                 genre: null,
             },
             submitModel: {
-                type: 'genre',
+                submitType: 'genre',
                 genre: {
                     id: null,
                     name: null,

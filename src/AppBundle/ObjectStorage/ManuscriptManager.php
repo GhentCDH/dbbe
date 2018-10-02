@@ -9,7 +9,6 @@ use AppBundle\Model\Status;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
 
@@ -476,33 +475,5 @@ class ManuscriptManager extends DocumentManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
-    }
-
-    public function delete(int $manuscriptId): void
-    {
-        $this->dbs->beginTransaction();
-        try {
-            // Throws NotFoundException if not found
-            $manuscript = $this->getFull($manuscriptId);
-
-            $this->dbs->delete($manuscriptId);
-
-            $this->updateModified($manuscript, null);
-
-            // empty cache and remove from elasticsearch
-            $this->reset([$id]);
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
-            // commit transaction
-            $this->dbs->commit();
-        } catch (DependencyException $e) {
-            $this->dbs->rollBack();
-            throw new BadRequestHttpException($e->getMessage());
-        } catch (Exception $e) {
-            $this->dbs->rollBack();
-            throw $e;
-        }
-
-        return;
     }
 }

@@ -290,36 +290,4 @@ class BookManager extends DocumentManager
 
         return $new;
     }
-
-    /**
-     * Delete a book
-     * @param int $id
-     */
-    public function delete(int $id): void
-    {
-        $this->dbs->beginTransaction();
-        try {
-            // Throws a not found exception when not found
-            $old = $this->getFull($id);
-
-            $this->dbs->delete($id);
-
-            $this->updateModified($old, null);
-
-            // empty cache and remove from elasticsearch
-            $this->reset([$id]);
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
-            // commit transaction
-            $this->dbs->commit();
-        } catch (DependencyException $e) {
-            $this->dbs->rollBack();
-            throw new BadRequestHttpException($e->getMessage());
-        } catch (Exception $e) {
-            $this->dbs->rollBack();
-            throw $e;
-        }
-
-        return;
-    }
 }

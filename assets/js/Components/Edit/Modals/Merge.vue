@@ -22,7 +22,7 @@
         </div>
         <div slot="header">
             <h4 class="modal-title">
-                Merge {{ formatType(mergeModel.type) }}
+                Merge {{ formatType(mergeModel.submitType) }}
             </h4>
         </div>
         <div slot="footer">

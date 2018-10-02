@@ -214,6 +214,7 @@ class Type extends Poem
             'id' => $this->id,
             'public' => $this->public,
             'dbbe' => $this->getDBBE(),
+            'number_of_occurrences' => count($this->occurrences),
         ];
 
         if (isset($this->incipit)) {
@@ -251,9 +252,6 @@ class Type extends Poem
         }
         if (!empty($this->acknowledgements)) {
             $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
-        }
-        if (!empty($this->occurrences)) {
-            $result['number_of_occurrences'] = count($this->occurrences);
         }
         if (!empty($this->occurrences)) {
             $result['number_of_occurrences_public'] = count(

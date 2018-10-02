@@ -193,6 +193,11 @@ class TypeManager extends PoemManager
         );
     }
 
+    public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short ? 'getShort' : 'getMini');
+    }
+
     /**
      * Add a new type
      * @param  stdClass $data
@@ -565,7 +570,4 @@ class TypeManager extends PoemManager
             }
         }
     }
-
-    // TODO: delete
-    // delete cache . 's'
 }

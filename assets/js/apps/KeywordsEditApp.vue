@@ -117,14 +117,14 @@ export default {
                 keyword: null,
             },
             submitModel: {
-                type: 'keyword',
+                submitType: 'keyword',
                 keyword: {
                     id: null,
                     name: null,
                 }
             },
             migrateModel: {
-                type: 'keyword',
+                submitType: 'keyword',
                 toType: 'person',
                 primary: null,
                 secondary: null,

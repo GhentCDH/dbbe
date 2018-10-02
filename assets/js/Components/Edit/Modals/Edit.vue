@@ -15,14 +15,14 @@
             ref="edit" />
         <div slot="header">
             <h4
-                v-if="submitModel[submitModel.type] && submitModel[submitModel.type].id"
+                v-if="submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id"
                 class="modal-title">
-                Edit {{ formatType(submitModel.type) }}
+                Edit {{ formatType(submitModel.submitType) }}
             </h4>
             <h4
                 v-else
                 class="modal-title">
-                Add a new {{ formatType(submitModel.type) }}
+                Add a new {{ formatType(submitModel.submitType) }}
             </h4>
         </div>
         <div slot="footer">
@@ -37,7 +37,7 @@
                 type="success"
                 :disabled="invalidEditForm || JSON.stringify(submitModel) === JSON.stringify(originalSubmitModel)"
                 @click="confirm()">
-                {{ submitModel[submitModel.type] && submitModel[submitModel.type].id ? 'Update' : 'Add' }}
+                {{ submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id ? 'Update' : 'Add' }}
             </btn>
         </div>
     </modal>

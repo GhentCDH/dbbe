@@ -246,7 +246,7 @@ export default {
                 },
             },
             submitModel: {
-                type: 'type',
+                submitType: 'type',
                 type: {},
             },
             defaultOrdering: 'incipit',
@@ -286,6 +286,11 @@ export default {
     computed: {
         depUrls: function () {
             return {
+                'Occurrences': {
+                    depUrl: this.urls['occurrence_deps_by_type'].replace('type_id', this.submitModel.type.id),
+                    url: this.urls['occurrence_get'],
+                    urlIdentifier: 'occurrence_id',
+                },
             }
         },
         tableColumns() {
@@ -315,6 +320,8 @@ export default {
             this.deleteModal = false
             axios.delete(this.urls['type_delete'].replace('type_id', this.submitModel.type.id))
                 .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
                     this.$refs.resultTable.refresh()
                     this.openRequests--
                     this.alerts.push({type: 'success', message: 'Type deleted successfully.'})

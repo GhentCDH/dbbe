@@ -127,11 +127,11 @@ export default {
                 office: null,
             },
             submitModel: {
-                type: 'office',
+                submitType: 'office',
                 office: null,
             },
             mergeModel: {
-                type: 'offices',
+                submitType: 'offices',
                 primary: null,
                 secondary: null,
             },
@@ -167,7 +167,7 @@ export default {
         edit(add = false) {
             // TODO: check if name already exists
             this.submitModel = {
-                type: 'office',
+                submitType: 'office',
                 office: null,
             }
             if (add) {

@@ -34,6 +34,8 @@ class TypeController extends BaseController
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
                     'types_search_api' => $this->generateUrl('types_search_api'),
+                    'occurrence_deps_by_type' => $this->generateUrl('occurrence_deps_by_type', ['id' => 'type_id']),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'type_edit' => $this->generateUrl('type_edit', ['id' => 'type_id']),
                     'type_delete' => $this->generateUrl('type_delete', ['id' => 'type_id']),
@@ -130,7 +132,7 @@ class TypeController extends BaseController
 
     /**
      * Get all types that have a dependency on a keyword
-     * (factoid)
+     * (factoid / document_keyword)
      * @Route("/types/keywords/{id}", name="type_deps_by_keyword")
      * @Method("GET")
      * @param  int    $id keyword id
@@ -152,6 +154,19 @@ class TypeController extends BaseController
     public function getDepsByAcknowledgement(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getAcknowledgementDependencies');
+    }
+
+    /**
+     * Get all types that have a dependency on an occurrence
+     * (factoid: based on)
+     * @Route("/types/occurrences/{id}", name="type_deps_by_occurrence")
+     * @Method("GET")
+     * @param  int    $id occurrence id
+     * @param Request $request
+     */
+    public function getDepsByOccurrence(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getOccurrenceDependencies');
     }
 
     /**

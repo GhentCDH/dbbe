@@ -28,14 +28,14 @@
                 </ul>
             </template>
         </div>
-        <div v-else-if="submitModel[submitModel.type] != null">
-            <p>Are you sure you want to delete {{ formatType(submitModel.type) }} "{{ submitModel[submitModel.type].name }}"?</p>
+        <div v-else-if="submitModel[submitModel.submitType] != null">
+            <p>Are you sure you want to delete {{ formatType(submitModel.submitType) }} "<span :class="{greek: ['occurrence', 'type'].includes(submitModel.submitType)}">{{ submitModel[submitModel.submitType].name }}</span>"?</p>
         </div>
         <div slot="header">
             <h4
-                v-if="submitModel[submitModel.type] != null"
+                v-if="submitModel[submitModel.submitType] != null"
                 class="modal-title">
-                Delete {{ formatType(submitModel.type) }} "{{ submitModel[submitModel.type].name }}"
+                Delete {{ formatType(submitModel.submitType) }} "{{ submitModel[submitModel.submitType].name }}"
             </h4>
         </div>
         <div slot="footer">

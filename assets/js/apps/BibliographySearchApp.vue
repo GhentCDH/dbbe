@@ -176,7 +176,7 @@ export default {
                 },
             },
             submitModel: {
-                type: null,
+                submitType: null,
                 article: {},
                 book: {},
                 book_chapter: {},
@@ -202,7 +202,7 @@ export default {
         depUrls: function () {
             return {
                 'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_' + this.submitModel.type].replace(this.submitModel.type + '_id', this.submitModel[this.submitModel.type].id),
+                    depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 },
@@ -222,7 +222,7 @@ export default {
     },
     methods: {
         del(row) {
-            this.submitModel.type = this.types[row.type.id]
+            this.submitModel.submitType = this.types[row.type.id]
             this.submitModel[this.types[row.type.id]] = row
             this.submitModel[this.types[row.type.id]].name = this.formatTitle(this.submitModel[this.types[row.type.id]].title, true)
             AbstractListEdit.methods.deleteDependencies.call(this)
@@ -230,15 +230,17 @@ export default {
         submitDelete() {
             this.openRequests++
             this.deleteModal = false
-            axios.delete(this.urls[this.submitModel.type + '_delete'].replace(this.submitModel.type + '_id', this.submitModel[this.submitModel.type].id))
+            axios.delete(this.urls[this.submitModel.submitType + '_delete'].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id))
                 .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
                     this.$refs.resultTable.refresh()
                     this.openRequests--
-                    this.alerts.push({type: 'success', message: this.submitModel.type.replace(/^\w/, c => c.toUpperCase()) + ' deleted successfully.'})
+                    this.alerts.push({type: 'success', message: this.submitModel.submitType.replace(/^\w/, c => c.toUpperCase()) + ' deleted successfully.'})
                 })
                 .catch((error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.submitModel.type + '.'})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.submitModel.submitType + '.'})
                     console.log(error)
                 })
         },

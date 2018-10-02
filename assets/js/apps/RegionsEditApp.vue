@@ -181,7 +181,7 @@ export default {
                 region: null,
             },
             submitModel: {
-                type: 'region',
+                submitType: 'region',
                 region: {
                     id: null,
                     parent: null,
@@ -192,7 +192,7 @@ export default {
                 }
             },
             mergeModel: {
-                type: 'regions',
+                submitType: 'regions',
                 primary: null,
                 secondary: null,
             },

@@ -232,6 +232,11 @@ class OccurrenceManager extends PoemManager
         return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short ? 'getShort' : 'getMini');
     }
 
+    public function getTypeDependencies(int $typeId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByTypeId($typeId), $short ? 'getShort' : 'getMini');
+    }
+
     public function add(stdClass $data): Occurrence
     {
         // Incipit and manuscript are required fields
@@ -608,6 +613,17 @@ class OccurrenceManager extends PoemManager
             }
             $this->container->get('manuscript_manager')->reset($manuscriptIds);
 
+            // Reset types (potentially old and new)
+            $typeIds = self::getIds($old->getTypes());
+            if (isset($data->types)) {
+                foreach ($data->types as $type) {
+                    if (!in_array($type->id, $typeIds)) {
+                        $typeIds[] = $type->id;
+                    }
+                }
+            }
+            $this->container->get('type_manager')->reset($typeIds);
+
             // Reset verses
             if (isset($touched)) {
                 $this->container->get('verse_manager')->reset($touched);
@@ -723,6 +739,15 @@ class OccurrenceManager extends PoemManager
         foreach ($addIds as $addId) {
             $this->dbs->addType($occurrence->getId(), $addId);
         }
+
+        // update elastic types search
+        $typeIds = self::getIds($occurrence->getTypes());
+        foreach ($types as $type) {
+            if (!in_array($type->id, $typeIds)) {
+                $typeIds[] = $type->id;
+            }
+        }
+        $this->container->get('type_manager')->reset($typeIds);
     }
 
     private function updateImages(Occurrence $occurrence, array $images): void
@@ -824,8 +849,4 @@ class OccurrenceManager extends PoemManager
             $this->dbs->addImage($occurrence->getId(), $imageLink->getId());
         }
     }
-
-    // TODO: delete
-    // also delete verses
-    // also delete cache . 's'
 }

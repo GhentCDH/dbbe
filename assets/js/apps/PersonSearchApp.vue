@@ -368,12 +368,12 @@ export default {
                 },
             },
             mergeModel: {
-                type: 'persons',
+                submitType: 'persons',
                 primary: null,
                 secondary: null,
             },
             submitModel: {
-                type: 'person',
+                submitType: 'person',
                 person: {},
             },
             defaultOrdering: 'name',
@@ -505,6 +505,8 @@ export default {
             this.deleteModal = false
             axios.delete(this.urls['person_delete'].replace('person_id', this.submitModel.person.id))
                 .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
                     this.$refs.resultTable.refresh()
                     this.openRequests--
                     this.alerts.push({type: 'success', message: 'Person deleted successfully.'})
@@ -516,6 +518,8 @@ export default {
                 })
         },
         update() {
+            // Don't create a new history item
+            this.noHistory = true
             this.$refs.resultTable.refresh()
             this.openRequests++
             axios.get(this.urls['persons_get'])

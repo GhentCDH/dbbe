@@ -64,6 +64,8 @@ export default {
             actualRequest: false,
             initialized: false,
             historyRequest: false,
+            // prevent the creation of a browser history item
+            noHistory: false,
             // used to set timeout on free input fields
             lastChangedField: '',
             // used to only send requests after timeout when inputting free input fields
@@ -454,6 +456,9 @@ export default {
                 .replace('{from}', from)
                 .replace('{to}', to)
         },
+        isLoginError(error) {
+            return error.message === 'Network Error'
+        },
     },
     requestFunction (data) {
         // Remove unused parameters
@@ -519,7 +524,12 @@ export default {
                     this.dispatch('error', error)
                 }.bind(this))
         }
-        this.$parent.pushHistory(data)
+        if (!this.$parent.noHistory) {
+            this.$parent.pushHistory(data)
+        } else {
+            this.$parent.noHistory = false;
+        }
+
         if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
             this.$parent.tableCancel('Operation canceled by newer request')
         }

@@ -826,38 +826,6 @@ class PersonManager extends EntityManager
     }
 
     /**
-     * Delete a person
-     * @param int $id
-     */
-    public function delete(int $id): void
-    {
-        $this->dbs->beginTransaction();
-        try {
-            // Throws NotFoundException if not found
-            $person = $this->getFull($id);
-
-            $this->dbs->delete($id);
-
-            $this->updateModified($person, null);
-
-            // empty cache and remove from elasticsearch
-            $this->reset([$id]);
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
-            // commit transaction
-            $this->dbs->commit();
-        } catch (DependencyException $e) {
-            $this->dbs->rollBack();
-            throw new BadRequestHttpException($e->getMessage());
-        } catch (Exception $e) {
-            $this->dbs->rollBack();
-            throw $e;
-        }
-
-        return;
-    }
-
-    /**
      * Construct the data to update a dependent entity when merging persons
      * @param  array $personRoles
      * @param  int   $primaryId

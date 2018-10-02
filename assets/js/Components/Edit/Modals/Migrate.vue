@@ -17,7 +17,7 @@
         />
         <div slot="header">
             <h4 class="modal-title">
-                Migrate {{ formatType(migrateModel.type) }} to {{ formatType(migrateModel.toType) }}
+                Migrate {{ formatType(migrateModel.submitType) }} to {{ formatType(migrateModel.toType) }}
             </h4>
         </div>
         <div slot="footer">

@@ -80,7 +80,7 @@ export default {
                 meter: null,
             },
             submitModel: {
-                type: 'meter',
+                submitType: 'meter',
                 meter: {
                     id: null,
                     name: null,

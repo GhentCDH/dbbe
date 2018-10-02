@@ -116,7 +116,7 @@ export default {
                 institution: null,
             },
             submitModel: {
-                type: null,
+                submitType: null,
                 regionWithParents: null,
                 institution: null,
             },
@@ -124,7 +124,7 @@ export default {
     },
     computed: {
         editSchema: function() {
-            switch (this.submitModel.type) {
+            switch (this.submitModel.submitType) {
             case 'regionWithParents':
                 return this.editCitySchema
                 break;
@@ -160,14 +160,14 @@ export default {
     },
     methods: {
         editCity() {
-            this.submitModel.type = 'regionWithParents'
+            this.submitModel.submitType = 'regionWithParents'
             this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
         editMonastery(add = false) {
             // TODO: check if name already exists
-            this.submitModel.type = 'institution'
+            this.submitModel.submitType = 'institution'
             this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             if (add) {
                 this.submitModel.institution =  {
@@ -186,7 +186,7 @@ export default {
             this.editModal = true
         },
         delMonastery() {
-            this.submitModel.type = 'institution'
+            this.submitModel.submitType = 'institution'
             this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             this.deleteDependencies()
@@ -196,7 +196,7 @@ export default {
             this.openRequests++
             let url = ''
             let data = {}
-            switch(this.submitModel.type) {
+            switch(this.submitModel.submitType) {
             case 'regionWithParents':
                 // Not possible to add cities
                 url = this.urls['region_put'].replace('region_id', this.submitModel.regionWithParents.id)
@@ -228,10 +228,10 @@ export default {
                 }
                 break
             }
-            if (this.submitModel[this.submitModel.type].id == null) {
+            if (this.submitModel[this.submitModel.submitType].id == null) {
                 axios.post(url, data)
                     .then( (response) => {
-                        switch(this.submitModel.type) {
+                        switch(this.submitModel.submitType) {
                         case 'regionWithParents':
                             this.submitModel.regionWithParents = response.data
                             break
@@ -247,14 +247,14 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.type) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
             else {
                 axios.put(url, data)
                     .then( (response) => {
-                        switch(this.submitModel.type) {
+                        switch(this.submitModel.submitType) {
                         case 'regionWithParents':
                             this.submitModel.regionWithParents = response.data
                             break
@@ -270,7 +270,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.type) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -289,7 +289,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.type) + '.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -298,7 +298,7 @@ export default {
             axios.get(this.urls['origins_get'])
                 .then( (response) => {
                     this.values = response.data
-                    switch(this.submitModel.type) {
+                    switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.loadLocationField(this.citySchema.fields.city, this.submitModel)

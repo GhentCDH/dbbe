@@ -248,7 +248,7 @@ export default {
                 },
             },
             submitModel: {
-                type: 'occurrence',
+                submitType: 'occurrence',
                 occurrence: {},
             },
             defaultOrdering: 'incipit',
@@ -281,6 +281,11 @@ export default {
     computed: {
         depUrls: function () {
             return {
+                'Types': {
+                    depUrl: this.urls['type_deps_by_occurrence'].replace('occurrence_id', this.submitModel.occurrence.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
             }
         },
         tableColumns() {
@@ -310,6 +315,8 @@ export default {
             this.deleteModal = false
             axios.delete(this.urls['occurrence_delete'].replace('occurrence_id', this.submitModel.occurrence.id))
                 .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
                     this.$refs.resultTable.refresh()
                     this.openRequests--
                     this.alerts.push({type: 'success', message: 'Occurrence deleted successfully.'})

@@ -202,7 +202,7 @@ export default {
                 },
             },
             submitModel: {
-                type: 'manuscript',
+                submitType: 'manuscript',
                 manuscript: {},
             },
             defaultOrdering: 'name',
@@ -261,6 +261,8 @@ export default {
             this.deleteModal = false
             axios.delete(this.urls['manuscript_delete'].replace('manuscript_id', this.submitModel.manuscript.id))
                 .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
                     this.$refs.resultTable.refresh()
                     this.openRequests--
                     this.alerts.push({type: 'success', message: 'Manuscript deleted successfully.'})
