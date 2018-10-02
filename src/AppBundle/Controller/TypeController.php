@@ -170,6 +170,19 @@ class TypeController extends BaseController
     }
 
     /**
+     * Get all types that have a dependency on a role
+     * (bibrole)
+     * @Route("/types/roles/{id}", name="type_deps_by_role")
+     * @Method("GET")
+     * @param  int    $id role id
+     * @param Request $request
+     */
+    public function getDepsByRole(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getRoleDependencies');
+    }
+
+    /**
      * Get all types that have a dependency on an article
      * (reference)
      * @Route("/types/articles/{id}", name="type_deps_by_article")

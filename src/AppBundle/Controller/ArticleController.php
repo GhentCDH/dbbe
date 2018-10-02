@@ -70,6 +70,19 @@ class ArticleController extends BaseController
     }
 
     /**
+     * Get all articles that have a dependency on a role
+     * (bibrole)
+     * @Route("/articles/roles/{id}", name="article_deps_by_role")
+     * @Method("GET")
+     * @param  int    $id role id
+     * @param Request $request
+     */
+    public function getDepsByRole(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getRoleDependencies');
+    }
+
+    /**
      * @Route("/articles", name="article_post")
      * @Method("POST")
      * @param Request $request

@@ -354,6 +354,7 @@ class RegionService extends DatabaseService
         if ($count > 0) {
             throw new DependencyException('This region has institution dependencies.');
         }
+        // TODO: office dependency
         //TODO: person dependency
         // Set search_path for trigger delete_entity
         // Pleiades id is deleted by foreign key constraint

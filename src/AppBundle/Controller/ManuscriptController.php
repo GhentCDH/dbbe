@@ -116,17 +116,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id region id
      * @param Request $request
      */
-    public function getManuscriptDepsByRegion(int $id, Request $request)
+    public function getDepsByRegion(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getRegionDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**
@@ -137,17 +129,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id institution id
      * @param Request $request
      */
-    public function getManuscriptDepsByInstitution(int $id, Request $request)
+    public function getDepsByInstitution(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getInstitutionDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getInstitutionDependencies');
     }
 
     /**
@@ -158,17 +142,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id collection id
      * @param Request $request
      */
-    public function getManuscriptDepsByCollection(int $id, Request $request)
+    public function getDepsByCollection(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getCollectionDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getCollectionDependencies');
     }
 
     /**
@@ -179,17 +155,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id content id
      * @param Request $request
      */
-    public function getManuscriptDepsByContent(int $id, Request $request)
+    public function getDepsByContent(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getContentDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getContentDependencies');
     }
 
     /**
@@ -200,17 +168,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id status id
      * @param Request $request
      */
-    public function getManuscriptDepsByStatus(int $id, Request $request)
+    public function getDepsByStatus(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getStatusDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getStatusDependencies');
     }
 
     /**
@@ -221,17 +181,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id person id
      * @param Request $request
      */
-    public function getManuscriptDepsByPerson(int $id, Request $request)
+    public function getDepsByPerson(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getPersonDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
 
     /**
@@ -242,17 +194,9 @@ class ManuscriptController extends BaseController
      * @param  int    $id role id
      * @param Request $request
      */
-    public function getManuscriptDepsByRole(int $id, Request $request)
+    public function getDepsByRole(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $manuscripts = $this
-                ->get('manuscript_manager')
-                ->getRoleDependencies($id);
-            return new JsonResponse(ArrayToJson::arrayToShortJson($manuscripts));
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
 
     /**

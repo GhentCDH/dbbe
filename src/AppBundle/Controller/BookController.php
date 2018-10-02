@@ -59,6 +59,19 @@ class BookController extends BaseController
     }
 
     /**
+     * Get all books that have a dependency on a role
+     * (bibrole)
+     * @Route("/books/roles/{id}", name="book_deps_by_role")
+     * @Method("GET")
+     * @param  int    $id role id
+     * @param Request $request
+     */
+    public function getDepsByRole(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getRoleDependencies');
+    }
+
+    /**
      * @Route("/books", name="book_post")
      * @Method("POST")
      * @param Request $request

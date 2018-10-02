@@ -264,18 +264,6 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
-    public function getDepIdsByRoleId(int $roleId): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                manuscript.identity as manuscript_id
-            from data.manuscript
-            inner join data.bibrole on manuscript.identity = bibrole.iddocument
-            where bibrole.idrole = ?',
-            [$roleId]
-        )->fetchAll();
-    }
-
     public function getDepIdsByOccurrenceId(int $occurrenceId): array
     {
         return $this->conn->executeQuery(
@@ -286,6 +274,18 @@ class ManuscriptService extends DocumentService
             inner join data.original_poem on document_contains.idcontent = original_poem.identity
             where original_poem.identity = ?',
             [$occurrenceId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.bibrole on manuscript.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
         )->fetchAll();
     }
 

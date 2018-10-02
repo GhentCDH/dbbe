@@ -75,6 +75,18 @@ class ArticleService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                article.identity as article_id
+            from data.article
+            inner join data.bibrole on article.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
+        )->fetchAll();
+    }
+
     /**
      * @param  array $ids
      * @return array

@@ -92,7 +92,6 @@ export default {
                             closeOnSelect: false,
                         }
                     ),
-                    // TODO: systemName niet aanpasbaar maken
                     systemName: {
                         type: 'input',
                         inputType: 'text',
@@ -131,8 +130,32 @@ export default {
                     depUrl: this.urls['manuscript_deps_by_role'].replace('role_id', this.submitModel.role.id),
                     url: this.urls['manuscrip_get'],
                     urlIdentifier: 'manuscript_id',
-                }
-                // TODO: occurrences, types, articles, books, bookChapters
+                },
+                'Occurrences': {
+                    depUrl: this.urls['occurrence_deps_by_role'].replace('role_id', this.submitModel.role.id),
+                    url: this.urls['occurrence_get'],
+                    urlIdentifier: 'occurrence_id',
+                },
+                'Types': {
+                    depUrl: this.urls['type_deps_by_role'].replace('role_id', this.submitModel.role.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
+                'Articles': {
+                    depUrl: this.urls['article_deps_by_role'].replace('role_id', this.submitModel.role.id),
+                    url: this.urls['article_get'],
+                    urlIdentifier: 'article_id',
+                },
+                'Books': {
+                    depUrl: this.urls['book_deps_by_role'].replace('role_id', this.submitModel.role.id),
+                    url: this.urls['book_get'],
+                    urlIdentifier: 'book_id',
+                },
+                'Book chapters': {
+                    depUrl: this.urls['book_chapter_deps_by_role'].replace('role_id', this.submitModel.role.id),
+                    url: this.urls['book_chapter_get'],
+                    urlIdentifier: 'book_chapter_id',
+                },
             }
         },
     },
@@ -151,12 +174,14 @@ export default {
                 this.submitModel.role =  {
                     name: null,
                 }
+                this.editRoleSchema.fields.systemName.disabled = false;
             }
             else {
                 this.submitModel.role = JSON.parse(JSON.stringify(this.model.role))
                 this.submitModel.role.usage = this.model.role.usage.map(item =>
                     this.editRoleSchema.fields.usage.values.filter(v => v.id === item)[0]
                 )
+                this.editRoleSchema.fields.systemName.disabled = true;
             }
             this.enableField(this.editRoleSchema.fields.usage)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))

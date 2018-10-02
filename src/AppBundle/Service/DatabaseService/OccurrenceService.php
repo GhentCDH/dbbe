@@ -121,6 +121,18 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.bibrole on original_poem.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByArticleId(int $articleId): array
     {
         return $this->conn->executeQuery(

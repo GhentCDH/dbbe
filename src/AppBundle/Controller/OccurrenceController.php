@@ -183,6 +183,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on a role
+     * (bibrole)
+     * @Route("/occurrences/roles/{id}", name="occurrence_deps_by_role")
+     * @Method("GET")
+     * @param  int    $id role id
+     * @param Request $request
+     */
+    public function getDepsByRole(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getRoleDependencies');
+    }
+
+    /**
      * Get all occurrences that have a dependency on an article
      * (reference)
      * @Route("/occurrences/articles/{id}", name="occurrence_deps_by_article")

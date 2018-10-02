@@ -49,8 +49,17 @@ class RoleController extends Controller
                 'urls' => json_encode([
                     'roles_get' => $this->generateUrl('roles_get'),
                     'manuscript_deps_by_role' => $this->generateUrl('manuscript_deps_by_role', ['id' => 'role_id']),
-                    // TODO: occurrences, types
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'occurrence_deps_by_role' => $this->generateUrl('occurrence_deps_by_role', ['id' => 'role_id']),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_role' => $this->generateUrl('type_deps_by_role', ['id' => 'role_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
+                    'article_deps_by_role' => $this->generateUrl('article_deps_by_role', ['id' => 'role_id']),
+                    'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
+                    'book_deps_by_role' => $this->generateUrl('book_deps_by_role', ['id' => 'role_id']),
+                    'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
+                    'book_chapter_deps_by_role' => $this->generateUrl('book_chapter_deps_by_role', ['id' => 'role_id']),
+                    'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => 'book_chapter_id']),
                     'role_post' => $this->generateUrl('role_post'),
                     'role_put' => $this->generateUrl('role_put', ['id' => 'role_id']),
                     'role_delete' => $this->generateUrl('role_delete', ['id' => 'role_id']),

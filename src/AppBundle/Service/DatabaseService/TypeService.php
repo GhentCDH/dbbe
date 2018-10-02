@@ -134,6 +134,18 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.bibrole on reconstructed_poem.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByArticleId(int $articleId): array
     {
         return $this->conn->executeQuery(

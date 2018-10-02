@@ -58,6 +58,18 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByRoleId(int $roleId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book.identity as book_id
+            from data.book
+            inner join data.bibrole on book.identity = bibrole.iddocument
+            where bibrole.idrole = ?',
+            [$roleId]
+        )->fetchAll();
+    }
+
     /**
      * @param  array $ids
      * @return array
