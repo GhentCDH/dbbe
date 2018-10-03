@@ -103,8 +103,17 @@ export default {
                     depUrl: this.urls['manuscript_deps_by_status'].replace('status_id', this.submitModel.status.id),
                     url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
-                }
-                // TODO: add occurrence and type dependencies
+                },
+                'Occurrences': {
+                    depUrl: this.urls['occurrence_deps_by_status'].replace('status_id', this.submitModel.status.id),
+                    url: this.urls['occurrence_get'],
+                    urlIdentifier: 'occurrence_id',
+                },
+                'Types': {
+                    depUrl: this.urls['type_deps_by_status'].replace('status_id', this.submitModel.status.id),
+                    url: this.urls['type_get'],
+                    urlIdentifier: 'type_id',
+                },
             }
         },
     },

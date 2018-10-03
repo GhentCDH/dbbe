@@ -32,6 +32,18 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByStatusId(int $statusId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.document_status on original_poem.identity = document_status.iddocument
+            where document_status.idstatus = ?',
+            [$statusId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByPersonId(int $personId): array
     {
         return $this->conn->executeQuery(

@@ -46,10 +46,15 @@ class StatusController extends Controller
         return $this->render(
             'AppBundle:Status:edit.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
                     'statuses_get' => $this->generateUrl('statuses_get'),
                     'manuscript_deps_by_status' => $this->generateUrl('manuscript_deps_by_status', ['id' => 'status_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'occurrence_deps_by_status' => $this->generateUrl('occurrence_deps_by_status', ['id' => 'status_id']),
+                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                    'type_deps_by_status' => $this->generateUrl('type_deps_by_status', ['id' => 'status_id']),
+                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'status_post' => $this->generateUrl('status_post'),
                     'status_put' => $this->generateUrl('status_put', ['id' => 'status_id']),
                     'status_delete' => $this->generateUrl('status_delete', ['id' => 'status_id']),
@@ -60,6 +65,7 @@ class StatusController extends Controller
                         $this->get('status_manager')->getAllStatuses()
                     )
                 ),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }

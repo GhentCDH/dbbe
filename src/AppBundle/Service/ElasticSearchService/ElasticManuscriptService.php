@@ -44,13 +44,13 @@ class ElasticManuscriptService extends ElasticBaseService
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         $aggregationFilters = ['city', 'content', 'person', 'origin', 'public'];
-        if (!empty($params['filters']) && isset($params['filters']['city'])) {
+        if (isset($params['filters']['city'])) {
             $aggregationFilters[] = 'library';
         }
-        if (!empty($params['filters']) && isset($params['filters']['library'])) {
+        if (isset($params['filters']['library'])) {
             $aggregationFilters[] = 'collection';
         }
-        if (!empty($params['filters']) && isset($params['filters']['collection'])) {
+        if (isset($params['filters']['collection'])) {
             $aggregationFilters[] = 'shelf';
         }
 

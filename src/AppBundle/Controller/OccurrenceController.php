@@ -105,6 +105,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on a status
+     * (document_status)
+     * @Route("/occurrences/statuses/{id}", name="occurrence_deps_by_status")
+     * @Method("GET")
+     * @param  int    $id status id
+     * @param Request $request
+     */
+    public function getDepsByStatus(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getStatusDependencies');
+    }
+
+    /**
      * Get all occurrences that have a dependency on a person
      * (bibrole / factoid)
      * @Route("/occurrences/persons/{id}", name="occurrence_deps_by_person")
@@ -414,7 +427,6 @@ class OccurrenceController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            // TODO: detailed sanitation?
             $filters = $params['filters'];
         }
 

@@ -90,7 +90,6 @@ class RoleManager extends ObjectManager
         );
     }
 
-    // TODO: systemName niet aanpasbaar maken
     public function addRole(stdClass $data): Role
     {
         $this->dbs->beginTransaction();
@@ -134,7 +133,7 @@ class RoleManager extends ObjectManager
         return $newRole;
     }
 
-    public function updateRole(int $roleId, stdClass $data): Role
+    public function update(int $roleId, stdClass $data): Role
     {
         $this->dbs->beginTransaction();
         try {
@@ -157,11 +156,8 @@ class RoleManager extends ObjectManager
                 $correct = true;
                 $this->dbs->updateUsage($roleId, $data->usage);
             }
-            if (property_exists($data, 'systemName')
-                && is_string($data->systemName)
-            ) {
-                $correct = true;
-                $this->dbs->updateSystemName($roleId, $data->systemName);
+            if (property_exists($data, 'systemName')) {
+                throw new BadRequestHttpException('System name cannot be modified.');
             }
             if (property_exists($data, 'name')
                 && is_string($data->name)

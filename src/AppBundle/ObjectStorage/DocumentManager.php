@@ -13,11 +13,21 @@ use AppBundle\Model\Role;
 
 class DocumentManager extends EntityManager
 {
+    public function getStatusDependencies(int $statusId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId), $short ? 'getShort' : 'getMini');
+    }
+
     public function getPersonDependencies(int $personId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $short ? 'getShort' : 'getMini');
     }
-    
+
+    public function getRoleDependencies(int $roleId, bool $short = false): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $short ? 'getShort' : 'getMini');
+    }
+
     protected function setDates(array &$documents): void
     {
         $rawCompletionDates = $this->dbs->getCompletionDates(self::getIds($documents));

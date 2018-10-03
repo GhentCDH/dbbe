@@ -443,7 +443,12 @@ class RegionManager extends ObjectManager
             if (!empty($institutions)) {
                 $this->container->get('institution_manager')->reset(self::getIds($institutions));
             }
-            // TODO: reset persons and offices
+            if (!empty($offices)) {
+                $this->container->get('office_manager')->reset(self::getIds($offices));
+            }
+            if (!empty($persons)) {
+                $this->container->get('person_manager')->reset(self::getIds($persons));
+            }
             if (!empty($regions)) {
                 $this->reset(self::getIds($regions));
             }

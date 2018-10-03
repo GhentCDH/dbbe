@@ -333,7 +333,7 @@ class RegionService extends DatabaseService
         if ($count > 0) {
             throw new DependencyException('This region has located_at dependencies.');
         }
-        // don't delete if this region is used in factoid
+        // don't delete if this region is used in factoid (includes person dependency)
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.factoid
@@ -354,8 +354,16 @@ class RegionService extends DatabaseService
         if ($count > 0) {
             throw new DependencyException('This region has institution dependencies.');
         }
-        // TODO: office dependency
-        //TODO: person dependency
+        // don't delete if this region is used in office
+        $count = $this->conn->executeQuery(
+            'SELECT count(*)
+            from data.occupation
+            where occupation.idregion = ?',
+            [$id]
+        )->fetchColumn(0);
+        if ($count > 0) {
+            throw new DependencyException('This region has office dependencies.');
+        }
         // Set search_path for trigger delete_entity
         // Pleiades id is deleted by foreign key constraint
         $this->conn->exec('SET SEARCH_PATH TO data');

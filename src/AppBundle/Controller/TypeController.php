@@ -92,6 +92,19 @@ class TypeController extends BaseController
     }
 
     /**
+     * Get all types that have a dependency on a status
+     * (document_status)
+     * @Route("/types/statuses/{id}", name="type_deps_by_status")
+     * @Method("GET")
+     * @param  int    $id status id
+     * @param Request $request
+     */
+    public function getDepsByStatus(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getStatusDependencies');
+    }
+
+    /**
      * Get all types that have a dependency on a person
      * (bibrole / factoid)
      * @Route("/types/persons/{id}", name="type_deps_by_person")
@@ -389,7 +402,6 @@ class TypeController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            // TODO: detailed sanitation?
             $filters = $params['filters'];
         }
 

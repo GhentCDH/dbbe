@@ -112,7 +112,7 @@ class RoleController extends Controller
         try {
             $role = $this
                 ->get('role_manager')
-                ->updateRole($id, json_decode($request->getContent()));
+                ->update($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

@@ -251,8 +251,6 @@ class PersonManager extends EntityManager
                         );
                 }
 
-                // TODO: type
-
                 // Article roles
                 $raws = $this->dbs->getArticles([$id]);
                 $ids = self::getUniqueIds($raws, 'article_id');
@@ -671,8 +669,9 @@ class PersonManager extends EntityManager
 
         $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($secondaryId, true);
         $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($secondaryId, true);
-        // TODO: types
-        if ((!empty($manuscripts) || !empty($occurrences)) && !$primary->getHistorical()) {
+        $types = $this->container->get('type_manager')->getPersonDependencies($secondaryId, true);
+
+        if ((!empty($manuscripts) || !empty($occurrences) || !empty($types)) && !$primary->getHistorical()) {
             $updates['historical'] = true;
         }
 
@@ -725,14 +724,43 @@ class PersonManager extends EntityManager
                     }
 
                     if (!empty($update)) {
-                        $this->container->get('occurrence_manager')->updateOccurrence(
+                        $this->container->get('occurrence_manager')->update(
                             $occurrence->getId(),
                             json_decode(json_encode($update))
                         );
                     }
                 }
             }
-            // TODO: types
+            if (!empty($types)) {
+                $roles = $this->container->get('role_manager')->getRolesByType('type');
+                foreach ($types as $type) {
+                    $personRoles = $type->getPersonRoles();
+                    $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
+
+                    $subjects = $type->getSubjects();
+                    $subjectIds = array_keys($subjects);
+                    if (in_array($secondaryId, $subjectIds)) {
+                        $update['subjects'] = [];
+                        foreach ($subjectIds as $id) {
+                            if ($id == $secondaryId) {
+                                // Prevent duplicate values
+                                if (!in_array($primaryId, $subjectIds)) {
+                                    $update['subjects'][] = ['id' => $primaryId];
+                                }
+                            } else {
+                                $update['subjects'][] = ['id' => $id];
+                            }
+                        }
+                    }
+
+                    if (!empty($update)) {
+                        $this->container->get('type_manager')->update(
+                            $type->getId(),
+                            json_decode(json_encode($update))
+                        );
+                    }
+                }
+            }
             if (!empty($articles)) {
                 $roles = $this->container->get('role_manager')->getRolesByType('article');
                 foreach ($articles as $article) {
@@ -776,7 +804,7 @@ class PersonManager extends EntityManager
             // Reset cache to renew role lists
             if (!empty($manuscripts)
                 || !empty($occurrences)
-                // TODO: types
+                || !empty($types)
                 || !empty($articles)
                 || !empty($books)
                 || !empty($bookChapters)
@@ -798,7 +826,9 @@ class PersonManager extends EntityManager
             foreach ($occurrences as $occurrence) {
                 $this->container->get('occurrence_manager')->reset([$occurrence->getId()]);
             }
-            // TODO: types
+            foreach ($types as $type) {
+                $this->container->get('type_manager')->reset([$type->getId()]);
+            }
             foreach ($articles as $article) {
                 $this->container->get('article_manager')->reset([$article->getId()]);
             }
@@ -857,10 +887,10 @@ class PersonManager extends EntityManager
         if (!$historical) {
             $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($person->getId());
             $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($person->getId());
-            // TODO: types
-            if (!empty($manuscripts) || !empty($occurrences)) {
+            $types = $this->container->get('type_manager')->getPersonDependencies($person->getId());
+            if (!empty($manuscripts) || !empty($occurrences) || !empty($types)) {
                 throw new BadRequestHttpException(
-                    'This person is linked linked to a manuscript or occurrence, so must be historical.'
+                    'This person is linked linked to a manuscript, occurrence or type, so must be historical.'
                 );
             }
         }

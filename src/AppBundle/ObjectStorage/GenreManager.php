@@ -173,7 +173,9 @@ class GenreManager extends ObjectManager
             $occurrences = $this->container->get('occurrence_manager')->getGenreDependencies($id, true);
             $this->container->get('occurrence_manager')->elasticIndex($occurrences);
 
-            // TODO: types
+            // update Elastic types
+            $types = $this->container->get('type_manager')->getGenreDependencies($id, true);
+            $this->container->get('type_manager')->elasticIndex($types);
 
             // commit transaction
             $this->dbs->commit();

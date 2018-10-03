@@ -134,7 +134,6 @@ class BibliographyController extends Controller
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            // TODO: detailed sanitation?
             $filters = $params['filters'];
         }
 

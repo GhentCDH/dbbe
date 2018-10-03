@@ -66,11 +66,6 @@ class EntityManager extends ObjectManager
         );
     }
 
-    public function getRoleDependencies(int $roleId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $short ? 'getShort' : 'getMini');
-    }
-
     public function getArticleDependencies(int $articleId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $short ? 'getShort' : 'getMini');

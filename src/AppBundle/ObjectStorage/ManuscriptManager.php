@@ -213,16 +213,6 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByContentIdWithChildren($contentId), $short ? 'getShort' : 'getMini');
     }
 
-    public function getStatusDependencies(int $statusId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId), $short ? 'getShort' : 'getMini');
-    }
-
-    public function getRoleDependencies(int $roleId, bool $short = false): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $short ? 'getShort' : 'getMini');
-    }
-
     public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short ? 'getShort' : 'getMini');
