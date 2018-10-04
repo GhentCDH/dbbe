@@ -1,0 +1,15 @@
+.page-footer {
+  .banner-img {
+    background-color: $brand-primary;
+    @media(min-width: $screen-sm-min) {
+      background: $brand-primary url('images/banner.jpg') no-repeat center;
+    }
+  }
+
+  .app-logo {
+    width: 200px;
+    @media(min-width: $screen-sm-min) {
+      width: 300px;
+    }
+  }
+}
