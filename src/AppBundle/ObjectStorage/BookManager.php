@@ -8,7 +8,6 @@ use Exception;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Book;
 
 /**
@@ -58,7 +57,18 @@ class BookManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        return $this->getMini($ids);
+        return $this->wrapLevelCache(
+            Book::CACHENAME,
+            'short',
+            $ids,
+            function ($ids) {
+                $books = $this->getMini($ids);
+
+                $this->setManagements($books);
+
+                return $books;
+            }
+        );
     }
 
     /**
@@ -249,6 +259,7 @@ class BookManager extends DocumentManager
                 $this->dbs->updateTotalVolumes($id, $data->totalVolumes);
             }
             $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'book');
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

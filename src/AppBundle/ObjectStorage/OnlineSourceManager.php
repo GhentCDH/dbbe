@@ -9,7 +9,6 @@ use stdClass;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\OnlineSource;
 
 /**
@@ -54,7 +53,18 @@ class OnlineSourceManager extends EntityManager
      */
     public function getShort(array $ids): array
     {
-        return $this->getMini($ids);
+        return $this->wrapLevelCache(
+            OnlineSource::CACHENAME,
+            'short',
+            $ids,
+            function ($ids) {
+                $onlineSources = $this->getMini($ids);
+
+                $this->setManagements($onlineSources);
+
+                return $onlineSources;
+            }
+        );
     }
 
     /**
@@ -205,6 +215,7 @@ class OnlineSourceManager extends EntityManager
                 $cacheReload['mini'] = true;
                 $this->dbs->updateLastAccessed($id, $data->lastAccessed);
             }
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

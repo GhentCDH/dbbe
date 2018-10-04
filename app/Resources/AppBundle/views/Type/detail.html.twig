@@ -216,6 +216,22 @@
                             <td>{{ type.getPrivateComment()|nl2br }}</td>
                         </tr>
                     {% endif %}
+                    {% if type.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ type.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
                 {% endif %}
                 {% if type.getAcknowledgements() is not empty %}
                     <tr>

@@ -119,6 +119,8 @@ class PersonManager extends EntityManager
 
                 $this->setComments($persons);
 
+                $this->setManagements($persons);
+
                 return $persons;
             }
         );
@@ -563,6 +565,7 @@ class PersonManager extends EntityManager
                 $cacheReload['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

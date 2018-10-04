@@ -120,6 +120,16 @@
                 @validated="validated"
             />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -179,6 +189,7 @@
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -211,7 +222,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -272,6 +283,7 @@ export default {
                     basedOn: null,
                     public: null,
                 },
+                managements: {managements: null},
             },
             forms: [
                 'basic',
@@ -284,6 +296,7 @@ export default {
                 'keywords',
                 'bibliography',
                 'general',
+                'managements',
             ],
         }
         for (let identifier of data.identifiers) {
@@ -328,6 +341,7 @@ export default {
             criticalStatuses: this.data.criticalStatuses,
             occurrences: this.data.occurrences,
         }
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadType()
@@ -428,6 +442,11 @@ export default {
                     criticalStatus: this.type.criticalStatus,
                     basedOn: this.type.basedOn,
                     public: this.type.public,
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.type.managements,
                 }
             }
 

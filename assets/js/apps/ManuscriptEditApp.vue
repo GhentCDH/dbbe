@@ -94,6 +94,16 @@
                 @validated="validated"
             />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -151,6 +161,7 @@
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -183,7 +194,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:LocatedAt|Content|Person|Date|Origin|OccurrenceOrder|Identification|Bibliography|GeneralManuscript)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:LocatedAt|Content|Person|Date|Origin|OccurrenceOrder|Identification|Bibliography|GeneralManuscript|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -242,6 +253,7 @@ export default {
                     status: null,
                     public: null,
                 },
+                managements: {managements: null},
             },
             forms: [
                 'locatedAt',
@@ -253,6 +265,7 @@ export default {
                 'identification',
                 'bibliography',
                 'general',
+                'managements',
             ],
         }
         for (let identifier of data.identifiers) {
@@ -279,6 +292,7 @@ export default {
             onlineSources: this.data.onlineSources,
         }
         this.statuses = this.data.statuses
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadManuscript()
@@ -367,6 +381,11 @@ export default {
                     status: this.manuscript.status,
                     illustrated: this.manuscript.illustrated,
                     public: this.manuscript.public,
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.manuscript.managements,
                 }
             }
             else {

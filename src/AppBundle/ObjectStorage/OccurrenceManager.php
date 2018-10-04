@@ -145,6 +145,8 @@ class OccurrenceManager extends PoemManager
                 // Needed to index DBBE in elasticsearch
                 $this->setBibliographies($occurrences);
 
+                $this->setManagements($occurrences);
+
                 return $occurrences;
             }
         );
@@ -579,6 +581,7 @@ class OccurrenceManager extends PoemManager
                 $cacheReload['full'] = true;
                 $this->updateImageLinks($old, $data->imageLinks);
             }
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

@@ -336,6 +336,7 @@ class OccurrenceController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'image_get' => $this->generateUrl('image_get', ['id' => 'image_id']),
                     'image_post' => $this->generateUrl('image_post'),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -358,6 +359,7 @@ class OccurrenceController extends BaseController
                     'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
                     'dividedStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceDividedStatuses()),
                     'sourceStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceSourceStatuses()),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))

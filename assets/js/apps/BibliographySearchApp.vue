@@ -196,6 +196,24 @@ export default {
             data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
         }
 
+        // Add view internal only fields
+        if (this.isViewInternal) {
+            data.schema.fields['management'] = this.createMultiSelect(
+                'Management collection',
+                {
+                    model: 'management',
+                    styleClasses: 'has-warning',
+                }
+            )
+            data.schema.fields['management_inverse'] = {
+                type: 'checkbox',
+                styleClasses: 'has-warning',
+                label: 'Inverse management collection selection',
+                labelClasses: 'control-label',
+                model: 'management_inverse',
+            }
+        }
+
         return data
     },
     computed: {

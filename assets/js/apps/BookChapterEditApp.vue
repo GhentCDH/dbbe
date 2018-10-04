@@ -43,6 +43,16 @@
                 @validated="validated"
             />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -93,6 +103,7 @@
                 <ul class="linklist linklist-dark">
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#basic">Basic information</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -125,7 +136,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -148,10 +159,12 @@ export default {
                     book: null,
                 },
                 identification: {},
+                managements: {managements: null},
             },
             forms: [
                 'persons',
                 'basic',
+                'managements',
             ],
         }
         for (let identifier of data.identifiers) {
@@ -172,6 +185,7 @@ export default {
         this.bookChapter = this.data.bookChapter
         this.modernPersons = this.data.modernPersons
         this.books = this.data.books
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadData()
@@ -201,6 +215,11 @@ export default {
                     if (identifier.extra) {
                         this.model.identification[identifier.systemName + '_extra'] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName + '_extra'] : null
                     }
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.bookChapter.managements,
                 }
             }
 

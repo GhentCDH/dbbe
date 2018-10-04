@@ -19,6 +19,16 @@
                 @validated="validated"
                 ref="basic" />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -62,6 +72,7 @@
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic information</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -91,7 +102,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -110,14 +121,17 @@ export default {
                     name: null,
                     lastAccessed: null,
                 },
+                managements: {managements: null},
             },
             forms: [
                 'basic',
+                'managements',
             ],
         }
     },
     created () {
         this.onlineSource = this.data.onlineSource
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadData()
@@ -133,6 +147,11 @@ export default {
                     url: this.onlineSource.url,
                     name: this.onlineSource.name,
                     lastAccessed: this.onlineSource.lastAccessed,
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.onlineSource.managements,
                 }
             }
 

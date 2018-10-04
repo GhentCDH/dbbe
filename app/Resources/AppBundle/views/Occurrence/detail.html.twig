@@ -280,12 +280,22 @@
                             <td>{{ occurrence.getDividedStatus() }}</td>
                         </tr>
                     {% endif %}
-                    {% if occurrence.getPublic()|default is not null %}
-                        <tr class="danger">
-                            <td>Publication state</td>
-                            <td>{{ occurrence.getPublic() ? 'Public': 'Not public' }}</td>
+                    {% if occurrence.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
                         </tr>
                     {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ occurrence.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
                 {% endif %}
                 {% if occurrence.getAcknowledgements() is not empty %}
                     <tr>

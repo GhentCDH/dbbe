@@ -119,6 +119,7 @@ class OnlineSourceController extends BaseController
                     'online_source_get' => $this->generateUrl('online_source_get', ['id' => $id == null ? 'online_source_id' : $id]),
                     'online_source_post' => $this->generateUrl('online_source_post'),
                     'online_source_put' => $this->generateUrl('online_source_put', ['id' => $id == null ? 'online_source_id' : $id]),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     // @codingStandardsIgnoreEnd
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -126,6 +127,7 @@ class OnlineSourceController extends BaseController
                     'onlineSource' => empty($id)
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson(

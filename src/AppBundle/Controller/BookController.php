@@ -137,6 +137,7 @@ class BookController extends BaseController
                     'book_get' => $this->generateUrl('book_get', ['id' => $id == null ? 'book_id' : $id]),
                     'book_post' => $this->generateUrl('book_post'),
                     'book_put' => $this->generateUrl('book_put', ['id' => $id == null ? 'book_id' : $id]),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -146,6 +147,7 @@ class BookController extends BaseController
                     'modernPersons' => ArrayToJson::arrayToShortJson(
                         $this->get('person_manager')->getAllModernPersons()
                     ),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson(

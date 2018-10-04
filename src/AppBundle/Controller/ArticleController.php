@@ -148,6 +148,7 @@ class ArticleController extends BaseController
                     'article_post' => $this->generateUrl('article_post'),
                     'article_put' => $this->generateUrl('article_put', ['id' => $id == null ? 'article_id' : $id]),
                     'journals_edit' => $this->generateUrl('journals_edit'),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -160,6 +161,7 @@ class ArticleController extends BaseController
                     'journals' => ArrayToJson::arrayToShortJson(
                         $this->get('journal_manager')->getAll()
                     ),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson(

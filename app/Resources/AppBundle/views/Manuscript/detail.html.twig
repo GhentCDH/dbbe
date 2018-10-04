@@ -98,18 +98,28 @@
                             <td>{{ manuscript.getStatus() }}</td>
                         </tr>
                     {% endif %}
-                    {% if manuscript.getIllustrated()|default is not null %}
+                    {% if manuscript.getIllustrated() is defined %}
                         <tr class="warning">
                             <td>Illustrated</td>
                             <td>{{ manuscript.getIllustrated() ? 'Yes': 'No' }}</td>
                         </tr>
                     {% endif %}
-                    {% if manuscript.getPublic()|default is not null %}
-                        <tr class="danger">
-                            <td>Publication state</td>
-                            <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
+                    {% if manuscript.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
                         </tr>
                     {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
                 {% endif %}
             </tbody>
         </table>

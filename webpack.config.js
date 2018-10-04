@@ -26,6 +26,7 @@ Encore
     .addEntry('lightbox', './assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js')
     .addEntry('locationsedit', './assets/js/main/locationsedit.js')
     .addEntry('main', './assets/js/main/main.js')
+    .addEntry('managementsedit', './assets/js/main/managementsedit.js')
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
     .addEntry('manuscriptedit', './assets/js/main/manuscriptedit.js')
     .addEntry('metersedit', './assets/js/main/metersedit.js')

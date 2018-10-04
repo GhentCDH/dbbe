@@ -70,6 +70,20 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book.getInverseBibliographies()} only %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if book.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
             </tbody>
         </table>
         <div id="feedback-app">

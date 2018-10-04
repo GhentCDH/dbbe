@@ -36,6 +36,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
      * @var array
      */
     protected $inverseBibliographies = [];
+    /**
+     * @var array
+     */
+    protected $managements = [];
 
     public function setId(int $id): Entity
     {
@@ -225,6 +229,25 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this->inverseBibliographies;
     }
 
+    public function setManagements(array $managements): Entity
+    {
+        $this->managements = $managements;
+
+        return $this;
+    }
+
+    public function addManagement(Management $management): Entity
+    {
+        $this->managements[$management->getId()] = $management;
+
+        return $this;
+    }
+
+    public function getManagements(): array
+    {
+        return $this->managements;
+    }
+
     public function getJson(): array
     {
         $result = [
@@ -249,8 +272,11 @@ class Entity implements IdJsonInterface, IdElasticInterface
                     $identification->getExtra();
             }
         }
-        if (!empty($this->getBibliographies())) {
-            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->getBibliographies());
+        if (!empty($this->bibliographies)) {
+            $result['bibliography'] = ArrayToJson::arrayToShortJson($this->bibliographies);
+        }
+        if (!empty($this->managements)) {
+            $result['managements'] = ArrayToJson::arrayToShortJson($this->managements);
         }
 
         return $result;
@@ -274,6 +300,9 @@ class Entity implements IdJsonInterface, IdElasticInterface
         }
         if (isset($this->privateComment)) {
             $result['private_comment'] = $this->privateComment;
+        }
+        if (isset($this->managements)) {
+            $result['management'] = ArrayToJson::arrayToShortJson($this->managements);
         }
 
         return $result;

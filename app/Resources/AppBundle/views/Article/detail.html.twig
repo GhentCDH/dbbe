@@ -49,6 +49,20 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': article.getInverseBibliographies()} only %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if article.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
             </tbody>
         </table>
 

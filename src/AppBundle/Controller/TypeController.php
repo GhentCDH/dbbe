@@ -319,6 +319,7 @@ class TypeController extends BaseController
                     'keywords_subject_edit' => $this->generateUrl('keywords_subject_edit'),
                     'keywords_type_edit' => $this->generateUrl('keywords_type_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -341,6 +342,7 @@ class TypeController extends BaseController
                     'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllTypeTextStatuses()),
                     'criticalStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllTypeCriticalStatuses()),
                     'occurrences' => ArrayToJson::arrayToShortJson($this->get('occurrence_manager')->getAllMini('getId')),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('type'))

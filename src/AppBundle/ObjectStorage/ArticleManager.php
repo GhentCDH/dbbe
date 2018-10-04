@@ -8,7 +8,6 @@ use Exception;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Article;
 
 /**
@@ -62,7 +61,18 @@ class ArticleManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        return $this->getMini($ids);
+        return $this->wrapLevelCache(
+            Article::CACHENAME,
+            'short',
+            $ids,
+            function ($ids) {
+                $articles = $this->getMini($ids);
+
+                $this->setManagements($articles);
+
+                return $articles;
+            }
+        );
     }
 
     /**
@@ -209,8 +219,8 @@ class ArticleManager extends DocumentManager
                 $cacheReload['mini'] = true;
                 $this->dbs->updateJournal($id, $data->journal->id);
             }
-
             $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'article');
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

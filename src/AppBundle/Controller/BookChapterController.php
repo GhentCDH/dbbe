@@ -147,6 +147,7 @@ class BookChapterController extends BaseController
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => $id == null ? 'book_chapter_id' : $id]),
                     'book_chapter_post' => $this->generateUrl('book_chapter_post'),
                     'book_chapter_put' => $this->generateUrl('book_chapter_put', ['id' => $id == null ? 'book_chapter_id' : $id]),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
@@ -160,6 +161,7 @@ class BookChapterController extends BaseController
                     'books' => ArrayToJson::arrayToShortJson(
                         $this->get('book_manager')->getAllMini()
                     ),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson(

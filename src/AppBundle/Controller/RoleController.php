@@ -87,7 +87,7 @@ class RoleController extends Controller
         try {
             $role = $this
                 ->get('role_manager')
-                ->addRole(json_decode($request->getContent()));
+                ->add(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -141,7 +141,7 @@ class RoleController extends Controller
         try {
             $this
                 ->get('role_manager')
-                ->delRole($id);
+                ->delete($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

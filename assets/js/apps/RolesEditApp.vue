@@ -100,8 +100,8 @@ export default {
                         model: 'role.systemName',
                         required: true,
                         validator: VueFormGenerator.validators.regexp,
-                        pattern: '^[a-z]+$',
-                        hint: 'Only use small lower cases'
+                        pattern: '^[a-z_]+$',
+                        hint: 'Only use small lower cases and underscores'
                     },
                     name: {
                         type: 'input',

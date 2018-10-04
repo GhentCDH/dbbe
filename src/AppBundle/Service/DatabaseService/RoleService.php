@@ -92,19 +92,6 @@ class RoleService extends DatabaseService
         );
     }
 
-    public function updateSystemName(int $roleId, string $systemName): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.role
-            set system_name = ?, modified = now()
-            where role.idrole = ?',
-            [
-                $systemName,
-                $roleId,
-            ]
-        );
-    }
-
     public function updateName(int $roleId, string $name): int
     {
         return $this->conn->executeUpdate(

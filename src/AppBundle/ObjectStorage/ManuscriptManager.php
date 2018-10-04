@@ -120,6 +120,8 @@ class ManuscriptManager extends DocumentManager
 
                 $this->setComments($manuscripts);
 
+                $this->setManagements($manuscripts);
+
                 return $manuscripts;
             }
         );
@@ -335,6 +337,7 @@ class ManuscriptManager extends DocumentManager
                 $cacheReload['full'] = true;
                 $this->updateIllustrated($old, $data->illustrated);
             }
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

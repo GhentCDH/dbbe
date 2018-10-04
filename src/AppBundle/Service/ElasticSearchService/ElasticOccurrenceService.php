@@ -41,6 +41,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             'manuscript_content_public' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
             'acknowledgement' => ['type' => 'nested'],
+            'management' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -68,6 +69,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
             unset($result['data'][$key]['acknowledgement']);
+            unset($result['data'][$key]['management']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
                 unset($result['data'][$key][$role . '_public']);
@@ -90,16 +92,17 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
         }
 
+        $aggregationFilters = ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement'];
+        if ($viewInternal) {
+            $aggregationFilters[] = 'public';
+            $aggregationFilters[] = 'management';
+        }
+
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(
-                array_merge(
-                    $this->getIdentifierSystemNames(),
-                    ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'public', 'text_status', 'acknowledgement']
-                ),
-                $viewInternal
-            ),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
+
         if (!$viewInternal && isset($result['aggregation']['manuscript_content_public'])) {
             $result['aggregation']['manuscript_content'] = $result['aggregation']['manuscript_content_public'];
             unset($result['aggregation']['manuscript_content_public']);
@@ -109,9 +112,9 @@ class ElasticOccurrenceService extends ElasticBaseService
         if (array_key_exists('genre', $result['aggregation'])
             || (
                 !empty($params['filters'])
-                && array_key_exists('object', $params['filters'])
-                && array_key_exists('genre', $params['filters']['object'])
-                && $params['filters']['object']['genre'] == -1
+                && array_key_exists('nested', $params['filters'])
+                && array_key_exists('genre', $params['filters']['nested'])
+                && $params['filters']['nested']['genre'] == -1
             )
         ) {
             $result['aggregation']['genre'][] = [
@@ -120,14 +123,8 @@ class ElasticOccurrenceService extends ElasticBaseService
             ];
         }
 
-        // Remove non public fields if no access rights
         // Add 'no-selectors' for primary identifiers
-        if (!$viewInternal) {
-            unset($result['aggregation']['public']);
-            foreach ($result['data'] as $key => $value) {
-                unset($result['data'][$key]['public']);
-            }
-        } else {
+        if ($viewInternal) {
             foreach ($this->primaryIdentifiers as $identifier) {
                 $result['aggregation'][$identifier->getSystemName()][] = [
                     'id' => -1,
@@ -170,6 +167,18 @@ class ElasticOccurrenceService extends ElasticBaseService
                                 $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
                             } else {
                                 $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                            }
+                        }
+                        break;
+                    // Management collections
+                    case 'management':
+                        if (is_int($key)) {
+                            $result['nested'][] = $value;
+                        } else {
+                            if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                                $result['nested_toggle'][$key] = [$value, false];
+                            } else {
+                                $result['nested_toggle'][$key] = [$value, true];
                             }
                         }
                         break;

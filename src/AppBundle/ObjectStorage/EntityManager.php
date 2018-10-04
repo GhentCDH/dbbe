@@ -162,6 +162,19 @@ class EntityManager extends ObjectManager
         }
     }
 
+    protected function setManagements(array &$entities): void
+    {
+        $rawManagements = $this->dbs->getManagements(self::getIds($entities));
+        if (!empty($rawManagements)) {
+            $managements = $this->container->get('management_manager')->getWithData($rawManagements);
+
+            foreach ($rawManagements as $rawManagement) {
+                $entities[$rawManagement['entity_id']]
+                    ->addManagement($managements[$rawManagement['management_id']]);
+            }
+        }
+    }
+
     protected function updatePublic(Entity $entity, bool $public): void
     {
         $this->dbs->updatePublic($entity->getId(), $public);
@@ -490,6 +503,37 @@ class EntityManager extends ObjectManager
             // clear article, book, bookchapter, onlinesource caches
 
             throw $e;
+        }
+    }
+
+    protected function updateManagementWrapper(
+        Entity $entity,
+        stdClass $data,
+        array &$cacheReload,
+        string $cacheLevel
+    ): void {
+        if (property_exists($data, 'managements')) {
+            if (!is_array($data->managements)) {
+                throw new BadRequestHttpException('Incorrect managements data.');
+            }
+            foreach ($data->managements as $management) {
+                if (!is_object($management)
+                    || !property_exists($management, 'id')
+                    || !is_numeric($management->id)
+                ) {
+                    throw new BadRequestHttpException('Incorrect management data.');
+                }
+            }
+        }
+        $cacheReload[$cacheLevel] = true;
+
+        list($delIds, $addIds) = self::calcDiff($data->managements, $entity->getManagements());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delManagements($entity->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addManagement($entity->getId(), $addId);
         }
     }
 

@@ -200,29 +200,60 @@ class Poem extends Document
     {
         $result = parent::getJson();
 
-        if (isset($this->incipit)) {
-            $result['incipit'] = $this->incipit;
-        }
-        if (isset($this->title)) {
+        $result['incipit'] = $this->incipit;
+
+        if (!empty($this->title)) {
             $result['title'] = $this->title;
         }
         if (!empty($this->numberOfVerses)) {
             $result['numberOfVerses'] = $this->numberOfVerses;
         }
-        if (isset($this->meters)) {
+        if (!empty($this->meters)) {
             $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
         }
         $result['subjects'] = [
             'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
             'keywords' => ArrayToJson::arrayToShortJson($this->getKeywordSubjects()),
         ];
-        if (isset($this->genres)) {
+        if (!empty($this->genres)) {
             $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
         }
-        if (isset($this->acknowledgements)) {
+        if (!empty($this->acknowledgements)) {
             $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
 
+        return $result;
+    }
+
+    public function getElastic(): array
+    {
+        $result = parent::getElastic();
+
+        $result['DBBE'] = $this->getDBBE();
+        $result['incipit'] = $this->incipit;
+
+        if (!empty($this->title)) {
+            $result['title'] = $this->title;
+        }
+        if (!empty($this->meters)) {
+            $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);
+        }
+        if (!empty($this->subjects)) {
+            $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
+        }
+        foreach ($this->getPersonRoles() as $roleName => $personRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+        if (!empty($this->genres)) {
+            $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
+        }
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+        
         return $result;
     }
 }

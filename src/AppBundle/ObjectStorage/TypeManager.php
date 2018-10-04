@@ -125,6 +125,8 @@ class TypeManager extends PoemManager
                 // Needed to index DBBE in elasticsearch
                 $this->setBibliographies($types);
 
+                $this->setManagements($types);
+
                 return $types;
             }
         );
@@ -407,6 +409,7 @@ class TypeManager extends PoemManager
                 $cacheReload['full'] = true;
                 $this->updateBasedOn($old, $data->basedOn);
             }
+            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
 
             // Throw error if none of above matched
             if (!in_array(true, $cacheReload)) {

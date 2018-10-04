@@ -392,10 +392,10 @@ class Manuscript extends Document
             }
             $result['content'] = $contents;
         }
-        if (isset($this->date) && !empty($this->date->getFloor())) {
+        if (!empty($this->date) && !empty($this->date->getFloor())) {
             $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));
         }
-        if (isset($this->date) && !empty($this->date->getCeiling())) {
+        if (!empty($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
         foreach ($this->getFixedRelatedPersonRoles() as $roleName => $personRole) {
@@ -404,7 +404,7 @@ class Manuscript extends Document
         foreach ($this->getFixedRelatedPublicPersonRoles() as $roleName => $personRole) {
             $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
-        if (isset($this->origin)) {
+        if (!empty($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
         }
 

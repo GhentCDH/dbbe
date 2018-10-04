@@ -362,6 +362,7 @@ class ManuscriptController extends BaseController
         return $this->render(
             'AppBundle:Manuscript:edit.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
                 'urls' => json_encode([
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => $id == null ? 'manuscript_id' : $id]),
@@ -371,6 +372,7 @@ class ManuscriptController extends BaseController
                     'contents_edit' => $this->generateUrl('contents_edit'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -386,6 +388,7 @@ class ManuscriptController extends BaseController
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
                     'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('manuscript'))
@@ -393,6 +396,7 @@ class ManuscriptController extends BaseController
                 'roles' => json_encode(
                     ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('manuscript'))
                 ),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }

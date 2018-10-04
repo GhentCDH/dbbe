@@ -367,17 +367,69 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'nested':
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
-                        $subQuery = new Query\BoolQuery();
                         if ($value == -1) {
-                            $subQuery->addMustNot(new Query\Exists($key));
+                            $filterQuery->addMustNot(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery(
+                                        (new Query\BoolQuery())
+                                            ->addMust(new Query\Exists($key))
+                                    )
+                            );
                         } else {
-                            $subQuery->addMust(['match' => [$key . '.id' => $value]]);
+                            $filterQuery->addMust(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery(
+                                        (new Query\BoolQuery())
+                                            ->addMust(['match' => [$key . '.id' => $value]])
+                                    )
+                            );
                         }
-                        $filterQuery->addMust(
-                            (new Query\Nested())
-                                ->setPath($key)
-                                ->setQuery($subQuery)
-                        );
+                    }
+                    break;
+                case 'nested_toggle':
+                    foreach ($filterValues as $key => $value) {
+                        // value = [actual value, include/exclude]
+                        if (!$value[1]) {
+                            // management collection not present
+                            // no management collections present or only other management collections present
+                            $filterQuery->addMust(
+                                (new Query\BoolQuery())
+                                    ->addShould(
+                                        (new Query\BoolQuery())
+                                            ->addMustNot(
+                                                (new Query\Nested())
+                                                    ->setPath($key)
+                                                    ->setQuery(
+                                                        (new Query\BoolQuery())
+                                                            ->addMust(new Query\Exists($key))
+                                                    )
+                                            )
+                                    )
+                                    ->addShould(
+                                        (new Query\BoolQuery())
+                                            ->addMustNot(
+                                                (new Query\Nested())
+                                                    ->setPath($key)
+                                                    ->setQuery(
+                                                        (new Query\BoolQuery())
+                                                            ->addMust(['match' => [$key . '.id' => $value[0]]])
+                                                    )
+                                            )
+                                    )
+                            );
+                        } else {
+                            // management collection present
+                            $filterQuery->addMust(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery(
+                                        (new Query\BoolQuery())
+                                            ->addMust(['match' => [$key . '.id' => $value[0]]])
+                                    )
+                            );
+                        }
                     }
                     break;
                 case 'text':

@@ -32,6 +32,7 @@ class ElasticPersonService extends ElasticBaseService
             [
                 'role' => ['type' => 'nested'],
                 'office' => ['type' => 'nested'],
+                'management' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
@@ -50,6 +51,7 @@ class ElasticPersonService extends ElasticBaseService
             unset($result['data'][$key]['historical']);
             unset($result['data'][$key]['modern']);
             unset($result['data'][$key]['role']);
+            unset($result['data'][$key]['management']);
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
                 unset($result['data'][$key]['public_comment']);
@@ -59,19 +61,19 @@ class ElasticPersonService extends ElasticBaseService
             }
         }
 
+        $aggregationFilters = ['historical', 'modern', 'role', 'office', 'self_designation', 'origin'];
+        if ($viewInternal) {
+            $aggregationFilters[] = 'public';
+            $aggregationFilters[] = 'management';
+        }
+
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), ['historical', 'modern', 'role', 'office', 'self_designation', 'origin', 'public'])),
+            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
-        // Remove non public fields if no access rights
         // Add 'no-selectors' for primary identifiers
-        if (!$viewInternal) {
-            unset($result['aggregation']['public']);
-            foreach ($result['data'] as $key => $value) {
-                unset($result['data'][$key]['public']);
-            }
-        } else {
+        if ($viewInternal) {
             foreach ($this->primaryIdentifiers as $identifier) {
                 $result['aggregation'][$identifier->getSystemName()][] = [
                     'id' => -1,
@@ -102,6 +104,18 @@ class ElasticPersonService extends ElasticBaseService
                             $result['exact_text'][] = $value;
                         } else {
                             $result['exact_text'][$key] = $value;
+                        }
+                        break;
+                    // Management collections
+                    case 'management':
+                        if (is_int($key)) {
+                            $result['nested'][] = $value;
+                        } else {
+                            if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                                $result['nested_toggle'][$key] = [$value, false];
+                            } else {
+                                $result['nested_toggle'][$key] = [$value, true];
+                            }
                         }
                         break;
                     case 'date':

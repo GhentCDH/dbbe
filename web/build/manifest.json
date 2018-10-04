@@ -39,6 +39,7 @@
   "build/lightbox.js": "/build/lightbox.js",
   "build/locationsedit.js": "/build/locationsedit.js",
   "build/main.js": "/build/main.js",
+  "build/managementsedit.js": "/build/managementsedit.js",
   "build/manuscriptedit.js": "/build/manuscriptedit.js",
   "build/manuscriptsearch.js": "/build/manuscriptsearch.js",
   "build/metersedit.js": "/build/metersedit.js",

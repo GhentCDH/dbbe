@@ -83,6 +83,16 @@
                 @validated="validated"
                 ref="general" />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -133,6 +143,7 @@
                     <li><a href="#offices">Offices</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -162,7 +173,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|Bibliography|GeneralPerson)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|Bibliography|GeneralPerson|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -224,6 +235,7 @@ export default {
                     privateComment: null,
                     public: null,
                 },
+                managements: {managements: null},
             },
             forms: [
                 'basic',
@@ -233,6 +245,7 @@ export default {
                 'offices',
                 'bibliography',
                 'general',
+                'managements',
             ],
         }
         for (let identifier of data.identifiers) {
@@ -253,6 +266,7 @@ export default {
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
         }
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadPerson()
@@ -348,6 +362,11 @@ export default {
                     publicComment: this.person.publicComment,
                     privateComment: this.person.privateComment,
                     public: this.person.public,
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.person.managements,
                 }
             }
             else {

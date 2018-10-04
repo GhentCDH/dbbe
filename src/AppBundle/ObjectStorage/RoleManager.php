@@ -90,16 +90,19 @@ class RoleManager extends ObjectManager
         );
     }
 
-    public function addRole(stdClass $data): Role
+    public function add(stdClass $data): Role
     {
         $this->dbs->beginTransaction();
         try {
             if (property_exists($data, 'usage')
                 && is_array($data->usage)
+                && !empty($data->usage)
                 && property_exists($data, 'systemName')
                 && is_string($data->systemName)
+                && !empty($data->systemName)
                 && property_exists($data, 'name')
                 && is_string($data->name)
+                && !empty($data->name)
             ) {
                 foreach ($data->usage as $usagePart) {
                     if (!is_string($usagePart)) {
@@ -115,7 +118,7 @@ class RoleManager extends ObjectManager
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
-            // load new content data
+            // load new data
             $newRole = $this->get([$roleId])[$roleId];
 
             $this->updateModified(null, $newRole);
@@ -147,6 +150,7 @@ class RoleManager extends ObjectManager
             $correct = false;
             if (property_exists($data, 'usage')
                 && is_array($data->usage)
+                && !empty($data->usage)
             ) {
                 foreach ($data->usage as $usagePart) {
                     if (!is_string($usagePart)) {
@@ -161,6 +165,7 @@ class RoleManager extends ObjectManager
             }
             if (property_exists($data, 'name')
                 && is_string($data->name)
+                && !empty($data->name)
             ) {
                 $correct = true;
                 $this->dbs->updateName($roleId, $data->name);
@@ -186,7 +191,7 @@ class RoleManager extends ObjectManager
         return $newRole;
     }
 
-    public function delRole(int $roleId): void
+    public function delete(int $roleId): void
     {
         $this->dbs->beginTransaction();
         try {

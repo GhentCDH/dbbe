@@ -129,6 +129,16 @@
                 @validated="validated"
             />
 
+            <managementPanel
+                id="managements"
+                ref="managements"
+                header="Management collections"
+                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :model="model.managements"
+                :values="managements"
+                @validated="validated"
+            />
+
             <btn
                 id="actions"
                 type="warning"
@@ -189,6 +199,7 @@
                     <li><a href="#images">Images</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -221,7 +232,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Meter|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Meter|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -304,6 +315,7 @@ export default {
                     sourceStatus: null,
                     public: null,
                 },
+                managements: {managements: null},
             },
             forms: [
                 'basic',
@@ -317,6 +329,7 @@ export default {
                 'images',
                 'bibliography',
                 'general',
+                'managements',
             ],
         }
         for (let identifier of data.identifiers) {
@@ -358,6 +371,7 @@ export default {
             dividedStatuses: this.data.dividedStatuses,
             sourceStatuses: this.data.sourceStatuses,
         }
+        this.managements = this.data.managements
     },
     mounted () {
         this.loadOccurrence()
@@ -483,6 +497,11 @@ export default {
                     dividedStatus: this.occurrence.dividedStatus,
                     sourceStatus: this.occurrence.sourceStatus,
                     public: this.occurrence.public,
+                }
+
+                // Management
+                this.model.managements = {
+                    managements: this.occurrence.managements,
                 }
             }
 

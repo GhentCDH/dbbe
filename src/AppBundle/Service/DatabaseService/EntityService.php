@@ -125,6 +125,21 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getManagements(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                entity_management.identity as entity_id,
+                entity_management.idmanagement as management_id,
+                management.name as management_name
+            from data.entity_management
+            inner join data.management on entity_management.idmanagement = management.id
+            where entity_management.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function updatePublic(int $entityId, bool $public): int
     {
         return $this->conn->executeUpdate(
@@ -288,6 +303,35 @@ class EntityService extends DatabaseService
                 $extra,
                 $identifierId,
                 $entityId,
+            ]
+        );
+    }
+
+    public function addManagement(int $id, int $managementId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.entity_management (identity, idmanagement)
+            values (?, ?)',
+            [
+                $id,
+                $managementId,
+            ]
+        );
+    }
+
+    public function delManagements(int $id, array $managementIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE from data.entity_management
+            where identity = ?
+            and idmanagement in (?)',
+            [
+                $id,
+                $managementIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

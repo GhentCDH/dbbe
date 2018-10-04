@@ -19,6 +19,20 @@
                     <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
                 </tr>
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': online_source.getInverseBibliographies()} only %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if online_source.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': online_source.getManagements()} only %}
+                                    {% block renderItem %}
+                                        {{ item.getName() }}
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
             </tbody>
         </table>
 

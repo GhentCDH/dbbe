@@ -158,6 +158,11 @@ services:
         arguments: ['@role_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    management_manager:
+        class: AppBundle\ObjectStorage\ManagementManager
+        arguments: ['@management_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     office_manager:
         class: AppBundle\ObjectStorage\OfficeManager
         arguments: ['@office_service', '@cache.app', '@service_container', null, '@security.token_storage', 'office']
@@ -276,6 +281,10 @@ services:
 
     role_service:
         class: AppBundle\Service\DatabaseService\RoleService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    management_service:
+        class: AppBundle\Service\DatabaseService\ManagementService
         arguments: ['@doctrine.orm.entity_manager']
 
     office_service:

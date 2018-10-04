@@ -210,48 +210,21 @@ class Type extends Poem
 
     public function getElastic(): array
     {
-        $result = [
-            'id' => $this->id,
-            'public' => $this->public,
-            'dbbe' => $this->getDBBE(),
-            'number_of_occurrences' => count($this->occurrences),
-        ];
+        $result = parent::getElastic();
 
-        if (isset($this->incipit)) {
-            $result['incipit'] = $this->incipit;
-        }
-        if (isset($this->title)) {
-            $result['title'] = $this->title;
-        }
+        $result['number_of_occurrences'] = count($this->occurrences);
+
         if (!empty($this->verses)) {
             $result['verses'] = implode("\n", $this->verses);
         }
-        if (isset($this->textStatus)) {
+        if (!empty($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
         }
-        if (isset($this->criticalStatus)) {
+        if (!empty($this->criticalStatus)) {
             $result['critical_status'] = $this->criticalStatus->getShortJson();
-        }
-        if (isset($this->meters)) {
-            $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);
-        }
-        if (!empty($this->subjects)) {
-            $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
         }
         if (!empty($this->keywords)) {
             $result['keyword'] = ArrayToJson::arrayToShortJson($this->keywords);
-        }
-        foreach ($this->getPersonRoles() as $roleName => $personRole) {
-            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
-        }
-        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
-            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
-        }
-        if (isset($this->genres)) {
-            $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
-        }
-        if (!empty($this->acknowledgements)) {
-            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
         if (!empty($this->occurrences)) {
             $result['number_of_occurrences_public'] = count(
@@ -262,12 +235,6 @@ class Type extends Poem
                     }
                 )
             );
-        }
-        if (isset($this->publicComment)) {
-            $result['public_comment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['private_comment'] = $this->privateComment;
         }
 
         return $result;

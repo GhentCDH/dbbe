@@ -32,6 +32,7 @@ class ElasticManuscriptService extends ElasticBaseService
         $properties = [
             'content' => ['type' => 'nested'],
             'origin' => ['type' => 'nested'],
+            'management' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
@@ -43,17 +44,6 @@ class ElasticManuscriptService extends ElasticBaseService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $aggregationFilters = ['city', 'content', 'person', 'origin', 'public'];
-        if (isset($params['filters']['city'])) {
-            $aggregationFilters[] = 'library';
-        }
-        if (isset($params['filters']['library'])) {
-            $aggregationFilters[] = 'collection';
-        }
-        if (isset($params['filters']['collection'])) {
-            $aggregationFilters[] = 'shelf';
-        }
-
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifyFilters($params['filters'], $viewInternal);
         }
@@ -67,6 +57,7 @@ class ElasticManuscriptService extends ElasticBaseService
             unset($result['data'][$key]['collection']);
             unset($result['data'][$key]['shelf']);
             unset($result['data'][$key]['origin']);
+            unset($result['data'][$key]['management']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
                 unset($result['data'][$key][$role . '_public']);
@@ -79,6 +70,21 @@ class ElasticManuscriptService extends ElasticBaseService
             if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
                 unset($result['data'][$key]['private_comment']);
             }
+        }
+        
+        $aggregationFilters = ['city', 'content', 'person', 'origin'];
+        if (isset($params['filters']['city'])) {
+            $aggregationFilters[] = 'library';
+        }
+        if (isset($params['filters']['library'])) {
+            $aggregationFilters[] = 'collection';
+        }
+        if (isset($params['filters']['collection'])) {
+            $aggregationFilters[] = 'shelf';
+        }
+        if ($viewInternal) {
+            $aggregationFilters[] = 'public';
+            $aggregationFilters[] = 'management';
         }
 
         $result['aggregation'] = $this->aggregate(
@@ -107,14 +113,8 @@ class ElasticManuscriptService extends ElasticBaseService
             ];
         }
 
-        // Remove non public fields if no access rights
         // Add 'no-selectors' for primary identifiers if access rights
-        if (!$viewInternal) {
-            unset($result['aggregation']['public']);
-            foreach ($result['data'] as $key => $value) {
-                unset($result['data'][$key]['public']);
-            }
-        } else {
+        if ($viewInternal) {
             foreach ($this->primaryIdentifiers as $identifier) {
                 $result['aggregation'][$identifier->getSystemName()][] = [
                     'id' => -1,
@@ -157,6 +157,18 @@ class ElasticManuscriptService extends ElasticBaseService
                                 $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
                             } else {
                                 $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                            }
+                        }
+                        break;
+                    // Management collections
+                    case 'management':
+                        if (is_int($key)) {
+                            $result['nested'][] = $value;
+                        } else {
+                            if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                                $result['nested_toggle'][$key] = [$value, false];
+                            } else {
+                                $result['nested_toggle'][$key] = [$value, true];
                             }
                         }
                         break;

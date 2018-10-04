@@ -423,37 +423,37 @@ class Occurrence extends Poem
     {
         $result = parent::getJson();
 
-        if (isset($this->manuscript)) {
+        if (!empty($this->manuscript)) {
             $result['manuscript'] = $this->manuscript->getShortJson();
         }
-        if (isset($this->foliumStart)) {
+        if (!empty($this->foliumStart)) {
             $result['foliumStart'] = $this->foliumStart;
         }
-        if (isset($this->foliumStartRecto)) {
+        if (!empty($this->foliumStartRecto)) {
             $result['foliumStartRecto'] = $this->foliumStartRecto;
         }
-        if (isset($this->foliumEnd)) {
+        if (!empty($this->foliumEnd)) {
             $result['foliumEnd'] = $this->foliumEnd;
         }
-        if (isset($this->foliumEndRecto)) {
+        if (!empty($this->foliumEndRecto)) {
             $result['foliumEndRecto'] = $this->foliumEndRecto;
         }
         if (isset($this->unsure)) {
             $result['unsure'] = $this->unsure;
         }
-        if (isset($this->generalLocation)) {
+        if (!empty($this->generalLocation)) {
             $result['generalLocation'] = $this->generalLocation;
         }
-        if (isset($this->alternativeFoliumStart)) {
+        if (!empty($this->alternativeFoliumStart)) {
             $result['alternativeFoliumStart'] = $this->alternativeFoliumStart;
         }
-        if (isset($this->alternativeFoliumStartRecto)) {
+        if (!empty($this->alternativeFoliumStartRecto)) {
             $result['alternativeFoliumStartRecto'] = $this->alternativeFoliumStartRecto;
         }
-        if (isset($this->alternativeFoliumEnd)) {
+        if (!empty($this->alternativeFoliumEnd)) {
             $result['alternativeFoliumEnd'] = $this->alternativeFoliumEnd;
         }
-        if (isset($this->alternativeFoliumEndRecto)) {
+        if (!empty($this->alternativeFoliumEndRecto)) {
             $result['alternativeFoliumEndRecto'] = $this->alternativeFoliumEndRecto;
         }
         if (!empty($this->verses)) {
@@ -466,25 +466,25 @@ class Occurrence extends Poem
             'images' => ArrayToJson::arrayToJson($this->getImages()),
             'imageLinks' => ArrayToJson::arrayToJson($this->getImageLinks()),
         ];
-        if (isset($this->date) && !($this->date->isEmpty())) {
+        if (!empty($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
-        if (isset($this->paleographicalInfo)) {
+        if (!empty($this->paleographicalInfo)) {
             $result['paleographicalInfo'] = $this->paleographicalInfo;
         }
-        if (isset($this->contextualInfo)) {
+        if (!empty($this->contextualInfo)) {
             $result['contextualInfo'] = $this->contextualInfo;
         }
-        if (isset($this->textStatus)) {
+        if (!empty($this->textStatus)) {
             $result['textStatus'] = $this->textStatus->getShortJson();
         }
-        if (isset($this->recordStatus)) {
+        if (!empty($this->recordStatus)) {
             $result['recordStatus'] = $this->recordStatus->getShortJson();
         }
-        if (isset($this->dividedStatus)) {
+        if (!empty($this->dividedStatus)) {
             $result['dividedStatus'] = $this->dividedStatus->getShortJson();
         }
-        if (isset($this->sourceStatus)) {
+        if (!empty($this->sourceStatus)) {
             $result['sourceStatus'] = $this->sourceStatus->getShortJson();
         }
 
@@ -493,29 +493,13 @@ class Occurrence extends Poem
 
     public function getElastic(): array
     {
-        $result = [
-            'id' => $this->id,
-            'public' => $this->public,
-            'dbbe' => $this->getDBBE(),
-        ];
+        $result = parent::getElastic();
 
-        if (isset($this->incipit)) {
-            $result['incipit'] = $this->incipit;
-        }
-        if (isset($this->title)) {
-            $result['title'] = $this->title;
-        }
         if (!empty($this->verses)) {
             $result['text'] = Verse::getText($this->verses);
         }
-        if (isset($this->textStatus)) {
+        if (!empty($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
-        }
-        if (isset($this->meters)) {
-            $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);
-        }
-        if (!empty($this->subjects)) {
-            $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
         }
         if (!empty($this->manuscript)) {
             $result['manuscript'] = $this->manuscript->getShortJson();
@@ -526,29 +510,11 @@ class Occurrence extends Poem
                 }
             }
         }
-        foreach ($this->getPersonRoles() as $roleName => $personRole) {
-            $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
-        }
-        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
-            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
-        }
-        if (isset($this->date) && !empty($this->date->getFloor())) {
+        if (!empty($this->date) && !empty($this->date->getFloor())) {
             $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));
         }
-        if (isset($this->date) && !empty($this->date->getCeiling())) {
+        if (!empty($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
-        }
-        if (isset($this->genres)) {
-            $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
-        }
-        if (!empty($this->acknowledgements)) {
-            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
-        }
-        if (isset($this->publicComment)) {
-            $result['public_comment'] = $this->publicComment;
-        }
-        if (isset($this->privateComment)) {
-            $result['private_comment'] = $this->privateComment;
         }
 
         return $result;

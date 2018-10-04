@@ -284,6 +284,7 @@ class PersonController extends BaseController
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
                     'offices_edit' => $this->generateUrl('offices_edit'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
+                    'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
@@ -297,6 +298,7 @@ class PersonController extends BaseController
                     'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
                     'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
                     'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
+                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
                 ]),
                 'identifiers' => json_encode(
                     ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))
