@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-sm-9 mbottom-large">
+        <div id="page-edit-app">
+            <page-edit-app
+                init-urls = "{{ urls }}"
+                init-data="{{ data }}"
+            />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/ckeditor/ckeditor.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("/build/pageedit.js") }}"></script>
+{% endblock %}

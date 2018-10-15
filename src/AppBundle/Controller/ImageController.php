@@ -28,7 +28,7 @@ class ImageController extends BaseController
     {
         $images = $this->get('image_manager')->get([$id]);
         if (count($images) != 1) {
-            throw new NotFoundHttpException('Image with id "' . $id . '" not found');
+            throw $this->createNotFoundException('Image with id "' . $id . '" not found');
         }
         $image = $images[$id];
 
@@ -36,9 +36,9 @@ class ImageController extends BaseController
             $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
         }
         try {
-            return new BinaryFileResponse($this->get('kernel')->getRootDir() . '/../images/' . $image->getFilename());
+            return new BinaryFileResponse($this->getParameter('image_directory') . $image->getFilename());
         } catch (FileNotFoundException $e) {
-            throw new NotFoundHttpException('Image with filename "' . $image->getFilename() . '" not found');
+            throw $this->createNotFoundException('Image with filename "' . $image->getFilename() . '" not found');
         }
     }
 

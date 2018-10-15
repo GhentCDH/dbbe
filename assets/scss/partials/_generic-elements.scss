@@ -37,3 +37,9 @@
     color: $white;
   }
 }
+
+.image-style-side,
+.image-style-align-right {
+  float: right;
+  max-width: 200px;
+}

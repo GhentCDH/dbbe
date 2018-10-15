@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-sm-9 mbottom-large">
+        <h2 class="h1">
+            {{ title }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('page_edit', {'slug': slug}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        {{ content | raw }}
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("/build/main.js") }}"></script>
+{% endblock %}

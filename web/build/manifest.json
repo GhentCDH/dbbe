@@ -48,6 +48,7 @@
   "build/officesedit.js": "/build/officesedit.js",
   "build/onlinesourceedit.js": "/build/onlinesourceedit.js",
   "build/originsedit.js": "/build/originsedit.js",
+  "build/pageedit.js": "/build/pageedit.js",
   "build/personedit.js": "/build/personedit.js",
   "build/personsearch.js": "/build/personsearch.js",
   "build/regionsedit.js": "/build/regionsedit.js",

@@ -35,6 +35,7 @@ Encore
     .addEntry('officesedit', './assets/js/main/officesedit.js')
     .addEntry('onlinesourceedit', './assets/js/main/onlinesourceedit.js')
     .addEntry('originsedit', './assets/js/main/originsedit.js')
+    .addEntry('pageedit', './assets/js/main/pageedit.js')
     .addEntry('personedit', './assets/js/main/personedit.js')
     .addEntry('personsearch', './assets/js/main/personsearch.js')
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
@@ -63,7 +64,8 @@ const config = Encore.getWebpackConfig();
 // Create symlinks using shell plugin
 config.plugins.push(new WebpackShellPlugin({
     onBuildEnd: [
-        './create_symlinks.sh'
+        './create_symlinks.sh',
+        './copy_libraries.sh',
     ]
 }));
 

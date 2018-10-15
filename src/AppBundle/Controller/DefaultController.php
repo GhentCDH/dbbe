@@ -24,33 +24,6 @@ class DefaultController extends Controller
     }
 
     /**
-     * @Route("/about", name="about")
-     * @param  Request $request
-     */
-    public function about(Request $request)
-    {
-        throw new \Exception('Not implemented');
-    }
-
-    /**
-     * @Route("/help", name="help")
-     * @param  Request $request
-     */
-    public function help(Request $request)
-    {
-        throw new \Exception('Not implemented');
-    }
-
-    /**
-     * @Route("/contact", name="contact")
-     * @param  Request $request
-     */
-    public function contact(Request $request)
-    {
-        throw new \Exception('Not implemented');
-    }
-
-    /**
      * @Route("/login", name="login")
      * @param  Request $request
      */
