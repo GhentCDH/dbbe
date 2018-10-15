@@ -275,8 +275,6 @@ class BookManager extends DocumentManager
             // (re-)index in elastic search
             $this->ess->add($new);
 
-            // TODO: reset and re-index bookchapter dependencies
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {

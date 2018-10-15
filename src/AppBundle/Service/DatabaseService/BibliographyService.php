@@ -79,7 +79,7 @@ class BibliographyService extends DatabaseService
                     idreference_type,
                     image
                 )
-                values (?, ?, ?, ?, ?, ?, ?, ?)',
+                values (?, ?, ?, ?, ?, ?, ?)',
                 [
                     $targetId,
                     $sourceId,
@@ -124,7 +124,6 @@ class BibliographyService extends DatabaseService
                 temp_page_removeme = ?,
                 url = ?,
                 idreference_type = ?,
-                source_remark = ?,
                 image = ?
             where idreference = ?',
             [

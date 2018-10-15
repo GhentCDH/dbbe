@@ -253,7 +253,7 @@ class Poem extends Document
         if (!empty($this->acknowledgements)) {
             $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
-        
+
         return $result;
     }
 }

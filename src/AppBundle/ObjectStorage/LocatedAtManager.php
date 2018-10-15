@@ -108,7 +108,7 @@ class LocatedAtManager extends ObjectManager
             }
 
             // load new locationAt data
-            $this->deleteCache(LocatedAt::CACHENAME, $institutionId);
+            $this->deleteCache(LocatedAt::CACHENAME, $locatedAtId);
             $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
             $this->updateModified($locatedAt, $newLocatedAt);
 

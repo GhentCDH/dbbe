@@ -147,7 +147,6 @@ class InstitutionManager extends ObjectManager
             $this->deleteCache(Institution::CACHENAME, $institutionId);
             $newInstitution = $this->get([$institutionId])[$institutionId];
 
-            // TODO: make sure parent edits are logged
             $this->updateModified($institution, $newInstitution);
 
             // update Elastic manuscripts

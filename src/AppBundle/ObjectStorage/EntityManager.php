@@ -524,16 +524,16 @@ class EntityManager extends ObjectManager
                     throw new BadRequestHttpException('Incorrect management data.');
                 }
             }
-        }
-        $cacheReload[$cacheLevel] = true;
+            $cacheReload[$cacheLevel] = true;
 
-        list($delIds, $addIds) = self::calcDiff($data->managements, $entity->getManagements());
+            list($delIds, $addIds) = self::calcDiff($data->managements, $entity->getManagements());
 
-        if (count($delIds) > 0) {
-            $this->dbs->delManagements($entity->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addManagement($entity->getId(), $addId);
+            if (count($delIds) > 0) {
+                $this->dbs->delManagements($entity->getId(), $delIds);
+            }
+            foreach ($addIds as $addId) {
+                $this->dbs->addManagement($entity->getId(), $addId);
+            }
         }
     }
 

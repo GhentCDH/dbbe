@@ -181,11 +181,13 @@
                                                             <span>Locations</span>
                                                           </a>
                                                         </li>
-                                                        <li>
-                                                          <a href="{{ path('managements_edit') }}">
-                                                            <span>Management collections</span>
-                                                          </a>
-                                                        </li>
+                                                        {% if is_granted('ROLE_ADMIN') %}
+                                                            <li>
+                                                              <a href="{{ path('managements_edit') }}">
+                                                                <span>Management collections</span>
+                                                              </a>
+                                                            </li>
+                                                        {% endif %}
                                                         <li>
                                                           <a href="{{ path('meters_edit') }}">
                                                             <span>Meters</span>
@@ -216,6 +218,13 @@
                                                             <span>Statuses</span>
                                                           </a>
                                                         </li>
+                                                        {% if is_granted('ROLE_ADMIN') %}
+                                                            <li>
+                                                              <a href="{{ path('users_edit') }}">
+                                                                <span>Users</span>
+                                                              </a>
+                                                            </li>
+                                                        {% endif %}
                                                     </ul>
                                                 </li>
                                             {% endif %}
