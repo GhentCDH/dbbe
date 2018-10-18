@@ -85,7 +85,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['occurrence', 'type', 'article', 'book', 'book_chapter'] %}
+                {% for documentType in ['occurrence', 'type', 'article', 'book', 'bookChapter'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -98,7 +98,7 @@
                                     Article(s)
                                 {% elseif documentType == 'book' %}
                                     Book(s)
-                                {% elseif documentType == 'book_chapter' %}
+                                {% elseif documentType == 'bookChapter' %}
                                     Book chapter(s)
                                 {% endif %}
                             </td>
@@ -107,7 +107,17 @@
                                     <h6>As {{ documentRole[0].getName() }}:</h6>
                                     {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1]} %}
                                         {% block renderItem %}
-                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': documentType ~ '_get', 'display': item.getDescription(), 'class': documentType in ['occurrence', 'type'] ? 'greek' : ''} only %}
+                                            {% if documentType == 'occurrence' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get', 'display': item.getDescription(), 'class': 'greek'} only %}
+                                            {% elseif documentType == 'type' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get', 'display': item.getDescription(), 'class': 'greek'} only %}
+                                            {% elseif documentType == 'article' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'article_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'book' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'bookChapter' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_chapter_get', 'display': item.getDescription()} only %}
+                                            {% endif %}
                                         {% endblock %}
                                     {% endembed %}
                                 {% endfor %}

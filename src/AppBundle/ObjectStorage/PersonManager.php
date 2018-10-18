@@ -283,7 +283,7 @@ class PersonManager extends EntityManager
         foreach ($raws as $raw) {
             $person
                 ->addDocumentRole(
-                    'book_chapter',
+                    'bookChapter',
                     $roles[$raw['role_id']],
                     $bookChapters[$raw['book_chapter_id']]
                 );
