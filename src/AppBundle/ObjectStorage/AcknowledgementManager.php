@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use stdClass;
 use Exception;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -24,17 +26,8 @@ class AcknowledgementManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Acknowledgement::CACHENAME,
-            $ids,
-            function ($ids) {
-                $acknowledgements = [];
-                $rawAcknowledgements = $this->dbs->getAcknowledgementsByIds($ids);
-                $acknowledgements = $this->getWithData($rawAcknowledgements);
-
-                return $acknowledgements;
-            }
-        );
+        $rawAcknowledgements = $this->dbs->getAcknowledgementsByIds($ids);
+        return $this->getWithData($rawAcknowledgements);
     }
 
     /**
@@ -44,24 +37,45 @@ class AcknowledgementManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Acknowledgement::CACHENAME,
-            $data,
-            'acknowledgement_id',
-            function ($data) {
-                $acknowledgements = [];
-                foreach ($data as $rawAcknowledgement) {
-                    if (isset($rawAcknowledgement['acknowledgement_id'])
-                        && !isset($acknowledgements[$rawAcknowledgement['acknowledgement_id']])
-                    ) {
-                        $acknowledgements[$rawAcknowledgement['acknowledgement_id']] = new Acknowledgement(
-                            $rawAcknowledgement['acknowledgement_id'],
-                            $rawAcknowledgement['name']
-                        );
-                    }
-                }
+        $acknowledgements = [];
+        foreach ($data as $rawAcknowledgement) {
+            if (isset($rawAcknowledgement['acknowledgement_id'])
+                && !isset($acknowledgements[$rawAcknowledgement['acknowledgement_id']])
+            ) {
+                $acknowledgements[$rawAcknowledgement['acknowledgement_id']] = new Acknowledgement(
+                    $rawAcknowledgement['acknowledgement_id'],
+                    $rawAcknowledgement['name']
+                );
+            }
+        }
+        return $acknowledgements;
+    }
 
-                return $acknowledgements;
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'acknowledgement_id');
+        $acknowledgements = $this->get($ids);
+
+        // Sort by name
+        usort($acknowledgements, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $acknowledgements;
+    }
+
+    /**
+     * Get all acknowledgements with minimal information
+     * @return array
+     */
+    public function getAllShortJson(): array
+    {
+        return $this->wrapArrayCache(
+            'acknowledgements',
+            ['acknowledgements'],
+            function () {
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
     }
@@ -70,39 +84,9 @@ class AcknowledgementManager extends ObjectManager
      * Get all acknowledgements with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
-            'acknowledgements',
-            ['acknowledgements'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'acknowledgement_id');
-                $acknowledgements = $this->get($ids);
-
-                // Sort by name
-                usort($acknowledgements, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $acknowledgements;
-            }
-        );
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Acknowledgement::CACHENAME, $id);
-        }
-
-        $this->get($ids);
-
-        $this->cache->invalidateTags(['acknowledgements']);
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     /**
@@ -127,7 +111,6 @@ class AcknowledgementManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['acknowledgements']);
 
             // commit transaction
@@ -166,18 +149,21 @@ class AcknowledgementManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Acknowledgement::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['acknowledgements']);
+
             // update Elastic occurrences
-            $occurrences = $this->container->get('occurrence_manager')->getAcknowledgementDependencies($id, true);
-            $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            $this->container->get('occurrence_manager')->updateElasticAcknowledgement(
+                $this->container->get('occurrence_manager')->getAcknowledgementDependencies($id, 'getId')
+            );
 
             // update Elastic types
-            $types = $this->container->get('type_manager')->getAcknowledgementDependencies($id, true);
-            $this->container->get('type_manager')->elasticIndex($types);
+            $this->container->get('type_manager')->updateElasticAcknowledgement(
+                $this->container->get('type_manager')->getAcknowledgementDependencies($id, 'getId')
+            );
 
             // commit transaction
             $this->dbs->commit();
@@ -205,11 +191,9 @@ class AcknowledgementManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // empty cache
-            $this->cache->invalidateTags(['acknowledgements']);
-            $this->deleteCache(Acknowledgement::CACHENAME, $id);
-
             $this->updateModified($old, null);
+
+            $this->cache->invalidateTags(['acknowledgements']);
 
             // commit transaction
             $this->dbs->commit();

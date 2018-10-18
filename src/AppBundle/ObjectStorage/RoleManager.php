@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -15,61 +17,42 @@ class RoleManager extends ObjectManager
 {
     public function get(array $ids)
     {
-        return $this->wrapCache(
-            Role::CACHENAME,
-            $ids,
-            function ($ids) {
-                $rawRoles = $this->dbs->getRolesByIds($ids);
-                return $this->getWithData($rawRoles);
-            }
-        );
+        $rawRoles = $this->dbs->getRolesByIds($ids);
+        return $this->getWithData($rawRoles);
     }
 
     public function getWithData(array $data)
     {
-        return $this->wrapDataCache(
-            Role::CACHENAME,
-            $data,
-            'role_id',
-            function ($data) {
-                $roles = [];
-                foreach ($data as $rawRole) {
-                    if (isset($rawRole['role_id']) && !isset($roles[$rawRole['role_id']])) {
-                        $roles[$rawRole['role_id']] = new Role(
-                            $rawRole['role_id'],
-                            json_decode($rawRole['role_usage']),
-                            $rawRole['role_system_name'],
-                            $rawRole['role_name']
-                        );
-                    }
-                }
-
-                return $roles;
+        $roles = [];
+        foreach ($data as $rawRole) {
+            if (isset($rawRole['role_id']) && !isset($roles[$rawRole['role_id']])) {
+                $roles[$rawRole['role_id']] = new Role(
+                    $rawRole['role_id'],
+                    json_decode($rawRole['role_usage']),
+                    $rawRole['role_system_name'],
+                    $rawRole['role_name']
+                );
             }
-        );
+        }
+
+        return $roles;
     }
 
-    public function getAllRoles(): array
+    public function getAllRolesJson(): array
     {
-        return $this->wrapArrayCache(
-            'roles',
-            ['roles'],
-            function () {
-                $roles = [];
-                $rawRoles = $this->dbs->getAllRoles();
-                $roles = $this->getWithData($rawRoles);
+        $roles = [];
+        $rawRoles = $this->dbs->getAllRoles();
+        $roles = $this->getWithData($rawRoles);
 
-                // Sort by name
-                usort($roles, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
+        // Sort by name
+        usort($roles, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
-                return $roles;
-            }
-        );
+        return ArrayToJson::arrayToJson($roles);
     }
 
-    public function getRolesByType(string $type): array
+    public function getByType(string $type): array
     {
         return $this->wrapArrayTypeCache(
             'roles',
@@ -77,7 +60,7 @@ class RoleManager extends ObjectManager
             ['roles'],
             function ($type) {
                 $roles = [];
-                $rawRoles = $this->dbs->getRolesByType($type);
+                $rawRoles = $this->dbs->getByType($type);
 
                 // Keys in this array must be systemnames as they are used in queries
                 $rolesWithId = $this->getWithData($rawRoles);
@@ -86,6 +69,18 @@ class RoleManager extends ObjectManager
                 }
 
                 return $roles;
+            }
+        );
+    }
+
+    public function getByTypeJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            'roles_json',
+            $type,
+            ['roles'],
+            function ($type) {
+                return ArrayToJson::arrayToJson($this->getByType($type));
             }
         );
     }
@@ -123,7 +118,6 @@ class RoleManager extends ObjectManager
 
             $this->updateModified(null, $newRole);
 
-            // update cache
             $this->cache->invalidateTags(['roles']);
 
             // commit transaction
@@ -176,10 +170,11 @@ class RoleManager extends ObjectManager
             }
 
             // load new role data
-            $this->deleteCache(Role::CACHENAME, $roleId);
             $newRole = $this->get([$roleId])[$roleId];
 
             $this->updateModified($role, $newRole);
+
+            $this->cache->invalidateTags(['roles']);
 
             // commit transaction
             $this->dbs->commit();
@@ -203,11 +198,9 @@ class RoleManager extends ObjectManager
 
             $this->dbs->delete($roleId);
 
-            // clear cache
-            $this->deleteCache(Role::CACHENAME, $roleId);
-            $this->cache->invalidateTags(['roles']);
-
             $this->updateModified($role, null);
+
+            $this->cache->invalidateTags(['roles']);
 
             // commit transaction
             $this->dbs->commit();

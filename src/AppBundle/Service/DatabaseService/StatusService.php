@@ -35,6 +35,19 @@ class StatusService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getStatusesByType(string $type): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                status.idstatus as status_id,
+                status.status as status_name,
+                status.type as status_type
+            from data.status
+            where status.type = ?',
+            [$type]
+        )->fetchAll();
+    }
+
     public function insert(string $name, string $type): int
     {
         $this->beginTransaction();

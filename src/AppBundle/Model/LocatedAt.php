@@ -8,9 +8,6 @@ class LocatedAt implements IdJsonInterface
 {
     const CACHENAME = 'located_at';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * Location id is actually the document id, since it is the unique column in this table
      * @var int

@@ -8,8 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class BibliographyController extends Controller
 {
     /**
@@ -66,9 +64,7 @@ class BibliographyController extends Controller
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
-                'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('book'))
-                ),
+                'identifiers' => json_encode($this->get('identifier_manager')->getPrimaryByTypeJson('book')),
                 // @codingStandardsIgnoreEnd
             ]
         );

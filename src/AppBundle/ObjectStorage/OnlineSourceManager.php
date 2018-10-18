@@ -24,26 +24,21 @@ class OnlineSourceManager extends EntityManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            OnlineSource::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $onlineSources = [];
-                $rawOnlineSources = $this->dbs->getMiniInfoByIds($ids);
+        $onlineSources = [];
+        if (!empty($ids)) {
+            $rawOnlineSources = $this->dbs->getMiniInfoByIds($ids);
 
-                foreach ($rawOnlineSources as $rawOnlineSource) {
-                    $onlineSources[$rawOnlineSource['online_source_id']] = new OnlineSource(
-                        $rawOnlineSource['online_source_id'],
-                        $rawOnlineSource['url'],
-                        $rawOnlineSource['institution_name'],
-                        new DateTime($rawOnlineSource['last_accessed'])
-                    );
-                }
-
-                return $onlineSources;
+            foreach ($rawOnlineSources as $rawOnlineSource) {
+                $onlineSources[$rawOnlineSource['online_source_id']] = new OnlineSource(
+                    $rawOnlineSource['online_source_id'],
+                    $rawOnlineSource['url'],
+                    $rawOnlineSource['institution_name'],
+                    new DateTime($rawOnlineSource['last_accessed'])
+                );
             }
-        );
+        }
+
+        return $onlineSources;
     }
 
     /**
@@ -53,18 +48,11 @@ class OnlineSourceManager extends EntityManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            OnlineSource::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                $onlineSources = $this->getMini($ids);
+        $onlineSources = $this->getMini($ids);
 
-                $this->setManagements($onlineSources);
+        $this->setManagements($onlineSources);
 
-                return $onlineSources;
-            }
-        );
+        return $onlineSources;
     }
 
     /**
@@ -74,39 +62,24 @@ class OnlineSourceManager extends EntityManager
      */
     public function getFull(int $id): OnlineSource
     {
-        return $this->wrapSingleLevelCache(
-            OnlineSource::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic information
-                $onlineSources = $this->getShort([$id]);
-                if (count($onlineSources) == 0) {
-                    throw new NotFoundHttpException('Online source with id ' . $id .' not found.');
-                }
+        // Get basic information
+        $onlineSources = $this->getShort([$id]);
+        if (count($onlineSources) == 0) {
+            throw new NotFoundHttpException('Online source with id ' . $id .' not found.');
+        }
 
-                $this->setInverseBibliographies($onlineSources);
+        $this->setInverseBibliographies($onlineSources);
 
-                return $onlineSources[$id];
-            }
-        );
+        return $onlineSources[$id];
     }
 
     /**
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
-    public function getAllMini(string $sortFunction = null): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return parent::getAllMini($sortFunction == null ? 'getDescription' : $sortFunction);
-    }
-
-    /**
-     * @return array
-     */
-    public function getAllShort(): array
-    {
-        return parent::getAllShort();
+        return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
     /**
@@ -159,9 +132,6 @@ class OnlineSourceManager extends EntityManager
 
             $new = $this->update($id, $data, true);
 
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -188,7 +158,7 @@ class OnlineSourceManager extends EntityManager
                 throw new NotFoundHttpException('Online source with id ' . $id .' not found.');
             }
 
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
             ];
             if (property_exists($data, 'url')) {
@@ -196,7 +166,7 @@ class OnlineSourceManager extends EntityManager
                 if (!is_string($data->url) || empty($data->url)) {
                     throw new BadRequestHttpException('Incorrect base url data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateUrl($id, $data->url);
             }
             if (property_exists($data, 'name')) {
@@ -204,7 +174,7 @@ class OnlineSourceManager extends EntityManager
                 if (!is_string($data->name) || empty($data->name)) {
                     throw new BadRequestHttpException('Incorrect name data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateName($id, $data->name);
             }
             if (property_exists($data, 'lastAccessed')) {
@@ -212,21 +182,22 @@ class OnlineSourceManager extends EntityManager
                 if (!is_string($data->lastAccessed) || empty($data->lastAccessed)) {
                     throw new BadRequestHttpException('Incorrect lastAccessed data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateLastAccessed($id, $data->lastAccessed);
             }
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // (re-)index in elastic search
             $this->ess->add($new);
@@ -235,9 +206,10 @@ class OnlineSourceManager extends EntityManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+
+            // Reset elasticsearch
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
             }
             throw $e;
         }

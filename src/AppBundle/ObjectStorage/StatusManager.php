@@ -10,123 +10,61 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Status;
+use AppBundle\Utils\ArrayToJson;
 
 class StatusManager extends ObjectManager
 {
     public function get(array $ids)
     {
-        return $this->wrapCache(
-            Status::CACHENAME,
-            $ids,
-            function ($ids) {
-                $statuses = [];
-                $rawStatuses = $this->dbs->getStatusesByIds($ids);
-
-                foreach ($rawStatuses as $rawStatus) {
-                    $statuses[$rawStatus['status_id']] = new Status(
-                        $rawStatus['status_id'],
-                        $rawStatus['status_name'],
-                        $rawStatus['status_type']
-                    );
-                }
-
-                return $statuses;
-            }
-        );
+        $rawStatuses = $this->dbs->getStatusesByIds($ids);
+        return $this->getWithData($rawStatuses);
     }
 
     public function getWithData(array $data)
     {
-        return $this->wrapDataCache(
-            Status::CACHENAME,
-            $data,
-            'status_id',
-            function ($data) {
-                $statuses = [];
-                foreach ($data as $rawStatus) {
-                    if (isset($rawStatus['status_id']) && !isset($statuses[$rawStatus['status_id']])) {
-                        $statuses[$rawStatus['status_id']] = new Status(
-                            $rawStatus['status_id'],
-                            $rawStatus['status_name'],
-                            $rawStatus['status_type']
-                        );
-                    }
-                }
-
-                return $statuses;
+        $statuses = [];
+        foreach ($data as $rawStatus) {
+            if (isset($rawStatus['status_id']) && !isset($statuses[$rawStatus['status_id']])) {
+                $statuses[$rawStatus['status_id']] = new Status(
+                    $rawStatus['status_id'],
+                    $rawStatus['status_name'],
+                    $rawStatus['status_type']
+                );
             }
-        );
+        }
+
+        return $statuses;
     }
 
-    public function getAllStatuses(): array
+    public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
+        $rawStatuses = $this->dbs->getAllStatuses();
+        $statuses = [];
+        foreach ($rawStatuses as $rawStatus) {
+            $statuses[] = new Status($rawStatus['status_id'], $rawStatus['status_name'], $rawStatus['status_type']);
+        }
+
+        // Sort by name
+        usort($statuses, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return ArrayToJson::arrayToJson($statuses);
+    }
+
+    public function getByTypeShortJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
             'statuses',
+            $type,
             ['statuses'],
-            function () {
-                $rawStatuses = $this->dbs->getAllStatuses();
-                $statuses = [];
-                foreach ($rawStatuses as $rawStatus) {
-                    $statuses[] = new Status($rawStatus['status_id'], $rawStatus['status_name'], $rawStatus['status_type']);
-                }
+            function ($type) {
+                $rawStatuses = $this->dbs->getStatusesByType($type);
+                $statuses = $this->getWithData($rawStatuses);
 
-                // Sort by name
-                usort($statuses, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $statuses;
+                return ArrayToJson::arrayToShortJson($statuses);
             }
         );
-    }
-
-    public function getAllManuscriptStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::MANUSCRIPT;
-        });
-    }
-
-    public function getAllOccurrenceTextStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::OCCURRENCE_TEXT;
-        });
-    }
-
-    public function getAllOccurrenceRecordStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::OCCURRENCE_RECORD;
-        });
-    }
-
-    public function getAllOccurrenceDividedStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::OCCURRENCE_DIVIDED;
-        });
-    }
-
-    public function getAllOccurrenceSourceStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::OCCURRENCE_SOURCE;
-        });
-    }
-
-    public function getAllTypeTextStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::TYPE_TEXT;
-        });
-    }
-
-    public function getAllTypeCriticalStatuses(): array
-    {
-        return array_filter($this->getAllStatuses(), function ($status) {
-            return $status->getType() == Status::TYPE_CRITICAL;
-        });
     }
 
     public function addStatus(stdClass $data): Status
@@ -160,7 +98,6 @@ class StatusManager extends ObjectManager
 
             $this->updateModified(null, $newStatus);
 
-            // update cache
             $this->cache->invalidateTags(['statuses']);
 
             // commit transaction
@@ -197,10 +134,11 @@ class StatusManager extends ObjectManager
             }
 
             // load new status data
-            $this->deleteCache(Status::CACHENAME, $statusId);
             $newStatus = $this->get([$statusId])[$statusId];
 
             $this->updateModified($status, $newStatus);
+
+            $this->cache->invalidateTags(['statuses']);
 
             // commit transaction
             $this->dbs->commit();
@@ -224,11 +162,9 @@ class StatusManager extends ObjectManager
 
             $this->dbs->delete($statusId);
 
-            // clear cache
-            $this->deleteCache(Status::CACHENAME, $statusId);
-            $this->cache->invalidateTags(['statuses']);
-
             $this->updateModified($status, null);
+
+            $this->cache->invalidateTags(['statuses']);
 
             // commit transaction
             $this->dbs->commit();

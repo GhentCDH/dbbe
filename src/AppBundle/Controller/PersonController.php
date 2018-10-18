@@ -61,13 +61,8 @@ class PersonController extends BaseController
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
-                'persons' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW')
-                        ? ArrayToJson::arrayToJson($this->get('person_manager')->getAllShort())
-                        : []
-                ),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'))
+                    $this->get('identifier_manager')->getPrimaryByTypeJson('person')
                 ),
             ]
         );
@@ -97,7 +92,12 @@ class PersonController extends BaseController
      */
     public function getAll(Request $request)
     {
-        return parent::getAll($request);
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->throwErrorIfNotJson($request);
+
+        return new JsonResponse(
+            $this->get(static::MANAGER)->getAllMiniShortJson('getId')
+        );
     }
 
     /**
@@ -204,6 +204,19 @@ class PersonController extends BaseController
     }
 
     /**
+     * Get all persons that have a dependency on a management collection
+     * (reference)
+     * @Route("/persons/managements/{id}", name="person_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
+    }
+
+    /**
      * @Route("/persons", name="person_post")
      * @Method("POST")
      * @param Request $request
@@ -292,16 +305,16 @@ class PersonController extends BaseController
                         empty($id)
                         ? null
                         : $this->get('person_manager')->getFull($id)->getJson(),
-                    'offices' => ArrayToJson::arrayToShortJson($this->get('office_manager')->getAll()),
-                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getOriginsForPersons()),
-                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
-                    'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
-                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'offices' => $this->get('office_manager')->getAllJson(),
+                    'origins' => $this->get('origin_manager')->getByTypeShortJson('person'),
+                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
+                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
+                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
+                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('person'))
+                    $this->get('identifier_manager')->getByTypeJson('person')
                 ),
                 'roles' => json_encode([]),
             ]
@@ -372,7 +385,7 @@ class PersonController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            $identifiers = array_keys($this->get('identifier_manager')->getPrimaryIdentifiersByType('person'));
+            $identifiers = array_keys($this->get('identifier_manager')->getPrimaryByType('person'));
 
             foreach (array_keys($params['filters']) as $key) {
                 switch ($key) {

@@ -4,6 +4,8 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\ReferenceType;
 
+use AppBundle\Utils\ArrayToJson;
+
 /**
  * ObjectManager for reference types
  * Servicename: reference_type_manager
@@ -17,17 +19,8 @@ class ReferenceTypeManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            ReferenceType::CACHENAME,
-            $ids,
-            function ($ids) {
-                $referenceTypes = [];
-                $rawReferenceTypes = $this->dbs->getReferenceTypesByIds($ids);
-                $referenceTypes = $this->getWithData($rawReferenceTypes);
-
-                return $referenceTypes;
-            }
-        );
+        $rawReferenceTypes = $this->dbs->getReferenceTypesByIds($ids);
+        return $this->getWithData($rawReferenceTypes);
     }
 
     /**
@@ -37,43 +30,41 @@ class ReferenceTypeManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            ReferenceType::CACHENAME,
-            $data,
-            'reference_type_id',
-            function ($data) {
-                $referenceTypes = [];
-                foreach ($data as $rawReferenceType) {
-                    if (isset($rawReferenceType['reference_type_id'])
-                        && !isset($referenceTypes[$rawReferenceType['reference_type_id']])
-                    ) {
-                        $referenceTypes[$rawReferenceType['reference_type_id']] = new ReferenceType(
-                            $rawReferenceType['reference_type_id'],
-                            $rawReferenceType['name']
-                        );
-                    }
-                }
-
-                return $referenceTypes;
+        $referenceTypes = [];
+        foreach ($data as $rawReferenceType) {
+            if (isset($rawReferenceType['reference_type_id'])
+                && !isset($referenceTypes[$rawReferenceType['reference_type_id']])
+            ) {
+                $referenceTypes[$rawReferenceType['reference_type_id']] = new ReferenceType(
+                    $rawReferenceType['reference_type_id'],
+                    $rawReferenceType['name']
+                );
             }
-        );
+        }
+
+        return $referenceTypes;
+    }
+
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'reference_type_id');
+        $referenceTypes = $this->get($ids);
+
+        return $referenceTypes;
     }
 
     /**
-     * Get all reference types with all information
+     * Get all reference types with minimal information
      * @return array
      */
-    public function getAll(): array
+    public function getAllShortJson(): array
     {
         return $this->wrapArrayCache(
             'reference_types',
             ['reference_types'],
             function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'reference_type_id');
-                $referenceTypes = $this->get($ids);
-
-                return $referenceTypes;
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
     }

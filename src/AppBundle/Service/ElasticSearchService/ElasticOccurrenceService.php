@@ -14,8 +14,8 @@ class ElasticOccurrenceService extends ElasticBaseService
             $indexPrefix,
             'occurrences',
             'occurrence',
-            $container->get('identifier_manager')->getIdentifiersByType('occurrence'),
-            $container->get('role_manager')->getRolesByType('occurrence')
+            $container->get('identifier_manager')->getByType('occurrence'),
+            $container->get('role_manager')->getByType('occurrence')
         );
     }
 

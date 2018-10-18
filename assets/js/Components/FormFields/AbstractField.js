@@ -156,8 +156,8 @@ export default {
 
             // get everything after last '.'
             let modelName = field.model.split('.').pop()
+            delete model[modelName]
 
-            model[modelName] = null
             field.disabled = true
             field.selectOptions.loading = false
             field.placeholder = 'No ' + field.label.toLowerCase() + 's available'

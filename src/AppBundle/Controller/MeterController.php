@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class MeterController extends BaseController
 {
     /**
@@ -56,9 +54,7 @@ class MeterController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'meters' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('meter_manager')->getAll()
-                    )
+                    $this->get('meter_manager')->getAllJson()
                 ),
             ]
         );

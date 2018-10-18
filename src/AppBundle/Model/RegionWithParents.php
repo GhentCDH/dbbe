@@ -68,15 +68,4 @@ class RegionWithParents extends IdNameObjectWithParents
         }
         return $result;
     }
-
-    public static function unlinkCache(array $data)
-    {
-        $regionWithParents = new RegionWithParents($data['array']);
-
-        foreach ($data as $key => $value) {
-            $regionWithParents->set($key, $value);
-        }
-
-        return $regionWithParents;
-    }
 }

@@ -22,16 +22,8 @@ class ImageManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Image::CACHENAME,
-            $ids,
-            function ($ids) {
-                $rawImages = $this->dbs->getImagesByIds($ids);
-                $images = $this->getWithData($rawImages);
-
-                return $images;
-            }
-        );
+        $rawImages = $this->dbs->getImagesByIds($ids);
+        return $this->getWithData($rawImages);
     }
 
     /**
@@ -41,26 +33,19 @@ class ImageManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Image::CACHENAME,
-            $data,
-            'image_id',
-            function ($data) {
-                $images = [];
-                foreach ($data as $rawImage) {
-                    if (isset($rawImage['image_id']) && !isset($images[$rawImage['image_id']])) {
-                        $images[$rawImage['image_id']] = new Image(
-                            $rawImage['image_id'],
-                            $rawImage['filename'],
-                            $rawImage['url'],
-                            !($rawImage['is_private'])
-                        );
-                    }
-                }
-
-                return $images;
+        $images = [];
+        foreach ($data as $rawImage) {
+            if (isset($rawImage['image_id']) && !isset($images[$rawImage['image_id']])) {
+                $images[$rawImage['image_id']] = new Image(
+                    $rawImage['image_id'],
+                    $rawImage['filename'],
+                    $rawImage['url'],
+                    !($rawImage['is_private'])
+                );
             }
-        );
+        }
+
+        return $images;
     }
 
     /**
@@ -187,7 +172,6 @@ class ImageManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Image::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);

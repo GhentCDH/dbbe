@@ -9,26 +9,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Utils\ArrayToJson;
-
 class LocationController extends Controller
 {
-    /**
-     * @Route("/locations/manuscripts", name="locations_manuscripts_get")
-     * @Method("GET")
-     * @param Request $request
-     */
-    public function getLocationsForManuscripts(Request $request)
-    {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts())
-            );
-        }
-        throw new BadRequestHttpException('Only JSON requests allowed.');
-    }
-
     /**
      * @Route("/locations", name="locations_get")
      * @Method("GET")
@@ -40,9 +22,7 @@ class LocationController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('location_manager')->getLocationsForLocations()
-                )
+                $this->get('location_manager')->getByTypeJson('location')
             );
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -78,9 +58,7 @@ class LocationController extends Controller
                     'login' => $this->generateUrl('login'),
                 ]),
                 'locations' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('location_manager')->getLocationsForLocations()
-                    )
+                    $this->get('location_manager')->getByTypeJson('location')
                 ),
             ]
         );

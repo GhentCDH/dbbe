@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class ContentController extends BaseController
 {
     /**
@@ -68,11 +66,7 @@ class ContentController extends BaseController
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'contents' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('content_manager')->getAll()
-                    )
-                ),
+                'contents' => json_encode($this->get('content_manager')->getAllJson()),
             ]
         );
     }

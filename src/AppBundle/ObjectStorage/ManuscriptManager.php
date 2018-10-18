@@ -4,13 +4,13 @@ namespace AppBundle\ObjectStorage;
 
 use Exception;
 use stdClass;
-use AppBundle\Model\Status;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Model\Manuscript;
 use AppBundle\Model\Origin;
+use AppBundle\Model\Status;
 
 class ManuscriptManager extends DocumentManager
 {
@@ -21,31 +21,24 @@ class ManuscriptManager extends DocumentManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Manuscript::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $manuscripts = [];
-                // LocatedAts
-                // locatedAts are identifiedd by document ids
-                $locatedAts = $this->container->get('located_at_manager')->get($ids);
-                if (count($locatedAts) == 0) {
-                    return [];
-                }
-                foreach ($locatedAts as $locatedAt) {
-                     $manuscript = (new Manuscript())
-                        ->setId($locatedAt->getId())
-                        ->setLocatedAt($locatedAt);
+        $manuscripts = [];
+        // LocatedAts
+        // locatedAts are identifiedd by document ids
+        $locatedAts = $this->container->get('located_at_manager')->get($ids);
+        if (count($locatedAts) == 0) {
+            return [];
+        }
+        foreach ($locatedAts as $locatedAt) {
+             $manuscript = (new Manuscript())
+                ->setId($locatedAt->getId())
+                ->setLocatedAt($locatedAt);
 
-                    $manuscripts[$manuscript->getId()] = $manuscript;
-                }
+            $manuscripts[$manuscript->getId()] = $manuscript;
+        }
 
-                $this->setPublics($manuscripts);
+        $this->setPublics($manuscripts);
 
-                return $manuscripts;
-            }
-        );
+        return $manuscripts;
     }
 
     /**
@@ -55,76 +48,69 @@ class ManuscriptManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Manuscript::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                $manuscripts = $this->getMini($ids);
+        $manuscripts = $this->getMini($ids);
 
-                // Remove all ids that did not match above
-                $ids = array_keys($manuscripts);
+        // Remove all ids that did not match above
+        $ids = array_keys($manuscripts);
 
-                // Contents
-                $rawContents = $this->dbs->getContents($ids);
-                if (count($rawContents) > 0) {
-                    $contentIds = self::getUniqueIds($rawContents, 'genre_id');
-                    $contentsWithParents = $this->container->get('content_manager')->getWithParents($contentIds);
-                    foreach ($rawContents as $rawContent) {
-                        $contentWithParents = $contentsWithParents[$rawContent['genre_id']];
-                        $manuscripts[$rawContent['manuscript_id']]
-                            ->addContentWithParents($contentWithParents);
-                    }
-                }
-
-                $this->setPersonRoles($manuscripts);
-
-                // Roles via occurrences
-                $rawOccurrenceRoles = $this->dbs->getOccurrencePersonRoles($ids);
-                $personIds = self::getUniqueIds($rawOccurrenceRoles, 'person_id');
-                $occurrenceIds = self::getUniqueIds($rawOccurrenceRoles, 'occurrence_id');
-
-                $persons = [];
-                if (count($personIds) > 0) {
-                    $persons = $this->container->get('person_manager')->getShort($personIds);
-                }
-                $occurrences = [];
-                if (count($occurrenceIds) > 0) {
-                    $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                }
-
-                $roles = $this->container->get('role_manager')->getWithData($rawOccurrenceRoles);
-
-                foreach ($rawOccurrenceRoles as $raw) {
-                    $manuscripts[$raw['manuscript_id']]
-                        ->addOccurrencePersonRole(
-                            $roles[$raw['role_id']],
-                            $persons[$raw['person_id']],
-                            $occurrences[$raw['occurrence_id']]
-                        );
-                }
-
-                $this->setDates($manuscripts);
-
-                // Origin
-                $rawOrigins = $this->dbs->getOrigins($ids);
-                if (count($rawOrigins) > 0) {
-                    $locationIds = self::getUniqueIds($rawOrigins, 'location_id');
-                    $locations = $this->container->get('location_manager')->get($locationIds);
-
-                    foreach ($rawOrigins as $rawOrigin) {
-                        $manuscripts[$rawOrigin['manuscript_id']]
-                            ->setOrigin(Origin::fromLocation($locations[$rawOrigin['location_id']]));
-                    }
-                }
-
-                $this->setComments($manuscripts);
-
-                $this->setManagements($manuscripts);
-
-                return $manuscripts;
+        // Contents
+        $rawContents = $this->dbs->getContents($ids);
+        if (count($rawContents) > 0) {
+            $contentIds = self::getUniqueIds($rawContents, 'genre_id');
+            $contentsWithParents = $this->container->get('content_manager')->getWithParents($contentIds);
+            foreach ($rawContents as $rawContent) {
+                $contentWithParents = $contentsWithParents[$rawContent['genre_id']];
+                $manuscripts[$rawContent['manuscript_id']]
+                    ->addContentWithParents($contentWithParents);
             }
-        );
+        }
+
+        $this->setPersonRoles($manuscripts);
+
+        // Roles via occurrences
+        $rawOccurrenceRoles = $this->dbs->getOccurrencePersonRoles($ids);
+        $personIds = self::getUniqueIds($rawOccurrenceRoles, 'person_id');
+        $occurrenceIds = self::getUniqueIds($rawOccurrenceRoles, 'occurrence_id');
+
+        $persons = [];
+        if (count($personIds) > 0) {
+            $persons = $this->container->get('person_manager')->getShort($personIds);
+        }
+        $occurrences = [];
+        if (count($occurrenceIds) > 0) {
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        }
+
+        $roles = $this->container->get('role_manager')->getWithData($rawOccurrenceRoles);
+
+        foreach ($rawOccurrenceRoles as $raw) {
+            $manuscripts[$raw['manuscript_id']]
+                ->addOccurrencePersonRole(
+                    $roles[$raw['role_id']],
+                    $persons[$raw['person_id']],
+                    $occurrences[$raw['occurrence_id']]
+                );
+        }
+
+        $this->setDates($manuscripts);
+
+        // Origin
+        $rawOrigins = $this->dbs->getOrigins($ids);
+        if (count($rawOrigins) > 0) {
+            $locationIds = self::getUniqueIds($rawOrigins, 'location_id');
+            $locations = $this->container->get('location_manager')->get($locationIds);
+
+            foreach ($rawOrigins as $rawOrigin) {
+                $manuscripts[$rawOrigin['manuscript_id']]
+                    ->setOrigin(Origin::fromLocation($locations[$rawOrigin['location_id']]));
+            }
+        }
+
+        $this->setComments($manuscripts);
+
+        $this->setManagements($manuscripts);
+
+        return $manuscripts;
     }
 
     /**
@@ -134,90 +120,83 @@ class ManuscriptManager extends DocumentManager
      */
     public function getFull(int $id): Manuscript
     {
-        return $this->wrapSingleLevelCache(
-            Manuscript::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic manuscript information
-                $manuscripts = $this->getShort([$id]);
+        // Get basic manuscript information
+        $manuscripts = $this->getShort([$id]);
 
-                if (count($manuscripts) == 0) {
-                    throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
-                }
+        if (count($manuscripts) == 0) {
+            throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
+        }
 
-                $this->setIdentifications($manuscripts);
+        $this->setIdentifications($manuscripts);
 
-                $this->setBibliographies($manuscripts);
+        $this->setBibliographies($manuscripts);
 
-                $manuscript = $manuscripts[$id];
+        $manuscript = $manuscripts[$id];
 
-                // Occurrences
-                $rawOccurrences = $this->dbs->getOccurrences([$id]);
-                if (count($rawOccurrences) > 0) {
-                    $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-                    $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                    foreach ($rawOccurrences as $rawOccurrence) {
-                        $manuscript->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
-                    }
-                }
-
-                // status
-                $rawStatuses = $this->dbs->getStatuses([$id]);
-                if (count($rawStatuses) == 1) {
-                    $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
-                    $manuscript->setStatus($statuses[$rawStatuses[0]['status_id']]);
-                }
-
-                // Illustrated
-                $rawIllustrateds = $this->dbs->getIllustrateds([$id]);
-                if (count($rawIllustrateds) == 1) {
-                    $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
-                }
-
-                return $manuscript;
+        // Occurrences
+        $rawOccurrences = $this->dbs->getOccurrences([$id]);
+        if (count($rawOccurrences) > 0) {
+            $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+            foreach ($rawOccurrences as $rawOccurrence) {
+                $manuscript->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
             }
-        );
+        }
+
+        // status
+        $rawStatuses = $this->dbs->getStatuses([$id]);
+        if (count($rawStatuses) == 1) {
+            $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
+            $manuscript->setStatus($statuses[$rawStatuses[0]['status_id']]);
+        }
+
+        // Illustrated
+        $rawIllustrateds = $this->dbs->getIllustrateds([$id]);
+        if (count($rawIllustrateds) == 1) {
+            $manuscript->setIllustrated($rawIllustrateds[0]['illustrated']);
+        }
+
+        return $manuscript;
     }
 
-    public function getAllMini(string $sortFunction = null): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return parent::getAllMini($sortFunction == null ? 'getDescription' : $sortFunction);
+        return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
-    public function getRegionDependencies(int $regionId, bool $short = false): array
+    public function getRegionDependencies(int $regionId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $method);
     }
 
-    public function getRegionDependenciesWithChildren(int $regionId, bool $short = false): array
+    public function getRegionDependenciesWithChildren(int $regionId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId), $method);
     }
 
-    public function getInstitutionDependencies(int $institutionId, bool $short = false): array
+    public function getInstitutionDependencies(int $institutionId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByInstitutionId($institutionId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByInstitutionId($institutionId), $method);
     }
 
-    public function getCollectionDependencies(int $collectionId, bool $short = false): array
+    public function getCollectionDependencies(int $collectionId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByCollectionId($collectionId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByCollectionId($collectionId), $method);
     }
 
-    public function getContentDependencies(int $contentId, bool $short = false): array
+    public function getContentDependencies(int $contentId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId), $method);
     }
 
-    public function getContentDependenciesWithChildren(int $contentId, bool $short = false): array
+    public function getContentDependenciesWithChildren(int $contentId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByContentIdWithChildren($contentId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByContentIdWithChildren($contentId), $method);
     }
 
-    public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
+    public function getOccurrenceDependencies(int $occurrenceId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $method);
     }
 
     public function add(stdClass $data): Manuscript
@@ -239,9 +218,6 @@ class ManuscriptManager extends DocumentManager
 
             $newManuscript = $this->update($id, $data, true);
 
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -262,103 +238,105 @@ class ManuscriptManager extends DocumentManager
                 throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
             }
 
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
                 'short' => $isNew,
                 'full' => $isNew,
             ];
             if (property_exists($data, 'locatedAt')) {
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->container->get('located_at_manager')->updateLocatedAt(
                     $old->getLocatedAt()->getId(),
                     $data->locatedAt
                 );
             }
             if (property_exists($data, 'public')) {
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'content')) {
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateContent($old, $data->content);
             }
-            $roles = $this->container->get('role_manager')->getRolesByType('manuscript');
+            $roles = $this->container->get('role_manager')->getByType('manuscript');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
-                    $cacheReload['short'] = true;
+                    $changes['short'] = true;
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
             if (property_exists($data, 'date')) {
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateDate($old, 'completed at', $old->getDate(), $data->date);
             }
             if (property_exists($data, 'origin')) {
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateOrigin($old, $data->origin);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePublicComment($id, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             if (property_exists($data, 'occurrenceOrder')) {
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateOccurrenceOrder($old, $data->occurrenceOrder);
             }
-            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'manuscript');
+            $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'manuscript');
             if (property_exists($data, 'bibliography')) {
                 if (!is_object($data->bibliography)) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateBibliography($old, $data->bibliography);
             }
             if (property_exists($data, 'status')) {
                 if (!(is_object($data->status) || empty($data->status))) {
                     throw new BadRequestHttpException('Incorrect text status data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateStatus($old, $data->status, Status::MANUSCRIPT);
             }
             if (property_exists($data, 'illustrated')) {
                 if (!is_bool($data->illustrated)) {
                     throw new BadRequestHttpException('Incorrect illustrated data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateIllustrated($old, $data->illustrated);
             }
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
 
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // (re-)index in elastic search
-            if ($cacheReload['mini'] || $cacheReload['short']) {
+            if ($changes['mini'] || $changes['short']) {
                 $this->ess->add($new);
             }
 
             // update Elastic occurrences
-            if ($cacheReload['mini']) {
-                $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id, true);
-                $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            if ($changes['mini'] || $changes['short']) {
+                $this->container->get('occurrence_manager')->updateElasticByIds(
+                    $this->container->get('occurrence_manager')->getManuscriptDependencies($id, 'getId')
+                );
             }
 
             // commit transaction
@@ -366,15 +344,16 @@ class ManuscriptManager extends DocumentManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset cache and elasticsearch on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+            // Reset elasticsearch on elasticsearch error
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
 
                 // New manuscripts cannot have occurrence dependencies
                 // Elastic occurrences are only updated when mini information is modified
-                if (!$isNew && $cacheReload['mini']) {
-                    $occurrences = $this->container->get('occurrence_manager')->getManuscriptDependencies($id, true);
-                    $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+                if ($changes['mini'] || $changes['short']) {
+                    $this->container->get('occurrence_manager')->updateElasticByIds(
+                        $this->container->get('occurrence_manager')->getManuscriptDependencies($id, 'getId')
+                    );
                 }
             }
 

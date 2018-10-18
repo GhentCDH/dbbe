@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class GenreController extends BaseController
 {
     /**
@@ -55,11 +53,7 @@ class GenreController extends BaseController
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'genres' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('genre_manager')->getAll()
-                    )
-                ),
+                'genres' => json_encode($this->get('genre_manager')->getAllJson()),
             ]
         );
     }

@@ -10,6 +10,4 @@ class Keyword extends IdNameObject implements SubjectInterface
      * @var string
      */
     const CACHENAME = 'keyword';
-
-    use CacheLinkTrait;
 }

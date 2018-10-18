@@ -132,35 +132,4 @@ class Document extends Entity
 
         return $result;
     }
-
-    public function linkData(): array
-    {
-        $data = parent::linkData();
-
-        foreach ($this as $key => $value) {
-            if (isset($value) && (!is_array($value) || !empty($value)) && !isset($data[$key])) {
-                switch ($key) {
-                    case 'personRoles':
-                        $data['personRoles'] = [];
-                        foreach ($this->personRoles as $roleName => $personRole) {
-                            $data['personRoles'][$roleName] = [
-                                $personRole[0]->getCacheLink(),
-                                array_map(
-                                    function ($person) {
-                                        return $person->getCacheLink();
-                                    },
-                                    $personRole[1]
-                                ),
-                            ];
-                        }
-                        break;
-                    default:
-                        $data[$key] = $value;
-                        break;
-                }
-            }
-        }
-
-        return $data;
-    }
 }

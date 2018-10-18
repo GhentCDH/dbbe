@@ -22,6 +22,4 @@ class ReferenceType extends IdNameObject
      * @var string
      */
     const SECONDARY_SOURCE = 'Secondary source';
-
-    use CacheLinkTrait;
 }

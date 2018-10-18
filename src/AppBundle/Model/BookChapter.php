@@ -13,7 +13,6 @@ class BookChapter extends Document
      */
     const CACHENAME = 'book_chapter';
 
-    use CacheLinkTrait;
     use StartEndPagesTrait;
     use RawPagesTrait;
 
@@ -125,20 +124,5 @@ class BookChapter extends Document
         }
 
         return $result;
-    }
-
-    /**
-     * @param  array       $data
-     * @return BookChapter
-     */
-    public static function unlinkCache(array $data)
-    {
-        $bookChapter = new BookChapter($data['id'], $data['title'], $data['book']);
-
-        foreach ($data as $key => $value) {
-            $bookChapter->set($key, $value);
-        }
-
-        return $bookChapter;
     }
 }

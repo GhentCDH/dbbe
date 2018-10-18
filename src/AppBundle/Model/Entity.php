@@ -6,8 +6,6 @@ use AppBundle\Utils\ArrayToJson;
 
 class Entity implements IdJsonInterface, IdElasticInterface
 {
-    use CacheObjectTrait;
-
     /**
      * @var int
      */

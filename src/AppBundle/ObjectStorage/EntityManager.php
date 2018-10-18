@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -16,74 +18,94 @@ use AppBundle\Model\Identifier;
 
 class EntityManager extends ObjectManager
 {
-    public function getAll(string $sortFunction = null): array
+    public function getAllShortJson(string $sortFunction = null): array
     {
-        return $this->getAllCombined('all', $sortFunction);
+        return $this->getAllCombinedShortJson('all', $sortFunction);
     }
 
-    public function getAllMini(string $sortFunction = null): array
+    public function getAllJson(string $sortFunction = null): array
     {
-        return $this->getAllCombined('mini', $sortFunction);
+        return $this->getAllCombinedJson('all', $sortFunction);
     }
 
-    public function getAllShort(): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return $this->getAllCombined('short', null);
+        return $this->getAllCombinedShortJson('mini', $sortFunction);
+    }
+
+    public function getAllShort(string $sortFunction = null): array
+    {
+        return $this->getAllCombined('short', $sortFunction);
     }
 
     private function getAllCombined(string $level, string $sortFunction = null): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
+
+        switch ($level) {
+            case 'all':
+                $objects = $this->get($ids);
+                break;
+            case 'mini':
+                $objects = $this->getMini($ids);
+                break;
+            case 'short':
+                $objects = $this->getShort($ids);
+                break;
+        }
+
+        if (!empty($sortFunction)) {
+            usort($objects, function ($a, $b) use ($sortFunction) {
+                if ($sortFunction == 'getId') {
+                    return $a->{$sortFunction}() > $b->{$sortFunction}();
+                }
+                return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
+            });
+        }
+
+        return $objects;
+    }
+
+    private function getAllCombinedShortJson(string $level, string $sortFunction = null): array
     {
         return $this->wrapArrayCache(
             $this->entityType . 's_' . $level . (!empty($sortFunction) ? '_' . $sortFunction : ''),
             [$this->entityType . 's'],
             function () use ($level, $sortFunction) {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
-
-                switch ($level) {
-                    case 'all':
-                        $objects = $this->get($ids);
-                        break;
-                    case 'mini':
-                        $objects = $this->getMini($ids);
-                        break;
-                    case 'short':
-                        $objects = $this->getShort($ids);
-                        break;
-                }
-
-                if (!empty($sortFunction)) {
-                    usort($objects, function ($a, $b) use ($sortFunction) {
-                        if ($sortFunction == 'getId') {
-                            return $a->{$sortFunction}() > $b->{$sortFunction}();
-                        }
-                        return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
-                    });
-                }
-
-                return $objects;
+                return ArrayToJson::arrayToShortJson($this->getAllCombined($level, $sortFunction));
             }
         );
     }
 
-    public function getArticleDependencies(int $articleId, bool $short = false): array
+    private function getAllCombinedJson(string $level, string $sortFunction = null): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $short ? 'getShort' : 'getMini');
+        return ArrayToJson::arrayToJson($this->getAllCombined($level, $sortFunction));
     }
 
-    public function getBookDependencies(int $bookId, bool $short = false): array
+    public function getArticleDependencies(int $articleId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $method);
     }
 
-    public function getBookChapterDependencies(int $bookChapterId, bool $short = false): array
+    public function getBookDependencies(int $bookId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $method);
     }
 
-    public function getOnlineSourceDependencies(int $onlineSourceId, bool $short = false): array
+    public function getBookChapterDependencies(int $bookChapterId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($bookChapterId), $method);
+    }
+
+    public function getOnlineSourceDependencies(int $onlineSourceId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $method);
+    }
+
+    public function getManagementDependencies(int $managementId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByManagementId($managementId), $method);
     }
 
     protected function setPublics(array &$entities): void
@@ -205,11 +227,11 @@ class EntityManager extends ObjectManager
     protected function updateIdentificationwrapper(
         Entity $entity,
         stdClass $data,
-        array &$cacheReload,
-        string $cacheLevel,
+        array &$changes,
+        string $level,
         string $entityType
     ): void {
-        $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType($entityType);
+        $identifiers = $this->container->get('identifier_manager')->getByType($entityType);
         foreach ($identifiers as $identifier) {
             if (property_exists($data, $identifier->getSystemName())
                 || property_exists($data, $identifier->getSystemName() . '_extra')
@@ -232,7 +254,7 @@ class EntityManager extends ObjectManager
                 ) {
                     throw new BadRequestHttpException('Incorrect identification data.');
                 }
-                $cacheReload[$cacheLevel] = true;
+                $changes[$level] = true;
                 if (property_exists($data, $identifier->getSystemName())) {
                     $this->updateIdentification(
                         $entity,
@@ -472,24 +494,6 @@ class EntityManager extends ObjectManager
                 }
             }
 
-            // Reset bibliography item full caches (recalculate inverseBibliographies)
-            $addIds = array_diff($newBibIds, $oldBibIds);
-            $delIds = array_diff($oldBibIds, $newBibIds);
-            $resetIds = array_merge($addIds, $delIds);
-            if (count($resetIds) > 0) {
-                foreach (['article', 'book', 'book_chapter', 'online_source'] as $bibType) {
-                    $bibItems = $this->container->get($bibType . '_manager')->getReferenceDependencies($resetIds);
-                    if (count($bibItems) > 0) {
-                        array_map(
-                            function ($bibItemId) use ($bibType) {
-                                $this->container->get($bibType . '_manager')->clearCache($bibItemId, ['full' => true]);
-                            },
-                            $this->getIds($bibItems)
-                        );
-                    }
-                }
-            }
-
             // delete
             if (count($delIds) > 0) {
                 $this->container->get('bibliography_manager')->deleteMultiple($delIds);
@@ -500,8 +504,6 @@ class EntityManager extends ObjectManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
-            // clear article, book, bookchapter, onlinesource caches
-
             throw $e;
         }
     }
@@ -509,8 +511,8 @@ class EntityManager extends ObjectManager
     protected function updateManagementWrapper(
         Entity $entity,
         stdClass $data,
-        array &$cacheReload,
-        string $cacheLevel
+        array &$changes,
+        string $level
     ): void {
         if (property_exists($data, 'managements')) {
             if (!is_array($data->managements)) {
@@ -524,7 +526,7 @@ class EntityManager extends ObjectManager
                     throw new BadRequestHttpException('Incorrect management data.');
                 }
             }
-            $cacheReload[$cacheLevel] = true;
+            $changes[$level] = true;
 
             list($delIds, $addIds) = self::calcDiff($data->managements, $entity->getManagements());
 
@@ -533,6 +535,30 @@ class EntityManager extends ObjectManager
             }
             foreach ($addIds as $addId) {
                 $this->dbs->addManagement($entity->getId(), $addId);
+            }
+        }
+    }
+
+    public function updateElasticManagement(array $ids): void
+    {
+        if (!empty($ids)) {
+            $rawManagements = $this->dbs->getManagements($ids);
+            if (!empty($rawManagements)) {
+                $managements = $this->container->get('management_manager')->getWithData($rawManagements);
+                $data = [];
+
+                foreach ($rawManagements as $rawManagement) {
+                    if (!isset($data[$rawManagement['entity_id']])) {
+                        $data[$rawManagement['entity_id']] = [
+                            'id' => $rawManagement['entity_id'],
+                            'management' => [],
+                        ];
+                    }
+                    $data[$rawManagement['entity_id']]['management'][] =
+                        $managements[$rawManagement['management_id']]->getShortJson();
+                }
+
+                $this->ess->updateMultiple($data);
             }
         }
     }
@@ -548,9 +574,10 @@ class EntityManager extends ObjectManager
 
             $this->updateModified($old, null);
 
-            // empty cache and remove from elasticsearch
-            $this->reset([$id]);
             $this->cache->invalidateTags([$this->entityType . 's']);
+
+            // remove from elasticsearch
+            $this->updateElasticByIds([$id]);
 
             // commit transaction
             $this->dbs->commit();

@@ -26,86 +26,56 @@ class KeywordManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Keyword::CACHENAME,
-            $ids,
-            function ($ids) {
-                $keywords = [];
-                $rawKeywords = $this->dbs->getKeywordsByIds($ids);
+        $keywords = [];
+        $rawKeywords = $this->dbs->getKeywordsByIds($ids);
 
-                foreach ($rawKeywords as $rawKeyword) {
-                    $keywords[$rawKeyword['keyword_id']] = new Keyword(
-                        $rawKeyword['keyword_id'],
-                        $rawKeyword['name']
-                    );
-                }
-
-                return $keywords;
-            }
-        );
-    }
-
-    /**
-     * Get all subject keywords with all information
-     * @return array
-     */
-    public function getAllSubjectKeywords(): array
-    {
-        return $this->wrapArrayCache(
-            'subject_keywords',
-            ['keywords'],
-            function () {
-                $rawIds = $this->dbs->getSubjectIds();
-                $ids = self::getUniqueIds($rawIds, 'keyword_id');
-                $keywords = $this->get($ids);
-
-                // Sort by name
-                usort($keywords, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $keywords;
-            }
-        );
-    }
-
-    /**
-     * Get all subject keywords with all information
-     * @return array
-     */
-    public function getAllTypeKeywords(): array
-    {
-        return $this->wrapArrayCache(
-            'type_keywords',
-            ['keywords'],
-            function () {
-                $rawIds = $this->dbs->getTypeIds();
-                $ids = self::getUniqueIds($rawIds, 'keyword_id');
-                $keywords = $this->get($ids);
-
-                // Sort by name
-                usort($keywords, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $keywords;
-            }
-        );
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Keyword::CACHENAME, $id);
+        foreach ($rawKeywords as $rawKeyword) {
+            $keywords[$rawKeyword['keyword_id']] = new Keyword(
+                $rawKeyword['keyword_id'],
+                $rawKeyword['name']
+            );
         }
 
-        $this->get($ids);
+        return $keywords;
+    }
 
-        $this->cache->invalidateTags(['keywords']);
+    public function getByType(string $type): array
+    {
+        switch ($type) {
+            case 'subject':
+                $rawIds = $this->dbs->getSubjectIds();
+                break;
+            case 'type':
+                $rawIds = $this->dbs->getTypeIds();
+                break;
+        }
+
+        $ids = self::getUniqueIds($rawIds, 'keyword_id');
+        $keywords = $this->get($ids);
+
+        // Sort by name
+        usort($keywords, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $keywords;
+    }
+
+    public function getByTypeShortJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            $type . '_keywords',
+            $type,
+            ['keywords'],
+            function ($type) {
+                return ArrayToJson::arrayToShortJson($this->getByType($type));
+            }
+        );
+    }
+
+    public function getByTypeJson(string $type): array
+    {
+        return ArrayToJson::arrayToJson($this->getByType($type));
     }
 
     /**
@@ -132,7 +102,6 @@ class KeywordManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['keywords']);
 
             // commit transaction
@@ -171,18 +140,21 @@ class KeywordManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Keyword::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['keywords']);
+
             // update Elastic occurrences
-            $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($id, true);
-            $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            $this->container->get('occurrence_manager')->updateElasticByIds(
+                $this->container->get('occurrence_manager')->getKeywordDependencies($id, 'getId')
+            );
 
             // update Elastic types
-            $types = $this->container->get('type_manager')->getKeywordDependencies($id, true);
-            $this->container->get('type_manager')->elasticIndex($types);
+            $this->container->get('type_manager')->updateElasticByIds(
+                $this->container->get('type_manager')->getKeywordDependencies($id, 'getId')
+            );
 
             // commit transaction
             $this->dbs->commit();
@@ -210,8 +182,8 @@ class KeywordManager extends ObjectManager
         // Will throw an exception if not found
         $person = $this->container->get('person_manager')->getFull($secondaryId);
 
-        $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($primaryId, true);
-        $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, true);
+        $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($primaryId, 'getShort');
+        $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, 'getShort');
         $poems = $occurrences + $types;
 
         $this->dbs->beginTransaction();
@@ -243,8 +215,8 @@ class KeywordManager extends ObjectManager
                     $this->container->get($poem::CACHENAME . '_manager')->update(
                         $poem->getId(),
                         json_decode(json_encode([
-                            'keywords' => $keywordArray,
-                            'persons' => $personArray,
+                            'keywordSubjects' => $keywordArray,
+                            'personSubjects' => $personArray,
                         ]))
                     );
                 }
@@ -256,13 +228,11 @@ class KeywordManager extends ObjectManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset caches and elasticsearch
-            $this->reset([$primaryId]);
             if (!empty($occurrences)) {
-                $this->container->get('occurrence_manager')->reset(self::getIds($poems));
+                $this->container->get('occurrence_manager')->updateElasticByIds(self::getIds($poems));
             }
             if (!empty($types)) {
-                $this->container->get('type_manager')->reset(self::getIds($poems));
+                $this->container->get('type_manager')->updateElasticByIds(self::getIds($poems));
             }
 
             throw $e;
@@ -287,11 +257,9 @@ class KeywordManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // empty cache
-            $this->deleteCache(Keyword::CACHENAME, $id);
-            $this->cache->invalidateTags(['keywords']);
-
             $this->updateModified($old, null);
+
+            $this->cache->invalidateTags(['keywords']);
 
             // commit transaction
             $this->dbs->commit();

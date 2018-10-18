@@ -12,9 +12,6 @@ class Verse implements IdJsonInterface, IdElasticInterface
      */
     const CACHENAME = 'verse';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * @var int
      */
@@ -164,26 +161,6 @@ class Verse implements IdJsonInterface, IdElasticInterface
             $result['manuscript'] = $this->manuscript->getShortJson();
         }
         return $result;
-    }
-
-    /**
-     * @param array $data
-     * @return Verse
-     */
-    public static function unlinkCache(array $data)
-    {
-        $verse = new Verse(
-            $data['id'],
-            isset($data['groupId']) ? $data['groupId'] : null,
-            $data['verse'],
-            $data['order']
-        );
-
-        foreach ($data as $key => $value) {
-            $verse->set($key, $value);
-        }
-
-        return $verse;
     }
 
     /**

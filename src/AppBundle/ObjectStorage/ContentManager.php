@@ -27,17 +27,8 @@ class ContentManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Content::CACHENAME,
-            $ids,
-            function ($ids) {
-                $contents = [];
-                $rawContents = $this->dbs->getContentsByIds($ids);
-                $contents = $this->getWithData($rawContents);
-
-                return $contents;
-            }
-        );
+        $rawContents = $this->dbs->getContentsByIds($ids);
+        return $this->getWithData($rawContents);
     }
 
     /**
@@ -47,24 +38,17 @@ class ContentManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Content::CACHENAME,
-            $data,
-            'content_id',
-            function ($data) {
-                $contents = [];
-                foreach ($data as $rawContent) {
-                    if (isset($rawContent['content_id']) && !isset($contents[$rawContent['content_id']])) {
-                        $contents[$rawContent['content_id']] = new Content(
-                            $rawContent['content_id'],
-                            $rawContent['name']
-                        );
-                    }
-                }
-
-                return $contents;
+        $contents = [];
+        foreach ($data as $rawContent) {
+            if (isset($rawContent['content_id']) && !isset($contents[$rawContent['content_id']])) {
+                $contents[$rawContent['content_id']] = new Content(
+                    $rawContent['content_id'],
+                    $rawContent['name']
+                );
             }
-        );
+        }
+
+        return $contents;
     }
 
     /**
@@ -74,38 +58,61 @@ class ContentManager extends ObjectManager
      */
     public function getWithParents(array $ids)
     {
-        return $this->wrapCache(
-            ContentWithParents::CACHENAME,
-            $ids,
-            function ($ids) {
-                $contentsWithParents = [];
-                $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
+        $contentsWithParents = [];
+        $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
 
-                foreach ($rawContentsWithParents as $rawContentWithParents) {
-                    $ids = json_decode($rawContentWithParents['ids']);
-                    $names = json_decode($rawContentWithParents['names']);
+        foreach ($rawContentsWithParents as $rawContentWithParents) {
+            $ids = json_decode($rawContentWithParents['ids']);
+            $names = json_decode($rawContentWithParents['names']);
 
-                    $rawContents = [];
-                    foreach (array_keys($ids) as $key) {
-                        $rawContents[] = [
-                            'content_id' => (int)$ids[$key],
-                            'name' => $names[$key],
-                        ];
-                    }
+            $rawContents = [];
+            foreach (array_keys($ids) as $key) {
+                $rawContents[] = [
+                    'content_id' => (int)$ids[$key],
+                    'name' => $names[$key],
+                ];
+            }
 
-                    $contents = $this->getWithData($rawContents);
+            $contents = $this->getWithData($rawContents);
 
-                    $orderedContents = [];
-                    foreach ($ids as $id) {
-                        $orderedContents[] = $contents[(int)$id];
-                    }
+            $orderedContents = [];
+            foreach ($ids as $id) {
+                $orderedContents[] = $contents[(int)$id];
+            }
 
-                    $contentWithParents = new ContentWithParents($orderedContents);
+            $contentWithParents = new ContentWithParents($orderedContents);
 
-                    $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
-                }
+            $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
+        }
 
-                return $contentsWithParents;
+        return $contentsWithParents;
+    }
+
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'content_id');
+        $contentsWithParents = $this->getWithParents($ids);
+
+        // Sort by name
+        usort($contentsWithParents, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $contentsWithParents;
+    }
+
+    /**
+     * Get all contents with parents with minimal information
+     * @return array
+     */
+    public function getAllShortJson(): array
+    {
+        return $this->wrapArrayCache(
+            'contents_with_parents',
+            ['contents'],
+            function () {
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
     }
@@ -114,24 +121,9 @@ class ContentManager extends ObjectManager
      * Get all contents with parents with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
-            'contents_with_parents',
-            ['contents'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'content_id');
-                $contentsWithParents = $this->getWithParents($ids);
-
-                // Sort by name
-                usort($contentsWithParents, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $contentsWithParents;
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     /**
@@ -142,22 +134,6 @@ class ContentManager extends ObjectManager
     public function getContentDependencies(int $contentId): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByContentId($regionId), 'getWithParents');
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Content::CACHENAME, $id);
-            $this->deleteCache(ContentWithParents::CACHENAME, $id);
-        }
-
-        $this->getWithParents($ids);
-
-        $this->cache->invalidateTags(['contents']);
     }
 
     /**
@@ -192,7 +168,6 @@ class ContentManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['contents']);
 
             // commit transaction
@@ -254,15 +229,15 @@ class ContentManager extends ObjectManager
             }
 
             // load new content data
-            $this->deleteCache(Content::CACHENAME, $id);
-            $this->deleteCache(ContentWithParents::CACHENAME, $id);
             $new = $this->getWithParents([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['contents']);
+
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($id, true);
-            $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
+            $manuscriptIds = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($id, 'getId');
+            $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
 
             // commit transaction
             $this->dbs->commit();
@@ -296,7 +271,7 @@ class ContentManager extends ObjectManager
         }
         list($primary, $secondary) = array_values($contentsWithParents);
 
-        $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, true);
+        $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, 'getShort');
         $contents = $this->getContentDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
@@ -331,13 +306,9 @@ class ContentManager extends ObjectManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset caches and elasticsearch
-            $this->reset([$primaryId]);
-            if (!empty($persons)) {
-                $this->container->get('person_manager')->reset(self::getIds($persons));
-            }
-            if (!empty($offices)) {
-                $this->reset(self::getIds($offices));
+            // Reset elasticsearch
+            if (!empty($manuscripts)) {
+                $this->container->get('manuscript_manager')->updateElasticByIds(self::getIds($manuscripts));
             }
 
             throw $e;
@@ -362,12 +333,9 @@ class ContentManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // empty cache
-            $this->deleteCache(Content::CACHENAME, $id);
-            $this->deleteCache(ContentWithParents::CACHENAME, $id);
-            $this->cache->invalidateTags(['contents']);
-
             $this->updateModified($contentWithParents, null);
+
+            $this->cache->invalidateTags(['contents']);
 
             // commit transaction
             $this->dbs->commit();

@@ -13,8 +13,6 @@ class Book extends Document
      */
     const CACHENAME = 'book';
 
-    use CacheLinkTrait;
-
     /**
      * @var int
      */
@@ -267,20 +265,5 @@ class Book extends Document
         }
 
         return $result;
-    }
-
-    /**
-     * @param array $data
-     * @return Book
-     */
-    public static function unlinkCache(array $data)
-    {
-        $book = new Book($data['id'], $data['year'], $data['title'], $data['city']);
-
-        foreach ($data as $key => $value) {
-            $book->set($key, $value);
-        }
-
-        return $book;
     }
 }

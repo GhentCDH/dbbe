@@ -15,14 +15,14 @@ class ElasticBibliographyService extends ElasticBaseService
             'bibliographies',
             'bibliography',
             array_merge(
-                $container->get('identifier_manager')->getIdentifiersByType('book'),
-                $container->get('identifier_manager')->getIdentifiersByType('bookChapter'),
-                $container->get('identifier_manager')->getIdentifiersByType('article')
+                $container->get('identifier_manager')->getByType('book'),
+                $container->get('identifier_manager')->getByType('bookChapter'),
+                $container->get('identifier_manager')->getByType('article')
             ),
             array_merge(
-                $container->get('role_manager')->getRolesByType('book'),
-                $container->get('role_manager')->getRolesByType('bookChapter'),
-                $container->get('role_manager')->getRolesByType('article')
+                $container->get('role_manager')->getByType('book'),
+                $container->get('role_manager')->getByType('bookChapter'),
+                $container->get('role_manager')->getByType('article')
             )
         );
     }

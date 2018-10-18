@@ -9,8 +9,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Utils\ArrayToJson;
-
 class KeywordController extends BaseController
 {
     /**
@@ -33,9 +31,7 @@ class KeywordController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            ArrayToJson::arrayToJson(
-                $this->get(self::MANAGER)->getAllSubjectKeywords()
-            )
+            $this->get(self::MANAGER)->getByTypeJson('subject')
         );
     }
 
@@ -50,9 +46,7 @@ class KeywordController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            ArrayToJson::arrayToJson(
-                $this->get(self::MANAGER)->getAllTypeKeywords()
-            )
+            $this->get(self::MANAGER)->getByTypeJson('type')
         );
     }
 
@@ -82,16 +76,8 @@ class KeywordController extends BaseController
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'keywords' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get(self::MANAGER)->getAllSubjectKeywords()
-                    )
-                ),
-                'persons' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('person_manager')->getAllHistoricalPersons()
-                    )
-                ),
+                'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('subject')),
+                'persons' => json_encode($this->get('person_manager')->getAllHistoricalShortJson()),
                 'isSubject' => json_encode(true),
             ]
         );
@@ -122,11 +108,7 @@ class KeywordController extends BaseController
                     'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'keywords' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get(self::MANAGER)->getAllTypeKeywords()
-                    )
-                ),
+                'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('type')),
                 'isSubject' => json_encode(false),
             ]
         );

@@ -15,47 +15,34 @@ class CollectionManager extends ObjectManager
 {
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Collection::CACHENAME,
-            $ids,
-            function ($ids) {
-                $collections = [];
-                $rawCollections = $this->dbs->getCollectionsByIds($ids);
+        $collections = [];
+        $rawCollections = $this->dbs->getCollectionsByIds($ids);
 
-                foreach ($rawCollections as $rawCollection) {
-                    $collections[$rawCollection['collection_id']] = new Collection(
-                        $rawCollection['collection_id'],
-                        $rawCollection['name']
-                    );
-                }
+        foreach ($rawCollections as $rawCollection) {
+            $collections[$rawCollection['collection_id']] = new Collection(
+                $rawCollection['collection_id'],
+                $rawCollection['name']
+            );
+        }
 
-                return $collections;
-            }
-        );
+        return $collections;
     }
 
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Collection::CACHENAME,
-            $data,
-            'collection_id',
-            function ($data) {
-                $collections = [];
-                foreach ($data as $rawCollection) {
-                    if (isset($rawCollection['collection_id'])
-                        && !isset($collections[$rawCollection['collection_id']])
-                    ) {
-                        $collections[$rawCollection['collection_id']] = new Collection(
-                            $rawCollection['collection_id'],
-                            $rawCollection['collection_name']
-                        );
-                    }
-                }
-
-                return $collections;
+        $collections = [];
+        foreach ($data as $rawCollection) {
+            if (isset($rawCollection['collection_id'])
+                && !isset($collections[$rawCollection['collection_id']])
+            ) {
+                $collections[$rawCollection['collection_id']] = new Collection(
+                    $rawCollection['collection_id'],
+                    $rawCollection['collection_name']
+                );
             }
-        );
+        }
+
+        return $collections;
     }
 
     public function addCollection(stdClass $data): Collection
@@ -77,12 +64,12 @@ class CollectionManager extends ObjectManager
             $newCollection = $this->get([$collectionId])[$collectionId];
 
             // update Elastic manuscripts
-            $manuscripts = $this->container->get('manuscript_manager')->getCollectionDependencies($collectionId, true);
-            $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
+            $this->container->get('manuscript_manager')->updateElasticByIds(
+                $this->container->get('manuscript_manager')->getCollectionDependencies($id, 'getId')
+            );
 
             $this->updateModified(null, $newCollection);
 
-            // update cache
             $this->cache->invalidateTags(['collections']);
 
             // commit transaction
@@ -126,10 +113,11 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $this->deleteCache(Collection::CACHENAME, $collectionId);
             $newCollection = $this->get([$collectionId])[$collectionId];
 
             $this->updateModified($collection, $newCollection);
+
+            $this->cache->invalidateTags(['collections']);
 
             // commit transaction
             $this->dbs->commit();
@@ -153,11 +141,9 @@ class CollectionManager extends ObjectManager
 
             $this->dbs->delete($collectionId);
 
-            // clear cache
-            $this->deleteCache(Collection::CACHENAME, $collectionId);
-            $this->cache->invalidateTags(['collections']);
-
             $this->updateModified($collection, null);
+
+            $this->cache->invalidateTags(['collections']);
 
             // commit transaction
             $this->dbs->commit();

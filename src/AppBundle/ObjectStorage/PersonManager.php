@@ -7,9 +7,12 @@ use stdClass;
 
 use AppBundle\Model\FuzzyInterval;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Person;
 use AppBundle\Model\Origin;
@@ -27,49 +30,43 @@ class PersonManager extends EntityManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Person::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $persons = [];
-                $rawPersons = $this->dbs->getBasicInfoByIds($ids);
+        $persons = [];
+        $rawPersons = $this->dbs->getBasicInfoByIds($ids);
 
-                $locationIds = self::getUniqueIds($rawPersons, 'location_id');
-                $locations = $this->container->get('location_manager')->get($locationIds);
+        // filter out empty values, so no requests are done unnecessarily
+        $locationIds = array_filter(self::getUniqueIds($rawPersons, 'location_id'));
+        $locations = $this->container->get('location_manager')->get($locationIds);
 
-                foreach ($rawPersons as $rawPerson) {
-                     $person = (new Person())
-                        ->setId($rawPerson['person_id'])
-                        ->setFirstName($rawPerson['first_name'])
-                        ->setLastName($rawPerson['last_name'])
-                        ->setExtra($rawPerson['extra'])
-                        ->setUnprocessed($rawPerson['unprocessed'])
-                        ->setBornDate(new FuzzyDate($rawPerson['born_date']))
-                        ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
-                        ->setUnknownDate(new FuzzyDate($rawPerson['unknown_date']))
-                        ->setUnknownInterval(FuzzyInterval::fromString($rawPerson['unknown_interval']))
-                        ->setHistorical($rawPerson['is_historical'])
-                        ->setModern($rawPerson['is_modern']);
+        foreach ($rawPersons as $rawPerson) {
+             $person = (new Person())
+                ->setId($rawPerson['person_id'])
+                ->setFirstName($rawPerson['first_name'])
+                ->setLastName($rawPerson['last_name'])
+                ->setExtra($rawPerson['extra'])
+                ->setUnprocessed($rawPerson['unprocessed'])
+                ->setBornDate(new FuzzyDate($rawPerson['born_date']))
+                ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
+                ->setUnknownDate(new FuzzyDate($rawPerson['unknown_date']))
+                ->setUnknownInterval(FuzzyInterval::fromString($rawPerson['unknown_interval']))
+                ->setHistorical($rawPerson['is_historical'])
+                ->setModern($rawPerson['is_modern']);
 
-                    if ($rawPerson['self_designations'] != null) {
-                        $person->setSelfDesignations(explode(',', $rawPerson['self_designations']));
-                    }
-
-                    if ($rawPerson['location_id'] != null) {
-                        $person->setOrigin(Origin::fromLocation($locations[$rawPerson['location_id']]));
-                    }
-
-                    $persons[$rawPerson['person_id']] = $person;
-                }
-
-                $this->setIdentifications($persons);
-
-                $this->setPublics($persons);
-
-                return $persons;
+            if ($rawPerson['self_designations'] != null) {
+                $person->setSelfDesignations(explode(',', $rawPerson['self_designations']));
             }
-        );
+
+            if ($rawPerson['location_id'] != null) {
+                $person->setOrigin(Origin::fromLocation($locations[$rawPerson['location_id']]));
+            }
+
+            $persons[$rawPerson['person_id']] = $person;
+        }
+
+        $this->setIdentifications($persons);
+
+        $this->setPublics($persons);
+
+        return $persons;
     }
 
     /**
@@ -79,51 +76,44 @@ class PersonManager extends EntityManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Person::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                // Get basic person information
-                $persons = $this->getMini($ids);
+        // Get basic person information
+        $persons = $this->getMini($ids);
 
-                // Remove all ids that did not match above
-                $ids = array_keys($persons);
+        // Remove all ids that did not match above
+        $ids = array_keys($persons);
 
-                // Roles
-                $rawRoles = $this->dbs->getRoles($ids);
+        // Roles
+        $rawRoles = $this->dbs->getRoles($ids);
 
-                $roles = [];
-                if (count($rawRoles) > 0) {
-                    $roleIds = self::getUniqueIds($rawRoles, 'role_id');
-                    $roles = $this->container->get('role_manager')->get($roleIds);
+        $roles = [];
+        if (count($rawRoles) > 0) {
+            $roleIds = self::getUniqueIds($rawRoles, 'role_id');
+            $roles = $this->container->get('role_manager')->get($roleIds);
 
-                    foreach ($rawRoles as $rawRole) {
-                        $persons[$rawRole['person_id']]->addRole($roles[$rawRole['role_id']]);
-                    }
-                }
-
-                // offices
-                $rawOffices = $this->dbs->getOffices($ids);
-
-                $offices = [];
-                if (count($rawOffices) > 0) {
-                    $officeIds = self::getUniqueIds($rawOffices, 'office_id');
-                    $officesWithParents = $this->container->get('office_manager')->getWithParents($officeIds);
-
-                    foreach ($rawOffices as $rawOffice) {
-                        $persons[$rawOffice['person_id']]
-                            ->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
-                    }
-                }
-
-                $this->setComments($persons);
-
-                $this->setManagements($persons);
-
-                return $persons;
+            foreach ($rawRoles as $rawRole) {
+                $persons[$rawRole['person_id']]->addRole($roles[$rawRole['role_id']]);
             }
-        );
+        }
+
+        // offices
+        $rawOffices = $this->dbs->getOffices($ids);
+
+        $offices = [];
+        if (count($rawOffices) > 0) {
+            $officeIds = self::getUniqueIds($rawOffices, 'office_id');
+            $officesWithParents = $this->container->get('office_manager')->getWithParents($officeIds);
+
+            foreach ($rawOffices as $rawOffice) {
+                $persons[$rawOffice['person_id']]
+                    ->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
+            }
+        }
+
+        $this->setComments($persons);
+
+        $this->setManagements($persons);
+
+        return $persons;
     }
 
     /**
@@ -133,251 +123,298 @@ class PersonManager extends EntityManager
      */
     public function getFull(int $id): Person
     {
-        return $this->wrapSingleLevelCache(
-            Person::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic person information
-                $persons = $this->getShort([$id]);
-                if (count($persons) == 0) {
-                    throw new NotFoundHttpException('Person with id ' . $id .' not found.');
-                }
+        // Get basic person information
+        $persons = $this->getShort([$id]);
+        if (count($persons) == 0) {
+            throw new NotFoundHttpException('Person with id ' . $id .' not found.');
+        }
 
-                $this->setBibliographies($persons);
+        $this->setBibliographies($persons);
 
-                $person = $persons[$id];
+        $person = $persons[$id];
 
-                // Manuscript roles
-                $rawManuscripts = $this->dbs->getManuscripts([$id]);
-                $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
-                $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
-                $roleIds = self::getUniqueIds($rawManuscripts, 'role_id');
+        // Manuscript roles
+        $rawManuscripts = $this->dbs->getManuscripts([$id]);
+        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
+        $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
+        $roleIds = self::getUniqueIds($rawManuscripts, 'role_id');
 
-                $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
-                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                $roles = $this->container->get('role_manager')->get($roleIds);
+        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        $roles = $this->container->get('role_manager')->get($roleIds);
 
-                foreach ($rawManuscripts as $rawManuscript) {
-                    if (!isset($rawManuscript['occurrence_id'])) {
-                        $person
-                            ->addManuscriptRole(
-                                $roles[$rawManuscript['role_id']],
-                                $manuscripts[$rawManuscript['manuscript_id']]
-                            );
-                    } else {
-                        $person
-                            ->addOccurrenceManuscriptRole(
-                                $roles[$rawManuscript['role_id']],
-                                $manuscripts[$rawManuscript['manuscript_id']],
-                                $occurrences[$rawManuscript['occurrence_id']]
-                            );
-                    }
-                }
-
-                // Occurrence roles
-                $rawOccurrences = $this->dbs->getOccurrencesAsRoles([$id]);
-                $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-                $roleIds = self::getUniqueIds($rawOccurrences, 'role_id');
-
-                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                $roles = $this->container->get('role_manager')->get($roleIds);
-
-                foreach ($rawOccurrences as $rawOccurrence) {
-                    $person
-                        ->addDocumentRole(
-                            'occurrence',
-                            $roles[$rawOccurrence['role_id']],
-                            $occurrences[$rawOccurrence['occurrence_id']]
-                        );
-                }
-
-                // occurrence subjects
-                // Add 'subject' as pseudo role
-                $rawOccurrences = $this->dbs->getOccurrencesAsSubjects([$id]);
-                $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-
-                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                $role = $this->container->get('role_manager')->getWithData([[
-                    'role_id' => 0,
-                    'role_usage' => json_encode(['occurrence']),
-                    'role_system_name' => 'subject',
-                    'role_name' => 'Subject',
-                ]])[0];
-
-                foreach ($rawOccurrences as $rawOccurrence) {
-                    $person
-                        ->addDocumentRole(
-                            'occurrence',
-                            $role,
-                            $occurrences[$rawOccurrence['occurrence_id']]
-                        );
-                }
-
-                // Type roles
-                $rawTypes = $this->dbs->getTypesAsRoles([$id]);
-                $typeIds = self::getUniqueIds($rawTypes, 'type_id');
-                $roleIds = self::getUniqueIds($rawTypes, 'role_id');
-
-                $types = $this->container->get('type_manager')->getMini($typeIds);
-                $roles = $this->container->get('role_manager')->get($roleIds);
-
-                foreach ($rawTypes as $rawType) {
-                    $person
-                        ->addDocumentRole(
-                            'type',
-                            $roles[$rawType['role_id']],
-                            $types[$rawType['type_id']]
-                        );
-                }
-
-                // type subjects
-                // Add 'subject' as pseudo role
-                $rawTypes = $this->dbs->getTypesAsSubjects([$id]);
-                $typeIds = self::getUniqueIds($rawTypes, 'type_id');
-
-                $types = $this->container->get('type_manager')->getMini($typeIds);
-                $role = $this->container->get('role_manager')->getWithData([[
-                    'role_id' => 0,
-                    'role_usage' => json_encode(['type']),
-                    'role_system_name' => 'subject',
-                    'role_name' => 'Subject',
-                ]])[0];
-
-                foreach ($rawTypes as $rawType) {
-                    $person
-                        ->addDocumentRole(
-                            'type',
-                            $role,
-                            $types[$rawType['type_id']]
-                        );
-                }
-
-                // Article roles
-                $raws = $this->dbs->getArticles([$id]);
-                $ids = self::getUniqueIds($raws, 'article_id');
-                $roleIds = self::getUniqueIds($raws, 'role_id');
-
-                $articles = $this->container->get('article_manager')->getMini($ids);
-                $roles = $this->container->get('role_manager')->get($roleIds);
-
-                foreach ($raws as $raw) {
-                    $person
-                        ->addDocumentRole(
-                            'article',
-                            $roles[$raw['role_id']],
-                            $articles[$raw['article_id']]
-                        );
-                }
-
-                // Book roles
-                $raws = $this->dbs->getBooks([$id]);
-                $ids = self::getUniqueIds($raws, 'book_id');
-                $roleIds = self::getUniqueIds($raws, 'role_id');
-
-                $books = $this->container->get('book_manager')->getMini($ids);
-                $roles = $this->container->get('role_manager')->get($roleIds);
-
-                foreach ($raws as $raw) {
-                    $person
-                        ->addDocumentRole(
-                            'book',
-                            $roles[$raw['role_id']],
-                            $books[$raw['book_id']]
-                        );
-                }
-
-                // Book chapter roles
-                $raws = $this->dbs->getBookChapters([$id]);
-                $ids = self::getUniqueIds($raws, 'book_chapter_id');
-                $roleIds = self::getUniqueIds($raws, 'role_id');
-
-                $bookChapters = $this->container->get('book_chapter_manager')->getMini($ids);
-                $roles = $this->container->get('role_manager')->get($roleIds);
-
-                foreach ($raws as $raw) {
-                    $person
-                        ->addDocumentRole(
-                            'bookChapter',
-                            $roles[$raw['role_id']],
-                            $bookChapters[$raw['book_chapter_id']]
-                        );
-                }
-
-                return $person;
+        foreach ($rawManuscripts as $rawManuscript) {
+            if (!isset($rawManuscript['occurrence_id'])) {
+                $person
+                    ->addManuscriptRole(
+                        $roles[$rawManuscript['role_id']],
+                        $manuscripts[$rawManuscript['manuscript_id']]
+                    );
+            } else {
+                $person
+                    ->addOccurrenceManuscriptRole(
+                        $roles[$rawManuscript['role_id']],
+                        $manuscripts[$rawManuscript['manuscript_id']],
+                        $occurrences[$rawManuscript['occurrence_id']]
+                    );
             }
-        );
+        }
+
+        // Occurrence roles
+        $rawOccurrences = $this->dbs->getOccurrencesAsRoles([$id]);
+        $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+        $roleIds = self::getUniqueIds($rawOccurrences, 'role_id');
+
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($rawOccurrences as $rawOccurrence) {
+            $person
+                ->addDocumentRole(
+                    'occurrence',
+                    $roles[$rawOccurrence['role_id']],
+                    $occurrences[$rawOccurrence['occurrence_id']]
+                );
+        }
+
+        // occurrence subjects
+        // Add 'subject' as pseudo role
+        $rawOccurrences = $this->dbs->getOccurrencesAsSubjects([$id]);
+        $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        $role = $this->container->get('role_manager')->getWithData([[
+            'role_id' => 0,
+            'role_usage' => json_encode(['occurrence']),
+            'role_system_name' => 'subject',
+            'role_name' => 'Subject',
+        ]])[0];
+
+        foreach ($rawOccurrences as $rawOccurrence) {
+            $person
+                ->addDocumentRole(
+                    'occurrence',
+                    $role,
+                    $occurrences[$rawOccurrence['occurrence_id']]
+                );
+        }
+
+        // Type roles
+        $rawTypes = $this->dbs->getTypesAsRoles([$id]);
+        $typeIds = self::getUniqueIds($rawTypes, 'type_id');
+        $roleIds = self::getUniqueIds($rawTypes, 'role_id');
+
+        $types = $this->container->get('type_manager')->getMini($typeIds);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($rawTypes as $rawType) {
+            $person
+                ->addDocumentRole(
+                    'type',
+                    $roles[$rawType['role_id']],
+                    $types[$rawType['type_id']]
+                );
+        }
+
+        // type subjects
+        // Add 'subject' as pseudo role
+        $rawTypes = $this->dbs->getTypesAsSubjects([$id]);
+        $typeIds = self::getUniqueIds($rawTypes, 'type_id');
+
+        $types = $this->container->get('type_manager')->getMini($typeIds);
+        $role = $this->container->get('role_manager')->getWithData([[
+            'role_id' => 0,
+            'role_usage' => json_encode(['type']),
+            'role_system_name' => 'subject',
+            'role_name' => 'Subject',
+        ]])[0];
+
+        foreach ($rawTypes as $rawType) {
+            $person
+                ->addDocumentRole(
+                    'type',
+                    $role,
+                    $types[$rawType['type_id']]
+                );
+        }
+
+        // Article roles
+        $raws = $this->dbs->getArticles([$id]);
+        $ids = self::getUniqueIds($raws, 'article_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $articles = $this->container->get('article_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'article',
+                    $roles[$raw['role_id']],
+                    $articles[$raw['article_id']]
+                );
+        }
+
+        // Book roles
+        $raws = $this->dbs->getBooks([$id]);
+        $ids = self::getUniqueIds($raws, 'book_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $books = $this->container->get('book_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'book',
+                    $roles[$raw['role_id']],
+                    $books[$raw['book_id']]
+                );
+        }
+
+        // Book chapter roles
+        $raws = $this->dbs->getBookChapters([$id]);
+        $ids = self::getUniqueIds($raws, 'book_chapter_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $bookChapters = $this->container->get('book_chapter_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'bookChapter',
+                    $roles[$raw['role_id']],
+                    $bookChapters[$raw['book_chapter_id']]
+                );
+        }
+
+        return $person;
     }
 
     /**
      * Get all persons that are dependent on a specific office
-     * @param  int   $officeId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @param  int    $officeId
+     * @param  string $method
      * @return array
      */
-    public function getOfficeDependencies(int $officeId, bool $short = false): array
+    public function getOfficeDependencies(int $officeId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), $method);
     }
 
     /**
      * Get all persons that are dependent on a specific office or one of its children
-     * @param  int   $officeId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @param  int    $officeId
+     * @param  string $method
      * @return array
      */
-    public function getOfficeDependenciesWithChildren(int $officeId, bool $short = false): array
+    public function getOfficeDependenciesWithChildren(int $officeId, string $method): array
     {
         return $this->getDependencies(
             $this->dbs->getDepIdsByOfficeIdWithChildren($officeId),
-            $short ? 'getShort' : 'getMini'
+            $method
         );
     }
 
     /**
      * Get all persons that are dependent on a specific region
-     * @param  int   $regionId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @param  int    $regionId
+     * @param  string $method
      * @return array
      */
-    public function getRegionDependencies(int $regionId, bool $short = false): array
+    public function getRegionDependencies(int $regionId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $method);
     }
 
     /**
      * Get all persons that are dependent on a specific region or one of its children
-     * @param  int   $regionId
-     * @param  bool  $short    Whether to return a short or mini person (default: false => mini)
+     * @param  int    $regionId
+     * @param  string $method
      * @return array
      */
-    public function getRegionDependenciesWithChildren(int $regionId, bool $short = false): array
+    public function getRegionDependenciesWithChildren(int $regionId, string $method): array
     {
         return $this->getDependencies(
             $this->dbs->getDepIdsByRegionIdWithChildren($regionId),
-            $short ? 'getShort' : 'getMini'
+            $method
         );
+    }
+
+    /**
+     * Get all persons that are dependent on a specific manuscript
+     * @param  int    $manuscriptId
+     * @param  string $method
+     * @return array
+     */
+    public function getManuscriptDependencies(int $manuscriptId, string $method): array
+    {
+        return $this->getDependencies(
+            $this->dbs->getDepIdsByManuscriptId($manuscriptId),
+            $method
+        );
+    }
+
+    /**
+     * Get all persons that are dependent on a specific occurrence
+     * @param  int    $occurrenceId
+     * @param  string $method
+     * @return array
+     */
+    public function getOccurrenceDependencies(int $occurrenceId, string $method): array
+    {
+        return $this->getDependencies(
+            $this->dbs->getDepIdsByOccurrenceId($occurrenceId),
+            $method
+        );
+    }
+
+    /**
+     * Get all persons that are dependent on a specific type
+     * @param  int    $typeId
+     * @param  string $method
+     * @return array
+     */
+    public function getTypeDependencies(int $typeId, string $method): array
+    {
+        return $this->getDependencies(
+            $this->dbs->getDepIdsByTypeId($typeId),
+            $method
+        );
+    }
+
+    private function getByType(string $type): array
+    {
+        switch ($type) {
+            case 'historical':
+                $rawIds = $this->dbs->getHistoricalIds();
+                break;
+            case 'modern':
+                $rawIds = $this->dbs->getModernIds();
+                break;
+        }
+        $ids = self::getUniqueIds($rawIds, 'person_id');
+
+        $persons = array_values($this->getMini($ids));
+
+        usort($persons, function ($a, $b) {
+            return strcmp($a->getFullDescription(), $b->getFullDescription());
+        });
+
+        return $persons;
     }
 
     /**
      * @return array
      */
-    public function getAllHistoricalPersons(): array
+    public function getAllHistoricalShortJson(): array
     {
         return $this->wrapArrayCache(
             'historical_persons',
             ['persons'],
             function () {
-                $rawIds = $this->dbs->getHistoricalIds();
-                $ids = self::getUniqueIds($rawIds, 'person_id');
-
-                $persons = array_values($this->getMini($ids));
-
-                usort($persons, function ($a, $b) {
-                    return strcmp($a->getFullDescription(), $b->getFullDescription());
-                });
-
-                return $persons;
+                return ArrayToJson::arrayToShortJson($this->getByType('historical'));
             }
         );
     }
@@ -385,22 +422,13 @@ class PersonManager extends EntityManager
     /**
      * @return array
      */
-    public function getAllModernPersons(): array
+    public function getAllModernShortJson(): array
     {
         return $this->wrapArrayCache(
             'modern_persons',
             ['persons'],
             function () {
-                $rawIds = $this->dbs->getModernIds();
-                $ids = self::getUniqueIds($rawIds, 'person_id');
-
-                $persons = array_values($this->getMini($ids));
-
-                usort($persons, function ($a, $b) {
-                    return strcmp($a->getFullDescription(), $b->getFullDescription());
-                });
-
-                return $persons;
+                return ArrayToJson::arrayToShortJson($this->getByType('modern'));
             }
         );
     }
@@ -417,9 +445,6 @@ class PersonManager extends EntityManager
             $personId = $this->dbs->insert();
 
             $newPerson = $this->update($personId, $data, true);
-
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // commit transaction
             $this->dbs->commit();
@@ -448,7 +473,7 @@ class PersonManager extends EntityManager
             }
 
             // update person data
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
                 'short' => $isNew,
                 'full' => $isNew,
@@ -457,28 +482,28 @@ class PersonManager extends EntityManager
                 if (!is_bool($data->bool)) {
                     throw new BadRequestHttpException('Incorrect public data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'firstName')) {
                 if (!is_string($data->firstName)) {
                     throw new BadRequestHttpException('Incorrect first name data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateFirstName($id, $data->firstName);
             }
             if (property_exists($data, 'lastName')) {
                 if (!is_string($data->lastName)) {
                     throw new BadRequestHttpException('Incorrect last name data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateLastName($id, $data->lastName);
             }
             if (property_exists($data, 'selfDesignations')) {
                 if (!is_string($data->selfDesignations)) {
                     throw new BadRequestHttpException('Incorrect self designation data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 // Remove spaces before and after commas
                 $this->dbs->updateSelfDesignations($id, preg_replace('/\s*,\s*/', ',', $data->selfDesignations));
             }
@@ -486,7 +511,7 @@ class PersonManager extends EntityManager
                 if (!is_object($data->origin) && !empty($data->origin)) {
                     throw new BadRequestHttpException('Incorrect origin data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateOrigin($old, $data->origin);
             }
             // Helper for regionmanager -> merge
@@ -494,121 +519,134 @@ class PersonManager extends EntityManager
                 if (empty($data->region) || !is_object($data->region)) {
                     throw new BadRequestHttpException('Incorrect region data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateRegion($old, $data->region);
             }
             if (property_exists($data, 'extra')) {
                 if (!is_string($data->extra)) {
                     throw new BadRequestHttpException('Incorrect extra data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateExtra($id, $data->extra);
             }
             if (property_exists($data, 'unprocessed')) {
                 if (!is_string($data->unprocessed)) {
                     throw new BadRequestHttpException('Incorrect unprocessed data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateUnprocessed($id, $data->unprocessed);
             }
             if (property_exists($data, 'historical')) {
                 if (!is_bool($data->historical)) {
                     throw new BadRequestHttpException('Incorrect historical data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateHistorical($old, $data->historical);
             }
             if (property_exists($data, 'modern')) {
                 if (!is_bool($data->modern)) {
                     throw new BadRequestHttpException('Incorrect modern data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateModern($old, $data->modern);
             }
             if (property_exists($data, 'bornDate')) {
                 if (!is_object($data->bornDate)) {
                     throw new BadRequestHttpException('Incorrect born date data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateDate($old, 'born', $old->getBornDate(), $data->bornDate);
             }
             if (property_exists($data, 'deathDate')) {
                 if (!is_object($data->deathDate)) {
                     throw new BadRequestHttpException('Incorrect death date data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updateDate($old, 'died', $old->getDeathDate(), $data->deathDate);
             }
-            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'mini', 'person');
+            $this->updateIdentificationwrapper($old, $data, $changes, 'mini', 'person');
             if (property_exists($data, 'offices')) {
                 if (!is_array($data->offices)) {
                     throw new BadRequestHttpException('Incorrect office data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateOffices($old, $data->offices);
             }
             if (property_exists($data, 'bibliography')) {
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateBibliography($old, $data->bibliography);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePublicComment($id, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // Reset elasticsearch
             $this->ess->add($new);
 
             // update Elastic dependencies
-            if ($cacheReload['mini']) {
-                $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($id, true);
-                $this->container->get('manuscript_manager')->elasticIndex($manuscripts);
-
-                $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($id, true);
-                $this->container->get('occurrence_manager')->elasticIndex($occurrences);
-
-                $types = $this->container->get('type_manager')->getPersonDependencies($id, true);
-                $this->container->get('type_manager')->elasticIndex($types);
-
-                $articles = $this->container->get('article_manager')->getPersonDependencies($id, true);
-                $this->container->get('article_manager')->elasticIndex($articles);
-
-                $books = $this->container->get('book_manager')->getPersonDependencies($id, true);
-                $this->container->get('article_manager')->elasticIndex($books);
-
-                $bookChapters = $this->container->get('book_chapter_manager')->getPersonDependencies($id, true);
-                $this->container->get('book_chapter_manager')->elasticIndex($bookChapters);
+            if ($changes['mini']) {
+                foreach ([
+                        'manuscript',
+                        'occurrence',
+                        'type',
+                        'article',
+                        'book',
+                        'book_chapter',
+                    ] as $entity) {
+                    $this->container->get($entity .'_manager')->updateElasticByIds(
+                        $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
+                    );
+                }
             }
 
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+
+            // Reset elasticsearch
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
+            }
+
+            // Reset Elastic dependencies
+            if ($changes['mini']) {
+                foreach ([
+                        'manuscript',
+                        'occurrence',
+                        'type',
+                        'article',
+                        'book',
+                        'book_chapter',
+                    ] as $entity) {
+                    $this->container->get($entity .'_manager')->updateElasticByIds(
+                        $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
+                    );
+                }
             }
             throw $e;
         }
@@ -651,7 +689,7 @@ class PersonManager extends EntityManager
         if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
             $updates['deathDate'] = $secondary->getDeathDate();
         }
-        $identifiers = $this->container->get('identifier_manager')->getIdentifiersByType('person');
+        $identifiers = $this->container->get('identifier_manager')->getByType('person');
         foreach ($identifiers as $identifier) {
             if (empty($primary->getIdentifications()[$identifier->getSystemName()])
                 && !empty($secondary->getIdentifications()[$identifier->getSystemName()])
@@ -670,17 +708,17 @@ class PersonManager extends EntityManager
             $updates['privateComment'] = $secondary->getPrivateComment();
         }
 
-        $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($secondaryId, true);
-        $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($secondaryId, true);
-        $types = $this->container->get('type_manager')->getPersonDependencies($secondaryId, true);
+        $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($secondaryId, 'getShort');
+        $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($secondaryId, 'getShort');
+        $types = $this->container->get('type_manager')->getPersonDependencies($secondaryId, 'getShort');
 
         if ((!empty($manuscripts) || !empty($occurrences) || !empty($types)) && !$primary->getHistorical()) {
             $updates['historical'] = true;
         }
 
-        $articles = $this->container->get('article_manager')->getPersonDependencies($secondaryId, true);
-        $books = $this->container->get('book_manager')->getPersonDependencies($secondaryId, true);
-        $bookChapters = $this->container->get('book_chapter_manager')->getPersonDependencies($secondaryId, true);
+        $articles = $this->container->get('article_manager')->getPersonDependencies($secondaryId, 'getShort');
+        $books = $this->container->get('book_manager')->getPersonDependencies($secondaryId, 'getShort');
+        $bookChapters = $this->container->get('book_chapter_manager')->getPersonDependencies($secondaryId, 'getShort');
         if (!empty($articles) || (!empty($books) || !empty($bookChapters)) && !$primary->getModern()) {
             $updates['modern'] = true;
         }
@@ -692,7 +730,7 @@ class PersonManager extends EntityManager
             }
 
             if (!empty($manuscripts)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('manuscript');
+                $roles = $this->container->get('role_manager')->getByType('manuscript');
                 foreach ($manuscripts as $manuscript) {
                     $personRoles = $manuscript->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -705,7 +743,7 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($occurrences)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('occurrence');
+                $roles = $this->container->get('role_manager')->getByType('occurrence');
                 foreach ($occurrences as $occurrence) {
                     $personRoles = $occurrence->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -735,7 +773,7 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($types)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('type');
+                $roles = $this->container->get('role_manager')->getByType('type');
                 foreach ($types as $type) {
                     $personRoles = $type->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -765,7 +803,7 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($articles)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('article');
+                $roles = $this->container->get('role_manager')->getByType('article');
                 foreach ($articles as $article) {
                     $personRoles = $article->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -778,7 +816,7 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($books)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('book');
+                $roles = $this->container->get('role_manager')->getByType('book');
                 foreach ($books as $book) {
                     $personRoles = $book->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -791,7 +829,7 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($bookChapters)) {
-                $roles = $this->container->get('role_manager')->getRolesByType('bookChapter');
+                $roles = $this->container->get('role_manager')->getByType('bookChapter');
                 foreach ($bookChapters as $bookChapter) {
                     $personRoles = $bookChapter->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -804,43 +842,23 @@ class PersonManager extends EntityManager
                 }
             }
 
-            // Reset cache to renew role lists
-            if (!empty($manuscripts)
-                || !empty($occurrences)
-                || !empty($types)
-                || !empty($articles)
-                || !empty($books)
-                || !empty($bookChapters)
-            ) {
-                $this->clearCache($primaryId, ['full' => true]);
-            }
-
             $this->delete($secondaryId);
 
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset caches and elasticsearch
-            $this->reset([$primaryId]);
-            foreach ($manuscripts as $manuscript) {
-                $this->container->get('manuscript_manager')->reset([$manuscript->getId()]);
-            }
-            foreach ($occurrences as $occurrence) {
-                $this->container->get('occurrence_manager')->reset([$occurrence->getId()]);
-            }
-            foreach ($types as $type) {
-                $this->container->get('type_manager')->reset([$type->getId()]);
-            }
-            foreach ($articles as $article) {
-                $this->container->get('article_manager')->reset([$article->getId()]);
-            }
-            foreach ($books as $book) {
-                $this->container->get('book_manager')->reset([$book->getId()]);
-            }
-            foreach ($bookChapters as $bookChapter) {
-                $this->container->get('book_chapter_manager')->reset([$bookChapter->getId()]);
-            }
+
+            // Reset elasticsearch
+            $this->updateElasticByIds([$primaryId]);
+
+            $this->container->get('manuscript_manager')->updateElasticByIds(self::getIds($manuscript));
+            $this->container->get('occurrence_manager')->updateElasticByIds(self::getIds($occurrences));
+            $this->container->get('type_manager')->updateElasticByIds(self::getIds($types));
+            $this->container->get('article_manager')->updateElasticByIds(self::getIds($articles));
+            $this->container->get('book_manager')->updateElasticByIds(self::getIds($books));
+            $this->container->get('book_chapter_manager')->updateElasticByIds(self::getIds($bookChapters));
+
             throw $e;
         }
 
@@ -970,5 +988,55 @@ class PersonManager extends EntityManager
             }
         }
         return $update;
+    }
+
+    public function delete(int $id): void
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // Throws NotFoundException if not found
+            $old = $this->getFull($id);
+
+            // get dependencies
+            $dependencies = [];
+            foreach ([
+                    'manuscript',
+                    'occurrence',
+                    'type',
+                    'article',
+                    'book',
+                    'book_chapter',
+                ] as $entity) {
+                $ids = $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId');
+                if (!empty($ids)) {
+                    $dependencies[$entity] = $ids;
+                }
+            }
+
+            $this->dbs->delete($id);
+
+            $this->updateModified($old, null);
+
+            // remove from elasticsearch
+            $this->updateElasticByIds([$id]);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
+            // update dependencies
+            foreach ($dependencies as $entity => $ids) {
+                $this->container->get($entity .'_manager')->updateElasticByIds($ids);
+            }
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (DependencyException $e) {
+            $this->dbs->rollBack();
+            throw new BadRequestHttpException($e->getMessage());
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return;
     }
 }

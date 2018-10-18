@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -15,56 +17,53 @@ class ManagementManager extends ObjectManager
 {
     public function get(array $ids)
     {
-        return $this->wrapCache(
-            Management::CACHENAME,
-            $ids,
-            function ($ids) {
-                $rawManagements = $this->dbs->getManagementsByIds($ids);
-                return $this->getWithData($rawManagements);
-            }
-        );
+        $rawManagements = $this->dbs->getManagementsByIds($ids);
+        return $this->getWithData($rawManagements);
     }
 
     public function getWithData(array $data)
     {
-        return $this->wrapDataCache(
-            Management::CACHENAME,
-            $data,
-            'management_id',
-            function ($data) {
-                $managements = [];
-                foreach ($data as $rawManagement) {
-                    if (isset($rawManagement['management_id']) && !isset($managements[$rawManagement['management_id']])) {
-                        $managements[$rawManagement['management_id']] = new Management(
-                            $rawManagement['management_id'],
-                            $rawManagement['management_name']
-                        );
-                    }
-                }
-
-                return $managements;
+        $managements = [];
+        foreach ($data as $rawManagement) {
+            if (isset($rawManagement['management_id']) && !isset($managements[$rawManagement['management_id']])) {
+                $managements[$rawManagement['management_id']] = new Management(
+                    $rawManagement['management_id'],
+                    $rawManagement['management_name']
+                );
             }
-        );
+        }
+
+        return $managements;
     }
 
     public function getAll(): array
+    {
+        $managements = [];
+        $rawManagements = $this->dbs->getAllManagements();
+        $managements = $this->getWithData($rawManagements);
+
+        // Sort by name
+        usort($managements, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $managements;
+    }
+
+    public function getAllShortJson(): array
     {
         return $this->wrapArrayCache(
             'managements',
             ['managements'],
             function () {
-                $managements = [];
-                $rawManagements = $this->dbs->getAllManagements();
-                $managements = $this->getWithData($rawManagements);
-
-                // Sort by name
-                usort($managements, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $managements;
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
+    }
+
+    public function getAllJson(): array
+    {
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     public function add(stdClass $data): Management
@@ -87,7 +86,6 @@ class ManagementManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['managements']);
 
             // commit transaction
@@ -123,15 +121,50 @@ class ManagementManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Management::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
+
+            $this->cache->invalidateTags(['managements']);
+
+            // update Elastic dependencies
+            foreach ([
+                    'manuscript',
+                    'occurrence',
+                    'type',
+                    'person',
+                    'article',
+                    'book',
+                    'book_chapter',
+                    'online_source',
+                ] as $entity) {
+                $this->container->get($entity .'_manager')->updateElasticManagement(
+                    $this->container->get($entity .'_manager')->getManagementDependencies($id, 'getId')
+                );
+            }
 
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
+
+
+            // reset Elastic dependencies
+            foreach ([
+                    'manuscript',
+                    'occurrence',
+                    'type',
+                    'person',
+                    'article',
+                    'book',
+                    'book_chapter',
+                    'online_source',
+                ] as $entity) {
+                $this->container->get($entity .'_manager')->updateElasticManagement(
+                    $this->container->get($entity .'_manager')->getManagementDependencies($id, 'getId')
+                );
+            }
+
             throw $e;
         }
 
@@ -148,13 +181,34 @@ class ManagementManager extends ObjectManager
             }
             $old = $managements[$id];
 
+            // get dependencies
+            $dependencies = [];
+            foreach ([
+                    'manuscript',
+                    'occurrence',
+                    'type',
+                    'person',
+                    'article',
+                    'book',
+                    'book_chapter',
+                    'online_source',
+                ] as $entity) {
+                $ids = $this->container->get($entity .'_manager')->getManagementDependencies($id, 'getId');
+                if (!empty($ids)) {
+                    $dependencies[$entity] = $ids;
+                }
+            }
+
             $this->dbs->delete($id);
 
-            // clear cache
-            $this->deleteCache(Management::CACHENAME, $id);
+            $this->updateModified($old, null);
+
             $this->cache->invalidateTags(['managements']);
 
-            $this->updateModified($old, null);
+            // update dependencies
+            foreach ($dependencies as $entity => $ids) {
+                $this->container->get($entity .'_manager')->updateElasticManagement($ids);
+            }
 
             // commit transaction
             $this->dbs->commit();

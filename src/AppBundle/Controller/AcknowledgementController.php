@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class AcknowledgementController extends BaseController
 {
     /**
@@ -56,9 +54,7 @@ class AcknowledgementController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'acknowledgements' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('acknowledgement_manager')->getAll()
-                    )
+                    $this->get('acknowledgement_manager')->getAllJson()
                 ),
             ]
         );

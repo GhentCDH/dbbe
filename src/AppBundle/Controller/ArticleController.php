@@ -2,8 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Utils\ArrayToJson;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,6 +81,19 @@ class ArticleController extends BaseController
     }
 
     /**
+     * Get all articles that have a dependency on a management collection
+     * (reference)
+     * @Route("/articles/managements/{id}", name="article_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
+    }
+
+    /**
      * @Route("/articles", name="article_post")
      * @Method("POST")
      * @param Request $request
@@ -155,24 +166,12 @@ class ArticleController extends BaseController
                     'article' => empty($id)
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'modernPersons' => ArrayToJson::arrayToShortJson(
-                        $this->get('person_manager')->getAllModernPersons()
-                    ),
-                    'journals' => ArrayToJson::arrayToShortJson(
-                        $this->get('journal_manager')->getAll()
-                    ),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
+                    'journals' => $this->get('journal_manager')->getAllShortJson(),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
-                'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('identifier_manager')->getIdentifiersByType('article')
-                    )
-                ),
-                'roles' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('role_manager')->getRolesByType('article')
-                    )
-                ),
+                'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('article')),
+                'roles' => json_encode($this->get('role_manager')->getByTypeJson('article')),
             ]
         );
     }

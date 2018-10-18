@@ -37,7 +37,7 @@ class RoleService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getRolesByType(string $type): array
+    public function getByType(string $type): array
     {
         return $this->conn->executeQuery(
             'SELECT

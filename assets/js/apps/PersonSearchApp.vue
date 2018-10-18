@@ -3,16 +3,19 @@
         <div class="col-xs-12">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
                     v-if="showReset"
-                    class="form-group">
+                    class="form-group"
+                >
                     <button
                         class="btn btn-block"
-                        @click="resetAllFilters">
+                        @click="resetAllFilters"
+                    >
                         Reset all filters
                     </button>
                 </div>
@@ -22,13 +25,15 @@
                     :model="model"
                     :options="formOptions"
                     @model-updated="modelUpdated"
-                    @validated="onValidated" />
+                    @validated="onValidated"
+                />
             </div>
         </aside>
         <article class="col-sm-9 search-page">
             <div
                 v-if="countRecords"
-                class="count-records">
+                class="count-records"
+            >
                 <h6>{{ countRecords }}</h6>
             </div>
             <v-server-table
@@ -37,70 +42,90 @@
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData"
-                @loaded="onLoaded">
+                @loaded="onLoaded"
+            >
                 <template
                     slot="comment"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <template v-if="props.row.public_comment">
                         <em v-if="isEditor">Public</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
                         <em>Private</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                 </template>
                 <template
                     slot="name"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <a
                         v-if="props.row.name.constructor !== Array"
-                        :href="urls['person_get'].replace('person_id', props.row.id)">
+                        :href="urls['person_get'].replace('person_id', props.row.id)"
+                    >
                         {{ props.row.name }}
                     </a>
                     <template v-else>
+                        <!-- eslint-disable vue/no-v-html -->
                         <a
                             v-if="props.row.name.length === 1"
                             :href="urls['person_get'].replace('person_id', props.row.id)"
-                            v-html="props.row.name[0]" />
+                            v-html="props.row.name[0]"
+                        />
+                        <!-- eslint-enable -->
                         <ul v-else>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.name"
                                 :key="index"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ul>
                     </template>
                 </template>
                 <template
                     v-if="hasIdentification(props.row)"
                     slot="identification"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     {{ formatIdentification(props.row) }}
                 </template>
                 <template
                     v-if="props.row.office"
                     slot="office"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <!-- set displayContent using a v-for -->
                     <template v-for="(displayOffice, index) in [props.row.office.filter((office) => office['display'])]">
                         <ul
                             v-if="displayOffice.length > 1"
-                            :key="index">
+                            :key="index"
+                        >
                             <li
                                 v-for="(office, officeIndex) in displayOffice"
-                                :key="officeIndex">
+                                :key="officeIndex"
+                            >
                                 {{ office.name }}
                             </li>
                         </ul>
@@ -112,11 +137,13 @@
                 <template
                     v-if="props.row.self_designation"
                     slot="self designation"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <ul v-if="props.row.self_designation.length > 1">
                         <li
                             v-for="(designation, index) in props.row.self_designation"
-                            :key="index">
+                            :key="index"
+                        >
                             {{ designation }}
                         </li>
                     </ul>
@@ -127,13 +154,15 @@
                 <template
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
                     slot="date"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     {{ formatInterval(props.row.born_date_floor_year, props.row.born_date_ceiling_year, props.row.death_date_floor_year, props.row.death_date_ceiling_year) }}
                 </template>
                 <template
                     v-if="props.row.death_date_floor_year && props.row.death_date_ceiling_year"
                     slot="deathdate"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <template v-if="props.row.death_date_floor_year === props.row.death_date_ceiling_year">
                         {{ props.row.death_date_floor_year }}
                     </template>
@@ -143,25 +172,29 @@
                 </template>
                 <template
                     slot="actions"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <a
                         :href="urls['person_edit'].replace('person_id', props.row.id)"
                         class="action"
-                        title="Edit">
+                        title="Edit"
+                    >
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
                         href="#"
                         class="action"
                         title="Merge"
-                        @click.prevent="merge(props.row)">
+                        @click.prevent="merge(props.row)"
+                    >
                         <i class="fa fa-compress" />
                     </a>
                     <a
                         href="#"
                         class="action"
                         title="Delete"
-                        @click.prevent="del(props.row)">
+                        @click.prevent="del(props.row)"
+                    >
                         <i class="fa fa-trash-o" />
                     </a>
                 </template>
@@ -176,11 +209,13 @@
             @cancel="cancelMerge()"
             @reset="resetMerge()"
             @confirm="submitMerge()"
-            @dismiss-alert="mergeAlerts.splice($event, 1)">
+            @dismiss-alert="mergeAlerts.splice($event, 1)"
+        >
             <table
-                v-if="mergeModel.primary && mergeModel.secondary"
+                v-if="mergeModel.primaryFull && mergeModel.secondaryFull"
                 slot="preview"
-                class="table table-striped table-hover">
+                class="table table-striped table-hover"
+            >
                 <thead>
                     <tr>
                         <th>Field</th>
@@ -190,58 +225,59 @@
                 <tbody>
                     <tr>
                         <td>First Name</td>
-                        <td>{{ mergeModel.primary.firstName || mergeModel.secondary.firstName }}</td>
+                        <td>{{ mergeModel.primaryFull.firstName || mergeModel.secondaryFull.firstName }}</td>
                     </tr>
                     <tr>
                         <td>Last Name</td>
-                        <td>{{ mergeModel.primary.lastName || mergeModel.secondary.lastName }}</td>
+                        <td>{{ mergeModel.primaryFull.lastName || mergeModel.secondaryFull.lastName }}</td>
                     </tr>
                     <tr>
                         <td>Extra</td>
-                        <td>{{ mergeModel.primary.extra || mergeModel.secondary.extra }}</td>
+                        <td>{{ mergeModel.primaryFull.extra || mergeModel.secondaryFull.extra }}</td>
                     </tr>
                     <tr>
                         <td>Unprocessed</td>
-                        <td>{{ (mergeModel.primary.firstName || mergeModel.secondary.firstName || mergeModel.primary.lastName || mergeModel.secondary.lastName || mergeModel.primary.extra || mergeModel.secondary.extra) ? '' : mergeModel.primary.unprocessed || mergeModel.secondary.unprocessed }}</td>
+                        <td>{{ (mergeModel.primaryFull.firstName || mergeModel.secondaryFull.firstName || mergeModel.primaryFull.lastName || mergeModel.secondaryFull.lastName || mergeModel.primary.extra || mergeModel.secondary.extra) ? '' : mergeModel.primary.unprocessed || mergeModel.secondary.unprocessed }}</td>
                     </tr>
                     <tr>
                         <td>Historical</td>
-                        <td>{{ mergeModel.primary.historical ? 'Yes' : 'No' }}</td>
+                        <td>{{ mergeModel.primaryFull.historical ? 'Yes' : 'No' }}</td>
                     </tr>
                     <tr>
                         <td>Modern</td>
-                        <td>{{ mergeModel.primary.modern ? 'Yes' : 'No' }}</td>
+                        <td>{{ mergeModel.primaryFull.modern ? 'Yes' : 'No' }}</td>
                     </tr>
                     <tr>
                         <td>Born Date</td>
-                        <td>{{ formatDate(mergeModel.primary.bornDate) || formatDate(mergeModel.secondary.bornDate) }}</td>
+                        <td>{{ formatDate(mergeModel.primaryFull.bornDate) || formatDate(mergeModel.secondaryFull.bornDate) }}</td>
                     </tr>
                     <tr>
                         <td>Death Date</td>
-                        <td>{{ formatDate(mergeModel.primary.deathDate) || formatDate(mergeModel.secondary.deathDate) }}</td>
+                        <td>{{ formatDate(mergeModel.primaryFull.deathDate) || formatDate(mergeModel.secondaryFull.deathDate) }}</td>
                     </tr>
                     <tr
                         v-for="identifier in identifiers"
-                        :key="identifier.systemName">
+                        :key="identifier.systemName"
+                    >
                         <td>{{ identifier.name }}</td>
                         <td>
                             {{
-                                (mergeModel.primary.identifications != null ? mergeModel.primary.identifications[identifier.systemName] : null)
-                                    || (mergeModel.secondary.identifications != null ? mergeModel.secondary.identifications[identifier.systemName] : null)
+                                (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
+                                    || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
                             }}
                         </td>
                     </tr>
                     <tr>
                         <td>Offices</td>
-                        <td>{{ formatOffices(mergeModel.primary.offices) || formatOffices(mergeModel.secondary.offices) }}</td>
+                        <td>{{ formatOffices(mergeModel.primaryFull.offices) || formatOffices(mergeModel.secondaryFull.offices) }}</td>
                     </tr>
                     <tr>
                         <td>Public comment</td>
-                        <td>{{ mergeModel.primary.publicComment || mergeModel.secondary.publicComment }}</td>
+                        <td>{{ mergeModel.primaryFull.publicComment || mergeModel.secondaryFull.publicComment }}</td>
                     </tr>
                     <tr>
                         <td>Private comment</td>
-                        <td>{{ mergeModel.primary.privateComment || mergeModel.secondary.privateComment }}</td>
+                        <td>{{ mergeModel.primaryFull.privateComment || mergeModel.secondaryFull.privateComment }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -251,10 +287,12 @@
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
             @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            @confirm="submitDelete()"
+        />
         <div
             v-if="openRequests"
-            class="loading-overlay">
+            class="loading-overlay"
+        >
             <div class="spinner" />
         </div>
     </div>
@@ -282,7 +320,7 @@ export default {
     },
     data() {
         let data = {
-            persons: JSON.parse(this.initPersons),
+            persons: null,
             schema: {
                 fields: {
                     name: {
@@ -370,7 +408,9 @@ export default {
             mergeModel: {
                 submitType: 'persons',
                 primary: null,
+                primaryFull: null,
                 secondary: null,
+                secondaryFull: null,
             },
             submitModel: {
                 submitType: 'person',
@@ -388,7 +428,9 @@ export default {
         if (this.isViewInternal) {
             data.schema.fields['historical'] = this.createMultiSelect(
                 'Historical',
-                {},
+                {
+                    styleClasses: 'has-warning',
+                },
                 {
                     customLabel: ({id, name}) => {
                         return name === 'true' ? 'Historical only' : 'Non-historical only'
@@ -397,7 +439,9 @@ export default {
             )
             data.schema.fields['modern'] = this.createMultiSelect(
                 'Modern',
-                {},
+                {
+                    styleClasses: 'has-warning',
+                },
                 {
                     customLabel: ({id, name}) => {
                         return name === 'true' ? 'Modern only' : 'Non-modern only'
@@ -479,16 +523,71 @@ export default {
             return columns
         },
     },
+    watch: {
+        'mergeModel.primary'() {
+            if (this.mergeModel.primary == null) {
+                this.mergeModel.primaryFull = null
+            }
+            else {
+                this.mergeModal = false
+                this.openRequests++
+                axios.get(this.urls['person_get'].replace('person_id', this.mergeModel.primary.id))
+                    .then( (response) => {
+                        this.mergeModel.primaryFull = response.data
+                        this.mergeModal = true
+                        this.openRequests--
+                    })
+                    .catch( (error) => {
+                        this.mergeModal = true
+                        this.openRequests--
+                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
+                        console.log(error)
+                    })
+            }
+        },
+        'mergeModel.secondary'() {
+            if (this.mergeModel.secondary == null) {
+                this.mergeModel.secondaryFull = null
+            }
+            else {
+                this.mergeModal = false
+                this.openRequests++
+                axios.get(this.urls['person_get'].replace('person_id', this.mergeModel.secondary.id))
+                    .then( (response) => {
+                        this.mergeModel.secondaryFull = response.data
+                        this.mergeModal = true
+                        this.openRequests--
+                    })
+                    .catch( (error) => {
+                        this.mergeModal = true
+                        this.openRequests--
+                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
+                        console.log(error)
+                    })
+            }
+        },
+    },
     methods: {
         merge(row) {
-            this.mergeModel.primary = JSON.parse(JSON.stringify(this.persons.filter(person => person.id === row.id)[0]))
-            this.mergeModel.secondary = null
-            this.mergePersonSchema.fields.primary.values = this.persons
-            this.mergePersonSchema.fields.secondary.values = this.persons
-            this.enableField(this.mergePersonSchema.fields.primary)
-            this.enableField(this.mergePersonSchema.fields.secondary)
-            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
-            this.mergeModal = true
+            this.openRequests++
+            axios.get(this.urls['persons_get'])
+                .then( (response) => {
+                    this.persons = response.data
+                    this.openRequests--
+                    this.mergeModel.primary = JSON.parse(JSON.stringify(this.persons.filter(person => person.id === row.id)[0]))
+                    this.mergeModel.secondary = null
+                    this.mergePersonSchema.fields.primary.values = this.persons
+                    this.mergePersonSchema.fields.secondary.values = this.persons
+                    this.enableField(this.mergePersonSchema.fields.primary)
+                    this.enableField(this.mergePersonSchema.fields.secondary)
+                    this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
+                    this.mergeModal = true
+                })
+                .catch( (error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
+                    console.log(error)
+                })
         },
         del(row) {
             this.submitModel.person = {

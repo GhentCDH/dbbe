@@ -197,6 +197,18 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.entity_management on original_poem.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(

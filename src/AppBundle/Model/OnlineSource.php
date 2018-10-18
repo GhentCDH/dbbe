@@ -13,9 +13,6 @@ class OnlineSource extends Entity
      */
     const CACHENAME = 'online_source';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * @var string
      */
@@ -123,20 +120,5 @@ class OnlineSource extends Entity
         $result['title'] = $this->name;
 
         return $result;
-    }
-
-    /**
-     * @param  array        $data
-     * @return OnlineSource
-     */
-    public static function unlinkCache(array $data)
-    {
-        $onlineSource = new OnlineSource($data['id'], $data['url'], $data['name'], $data['lastAccessed']);
-
-        foreach ($data as $key => $value) {
-            $onlineSource->set($key, $value);
-        }
-
-        return $onlineSource;
     }
 }

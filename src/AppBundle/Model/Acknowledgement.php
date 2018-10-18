@@ -10,6 +10,4 @@ class Acknowledgement extends IdNameObject
      * @var string
      */
     const CACHENAME = 'acknowledgement';
-
-    use CacheLinkTrait;
 }

@@ -40,20 +40,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         return $this->client->getIndex($this->indexPrefix . '_'. $this->indexName);
     }
 
-    protected function bulkAdd(array $indexingContents)
-    {
-        $bulk_documents = [];
-        while (count($indexingContents) > 0) {
-            $bulk_contents = array_splice($indexingContents, 0, 500);
-            foreach ($bulk_contents as $bc) {
-                $bulk_documents[] = new Document($bc['id'], $bc);
-            }
-            $this->type->addDocuments($bulk_documents);
-            $bulk_documents = [];
-        }
-        $this->type->getIndex()->refresh();
-    }
-
     protected function search(array $params = null): array
     {
         // Construct query

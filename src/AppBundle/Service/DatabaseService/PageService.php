@@ -18,7 +18,6 @@ class PageService extends DatabaseService
 
     public function update(int $userid, string $slug, string $title, string $content): int
     {
-        var_dump($content);
         return $this->conn->executeUpdate(
             'INSERT INTO logic.page (iduser, revision, slug, title, content)
             values (

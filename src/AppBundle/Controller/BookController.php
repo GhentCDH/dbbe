@@ -8,8 +8,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use AppBundle\Utils\ArrayToJson;
-
 class BookController extends BaseController
 {
     /**
@@ -69,6 +67,19 @@ class BookController extends BaseController
     public function getDepsByRole(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
+    }
+
+    /**
+     * Get all books that have a dependency on a management collection
+     * (reference)
+     * @Route("/books/managements/{id}", name="book_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
@@ -144,21 +155,11 @@ class BookController extends BaseController
                     'book' => empty($id)
                         ? null
                         : $this->get('book_manager')->getFull($id)->getJson(),
-                    'modernPersons' => ArrayToJson::arrayToShortJson(
-                        $this->get('person_manager')->getAllModernPersons()
-                    ),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
-                'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('identifier_manager')->getIdentifiersByType('book')
-                    )
-                ),
-                'roles' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('role_manager')->getRolesByType('book')
-                    )
-                ),
+                'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('book')),
+                'roles' => json_encode($this->get('role_manager')->getByTypeJson('book')),
             ]
         );
     }

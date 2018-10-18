@@ -13,8 +13,6 @@ class Occurrence extends Poem
      */
     const CACHENAME = 'occurrence';
 
-    use CacheLinkTrait;
-
     /**
      * @var string
      */

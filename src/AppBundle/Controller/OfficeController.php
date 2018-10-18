@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class OfficeController extends BaseController
 {
     /**
@@ -82,12 +80,8 @@ class OfficeController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([
-                    'offices' => ArrayToJson::arrayToJson(
-                        $this->get('office_manager')->getAll()
-                    ),
-                    'regions' => ArrayToJson::arrayToShortJson(
-                        $this->get('region_manager')->getAll()
-                    ),
+                    'offices' => $this->get('office_manager')->getAllJson(),
+                    'regions' => $this->get('region_manager')->getAllShortJson(),
                 ]),
             ]
         );

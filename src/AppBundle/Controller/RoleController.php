@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Utils\ArrayToJson;
-
 class RoleController extends Controller
 {
     /**
@@ -26,9 +24,7 @@ class RoleController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('role_manager')->getAllRoles()
-                )
+                $this->get('role_manager')->getAllRolesJson()
             );
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -66,9 +62,7 @@ class RoleController extends Controller
                     'login' => $this->generateUrl('login'),
                 ]),
                 'roles' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('role_manager')->getAllRoles()
-                    )
+                    $this->get('role_manager')->getAllRolesJson()
                 ),
             ]
         );

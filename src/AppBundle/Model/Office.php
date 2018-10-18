@@ -11,9 +11,6 @@ class Office extends IdNameObject
      */
     const CACHENAME = 'office';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * @var RegionWithParents
      */
@@ -54,20 +51,5 @@ class Office extends IdNameObject
         $result['regionWithParents'] = $this->regionWithParents;
 
         return $result;
-    }
-
-    public static function unlinkCache(array $data)
-    {
-        $office = new Office(
-            $data['id'],
-            isset($data['name']) ? $data['name'] : null,
-            isset($data['regionWithParents']) ? $data['regionWithParents'] : null
-        );
-
-        foreach ($data as $key => $value) {
-            $office->set($key, $value);
-        }
-
-        return $office;
     }
 }

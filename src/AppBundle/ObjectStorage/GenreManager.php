@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use stdClass;
 use Exception;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -24,17 +26,8 @@ class GenreManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Genre::CACHENAME,
-            $ids,
-            function ($ids) {
-                $genres = [];
-                $rawGenres = $this->dbs->getGenresByIds($ids);
-                $genres = $this->getWithData($rawGenres);
-
-                return $genres;
-            }
-        );
+        $rawGenres = $this->dbs->getGenresByIds($ids);
+        return $this->getWithData($rawGenres);
     }
 
     /**
@@ -44,22 +37,43 @@ class GenreManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Genre::CACHENAME,
-            $data,
-            'genre_id',
-            function ($data) {
-                $genres = [];
-                foreach ($data as $rawGenre) {
-                    if (isset($rawGenre['genre_id']) && !isset($genres[$rawGenre['genre_id']])) {
-                        $genres[$rawGenre['genre_id']] = new Genre(
-                            $rawGenre['genre_id'],
-                            $rawGenre['name']
-                        );
-                    }
-                }
+        $genres = [];
+        foreach ($data as $rawGenre) {
+            if (isset($rawGenre['genre_id']) && !isset($genres[$rawGenre['genre_id']])) {
+                $genres[$rawGenre['genre_id']] = new Genre(
+                    $rawGenre['genre_id'],
+                    $rawGenre['name']
+                );
+            }
+        }
 
-                return $genres;
+        return $genres;
+    }
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'genre_id');
+        $genres = $this->get($ids);
+
+        // Sort by name
+        usort($genres, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $genres;
+    }
+
+    /**
+     * Get all genres with minimal information
+     * @return array
+     */
+    public function getAllShortJson(): array
+    {
+        return $this->wrapArrayCache(
+            'genres',
+            ['genres'],
+            function () {
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
     }
@@ -68,39 +82,9 @@ class GenreManager extends ObjectManager
      * Get all genres with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
-            'genres',
-            ['genres'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'genre_id');
-                $genres = $this->get($ids);
-
-                // Sort by name
-                usort($genres, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $genres;
-            }
-        );
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Genre::CACHENAME, $id);
-        }
-
-        $this->get($ids);
-
-        $this->cache->invalidateTags(['genres']);
+        return ArrayToJson::arrayToJson($genres);
     }
 
     /**
@@ -125,7 +109,6 @@ class GenreManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['genres']);
 
             // commit transaction
@@ -164,18 +147,19 @@ class GenreManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Genre::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['genres']);
+
             // update Elastic occurrences
-            $occurrences = $this->container->get('occurrence_manager')->getGenreDependencies($id, true);
-            $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            $occurrenceIds = $this->container->get('occurrence_manager')->getGenreDependencies($id, 'getId');
+            $this->container->get('occurrence_manager')->updateElasticByIds($occurrenceIds);
 
             // update Elastic types
-            $types = $this->container->get('type_manager')->getGenreDependencies($id, true);
-            $this->container->get('type_manager')->elasticIndex($types);
+            $typeIds = $this->container->get('type_manager')->getGenreDependencies($id, 'getId');
+            $this->container->get('type_manager')->updateElasticByIds($typeIds);
 
             // commit transaction
             $this->dbs->commit();
@@ -203,11 +187,9 @@ class GenreManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // empty cache
-            $this->deleteCache(Genre::CACHENAME, $id);
-            $this->cache->invalidateTags(['genres']);
-
             $this->updateModified($old, null);
+
+            $this->cache->invalidateTags(['genres']);
 
             // commit transaction
             $this->dbs->commit();

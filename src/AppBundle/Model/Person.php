@@ -13,8 +13,6 @@ class Person extends Entity implements SubjectInterface
      */
     const CACHENAME = 'person';
 
-    use CacheLinkTrait;
-
     /**
      * @var string
      */

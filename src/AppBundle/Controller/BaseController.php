@@ -60,9 +60,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            ArrayToJson::arrayToJson(
-                $this->get(static::MANAGER)->getAll()
-            )
+            $this->get(static::MANAGER)->getAllJson()
         );
     }
 

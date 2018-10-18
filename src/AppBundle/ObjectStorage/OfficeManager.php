@@ -26,17 +26,8 @@ class OfficeManager extends ObjectManager
      */
     public function get(array $ids)
     {
-        return $this->wrapCache(
-            Office::CACHENAME,
-            $ids,
-            function ($ids) {
-                $offices = [];
-                $rawOffices = $this->dbs->getOfficesByIds($ids);
-                $offices = $this->getWithData($rawOffices);
-
-                return $offices;
-            }
-        );
+        $rawOffices = $this->dbs->getOfficesByIds($ids);
+        return $this->getWithData($rawOffices);
     }
 
     /**
@@ -46,32 +37,25 @@ class OfficeManager extends ObjectManager
      */
     public function getWithData(array $data)
     {
-        return $this->wrapDataCache(
-            Office::CACHENAME,
-            $data,
-            'office_id',
-            function ($data) {
-                $offices = [];
+        $offices = [];
 
-                $regionIds = self::getUniqueIds($data, 'region_id');
-                $regionIds = array_filter($regionIds, function ($regionId) {
-                    return $regionId != null;
-                });
-                $regionsWithParents = $this->container->get('region_manager')->getWithParents($regionIds);
+        $regionIds = self::getUniqueIds($data, 'region_id');
+        $regionIds = array_filter($regionIds, function ($regionId) {
+            return $regionId != null;
+        });
+        $regionsWithParents = $this->container->get('region_manager')->getWithParents($regionIds);
 
-                foreach ($data as $rawOffice) {
-                    if (isset($rawOffice['office_id']) && !isset($offices[$rawOffice['office_id']])) {
-                        $offices[$rawOffice['office_id']] = new Office(
-                            $rawOffice['office_id'],
-                            $rawOffice['name'] !== '' ? $rawOffice['name'] : null,
-                            $rawOffice['region_id'] ? $regionsWithParents[$rawOffice['region_id']] : null
-                        );
-                    }
-                }
-
-                return $offices;
+        foreach ($data as $rawOffice) {
+            if (isset($rawOffice['office_id']) && !isset($offices[$rawOffice['office_id']])) {
+                $offices[$rawOffice['office_id']] = new Office(
+                    $rawOffice['office_id'],
+                    $rawOffice['name'] !== '' ? $rawOffice['name'] : null,
+                    $rawOffice['region_id'] ? $regionsWithParents[$rawOffice['region_id']] : null
+                );
             }
-        );
+        }
+
+        return $offices;
     }
 
     /**
@@ -81,64 +65,63 @@ class OfficeManager extends ObjectManager
      */
     public function getWithParents(array $ids)
     {
-        return $this->wrapCache(
-            OfficeWithParents::CACHENAME,
-            $ids,
-            function ($ids) {
-                $officesWithParents = [];
-                $rawOfficesWithParents = $this->dbs->getOfficesWithParentsByIds($ids);
+        $officesWithParents = [];
+        $rawOfficesWithParents = $this->dbs->getOfficesWithParentsByIds($ids);
 
-                foreach ($rawOfficesWithParents as $rawOfficeWithParents) {
-                    $ids = json_decode($rawOfficeWithParents['ids']);
-                    $names = json_decode($rawOfficeWithParents['names']);
-                    $regionIds = json_decode($rawOfficeWithParents['regions']);
+        foreach ($rawOfficesWithParents as $rawOfficeWithParents) {
+            $ids = json_decode($rawOfficeWithParents['ids']);
+            $names = json_decode($rawOfficeWithParents['names']);
+            $regionIds = json_decode($rawOfficeWithParents['regions']);
 
-                    $rawOffices = [];
-                    foreach (array_keys($ids) as $key) {
-                        $rawOffices[] = [
-                            'office_id' => (int)$ids[$key],
-                            'name' => $names[$key],
-                            'region_id' => $regionIds[$key],
-                        ];
-                    }
-
-                    $offices = $this->getWithData($rawOffices);
-
-                    $orderedOffices = [];
-                    foreach ($ids as $id) {
-                        $orderedOffices[] = $offices[(int)$id];
-                    }
-
-                    $officeWithParents = new OfficeWithParents($orderedOffices);
-
-                    $officesWithParents[$officeWithParents->getId()] = $officeWithParents;
-                }
-
-                return $officesWithParents;
+            $rawOffices = [];
+            foreach (array_keys($ids) as $key) {
+                $rawOffices[] = [
+                    'office_id' => (int)$ids[$key],
+                    'name' => $names[$key],
+                    'region_id' => $regionIds[$key],
+                ];
             }
-        );
+
+            $offices = $this->getWithData($rawOffices);
+
+            $orderedOffices = [];
+            foreach ($ids as $id) {
+                $orderedOffices[] = $offices[(int)$id];
+            }
+
+            $officeWithParents = new OfficeWithParents($orderedOffices);
+
+            $officesWithParents[$officeWithParents->getId()] = $officeWithParents;
+        }
+
+        return $officesWithParents;
+    }
+
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'office_id');
+        $officesWithParents = $this->getWithParents($ids);
+
+        // Sort by name
+        usort($officesWithParents, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $officesWithParents;
     }
 
     /**
      * Get all offices with parents with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllJson(): array
     {
         return $this->wrapArrayCache(
             'offices_with_parents',
             ['offices'],
             function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'office_id');
-                $officesWithParents = $this->getWithParents($ids);
-
-                // Sort by name
-                usort($officesWithParents, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $officesWithParents;
+                return ArrayToJson::arrayToJson($this->getAll());
             }
         );
     }
@@ -171,20 +154,6 @@ class OfficeManager extends ObjectManager
     public function getRegionDependenciesWithChildren(int $regionId): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByRegionIdWithChildren($regionId), 'getWithParents');
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Office::CACHENAME, $id);
-            $this->deleteCache(OfficeWithParents::CACHENAME, $id);
-        }
-
-        $this->getWithParents($ids);
     }
 
     /**
@@ -245,7 +214,6 @@ class OfficeManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['offices']);
 
             // commit transaction
@@ -351,15 +319,15 @@ class OfficeManager extends ObjectManager
             }
 
             // load new office data
-            $this->deleteCache(Office::CACHENAME, $id);
-            $this->deleteCache(OfficeWithParents::CACHENAME, $id);
             $new = $this->getWithParents([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['offices']);
+
             // update Elastic persons
-            $persons = $this->container->get('person_manager')->getOfficeDependenciesWithChildren($id, true);
-            $this->container->get('person_manager')->elasticIndex($persons);
+            $personIds = $this->container->get('person_manager')->getOfficeDependenciesWithChildren($id, 'getId');
+            $this->container->get('person_manager')->updateElasticByIds($personIds);
 
             // commit transaction
             $this->dbs->commit();
@@ -393,7 +361,7 @@ class OfficeManager extends ObjectManager
         }
         list($primary, $secondary) = array_values($officesWithParents);
 
-        $persons = $this->container->get('person_manager')->getOfficeDependencies($secondaryId, true);
+        $persons = $this->container->get('person_manager')->getOfficeDependencies($secondaryId, 'getShort');
         $offices = $this->getOfficesWithParentsByOffice($secondaryId);
 
         $this->dbs->beginTransaction();
@@ -428,14 +396,9 @@ class OfficeManager extends ObjectManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset caches and elasticsearch
-            $this->reset([$primaryId]);
-            $this->cache->invalidateTags(['offices']);
+            // Reset elasticsearch
             if (!empty($persons)) {
-                $this->container->get('person_manager')->reset(self::getIds($persons));
-            }
-            if (!empty($offices)) {
-                $this->reset(self::getIds($offices));
+                $this->container->get('person_manager')->updateElasticByIds(self::getIds($persons));
             }
 
             throw $e;
@@ -460,12 +423,9 @@ class OfficeManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // clear cache
-            $this->deleteCache(Office::CACHENAME, $id);
-            $this->deleteCache(OfficeWithParents::CACHENAME, $id);
-            $this->cache->invalidateTags(['offices']);
-
             $this->updateModified($old, null);
+
+            $this->cache->invalidateTags(['offices']);
 
             // commit transaction
             $this->dbs->commit();

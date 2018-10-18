@@ -6,9 +6,6 @@ use ReflectionClass;
 
 class IdNameObjectWithParents implements IdJsonInterface
 {
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     protected $array;
 
     public function __construct(array $array)
@@ -107,16 +104,5 @@ class IdNameObjectWithParents implements IdJsonInterface
         $child = end($this->array);
         reset($this->array);
         return $child;
-    }
-
-    public static function unlinkCache(array $data)
-    {
-        $idNameObjectWithParents = (new ReflectionClass(static::class))->newInstance($data['array']);
-
-        foreach ($data as $key => $value) {
-            $idNameObjectWithParents->set($key, $value);
-        }
-
-        return $idNameObjectWithParents;
     }
 }

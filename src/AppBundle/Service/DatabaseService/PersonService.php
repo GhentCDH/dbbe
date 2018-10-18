@@ -135,6 +135,45 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByManuscriptId(int $manuscriptId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.bibrole on person.identity = bibrole.idperson
+            inner join data.manuscript on bibrole.iddocument = manuscript.identity
+            where manuscript.identity = ?',
+            [$manuscriptId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByOccurrenceId(int $occurrenceId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.bibrole on person.identity = bibrole.idperson
+            inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
+            where reconstructed_poem.identity = ?',
+            [$occurrenceId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByTypeId(int $typeId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.bibrole on person.identity = bibrole.idperson
+            inner join data.original_poem on bibrole.iddocument = original_poem.identity
+            where original_poem.identity = ?',
+            [$typeId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByArticleId(int $articleId): array
     {
         return $this->conn->executeQuery(
@@ -184,6 +223,18 @@ class PersonService extends EntityService
             inner join data.online_source on reference.idsource = online_source.identity
             where online_source.identity = ?',
             [$onlineSourceId]
+        )->fetchAll();
+    }
+
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.entity_management on person.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
         )->fetchAll();
     }
 

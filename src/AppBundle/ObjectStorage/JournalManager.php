@@ -24,26 +24,30 @@ class JournalManager extends DocumentManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Journal::CACHENAME,
-            $ids,
-            function ($ids) {
-                $journals = [];
-                $rawJournals = $this->dbs->getJournalsByIds($ids);
+        $journals = [];
+        $rawJournals = $this->dbs->getJournalsByIds($ids);
 
-                foreach ($rawJournals as $rawJournal) {
-                    $journals[$rawJournal['journal_id']] = new Journal(
-                        $rawJournal['journal_id'],
-                        $rawJournal['title'],
-                        $rawJournal['year'],
-                        $rawJournal['volume'],
-                        $rawJournal['number']
-                    );
-                }
+        foreach ($rawJournals as $rawJournal) {
+            $journals[$rawJournal['journal_id']] = new Journal(
+                $rawJournal['journal_id'],
+                $rawJournal['title'],
+                $rawJournal['year'],
+                $rawJournal['volume'],
+                $rawJournal['number']
+            );
+        }
 
-                return $journals;
-            }
-        );
+        return $journals;
+    }
+
+    /**
+     * Get all journals with minimal information
+     * @param  string|null $sortFunction Name of the optional method to call for sorting
+     * @return array
+     */
+    public function getAllShortJson(string $sortFunction = null): array
+    {
+        return parent::getAllShortJson($sortFunction == null ? 'getTitle' : $sortFunction);
     }
 
     /**
@@ -51,9 +55,9 @@ class JournalManager extends DocumentManager
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
-    public function getAll(string $sortFunction = null): array
+    public function getAllJson(string $sortFunction = null): array
     {
-        return parent::getAll($sortFunction == null ? 'getTitle' : $sortFunction);
+        return parent::getAllJson($sortFunction == null ? 'getTitle' : $sortFunction);
     }
 
     /**
@@ -85,7 +89,6 @@ class JournalManager extends DocumentManager
 
             $this->updateModified(null, $newOffice);
 
-            // update cache
             $this->cache->invalidateTags(['journals']);
 
             // commit transaction
@@ -146,7 +149,6 @@ class JournalManager extends DocumentManager
             }
 
             // load new data
-            $this->deleteCache(Journal::CACHENAME, $id);
             $newJournal = $this->get([$id])[$id];
 
             $this->updateModified($journals[$id], $newJournal);
@@ -177,8 +179,6 @@ class JournalManager extends DocumentManager
 
             $this->dbs->delete($id);
 
-            // clear cache
-            $this->deleteCache(Journal::CACHENAME, $id);
             $this->cache->invalidateTags(['journals']);
 
             $this->updateModified($journal, null);

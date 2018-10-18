@@ -11,9 +11,6 @@ abstract class Bibliography
      */
     const CACHENAME = 'bibliography';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * @var int
      */
@@ -73,15 +70,4 @@ abstract class Bibliography
     abstract public function getDescription(): string;
 
     abstract public function getShortJson(): array;
-
-    public static function unlinkCache(array $data)
-    {
-        $object = (new ReflectionClass(static::class))->newInstance($data['id']);
-
-        foreach ($data as $key => $value) {
-            $object->set($key, $value);
-        }
-
-        return $object;
-    }
 }

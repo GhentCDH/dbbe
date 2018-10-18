@@ -210,6 +210,18 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.entity_management on reconstructed_poem.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
+
     public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(

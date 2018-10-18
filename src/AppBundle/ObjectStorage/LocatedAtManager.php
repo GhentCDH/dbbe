@@ -14,26 +14,20 @@ class LocatedAtManager extends ObjectManager
 {
     public function get(array $documentIds): array
     {
-        return $this->wrapCache(
-            LocatedAt::CACHENAME,
-            $documentIds,
-            function ($documentIds) {
-                $locatedAts = [];
-                $rawLocatedAts = $this->dbs->getLocatedAtsByIds($documentIds);
-                $locationIds = self::getUniqueIds($rawLocatedAts, 'location_id');
-                $locations = $this->container->get('location_manager')->get($locationIds);
+        $locatedAts = [];
+        $rawLocatedAts = $this->dbs->getLocatedAtsByIds($documentIds);
+        $locationIds = self::getUniqueIds($rawLocatedAts, 'location_id');
+        $locations = $this->container->get('location_manager')->get($locationIds);
 
-                foreach ($rawLocatedAts as $rawLocatedAt) {
-                    $locatedAts[$rawLocatedAt['locatedat_id']] = (new LocatedAt())
-                        ->setId($rawLocatedAt['locatedat_id'])
-                        ->setLocation($locations[$rawLocatedAt['location_id']])
-                        ->setShelf($rawLocatedAt['shelf'])
-                        ->setExtra($rawLocatedAt['extra']);
-                }
+        foreach ($rawLocatedAts as $rawLocatedAt) {
+            $locatedAts[$rawLocatedAt['locatedat_id']] = (new LocatedAt())
+                ->setId($rawLocatedAt['locatedat_id'])
+                ->setLocation($locations[$rawLocatedAt['location_id']])
+                ->setShelf($rawLocatedAt['shelf'])
+                ->setExtra($rawLocatedAt['extra']);
+        }
 
-                return $locatedAts;
-            }
-        );
+        return $locatedAts;
     }
 
     public function addLocatedAt(int $locatedAtId, stdClass $data): LocatedAt
@@ -56,10 +50,8 @@ class LocatedAtManager extends ObjectManager
 
             // load new locationAt data
             $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
-            $this->updateModified(null, $newLocatedAt);
 
-            // update cache
-            $this->setCache([$newLocatedAt->getId() => $newLocatedAt], LocatedAt::CACHENAME);
+            $this->updateModified(null, $newLocatedAt);
 
             // commit transaction
             $this->dbs->commit();
@@ -108,8 +100,8 @@ class LocatedAtManager extends ObjectManager
             }
 
             // load new locationAt data
-            $this->deleteCache(LocatedAt::CACHENAME, $locatedAtId);
             $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
+            
             $this->updateModified($locatedAt, $newLocatedAt);
 
             // commit transaction

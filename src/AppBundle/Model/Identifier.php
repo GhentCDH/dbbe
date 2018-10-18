@@ -6,8 +6,6 @@ class Identifier extends IdNameObject
 {
     const CACHENAME = 'identifier';
 
-    use CacheLinkTrait;
-
     private $systemName;
     private $primary;
     private $volumes;

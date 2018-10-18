@@ -9,8 +9,6 @@ class Role extends IdNameObject
 {
     const CACHENAME = 'role';
 
-    use CacheLinkTrait;
-
     private $usage;
     private $systemName;
 

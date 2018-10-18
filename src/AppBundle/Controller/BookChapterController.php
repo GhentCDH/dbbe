@@ -2,8 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Utils\ArrayToJson;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -82,6 +80,19 @@ class BookChapterController extends BaseController
     }
 
     /**
+     * Get all book chapters that have a dependency on a management collection
+     * (reference)
+     * @Route("/bookchapters/managements/{id}", name="book_chapter_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
+    }
+
+    /**
      * @Route("/bookchapters", name="book_chapter_post")
      * @Method("POST")
      * @param Request $request
@@ -141,38 +152,26 @@ class BookChapterController extends BaseController
         return $this->render(
             self::TEMPLATE_FOLDER . 'edit.html.twig',
             [
+                // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
                 'urls' => json_encode([
-                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => $id == null ? 'book_chapter_id' : $id]),
                     'book_chapter_post' => $this->generateUrl('book_chapter_post'),
                     'book_chapter_put' => $this->generateUrl('book_chapter_put', ['id' => $id == null ? 'book_chapter_id' : $id]),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
-                    // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode([
                     'bookChapter' => empty($id)
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'modernPersons' => ArrayToJson::arrayToShortJson(
-                        $this->get('person_manager')->getAllModernPersons()
-                    ),
-                    'books' => ArrayToJson::arrayToShortJson(
-                        $this->get('book_manager')->getAllMini()
-                    ),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
+                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
-                'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('identifier_manager')->getIdentifiersByType('bookChapter')
-                    )
-                ),
-                'roles' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('role_manager')->getRolesByType('bookChapter')
-                    )
-                ),
+                'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('bookChapter')),
+                'roles' => json_encode($this->get('role_manager')->getByTypeJson('bookChapter')),
+                // @codingStandardsIgnoreEnd
             ]
         );
     }

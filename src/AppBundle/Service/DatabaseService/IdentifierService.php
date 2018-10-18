@@ -26,7 +26,7 @@ class IdentifierService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getIdentifiersByType(string $type): array
+    public function getByType(string $type): array
     {
         return $this->conn->executeQuery(
             'SELECT

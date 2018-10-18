@@ -61,6 +61,18 @@ class OnlineSourceService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                online_source.identity as online_source_id
+            from data.online_source
+            inner join data.entity_management on online_source.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
+
     /**
      * @param  string $url
      * @param  string $name

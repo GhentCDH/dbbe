@@ -4,54 +4,41 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Identifier;
 
+use AppBundle\Utils\ArrayToJson;
+
 class IdentifierManager extends ObjectManager
 {
     public function get(array $ids)
     {
-        return $this->wrapCache(
-            Identifier::CACHENAME,
-            $ids,
-            function ($ids) {
-                $rawIdentifiers = $this->dbs->getIdentifiersByIds($ids);
-                $identifiers = $this->getWithData($rawIdentifiers);
-
-                return $identifiers;
-            }
-        );
+        $rawIdentifiers = $this->dbs->getIdentifiersByIds($ids);
+        $identifiers = $this->getWithData($rawIdentifiers);
     }
 
     public function getWithData(array $data)
     {
-        return $this->wrapDataCache(
-            Identifier::CACHENAME,
-            $data,
-            'identifier_id',
-            function ($data) {
-                $identifiers = [];
-                foreach ($data as $rawIdentifier) {
-                    if (isset($rawIdentifier['identifier_id'])
-                        && !isset($identifiers[$rawIdentifier['identifier_id']])
-                    ) {
-                        $identifiers[$rawIdentifier['identifier_id']] = new Identifier(
-                            $rawIdentifier['identifier_id'],
-                            $rawIdentifier['system_name'],
-                            $rawIdentifier['name'],
-                            $rawIdentifier['is_primary'],
-                            $rawIdentifier['link'],
-                            $rawIdentifier['volumes'],
-                            $rawIdentifier['regex'],
-                            $rawIdentifier['description'],
-                            $rawIdentifier['extra']
-                        );
-                    }
-                }
-
-                return $identifiers;
+        $identifiers = [];
+        foreach ($data as $rawIdentifier) {
+            if (isset($rawIdentifier['identifier_id'])
+                && !isset($identifiers[$rawIdentifier['identifier_id']])
+            ) {
+                $identifiers[$rawIdentifier['identifier_id']] = new Identifier(
+                    $rawIdentifier['identifier_id'],
+                    $rawIdentifier['system_name'],
+                    $rawIdentifier['name'],
+                    $rawIdentifier['is_primary'],
+                    $rawIdentifier['link'],
+                    $rawIdentifier['volumes'],
+                    $rawIdentifier['regex'],
+                    $rawIdentifier['description'],
+                    $rawIdentifier['extra']
+                );
             }
-        );
+        }
+
+        return $identifiers;
     }
 
-    public function getIdentifiersByType(string $type): array
+    public function getByType(string $type): array
     {
         return $this->wrapArrayTypeCache(
             'identifiers',
@@ -59,7 +46,7 @@ class IdentifierManager extends ObjectManager
             ['identifiers'],
             function ($type) {
                 $identifiers = [];
-                $rawIdentifiers = $this->dbs->getIdentifiersByType($type);
+                $rawIdentifiers = $this->dbs->getByType($type);
 
                 // Keys in this array must be systemnames as they are used in queries
                 $identifiersWithId = $this->getWithData($rawIdentifiers);
@@ -72,17 +59,45 @@ class IdentifierManager extends ObjectManager
         );
     }
 
-    public function getPrimaryIdentifiersByType(string $type): array
+    public function getByTypeJson(string $type): array
     {
-        return array_filter($this->getIdentifiersByType($type), function ($identifier) {
-            return $identifier->getPrimary();
-        });
+        return $this->wrapArrayTypeCache(
+            'identifiers_json',
+            $type,
+            ['identifiers'],
+            function ($type) {
+                return ArrayToJson::arrayToJson($this->getByType($type));
+            }
+        );
     }
 
-    public function getSecondaryIdentifiersByType(string $type): array
+    public function getPrimaryByType(string $type): array
     {
-        return array_filter($this->getIdentifiersByType($type), function ($identifier) {
-            return !$identifier->getPrimary();
-        });
+        return $this->wrapArrayTypeCache(
+            'primary_identifiers',
+            $type,
+            ['identifiers'],
+            function ($type) {
+                return array_filter($this->getByType($type), function ($identifier) {
+                    return $identifier->getPrimary();
+                });
+            }
+        );
+    }
+
+    public function getPrimaryByTypeJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            'primary_identifiers_json',
+            $type,
+            ['identifiers'],
+            function ($type) {
+                return ArrayToJson::arrayToJson(
+                    array_filter($this->getByType($type), function ($identifier) {
+                        return $identifier->getPrimary();
+                    })
+                );
+            }
+        );
     }
 }

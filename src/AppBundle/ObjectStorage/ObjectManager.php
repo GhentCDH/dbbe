@@ -9,8 +9,6 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-
-use AppBundle\Model\CacheObject;
 use AppBundle\Model\IdJsonInterface;
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
@@ -45,251 +43,26 @@ class ObjectManager
 
     protected function getDependencies(array $rawIds, string $method): array
     {
-        return $this->{$method}(self::getUniqueIds($rawIds, $this->entityType . '_id'));
-    }
-
-    protected function setCache(array $items, string $cacheKey): void
-    {
-        foreach ($items as $id => $item) {
-            $cache = $this->cache->getItem($cacheKey . '.' . $id);
-            $this->cache->save($cache->set($this->linkCache($item)));
+        if ($method == 'getId') {
+            return self::getUniqueIds($rawIds, $this->entityType . '_id');
         }
+        return $this->{$method}(self::getUniqueIds($rawIds, $this->entityType . '_id'));
     }
 
     protected function setArrayCache(array $items, string $cacheKey, array $tags): void
     {
         $cache = $this->cache->getItem($cacheKey);
         $cache->tag($tags);
-        $this->cache->save($cache->set($this->createCache($items)));
-    }
-
-    private function linkCache($item)
-    {
-        if (is_object($item) && method_exists($item, 'get')) {
-            $data = [];
-            foreach ($item->get() as $key => $value) {
-                if (isset($value) && (!is_array($value) || !empty($value))) {
-                    $data[$key] = $this->createCache($value);
-                }
-            }
-            return new CacheObject(
-                get_class($item),
-                $data
-            );
-        }
-        return $item;
-    }
-
-    private function createCache($item)
-    {
-        if (is_object($item) && method_exists($item, 'getCacheLink')) {
-            return $item->getCacheLink();
-        }
-        if (is_object($item) && method_exists($item, 'get')) {
-            return $this->linkCache($item);
-        }
-        if (is_array($item)) {
-            return array_map(
-                function ($element) {
-                    return $this->createCache($element);
-                },
-                $item
-            );
-        }
-
-        return $item;
-    }
-
-    protected function getCache(array $ids, string $cacheKey): array
-    {
-        $cached = [];
-
-        foreach ($ids as $key => $id) {
-            $cache = $this->cache->getItem($cacheKey . '.' . $id);
-            if ($cache->isHit()) {
-                $cached[$id] = $this->unlinkCache($cache->get());
-                unset($ids[$key]);
-            }
-        }
-
-        return [$cached, $ids];
-    }
-
-    protected function getSingleCache($id, string $cacheKey)
-    {
-        $cache = $this->cache->getItem($cacheKey . '.' . $id);
-        if ($cache->isHit()) {
-            return $this->unlinkCache($cache->get());
-        }
-        return null;
+        $this->cache->save($cache->set($items));
     }
 
     protected function getArrayCache(string $cacheKey)
     {
         $cache = $this->cache->getItem($cacheKey);
         if ($cache->isHit()) {
-            return $this->resolveCache($cache->get());
+            return $cache->get();
         }
         return null;
-    }
-
-    protected function unlinkCache($item)
-    {
-        if (is_object($item) && is_a($item, CacheObject::class)) {
-            $data = $item->getData();
-            foreach ($data as $key => $value) {
-                $data[$key] = $this->resolveCache($value);
-            }
-            return $item->getClassName()::unlinkCache($data);
-        }
-        return $item;
-    }
-
-    private function resolveCache($item)
-    {
-        if (is_array($item)) {
-            foreach ($item as $index => $value) {
-                $item[$index] = $this->resolveCache($value);
-            }
-            return $item;
-        }
-        if (is_object($item) && is_a($item, CacheObject::class)) {
-            return $this->unlinkCache($item);
-        }
-        if (is_string($item) && preg_match('/^C:([\w_]+)(?::(\w+))?:(\d+)/', $item, $matches)) {
-            if (!empty($matches[2])) {
-                switch ($matches[2]) {
-                    case 'mini':
-                        return $this->container->get($matches[1] . '_manager')->getMini([$matches[3]])[$matches[3]];
-                        break;
-                    case 'short':
-                        return $this->container->get($matches[1] . '_manager')->getShort([$matches[3]])[$matches[3]];
-                        break;
-                    case 'full':
-                        return $this->container->get($matches[1] . '_manager')->getFull([$matches[3]]);
-                        break;
-                }
-            }
-            switch ($matches[1]) {
-                case 'content_with_parents':
-                    return $this->container->get('content_manager')->getWithParents([$matches[3]])[$matches[3]];
-                    break;
-                case 'office_with_parents':
-                    return $this->container->get('office_manager')->getWithParents([$matches[3]])[$matches[3]];
-                    break;
-                case 'region_with_parents':
-                    return $this->container->get('region_manager')->getWithParents([$matches[3]])[$matches[3]];
-                    break;
-                default:
-                    return $this->container->get($matches[1] . '_manager')->get([$matches[3]])[$matches[3]];
-                    break;
-            }
-        }
-        return $item;
-    }
-
-    protected function deleteCache(string $cacheKey, int $id): void
-    {
-        $this->cache->deleteItem($cacheKey . '.' . $id);
-    }
-
-    protected function wrapCache(string $cacheKey, array $ids, callable $function): array
-    {
-        list($cached, $ids) = $this->getCache($ids, $cacheKey);
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $objects = $function($ids);
-
-        $this->setCache($objects, $cacheKey);
-
-        return $cached + $objects;
-    }
-
-    protected function wrapSingleCache(string $cacheKey, $id, callable $function)
-    {
-        $cache = $this->getSingleCache($id, $cacheKey);
-        if (!is_null($cache)) {
-            return $cache;
-        }
-
-        $object = $function($id);
-
-        $this->setCache([$id => $object], $cacheKey);
-
-        return $object;
-    }
-
-    protected function wrapDataCache(string $cacheKey, array $data, string $idKey, callable $function): array
-    {
-        $ids = self::getUniqueIds($data, $idKey);
-        list($cached, $ids) = $this->getCache($ids, $cacheKey);
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $objects = $function($data);
-
-        $this->setCache($objects, $cacheKey);
-
-        return $cached + $objects;
-    }
-
-    protected function wrapLevelCache(string $cacheKey, string $cacheLevel, array $ids, callable $function): array
-    {
-        list($cached, $ids) = $this->getCache($ids, $cacheKey . '_' . $cacheLevel);
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $levelObjects = array_map(
-            function ($levelObject) use ($cacheLevel) {
-                $levelObject->setCacheLevel($cacheLevel);
-                return $levelObject;
-            },
-            $function($ids)
-        );
-
-        $this->setCache($levelObjects, $cacheKey . '_' . $cacheLevel);
-
-        return $cached + $levelObjects;
-    }
-
-    protected function wrapLevelDataCache(string $cacheKey, string $cacheLevel, array $data, string $idKey, callable $function): array
-    {
-        $ids = self::getUniqueIds($data, $idKey);
-        list($cached, $ids) = $this->getCache($ids, $cacheKey . '_' . $cacheLevel);
-        if (empty($ids)) {
-            return $cached;
-        }
-
-        $levelObjects = array_map(
-            function ($levelObject) use ($cacheLevel) {
-                $levelObject->setCacheLevel($cacheLevel);
-                return $levelObject;
-            },
-            $function($data)
-        );
-
-        $this->setCache($levelObjects, $cacheKey . '_' . $cacheLevel);
-
-        return $cached + $levelObjects;
-    }
-
-    protected function wrapSingleLevelCache(string $cacheKey, string $cacheLevel, int $id, callable $function)
-    {
-        $cache = $this->getSingleCache($id, $cacheKey . '_' . $cacheLevel);
-        if (!is_null($cache)) {
-            return $cache;
-        }
-
-        $levelObject = $function($id);
-        $levelObject->setCacheLevel($cacheLevel);
-
-        $this->setCache([$id => $levelObject], $cacheKey . '_' . $cacheLevel);
-
-        return $levelObject;
     }
 
     protected function wrapArrayCache(string $cacheKey, array $tags, callable $function): array
@@ -298,7 +71,6 @@ class ObjectManager
         if (!is_null($cache)) {
             return $cache;
         }
-
         $result = $function();
         $this->setArrayCache($result, $cacheKey, $tags);
         return $result;
@@ -310,69 +82,17 @@ class ObjectManager
         if (!is_null($cache)) {
             return $cache;
         }
-
         $result = $function($type);
-
         $this->setArrayCache($result, $cacheKey . '.' . $type, $tags);
         return $result;
     }
 
-    /**
-     * Clear specified cache level or all caches for an entity
-     * @param int        $id    Entity id
-     * @param array|null $range Cache level to be cleared
-     */
-    protected function clearCache(int $id, array $range = null): void
-    {
-        if (empty($range) || (isset($range['mini']) && $range['mini'])) {
-            $this->clearSpecificCaches($id, ['mini', 'short', 'full']);
-        } elseif (isset($range['short']) && $range['short']) {
-            $this->clearSpecificCaches($id, ['short', 'full']);
-        } elseif (isset($range['full']) && $range['full']) {
-            $this->clearSpecificCaches($id, ['full']);
-        }
-    }
-
-    /**
-     * Clear specific caches
-     * @param int   $id        Entity id
-     * @param array $specifics Names of the specific caches to be cleared
-     */
-    private function clearSpecificCaches(int $id, array $specifics): void
-    {
-        foreach ($specifics as $specific) {
-            $this->deleteCache($this->entityType . '_' . $specific, $id);
-        }
-    }
-
-    /**
-     * Clear cache and (re-)index elasticsearch
-     * When something goes wrong with an update
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->clearCache($id);
-        }
-
-        $this->elasticIndexByIds($ids);
-    }
-
-    /**
-     * (Re-)index elasticsearch
-     * @param array $shortEntities
-     */
-    public function elasticIndex(array $shortEntities): void
-    {
-        $this->ess->addMultiple($shortEntities);
-    }
 
     /**
      * (Re-)index elasticsearch
      * @param  array  $ids
      */
-    public function elasticIndexByIds(array $ids): void
+    public function updateElasticByIds(array $ids): void
     {
         $shorts = $this->getShort($ids);
         $delIds = array_diff($ids, array_keys($shorts));

@@ -2,8 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Utils\ArrayToJson;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,6 +49,19 @@ class OnlineSourceController extends BaseController
     public function getDepsByInstitution(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getInstitutionDependencies');
+    }
+
+    /**
+     * Get all online sources that have a dependency on a management collection
+     * (reference)
+     * @Route("/onlinesources/managements/{id}", name="online_source_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
@@ -127,17 +138,13 @@ class OnlineSourceController extends BaseController
                     'onlineSource' => empty($id)
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('identifier_manager')->getIdentifiersByType('onlineSource')
-                    )
+                    $this->get('identifier_manager')->getByTypeJson('onlineSource')
                 ),
                 'roles' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('role_manager')->getRolesByType('onlineSource')
-                    )
+                    $this->get('role_manager')->getByTypeJson('onlineSource')
                 ),
             ]
         );

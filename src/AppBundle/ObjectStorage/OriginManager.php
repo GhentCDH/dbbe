@@ -4,6 +4,8 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Origin;
 
+use AppBundle\Utils\ArrayToJson;
+
 class OriginManager extends ObjectManager
 {
     public function get(array $ids): array
@@ -16,51 +18,44 @@ class OriginManager extends ObjectManager
         );
     }
 
-    public function getOriginsForManuscripts(): array
+    public function getByType(string $type): array
     {
-        return $this->wrapArrayCache(
-            'origins_for_manuscripts',
-            ['regions', 'institutions'],
-            function () {
-                $origins = [];
+        switch ($type) {
+            case 'manuscript':
                 $rawOrigins = $this->dbs->getOriginIdsForManuscripts();
-                $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
-                $locations = $this->container->get('location_manager')->get($originIds);
-                foreach ($locations as $location) {
-                    $origins[$location->getId()] = Origin::fromLocation($location);
-                }
+                break;
+            case 'person':
+                $rawOrigins = $this->dbs->getOriginIdsForPersons();
+                break;
+        }
+        $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
+        $locations = $this->container->get('location_manager')->get($originIds);
+        foreach ($locations as $location) {
+            $origins[$location->getId()] = Origin::fromLocation($location);
+        }
 
-                // Sort by name
-                usort($origins, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
+        // Sort by name
+        usort($origins, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
-                return $origins;
+        return $origins;
+    }
+
+    public function getByTypeShortJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            $type . '_origins',
+            $type,
+            ['regions', 'institutions'],
+            function ($type) {
+                return ArrayToJson::arrayToShortJson($this->getByType($type));
             }
         );
     }
 
-    public function getOriginsForPersons(): array
+    public function getByTypeJson(string $type): array
     {
-        return $this->wrapArrayCache(
-            'origins_for_persons',
-            ['regions'],
-            function () {
-                $origins = [];
-                $rawOrigins = $this->dbs->getOriginIdsForPersons();
-                $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
-                $locations = $this->container->get('location_manager')->get($originIds);
-                foreach ($locations as $location) {
-                    $origins[$location->getId()] = Origin::fromLocation($location);
-                }
-
-                // Sort by name
-                usort($origins, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $origins;
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getByType($type));
     }
 }

@@ -14,7 +14,7 @@ class ElasticPersonService extends ElasticBaseService
             $indexPrefix,
             'persons',
             'person',
-            $container->get('identifier_manager')->getIdentifiersByType('person')
+            $container->get('identifier_manager')->getByType('person')
         );
     }
 

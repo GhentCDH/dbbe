@@ -6,8 +6,6 @@ class Journal extends Document
 {
     const CACHENAME = 'journal';
 
-    use CacheLinkTrait;
-
     protected $title;
     protected $year;
     protected $volume;
@@ -93,16 +91,5 @@ class Journal extends Document
         }
 
         return $result;
-    }
-
-    public static function unlinkCache(array $data)
-    {
-        $journal = new Journal($data['id'], $data['title'], $data['year']);
-
-        foreach ($data as $key => $value) {
-            $journal->set($key, $value);
-        }
-
-        return $journal;
     }
 }

@@ -13,7 +13,6 @@ class Article extends Document
      */
     const CACHENAME = 'article';
 
-    use CacheLinkTrait;
     use StartEndPagesTrait;
     use RawPagesTrait;
 
@@ -147,20 +146,5 @@ class Article extends Document
         }
 
         return $result;
-    }
-
-    /**
-     * @param  array   $data
-     * @return Article
-     */
-    public static function unlinkCache(array $data)
-    {
-        $article = new Article($data['id'], $data['title'], $data['journal']);
-
-        foreach ($data as $key => $value) {
-            $article->set($key, $value);
-        }
-
-        return $article;
     }
 }

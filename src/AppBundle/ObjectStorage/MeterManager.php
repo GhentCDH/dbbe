@@ -5,6 +5,8 @@ namespace AppBundle\ObjectStorage;
 use stdClass;
 use Exception;
 
+use AppBundle\Utils\ArrayToJson;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -24,17 +26,8 @@ class MeterManager extends ObjectManager
      */
     public function get(array $ids): array
     {
-        return $this->wrapCache(
-            Meter::CACHENAME,
-            $ids,
-            function ($ids) {
-                $meters = [];
-                $rawMeters = $this->dbs->getMetersByIds($ids);
-                $meters = $this->getWithData($rawMeters);
-
-                return $meters;
-            }
-        );
+        $rawMeters = $this->dbs->getMetersByIds($ids);
+        return $this->getWithData($rawMeters);
     }
 
     /**
@@ -44,22 +37,44 @@ class MeterManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
-        return $this->wrapDataCache(
-            Meter::CACHENAME,
-            $data,
-            'meter_id',
-            function ($data) {
-                $meters = [];
-                foreach ($data as $rawMeter) {
-                    if (isset($rawMeter['meter_id']) && !isset($meters[$rawMeter['meter_id']])) {
-                        $meters[$rawMeter['meter_id']] = new Meter(
-                            $rawMeter['meter_id'],
-                            $rawMeter['name']
-                        );
-                    }
-                }
+        $meters = [];
+        foreach ($data as $rawMeter) {
+            if (isset($rawMeter['meter_id']) && !isset($meters[$rawMeter['meter_id']])) {
+                $meters[$rawMeter['meter_id']] = new Meter(
+                    $rawMeter['meter_id'],
+                    $rawMeter['name']
+                );
+            }
+        }
 
-                return $meters;
+        return $meters;
+    }
+
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'meter_id');
+        $meters = $this->get($ids);
+
+        // Sort by name
+        usort($meters, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        return $meters;
+    }
+
+    /**
+     * Get all meters with minimal information
+     * @return array
+     */
+    public function getAllShortJson(): array
+    {
+        return $this->wrapArrayCache(
+            'meters',
+            ['meters'],
+            function () {
+                return ArrayToJson::arrayToShortJson($this->getAll());
             }
         );
     }
@@ -68,39 +83,9 @@ class MeterManager extends ObjectManager
      * Get all meters with all information
      * @return array
      */
-    public function getAll(): array
+    public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
-            'meters',
-            ['meters'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'meter_id');
-                $meters = $this->get($ids);
-
-                // Sort by name
-                usort($meters, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
-
-                return $meters;
-            }
-        );
-    }
-
-    /**
-     * Clear cache
-     * @param array $ids
-     */
-    public function reset(array $ids): void
-    {
-        foreach ($ids as $id) {
-            $this->deleteCache(Meter::CACHENAME, $id);
-        }
-
-        $this->get($ids);
-
-        $this->cache->invalidateTags(['meters']);
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     /**
@@ -125,7 +110,6 @@ class MeterManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            // update cache
             $this->cache->invalidateTags(['meters']);
 
             // commit transaction
@@ -164,18 +148,21 @@ class MeterManager extends ObjectManager
             }
 
             // load new data
-            $this->deleteCache(Meter::CACHENAME, $id);
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
 
+            $this->cache->invalidateTags(['meters']);
+
             // update Elastic occurrences
-            $occurrences = $this->container->get('occurrence_manager')->getMeterDependencies($id, true);
-            $this->container->get('occurrence_manager')->elasticIndex($occurrences);
+            $this->container->get('occurrence_manager')->updateElasticMeter(
+                $this->container->get('occurrence_manager')->getMeterDependencies($id, 'getId')
+            );
 
             // update Elastic types
-            $types = $this->container->get('type_manager')->getMeterDependencies($id, true);
-            $this->container->get('type_manager')->elasticIndex($types);
+            $this->container->get('type_manager')->updateElasticMeter(
+                $this->container->get('type_manager')->getMeterDependencies($id, 'getId')
+            );
 
             // commit transaction
             $this->dbs->commit();
@@ -203,11 +190,9 @@ class MeterManager extends ObjectManager
 
             $this->dbs->delete($id);
 
-            // empty cache
-            $this->deleteCache(Meter::CACHENAME, $id);
-            $this->cache->invalidateTags(['meters']);
-
             $this->updateModified($old, null);
+
+            $this->cache->invalidateTags(['meters']);
 
             // commit transaction
             $this->dbs->commit();

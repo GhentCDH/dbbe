@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class ManagementController extends BaseController
 {
     /**
@@ -49,9 +47,7 @@ class ManagementController extends BaseController
                     'management_delete' => $this->generateUrl('management_delete', ['id' => 'management_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
-                'managements' => json_encode(
-                    ArrayToJson::arrayToJson($this->get(self::MANAGER)->getAll())
-                ),
+                'managements' => json_encode($this->get(self::MANAGER)->getAllJson()),
             ]
         );
     }
@@ -91,6 +87,6 @@ class ManagementController extends BaseController
     public function delete(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        return parent::delete($id);
+        return parent::delete($id, $request);
     }
 }

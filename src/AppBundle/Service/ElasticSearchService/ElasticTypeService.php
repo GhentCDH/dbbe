@@ -14,8 +14,8 @@ class ElasticTypeService extends ElasticBaseService
             $indexPrefix,
             'types',
             'type',
-            $container->get('identifier_manager')->getIdentifiersByType('type'),
-            $container->get('role_manager')->getRolesByType('type')
+            $container->get('identifier_manager')->getByType('type'),
+            $container->get('role_manager')->getByType('type')
         );
     }
 

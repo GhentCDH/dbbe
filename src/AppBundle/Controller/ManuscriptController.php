@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Model\Status;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -9,8 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
-use AppBundle\Utils\ArrayToJson;
 
 class ManuscriptController extends BaseController
 {
@@ -42,7 +42,7 @@ class ManuscriptController extends BaseController
                     )
                 ),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('manuscript'))
+                    $this->get('identifier_manager')->getPrimaryByTypeJson('manuscript')
                 ),
             ]
         );
@@ -252,6 +252,19 @@ class ManuscriptController extends BaseController
     }
 
     /**
+     * Get all manuscripts that have a dependency on a management collection
+     * (reference)
+     * @Route("/manuscripts/managements/{id}", name="manuscript_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
+    }
+
+    /**
      * @Route("/manuscripts", name="manuscript_post")
      * @Method("POST")
      * @param Request $request
@@ -379,22 +392,22 @@ class ManuscriptController extends BaseController
                     'manuscript' => empty($id)
                         ? null
                         : $this->get('manuscript_manager')->getFull($id)->getJson(),
-                    'locations' => ArrayToJson::arrayToJson($this->get('location_manager')->getLocationsForManuscripts()),
-                    'contents' => ArrayToJson::arrayToShortJson($this->get('content_manager')->getAll()),
-                    'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
-                    'origins' => ArrayToJson::arrayToShortJson($this->get('origin_manager')->getOriginsForManuscripts()),
-                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
-                    'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
-                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
-                    'statuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllManuscriptStatuses()),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'locations' => $this->get('location_manager')->getByTypeJson('manuscript'),
+                    'contents' => $this->get('content_manager')->getAllShortJson(),
+                    'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
+                    'origins' => $this->get('origin_manager')->getByType('manuscript'),
+                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
+                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
+                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
+                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
+                    'statuses' => $this->get('status_manager')->getByTypeShortJson(Status::MANUSCRIPT),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('manuscript'))
+                    $this->get('identifier_manager')->getByTypeJson('manuscript')
                 ),
                 'roles' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('manuscript'))
+                    $this->get('role_manager')->getByTypeJson('manuscript')
                 ),
                 // @codingStandardsIgnoreEnd
             ]

@@ -13,8 +13,6 @@ class Image implements IdJsonInterface
      */
     const CACHENAME = 'image';
 
-    use CacheLinkTrait;
-
     /**
      * @var int
      */
@@ -78,20 +76,5 @@ class Image implements IdJsonInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @param array $data
-     * @return Book
-     */
-    public static function unlinkCache(array $data)
-    {
-        $image = new Image($data['id'], $data['filename'], $data['url'], $data['public']);
-
-        foreach ($data as $key => $value) {
-            $image->set($key, $value);
-        }
-
-        return $image;
     }
 }

@@ -14,78 +14,52 @@ class VerseManager extends ObjectManager
 {
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Verse::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $rawVerses = $this->dbs->getBasicInfoByIds($ids);
-                return $this->getMiniWithData($rawVerses);
-            },
-            'verse'
-        );
+        $rawVerses = $this->dbs->getBasicInfoByIds($ids);
+        return $this->getMiniWithData($rawVerses);
     }
 
     public function getMiniWithData(array $data): array
     {
-        return $this->wrapLevelDataCache(
-            Verse::CACHENAME,
-            'mini',
-            $data,
-            'verse_id',
-            function ($data) {
-                $verses = [];
-                foreach ($data as $rawVerse) {
-                    $verses[$rawVerse['verse_id']] = new Verse(
-                        $rawVerse['verse_id'],
-                        $rawVerse['group_id'],
-                        $rawVerse['verse'],
-                        $rawVerse['order']
-                    );
-                }
+        $verses = [];
+        foreach ($data as $rawVerse) {
+            $verses[$rawVerse['verse_id']] = new Verse(
+                $rawVerse['verse_id'],
+                $rawVerse['group_id'],
+                $rawVerse['verse'],
+                $rawVerse['order']
+            );
+        }
 
-                return $verses;
-            },
-            'verse'
-        );
+        return $verses;
     }
 
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Verse::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                // Get basic verse information
-                $verses = $this->getMini($ids);
+        // Get basic verse information
+        $verses = $this->getMini($ids);
 
-                // Remove all ids that did not match above
-                $ids = array_keys($verses);
+        // Remove all ids that did not match above
+        $ids = array_keys($verses);
 
-                // offices
-                $rawOccMans = $this->dbs->getOccMan($ids);
-                $occurrenceIds = self::getUniqueIds($rawOccMans, 'occurrence_id');
-                $manuscriptIds = self::getUniqueIds($rawOccMans, 'manuscript_id');
-                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+        $rawOccMans = $this->dbs->getOccMan($ids);
+        $occurrenceIds = self::getUniqueIds($rawOccMans, 'occurrence_id');
+        $manuscriptIds = self::getUniqueIds($rawOccMans, 'manuscript_id');
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
 
-                foreach ($rawOccMans as $rawOccMan) {
-                    if (!isset($occurrences[$rawOccMan['occurrence_id']])
-                        || !isset($manuscripts[$rawOccMan['manuscript_id']])
-                    ) {
-                        unset($verses[$rawOccMan['verse_id']]);
-                    } else {
-                        $verses[$rawOccMan['verse_id']]
-                            ->setOccurrence($occurrences[$rawOccMan['occurrence_id']])
-                            ->setManuscript($manuscripts[$rawOccMan['manuscript_id']]);
-                    }
-                }
+        foreach ($rawOccMans as $rawOccMan) {
+            if (!isset($occurrences[$rawOccMan['occurrence_id']])
+                || !isset($manuscripts[$rawOccMan['manuscript_id']])
+            ) {
+                unset($verses[$rawOccMan['verse_id']]);
+            } else {
+                $verses[$rawOccMan['verse_id']]
+                    ->setOccurrence($occurrences[$rawOccMan['occurrence_id']])
+                    ->setManuscript($manuscripts[$rawOccMan['manuscript_id']]);
+            }
+        }
 
-                return $verses;
-            },
-            'verse'
-        );
+        return $verses;
     }
 
     /**
@@ -164,7 +138,7 @@ class VerseManager extends ObjectManager
             throw new NotFoundHttpException('Verse with id ' . $id .' not found.');
         }
 
-        $cacheReload = [
+        $changes = [
             'mini' => $isNew,
         ];
 
@@ -175,7 +149,7 @@ class VerseManager extends ObjectManager
                 if (!is_numeric($data->order)) {
                     throw new BadRequestHttpException('Incorrect order data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateOrder($id, $data->order);
             }
             if (property_exists($data, 'verse')) {
@@ -183,7 +157,7 @@ class VerseManager extends ObjectManager
                 if (!is_string($data->verse) || empty($data->verse)) {
                     throw new BadRequestHttpException('Incorrect verse data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateVerse($id, $data->verse);
             }
             // occurrence cannot be updated
@@ -192,7 +166,7 @@ class VerseManager extends ObjectManager
             // * by linkVerses
             if (property_exists($data, 'groupId')) {
                 if (is_numeric($data->groupId) || empty($data->groupId)) {
-                    $cacheReload['mini'] = true;
+                    $changes['mini'] = true;
                     $this->dbs->updateGroup($id, $data->groupId);
                 }
             }
@@ -201,7 +175,7 @@ class VerseManager extends ObjectManager
                 ) {
                     throw new BadRequestHttpException('Incorrect linkVerses data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 if (empty($data->linkVerses)) {
                     // Create a group for this single verse
                     $this->updateNewGroupFromVerses($id);
@@ -212,12 +186,11 @@ class VerseManager extends ObjectManager
             }
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
@@ -229,9 +202,9 @@ class VerseManager extends ObjectManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
             }
             throw $e;
         }
@@ -248,8 +221,6 @@ class VerseManager extends ObjectManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-
-            // resets are handled by outer try catch
 
             throw $e;
         }
@@ -303,8 +274,6 @@ class VerseManager extends ObjectManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
-            // resets are handled by outer try catch
-
             throw $e;
         }
     }
@@ -320,8 +289,7 @@ class VerseManager extends ObjectManager
 
             $this->updateModified($old, null);
 
-            // empty cache and remove from elasticsearch
-            $this->reset([$id]);
+            $this->updateElasticByIds([$id]);
 
             $this->dbs->commit();
         } catch (Exception $e) {

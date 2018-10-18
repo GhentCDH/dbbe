@@ -8,9 +8,6 @@ class Location
 {
     const CACHENAME = 'location';
 
-    use CacheLinkTrait;
-    use CacheObjectTrait;
-
     /**
      * @var int
      */

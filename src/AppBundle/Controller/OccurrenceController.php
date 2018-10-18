@@ -2,13 +2,13 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Model\Status;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
-use AppBundle\Utils\ArrayToJson;
 
 class OccurrenceController extends BaseController
 {
@@ -48,7 +48,7 @@ class OccurrenceController extends BaseController
                     )
                 ),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getPrimaryIdentifiersByType('occurrence'))
+                    $this->get('identifier_manager')->getPrimaryByTypeJson('occurrence')
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -261,6 +261,19 @@ class OccurrenceController extends BaseController
     }
 
     /**
+     * Get all occurrences that have a dependency on a management collection
+     * (reference)
+     * @Route("/occurrences/managements/{id}", name="occurrence_deps_by_management")
+     * @Method("GET")
+     * @param  int    $id management id
+     * @param Request $request
+     */
+    public function getDepsByManagement(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getManagementDependencies');
+    }
+
+    /**
      * @Route("/occurrences", name="occurrence_post")
      * @Method("POST")
      * @param Request $request
@@ -343,29 +356,29 @@ class OccurrenceController extends BaseController
                     'occurrence' => empty($id)
                         ? null
                         : $this->get('occurrence_manager')->getFull($id)->getJson(),
-                    'manuscripts' => ArrayToJson::arrayToShortJson($this->get('manuscript_manager')->getAllMini()),
-                    'types' => ArrayToJson::arrayToShortJson($this->get('type_manager')->getAllMini()),
-                    'historicalPersons' => ArrayToJson::arrayToShortJson($this->get('person_manager')->getAllHistoricalPersons()),
-                    'meters' => ArrayToJson::arrayToShortJson($this->get('meter_manager')->getAll()),
-                    'genres' => ArrayToJson::arrayToShortJson($this->get('genre_manager')->getAll()),
-                    'keywords' => ArrayToJson::arrayToShortJson($this->get('keyword_manager')->getAllSubjectKeywords()),
-                    'articles' => ArrayToJson::arrayToShortJson($this->get('article_manager')->getAllMini()),
-                    'books' => ArrayToJson::arrayToShortJson($this->get('book_manager')->getAllMini()),
-                    'bookChapters' => ArrayToJson::arrayToShortJson($this->get('book_chapter_manager')->getAllMini()),
-                    'onlineSources' => ArrayToJson::arrayToShortJson($this->get('online_source_manager')->getAllMini()),
-                    'referenceTypes' => ArrayToJson::arrayToShortJson($this->get('reference_type_manager')->getAll()),
-                    'acknowledgements' => ArrayToJson::arrayToShortJson($this->get('acknowledgement_manager')->getAll()),
-                    'textStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceTextStatuses()),
-                    'recordStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceRecordStatuses()),
-                    'dividedStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceDividedStatuses()),
-                    'sourceStatuses' => ArrayToJson::arrayToShortJson($this->get('status_manager')->getAllOccurrenceSourceStatuses()),
-                    'managements' => ArrayToJson::arrayToShortJson($this->get('management_manager')->getAll()),
+                    'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
+                    'types' => $this->get('type_manager')->getAllMiniShortJson(),
+                    'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
+                    'meters' => $this->get('meter_manager')->getAllShortJson(),
+                    'genres' => $this->get('genre_manager')->getAllShortJson(),
+                    'keywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
+                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
+                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
+                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
+                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
+                    'referenceTypes' => $this->get('reference_type_manager')->getAllShortJson(),
+                    'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
+                    'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_TEXT),
+                    'recordStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_RECORD),
+                    'dividedStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_DIVIDED),
+                    'sourceStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_SOURCE),
+                    'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('identifier_manager')->getIdentifiersByType('occurrence'))
+                    $this->get('identifier_manager')->getByTypeJson('occurrence')
                 ),
                 'roles' => json_encode(
-                    ArrayToJson::arrayToJson($this->get('role_manager')->getRolesByType('occurrence'))
+                    $this->get('role_manager')->getByTypeJson('occurrence')
                 ),
                 // @codingStandardsIgnoreEnd
             ]

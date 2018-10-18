@@ -23,35 +23,30 @@ class BookChapterManager extends DocumentManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            BookChapter::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $bookChapters = [];
-                $rawBookChapters = $this->dbs->getMiniInfoByIds($ids);
+        $bookChapters = [];
+        if (!empty($ids)) {
+            $rawBookChapters = $this->dbs->getMiniInfoByIds($ids);
 
-                $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
-                $books = $this->container->get('book_manager')->getMini($bookIds);
+            $bookIds = self::getUniqueIds($rawBookChapters, 'book_id');
+            $books = $this->container->get('book_manager')->getMini($bookIds);
 
-                foreach ($rawBookChapters as $rawBookChapter) {
-                    $bookChapter = (new BookChapter(
-                        $rawBookChapter['book_chapter_id'],
-                        $rawBookChapter['book_chapter_title'],
-                        $books[$rawBookChapter['book_id']]
-                    ))
-                        ->setStartPage($rawBookChapter['book_chapter_page_start'])
-                        ->setEndPage($rawBookChapter['book_chapter_page_end'])
-                        ->setRawPages($rawBookChapter['book_chapter_raw_pages']);
+            foreach ($rawBookChapters as $rawBookChapter) {
+                $bookChapter = (new BookChapter(
+                    $rawBookChapter['book_chapter_id'],
+                    $rawBookChapter['book_chapter_title'],
+                    $books[$rawBookChapter['book_id']]
+                ))
+                    ->setStartPage($rawBookChapter['book_chapter_page_start'])
+                    ->setEndPage($rawBookChapter['book_chapter_page_end'])
+                    ->setRawPages($rawBookChapter['book_chapter_raw_pages']);
 
-                    $bookChapters[$rawBookChapter['book_chapter_id']] = $bookChapter;
-                }
-
-                $this->setPersonRoles($bookChapters);
-
-                return $bookChapters;
+                $bookChapters[$rawBookChapter['book_chapter_id']] = $bookChapter;
             }
-        );
+
+            $this->setPersonRoles($bookChapters);
+        }
+
+        return $bookChapters;
     }
 
     /**
@@ -61,18 +56,11 @@ class BookChapterManager extends DocumentManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            BookChapter::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                $bookChapters = $this->getMini($ids);
+        $bookChapters = $this->getMini($ids);
 
-                $this->setManagements($bookChapters);
+        $this->setManagements($bookChapters);
 
-                return $bookChapters;
-            }
-        );
+        return $bookChapters;
     }
 
     /**
@@ -82,34 +70,27 @@ class BookChapterManager extends DocumentManager
      */
     public function getFull(int $id): BookChapter
     {
-        return $this->wrapSingleLevelCache(
-            BookChapter::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic information
-                $bookChapters = $this->getShort([$id]);
+        // Get basic information
+        $bookChapters = $this->getShort([$id]);
 
-                if (count($bookChapters) == 0) {
-                    throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
-                }
+        if (count($bookChapters) == 0) {
+            throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
+        }
 
-                $this->setIdentifications($bookChapters);
+        $this->setIdentifications($bookChapters);
 
-                $this->setInverseBibliographies($bookChapters);
+        $this->setInverseBibliographies($bookChapters);
 
-                return $bookChapters[$id];
-            }
-        );
+        return $bookChapters[$id];
     }
 
     /**
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
-    public function getAllMini(string $sortFunction = null): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return parent::getAllMini($sortFunction == null ? 'getDescription' : $sortFunction);
+        return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
     /**
@@ -149,9 +130,6 @@ class BookChapterManager extends DocumentManager
 
             $new = $this->update($id, $data, true);
 
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -178,13 +156,13 @@ class BookChapterManager extends DocumentManager
                 throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
             }
 
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
             ];
-            $roles = $this->container->get('role_manager')->getRolesByType('bookChapter');
+            $roles = $this->container->get('role_manager')->getByType('bookChapter');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
-                    $cacheReload['mini'] = true;
+                    $changes['mini'] = true;
                     $this->updatePersonRoleWithRank($old, $role, $data->{$role->getSystemName()});
                 }
             }
@@ -193,7 +171,7 @@ class BookChapterManager extends DocumentManager
                 if (!is_string($data->title) || empty($data->title)) {
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
             if (property_exists($data, 'book')) {
@@ -205,22 +183,23 @@ class BookChapterManager extends DocumentManager
                 ) {
                     throw new BadRequestHttpException('Incorrect book data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateBook($id, $data->book->id);
             }
-            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'bookChapter');
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'bookChapter');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // (re-)index in elastic search
             $this->ess->add($new);
@@ -229,9 +208,10 @@ class BookChapterManager extends DocumentManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+
+            // Reset elasticsearch
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
             }
             throw $e;
         }

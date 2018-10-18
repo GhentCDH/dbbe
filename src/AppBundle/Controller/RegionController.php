@@ -7,8 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 class RegionController extends BaseController
 {
     /**
@@ -73,9 +71,7 @@ class RegionController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'regions' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('region_manager')->getAll()
-                    )
+                    $this->get('region_manager')->getAllJson()
                 ),
             ]
         );

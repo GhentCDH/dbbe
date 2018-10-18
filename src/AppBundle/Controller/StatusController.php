@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-use AppBundle\Utils\ArrayToJson;
-
 class StatusController extends Controller
 {
     /**
@@ -26,9 +24,7 @@ class StatusController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('status_manager')->getAllStatuses()
-                )
+                $this->get('status_manager')->getAllJson()
             );
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -61,9 +57,7 @@ class StatusController extends Controller
                     'login' => $this->generateUrl('login'),
                 ]),
                 'statuses' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('status_manager')->getAllStatuses()
-                    )
+                    $this->get('status_manager')->getAllJson()
                 ),
                 // @codingStandardsIgnoreEnd
             ]

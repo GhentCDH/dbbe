@@ -13,8 +13,6 @@ class Type extends Poem
      */
     const CACHENAME = 'type';
 
-    use CacheLinkTrait;
-
     /**
      * @var array
      */

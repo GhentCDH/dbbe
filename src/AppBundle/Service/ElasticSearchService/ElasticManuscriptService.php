@@ -14,8 +14,8 @@ class ElasticManuscriptService extends ElasticBaseService
             $indexPrefix,
             'manuscripts',
             'manuscript',
-            $container->get('identifier_manager')->getIdentifiersByType('manuscript'),
-            $container->get('role_manager')->getRolesByType('manuscript')
+            $container->get('identifier_manager')->getByType('manuscript'),
+            $container->get('role_manager')->getByType('manuscript')
         );
     }
 

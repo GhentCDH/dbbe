@@ -6,8 +6,8 @@ use stdClass;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Model\Status;
 use AppBundle\Model\Occurrence;
+use AppBundle\Model\Status;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -24,51 +24,46 @@ class OccurrenceManager extends PoemManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Occurrence::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $occurrences = [];
-                $rawLocations = $this->dbs->getLocations($ids);
-                if (count($rawLocations) == 0) {
-                    return [];
-                }
-                foreach ($rawLocations as $rawLocation) {
-                    $occurrences[$rawLocation['occurrence_id']] = (new Occurrence())
-                        ->setId($rawLocation['occurrence_id'])
-                        ->setFoliumStart($rawLocation['folium_start'])
-                        ->setFoliumStartRecto($rawLocation['folium_start_recto'])
-                        ->setFoliumEnd($rawLocation['folium_end'])
-                        ->setFoliumEndRecto($rawLocation['folium_end_recto'])
-                        ->setUnsure($rawLocation['unsure'])
-                        ->setGeneralLocation($rawLocation['general_location'])
-                        ->setAlternativeFoliumStart($rawLocation['alternative_folium_start'])
-                        ->setAlternativeFoliumStartRecto($rawLocation['alternative_folium_start_recto'])
-                        ->setAlternativeFoliumEnd($rawLocation['alternative_folium_end'])
-                        ->setAlternativeFoliumEndRecto($rawLocation['alternative_folium_end_recto']);
-                }
-
-                // Remove all ids that did not match above
-                $ids = array_keys($occurrences);
-
-                $this->setIncipits($occurrences);
-
-                $this->setNumberOfVerses($occurrences);
-
-                // Verses (needed in mini to calculate number of verses)
-                $rawVerses = $this->dbs->getVerses($ids);
-                $verses = $this->container->get('verse_manager')->getMiniWithData($rawVerses);
-                foreach ($rawVerses as $rawVerse) {
-                    $occurrences[$rawVerse['occurrence_id']]
-                        ->addVerse($verses[$rawVerse['verse_id']]);
-                }
-
-                $this->setPublics($occurrences);
-
-                return $occurrences;
+        $occurrences = [];
+        if (!empty($ids)) {
+            $rawLocations = $this->dbs->getLocations($ids);
+            if (count($rawLocations) == 0) {
+                return [];
             }
-        );
+            foreach ($rawLocations as $rawLocation) {
+                $occurrences[$rawLocation['occurrence_id']] = (new Occurrence())
+                    ->setId($rawLocation['occurrence_id'])
+                    ->setFoliumStart($rawLocation['folium_start'])
+                    ->setFoliumStartRecto($rawLocation['folium_start_recto'])
+                    ->setFoliumEnd($rawLocation['folium_end'])
+                    ->setFoliumEndRecto($rawLocation['folium_end_recto'])
+                    ->setUnsure($rawLocation['unsure'])
+                    ->setGeneralLocation($rawLocation['general_location'])
+                    ->setAlternativeFoliumStart($rawLocation['alternative_folium_start'])
+                    ->setAlternativeFoliumStartRecto($rawLocation['alternative_folium_start_recto'])
+                    ->setAlternativeFoliumEnd($rawLocation['alternative_folium_end'])
+                    ->setAlternativeFoliumEndRecto($rawLocation['alternative_folium_end_recto']);
+            }
+
+            // Remove all ids that did not match above
+            $ids = array_keys($occurrences);
+
+            $this->setIncipits($occurrences);
+
+            $this->setNumberOfVerses($occurrences);
+
+            // Verses (needed in mini to calculate number of verses)
+            $rawVerses = $this->dbs->getVerses($ids);
+            $verses = $this->container->get('verse_manager')->getMiniWithData($rawVerses);
+            foreach ($rawVerses as $rawVerse) {
+                $occurrences[$rawVerse['occurrence_id']]
+                    ->addVerse($verses[$rawVerse['verse_id']]);
+            }
+
+            $this->setPublics($occurrences);
+        }
+
+        return $occurrences;
     }
 
     /**
@@ -78,78 +73,71 @@ class OccurrenceManager extends PoemManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Occurrence::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                $occurrences = $this->getMini($ids);
+        $occurrences = $this->getMini($ids);
 
-                // Remove all ids that did not match above
-                $ids = array_keys($occurrences);
+        // Remove all ids that did not match above
+        $ids = array_keys($occurrences);
 
-                // Manuscript
-                $rawLocations = $this->dbs->getLocations($ids);
-                if (count($rawLocations) == 0) {
-                    return [];
-                }
-                $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
-                $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
-                foreach ($rawLocations as $rawLocation) {
-                    if (isset($manuscripts[$rawLocation['manuscript_id']])) {
-                        $manuscript = $manuscripts[$rawLocation['manuscript_id']];
-                        $occurrences[$rawLocation['occurrence_id']]->setManuscript($manuscript);
-                    }
-                }
-
-                $this->setTitles($occurrences);
-
-                $this->setMeters($occurrences);
-
-                $this->setSubjects($occurrences);
-
-                $this->setPersonRoles($occurrences);
-
-                $this->setDates($occurrences);
-
-                $this->setGenres($occurrences);
-
-                $this->setComments($occurrences);
-
-                // statuses
-                $rawStatuses = $this->dbs->getStatuses($ids);
-                $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
-                foreach ($rawStatuses as $rawStatus) {
-                    switch ($rawStatus['status_type']) {
-                        case Status::OCCURRENCE_TEXT:
-                            $occurrences[$rawStatus['occurrence_id']]
-                                ->setTextStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                        case Status::OCCURRENCE_RECORD:
-                            $occurrences[$rawStatus['occurrence_id']]
-                                ->setRecordStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                        case Status::OCCURRENCE_DIVIDED:
-                            $occurrences[$rawStatus['occurrence_id']]
-                                ->setDividedStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                        case Status::OCCURRENCE_SOURCE:
-                            $occurrences[$rawStatus['occurrence_id']]
-                                ->setSourceStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                    }
-                }
-
-                $this->setAcknowledgements($occurrences);
-
-                // Needed to index DBBE in elasticsearch
-                $this->setBibliographies($occurrences);
-
-                $this->setManagements($occurrences);
-
-                return $occurrences;
+        // Manuscript
+        $rawLocations = $this->dbs->getLocations($ids);
+        if (count($rawLocations) == 0) {
+            return [];
+        }
+        $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
+        $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
+        foreach ($rawLocations as $rawLocation) {
+            if (isset($manuscripts[$rawLocation['manuscript_id']])) {
+                $manuscript = $manuscripts[$rawLocation['manuscript_id']];
+                $occurrences[$rawLocation['occurrence_id']]->setManuscript($manuscript);
             }
-        );
+        }
+
+        $this->setTitles($occurrences);
+
+        $this->setMeters($occurrences);
+
+        $this->setSubjects($occurrences);
+
+        $this->setPersonRoles($occurrences);
+
+        $this->setDates($occurrences);
+
+        $this->setGenres($occurrences);
+
+        $this->setComments($occurrences);
+
+        // statuses
+        $rawStatuses = $this->dbs->getStatuses($ids);
+        $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
+        foreach ($rawStatuses as $rawStatus) {
+            switch ($rawStatus['status_type']) {
+                case Status::OCCURRENCE_TEXT:
+                    $occurrences[$rawStatus['occurrence_id']]
+                        ->setTextStatus($statuses[$rawStatus['status_id']]);
+                    break;
+                case Status::OCCURRENCE_RECORD:
+                    $occurrences[$rawStatus['occurrence_id']]
+                        ->setRecordStatus($statuses[$rawStatus['status_id']]);
+                    break;
+                case Status::OCCURRENCE_DIVIDED:
+                    $occurrences[$rawStatus['occurrence_id']]
+                        ->setDividedStatus($statuses[$rawStatus['status_id']]);
+                    break;
+                case Status::OCCURRENCE_SOURCE:
+                    $occurrences[$rawStatus['occurrence_id']]
+                        ->setSourceStatus($statuses[$rawStatus['status_id']]);
+                    break;
+            }
+        }
+
+        $this->setAcknowledgements($occurrences);
+
+        // Needed to index DBBE in elasticsearch
+        $this->setBibliographies($occurrences);
+
+        $this->setManagements($occurrences);
+
+        return $occurrences;
     }
 
     /**
@@ -159,84 +147,77 @@ class OccurrenceManager extends PoemManager
      */
     public function getFull(int $id): Occurrence
     {
-        return $this->wrapSingleLevelCache(
-            Occurrence::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic occurrence information
-                $occurrences = $this->getShort([$id]);
-                if (count($occurrences) == 0) {
-                    throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
-                }
+        // Get basic occurrence information
+        $occurrences = $this->getShort([$id]);
+        if (count($occurrences) == 0) {
+            throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
+        }
 
-                $this->setIdentifications($occurrences);
+        $this->setIdentifications($occurrences);
 
-                $this->setPrevIds($occurrences);
+        $this->setPrevIds($occurrences);
 
-                $occurrence = $occurrences[$id];
+        $occurrence = $occurrences[$id];
 
-                // related occurrences
-                $rawRelOccurrences = $this->dbs->getRelatedOccurrences([$id]);
-                if (!empty($rawRelOccurrences)) {
-                    $relOccurrenceIds = self::getUniqueIds($rawRelOccurrences, 'related_occurrence_id');
-                    $relOccurrences = $this->getMini($relOccurrenceIds);
-                    foreach ($rawRelOccurrences as $rawRelOccurrence) {
-                        $occurrence->addRelatedOccurrence(
-                            $relOccurrences[$rawRelOccurrence['related_occurrence_id']],
-                            $rawRelOccurrence['count']
-                        );
-                    }
-                }
-
-                // types
-                $rawTypes = $this->dbs->getTypes([$id]);
-                if (!empty($rawTypes)) {
-                    $typeIds = self::getUniqueIds($rawTypes, 'type_id');
-                    $types =  $this->container->get('type_manager')->getMini($typeIds);
-                    $occurrence->setTypes($types);
-                }
-
-                // paleographical information
-                $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
-                if (count($rawPaleographicalInfos) == 1) {
-                    $occurrence
-                        ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
-                }
-
-                // contextual information
-                $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
-                if (count($rawContextualInfos) == 1) {
-                    $occurrence
-                        ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
-                }
-
-                // images
-                $rawImages = $this->dbs->getImages([$id]);
-                $images = $this->container->get('image_manager')->getWithData($rawImages);
-                foreach ($rawImages as $rawImage) {
-                    if (!empty($rawImage['filename'])) {
-                        $occurrence
-                            ->addImage($images[$rawImage['image_id']]);
-                    } else {
-                        $occurrence
-                            ->addImageLink($images[$rawImage['image_id']]);
-                    }
-                }
-
-                return $occurrence;
+        // related occurrences
+        $rawRelOccurrences = $this->dbs->getRelatedOccurrences([$id]);
+        if (!empty($rawRelOccurrences)) {
+            $relOccurrenceIds = self::getUniqueIds($rawRelOccurrences, 'related_occurrence_id');
+            $relOccurrences = $this->getMini($relOccurrenceIds);
+            foreach ($rawRelOccurrences as $rawRelOccurrence) {
+                $occurrence->addRelatedOccurrence(
+                    $relOccurrences[$rawRelOccurrence['related_occurrence_id']],
+                    $rawRelOccurrence['count']
+                );
             }
-        );
+        }
+
+        // types
+        $rawTypes = $this->dbs->getTypes([$id]);
+        if (!empty($rawTypes)) {
+            $typeIds = self::getUniqueIds($rawTypes, 'type_id');
+            $types =  $this->container->get('type_manager')->getMini($typeIds);
+            $occurrence->setTypes($types);
+        }
+
+        // paleographical information
+        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
+        if (count($rawPaleographicalInfos) == 1) {
+            $occurrence
+                ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
+        }
+
+        // contextual information
+        $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
+        if (count($rawContextualInfos) == 1) {
+            $occurrence
+                ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
+        }
+
+        // images
+        $rawImages = $this->dbs->getImages([$id]);
+        $images = $this->container->get('image_manager')->getWithData($rawImages);
+        foreach ($rawImages as $rawImage) {
+            if (!empty($rawImage['filename'])) {
+                $occurrence
+                    ->addImage($images[$rawImage['image_id']]);
+            } else {
+                $occurrence
+                    ->addImageLink($images[$rawImage['image_id']]);
+            }
+        }
+
+        return $occurrence;
     }
 
-    public function getManuscriptDependencies(int $manuscriptId, bool $short = false): array
+    public function getManuscriptDependencies(int $manuscriptId, $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $method);
     }
 
-    public function getTypeDependencies(int $typeId, bool $short = false): array
+    public function getTypeDependencies(int $typeId, $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByTypeId($typeId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByTypeId($typeId), $method);
     }
 
     public function add(stdClass $data): Occurrence
@@ -257,15 +238,9 @@ class OccurrenceManager extends PoemManager
         try {
             $id = $this->dbs->insert($data->manuscript->id, $data->incipit);
 
-            // Clear manuscript cache so occurrences will be reloaded
-            $this->container->get('manuscript_manager')->clearCache($data->manuscript->id, ['short' => true]);
-
             unset($data->manuscript);
 
             $new = $this->update($id, $data, true);
-
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // commit transaction
             $this->dbs->commit();
@@ -289,7 +264,7 @@ class OccurrenceManager extends PoemManager
                 throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
             }
 
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
                 'short' => $isNew,
                 'full' => $isNew,
@@ -298,7 +273,7 @@ class OccurrenceManager extends PoemManager
                 if (!is_bool($data->public)) {
                     throw new BadRequestHttpException('Incorrect public data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'incipit')) {
@@ -309,7 +284,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect incipit data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateIncipit($id, $data->incipit);
             }
             if (property_exists($data, 'title')) {
@@ -317,7 +292,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
 
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->upsertTitle($id, 'GR', $data->title);
             }
             if (property_exists($data, 'manuscript')) {
@@ -330,10 +305,10 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect manuscript data.');
                 }
 
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updateManuscript($id, $data->manuscript->id);
-                // Reset old and new manuscript
-                $this->container->get('manuscript_manager')->reset([
+                // Reset old and new manuscript (personroles)
+                $this->container->get('manuscript_manager')->updateElasticByIds([
                     $old->getManuscript()->getId(),
                     $data->manuscript->id,
                 ]);
@@ -344,7 +319,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect foliumStart data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateFoliumStart($id, $data->foliumStart);
             }
             if (property_exists($data, 'foliumStartRecto')) {
@@ -353,7 +328,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect foliumStartRecto data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateFoliumStartRecto($id, $data->foliumStartRecto);
             }
             if (property_exists($data, 'foliumEnd')) {
@@ -362,7 +337,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect foliumEnd data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateFoliumEnd($id, $data->foliumEnd);
             }
             if (property_exists($data, 'foliumEndRecto')) {
@@ -371,7 +346,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect foliumEndRecto data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateFoliumEndRecto($id, $data->foliumEndRecto);
             }
             if (property_exists($data, 'unsure')) {
@@ -380,7 +355,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect unsure data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateUnsure($id, $data->unsure);
             }
             if (property_exists($data, 'generalLocation')) {
@@ -389,7 +364,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect generalLocation data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateGeneralLocation($id, $data->generalLocation);
             }
             if (property_exists($data, 'alternativeFoliumStart')) {
@@ -398,7 +373,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect alternativeFoliumStart data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateAlternativeFoliumStart($id, $data->alternativeFoliumStart);
             }
             if (property_exists($data, 'alternativeFoliumStartRecto')) {
@@ -407,7 +382,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect alternativeFoliumStartRecto data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateAlternativeFoliumStartRecto($id, $data->alternativeFoliumStartRecto);
             }
             if (property_exists($data, 'alternativeFoliumEnd')) {
@@ -416,7 +391,7 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect alternativeFoliumEnd data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateAlternativeFoliumEnd($id, $data->alternativeFoliumEnd);
             }
             if (property_exists($data, 'alternativeFoliumEndRecto')) {
@@ -425,21 +400,21 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect alternativeFoliumEndRecto data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateAlternativeFoliumEndRecto($id, $data->alternativeFoliumEndRecto);
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!is_numeric($data->numberOfVerses)) {
                     throw new BadRequestHttpException('Incorrect number of verses data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateNumberOfVerses($id, $data->numberOfVerses);
             }
             if (property_exists($data, 'verses')) {
                 if (!is_array($data->verses)) {
                     throw new BadRequestHttpException('Incorrect verses data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $touched = [];
                 $verseIds = $this->updateVerses($old, $data->verses, $touched);
             }
@@ -447,14 +422,14 @@ class OccurrenceManager extends PoemManager
                 if (!is_array($data->types)) {
                     throw new BadRequestHttpException('Incorrect types data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateTypes($old, $data->types);
             }
-            $roles = $this->container->get('role_manager')->getRolesByType('occurrence');
+            $roles = $this->container->get('role_manager')->getByType('occurrence');
             $personUpdate = false;
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
-                    $cacheReload['short'] = true;
+                    $changes['short'] = true;
                     $personUpdate = true;
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
@@ -465,137 +440,137 @@ class OccurrenceManager extends PoemManager
                 if (isset($data->manuscript)) {
                     $manuscriptId = $data->manuscript->id;
                 }
-                $this->container->get('manuscript_manager')->elasticIndexByIds([$manuscriptId]);
+                $this->container->get('manuscript_manager')->updateElasticByIds([$manuscriptId]);
             }
             if (property_exists($data, 'meters')) {
                 if (!is_array($data->meters)) {
                     throw new BadRequestHttpException('Incorrect meter data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateMeters($old, $data->meters);
             }
             if (property_exists($data, 'genres')) {
                 if (!is_array($data->genres)) {
                     throw new BadRequestHttpException('Incorrect genre data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateGenres($old, $data->genres);
             }
             if (property_exists($data, 'personSubjects')) {
                 if (!is_array($data->personSubjects)) {
                     throw new BadRequestHttpException('Incorrect person subject data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updatePersonSubjects($old, $data->personSubjects);
             }
             if (property_exists($data, 'keywordSubjects')) {
                 if (!is_array($data->keywordSubjects)) {
                     throw new BadRequestHttpException('Incorrect keyword subject data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateKeywordSubjects($old, $data->keywordSubjects);
             }
-            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'occurrence');
+            $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'occurrence');
             if (property_exists($data, 'bibliography')) {
                 if (!is_object($data->bibliography)) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
                 // short is needed here to index DBBE in elasticsearch
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateBibliography($old, $data->bibliography, true);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePublicComment($id, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             if (property_exists($data, 'paleographicalInfo')) {
                 if (!is_string($data->paleographicalInfo)) {
                     throw new BadRequestHttpException('Incorrect paleographical information data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->dbs->updatePaleographicalInfo($id, $data->paleographicalInfo);
             }
             if (property_exists($data, 'contextualInfo')) {
                 if (!is_string($data->contextualInfo)) {
                     throw new BadRequestHttpException('Incorrect contextual information data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->dbs->updateContextualInfo($id, $data->contextualInfo);
             }
             if (property_exists($data, 'acknowledgements')) {
                 if (!is_array($data->acknowledgements)) {
                     throw new BadRequestHttpException('Incorrect acknowledgements data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateAcknowledgements($old, $data->acknowledgements);
             }
             if (property_exists($data, 'recordStatus')) {
                 if (!(is_object($data->recordStatus) || empty($data->recordStatus))) {
                     throw new BadRequestHttpException('Incorrect record status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->recordStatus, Status::OCCURRENCE_RECORD);
             }
             if (property_exists($data, 'textStatus')) {
                 if (!(is_object($data->textStatus) || empty($data->textStatus))) {
                     throw new BadRequestHttpException('Incorrect text status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->textStatus, Status::OCCURRENCE_TEXT);
             }
             if (property_exists($data, 'dividedStatus')) {
                 if (!(is_object($data->dividedStatus) || empty($data->dividedStatus))) {
                     throw new BadRequestHttpException('Incorrect divided status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->dividedStatus, Status::OCCURRENCE_DIVIDED);
             }
             if (property_exists($data, 'sourceStatus')) {
                 if (!(is_object($data->sourceStatus) || empty($data->sourceStatus))) {
                     throw new BadRequestHttpException('Incorrect source status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->sourceStatus, Status::OCCURRENCE_SOURCE);
             }
             if (property_exists($data, 'images')) {
                 if (!(is_array($data->images))) {
                     throw new BadRequestHttpException('Incorrect images data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateImages($old, $data->images);
             }
             if (property_exists($data, 'imageLinks')) {
                 if (!(is_array($data->imageLinks))) {
                     throw new BadRequestHttpException('Incorrect image links data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateImageLinks($old, $data->imageLinks);
             }
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
-
             $this->updateModified($isNew ? null : $old, $new);
 
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
             // (re-)index in elastic search
-            if ($cacheReload['mini'] || $cacheReload['short']) {
+            if ($changes['mini'] || $changes['short']) {
                 $this->ess->add($new);
             }
 
@@ -604,19 +579,22 @@ class OccurrenceManager extends PoemManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset cache and elasticsearch on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+            // Reset elasticsearch
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
             }
 
             // Reset manuscripts (potentially old and new)
+            // (person roles)
+            // If this is a new occurrence, the manuscript will be linked in the old occurrence
             $manuscriptIds = [$old->getManuscript()->getId()];
             if (isset($data->manuscript)) {
                 $manuscriptIds[] = $data->manuscript->id;
             }
-            $this->container->get('manuscript_manager')->reset($manuscriptIds);
+            $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
 
             // Reset types (potentially old and new)
+            // (number of occurrences)
             $typeIds = self::getIds($old->getTypes());
             if (isset($data->types)) {
                 foreach ($data->types as $type) {
@@ -625,11 +603,11 @@ class OccurrenceManager extends PoemManager
                     }
                 }
             }
-            $this->container->get('type_manager')->reset($typeIds);
+            $this->container->get('type_manager')->updateElasticByIds($typeIds);
 
             // Reset verses
             if (isset($touched)) {
-                $this->container->get('verse_manager')->reset($touched);
+                $this->container->get('verse_manager')->updateElasticByIds($touched);
             }
 
             throw $e;
@@ -750,7 +728,7 @@ class OccurrenceManager extends PoemManager
                 $typeIds[] = $type->id;
             }
         }
-        $this->container->get('type_manager')->reset($typeIds);
+        $this->container->get('type_manager')->updateElasticByIds($typeIds);
     }
 
     private function updateImages(Occurrence $occurrence, array $images): void

@@ -11,8 +11,6 @@ class Manuscript extends Document
      */
     const CACHENAME = 'manuscript';
 
-    use CacheLinkTrait;
-
     /**
      * @var LocatedAt
      */

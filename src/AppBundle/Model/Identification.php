@@ -4,8 +4,6 @@ namespace AppBundle\Model;
 
 class Identification
 {
-    use CacheObjectTrait;
-
     protected $identifier;
     protected $identifications;
     protected $extra;
@@ -30,19 +28,6 @@ class Identification
             $identification->identifications = explode(', ', $identifications[0]);
         }
         if ($extra != null && $extra != '') {
-            $identification->extra = $extra;
-        }
-
-        return $identification;
-    }
-
-    private static function constructFromCache(Identifier $identifier, array $identifications, string $extra = null)
-    {
-        $identification = new Identification();
-
-        $identification->identifier = $identifier;
-        $identification->identifications = $identifications;
-        if ($extra != null) {
             $identification->extra = $extra;
         }
 
@@ -82,21 +67,5 @@ class Identification
             }
         }
         return $returnValue;
-    }
-
-
-    public static function unlinkCache(array $data)
-    {
-        $identification = self::constructFromCache(
-            $data['identifier'],
-            $data['identifications'],
-            isset($data['extra']) ? $data['extra'] : null
-        );
-
-        foreach ($data as $key => $value) {
-            $identification->set($key, $value);
-        }
-
-        return $identification;
     }
 }

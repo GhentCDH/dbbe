@@ -11,24 +11,24 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class PoemManager extends DocumentManager
 {
-    public function getMeterDependencies(int $meterId, bool $short = false): array
+    public function getMeterDependencies(int $meterId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $method);
     }
 
-    public function getGenreDependencies(int $genreId, bool $short = false): array
+    public function getGenreDependencies(int $genreId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByGenreId($genreId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByGenreId($genreId), $method);
     }
 
-    public function getKeywordDependencies(int $keywordId, bool $short = false): array
+    public function getKeywordDependencies(int $keywordId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $method);
     }
 
-    public function getAcknowledgementDependencies(int $acknowledgementId, bool $short = false): array
+    public function getAcknowledgementDependencies(int $acknowledgementId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByAcknowledgementId($acknowledgementId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByAcknowledgementId($acknowledgementId), $method);
     }
 
     protected function setIncipits(array &$poems): void
@@ -219,6 +219,54 @@ class PoemManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addAcknowledgement($poem->getId(), $addId);
+        }
+    }
+
+    public function updateElasticMeter(array $ids): void
+    {
+        if (!empty($ids)) {
+            $rawMeters = $this->dbs->getMeters($ids);
+            if (!empty($rawMeters)) {
+                $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
+                $data = [];
+
+                foreach ($rawMeters as $rawMeter) {
+                    if (!isset($data[$rawMeter['poem_id']])) {
+                        $data[$rawMeter['poem_id']] = [
+                            'id' => $rawMeter['poem_id'],
+                            'meter' => [],
+                        ];
+                    }
+                    $data[$rawMeter['poem_id']]['meter'][] =
+                        $meters[$rawMeter['meter_id']]->getShortJson();
+                }
+
+                $this->ess->updateMultiple($data);
+            }
+        }
+    }
+
+    public function updateElasticAcknowledgement(array $ids): void
+    {
+        if (!empty($ids)) {
+            $rawAcknowledgements = $this->dbs->getAcknowledgements($ids);
+            if (!empty($rawAcknowledgements)) {
+                $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
+                $data = [];
+
+                foreach ($rawAcknowledgements as $rawAcknowledgement) {
+                    if (!isset($data[$rawAcknowledgement['poem_id']])) {
+                        $data[$rawAcknowledgement['poem_id']] = [
+                            'id' => $rawAcknowledgement['poem_id'],
+                            'acknowledgement' => [],
+                        ];
+                    }
+                    $data[$rawAcknowledgement['poem_id']]['acknowledgement'][] =
+                        $acknowledgements[$rawAcknowledgement['acknowledement_id']]->getShortJson();
+                }
+
+                $this->ess->updateMultiple($data);
+            }
         }
     }
 }

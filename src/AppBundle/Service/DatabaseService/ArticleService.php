@@ -87,6 +87,18 @@ class ArticleService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                article.identity as article_id
+            from data.article
+            inner join data.entity_management on article.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
+
     /**
      * @param  array $ids
      * @return array

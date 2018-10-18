@@ -5,11 +5,11 @@ namespace AppBundle\ObjectStorage;
 use Exception;
 use stdClass;
 
-use AppBundle\Model\Status;
-use AppBundle\Model\Type;
-
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use AppBundle\Model\Status;
+use AppBundle\Model\Type;
 
 class TypeManager extends PoemManager
 {
@@ -20,41 +20,34 @@ class TypeManager extends PoemManager
      */
     public function getMini(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Type::CACHENAME,
-            'mini',
-            $ids,
-            function ($ids) {
-                $types = [];
-                $rawIds = $this->dbs->getIdsByIds($ids);
-                if (count($rawIds) == 0) {
-                    return [];
-                }
+        $types = [];
+        $rawIds = $this->dbs->getIdsByIds($ids);
+        if (count($rawIds) == 0) {
+            return [];
+        }
 
-                foreach ($rawIds as $rawId) {
-                    $types[$rawId['type_id']] = (new Type())
-                        ->setId($rawId['type_id']);
-                }
+        foreach ($rawIds as $rawId) {
+            $types[$rawId['type_id']] = (new Type())
+                ->setId($rawId['type_id']);
+        }
 
-                // Remove all ids that did not match above
-                $ids = array_keys($types);
+        // Remove all ids that did not match above
+        $ids = array_keys($types);
 
-                $this->setIncipits($types);
+        $this->setIncipits($types);
 
-                $this->setNumberOfVerses($types);
+        $this->setNumberOfVerses($types);
 
-                // Verses (needed in mini to calculate number of verses)
-                $rawVerses = $this->dbs->getVerses($ids);
-                foreach ($rawVerses as $rawVerse) {
-                    $types[$rawVerse['type_id']]
-                        ->setVerses(array_map('trim', explode("\n", $rawVerse['text_content'])));
-                }
+        // Verses (needed in mini to calculate number of verses)
+        $rawVerses = $this->dbs->getVerses($ids);
+        foreach ($rawVerses as $rawVerse) {
+            $types[$rawVerse['type_id']]
+                ->setVerses(array_map('trim', explode("\n", $rawVerse['text_content'])));
+        }
 
-                $this->setPublics($types);
+        $this->setPublics($types);
 
-                return $types;
-            }
-        );
+        return $types;
     }
 
     /**
@@ -64,72 +57,65 @@ class TypeManager extends PoemManager
      */
     public function getShort(array $ids): array
     {
-        return $this->wrapLevelCache(
-            Type::CACHENAME,
-            'short',
-            $ids,
-            function ($ids) {
-                $types = $this->getMini($ids);
+        $types = $this->getMini($ids);
 
-                // Remove all ids that did not match above
-                $ids = array_keys($types);
+        // Remove all ids that did not match above
+        $ids = array_keys($types);
 
-                $this->setTitles($types);
+        $this->setTitles($types);
 
-                $this->setMeters($types);
+        $this->setMeters($types);
 
-                $this->setSubjects($types);
+        $this->setSubjects($types);
 
-                $rawKeywords = $this->dbs->getKeywords($ids);
-                $keywordIds = self::getUniqueIds($rawKeywords, 'keyword_id');
-                $keywords = $this->container->get('keyword_manager')->get($keywordIds);
-                foreach ($rawKeywords as $rawKeyword) {
-                    $types[$rawKeyword['type_id']]
-                        ->addKeyword($keywords[$rawKeyword['keyword_id']]);
-                }
+        $rawKeywords = $this->dbs->getKeywords($ids);
+        $keywordIds = self::getUniqueIds($rawKeywords, 'keyword_id');
+        $keywords = $this->container->get('keyword_manager')->get($keywordIds);
+        foreach ($rawKeywords as $rawKeyword) {
+            $types[$rawKeyword['type_id']]
+                ->addKeyword($keywords[$rawKeyword['keyword_id']]);
+        }
 
-                $this->setPersonRoles($types);
+        $this->setPersonRoles($types);
 
-                $this->setGenres($types);
+        $this->setGenres($types);
 
-                $this->setComments($types);
+        $this->setComments($types);
 
-                // statuses
-                $rawStatuses = $this->dbs->getStatuses($ids);
-                $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
-                foreach ($rawStatuses as $rawStatus) {
-                    switch ($rawStatus['status_type']) {
-                        case Status::TYPE_TEXT:
-                            $types[$rawStatus['type_id']]
-                                ->setTextStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                        case Status::TYPE_CRITICAL:
-                            $types[$rawStatus['type_id']]
-                                ->setCriticalStatus($statuses[$rawStatus['status_id']]);
-                            break;
-                    }
-                }
-
-                $this->setAcknowledgements($types);
-
-                // occurrences (needed in short to calculate number of occurrences)
-                $rawOccurrences = $this->dbs->getOccurrences($ids);
-                if (!empty($rawOccurrences)) {
-                    $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-                    $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                    foreach ($rawOccurrences as $rawOccurrence) {
-                        $types[$rawOccurrence['type_id']]->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
-                    }
-                }
-
-                // Needed to index DBBE in elasticsearch
-                $this->setBibliographies($types);
-
-                $this->setManagements($types);
-
-                return $types;
+        // statuses
+        $rawStatuses = $this->dbs->getStatuses($ids);
+        $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
+        foreach ($rawStatuses as $rawStatus) {
+            switch ($rawStatus['status_type']) {
+                case Status::TYPE_TEXT:
+                    $types[$rawStatus['type_id']]
+                        ->setTextStatus($statuses[$rawStatus['status_id']]);
+                    break;
+                case Status::TYPE_CRITICAL:
+                    $types[$rawStatus['type_id']]
+                        ->setCriticalStatus($statuses[$rawStatus['status_id']]);
+                    break;
             }
-        );
+        }
+
+        $this->setAcknowledgements($types);
+
+        // occurrences (needed in short to calculate number of occurrences)
+        $rawOccurrences = $this->dbs->getOccurrences($ids);
+        if (!empty($rawOccurrences)) {
+            $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+            foreach ($rawOccurrences as $rawOccurrence) {
+                $types[$rawOccurrence['type_id']]->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
+            }
+        }
+
+        // Needed to index DBBE in elasticsearch
+        $this->setBibliographies($types);
+
+        $this->setManagements($types);
+
+        return $types;
     }
 
     /**
@@ -139,65 +125,58 @@ class TypeManager extends PoemManager
      */
     public function getFull(int $id): Type
     {
-        return $this->wrapSingleLevelCache(
-            Type::CACHENAME,
-            'full',
-            $id,
-            function ($id) {
-                // Get basic occurrence information
-                $types = $this->getShort([$id]);
-                if (count($types) == 0) {
-                    throw new NotFoundHttpException('Type with id ' . $id .' not found.');
-                }
+        // Get basic occurrence information
+        $types = $this->getShort([$id]);
+        if (count($types) == 0) {
+            throw new NotFoundHttpException('Type with id ' . $id .' not found.');
+        }
 
-                $this->setIdentifications($types);
+        $this->setIdentifications($types);
 
-                $this->setPrevIds($types);
+        $this->setPrevIds($types);
 
-                $type = $types[$id];
+        $type = $types[$id];
 
-                // related types
-                $rawRelTypes = $this->dbs->getRelatedTypes([$id]);
-                if (!empty($rawRelTypes)) {
-                    $typeIds = self::getUniqueIds($rawRelTypes, 'rel_type_id');
-                    $relTypes =  $this->getMini($typeIds);
-                    $typeRelTypes = $this->container->get('type_relation_type_manager')->getWithData($rawRelTypes);
-                    foreach ($rawRelTypes as $rawRelType) {
-                        $type->addRelatedType(
-                            $relTypes[$rawRelType['rel_type_id']],
-                            $typeRelTypes[$rawRelType['type_relation_type_id']]
-                        );
-                    }
-                }
-
-                // critical apparatus
-                $rawCriticalApparatuses = $this->dbs->getCriticalApparatuses([$id]);
-                if (!empty($rawCriticalApparatuses)) {
-                    $type->setCriticalApparatus($rawCriticalApparatuses[0]['critical_apparatus']);
-                }
-
-                // translation
-                $rawTranslations = $this->dbs->getTranslations([$id]);
-                if (!empty($rawTranslations)) {
-                    $type->setTranslation($rawTranslations[0]['translation']);
-                }
-
-                // based on occurrence
-                $rawBasedOns = $this->dbs->getBasedOns([$id]);
-                $occurrenceIds = self::getUniqueIds($rawBasedOns, 'occurrence_id');
-                $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-                if (!empty($rawBasedOns)) {
-                    $type->setBasedOn($occurrences[$rawBasedOns[0]['occurrence_id']]);
-                }
-
-                return $type;
+        // related types
+        $rawRelTypes = $this->dbs->getRelatedTypes([$id]);
+        if (!empty($rawRelTypes)) {
+            $typeIds = self::getUniqueIds($rawRelTypes, 'rel_type_id');
+            $relTypes =  $this->getMini($typeIds);
+            $typeRelTypes = $this->container->get('type_relation_type_manager')->getWithData($rawRelTypes);
+            foreach ($rawRelTypes as $rawRelType) {
+                $type->addRelatedType(
+                    $relTypes[$rawRelType['rel_type_id']],
+                    $typeRelTypes[$rawRelType['type_relation_type_id']]
+                );
             }
-        );
+        }
+
+        // critical apparatus
+        $rawCriticalApparatuses = $this->dbs->getCriticalApparatuses([$id]);
+        if (!empty($rawCriticalApparatuses)) {
+            $type->setCriticalApparatus($rawCriticalApparatuses[0]['critical_apparatus']);
+        }
+
+        // translation
+        $rawTranslations = $this->dbs->getTranslations([$id]);
+        if (!empty($rawTranslations)) {
+            $type->setTranslation($rawTranslations[0]['translation']);
+        }
+
+        // based on occurrence
+        $rawBasedOns = $this->dbs->getBasedOns([$id]);
+        $occurrenceIds = self::getUniqueIds($rawBasedOns, 'occurrence_id');
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+        if (!empty($rawBasedOns)) {
+            $type->setBasedOn($occurrences[$rawBasedOns[0]['occurrence_id']]);
+        }
+
+        return $type;
     }
 
-    public function getOccurrenceDependencies(int $occurrenceId, bool $short = false): array
+    public function getOccurrenceDependencies(int $occurrenceId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $short ? 'getShort' : 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $method);
     }
 
     /**
@@ -219,9 +198,6 @@ class TypeManager extends PoemManager
             $id = $this->dbs->insert($data->incipit);
 
             $new = $this->update($id, $data, true);
-
-            // update cache
-            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // commit transaction
             $this->dbs->commit();
@@ -250,7 +226,7 @@ class TypeManager extends PoemManager
             }
 
             // update person data
-            $cacheReload = [
+            $changes = [
                 'mini' => $isNew,
                 'short' => $isNew,
                 'full' => $isNew,
@@ -259,7 +235,7 @@ class TypeManager extends PoemManager
                 if (!is_bool($data->public)) {
                     throw new BadRequestHttpException('Incorrect public data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->updatePublic($old, $data->public);
             }
             if (property_exists($data, 'incipit')) {
@@ -270,7 +246,7 @@ class TypeManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect incipit data.');
                 }
 
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateIncipit($id, $data->incipit);
             }
             if (property_exists($data, 'title')) {
@@ -278,34 +254,34 @@ class TypeManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
 
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->upsertTitle($id, 'GR', $data->title);
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!is_numeric($data->numberOfVerses)) {
                     throw new BadRequestHttpException('Incorrect number of verses data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateNumberOfVerses($id, $data->numberOfVerses);
             }
             if (property_exists($data, 'verses')) {
                 if (!is_string($data->verses)) {
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
-                $cacheReload['mini'] = true;
+                $changes['mini'] = true;
                 $this->dbs->updateVerses($id, $data->verses);
             }
             if (property_exists($data, 'relatedTypes')) {
                 if (!is_array($data->relatedTypes)) {
                     throw new BadRequestHttpException('Incorrect related types data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateTypes($old, $data->relatedTypes);
             }
-            $roles = $this->container->get('role_manager')->getRolesByType('type');
+            $roles = $this->container->get('role_manager')->getByType('type');
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
-                    $cacheReload['short'] = true;
+                    $changes['short'] = true;
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
@@ -313,114 +289,115 @@ class TypeManager extends PoemManager
                 if (!is_array($data->meters)) {
                     throw new BadRequestHttpException('Incorrect meter data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateMeters($old, $data->meters);
             }
             if (property_exists($data, 'genres')) {
                 if (!is_array($data->genres)) {
                     throw new BadRequestHttpException('Incorrect genre data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateGenres($old, $data->genres);
             }
             if (property_exists($data, 'personSubjects')) {
                 if (!is_array($data->personSubjects)) {
                     throw new BadRequestHttpException('Incorrect person subject data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updatePersonSubjects($old, $data->personSubjects);
             }
             if (property_exists($data, 'keywordSubjects')) {
                 if (!is_array($data->keywordSubjects)) {
                     throw new BadRequestHttpException('Incorrect keyword subject data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateKeywordSubjects($old, $data->keywordSubjects);
             }
             if (property_exists($data, 'keywords')) {
                 if (!is_array($data->keywords)) {
                     throw new BadRequestHttpException('Incorrect keywords data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateKeywords($old, $data->keywords);
             }
-            $this->updateIdentificationwrapper($old, $data, $cacheReload, 'full', 'type');
+            $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'type');
             if (property_exists($data, 'bibliography')) {
                 if (!is_object($data->bibliography)) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
                 // short is needed here to index DBBE in elasticsearch
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateBibliography($old, $data->bibliography, true);
             }
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePublicComment($id, $data->publicComment);
             }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             if (property_exists($data, 'criticalApparatus')) {
                 if (!is_string($data->criticalApparatus)) {
                     throw new BadRequestHttpException('Incorrect critical apparatus data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->dbs->updateCriticalApparatus($id, $data->criticalApparatus);
             }
             if (property_exists($data, 'translation')) {
                 if (!is_string($data->translation)) {
                     throw new BadRequestHttpException('Incorrect translation data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateTranslation($old, $data->translation);
             }
             if (property_exists($data, 'acknowledgements')) {
                 if (!is_array($data->acknowledgements)) {
                     throw new BadRequestHttpException('Incorrect acknowledgements data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateAcknowledgements($old, $data->acknowledgements);
             }
             if (property_exists($data, 'criticalStatus')) {
                 if (!(is_object($data->criticalStatus) || empty($data->criticalStatus))) {
                     throw new BadRequestHttpException('Incorrect record status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->criticalStatus, Status::TYPE_CRITICAL);
             }
             if (property_exists($data, 'textStatus')) {
                 if (!(is_object($data->textStatus) || empty($data->textStatus))) {
                     throw new BadRequestHttpException('Incorrect text status data.');
                 }
-                $cacheReload['short'] = true;
+                $changes['short'] = true;
                 $this->updateStatus($old, $data->textStatus, Status::TYPE_TEXT);
             }
             if (property_exists($data, 'basedOn')) {
                 if (!is_object($data->basedOn)) {
                     throw new BadRequestHttpException('Incorrect based on data.');
                 }
-                $cacheReload['full'] = true;
+                $changes['full'] = true;
                 $this->updateBasedOn($old, $data->basedOn);
             }
-            $this->updateManagementwrapper($old, $data, $cacheReload, 'short');
+            $this->updateManagementwrapper($old, $data, $changes, 'short');
 
             // Throw error if none of above matched
-            if (!in_array(true, $cacheReload)) {
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new data
-            $this->clearCache($id, $cacheReload);
             $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // Reset elasticsearch
             $this->ess->add($new);
@@ -429,9 +406,10 @@ class TypeManager extends PoemManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            // Reset cache on elasticsearch error
-            if (isset($new)) {
-                $this->reset([$id]);
+
+            // reset elasticsearch
+            if (!$isNew && isset($new)) {
+                $this->ess->add($old);
             }
             throw $e;
         }
@@ -517,11 +495,6 @@ class TypeManager extends PoemManager
                     }
                 }
             }
-        }
-
-        // Reset full caches of related ids
-        foreach (array_merge($delIds, $typeIds) as $relatedId) {
-            $this->clearCache($relatedId, ['full' => true]);
         }
     }
 

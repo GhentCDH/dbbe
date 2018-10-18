@@ -8,8 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use AppBundle\Utils\ArrayToJson;
-
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class OriginController extends Controller
@@ -25,9 +23,8 @@ class OriginController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
-                ArrayToJson::arrayToJson(
-                    $this->get('origin_manager')->getOriginsForManuscripts()
-                )
+                // origins for manuscript is a superset of origins for persons
+                $this->get('origin_manager')->getByTypeJson('manuscript')
             );
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -59,9 +56,8 @@ class OriginController extends Controller
                     // @codingStandardsIgnoreEnd
                 ]),
                 'origins' => json_encode(
-                    ArrayToJson::arrayToJson(
-                        $this->get('origin_manager')->getOriginsForManuscripts()
-                    )
+                    // origins for manuscript is a superset of origins for persons
+                    $this->get('origin_manager')->getByTypeJson('manuscript')
                 ),
             ]
         );
