@@ -85,7 +85,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['occurrence', 'type', 'article', 'book', 'bookChapter'] %}
+                {% for documentType in ['occurrence', 'type', 'article', 'book', 'book_chapter'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -98,7 +98,7 @@
                                     Article(s)
                                 {% elseif documentType == 'book' %}
                                     Book(s)
-                                {% elseif documentType == 'bookChapter' %}
+                                {% elseif documentType == 'book_chapter' %}
                                     Book chapter(s)
                                 {% endif %}
                             </td>
