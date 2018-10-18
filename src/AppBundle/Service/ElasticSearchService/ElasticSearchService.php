@@ -4,7 +4,6 @@ namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Aggregation;
 use Elastica\Client;
-use Elastica\Document;
 use Elastica\Query;
 use Elastica\Query\AbstractQuery;
 

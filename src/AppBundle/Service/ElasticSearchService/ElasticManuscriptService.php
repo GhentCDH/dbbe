@@ -71,7 +71,7 @@ class ElasticManuscriptService extends ElasticBaseService
                 unset($result['data'][$key]['private_comment']);
             }
         }
-        
+
         $aggregationFilters = ['city', 'content', 'person', 'origin'];
         if (isset($params['filters']['city'])) {
             $aggregationFilters[] = 'library';

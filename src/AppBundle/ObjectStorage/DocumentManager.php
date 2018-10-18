@@ -23,7 +23,7 @@ class DocumentManager extends EntityManager
         return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $method);
     }
 
-    public function getRoleDependencies(int $roleId, string $method): array
+    public function getRoleDependencies(int $roleId, string $method = 'getMini'): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $method);
     }

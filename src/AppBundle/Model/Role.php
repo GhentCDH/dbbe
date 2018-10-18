@@ -22,7 +22,7 @@ class Role extends IdNameObject
 
     public function getUsage(): array
     {
-        return $this->uage;
+        return $this->usage;
     }
 
     public function getSystemName(): string

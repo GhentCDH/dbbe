@@ -120,6 +120,8 @@ class RoleManager extends ObjectManager
 
             $this->cache->invalidateTags(['roles']);
 
+            $this->updateRoleMapping();
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -146,16 +148,8 @@ class RoleManager extends ObjectManager
                 && is_array($data->usage)
                 && !empty($data->usage)
             ) {
-                foreach ($data->usage as $usagePart) {
-                    if (!is_string($usagePart)) {
-                        throw new BadRequestHttpException('Incorrect data.');
-                    }
-                }
                 $correct = true;
-                $this->dbs->updateUsage($roleId, $data->usage);
-            }
-            if (property_exists($data, 'systemName')) {
-                throw new BadRequestHttpException('System name cannot be modified.');
+                $this->updateUsage($role, $data->usage);
             }
             if (property_exists($data, 'name')
                 && is_string($data->name)
@@ -186,6 +180,32 @@ class RoleManager extends ObjectManager
         return $newRole;
     }
 
+    private function updateUsage(Role $role, array $usage)
+    {
+        foreach ($usage as $usagePart) {
+            if (!is_string($usagePart)) {
+                throw new BadRequestHttpException('Incorrect usage data.');
+            }
+        }
+
+        $del = array_diff($role->getUsage(), $usage);
+        $add = array_diff($usage, $role->getUsage());
+
+        foreach ($del as $type) {
+            if ($type == 'bookChapter') {
+                $type = 'book_chapter';
+            }
+            $depIds = $this->container->get($type . '_manager')->getRoleDependencies($role->getId(), 'getId');
+            if (!empty($depIds)) {
+                throw new BadRequestHttpException('Dependency error.');
+            }
+        }
+
+        $this->dbs->updateUsage($role->getId(), $usage);
+
+        $this->updateRoleMapping();
+    }
+
     public function delete(int $roleId): void
     {
         $this->dbs->beginTransaction();
@@ -202,6 +222,8 @@ class RoleManager extends ObjectManager
 
             $this->cache->invalidateTags(['roles']);
 
+            // fields cannot be removed from mapping, so don't update mapping
+
             // commit transaction
             $this->dbs->commit();
         } catch (DependencyException $e) {
@@ -213,5 +235,17 @@ class RoleManager extends ObjectManager
         }
 
         return;
+    }
+
+    private function updateRoleMapping(): void
+    {
+        foreach ([
+            'manuscript',
+            'occurrence',
+            'type',
+            'bibliography',
+        ] as $type) {
+            $this->container->get($type . '_elastic_service')->updateRoleMapping();
+        }
     }
 }

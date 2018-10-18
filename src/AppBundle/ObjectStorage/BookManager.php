@@ -201,13 +201,6 @@ class BookManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateCity($id, $data->city);
             }
-            if (property_exists($data, 'editor')) {
-                if (!is_string($data->editor)) {
-                    throw new BadRequestHttpException('Incorrect editor data.');
-                }
-                $changes['mini'] = true;
-                $this->dbs->updateEditor($id, $data->editor);
-            }
             if (property_exists($data, 'publisher')) {
                 if (!is_string($data->publisher)) {
                     throw new BadRequestHttpException('Incorrect publisher data.');
@@ -258,7 +251,7 @@ class BookManager extends DocumentManager
             $this->dbs->commit();
         } catch (Exception $e) {
             $this->dbs->rollBack();
-            
+
             // Reset elasticsearch
             if (!$isNew && isset($new)) {
                 $this->ess->add($old);

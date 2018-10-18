@@ -3,11 +3,25 @@
 namespace AppBundle\Service\ElasticSearchService;
 
 use Elastica\Document;
+use Elastica\Type;
 
 use AppBundle\Model\IdElasticInterface;
 
 class ElasticBaseService extends ElasticSearchService
 {
+    public function updateRoleMapping(): void
+    {
+        $mapping = new Type\Mapping;
+        $mapping->setType($this->type);
+        foreach ($this->getRoleSystemNames(true) as $role) {
+            $properties[$role] = ['type' => 'nested'];
+            $properties[$role . '_public'] = ['type' => 'nested'];
+        }
+        var_dump($this->roles);
+        $mapping->setProperties($properties);
+        $mapping->send();
+    }
+
     public function addMultiple(array $entities): void
     {
         $elastics = [];
