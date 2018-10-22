@@ -1,6 +1,9 @@
 <template>
     <panel :header="header">
-        <template v-for="role in roles">
+        <div
+            v-for="role in roles"
+            class="pbottom-default"
+        >
             <vue-form-generator
                 ref="forms"
                 :key="'form_' + role.systemName"
@@ -33,12 +36,52 @@
                     </li>
                 </ul>
             </div>
-        </template>
+            <div
+                v-if="model[role.systemName] && model[role.systemName].length > 1"
+                :key="'order_' + role.systemName"
+            >
+                <p>
+                    <a
+                        href="#"
+                        class="action"
+                        @click.prevent="displayOrder[role.systemName] = !displayOrder[role.systemName]"
+                    >
+                        <i
+                            v-if="displayOrder[role.systemName]"
+                            class="fa fa-caret-down"
+                        />
+                        <i
+                            v-else
+                            class="fa fa-caret-up"
+                        />
+                        Change order
+                    </a>
+                </p>
+                <draggable
+                    v-if="displayOrder[role.systemName]"
+                    v-model="model[role.systemName]"
+                    @change="onChange"
+                >
+                    <transition-group>
+                        <div
+                            v-for="person in model[role.systemName]"
+                            :key="person.id"
+                            class="panel panel-default draggable-item"
+                        >
+                            <div class="panel-body">
+                                <i class="fa fa-arrows draggable-icon" />{{ person.name }}
+                            </div>
+                        </div>
+                    </transition-group>
+                </draggable>
+            </div>
+        </div>
     </panel>
 </template>
 <script>
 import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
+import draggable from 'vuedraggable'
 
 import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
@@ -49,6 +92,7 @@ import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
+Vue.component('draggable', draggable)
 
 export default {
     mixins: [
@@ -69,6 +113,7 @@ export default {
         let data = {
             schemas: {},
             refs: {},
+            displayOrder: {},
         }
         for (let role of this.roles) {
             data.schemas[role.systemName] = {
@@ -87,6 +132,7 @@ export default {
                 },
             }
             data.refs[role.systemName] = role.systemName + 'Form'
+            data.displayOrder[role.systemName] = false
         }
         return data
     },
@@ -114,6 +160,10 @@ export default {
                 form.validate()
             }
         },
+        onChange() {
+            this.calcChanges()
+            this.$emit('validated')
+        }
     }
 }
 </script>
