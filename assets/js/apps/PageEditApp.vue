@@ -105,6 +105,14 @@ export default {
             },
         }
     },
+    watch: {
+        'data.title'() {
+            this.setExitWarning()
+        },
+        'data.content'() {
+            this.setExitWarning()
+        },
+    },
     methods: {
         submit () {
             if (this.$refs.form.errors.length !== 0) {
@@ -116,6 +124,7 @@ export default {
                 content: this.data.content,
             })
                 .then( (response) => {
+                    window.onbeforeunload = function () {}
                     window.location = this.urls['page_get']
                 })
                 .catch( (error) => {
@@ -126,6 +135,18 @@ export default {
         },
         validated (isValid, errors) {
             this.invalid = !isValid
+        },
+        setExitWarning () {
+            if (this.data.title !== this.originalData.title || this.data.content !== this.originalData.content) {
+                window.onbeforeunload = function (e) {
+                    let dialogText = 'There are unsaved changes.'
+                    e.returnValue = dialogText
+                    return dialogText
+                }
+            }
+            else {
+                window.onbeforeunload = function () {}
+            }
         },
     },
 }

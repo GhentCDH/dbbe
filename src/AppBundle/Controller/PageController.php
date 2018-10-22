@@ -97,6 +97,7 @@ class PageController extends Controller
         return $this->render(
             'AppBundle:Page:edit.html.twig',
             [
+                'slug' => $slug,
                 'urls' => json_encode([
                     'page_get' => $this->generateUrl('page_get', ['slug' => $slug]),
                     'page_put' => $this->generateUrl('page_put', ['slug' => $slug]),

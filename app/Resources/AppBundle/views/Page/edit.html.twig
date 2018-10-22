@@ -1,6 +1,17 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
+    <div class="col-sm-9">
+        <h2 class="h1">
+            Edit page
+            <a
+                href="{{ path('page_get', {'slug': slug}) }}"
+                class="action pull-right"
+                title="View the book">
+                <i class="fa fa-eye"></i>
+            </a>
+        </h2>
+    </div>
     <article class="col-sm-9 mbottom-large">
         <div id="page-edit-app">
             <page-edit-app
