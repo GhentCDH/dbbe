@@ -1,6 +1,5 @@
 #!/bin/bash
 
-rm -r ./web/build/ckeditor
 mkdir ./web/build/ckeditor
 mkdir ./web/build/ckeditor/lang
 cp ./node_modules/ckeditor/lang/en.js ./web/build/ckeditor/lang
