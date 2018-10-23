@@ -248,7 +248,8 @@ export default {
             model: {
                 basic: {
                     incipit: null,
-                    title: null,
+                    title_GR: null,
+                    title_LA: null,
                 },
                 verses: {
                     verses: '',
@@ -327,7 +328,7 @@ export default {
             personSubjects: this.historicalPersons,
             keywordSubjects: this.data.subjectKeywords,
         }
-        this.keywords = this.data.typeKeywords
+        this.keywords = this.data.typeKeywords,
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -355,7 +356,8 @@ export default {
                 // Basic information
                 this.model.basic = {
                     incipit: this.type.incipit,
-                    title: this.type.title,
+                    title_GR: this.type.title_GR,
+                    title_LA: this.type.title_LA,
                 }
 
                 // Verses
@@ -393,7 +395,7 @@ export default {
 
                 // Keyword
                 this.model.keywords = {
-                    keywords: this.type.subjects.keywords,
+                    keywords: this.type.keywords,
                 }
 
                 // Identification

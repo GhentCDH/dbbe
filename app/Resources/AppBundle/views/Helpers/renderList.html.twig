@@ -2,12 +2,12 @@
     <ul>
 {% endif %}
 
-    {% for item in list %}
+    {% for key, item in list %}
         {% if list|length > 1 or (forceList is defined and forceList) %}
             <li>
         {% endif %}
 
-        {% with {'item': item} %}
+        {% with {'key': key, 'item': item} %}
             {% block renderItem %}{% endblock %}
         {% endwith %}
 

@@ -31,6 +31,10 @@ class ElasticTypeService extends ElasticBaseService
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
+            'title_GR' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek',
+            ],
             'text' => [
                 'type' => 'text',
                 'analyzer' => 'custom_greek',
@@ -77,8 +81,11 @@ class ElasticTypeService extends ElasticBaseService
             if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
                 unset($result['data'][$key]['text']);
             }
-            if (isset($result['data'][$key]['title']) && is_string($result['data'][$key]['title'])) {
-                unset($result['data'][$key]['title']);
+            if (isset($result['data'][$key]['title_GR']) && is_string($result['data'][$key]['title_GR'])) {
+                unset($result['data'][$key]['title_GR']);
+            }
+            if (isset($result['data'][$key]['title_LA']) && is_string($result['data'][$key]['title_LA'])) {
+                unset($result['data'][$key]['title_LA']);
             }
 
             // Keep comments if there was a search, then these will be an array
@@ -189,7 +196,11 @@ class ElasticTypeService extends ElasticBaseService
                                 'text' => $value,
                                 'type' => $filters['text_type'],
                             ],
-                            'title' => [
+                            'title_GR' => [
+                                'text' => $value,
+                                'type' => $filters['text_type'],
+                            ],
+                            'title_LA' => [
                                 'text' => $value,
                                 'type' => $filters['text_type'],
                             ],

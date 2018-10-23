@@ -13,12 +13,29 @@
             {% endif %}
         </h2>
         <div class="greek pbottom-default">
-            {% if (type.getTitle() or type.getVerses()) %}
-                 {% include '@App/Helpers/renderTitleVersesAsText.html.twig' with {'title': type.getTitle(), 'verses': type.getVerses()} only %}
+            {% if (type.getVerses()) %}
+                {# don't display type titles here, these are displayed in the table below #}
+                {% include '@App/Helpers/renderTitleVersesAsText.html.twig' with {'title': null, 'verses': type.getVerses()} only %}
             {% endif %}
         </div>
         <table class="table table-hover table-bordered">
             <tbody>
+                {% if type.getTitles() is not empty %}
+                    <tr>
+                        <td>Title(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getTitles()}%}
+                                {% block renderItem %}
+                                    {% if key == 'GR' %}
+                                        <span class="greek">{{ item }}</span>
+                                    {% else %}
+                                        {{ item }}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? type.getOccurrences() : type.getOccurrences()|public %}
                 {% if occurrences is not empty %}
                     <tr>

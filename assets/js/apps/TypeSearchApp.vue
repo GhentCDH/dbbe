@@ -47,13 +47,29 @@
                 <span
                     slot="text"
                     slot-scope="props"
-                    class="greek"
                 >
-                    <template v-if="props.row.title">
+                    <template v-if="props.row.title_GR">
+                        <!-- T for title: T is the 20th letter in the alphabet -->
+                        <ol
+                            type="A"
+                            class="greek"
+                        >
+                            <!-- eslint-disable vue/no-v-html -->
+                            <li
+                                v-for="(item, index) in props.row.title_GR"
+                                :key="index"
+                                value="20"
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
+                        </ol>
+                    </template>
+                    <template v-if="props.row.title_LA">
+                        <!-- T for title: T is the 20th letter in the alphabet -->
                         <ol type="A">
                             <!-- eslint-disable vue/no-v-html -->
                             <li
-                                v-for="(item, index) in props.row.title"
+                                v-for="(item, index) in props.row.title_LA"
                                 :key="index"
                                 value="20"
                                 v-html="item"
@@ -62,7 +78,7 @@
                         </ol>
                     </template>
                     <template v-if="props.row.text">
-                        <ol>
+                        <ol class="greek">
                             <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.text"
@@ -215,7 +231,7 @@ export default {
                         validator: VueFormGenerator.validators.string,
                     },
                     dbbe: this.createMultiSelect(
-                        'Transcribed by DBBE',
+                        'Text source DBBE',
                         {
                             model: 'dbbe',
                         },

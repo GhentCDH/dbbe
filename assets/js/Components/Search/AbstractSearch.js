@@ -322,7 +322,12 @@ export default {
             // Check whether column 'title/text' should be displayed
             if (
                 data.data.length > 0
-                && (data.data[0].hasOwnProperty('text') || data.data[0].hasOwnProperty('title'))
+                && (
+                    data.data[0].hasOwnProperty('text')
+                    || data.data[0].hasOwnProperty('title')
+                    || data.data[0].hasOwnProperty('title_GR')
+                    || data.data[0].hasOwnProperty('title_LA')
+                )
             ) {
                 this.textSearch = true
             }

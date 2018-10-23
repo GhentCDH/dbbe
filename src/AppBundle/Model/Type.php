@@ -13,6 +13,8 @@ class Type extends Poem
      */
     const CACHENAME = 'type';
 
+    protected $titles = [];
+
     /**
      * @var array
      */
@@ -48,6 +50,18 @@ class Type extends Poem
      * @var Occurrence
      */
     protected $basedOn;
+
+    public function addTitle(string $lang, string $title): Poem
+    {
+        $this->titles[$lang] = $title;
+
+        return $this;
+    }
+
+    public function getTitles(): array
+    {
+        return $this->titles;
+    }
 
     public function setVerses(array $verses): Type
     {
@@ -170,6 +184,10 @@ class Type extends Poem
     {
         $result = parent::getJson();
 
+        foreach ($this->titles as $lang => $title) {
+            $result['title_' . $lang] = $title;
+        }
+
         if (!empty($this->verses)) {
             $result['verses'] = implode("\n", $this->verses);
         }
@@ -209,6 +227,10 @@ class Type extends Poem
     public function getElastic(): array
     {
         $result = parent::getElastic();
+
+        foreach ($this->titles as $lang => $title) {
+            $result['title_' . $lang] = $title;
+        }
 
         $result['number_of_occurrences'] = count($this->occurrences);
 

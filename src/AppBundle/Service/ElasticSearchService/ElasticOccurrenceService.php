@@ -31,6 +31,10 @@ class ElasticOccurrenceService extends ElasticBaseService
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
+            'title' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek',
+            ],
             'text' => [
                 'type' => 'text',
                 'analyzer' => 'custom_greek',

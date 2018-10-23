@@ -222,6 +222,21 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getTitles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                document_title.iddocument as poem_id,
+                language.code as lang,
+                document_title.title
+            from data.document_title
+            inner join data.language on document_title.idlanguage = language.idlanguage
+            where document_title.iddocument in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getVerses(array $ids): array
     {
         return $this->conn->executeQuery(

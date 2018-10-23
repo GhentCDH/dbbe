@@ -13,6 +13,15 @@ use AppBundle\Model\Type;
 
 class TypeManager extends PoemManager
 {
+    protected function setTitles(array &$types): void
+    {
+        $rawTitles = $this->dbs->getTitles(self::getIds($types));
+        foreach ($rawTitles as $rawTitle) {
+            $types[$rawTitle['poem_id']]
+                ->addTitle($rawTitle['lang'], $rawTitle['title']);
+        }
+    }
+
     /**
      * Get types with enough information to get an id and a description
      * @param  array $ids
@@ -249,13 +258,21 @@ class TypeManager extends PoemManager
                 $changes['mini'] = true;
                 $this->dbs->updateIncipit($id, $data->incipit);
             }
-            if (property_exists($data, 'title')) {
-                if (!is_string($data->title)) {
-                    throw new BadRequestHttpException('Incorrect title data.');
+            if (property_exists($data, 'title_GR')) {
+                if (!is_string($data->title_GR)) {
+                    throw new BadRequestHttpException('Incorrect Greek title data.');
                 }
 
                 $changes['short'] = true;
-                $this->dbs->upsertTitle($id, 'GR', $data->title);
+                $this->dbs->upsertTitle($id, 'GR', $data->title_GR);
+            }
+            if (property_exists($data, 'title_LA')) {
+                if (!is_string($data->title_LA)) {
+                    throw new BadRequestHttpException('Incorrect Latin title data.');
+                }
+
+                $changes['short'] = true;
+                $this->dbs->upsertTitle($id, 'LA', $data->title_LA);
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!is_numeric($data->numberOfVerses)) {
