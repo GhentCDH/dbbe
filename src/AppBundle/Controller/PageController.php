@@ -118,7 +118,11 @@ class PageController extends Controller
     public function getImage(Request $request, string $name)
     {
         try {
-            return new BinaryFileResponse($this->getParameter('page_image_directory') . $name);
+            return new BinaryFileResponse(
+                $this->getParameter('kernel.project_dir') . '/'
+                . $this->getParameter('page_image_directory') . '/'
+                . $name
+            );
         } catch (FileNotFoundException $e) {
             throw $this->createNotFoundException('Image with filename "' . $name . '" not found');
         }
@@ -138,7 +142,8 @@ class PageController extends Controller
 
         $file = $request->files->get('file');
         $filename = $file->getClientOriginalName();
-        $imageDirectory = $this->getParameter('page_image_directory');
+        $imageDirectory = $this->getParameter('kernel.project_dir') . '/'
+            . $this->getParameter('page_image_directory') . '/';
 
         // Upload file if no file with this name exists
         $fileSystem = new Filesystem();

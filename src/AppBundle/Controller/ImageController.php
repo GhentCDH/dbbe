@@ -36,7 +36,11 @@ class ImageController extends BaseController
             $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
         }
         try {
-            return new BinaryFileResponse($this->getParameter('image_directory') . $image->getFilename());
+            return new BinaryFileResponse(
+                $this->getParameter('kernel.project_dir') . '/'
+                . $this->getParameter('image_directory') . '/'
+                . $image->getFilename()
+            );
         } catch (FileNotFoundException $e) {
             throw $this->createNotFoundException('Image with filename "' . $image->getFilename() . '" not found');
         }
