@@ -222,6 +222,18 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByTranslationId(int $translationId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            where translation_of.idtranslation = ?',
+            [$translationId]
+        )->fetchAll();
+    }
+
     public function getTitles(array $ids): array
     {
         return $this->conn->executeQuery(
@@ -346,12 +358,10 @@ class TypeService extends PoemService
     {
         return $this->conn->executeQuery(
             'SELECT
-                reconstructed_poem.identity as type_id,
-                document.text_content as translation
-            from data.reconstructed_poem
-            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
-            inner join data.document on translation_of.idtranslation = document.identity
-            where reconstructed_poem.identity in (?)',
+                translation_of.iddocument as type_id,
+                translation_of.idtranslation as translation_id
+            from data.translation_of
+            where translation_of.iddocument in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -644,7 +654,7 @@ class TypeService extends PoemService
         );
     }
 
-    public function delTranslation(int $id): int
+    public function delTranslations(int $id): int
     {
         return $this->conn->executeUpdate(
             'DELETE from data.translation

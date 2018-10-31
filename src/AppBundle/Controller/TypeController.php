@@ -351,6 +351,7 @@ class TypeController extends BaseController
                     'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
                     'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
                     'referenceTypes' => $this->get('reference_type_manager')->getAllShortJson(),
+                    'languages' => $this->get('language_manager')->getAllShortJson(),
                     'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
                     'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_TEXT),
                     'criticalStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_CRITICAL),

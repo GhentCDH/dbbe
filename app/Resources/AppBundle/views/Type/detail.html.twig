@@ -183,10 +183,24 @@
                         <td>{{ type.getCriticalApparatus()|nl2br }}</td>
                     </tr>
                 {% endif %}
-                {% if type.getTranslation() is not empty %}
+                {% if type.getTranslations() is not empty %}
                     <tr>
-                        <td>translation(s)</td>
-                        <td>{{ type.getTranslation()|nl2br }}</td>
+                        <td>Translation(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getTranslations()} only %}
+                                {% block renderItem %}
+                                    {{ item.getText() }}
+                                    <br />
+                                    Language: {{ item.getLanguage() }}
+                                    <br />
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': item.getBibliographies()} only %}
+                                        {% block renderItem %}
+                                            {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if type.getPublicComment() is not empty %}

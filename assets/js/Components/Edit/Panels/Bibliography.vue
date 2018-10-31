@@ -238,6 +238,7 @@
             v-model="editBibModal"
             size="lg"
             auto-focus
+            :append-to-body="appendToBody"
         >
             <vue-form-generator
                 v-if="editBib.type === 'book'"
@@ -300,6 +301,7 @@
             v-model="delBibModal"
             title="Delete bibliography"
             auto-focus
+            :append-to-body="appendToBody"
         >
             <p>Are you sure you want to delete this bibliography?</p>
             <div slot="footer">
@@ -346,6 +348,10 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        appendToBody: {
+            type: Boolean,
+            default: false,
+        }
     },
     data() {
         let data = {

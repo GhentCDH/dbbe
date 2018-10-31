@@ -38,14 +38,6 @@ export default {
         return {
             schema: {
                 fields: {
-                    translation: {
-                        type: 'textArea',
-                        label: 'Translation',
-                        labelClasses: 'control-label',
-                        model: 'translation',
-                        rows: 4,
-                        validator: VueFormGenerator.validators.string,
-                    },
                     criticalApparatus: {
                         type: 'textArea',
                         label: 'Critical apparatus',

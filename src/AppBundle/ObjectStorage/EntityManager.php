@@ -166,7 +166,13 @@ class EntityManager extends ObjectManager
             $inverseBibliographies = [];
             foreach (['manuscript', 'occurrence', 'type', 'person'] as $type) {
                 $ids = self::getUniqueIds($rawInverseBibliographies, 'entity_id', 'type', $type);
-                $inverseBibliographies+= $this->container->get($type . '_manager')->getMini($ids);
+                $inverseBibliographies += $this->container->get($type . '_manager')->getMini($ids);
+            }
+            // Add linked type instead of translation
+            $translationIds = self::getUniqueIds($rawInverseBibliographies, 'entity_id', 'type', 'translation');
+            foreach ($translationIds as $translationId) {
+                $types = $this->container->get('type_manager')->getTranslationDependencies($translationId, 'getMini');
+                $inverseBibliographies[$translationId] = reset($types);
             }
 
             foreach ($rawInverseBibliographies as $rawInverseBibliography) {
@@ -393,7 +399,7 @@ class EntityManager extends ObjectManager
             }
             foreach ($bibliography->$plurBibType as $bib) {
                 if (!is_object($bib)
-                    || (property_exists($bib, 'id') && !is_numeric($bib->id))
+                    || (property_exists($bib, 'id') && (empty($bib->id) || !is_numeric($bib->id)))
                     || !property_exists($bib, $bibType) || !is_object($bib->$bibType)
                     || !property_exists($bib->$bibType, 'id') || !is_numeric($bib->$bibType->id)
                     || ($referenceTypeRequired
@@ -416,7 +422,7 @@ class EntityManager extends ObjectManager
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
                 } else {
-                    if (!property_exists($bib, 'relUrl') || !(empty($bib->startPage) ||is_string($bib->relUrl))
+                    if (!property_exists($bib, 'relUrl') || !(empty($bib->relUrl) ||is_string($bib->relUrl))
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
@@ -495,6 +501,7 @@ class EntityManager extends ObjectManager
             }
 
             // delete
+            $delIds = array_diff($oldBibIds, $newBibIds);
             if (count($delIds) > 0) {
                 $this->container->get('bibliography_manager')->deleteMultiple($delIds);
             }

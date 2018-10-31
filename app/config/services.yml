@@ -183,6 +183,16 @@ services:
         arguments: ['@verse_service', '@cache.app', '@service_container', '@verse_elastic_service', '@security.token_storage', 'verse']
         public: true
 
+    translation_manager:
+        class: AppBundle\ObjectStorage\TranslationManager
+        arguments: ['@translation_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
+    language_manager:
+        class: AppBundle\ObjectStorage\LanguageManager
+        arguments: ['@language_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
         arguments: ['@doctrine.orm.entity_manager']
@@ -301,6 +311,14 @@ services:
 
     verse_service:
         class: AppBundle\Service\DatabaseService\VerseService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    translation_service:
+        class: AppBundle\Service\DatabaseService\TranslationService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    language_service:
+        class: AppBundle\Service\DatabaseService\LanguageService
         arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:

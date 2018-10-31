@@ -42,10 +42,11 @@ class Type extends Poem
      * @var string
      */
     protected $criticalApparatus;
+
     /**
-     * @var string
+     * @var array
      */
-    protected $translation;
+    protected $translations = [];
     /**
      * @var Occurrence
      */
@@ -143,16 +144,16 @@ class Type extends Poem
         return $this->criticalApparatus;
     }
 
-    public function setTranslation(string $translation = null): Type
+    public function setTranslations(array $translations): Type
     {
-        $this->translation = $translation;
+        $this->translations = $translations;
 
         return $this;
     }
 
-    public function getTranslation(): ?string
+    public function getTranslations(): array
     {
-        return $this->translation;
+        return $this->translations;
     }
 
     public function setBasedOn(Occurrence $basedOn = null): Type
@@ -211,8 +212,8 @@ class Type extends Poem
         if (isset($this->criticalStatus)) {
             $result['criticalStatus'] = $this->criticalStatus->getShortJson();
         }
-        if (isset($this->translation)) {
-            $result['translation'] = $this->translation;
+        if (isset($this->translations)) {
+            $result['translations'] = ArrayToJson::arrayToJson($this->translations);
         }
         if (isset($this->criticalApparatus)) {
             $result['criticalApparatus'] = $this->criticalApparatus;

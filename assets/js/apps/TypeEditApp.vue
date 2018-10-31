@@ -110,6 +110,15 @@
                 @validated="validated"
             />
 
+            <translationPanel
+                id="translations"
+                ref="translations"
+                header="Translations"
+                :model="model.translations"
+                :values="translations"
+                @validated="validated"
+            />
+
             <generalTypePanel
                 id="general"
                 ref="general"
@@ -188,6 +197,7 @@
                     <li><a href="#keywords">Keywords</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
+                    <li><a href="#translations">Translations</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
@@ -222,7 +232,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|GeneralType|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|Translation|GeneralType|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -244,6 +254,7 @@ export default {
             subjects: null,
             keywords: null,
             bibliographies: null,
+            translations: null,
             generals: null,
             model: {
                 basic: {
@@ -273,8 +284,10 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                 },
+                translations: {
+                    translations: [],
+                },
                 general: {
-                    translation: null,
                     criticalApparatus: null,
                     acknowledgements: null,
                     publicComment: null,
@@ -296,6 +309,7 @@ export default {
                 'subjects',
                 'keywords',
                 'bibliography',
+                'translations',
                 'general',
                 'managements',
             ],
@@ -335,6 +349,13 @@ export default {
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
             referenceTypes: this.data.referenceTypes,
+        }
+        this.translations = {
+            languages: this.data.languages,
+            books: this.data.books,
+            articles: this.data.articles,
+            bookChapters: this.data.bookChapters,
+            onlineSources: this.data.onlineSources,
         }
         this.generals = {
             acknowledgements: this.data.acknowledgements,
@@ -433,9 +454,46 @@ export default {
                     }
                 }
 
+                // Translations
+                this.model.translations = {
+                    translations: []
+                }
+
+                for (let translation of this.type.translations) {
+                    let modelTranslation = {
+                        id: translation.id,
+                        text: translation.text,
+                        language: translation.language,
+                        bibliography: {
+                            books: [],
+                            articles: [],
+                            bookChapters: [],
+                            onlineSources: [],
+                        }
+                    }
+                    if (translation.bibliography != null) {
+                        for (let bib of translation.bibliography) {
+                            switch (bib['type']) {
+                            case 'book':
+                                modelTranslation.bibliography.books.push(bib)
+                                break
+                            case 'article':
+                                modelTranslation.bibliography.articles.push(bib)
+                                break
+                            case 'bookChapter':
+                                modelTranslation.bibliography.bookChapters.push(bib)
+                                break
+                            case 'onlineSource':
+                                modelTranslation.bibliography.onlineSources.push(bib)
+                                break
+                            }
+                        }
+                    }
+                    this.model.translations.translations.push(modelTranslation)
+                }
+
                 // General
                 this.model.general = {
-                    translation: this.type.translation,
                     criticalApparatus: this.type.criticalApparatus,
                     acknowledgements: this.type.acknowledgements,
                     publicComment: this.type.publicComment,

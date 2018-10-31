@@ -4,10 +4,12 @@
         :title="'Save ' + title"
         size="lg"
         auto-focus
-        @input="$emit('cancel')">
+        @input="$emit('cancel')"
+    >
         <alerts
             :alerts="alerts"
-            @dismiss="$emit('dismiss-alert', $event)" />
+            @dismiss="$emit('dismiss-alert', $event)"
+        />
         <p>Are you sure you want to save this {{ title }} information?</p>
         <table class="table table-striped table-hover">
             <thead>
@@ -20,24 +22,32 @@
             <tbody>
                 <tr
                     v-for="row in diff"
-                    :key="row.keyGroup == null ? row.key : row.keyGroup + '.' + row.key">
+                    :key="row.keyGroup == null ? row.key : row.keyGroup + '.' + row.key"
+                >
                     <td>{{ row['label'] }}</td>
                     <template v-for="key in ['old', 'new']">
                         <td
                             v-if="Array.isArray(row[key])"
+                            :key="key"
                             class="word-break"
-                            :key="key">
+                        >
                             <ul v-if="row[key].length > 0">
+                                <!-- eslint-disable vue/no-v-html -->
                                 <li
                                     v-for="(item, index) in row[key]"
                                     :key="index"
-                                    v-html="getDisplay(item)" />
+                                    v-html="getDisplay(item)"
+                                />
+                                <!-- eslint-enable -->
                             </ul>
                         </td>
+                        <!-- eslint-disable vue/no-v-html -->
                         <td
                             v-else
                             :key="key"
-                            v-html="getDisplay(row[key])" />
+                            v-html="getDisplay(row[key])"
+                        />
+                        <!-- eslint-enable -->
                     </template>
                 </tr>
             </tbody>
@@ -46,8 +56,9 @@
             <btn @click="$emit('cancel')">Cancel</btn>
             <btn
                 type="success"
+                data-action="auto-focus"
                 @click="$emit('confirm')"
-                data-action="auto-focus">
+            >
                 Save
             </btn>
         </div>
@@ -81,7 +92,7 @@ export default {
             else if (item.hasOwnProperty('name')) {
                 return item['name']
             }
-            return item
+            return item.split('\n').join('<br />')
         },
     },
 }

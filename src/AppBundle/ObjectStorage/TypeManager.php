@@ -168,8 +168,10 @@ class TypeManager extends PoemManager
 
         // translation
         $rawTranslations = $this->dbs->getTranslations([$id]);
-        if (!empty($rawTranslations)) {
-            $type->setTranslation($rawTranslations[0]['translation']);
+        $translationIds = self::getUniqueIds($rawTranslations, 'translation_id');
+        if (!empty($translationIds)) {
+            $translations = $this->container->get('translation_manager')->get($translationIds);
+            $type->setTranslations($translations);
         }
 
         // based on occurrence
@@ -186,6 +188,11 @@ class TypeManager extends PoemManager
     public function getOccurrenceDependencies(int $occurrenceId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $method);
+    }
+
+    public function getTranslationDependencies(int $translationId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByTranslationId($translationId), $method);
     }
 
     /**
@@ -367,12 +374,12 @@ class TypeManager extends PoemManager
                 $changes['full'] = true;
                 $this->dbs->updateCriticalApparatus($id, $data->criticalApparatus);
             }
-            if (property_exists($data, 'translation')) {
-                if (!is_string($data->translation)) {
-                    throw new BadRequestHttpException('Incorrect translation data.');
+            if (property_exists($data, 'translations')) {
+                if (!is_array($data->translations)) {
+                    throw new BadRequestHttpException('Incorrect translations data.');
                 }
                 $changes['full'] = true;
-                $this->updateTranslation($old, $data->translation);
+                $this->updateTranslations($old, $data->translations);
             }
             if (property_exists($data, 'acknowledgements')) {
                 if (!is_array($data->acknowledgements)) {
@@ -535,14 +542,38 @@ class TypeManager extends PoemManager
         }
     }
 
-    private function updateTranslation(Type $type, string $translation = null): void
+    private function updateTranslations(Type $type, array $translations): void
     {
-        if (empty($translation)) {
-            $this->dbs->delTranslation($type->getId());
-        } elseif (empty($type->getTranslation())) {
-            $this->dbs->addTranslation($type->getId(), $translation);
-        } else {
-            $this->dbs->updateTranslation($type->getId(), $translation);
+        $delIds = [];
+        foreach ($type->getTranslations() as $oldTranslation) {
+            $found = false;
+            foreach ($translations as $newTranslation) {
+                if (property_exists($newTranslation, 'id') && $oldTranslation->getId() == $newTranslation->id) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $delIds[] = $oldTranslation->getId();
+            }
+        }
+
+        foreach ($delIds as $delId) {
+            $this->container->get('translation_manager')->delete($delId);
+        }
+
+        foreach ($translations as $newTranslation) {
+            // If a new translation has an id, it will be present in old translations
+            if (property_exists($newTranslation, 'id')) {
+                $this->container->get('translation_manager')->updateIfRequired(
+                    $type->getTranslations()[$newTranslation->id],
+                    $newTranslation
+                );
+            } else {
+                $this->container->get('translation_manager')->add(
+                    $newTranslation
+                );
+            }
         }
     }
 

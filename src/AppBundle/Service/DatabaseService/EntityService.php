@@ -88,7 +88,8 @@ class EntityService extends DatabaseService
                     manuscript_merge.type::text,
                     occurrence_merge.type::text,
                     type_merge.type::text,
-                    person_merge.type::text
+                    person_merge.type::text,
+                    translation_merge.type::text
                 ) as type
             from data.reference
             left join (
@@ -115,6 +116,12 @@ class EntityService extends DatabaseService
                     \'person\' as type
                 from data.person
             ) person_merge on reference.idtarget = person_merge.entity_id
+            left join (
+                select
+                    translation.identity as entity_id,
+                    \'translation\' as type
+                from data.translation
+            ) translation_merge on reference.idtarget = translation_merge.entity_id
             where reference.idsource in (?)',
             [
                 $ids,
