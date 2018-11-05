@@ -419,14 +419,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'text':
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(self::contstructTextQuery($key, $value));
+                        $filterQuery->addMust(self::constructTextQuery($key, $value));
                     }
                     break;
                 case 'multiple_text':
                     foreach ($filterValues as $field => $options) {
                         $subQuery = new Query\BoolQuery();
                         foreach ($options as $key => $value) {
-                            $subQuery->addShould(self::contstructTextQuery($key, $value));
+                            $subQuery->addShould(self::constructTextQuery($key, $value));
                         }
                         $filterQuery->addMust($subQuery);
                     }
@@ -542,7 +542,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
      * @param  array               $value Array with [type] of match (any, all, phrase) and the [text] to search for
      * @return AbstractQuery
      */
-    protected static function contstructTextQuery($key, $value): AbstractQuery
+    protected static function constructTextQuery($key, $value): AbstractQuery
     {
         $textQuery = new Query\BoolQuery();
         $anyQuery = new Query\Match($key, $value['text']);
