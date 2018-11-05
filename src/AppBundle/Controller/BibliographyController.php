@@ -17,8 +17,6 @@ class BibliographyController extends Controller
     */
     public function searchBibliographies(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-
         return $this->render(
             'AppBundle:Bibliography:overview.html.twig',
             [
@@ -77,8 +75,6 @@ class BibliographyController extends Controller
      */
     public function searchBibliographiesAPI(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-
         $result = $this->get('bibliography_elastic_service')->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
