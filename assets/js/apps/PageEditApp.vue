@@ -17,7 +17,7 @@
             :config="config"
         />
         <btn
-            :disabled="invalid || (data.title === originalData.title && data.content === originalData.content && data.nav === originalData.nav)"
+            :disabled="invalid || (data.title === originalData.title && data.content === originalData.content && data.display_navigation === originalData.display_navigation)"
             @click="submit()"
         >
             Save
@@ -101,11 +101,11 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
-                    nav: {
+                    display_navigation: {
                         type: 'checkbox',
                         label: 'Display inpage navigation',
                         labelClasses: 'control-label',
-                        model: 'nav',
+                        model: 'display_navigation',
                     },
                 },
             },
@@ -128,7 +128,7 @@ export default {
             axios.put(this.urls['page_put'], {
                 title: this.data.title,
                 content: this.data.content,
-                nav: this.data.nav,
+                display_navigation: this.data.display_navigation,
             })
                 .then( (response) => {
                     window.onbeforeunload = function () {}
@@ -144,7 +144,7 @@ export default {
             this.invalid = !isValid
         },
         setExitWarning () {
-            if (this.data.title !== this.originalData.title || this.data.content !== this.originalData.content  || this.data.nav !== this.originalData.nav) {
+            if (this.data.title !== this.originalData.title || this.data.content !== this.originalData.content  || this.data.display_navigation !== this.originalData.display_navigation) {
                 window.onbeforeunload = function (e) {
                     let dialogText = 'There are unsaved changes.'
                     e.returnValue = dialogText

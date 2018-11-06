@@ -16,7 +16,7 @@ class PageService extends DatabaseService
         )->fetch();
     }
 
-    public function update(int $userid, string $slug, string $title, string $content, bool $nav): int
+    public function update(int $userid, string $slug, string $title, string $content, bool $displayNavigation): int
     {
         return $this->conn->executeUpdate(
             'INSERT INTO logic.page (iduser, revision, slug, title, content, display_navigation)
@@ -34,7 +34,7 @@ class PageService extends DatabaseService
                 $slug,
                 $title,
                 $content,
-                $nav
+                $displayNavigation ? 'TRUE': 'FALSE'
             ]
         );
     }
