@@ -44,7 +44,7 @@ class PageController extends Controller
      */
     public function put(Request $request, string $slug)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
@@ -92,7 +92,7 @@ class PageController extends Controller
      */
     public function edit(Request $request, string $slug)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $page = $this->get('page_service')->getBySlug($slug);
         if (empty($page)) {
             throw $this->createNotFoundException('The requested page does not exist');
@@ -138,7 +138,7 @@ class PageController extends Controller
      */
     public function postImage(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
