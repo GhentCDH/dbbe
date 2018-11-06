@@ -169,7 +169,17 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return array_filter(
             $this->bibliographies,
             function ($bibliography) {
-                return (empty($bibliography->getReferenceType()));
+                return (
+                    empty($bibliography->getReferenceType())
+                    || !in_array(
+                        $bibliography->getReferenceType()->getName(),
+                        [
+                            ReferenceType::TEXT_SOURCE,
+                            ReferenceType::PRIMARY_SOURCE,
+                            ReferenceType::SECONDARY_SOURCE,
+                        ]
+                    )
+                );
             }
         );
     }
