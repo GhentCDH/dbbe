@@ -1,6 +1,15 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
+    {% if display_navigation %}
+        <aside class="col-sm-3 inpage-nav-container xs-hide">
+            <div id="nav-anchor"></div>
+            <nav role="navigation" data-lockfixed="true" class="padding-default bg-tertiary">
+                <h2>On this page</h2>
+                <div class="toc" data-toc="article h2:not(.h1)"></div>
+            </nav>
+        </aside>
+    {% endif %}
     <article class="col-sm-9 mbottom-large">
         <h2 class="h1">
             {{ title }}

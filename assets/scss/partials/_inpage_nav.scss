@@ -6,3 +6,20 @@
     }
   }
 }
+
+.toc {
+  li {
+    font-family: $body-text-font-family;
+    font-size: $fz-default;
+  }
+
+  a {
+    color: $black;
+
+    &:hover,
+    &:focus,
+    &.selected {
+      color: $brand-primary;
+    }
+  }
+}

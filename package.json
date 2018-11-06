@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@firstandthird/toc": "^1.4.1",
     "@symfony/webpack-encore": "^0.17.0",
     "axios": "^0.17.1",
     "bootstrap-sass": "^3.3.7",

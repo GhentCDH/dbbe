@@ -62,6 +62,8 @@ class PageController extends Controller
             || !property_exists($data, 'content')
             || empty($data->content)
             || !is_string($data->content)
+            || empty($data->nav)
+            || !is_bool($data->nav)
         ) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => 'Title and content are mandatory.']],
@@ -72,7 +74,8 @@ class PageController extends Controller
             $this->get('security.token_storage')->getToken()->getUser()->getId(),
             $slug,
             $data->title,
-            $data->content
+            $data->content,
+            $data->nav
         );
         return new JsonResponse(
             json_encode(

@@ -7,7 +7,7 @@ class PageService extends DatabaseService
     public function getBySlug(string $slug): array
     {
         return $this->conn->executeQuery(
-            'SELECT slug, title, content from logic.page
+            'SELECT slug, title, content, display_navigation from logic.page
             where slug = ?
             order by revision desc',
             [
@@ -16,13 +16,14 @@ class PageService extends DatabaseService
         )->fetch();
     }
 
-    public function update(int $userid, string $slug, string $title, string $content): int
+    public function update(int $userid, string $slug, string $title, string $content, bool $nav): int
     {
         return $this->conn->executeUpdate(
-            'INSERT INTO logic.page (iduser, revision, slug, title, content)
+            'INSERT INTO logic.page (iduser, revision, slug, title, content, display_navigation)
             values (
                 ?,
                 (select max(revision) + 1 from logic.page where slug = ?),
+                ?,
                 ?,
                 ?,
                 ?
@@ -33,6 +34,7 @@ class PageService extends DatabaseService
                 $slug,
                 $title,
                 $content,
+                $nav
             ]
         );
     }
