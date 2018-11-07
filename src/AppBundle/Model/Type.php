@@ -236,7 +236,7 @@ class Type extends Poem
         $result['number_of_occurrences'] = count($this->occurrences);
 
         if (!empty($this->verses)) {
-            $result['verses'] = implode("\n", $this->verses);
+            $result['text'] = implode("\n", $this->verses);
         }
         if (!empty($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
