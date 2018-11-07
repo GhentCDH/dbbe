@@ -40,10 +40,12 @@ class LocatedAtManager extends ObjectManager
                 && is_numeric($data->location->id)
                 && property_exists($data, 'shelf')
                 && is_string($data->shelf)
-                && property_exists($data, 'extra')
-                && (empty($data->extra) || is_string($data->extra))
+                && (
+                    !property_exists($data, 'extra')
+                    || (empty($data->extra) || is_string($data->extra))
+                )
             ) {
-                $this->dbs->insert($locatedAtId, $data->location->id, $data->shelf, $data->extra);
+                $this->dbs->insert($locatedAtId, $data->location->id, $data->shelf, property_exists($data, 'extra') ? $data->extra : null);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }
@@ -101,7 +103,7 @@ class LocatedAtManager extends ObjectManager
 
             // load new locationAt data
             $newLocatedAt = $this->get([$locatedAtId])[$locatedAtId];
-            
+
             $this->updateModified($locatedAt, $newLocatedAt);
 
             // commit transaction
