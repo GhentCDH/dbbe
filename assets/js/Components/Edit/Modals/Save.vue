@@ -86,7 +86,6 @@ export default {
     },
     methods: {
         getDisplay(item) {
-            console.log(item)
             if (item == null) {
                 return null
             }
