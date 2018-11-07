@@ -83,7 +83,7 @@ export default {
                     email: {
                         type: 'input',
                         inputType: 'email',
-                        label: 'E-mail',
+                        label: 'Your email address',
                         labelClasses: 'control-label',
                         model: 'email',
                         required: true,
@@ -111,7 +111,7 @@ export default {
             if (this.$refs.form.errors.length !== 0) {
                 return
             }
-            this.status = 'Your feedback is being saved.'
+            this.status = 'Your feedback is being sent.'
             axios.post(this.feedbackUrl, {
                 email: this.model.email,
                 message: this.model.message,
@@ -119,10 +119,10 @@ export default {
                 url: window.location.href,
             })
                 .then( (response) => {
-                    this.status = 'Your feedback has been saved successfully. Thank you for your input.'
+                    this.status = 'Your feedback has been sent successfully. Thank you for your input.'
                 })
                 .catch( (error) => {
-                    this.status = 'Something went wrong while saving your feedback. Please contact the team via dbbe@ugent.be'
+                    this.status = 'Something went wrong while sending your feedback. Please contact the team via dbbe@ugent.be'
                 })
         },
         toggleAccordion (index) {
