@@ -17,7 +17,6 @@ class ElasticBaseService extends ElasticSearchService
             $properties[$role] = ['type' => 'nested'];
             $properties[$role . '_public'] = ['type' => 'nested'];
         }
-        var_dump($this->roles);
         $mapping->setProperties($properties);
         $mapping->send();
     }
