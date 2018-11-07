@@ -122,6 +122,8 @@ class TypeManager extends PoemManager
         // Needed to index DBBE in elasticsearch
         $this->setBibliographies($types);
 
+        $this->setIdentifications($types);
+
         $this->setManagements($types);
 
         return $types;
@@ -139,8 +141,6 @@ class TypeManager extends PoemManager
         if (count($types) == 0) {
             throw new NotFoundHttpException('Type with id ' . $id .' not found.');
         }
-
-        $this->setIdentifications($types);
 
         $this->setPrevIds($types);
 

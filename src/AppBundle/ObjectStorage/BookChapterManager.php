@@ -58,6 +58,8 @@ class BookChapterManager extends DocumentManager
     {
         $bookChapters = $this->getMini($ids);
 
+        $this->setIdentifications($bookChapters);
+
         $this->setManagements($bookChapters);
 
         return $bookChapters;
@@ -76,8 +78,6 @@ class BookChapterManager extends DocumentManager
         if (count($bookChapters) == 0) {
             throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
         }
-
-        $this->setIdentifications($bookChapters);
 
         $this->setInverseBibliographies($bookChapters);
 

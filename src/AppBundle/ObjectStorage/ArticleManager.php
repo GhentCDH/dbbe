@@ -58,6 +58,8 @@ class ArticleManager extends DocumentManager
     {
         $articles = $this->getMini($ids);
 
+        $this->setIdentifications($articles);
+
         $this->setManagements($articles);
 
         return $articles;
@@ -76,8 +78,6 @@ class ArticleManager extends DocumentManager
         if (count($articles) == 0) {
             throw new NotFoundHttpException('Article with id ' . $id .' not found.');
         }
-
-        $this->setIdentifications($articles);
 
         $this->setInverseBibliographies($articles);
 

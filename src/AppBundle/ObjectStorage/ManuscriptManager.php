@@ -106,6 +106,8 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        $this->setIdentifications($manuscripts);
+
         $this->setComments($manuscripts);
 
         $this->setManagements($manuscripts);
@@ -126,8 +128,6 @@ class ManuscriptManager extends DocumentManager
         if (count($manuscripts) == 0) {
             throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
         }
-
-        $this->setIdentifications($manuscripts);
 
         $this->setBibliographies($manuscripts);
 

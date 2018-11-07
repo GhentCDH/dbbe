@@ -135,6 +135,8 @@ class OccurrenceManager extends PoemManager
         // Needed to index DBBE in elasticsearch
         $this->setBibliographies($occurrences);
 
+        $this->setIdentifications($occurrences);
+
         $this->setManagements($occurrences);
 
         return $occurrences;
@@ -152,8 +154,6 @@ class OccurrenceManager extends PoemManager
         if (count($occurrences) == 0) {
             throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
         }
-
-        $this->setIdentifications($occurrences);
 
         $this->setPrevIds($occurrences);
 
