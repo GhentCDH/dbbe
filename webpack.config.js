@@ -5,6 +5,9 @@ Encore
     // the project directory where all compiled assets will be stored
     .setOutputPath('web/build/')
 
+    // enable asset versioning, so browser caches don't need to be cleared
+    .enableVersioning()
+
     // the public path used by the web server to access the previous directory
     .setPublicPath('/build')
 
