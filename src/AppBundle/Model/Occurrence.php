@@ -427,13 +427,13 @@ class Occurrence extends Poem
         if (!empty($this->foliumStart)) {
             $result['foliumStart'] = $this->foliumStart;
         }
-        if (!empty($this->foliumStartRecto)) {
+        if (isset($this->foliumStartRecto)) {
             $result['foliumStartRecto'] = $this->foliumStartRecto;
         }
         if (!empty($this->foliumEnd)) {
             $result['foliumEnd'] = $this->foliumEnd;
         }
-        if (!empty($this->foliumEndRecto)) {
+        if (isset($this->foliumEndRecto)) {
             $result['foliumEndRecto'] = $this->foliumEndRecto;
         }
         if (isset($this->unsure)) {
@@ -445,13 +445,13 @@ class Occurrence extends Poem
         if (!empty($this->alternativeFoliumStart)) {
             $result['alternativeFoliumStart'] = $this->alternativeFoliumStart;
         }
-        if (!empty($this->alternativeFoliumStartRecto)) {
+        if (isset($this->alternativeFoliumStartRecto)) {
             $result['alternativeFoliumStartRecto'] = $this->alternativeFoliumStartRecto;
         }
         if (!empty($this->alternativeFoliumEnd)) {
             $result['alternativeFoliumEnd'] = $this->alternativeFoliumEnd;
         }
-        if (!empty($this->alternativeFoliumEndRecto)) {
+        if (isset($this->alternativeFoliumEndRecto)) {
             $result['alternativeFoliumEndRecto'] = $this->alternativeFoliumEndRecto;
         }
         if (!empty($this->verses)) {

@@ -86,13 +86,17 @@ export default {
     },
     methods: {
         getDisplay(item) {
+            console.log(item)
             if (item == null) {
                 return null
             }
             else if (item.hasOwnProperty('name')) {
                 return item['name']
             }
-            return item.split('\n').join('<br />')
+            else if (typeof item === 'string') {
+                return item.split('\n').join('<br />')
+            }
+            return item
         },
     },
 }
