@@ -122,7 +122,7 @@
                     <tr>
                         <td>Manuscript</td>
                         <td>
-                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': manuscript, 'path': 'manuscript_get','display': manuscript.getName()} only %}
+                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': manuscript, 'path': 'manuscript_get','display': manuscript.getName() ~ (manuscript.getDate() ? ' [' ~ manuscript.getDate() ~ ']' : '')} only %}
                         </td>
                     </tr>
                 {% endif %}
