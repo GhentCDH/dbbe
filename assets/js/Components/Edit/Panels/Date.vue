@@ -1,20 +1,15 @@
 <template>
     <panel :header="header">
+        <alert type="warning">
+            For centuries, please use the format XX01 – XX00, e.g. 1201 – 1300. For all other timespans, please consult the Vademecum.
+        </alert>
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
-        <div
-            v-if="warnEstimate"
-            class="small text-warning">
-            <p>When indicating an estimate, please add 1 year to the start year to prevent overlap. Examples:</p>
-            <ul>
-                <li>1301-1400</li>
-                <li>1476-1500</li>
-            </ul>
-        </div>
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -107,19 +102,8 @@ export default {
                         pattern: '^\\d{2}[/]\\d{2}$',
                         help: 'Please use the format "DD/MM", e.g. 24/03.',
                     },
-                }
-            }
-        }
-    },
-    computed: {
-        warnEstimate: function() {
-            if (this.model == null || this.model.floorYear == null || this.model.ceilingYear == null) {
-                return false
-            }
-            if (this.model.floorYear !== this.model.ceilingYear && this.model.floorYear % 25 === 0 && this.model.ceilingYear % 25 === 0) {
-                return true
-            }
-            return false
+                },
+            },
         }
     },
     watch: {
