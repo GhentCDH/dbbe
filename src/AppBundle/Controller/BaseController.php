@@ -77,7 +77,7 @@ class BaseController extends Controller
 
         $objects = $this
             ->get(static::MANAGER)
-            ->{$method}($id);
+            ->{$method}($id, 'getMini');
         return new JsonResponse(ArrayToJson::arrayToShortJson($objects));
     }
 
