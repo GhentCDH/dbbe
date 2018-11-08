@@ -73,12 +73,7 @@ export default {
                                 model: 'foliumStart',
                                 validator: VueFormGenerator.validators.string,
                             },
-                            foliumStartRecto: {
-                                type: 'checkbox',
-                                label: 'Folium start recto',
-                                labelClasses: 'control-label',
-                                model: 'foliumStartRecto',
-                            },
+                            foliumStartRecto: this.createRectoRadio('foliumStartRecto', 'Folium start recto'),
                             foliumEnd: {
                                 type: 'input',
                                 inputType: 'text',
@@ -87,16 +82,10 @@ export default {
                                 model: 'foliumEnd',
                                 validator: VueFormGenerator.validators.string,
                             },
-                            foliumEndRecto: {
-                                type: 'checkbox',
-                                label: 'Folium end recto',
-                                labelClasses: 'control-label',
-                                model: 'foliumEndRecto',
-                            },
+                            foliumEndRecto: this.createRectoRadio('foliumEndRecto', 'Folium end recto'),
                             unsure: {
                                 type: 'checkbox',
                                 label: 'Unsure',
-                                labelClasses: 'control-label',
                                 model: 'unsure',
                             },
                             generalLocation: {
@@ -120,12 +109,7 @@ export default {
                                 model: 'alternativeFoliumStart',
                                 validator: VueFormGenerator.validators.string,
                             },
-                            alternativeFoliumStartRecto: {
-                                type: 'checkbox',
-                                label: 'Folium start recto',
-                                labelClasses: 'control-label',
-                                model: 'alternativeFoliumStartRecto',
-                            },
+                            alternativeFoliumStartRecto: this.createRectoRadio('alternativeFoliumStartRecto', 'Alternative folium start recto'),
                             alternativeFoliumEnd: {
                                 type: 'input',
                                 inputType: 'text',
@@ -134,12 +118,7 @@ export default {
                                 model: 'alternativeFoliumEnd',
                                 validator: VueFormGenerator.validators.string,
                             },
-                            alternativeFoliumEndRecto: {
-                                type: 'checkbox',
-                                label: 'Folium end recto',
-                                labelClasses: 'control-label',
-                                model: 'alternativeFoliumEndRecto',
-                            },
+                            alternativeFoliumEndRecto: this.createRectoRadio('alternativeFoliumEndRecto', 'Alternative folium end recto'),
                         },
                     },
                 ]
@@ -161,6 +140,46 @@ export default {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.groups[1].fields.manuscript)
+        },
+        calcChanges() {
+            this.changes = []
+            if (this.originalModel == null) {
+                return
+            }
+            for (let key of Object.keys(this.model)) {
+                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
+                    let oldValue = this.originalModel[key]
+                    let newValue = this.model[key]
+                    if (key.startsWith('folium')) {
+                        oldValue = this.originalModel[key] ? 'Recto' : 'Verso'
+                        newValue = this.model[key] ? 'Recto' : 'Verso'
+                    }
+                    this.changes.push({
+                        'key': key,
+                        'label': this.fields[key].label,
+                        'old': oldValue,
+                        'new': newValue,
+                        'value': this.model[key],
+                    })
+                }
+            }
+        },
+        createRectoRadio(model, label) {
+            return {
+                type: 'radios',
+                label: label,
+                model: model,
+                values: [
+                    {
+                        name: 'Recto',
+                        value: true,
+                    },
+                    {
+                        name: 'Verso',
+                        value: false,
+                    },
+                ]
+            }
         },
     }
 }

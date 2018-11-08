@@ -1,0 +1,60 @@
+.radio-list {
+  padding-left: 20px;
+
+  label {
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 40px;
+    position: relative;
+    vertical-align: middle;
+
+    &::before {
+      @include transition(border .15s ease-in-out);
+      background-color: $white;
+      border: 2px solid $brand-primary;
+      border-radius: 50%;
+      content: '';
+      display: inline-block;
+      height: 18px;
+      left: 0;
+      margin-left: -20px;
+      position: absolute;
+      width: 18px;
+    }
+
+    &::after {
+      @include scale(0, 0);
+      //curve - http://cubic-bezier.com/#.8,-0.33,.2,1.33
+      @include transition-transform(.1s cubic-bezier(.8, -.33, .2, 1.33));
+      background-color: $white;
+      border-radius: 50%;
+      content: ' ';
+      display: inline-block;
+      height: 8px;
+      left: 5px;
+      margin-left: -20px;
+      position: absolute;
+      top: 5px;
+      width: 8px;
+    }
+  }
+
+  label.is-checked {
+    &::before {
+      border-color: $brand-primary;
+    }
+
+    &::after {
+      @include scale(1, 1);
+      background-color: $brand-primary;
+    }
+  }
+
+  input[type='radio'] {
+    margin-left: -20px;
+    margin-top: 4px \9;
+    opacity: 0;
+    position: absolute;
+    z-index: 1;
+  }
+}

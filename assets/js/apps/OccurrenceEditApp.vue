@@ -388,15 +388,15 @@ export default {
                     title: this.occurrence.title,
                     manuscript: this.occurrence.manuscript,
                     foliumStart: this.occurrence.foliumStart,
-                    foliumStartRecto: this.occurrence.foliumStartRecto,
+                    foliumStartRecto: this.occurrence.foliumStartRecto ? true : false,
                     foliumEnd: this.occurrence.foliumEnd,
-                    foliumEndRecto: this.occurrence.foliumEndRecto,
+                    foliumEndRecto: this.occurrence.foliumEndRecto ? true : false,
                     unsure: this.occurrence.unsure,
                     generalLocation: this.occurrence.generalLocation,
                     alternativeFoliumStart: this.occurrence.alternativeFoliumStart,
-                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
+                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto ? true : false,
                     alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
-                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
+                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto ? true : false,
                 }
 
                 // Verses

@@ -1,0 +1,40 @@
+// DOES NOT WORK BECAUSE LABEL IS SITUATED BEFORE A DIV WITH THE INPUT ELEMENT
+
+.field-checkbox {
+  padding-left: 20px;
+
+  label {
+    display: inline-block;
+    padding-left: 5px;
+    position: relative;
+    vertical-align: middle;
+
+    &::before {
+      @include transition(border .15s ease-in-out, color .15s ease-in-out);
+      background-color: $white;
+      border: 2px solid $brand-primary;
+      content: '';
+      display: inline-block;
+      height: 17px;
+      left: 0;
+      margin-left: -20px;
+      position: absolute;
+      width: 17px;
+    }
+
+    &::after {
+      background-color: $white;
+      color: $brand-primary;
+      display: inline-block;
+      font-size: 11px;
+      height: 16px;
+      left: 0;
+      margin-left: -20px;
+      padding-left: 3px;
+      padding-top: 1px;
+      position: absolute;
+      top: 0;
+      width: 16px;
+    }
+  }
+}
