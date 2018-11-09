@@ -84,7 +84,7 @@ class GenreManager extends ObjectManager
      */
     public function getAllJson(): array
     {
-        return ArrayToJson::arrayToJson($genres);
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     /**
