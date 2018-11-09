@@ -43,6 +43,14 @@
                 @validated="validated"
             />
 
+            <generalBibItemPanel
+                id="general"
+                ref="general"
+                header="General"
+                :model="model.general"
+                @validated="validated"
+            />
+
             <managementPanel
                 id="managements"
                 ref="managements"
@@ -103,6 +111,7 @@
                 <ul class="linklist linklist-dark">
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#basic">Basic information</a></li>
+                    <li><a href="#general">General</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -136,7 +145,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification|GeneralBibItem|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -164,6 +173,7 @@ export default {
             forms: [
                 'persons',
                 'basic',
+                'general',
                 'managements',
             ],
         }
@@ -215,6 +225,11 @@ export default {
                     if (identifier.extra) {
                         this.model.identification[identifier.systemName + '_extra'] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName + '_extra'] : null
                     }
+                }
+
+                // General
+                this.model.general = {
+                    privateComment: this.bookChapter.privateComment,
                 }
 
                 // Management

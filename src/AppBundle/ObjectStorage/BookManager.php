@@ -56,6 +56,8 @@ class BookManager extends DocumentManager
 
         $this->setIdentifications($books);
 
+        $this->setComments($books);
+
         $this->setManagements($books);
 
         return $books;
@@ -228,6 +230,13 @@ class BookManager extends DocumentManager
                 }
                 $changes['full'] = true;
                 $this->dbs->updateTotalVolumes($id, $data->totalVolumes);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $changes['short'] = true;
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'book');
             $this->updateManagementwrapper($old, $data, $changes, 'short');

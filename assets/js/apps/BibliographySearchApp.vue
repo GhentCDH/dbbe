@@ -149,13 +149,13 @@ export default {
                     },
                     person: this.createMultiSelect('Person'),
                     role: this.createMultiSelect('Role', {dependency: 'person'}),
-                    // comment: {
-                    //     type: 'input',
-                    //     inputType: 'text',
-                    //     label: 'Comment',
-                    //     model: 'comment',
-                    //     validator: VueFormGenerator.validators.string,
-                    // },
+                    comment: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Comment',
+                        model: 'comment',
+                        validator: VueFormGenerator.validators.string,
+                    },
                 }
             },
             tableOptions: {

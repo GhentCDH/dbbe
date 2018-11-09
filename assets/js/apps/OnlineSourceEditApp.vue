@@ -19,6 +19,14 @@
                 @validated="validated"
                 ref="basic" />
 
+            <generalBibItemPanel
+                id="general"
+                ref="general"
+                header="General"
+                :model="model.general"
+                @validated="validated"
+            />
+
             <managementPanel
                 id="managements"
                 ref="managements"
@@ -72,6 +80,7 @@
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic information</a></li>
+                    <li><a href="#general">General</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -102,7 +111,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|GeneralBibItem|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -125,6 +134,7 @@ export default {
             },
             forms: [
                 'basic',
+                'general',
                 'managements',
             ],
         }
@@ -147,6 +157,11 @@ export default {
                     url: this.onlineSource.url,
                     name: this.onlineSource.name,
                     lastAccessed: this.onlineSource.lastAccessed,
+                }
+
+                // General
+                this.model.general = {
+                    privateComment: this.onlineSource.privateComment,
                 }
 
                 // Management

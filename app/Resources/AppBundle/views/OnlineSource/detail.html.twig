@@ -20,6 +20,12 @@
                 </tr>
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': online_source.getInverseBibliographies()} only %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if online_source.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ online_source.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
                     {% if online_source.getManagements() is not empty %}
                         <tr class="warning">
                             <td>Management collection(s)</td>

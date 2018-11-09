@@ -65,6 +65,12 @@
                 {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book.getInverseBibliographies()} only %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if book.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ book.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
                     {% if book.getManagements() is not empty %}
                         <tr class="warning">
                             <td>Management collection(s)</td>

@@ -60,6 +60,8 @@ class BookChapterManager extends DocumentManager
 
         $this->setIdentifications($bookChapters);
 
+        $this->setComments($bookChapters);
+
         $this->setManagements($bookChapters);
 
         return $bookChapters;
@@ -185,6 +187,13 @@ class BookChapterManager extends DocumentManager
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateBook($id, $data->book->id);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $changes['short'] = true;
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'bookChapter');
             $this->updateManagementwrapper($old, $data, $changes, 'short');

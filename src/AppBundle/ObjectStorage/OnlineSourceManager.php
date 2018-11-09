@@ -50,6 +50,8 @@ class OnlineSourceManager extends EntityManager
     {
         $onlineSources = $this->getMini($ids);
 
+        $this->setComments($onlineSources);
+
         $this->setManagements($onlineSources);
 
         return $onlineSources;
@@ -184,6 +186,13 @@ class OnlineSourceManager extends EntityManager
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateLastAccessed($id, $data->lastAccessed);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $changes['short'] = true;
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             $this->updateManagementwrapper($old, $data, $changes, 'short');
 

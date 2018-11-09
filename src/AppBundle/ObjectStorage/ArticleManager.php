@@ -60,6 +60,8 @@ class ArticleManager extends DocumentManager
 
         $this->setIdentifications($articles);
 
+        $this->setComments($articles);
+
         $this->setManagements($articles);
 
         return $articles;
@@ -196,6 +198,13 @@ class ArticleManager extends DocumentManager
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateJournal($id, $data->journal->id);
+            }
+            if (property_exists($data, 'privateComment')) {
+                if (!is_string($data->privateComment)) {
+                    throw new BadRequestHttpException('Incorrect private comment data.');
+                }
+                $changes['short'] = true;
+                $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
             $this->updateIdentificationwrapper($old, $data, $changes, 'full', 'article');
             $this->updateManagementwrapper($old, $data, $changes, 'short');
