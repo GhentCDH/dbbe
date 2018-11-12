@@ -23,7 +23,7 @@
 
             <datePanel
                 id="bornDate"
-                header="Born Date"
+                header="Date of birth"
                 :model="model.bornDate"
                 key-group="bornDate"
                 group-label="Born"
@@ -32,7 +32,7 @@
 
             <datePanel
                 id="deathDate"
-                header="Death Date"
+                header="Date of death"
                 key-group="deathDate"
                 group-label="Death"
                 :model="model.deathDate"
@@ -136,8 +136,8 @@
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic Information</a></li>
-                    <li><a href="#bornDate">Born Date</a></li>
-                    <li><a href="#deathDate">Death Date</a></li>
+                    <li><a href="#bornDate">Date of birth</a></li>
+                    <li><a href="#deathDate">Date of death</a></li>
                     <li v-if="model.unknownDate || model.unknownInterval"><a href="#unknownDate">Unknown date or interval</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#offices">Offices</a></li>
