@@ -31,6 +31,16 @@ class ElasticTypeService extends ElasticBaseService
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
+            'incipit' => [
+                'type' => 'text',
+                'fields' => [
+                    'keyword' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'custom_greek',
+                        'ignore_above' => 256,
+                    ],
+                ],
+            ],
             'title_GR' => [
                 'type' => 'text',
                 'analyzer' => 'custom_greek',

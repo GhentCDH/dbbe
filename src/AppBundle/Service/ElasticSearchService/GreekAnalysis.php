@@ -46,6 +46,14 @@ class GreekAnalysis
                     ],
                 ],
             ],
+            'normalizer' => [
+                'custom_greek' => [
+                    'filter' => [
+                        'icu_folding',
+                        'lowercase',
+                    ],
+                ],
+            ],
         ],
     ];
 }
