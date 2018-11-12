@@ -88,6 +88,39 @@ class User extends BaseUser
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getRoles()
+    {
+        if (!$this->isEnabled()) {
+            return [];
+        }
+
+        $roles = $this->roles;
+
+        foreach ($this->getGroups() as $group) {
+            $roles = array_merge($roles, $group->getRoles());
+        }
+
+        // we need to make sure to have at least one role
+        $roles[] = static::ROLE_DEFAULT;
+
+        return array_unique($roles);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasRole($role)
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        return in_array(strtoupper($role), $this->getRoles(), true);
+    }
+
     public function getJson()
     {
         return [
