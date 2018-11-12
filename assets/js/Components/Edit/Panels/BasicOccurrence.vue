@@ -150,7 +150,7 @@ export default {
                 if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
                     let oldValue = this.originalModel[key]
                     let newValue = this.model[key]
-                    if (key.startsWith('folium')) {
+                    if (['foliumStartRecto', 'foliumEndRecto', 'alternativeFoliumStartRecto', 'alternativeFoliumEndRecto'].indexOf(key) > -1) {
                         oldValue = this.originalModel[key] ? 'Recto' : 'Verso'
                         newValue = this.model[key] ? 'Recto' : 'Verso'
                     }
