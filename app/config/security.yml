@@ -6,15 +6,15 @@ security:
     providers:
         chain_provider:
             chain:
-                providers: [in_memory, user_provider]
+                providers: [in_memory, fos_userbundle]
         in_memory:
             memory:
                 users:
                     __NO_USER__:
                         password:
                         roles: ROLE_ANO
-        user_provider:
-            id: user_provider
+        fos_userbundle:
+            id: fos_user.user_provider.username
 
     firewalls:
         # disables authentication for assets and the profiler, adapt it according to your needs
