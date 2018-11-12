@@ -63,7 +63,7 @@ export default {
                         },
                     },
                     {
-                        legend: 'Location',
+                        legend: 'Location in manuscript',
                         fields: {
                             foliumStart: {
                                 type: 'input',
