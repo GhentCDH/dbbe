@@ -479,7 +479,7 @@ class PersonManager extends EntityManager
                 'full' => $isNew,
             ];
             if (property_exists($data, 'public')) {
-                if (!is_bool($data->bool)) {
+                if (!is_bool($data->public)) {
                     throw new BadRequestHttpException('Incorrect public data.');
                 }
                 $changes['mini'] = true;
