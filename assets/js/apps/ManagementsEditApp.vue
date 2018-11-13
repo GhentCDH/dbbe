@@ -9,7 +9,7 @@
                 <editListRow
                     :schema="schema"
                     :model="model"
-                    name="origin"
+                    name="management collection"
                     :conditions="{
                         add: true,
                         edit: model.management,
