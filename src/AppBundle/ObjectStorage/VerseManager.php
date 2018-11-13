@@ -132,7 +132,6 @@ class VerseManager extends ObjectManager
 
     public function update(int $id, stdClass $data, bool $isNew = false)
     {
-
         $old = $this->getFull($id);
         if ($old == null) {
             throw new NotFoundHttpException('Verse with id ' . $id .' not found.');
