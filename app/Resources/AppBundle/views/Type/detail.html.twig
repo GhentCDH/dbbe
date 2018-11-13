@@ -145,7 +145,7 @@
                 {% if type.getNumberOfVerses() is not empty %}
                     <tr>
                         <td>Number of verses</td>
-                        <td>{{ type.getNumberOfVerses() }}</td>
+                        <td>{{ type.getNumberOfVerses() == 0 ? '?' : type.getNumberOfVerses() }}</td>
                     </tr>
                 {% endif %}
                 {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? type.getSubjects() : type.getSubjects()|public %}

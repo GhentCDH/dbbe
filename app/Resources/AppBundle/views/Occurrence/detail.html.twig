@@ -53,7 +53,7 @@
                                         ({{ item[0].getNumberOfVerses() }} verses)
                                     {% endif %}
                                     {% if item[1] %}
-                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() }}{% endif %})
+                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}{% endif %})
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
@@ -170,7 +170,7 @@
                 {% if occurrence.getNumberOfVerses() is not empty %}
                     <tr>
                         <td>Number of verses</td>
-                        <td>{{ occurrence.getNumberOfVerses() }}</td>
+                        <td>{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}</td>
                     </tr>
                 {% endif %}
                 {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}
