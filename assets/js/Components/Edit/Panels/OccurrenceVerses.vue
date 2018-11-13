@@ -664,7 +664,7 @@ export default {
                 // only update is possible
                 this.model.verses[this.verse.index].verse = this.verse.verse
                 this.model.verses[this.verse.index].groupId = null
-                this.model.verses[this.verse.index].linkVerses = []
+                delete this.model.verses[this.verse.index].linkVerses
 
                 this.calcChanges()
                 this.$emit('validated', 0, null, this)
