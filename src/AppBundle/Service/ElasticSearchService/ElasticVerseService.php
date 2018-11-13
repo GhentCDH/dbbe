@@ -44,7 +44,7 @@ class ElasticVerseService extends ElasticBaseService
         $mapping->send();
     }
 
-    public function searchVerse(string $verse, int $id = null): array
+    public function searchVerse(string $verse, int $id = null, bool $init = false): array
     {
         $results = [];
 
@@ -53,38 +53,43 @@ class ElasticVerseService extends ElasticBaseService
             'text' => [
                 'verse' => [
                     'text' => $verse,
-                    'type' => 'any',
+                    'type' => $init ? 'phrase' : 'any',
                 ],
             ],
         ];
         $queryQuery = self::createQuery($filterArray)
             ->addMust(new Query\Exists('group_id'));
         // Eliminate current verse
-        if ($id != null) {
+        if (!$init && $id != null) {
             $queryQuery->addMustNot(new Query\Match('id', $id));
+        }
+
+        $aggregation = (new Aggregation\Terms('verses_grouped'))
+            ->setField('group_id')
+            ->setOrder('top_score', 'desc')
+            ->addAggregation(
+                (new Aggregation\Max('top_score'))
+                    ->setScript(new Script\Script('_score'))
+            )
+            ->addAggregation(
+                (new Aggregation\TopHits('verses'))
+                    ->setHighlight(self::createHighlight($filterArray))
+                    // Display top 5 verses for each group
+                    ->setSize(5)
+            );
+        if ($init) {
+            // Display all groups
+            $aggregation->setSize(self::MAX_SEARCH);
+        } else {
+            // Display only first 10 groups
+            $aggregation->setSize(10);
         }
 
         $query = (new Query())
             ->setQuery($queryQuery)
             // Only aggregation will be used
             ->setSize(0)
-            ->addAggregation(
-                (new Aggregation\Terms('verses_grouped'))
-                    // Display only first 10 groups
-                    ->setSize(10)
-                    ->setField('group_id')
-                    ->setOrder('top_score', 'desc')
-                    ->addAggregation(
-                        (new Aggregation\Max('top_score'))
-                            ->setScript(new Script\Script('_score'))
-                    )
-                    ->addAggregation(
-                        (new Aggregation\TopHits('verses'))
-                            ->setHighlight(self::createHighlight($filterArray))
-                            // Display top 5 verses for each group
-                            ->setSize(5)
-                    )
-            );
+            ->addAggregation($aggregation);
 
         $groupResults = $this->type->search($query)->getAggregation('verses_grouped')['buckets'];
         foreach ($groupResults as $result) {
@@ -107,15 +112,21 @@ class ElasticVerseService extends ElasticBaseService
         $queryQuery = self::createQuery($filterArray)
             ->addMustNot(new Query\Exists('group_id'));
         // Eliminate current verse
-        if ($id != null) {
+        if (!$init && $id != null) {
             $queryQuery->addMustNot(new Query\Match('id', $id));
         }
 
         $query = (new Query())
             ->setQuery($queryQuery)
             ->setHighlight(self::createHighlight($filterArray))
+            ->setSize(25);
+        if ($init) {
+            // Display all verses
+            $query->setSize(self::MAX_SEARCH);
+        } else {
             // Display only first 10 verses
-            ->setSize(10);
+            $query->setSize(10);
+        }
 
         $noGroupResults = $this->type->search($query)->getResponse()->getData()['hits']['hits'];
 
@@ -138,6 +149,41 @@ class ElasticVerseService extends ElasticBaseService
         );
 
         return $results;
+    }
+
+    public function initVerseGroups(int $offset): array
+    {
+        // Get all verses
+        $query = (new Query())
+            ->setQuery((self::createQuery([]))
+                ->addMustNot(new Query\Exists('group_id')))
+            ->setSort(['id' => 'asc'])
+            ->setSize(10)
+            ->setFrom($offset * 10);
+        $verses = [];
+        foreach ($this->type->search($query)->getResponse()->getData()['hits']['hits'] as $row) {
+            $verses[] = $row['_source'];
+        }
+
+        // Find matches
+        $matchedIds = [];
+        $groups = [];
+        foreach ($verses as $verse) {
+            if (in_array($verse['id'], $matchedIds)) {
+                continue;
+            }
+            $matches = $this->searchVerse($verse['verse'], $verse['id'], true);
+            $group = [];
+            foreach ($matches as $match) {
+                foreach ($match['group'] as $matchedVerse) {
+                    $matchedIds[] = $matchedVerse['id'];
+                }
+                $group[] = $match['group'];
+            }
+            $groups[] = $group;
+        }
+
+        return $groups;
     }
 
     /**

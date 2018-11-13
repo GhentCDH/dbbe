@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-12">
+        {% for group in groups %}
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form action="/verses/init" method="post">
+                        <input type="hidden" name="page" value="{{ page }}" />
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="col-xs-4">Verse</th>
+                                    <th class="col-xs-1">Line</th>
+                                    <th class="col-xs-3">Occurrence</th>
+                                    <th class="col-xs-1">Occ. loc.</th>
+                                    <th class="col-xs-2">Manuscript</th>
+                                    <th class="col-xs-1">(Un)link</th>
+                                </tr>
+                            </thead>
+                        </table>
+                        {% for linkGroup in group %}
+                            <table class="table table-bordered">
+                                <tbody>
+                                    {% for index, linkVerse in linkGroup %}
+                                        <tr>
+                                            <td class="col-xs-4 greek">{{ linkVerse.verse }}</td>
+                                            <td class="col-xs-1">{{ linkVerse.order +1 }}</td>
+                                            <td class="col-xs-3 greek">
+                                                <a href="{{ path('occurrence_get', {'id': linkVerse.occurrence.id}) }}">
+                                                    [{{ linkVerse.occurrence.id }}] {{ linkVerse.occurrence.name }}
+                                                </a>
+                                            </td>
+                                            <td class="col-xs-1">{{ linkVerse.occurrence.location }}</td>
+                                            <td class="col-xs-2">
+                                                <a href="{{ path('manuscript_get', {'id': linkVerse.manuscript.id}) }}">
+                                                    {{ linkVerse.manuscript.name }}
+                                                </a>
+                                            </td>
+                                            {% if index == 0 %}
+                                                <td class="col-xs-1" rowspan="{{ linkGroup|length }}">
+                                                    <input name="{{ linkVerse.id }}" value="{{ linkVerse.group_id }}" type="checkbox" checked />
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endfor %}
+                        <input type="submit" value="Link" />
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+        <a href="{{ path('get_verse_init', {'page': page + 1}) }}">Next page</a>
+    </article>
+{% endblock %}

@@ -7,8 +7,6 @@ use Elastica\Client;
 use Elastica\Query;
 use Elastica\Query\AbstractQuery;
 
-const MAX = 2147483647;
-
 class ElasticSearchService implements ElasticSearchServiceInterface
 {
     private $client;
@@ -17,6 +15,9 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     protected $type;
     protected $primaryIdentifiers;
     protected $roles;
+
+    const MAX_AGG = 2147483647;
+    const MAX_SEARCH = 10000;
 
     protected function __construct(
         array $config,
@@ -108,7 +109,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
                             (new Aggregation\Terms($fieldName))
-                                ->setSize(MAX)
+                                ->setSize(self::MAX_AGG)
                                 ->setField($fieldName . '.id')
                                 ->addAggregation(
                                     (new Aggregation\Terms('name'))
@@ -121,7 +122,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
                             (new Aggregation\Terms($fieldName))
-                                ->setSize(MAX)
+                                ->setSize(self::MAX_AGG)
                                 ->setField($fieldName . '.keyword')
                         );
                     }
@@ -132,7 +133,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             (new Aggregation\Nested($fieldName, $fieldName))
                                 ->addAggregation(
                                     (new Aggregation\Terms('id'))
-                                        ->setSize(MAX)
+                                        ->setSize(self::MAX_AGG)
                                         ->setField($fieldName . '.id')
                                         ->addAggregation(
                                             (new Aggregation\Terms('name'))
@@ -146,7 +147,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
                             (new Aggregation\Terms($fieldName))
-                                ->setSize(MAX)
+                                ->setSize(self::MAX_AGG)
                                 ->setField($fieldName)
                         );
                     }
@@ -163,7 +164,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 (new Aggregation\Nested($key, $key))
                                     ->addAggregation(
                                         (new Aggregation\Terms('id'))
-                                            ->setSize(MAX)
+                                            ->setSize(self::MAX_AGG)
                                             ->setField($key . '.id')
                                             ->addAggregation(
                                                 (new Aggregation\Terms('name'))

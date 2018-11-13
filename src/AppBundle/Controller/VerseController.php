@@ -75,10 +75,71 @@ class VerseController extends BaseController
         } else {
             // Let the 404 page handle the not found exception
             $group = $this->get(static::MANAGER)->getByGroup($groupId);
+
             return $this->render(
                 static::TEMPLATE_FOLDER . 'variant.html.twig',
                 ['group' => $group]
             );
         }
+    }
+
+    /**
+     * @Route("/verses/init", name="get_verse_init")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function getVerseInit(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        $page = (int)$request->get('page');
+
+        $groups = $this->get('verse_elastic_service')->initVerseGroups($page);
+
+        // foreach ($groups as $group) {
+        //     foreach ($group as $block) {
+        //         var_dump($block);
+        //     }
+        // }
+        // throw new \Exception("Error Processing Request", 1);
+
+        return $this->render(
+            static::TEMPLATE_FOLDER . 'init.html.twig',
+            [
+                'groups' => $groups,
+                'page' => $page,
+            ]
+        );
+    }
+
+    /**
+     * @Route("/verses/init", name="post_verse_init")
+     * @Method("POST")
+     * @param Request $request
+     */
+    public function postVerseInit(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+
+        $data = $request->request->all();
+
+        $page = $data['page'];
+        unset($data['page']);
+
+        $verses = [];
+        foreach ($data as $verseId => $groupId) {
+            $verse = ['id' => $verseId];
+            if ($groupId != null) {
+                $verse['groupId'] = $groupId;
+            }
+            $verses[] = $verse;
+        }
+
+        $first = array_shift($verses);
+        $updateData = json_decode(json_encode(['linkVerses' => $verses]));
+
+        $this->get('verse_manager')->update($first['id'], $updateData);
+
+        return $this->redirectToRoute('get_verse_init', ['page' => $page]);
     }
 }
