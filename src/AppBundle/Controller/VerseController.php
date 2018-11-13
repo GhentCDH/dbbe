@@ -96,13 +96,6 @@ class VerseController extends BaseController
 
         $groups = $this->get('verse_elastic_service')->initVerseGroups($page);
 
-        // foreach ($groups as $group) {
-        //     foreach ($group as $block) {
-        //         var_dump($block);
-        //     }
-        // }
-        // throw new \Exception("Error Processing Request", 1);
-
         return $this->render(
             static::TEMPLATE_FOLDER . 'init.html.twig',
             [
