@@ -292,24 +292,27 @@ class OccurrenceService extends PoemService
                 -- verse variants
                 select
                 count(a.id) as count,
-                b.idoriginal_poem as related_occurrence_id
+                b.idoriginal_poem as related_occurrence_id,
+                poem.incipit as related_occurrence_incipit
                 from data.original_poem_verse a
                 inner join data.original_poem_verse b on a.idgroup = b.idgroup
+                inner join data.poem on b.idoriginal_poem = poem.identity
                 where a.idoriginal_poem in (?)
                 and b.idoriginal_poem <> a.idoriginal_poem
-                group by a.idoriginal_poem, b.idoriginal_poem
+                group by a.idoriginal_poem, b.idoriginal_poem, poem.incipit
 
                 union
 
                 -- common type, no verse variants
                 select
                 0 as count,
-                fb.subject_identity as related_occurrence_id
+                fb.subject_identity as related_occurrence_id,
+                poem.incipit as related_occurrence_incipit
                 from data.factoid fa
                 inner join data.factoid_type fta on fa.idfactoid_type = fta.idfactoid_type
                 inner join data.factoid fb on fa.object_identity = fb.object_identity
                 inner join data.factoid_type ftb on fa.idfactoid_type = ftb.idfactoid_type
-                inner join data.original_poem opb on fb.subject_identity = opb.identity
+                inner join data.poem on fb.subject_identity = poem.identity
                 where fa.subject_identity in (?)
                 and fta.type = \'reconstruction of\'
                 and ftb.type = \'reconstruction of\'
@@ -324,7 +327,7 @@ class OccurrenceService extends PoemService
                     group by a.idoriginal_poem, b.idoriginal_poem
                 )
             ) as relocc
-            order by count desc',
+            order by count desc, related_occurrence_incipit',
             [
                 $ids,
                 $ids,

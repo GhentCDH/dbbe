@@ -160,6 +160,7 @@ class OccurrenceManager extends PoemManager
         $occurrence = $occurrences[$id];
 
         // related occurrences
+        // dbs manages sorting
         $rawRelOccurrences = $this->dbs->getRelatedOccurrences([$id]);
         if (!empty($rawRelOccurrences)) {
             $relOccurrenceIds = self::getUniqueIds($rawRelOccurrences, 'related_occurrence_id');
