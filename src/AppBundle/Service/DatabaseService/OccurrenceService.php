@@ -312,6 +312,8 @@ class OccurrenceService extends PoemService
                 inner join data.factoid_type fta on fa.idfactoid_type = fta.idfactoid_type
                 inner join data.factoid fb on fa.object_identity = fb.object_identity
                 inner join data.factoid_type ftb on fa.idfactoid_type = ftb.idfactoid_type
+                -- make sure we only retrieve occurrences
+                inner join data.original_poem opb on fb.subject_identity = opb.identity
                 inner join data.poem on fb.subject_identity = poem.identity
                 where fa.subject_identity in (?)
                 and fta.type = \'reconstruction of\'
