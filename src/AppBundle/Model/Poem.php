@@ -229,7 +229,7 @@ class Poem extends Document
     {
         $result = parent::getElastic();
 
-        $result['DBBE'] = $this->getDBBE();
+        $result['dbbe'] = $this->getDBBE();
         $result['incipit'] = $this->incipit;
 
         if (!empty($this->title)) {
