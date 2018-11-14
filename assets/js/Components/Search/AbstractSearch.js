@@ -80,6 +80,7 @@ export default {
             aggregation: {},
             lastOrder: null,
             countRecords: '',
+            numRegex: /^(\d+)/,
             rgkRegex: /^(I{1,3})[.]([\d]+)(?:, I{1,3}[.][\d]+)*$/,
             vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
             roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
@@ -262,9 +263,21 @@ export default {
             if (a.name === 'true' && b.name === 'false') {
                 return -1
             }
+            // Numeric (a.o. shelf number) (e.g., 571A)
+            let first = a.name.match(this.numRegex)
+            let second = b.name.match(this.numRegex)
+            if (first && second) {
+                if (parseInt(first[1]) < parseInt(second[1])) {
+                    return -1
+                }
+                if (parseInt(first[1]) > parseInt(second[1])) {
+                    return 1
+                }
+                // let the string compare below handle cases where the numeric part is equal, but the rest not
+            }
             // RGK (e.g., II.513)
-            let first = a.name.match(this.rgkRegex)
-            let second = b.name.match(this.rgkRegex)
+            first = a.name.match(this.rgkRegex)
+            second = b.name.match(this.rgkRegex)
             if (first && second) {
                 if (first[1] < second[1]) {
                     return -1
