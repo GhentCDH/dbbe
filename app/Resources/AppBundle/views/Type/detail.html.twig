@@ -43,7 +43,21 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences}%}
                                 {% block renderItem %}
-                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get','display': item.getDescription()} only %}</span>
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item.getManuscript().getPublic() %}
+                                        <br />
+                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                        <br />
+                                        <span class="bg-warning">
+                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                        </span>
+                                    {% endif %}
+                                    <br />
                                     {% if item.getNumberOfVerses() == 0 %}
                                         (? verses)
                                     {% elseif item.getNumberOfVerses() == 1 %}
@@ -63,7 +77,11 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': relTypes} only %}
                                 {% block renderItem %}
-                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item[0], 'path': 'type_get','display': item[0].getDescription()} only %}</span>
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
                                     {% if item[0].getNumberOfVerses() == 0 %}
                                         (? verses)
                                     {% elseif item[0].getNumberOfVerses() == 1 %}

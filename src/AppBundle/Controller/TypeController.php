@@ -403,7 +403,9 @@ class TypeController extends BaseController
             } else {
                 $esParams['ascending'] = $defaults['ascending'];
             }
-            if (($params['orderBy']) == 'incipit') {
+            if (($params['orderBy']) == 'id') {
+                $esParams['orderBy'] = ['id'];
+            } elseif (($params['orderBy']) == 'incipit') {
                 $esParams['orderBy'] = ['incipit.keyword'];
             } elseif (($params['orderBy']) == 'number_of_occurrences') {
                 $esParams['orderBy'] = ['number_of_occurrences'];

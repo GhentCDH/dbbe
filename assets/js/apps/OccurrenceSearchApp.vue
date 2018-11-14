@@ -86,6 +86,14 @@
                     </template>
                 </template>
                 <a
+                    slot="id"
+                    slot-scope="props"
+                    :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
+                    class="greek"
+                >
+                    {{ props.row.id }}
+                </a>
+                <a
                     slot="incipit"
                     slot-scope="props"
                     :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
@@ -96,7 +104,7 @@
                     slot="manuscript"
                     slot-scope="props"
                     :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)">
-                    {{ props.row.manuscript.name }}
+                    {{ props.row.manuscript.name }} ({{ props.row.location }})
                 </a>
                 <template
                     v-if="props.row.date_floor_year && props.row.date_ceiling_year"
@@ -234,13 +242,16 @@ export default {
                     text: 'Title (T.) / text (matching verses only)',
                     comment: 'Comment (matching lines only)',
                 },
+                columnsClasses: {
+                    id: 'no-wrap',
+                },
                 filterable: false,
                 orderBy: {
                     'column': 'incipit'
                 },
                 perPage: 25,
                 perPageValues: [25, 50, 100],
-                sortable: ['incipit', 'manuscript', 'date'],
+                sortable: ['id', 'incipit', 'manuscript', 'date'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {
@@ -303,7 +314,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['incipit', 'manuscript', 'date']
+            let columns = ['id', 'incipit', 'manuscript', 'date']
             if (this.textSearch) {
                 columns.unshift('text')
             }

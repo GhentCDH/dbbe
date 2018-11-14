@@ -123,6 +123,14 @@
                 </template>
                 <!-- eslint-disable vue/no-v-html -->
                 <a
+                    slot="id"
+                    slot-scope="props"
+                    :href="urls['type_get'].replace('type_id', props.row.id)"
+                    class="greek"
+                >
+                    {{ props.row.id }}
+                </a>
+                <a
                     slot="incipit"
                     slot-scope="props"
                     :href="urls['type_get'].replace('type_id', props.row.id)"
@@ -248,13 +256,16 @@ export default {
                     text: 'Title (T.) / text (matching verses only)',
                     comment: 'Comment (matching lines only)',
                 },
+                columnsClasses: {
+                    id: 'no-wrap',
+                },
                 filterable: false,
                 orderBy: {
                     'column': 'incipit'
                 },
                 perPage: 25,
                 perPageValues: [25, 50, 100],
-                sortable: ['incipit', 'number_of_occurrences'],
+                sortable: ['id', 'incipit', 'number_of_occurrences'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {
@@ -324,7 +335,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['incipit', 'number_of_occurrences']
+            let columns = ['id', 'incipit', 'number_of_occurrences']
             if (this.textSearch) {
                 columns.unshift('text')
             }

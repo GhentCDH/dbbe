@@ -44,7 +44,11 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': relOccurrences}%}
                                 {% block renderItem %}
-                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item[0], 'path': 'occurrence_get','display': item[0].getDescription()} only %}</span>
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span> ({{ item.getLocation() }})</a>
+                                        {% endblock %}
+                                    {% endembed %}
                                     {% if item[0].getNumberOfVerses() == 0 %}
                                         (? verses)
                                     {% elseif item[0].getNumberOfVerses() == 1 %}
@@ -67,7 +71,11 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': types} only %}
                                 {% block renderItem %}
-                                    <span class="greek">{% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get','display': item.getDescription()} only %}</span>
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
                                     {% if item.getNumberOfVerses() == 0 %}
                                         (? verses)
                                     {% elseif item.getNumberOfVerses() == 1 %}

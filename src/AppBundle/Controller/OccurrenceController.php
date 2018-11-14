@@ -420,7 +420,9 @@ class OccurrenceController extends BaseController
             } else {
                 $esParams['ascending'] = $defaults['ascending'];
             }
-            if (($params['orderBy']) == 'incipit') {
+            if (($params['orderBy']) == 'id') {
+                $esParams['orderBy'] = ['id'];
+            } elseif (($params['orderBy']) == 'incipit') {
                 $esParams['orderBy'] = ['incipit.keyword'];
             } elseif (($params['orderBy']) == 'manuscript') {
                 $esParams['orderBy'] = ['manuscript.name.keyword'];

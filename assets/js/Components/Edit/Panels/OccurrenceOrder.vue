@@ -9,7 +9,7 @@
                     v-for="occurrence in model.occurrenceOrder"
                     :key="occurrence.id">
                     <div class="panel-body">
-                        <i class="fa fa-arrows draggable-icon" />{{ occurrence.name }}
+                        <i class="fa fa-arrows draggable-icon" />[{{ occurrence.id }}] <span class="greek">{{ occurrence.name }}</span> ({{ occurrence.location}})
                     </div>
                 </div>
             </transition-group>

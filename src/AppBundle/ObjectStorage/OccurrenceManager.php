@@ -60,6 +60,20 @@ class OccurrenceManager extends PoemManager
                     ->addVerse($verses[$rawVerse['verse_id']]);
             }
 
+            // Mini manuscript (needed in mini to display manuscript link)
+            $rawLocations = $this->dbs->getLocations($ids);
+            if (count($rawLocations) == 0) {
+                return [];
+            }
+            $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
+            $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+            foreach ($rawLocations as $rawLocation) {
+                if (isset($manuscripts[$rawLocation['manuscript_id']])) {
+                    $manuscript = $manuscripts[$rawLocation['manuscript_id']];
+                    $occurrences[$rawLocation['occurrence_id']]->setManuscript($manuscript);
+                }
+            }
+
             $this->setPublics($occurrences);
         }
 
@@ -78,17 +92,17 @@ class OccurrenceManager extends PoemManager
         // Remove all ids that did not match above
         $ids = array_keys($occurrences);
 
-        // Manuscript
-        $rawLocations = $this->dbs->getLocations($ids);
-        if (count($rawLocations) == 0) {
-            return [];
+        // Replace mini manuscript with short manuscripts (manuscript content information)
+        $manuscriptIds = [];
+        foreach ($occurrences as $occurrence) {
+            if (!empty($occurrence->getManuscript())) {
+                $manuscriptIds[] = $occurrence->getManuscript()->getId();
+            }
         }
-        $manuscriptIds = self::getUniqueIds($rawLocations, 'manuscript_id');
         $manuscripts = $this->container->get('manuscript_manager')->getShort($manuscriptIds);
-        foreach ($rawLocations as $rawLocation) {
-            if (isset($manuscripts[$rawLocation['manuscript_id']])) {
-                $manuscript = $manuscripts[$rawLocation['manuscript_id']];
-                $occurrences[$rawLocation['occurrence_id']]->setManuscript($manuscript);
+        foreach ($occurrences as $occurrence) {
+            if (!empty($occurrence->getManuscript())) {
+                $occurrence->setManuscript($manuscripts[$occurrence->getManuscript()->getId()]);
             }
         }
 

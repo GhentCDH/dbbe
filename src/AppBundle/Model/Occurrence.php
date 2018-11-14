@@ -508,6 +508,9 @@ class Occurrence extends Poem
                 }
             }
         }
+        if (!empty($this->getLocation())) {
+            $result['location'] = $this->getLocation();
+        }
         if (!empty($this->date) && !empty($this->date->getFloor())) {
             $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));
         }

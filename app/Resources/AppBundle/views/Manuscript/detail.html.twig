@@ -76,10 +76,14 @@
                 {% if occurrences is not empty %}
                     <tr>
                         <td>Occurrences</td>
-                        <td class="greek">
+                        <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrences} only %}
                                 {% block renderItem %}
-                                    {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get','display': item.getDescription()} only %}
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span> ({{ item.getLocation() }})</a>
+                                        {% endblock %}
+                                    {% endembed %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
