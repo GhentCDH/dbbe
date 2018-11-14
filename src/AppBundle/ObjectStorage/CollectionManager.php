@@ -55,20 +55,20 @@ class CollectionManager extends ObjectManager
                 && property_exists($data->institution, 'id')
                 && is_numeric($data->institution->id)
             ) {
-                $collectionId = $this->dbs->insert($data->name, $data->institution->id);
+                $id = $this->dbs->insert($data->name, $data->institution->id);
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
             // load new collection data
-            $newCollection = $this->get([$collectionId])[$collectionId];
+            $new = $this->get([$id])[$id];
 
             // update Elastic manuscripts
             $this->container->get('manuscript_manager')->updateElasticByIds(
                 $this->container->get('manuscript_manager')->getCollectionDependencies($id, 'getId')
             );
 
-            $this->updateModified(null, $newCollection);
+            $this->updateModified(null, $new);
 
             $this->cache->invalidateTags(['collections']);
 
@@ -79,18 +79,18 @@ class CollectionManager extends ObjectManager
             throw $e;
         }
 
-        return $newCollection;
+        return $new;
     }
 
-    public function updateCollection(int $collectionId, stdClass $data): Collection
+    public function updateCollection(int $id, stdClass $data): Collection
     {
         $this->dbs->beginTransaction();
         try {
-            $collections = $this->get([$collectionId]);
+            $collections = $this->get([$id]);
             if (count($collections) == 0) {
-                throw new NotFoundHttpException('Collection with id ' . $collectionId .' not found.');
+                throw new NotFoundHttpException('Collection with id ' . $id .' not found.');
             }
-            $collection = $collections[$collectionId];
+            $old = $collections[$id];
 
             // update collection data
             $correct = false;
@@ -98,14 +98,14 @@ class CollectionManager extends ObjectManager
                 && is_string($data->name)
             ) {
                 $correct = true;
-                $this->dbs->updateName($collectionId, $data->name);
+                $this->dbs->updateName($id, $data->name);
             }
             if (property_exists($data, 'institution')
                 && property_exists($data->institution, 'id')
                 && is_numeric($data->institution->id)
             ) {
                 $correct = true;
-                $this->dbs->updateInstitution($collectionId, $data->institution->id);
+                $this->dbs->updateInstitution($id, $data->institution->id);
             }
 
             if (!$correct) {
@@ -113,9 +113,9 @@ class CollectionManager extends ObjectManager
             }
 
             // load new collection data
-            $newCollection = $this->get([$collectionId])[$collectionId];
+            $new = $this->get([$id])[$id];
 
-            $this->updateModified($collection, $newCollection);
+            $this->updateModified($old, $new);
 
             $this->cache->invalidateTags(['collections']);
 
@@ -126,7 +126,7 @@ class CollectionManager extends ObjectManager
             throw $e;
         }
 
-        return $newCollection;
+        return $new;
     }
 
     public function delCollection(int $collectionId): void
