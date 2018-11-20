@@ -406,6 +406,8 @@ class Manuscript extends Document
             $result['origin'] = $this->origin->getShortElastic();
         }
 
+        $result['number_of_occurrences'] = count($this->occurrences);
+
         return $result;
     }
 }

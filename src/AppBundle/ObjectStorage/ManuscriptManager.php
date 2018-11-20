@@ -106,6 +106,17 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        // Occurrences
+        $rawOccurrences = $this->dbs->getOccurrences($ids);
+        if (count($rawOccurrences) > 0) {
+            $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+            foreach ($rawOccurrences as $rawOccurrence) {
+                $manuscripts[$rawOccurrence['manuscript_id']]
+                    ->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
+            }
+        }
+
         $this->setIdentifications($manuscripts);
 
         $this->setComments($manuscripts);
@@ -132,16 +143,6 @@ class ManuscriptManager extends DocumentManager
         $this->setBibliographies($manuscripts);
 
         $manuscript = $manuscripts[$id];
-
-        // Occurrences
-        $rawOccurrences = $this->dbs->getOccurrences([$id]);
-        if (count($rawOccurrences) > 0) {
-            $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-            $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-            foreach ($rawOccurrences as $rawOccurrence) {
-                $manuscript->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
-            }
-        }
 
         // status
         $rawStatuses = $this->dbs->getStatuses([$id]);

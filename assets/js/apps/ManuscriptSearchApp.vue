@@ -118,6 +118,11 @@
                     </template>
                 </template>
                 <template
+                    slot="occ"
+                    slot-scope="props">
+                    {{ props.row.number_of_occurrences }}
+                </template>
+                <template
                     slot="actions"
                     slot-scope="props">
                     <a
@@ -326,6 +331,7 @@ export default {
                 columns.unshift('comment')
             }
             if (this.isViewInternal) {
+                columns.push('occ')
                 columns.push('actions')
                 columns.push('c')
             }
