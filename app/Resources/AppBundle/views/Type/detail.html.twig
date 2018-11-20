@@ -207,7 +207,7 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getTranslations()} only %}
                                 {% block renderItem %}
-                                    {{ item.getText() }}
+                                    {{ item.getText()|replace({'|':'\n'})|nl2br }}
                                     <br />
                                     Language: {{ item.getLanguage() }}
                                     <br />
