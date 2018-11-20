@@ -322,7 +322,7 @@ class OccurrenceManager extends PoemManager
 
                 $changes['short'] = true;
                 $this->dbs->updateManuscript($id, $data->manuscript->id);
-                // Reset old and new manuscript (personroles)
+                // Reset old and new manuscript (personroles + number of occurrences)
                 $this->container->get('manuscript_manager')->updateElasticByIds([
                     $old->getManuscript()->getId(),
                     $data->manuscript->id,
