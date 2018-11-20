@@ -85,7 +85,7 @@ services:
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
-        arguments: ['@bilbiography_service', '@cache.app', '@service_container', null, null]
+        arguments: ['@bibliography_service', '@cache.app', '@service_container', null, null]
         public: true
 
     article_manager:
@@ -229,7 +229,7 @@ services:
         class: AppBundle\Service\DatabaseService\RegionService
         arguments: ['@doctrine.orm.entity_manager']
 
-    bilbiography_service:
+    bibliography_service:
         class: AppBundle\Service\DatabaseService\BibliographyService
         arguments: ['@doctrine.orm.entity_manager']
 

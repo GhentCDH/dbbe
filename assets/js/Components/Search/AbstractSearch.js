@@ -11,6 +11,7 @@ import * as uiv from 'uiv'
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
 import Alerts from '../Alerts'
 import Delete from '../Edit/Modals/Delete'
+import CollectionManager from './CollectionManager'
 
 Vue.use(uiv)
 Vue.use(VueFormGenerator)
@@ -19,6 +20,7 @@ Vue.use(VueTables.ServerTable)
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('deleteModal', Delete)
+Vue.component('collectionManager', CollectionManager)
 
 const YEAR_MIN = 1
 const YEAR_MAX = (new Date()).getFullYear()
@@ -45,12 +47,17 @@ export default {
             type: String,
             default: '',
         },
+        initManagements: {
+            type: String,
+            default: '',
+        },
     },
     data () {
         return {
             urls: JSON.parse(this.initUrls),
             data: JSON.parse(this.initData),
             identifiers: JSON.parse(this.initIdentifiers),
+            managements: JSON.parse(this.initManagements),
             model: {},
             originalModel: {},
             formOptions: {
@@ -84,6 +91,7 @@ export default {
             rgkRegex: /^(I{1,3})[.]([\d]+)(?:, I{1,3}[.][\d]+)*$/,
             vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
             roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
+            collectionArray: [],
         }
     },
     computed: {
@@ -330,7 +338,7 @@ export default {
             this.onValidated(true)
         },
         onData(data) {
-            this.aggregation = data.aggregation
+            this.data = data
 
             // Check whether column 'title/text' should be displayed
             if (
@@ -374,7 +382,7 @@ export default {
             for (let fieldName of Object.keys(this.schema.fields)) {
                 let field = this.schema.fields[fieldName]
                 if (field.type === 'multiselectClear') {
-                    let values = this.aggregation[fieldName] == null ? [] : this.aggregation[fieldName].sort(this.sortByName)
+                    let values = this.data.aggregation[fieldName] == null ? [] : this.data.aggregation[fieldName].sort(this.sortByName)
                     field.values = values
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         this.dependencyField(field)
@@ -418,8 +426,8 @@ export default {
                         }
                     }
                     else if (this.schema.fields.hasOwnProperty(key)) {
-                        if (this.schema.fields[key].type === 'multiselectClear' && this.aggregation[key] != null) {
-                            model[key] = this.aggregation[key].filter(v => String(v.id) === params['filters'][key])[0]
+                        if (this.schema.fields[key].type === 'multiselectClear' && this.data.aggregation[key] != null) {
+                            model[key] = this.data.aggregation[key].filter(v => String(v.id) === params['filters'][key])[0]
                         }
                         else {
                             model[key] = params['filters'][key]
@@ -476,6 +484,101 @@ export default {
         },
         isLoginError(error) {
             return error.message === 'Network Error'
+        },
+        collectionToggle(id) {
+            let index = this.collectionArray.indexOf(id)
+            if (index > -1) {
+                this.collectionArray.splice(index, 1)
+            }
+            else {
+                this.collectionArray.push(id)
+            }
+        },
+        collectionToggleAll() {
+            let allChecked = true
+            for (let row of this.data.data) {
+                if (!this.collectionArray.includes(row.id)) {
+                    allChecked = false
+                    break
+                }
+            }
+            if (allChecked) {
+                for (let row of this.data.data) {
+                    this.collectionArray.splice(this.collectionArray.indexOf(row.id), 1)
+                }
+            }
+            else {
+                for (let row of this.data.data) {
+                    this.collectionArray.push(row.id)
+                }
+            }
+        },
+        clearCollection() {
+            this.collectionArray = []
+        },
+        addManagementsToSelection(managementCollections) {
+            this.openRequests++
+            axios.put(this.urls['managements_add'], {ids: this.collectionArray, 'managements': managementCollections})
+                .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
+                    this.$refs.resultTable.refresh()
+                    this.openRequests--
+                    this.alerts.push({type: 'success', message: 'Management collections added successfully.'})
+                })
+                .catch((error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'})
+                    console.log(error)
+                })
+        },
+        removeManagementsFromSelection(managementCollections) {
+            this.openRequests++
+            axios.put(this.urls['managements_remove'], {ids: this.collectionArray, 'managements': managementCollections})
+                .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
+                    this.$refs.resultTable.refresh()
+                    this.openRequests--
+                    this.alerts.push({type: 'success', message: 'Management collections removed successfully.'})
+                })
+                .catch((error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong while removing the management collections.'})
+                    console.log(error)
+                })
+        },
+        addManagementsToResults(managementCollections) {
+            this.openRequests++
+            axios.put(this.urls['managements_add'], {filter: this.constructFilterValues(), 'managements': managementCollections})
+                .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
+                    this.$refs.resultTable.refresh()
+                    this.openRequests--
+                    this.alerts.push({type: 'success', message: 'Management collections added successfully.'})
+                })
+                .catch((error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'})
+                    console.log(error)
+                })
+        },
+        removeManagementsFromResults(managementCollections) {
+            this.openRequests++
+            axios.put(this.urls['managements_remove'], {filter: this.constructFilterValues(), 'managements': managementCollections})
+                .then((response) => {
+                    // Don't create a new history item
+                    this.noHistory = true
+                    this.$refs.resultTable.refresh()
+                    this.openRequests--
+                    this.alerts.push({type: 'success', message: 'Management collections removed successfully.'})
+                })
+                .catch((error) => {
+                    this.openRequests--
+                    this.alerts.push({type: 'error', message: 'Something went wrong removing adding the management collections.'})
+                    console.log(error)
+                })
         },
     },
     requestFunction (data) {

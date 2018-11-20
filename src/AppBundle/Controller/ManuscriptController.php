@@ -34,6 +34,9 @@ class ManuscriptController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'manuscript_edit' => $this->generateUrl('manuscript_edit', ['id' => 'manuscript_id']),
                     'manuscript_delete' => $this->generateUrl('manuscript_delete', ['id' => 'manuscript_id']),
+                    'login' => $this->generateUrl('login'),
+                    'managements_add' => $this->generateUrl('manuscripts_managements_add'),
+                    'managements_remove' => $this->generateUrl('manuscripts_managements_remove'),
                 ]),
                 'data' => json_encode(
                     $this->get('manuscript_elastic_service')->searchAndAggregate(
@@ -43,6 +46,9 @@ class ManuscriptController extends BaseController
                 ),
                 'identifiers' => json_encode(
                     $this->get('identifier_manager')->getPrimaryByTypeJson('manuscript')
+                ),
+                'managements' => json_encode(
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
                 ),
             ]
         );
@@ -326,6 +332,28 @@ class ManuscriptController extends BaseController
         } else {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+    }
+
+    /**
+     * @Route("/manuscripts/managements/add", name="manuscripts_managements_add")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        return parent::addManagements($request);
+    }
+
+    /**
+     * @Route("/manuscripts/managements/remove", name="manuscripts_managements_remove")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        return parent::removeManagements($request);
     }
 
     /**

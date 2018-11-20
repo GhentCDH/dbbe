@@ -40,6 +40,9 @@ class TypeController extends BaseController
                     'type_edit' => $this->generateUrl('type_edit', ['id' => 'type_id']),
                     'type_delete' => $this->generateUrl('type_delete', ['id' => 'type_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'login' => $this->generateUrl('login'),
+                    'managements_add' => $this->generateUrl('types_managements_add'),
+                    'managements_remove' => $this->generateUrl('types_managements_remove'),
                 ]),
                 'data' => json_encode(
                     $this->get('type_elastic_service')->searchAndAggregate(
@@ -49,6 +52,9 @@ class TypeController extends BaseController
                 ),
                 'identifiers' => json_encode(
                     $this->get('identifier_manager')->getPrimaryByTypeJson('type')
+                ),
+                'managements' => json_encode(
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -293,6 +299,28 @@ class TypeController extends BaseController
         }
 
         return $response;
+    }
+
+    /**
+     * @Route("/types/managements/add", name="types_managements_add")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        return parent::addManagements($request);
+    }
+
+    /**
+     * @Route("/types/managements/remove", name="types_managements_remove")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        return parent::removeManagements($request);
     }
 
     /**

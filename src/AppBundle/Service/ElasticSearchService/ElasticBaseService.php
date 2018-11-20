@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\ElasticSearchService;
 
+use stdClass;
+
 use Elastica\Document;
 use Elastica\Type;
 
@@ -72,5 +74,32 @@ class ElasticBaseService extends ElasticSearchService
             $bulk_documents = [];
         }
         $this->type->getIndex()->refresh();
+    }
+
+    /**
+     * Get the ids of all entities satisfying a certain filter.
+     * @param  stdClass $filter
+     * @return array
+     */
+    public function getAllResults(stdClass $filter): array
+    {
+        $params = [
+            'limit' => 1000,
+            'page' => 0,
+        ];
+        $params['filters'] = $this->classifyFilters(json_decode(json_encode($filter), true), true);
+        $params['sort'] = ['id' => 'asc'];
+
+        $ids = [];
+        $offset = 0;
+        do {
+            $params['page']++;
+            $results = $this->search($params);
+            foreach ($results['data'] as $result) {
+                $ids[] = $result['id'];
+            }
+        } while ($params['page'] * $params['limit'] < $results['count']);
+
+        return $ids;
     }
 }

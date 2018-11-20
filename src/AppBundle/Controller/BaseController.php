@@ -158,6 +158,63 @@ class BaseController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        try {
+            $this
+                ->get(static::MANAGER)
+                ->addManagements(json_decode($request->getContent()));
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return new JsonResponse(null);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        try {
+            $this
+                ->get(static::MANAGER)
+                ->removeManagements(json_decode($request->getContent()));
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse

@@ -28,30 +28,37 @@ class OccurrenceController extends BaseController
      */
     public function search(Request $request)
     {
+        $data = [
+            // @codingStandardsIgnoreStart Generic.Files.LineLength
+            'urls' => json_encode([
+                'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
+                'type_deps_by_occurrence' => $this->generateUrl('type_deps_by_occurrence', ['id' => 'occurrence_id']),
+                'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
+                'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
+                'occurrence_edit' => $this->generateUrl('occurrence_edit', ['id' => 'occurrence_id']),
+                'occurrence_delete' => $this->generateUrl('occurrence_delete', ['id' => 'occurrence_id']),
+                'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                'login' => $this->generateUrl('login'),
+                'managements_add' => $this->generateUrl('occurrences_managements_add'),
+                'managements_remove' => $this->generateUrl('occurrences_managements_remove'),
+            ]),
+            'data' => json_encode(
+                $this->get('occurrence_elastic_service')->searchAndAggregate(
+                    $this->sanitize($request->query->all()),
+                    $this->isGranted('ROLE_VIEW_INTERNAL')
+                )
+            ),
+            'identifiers' => json_encode(
+                $this->get('identifier_manager')->getPrimaryByTypeJson('occurrence')
+            ),
+            'managements' => json_encode(
+                $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+            ),
+            // @codingStandardsIgnoreEnd
+        ];
         return $this->render(
             'AppBundle:Occurrence:overview.html.twig',
-            [
-                // @codingStandardsIgnoreStart Generic.Files.LineLength
-                'urls' => json_encode([
-                    'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
-                    'type_deps_by_occurrence' => $this->generateUrl('type_deps_by_occurrence', ['id' => 'occurrence_id']),
-                    'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
-                    'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
-                    'occurrence_edit' => $this->generateUrl('occurrence_edit', ['id' => 'occurrence_id']),
-                    'occurrence_delete' => $this->generateUrl('occurrence_delete', ['id' => 'occurrence_id']),
-                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                ]),
-                'data' => json_encode(
-                    $this->get('occurrence_elastic_service')->searchAndAggregate(
-                        $this->sanitize($request->query->all()),
-                        $this->isGranted('ROLE_VIEW_INTERNAL')
-                    )
-                ),
-                'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getPrimaryByTypeJson('occurrence')
-                ),
-                // @codingStandardsIgnoreEnd
-            ]
+            $data
         );
     }
 
@@ -306,6 +313,28 @@ class OccurrenceController extends BaseController
         }
 
         return $response;
+    }
+
+    /**
+     * @Route("/occurrences/managements/add", name="occurrences_managements_add")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        return parent::addManagements($request);
+    }
+
+    /**
+     * @Route("/occurrences/managements/remove", name="occurrences_managements_remove")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        return parent::removeManagements($request);
     }
 
     /**

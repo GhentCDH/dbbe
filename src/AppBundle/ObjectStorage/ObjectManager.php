@@ -26,7 +26,7 @@ class ObjectManager
     protected $entityType;
 
     public function __construct(
-        DatabaseServiceInterface $databaseService,
+        DatabaseServiceInterface $databaseService = null,
         CacheItemPoolInterface $cacheItemPool,
         ContainerInterface $container,
         ElasticSearchServiceInterface $elasticSearchService = null,
@@ -136,13 +136,13 @@ class ObjectManager
             // array_to_json(array_agg())
             if (is_array(json_decode($row[$key]))) {
                 foreach (json_decode($row[$key]) as $id) {
-                    if (!in_array($id, $uniqueIds)) {
+                    if ($id != null && !in_array($id, $uniqueIds)) {
                         $uniqueIds[] = $id;
                     }
                 }
             } else {
                 // integer
-                if (!in_array($row[$key], $uniqueIds)) {
+                if ($row[$key] != null && !in_array($row[$key], $uniqueIds)) {
                     $uniqueIds[] = $row[$key];
                 }
             }

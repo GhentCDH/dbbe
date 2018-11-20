@@ -4,11 +4,13 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class BibliographyController extends Controller
+class BibliographyController extends BaseController
 {
     /**
     * @Route("/bibliographies/search", name="bibliographies_search")
@@ -55,6 +57,8 @@ class BibliographyController extends Controller
                     'online_source_get' => $this->generateUrl('online_source_get', ['id' => 'online_source_id']),
                     'online_source_edit' => $this->generateUrl('online_source_edit', ['id' => 'online_source_id']),
                     'online_source_delete' => $this->generateUrl('online_source_delete', ['id' => 'online_source_id']),
+                    'managements_add' => $this->generateUrl('bibliographies_managements_add'),
+                    'managements_remove' => $this->generateUrl('bibliographies_managements_remove'),
                 ]),
                 'data' => json_encode(
                     $this->get('bibliography_elastic_service')->searchAndAggregate(
@@ -63,6 +67,9 @@ class BibliographyController extends Controller
                     )
                 ),
                 'identifiers' => json_encode($this->get('identifier_manager')->getPrimaryByTypeJson('book')),
+                'managements' => json_encode(
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                ),
                 // @codingStandardsIgnoreEnd
             ]
         );
@@ -81,6 +88,89 @@ class BibliographyController extends Controller
         );
 
         return new JsonResponse($result);
+    }
+
+    /**
+     * @Route("/bibliographies/managements/add", name="bibliographies_managements_add")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        $content = json_decode($request->getContent());
+
+        try {
+            $this
+                ->get('article_manager')
+                ->addManagements($content);
+            $this
+                ->get('book_manager')
+                ->addManagements($content);
+            $this
+                ->get('book_chapter_manager')
+                ->addManagements($content);
+            $this
+                ->get('online_source_manager')
+                ->addManagements($content);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return new JsonResponse(null);
+    }
+
+    /**
+     * @Route("/bibliographies/managements/remove", name="bibliographies_managements_remove")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->throwErrorIfNotJson($request);
+
+        $content = json_decode($request->getContent());
+
+        try {
+            $this
+                ->get('article_manager')
+                ->removeManagements($content);
+            $this
+                ->get('book_manager')
+                ->removeManagements($content);
+            $this
+                ->get('book_chapter_manager')
+                ->removeManagements($content);
+            $this
+                ->get('online_source_manager')
+                ->removeManagements($content);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                Response::HTTP_NOT_FOUND
+            );
+        } catch (BadRequestHttpException $e) {
+            return new JsonResponse(
+                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     private function sanitize(array $params): array

@@ -31,6 +31,24 @@
                 class="count-records">
                 <h6>{{ countRecords }}</h6>
             </div>
+            <div
+                v-if="isViewInternal"
+                class="collection-select-all top"
+            >
+                <a
+                    href="#"
+                    @click.prevent="clearCollection()"
+                >
+                    clear selection
+                </a>
+                |
+                <a
+                    href="#"
+                    @click.prevent="collectionToggleAll()"
+                >
+                    (un)select all on this page
+                </a>
+            </div>
             <v-server-table
                 ref="resultTable"
                 :url="urls['occurrences_search_api']"
@@ -89,7 +107,6 @@
                     slot="id"
                     slot-scope="props"
                     :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
-                    class="greek"
                 >
                     {{ props.row.id }}
                 </a>
@@ -134,8 +151,56 @@
                         <i class="fa fa-trash-o" />
                     </a>
                 </template>
+                <template
+                    slot="c"
+                    slot-scope="props"
+                >
+                    <span class="checkbox checkbox-primary">
+                        <input
+                            :id="props.row.id"
+                            :name="props.row.id"
+                            type="checkbox"
+                            :checked="collectionArray.includes(props.row.id)"
+                            @click.prevent="collectionToggle(props.row.id)"
+                        >
+                        <label :for="props.row.id" />
+                    </span>
+                </template>
             </v-server-table>
+            <div
+                v-if="isViewInternal"
+                class="collection-select-all bottom"
+            >
+                <a
+                    href="#"
+                    @click.prevent="clearCollection()"
+                >
+                    clear selection
+                </a>
+                |
+                <a
+                    href="#"
+                    @click.prevent="collectionToggleAll()"
+                >
+                    (un)select all on this page
+                </a>
+            </div>
+            <collectionManager
+                v-if="isViewInternal"
+                :collectionArray="collectionArray"
+                :managements="managements"
+                @addManagementsToSelection="addManagementsToSelection"
+                @removeManagementsFromSelection="removeManagementsFromSelection"
+                @addManagementsToResults="addManagementsToResults"
+                @removeManagementsFromResults="removeManagementsFromResults"
+            />
         </article>
+        <div class="col-xs-12">
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)"
+            />
+        </div>
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -321,8 +386,9 @@ export default {
             if (this.commentSearch) {
                 columns.unshift('comment')
             }
-            if (this.isEditor) {
+            if (this.isViewInternal) {
                 columns.push('actions')
+                columns.push('c')
             }
             return columns
         },

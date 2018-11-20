@@ -8,8 +8,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use AppBundle\Utils\ArrayToJson;
-
 class PersonController extends BaseController
 {
     /**
@@ -53,6 +51,8 @@ class PersonController extends BaseController
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
                     'persons_get' => $this->generateUrl('persons_get'),
                     'login' => $this->generateUrl('login'),
+                    'managements_add' => $this->generateUrl('persons_managements_add'),
+                    'managements_remove' => $this->generateUrl('persons_managements_remove'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode(
@@ -63,6 +63,9 @@ class PersonController extends BaseController
                 ),
                 'identifiers' => json_encode(
                     $this->get('identifier_manager')->getPrimaryByTypeJson('person')
+                ),
+                'managements' => json_encode(
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
                 ),
             ]
         );
@@ -234,19 +237,6 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/{primaryId}/{secondaryId}", name="person_merge")
-     * @Method("PUT")
-     * @param  int    $primaryId   first person id (will stay)
-     * @param  int    $secondaryId second person id (will be deleted)
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
-    {
-        return parent::merge($primaryId, $secondaryId, $request);
-    }
-
-    /**
      * @Route("/persons/{id}", name="person_put")
      * @Method("PUT")
      * @param  int    $id person id
@@ -262,6 +252,41 @@ class PersonController extends BaseController
         }
 
         return $response;
+    }
+
+    /**
+     * @Route("/persons/managements/add", name="persons_managements_add")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addManagements(Request $request)
+    {
+        return parent::addManagements($request);
+    }
+
+    /**
+     * @Route("/persons/managements/remove", name="persons_managements_remove")
+     * @Method("PUT")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeManagements(Request $request)
+    {
+        return parent::removeManagements($request);
+    }
+
+    /**
+     * @Route("/persons/{primaryId}/{secondaryId}", name="person_merge")
+     * @Method("PUT")
+     * @param  int    $primaryId   first person id (will stay)
+     * @param  int    $secondaryId second person id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
