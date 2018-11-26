@@ -13,7 +13,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th v-if="image">Image</th>
+                        <th v-if="image">Plate</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -72,7 +72,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th v-if="image">Image</th>
+                        <th v-if="image">Plate</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -131,7 +131,7 @@
                         <th>End page</th>
                         <th>Raw pages</th>
                         <th v-if="referenceType">Type</th>
-                        <th v-if="image">Image</th>
+                        <th v-if="image">Plate</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -189,7 +189,7 @@
                         <th>Source link</th>
                         <th>Relative link</th>
                         <th v-if="referenceType">Type</th>
-                        <th v-if="image">Image</th>
+                        <th v-if="image">Plate</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -474,7 +474,7 @@ export default {
             let imageField = {
                 type: 'input',
                 inputType: 'text',
-                label: 'Image',
+                label: 'Plate',
                 labelClasses: 'control-label',
                 model: 'image',
                 validator: VueFormGenerator.validators.string,

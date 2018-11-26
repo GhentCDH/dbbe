@@ -205,14 +205,12 @@
                     </tr>
                 {% endif %}
                 {% set imageLinks = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImageLinks() : occurrence.getImageLinks()|public %}
-                {% set bibliographyImages = occurrence.getImageBibliographies() %}
-                {% if imageLinks is not empty or bibliographyImages is not empty %}
+                {% if imageLinks is not empty %}
                     <tr>
                         <td>Image source(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': imageLinks|merge(bibliographyImages)} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': imageLinks} only %}
                                 {% block renderItem %}
-                                {% if item is image %}
                                     {% if not item.getPublic() %}
                                         {% if is_granted('ROLE_VIEW_INTERNAL') %}
                                             {% if item.getUrl() matches '/^http/' %}
@@ -230,9 +228,6 @@
                                             {{ item.getUrl() }}
                                         {% endif %}
                                     {% endif %}
-                                {% else %}
-                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %} ({{ item.getImage() }})
-                                {% endif %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
