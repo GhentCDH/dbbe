@@ -168,7 +168,9 @@
                             <td>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getManagements()} only %}
                                     {% block renderItem %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('persons_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all persons with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
                                     {% endblock %}
                                 {% endembed %}
                             </td>

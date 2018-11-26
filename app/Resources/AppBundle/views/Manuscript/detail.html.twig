@@ -114,7 +114,9 @@
                             <td>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getManagements()} only %}
                                     {% block renderItem %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all manuscripts with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
                                     {% endblock %}
                                 {% endembed %}
                             </td>

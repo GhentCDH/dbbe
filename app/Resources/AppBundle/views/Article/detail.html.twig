@@ -62,7 +62,9 @@
                             <td>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getManagements()} only %}
                                     {% block renderItem %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('bibliographies_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all bibliography items with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
                                     {% endblock %}
                                 {% endembed %}
                             </td>

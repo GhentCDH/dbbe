@@ -289,7 +289,9 @@
                             <td>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getManagements()} only %}
                                     {% block renderItem %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
                                     {% endblock %}
                                 {% endembed %}
                             </td>
