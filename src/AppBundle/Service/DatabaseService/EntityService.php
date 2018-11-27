@@ -47,6 +47,7 @@ class EntityService extends DatabaseService
                 identifier.regex,
                 identifier.description,
                 identifier.extra,
+                identifier.hide_volume,
                 array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifications,
                 array_to_json(array_agg(global_id.idauthority ORDER BY array_position(identifier.ids, global_id.idauthority))) as authority_ids,
                 global_id.extra as identification_extra,

@@ -20,9 +20,16 @@ class Identification
         $identification->identifier = $identifier;
         $identification->identifications = [];
         if (count($identificationIds) > 1) {
-            foreach ($identifications as $key => $value) {
-                $identification->identifications[] =
-                    self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
+            if ($identifier->getHideVolume()) {
+                foreach ($identifications as $key => $value) {
+                    $identification->identifications[] =
+                        $value;
+                }
+            } else {
+                foreach ($identifications as $key => $value) {
+                    $identification->identifications[] =
+                        self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
+                }
             }
         } else {
             $identification->identifications = explode(', ', $identifications[0]);

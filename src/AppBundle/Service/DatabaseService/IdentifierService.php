@@ -18,7 +18,8 @@ class IdentifierService extends DatabaseService
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
                 identifier.description,
-                identifier.extra
+                identifier.extra,
+                identifier.hide_volume
             from data.identifier
             where identifier.ididentifier in (?)',
             [$ids],
@@ -38,7 +39,8 @@ class IdentifierService extends DatabaseService
                 array_length(identifier.ids, 1) as volumes,
                 identifier.regex,
                 identifier.description,
-                identifier.extra
+                identifier.extra,
+                identifier.hide_volume
             from data.identifier
             where ? = ANY(identifier.type)
             order by identifier.order',
