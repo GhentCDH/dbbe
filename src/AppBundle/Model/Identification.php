@@ -6,36 +6,25 @@ class Identification
 {
     protected $identifier;
     protected $identifications;
+    protected $volume;
     protected $extra;
 
     public static function constructFromDB(
         Identifier $identifier,
         array $identifications,
-        array $authorityIds,
-        string $extra = null,
-        array $identificationIds
+        array $volumes,
+        array $extras
     ) {
         $identification = new Identification();
 
         $identification->identifier = $identifier;
         $identification->identifications = [];
-        if (count($identificationIds) > 1) {
-            if ($identifier->getHideVolume()) {
-                foreach ($identifications as $key => $value) {
-                    $identification->identifications[] =
-                        $value;
-                }
-            } else {
-                foreach ($identifications as $key => $value) {
-                    $identification->identifications[] =
-                        self::numberToRoman(array_search($authorityIds[$key], $identificationIds) + 1) . '.' . $value;
-                }
-            }
-        } else {
-            $identification->identifications = explode(', ', $identifications[0]);
-        }
-        if ($extra != null && $extra != '') {
-            $identification->extra = $extra;
+        $values = array_map(null, $identifications, $volumes, $extras);
+        foreach ($values as $item) {
+            $identification->identifications[] =
+                (isset($item[1]) ? self::numberToRoman($item[1]) . '.' : '')
+                . $item[0]
+                . (isset($item[2]) ? ' (' . $item[2] . ')' : '');
         }
 
         return $identification;
@@ -49,6 +38,11 @@ class Identification
     public function getIdentifications(): array
     {
         return $this->identifications;
+    }
+
+    public function getVolume(): ?int
+    {
+        return $this->volume;
     }
 
     public function getExtra(): ?string

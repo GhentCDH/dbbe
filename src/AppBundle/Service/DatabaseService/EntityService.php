@@ -47,15 +47,13 @@ class EntityService extends DatabaseService
                 identifier.regex,
                 identifier.description,
                 identifier.extra,
-                identifier.hide_volume,
                 array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifications,
-                array_to_json(array_agg(global_id.idauthority ORDER BY array_position(identifier.ids, global_id.idauthority))) as authority_ids,
-                global_id.extra as identification_extra,
-                array_to_json(identifier.ids) as identification_ids
+                array_to_json(array_agg(global_id.volume ORDER BY array_position(identifier.ids, global_id.idauthority))) as identification_volumes,
+                array_to_json(array_agg(global_id.extra ORDER BY array_position(identifier.ids, global_id.idauthority))) as identification_extras
             from data.global_id
             inner join data.identifier on global_id.idauthority = ANY(identifier.ids)
             where global_id.idsubject in (?)
-            group by global_id.idsubject, identifier.ididentifier, global_id.extra
+            group by global_id.idsubject, identifier.ididentifier
             order by identifier.order',
             [
                 $ids,

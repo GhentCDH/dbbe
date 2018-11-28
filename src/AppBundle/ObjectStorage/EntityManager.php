@@ -137,9 +137,8 @@ class EntityManager extends ObjectManager
                 Identification::constructFromDB(
                     $identifiers[$rawIdentification['identifier_id']],
                     json_decode($rawIdentification['identifications']),
-                    json_decode($rawIdentification['authority_ids']),
-                    $rawIdentification['identification_extra'],
-                    json_decode($rawIdentification['identification_ids'])
+                    json_decode($rawIdentification['identification_volumes']),
+                    json_decode($rawIdentification['identification_extras'])
                 )
             );
         }

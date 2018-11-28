@@ -13,7 +13,6 @@ class Identifier extends IdNameObject
     private $description;
     private $link;
     private $extra;
-    private $hideVolume;
 
     public function __construct(
         int $id,
@@ -24,8 +23,7 @@ class Identifier extends IdNameObject
         int $volumes = null,
         string $regex = null,
         string $description = null,
-        bool $extra = null,
-        bool $hideVolume = null
+        bool $extra = null
     ) {
         $this->id = $id;
         $this->systemName = $systemName;
@@ -36,7 +34,6 @@ class Identifier extends IdNameObject
         $this->regex = $regex;
         $this->description = $description;
         $this->extra = $extra !== null ? $extra : null;
-        $this->hideVolume = $hideVolume !== null ? $hideVolume : null;
     }
 
     public function getSystemName(): string
@@ -74,11 +71,6 @@ class Identifier extends IdNameObject
         return $this->extra;
     }
 
-    public function getHideVolume(): bool
-    {
-        return $this->hideVolume;
-    }
-
     public function getJson(): array
     {
         $result = [
@@ -86,7 +78,6 @@ class Identifier extends IdNameObject
             'systemName' => $this->systemName,
             'name' => $this->name,
             'extra' => $this->extra,
-            'hideVolume' => $this->hideVolume,
         ];
         if (isset($this->volumes)) {
             $result['volumes'] = $this->volumes;

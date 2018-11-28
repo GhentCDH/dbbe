@@ -30,8 +30,7 @@ class IdentifierManager extends ObjectManager
                     $rawIdentifier['volumes'],
                     $rawIdentifier['regex'],
                     $rawIdentifier['description'],
-                    $rawIdentifier['extra'],
-                    $rawIdentifier['hide_volume']
+                    $rawIdentifier['extra']
                 );
             }
         }
