@@ -579,6 +579,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
      */
     protected static function constructTextQuery($key, $value): AbstractQuery
     {
+        // Verse initialization
+        if (isset($value['init']) && $value['init']) {
+            return new Query\MatchPhrase($key, $value['text']);
+        }
+
         $field = $value['field'] ?? $key;
         $text = $value['text'];
 

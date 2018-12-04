@@ -53,10 +53,14 @@ class ElasticVerseService extends ElasticBaseService
             'text' => [
                 'verse' => [
                     'text' => $verse,
-                    'type' => $init ? 'phrase' : 'any',
                 ],
             ],
         ];
+        if ($init) {
+            $filterArray['text']['verse']['init'] = true;
+        } else {
+            $filterArray['text']['verse']['combination'] = 'any';
+        }
         $queryQuery = self::createQuery($filterArray)
             ->addMust(new Query\Exists('group_id'));
         // Eliminate current verse
@@ -184,31 +188,5 @@ class ElasticVerseService extends ElasticBaseService
         }
 
         return $groups;
-    }
-
-    /**
-     * Add elasticsearch information to filters
-     * @param  array $filters can be a sequential (aggregation) or an associative (query) array
-     * @param  bool $viewInternal indicates whether internal (non-public) data can be displayed
-     * @return array
-     */
-    public function classifyFilters(array $filters, bool $viewInternal): array
-    {
-        $result = [];
-        foreach ($filters as $key => $value) {
-            if (isset($value) && $value !== '') {
-                // $filters can be a sequential (aggregation) or an associative (query) array
-                $switch = is_int($key) ? $value : $key;
-                switch ($switch) {
-                    case 'verse':
-                        $result['text'][$key] = [
-                            'text' => $value,
-                            'type' => $filters['text_type'],
-                        ];
-                        break;
-                }
-            }
-        }
-        return $result;
     }
 }
