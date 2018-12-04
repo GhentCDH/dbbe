@@ -4,7 +4,7 @@ namespace AppBundle\Service\DatabaseService;
 
 class PageService extends DatabaseService
 {
-    public function getBySlug(string $slug): mixed
+    public function getBySlug(string $slug)
     {
         return $this->conn->executeQuery(
             'SELECT slug, title, content, display_navigation from logic.page
