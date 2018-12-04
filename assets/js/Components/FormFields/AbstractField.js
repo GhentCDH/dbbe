@@ -87,6 +87,9 @@ export default {
             let label = field.label.toLowerCase()
             let article = ['office', 'origin', 'editorial status'].indexOf(label) < 0 ? 'a ' : 'an '
             field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label
+            if (field.model === 'diktyon') {
+                field.placeholder = 'Select a Diktyon number'
+            }
         },
         loadLocationField(field, model = null) {
             if (model == null) {
