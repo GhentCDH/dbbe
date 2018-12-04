@@ -63,7 +63,6 @@ class PageController extends Controller
             || empty($data->content)
             || !is_string($data->content)
             || !property_exists($data, 'display_navigation')
-            || !is_bool($data->display_navigation)
         ) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => 'Title, content and display navigation are mandatory.']],
@@ -75,7 +74,7 @@ class PageController extends Controller
             $slug,
             $data->title,
             $data->content,
-            $data->display_navigation
+            $data->display_navigation ?? false
         );
         return new JsonResponse(
             json_encode(
