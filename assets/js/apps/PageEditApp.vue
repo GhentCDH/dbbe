@@ -72,6 +72,7 @@ export default {
             openRequests: 0,
             alerts: [],
             config: {
+                language: 'en',
                 toolbarGroups: [
                     { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
                     { name: 'styles', groups: [ 'styles' ] },
