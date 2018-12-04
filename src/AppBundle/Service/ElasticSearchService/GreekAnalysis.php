@@ -34,7 +34,7 @@ class GreekAnalysis
                 ],
             ],
             'analyzer' => [
-                'custom_greek' => [
+                'custom_greek_stemmer' => [
                     'tokenizer' => 'icu_tokenizer',
                     'char_filter' => [
                         'remove_par_brackets_filter'
@@ -43,6 +43,16 @@ class GreekAnalysis
                         'icu_folding',
                         'lowercase',
                         'greek_stemmer',
+                    ],
+                ],
+                'custom_greek_original' => [
+                    'tokenizer' => 'icu_tokenizer',
+                    'char_filter' => [
+                        'remove_par_brackets_filter'
+                    ],
+                    'filter' => [
+                        'icu_folding',
+                        'lowercase',
                     ],
                 ],
             ],

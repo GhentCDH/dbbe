@@ -157,18 +157,18 @@ class ElasticPersonService extends ElasticBaseService
                     case 'public_comment':
                         $result['text'][$key] = [
                             'text' => $value,
-                            'type' => 'any',
+                            'combination' => 'any',
                         ];
                         break;
                     case 'comment':
                         $result['multiple_text'][$key] = [
                             'public_comment'=> [
                                 'text' => $value,
-                                'type' => 'any',
+                                'combination' => 'any',
                             ],
                             'private_comment'=> [
                                 'text' => $value,
-                                'type' => 'any',
+                                'combination' => 'any',
                             ],
                         ];
                         break;

@@ -33,6 +33,7 @@ class ElasticOccurrenceService extends ElasticBaseService
         $properties = [
             'incipit' => [
                 'type' => 'text',
+                // Needed for sorting
                 'fields' => [
                     'keyword' => [
                         'type' => 'keyword',
@@ -41,13 +42,21 @@ class ElasticOccurrenceService extends ElasticBaseService
                     ],
                 ],
             ],
-            'title' => [
+            'title_original' => [
                 'type' => 'text',
-                'analyzer' => 'custom_greek',
+                'analyzer' => 'custom_greek_original',
             ],
-            'text' => [
+            'title_stemmer' => [
                 'type' => 'text',
-                'analyzer' => 'custom_greek',
+                'analyzer' => 'custom_greek_stemmer',
+            ],
+            'text_original' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek_original',
+            ],
+            'text_stemmer' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek_stemmer',
             ],
             'meter' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
@@ -68,7 +77,7 @@ class ElasticOccurrenceService extends ElasticBaseService
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
-            $params['filters'] = $this->classifyFilters($params['filters'], $viewInternal);
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
         }
 
         $result = $this->search($params);
@@ -90,11 +99,12 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
 
             // Keep text / title if there was a search, then these will be an array
-            if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
-                unset($result['data'][$key]['text']);
-            }
-            if (isset($result['data'][$key]['title']) && is_string($result['data'][$key]['title'])) {
-                unset($result['data'][$key]['title']);
+            foreach (['text', 'title'] as $field) {
+                unset($result['data'][$key][$field . '_stemmer']);
+                unset($result['data'][$key][$field . '_original']);
+                if (isset($result['data'][$key][$field]) && is_string($result['data'][$key][$field])) {
+                    unset($result['data'][$key][$field]);
+                }
             }
 
             // Keep comments if there was a search, then these will be an array
@@ -113,7 +123,7 @@ class ElasticOccurrenceService extends ElasticBaseService
         }
 
         $result['aggregation'] = $this->aggregate(
-            $this->classifyFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
+            $this->classifyAggregationFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
 
@@ -151,132 +161,162 @@ class ElasticOccurrenceService extends ElasticBaseService
     }
 
     /**
-     * Add elasticsearch information to filters
-     * @param  array $filters can be a sequential (aggregation) or an associative (query) array
-     * @param  bool $viewInternal indicates whether internal (non-public) data can be displayed
+     * Add elasticsearch information to aggregation filters
+     * @param  array  $filters
+     * @param  bool   $viewInternal indicates whether internal (non-public) data can be displayed
      * @return array
      */
-    public function classifyFilters(array $filters, bool $viewInternal): array
+    public function classifyAggregationFilters(array $filters, bool $viewInternal): array
     {
         $result = [];
         foreach ($filters as $key => $value) {
-            if (isset($value) && $value !== '') {
-                // $filters can be a sequential (aggregation) or an associative (query) array
-                $switch = is_int($key) ? $value : $key;
-                switch ($switch) {
-                    // Primary identifiers
-                    case in_array($switch, $this->getIdentifierSystemNames()) ? $switch : null:
-                        if (is_int($key)) {
-                            $result['exact_text'][] = $value;
-                        } else {
-                            $result['exact_text'][$key] = $value;
-                        }
-                        break;
-                    // Person roles
-                    case 'person':
-                        if (is_int($key)) {
-                            $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                        } else {
-                            if (isset($filters['role'])) {
-                                $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
-                            } else {
-                                $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                            }
-                        }
-                        break;
-                    // Management collections
-                    case 'management':
-                        if (is_int($key)) {
-                            $result['nested'][] = $value;
-                        } else {
-                            if (isset($filters['management_inverse']) && $filters['management_inverse']) {
-                                $result['nested_toggle'][$key] = [$value, false];
-                            } else {
-                                $result['nested_toggle'][$key] = [$value, true];
-                            }
-                        }
-                        break;
-                    case 'text':
-                        $result['multiple_text'][$key] = [
-                            'text' => [
+            // Primary identifiers
+            if (in_array($value, $this->getIdentifierSystemNames())) {
+                $result['exact_text'][] = $value;
+                continue;
+            }
+
+            switch ($value) {
+                case 'person':
+                    $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    break;
+                case 'meter':
+                case 'subject':
+                case 'genre':
+                case 'acknowledgement':
+                case 'management':
+                    $result['nested'][] = $value;
+                    break;
+                case 'manuscript':
+                case 'text_status':
+                    $result['object'][] = $value;
+                    break;
+                case 'manuscript_content':
+                    $result['nested'][] = $viewInternal ? $value : $value . '_public';
+                    break;
+                case 'public':
+                case 'dbbe':
+                    $result['boolean'][] = $value;
+                    break;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Add elasticsearch information to search filters
+     * @param  array  $filters
+     * @param  bool   $viewInternal indicates whether internal (non-public) data can be displayed
+     * @return array
+     */
+    public function classifySearchFilters(array $filters, bool $viewInternal): array
+    {
+        $result = [];
+        foreach ($filters as $key => $value) {
+            if (!isset($value) || $value === '') {
+                continue;
+            }
+
+            // Primary identifiers
+            if (in_array($key, $this->getIdentifierSystemNames())) {
+                $result['exact_text'][$key] = $value;
+                continue;
+            }
+
+            switch ($key) {
+                case 'text':
+                    switch ($filters['text_fields']) {
+                        case 'text':
+                        case 'title':
+                            $result['text'][$key] = [
+                                'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
                                 'text' => $value,
-                                'type' => $filters['text_type'],
-                            ],
-                            'title' => [
-                                'text' => $value,
-                                'type' => $filters['text_type'],
-                            ],
-                        ];
-                        break;
-                    case 'manuscript':
-                    case 'text_status':
-                        if (is_int($key)) {
-                            $result['object'][] = $value;
-                        } else {
-                            $result['object'][$key] = $value;
-                        }
-                        break;
-                    case 'date':
-                        $date_result = [
-                            'floorField' => 'date_floor_year',
-                            'ceilingField' => 'date_ceiling_year',
-                        ];
-                        if (array_key_exists('from', $value)) {
-                            $date_result['startDate'] = $value['from'];
-                        }
-                        if (array_key_exists('to', $value)) {
-                            $date_result['endDate'] = $value['to'];
-                        }
-                        $result['date_range'][] = $date_result;
-                        break;
-                    case 'meter':
-                    case 'subject':
-                    case 'genre':
-                    case 'acknowledgement':
-                        if (is_int($key)) {
-                            $result['nested'][] = $value;
-                        } else {
-                            $result['nested'][$key] = $value;
-                        }
-                        break;
-                    case 'manuscript_content':
-                        if (is_int($key)) {
-                            $result['nested'][] = $viewInternal ? $value : $value . '_public';
-                        } else {
-                            if ($viewInternal) {
-                                $result['nested'][$key] = $value;
-                            } else {
-                                $result['nested'][$key . '_public'] = $value;
-                            }
-                        }
-                        break;
-                    case 'public_comment':
-                        $result['text'][$key] = [
+                                'combination' => $filters['text_combination'],
+                            ];
+                            break;
+                        case 'all':
+                            $result['multiple_text'][$key] = [
+                                'text' => [
+                                    'field' => 'text_' . $filters['text_stem'],
+                                    'text' => $value,
+                                    'combination' => $filters['text_combination'],
+                                ],
+                                'title' => [
+                                    'field' => 'title_' . $filters['text_stem'],
+                                    'text' => $value,
+                                    'combination' => $filters['text_combination'],
+                                ],
+                            ];
+                            break;
+                    }
+                    break;
+                case 'meter':
+                case 'subject':
+                case 'genre':
+                case 'acknowledgement':
+                    $result['nested'][$key] = $value;
+                    break;
+                case 'manuscript':
+                case 'text_status':
+                    $result['object'][$key] = $value;
+                    break;
+                case 'person':
+                    if (isset($filters['role'])) {
+                        $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                    } else {
+                        $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    }
+                    break;
+                case 'date':
+                    $date_result = [
+                        'floorField' => 'date_floor_year',
+                        'ceilingField' => 'date_ceiling_year',
+                    ];
+                    if (array_key_exists('from', $value)) {
+                        $date_result['startDate'] = $value['from'];
+                    }
+                    if (array_key_exists('to', $value)) {
+                        $date_result['endDate'] = $value['to'];
+                    }
+                    $result['date_range'][] = $date_result;
+                    break;
+                case 'manuscript_content':
+                    if ($viewInternal) {
+                        $result['nested'][$key] = $value;
+                    } else {
+                        $result['nested'][$key . '_public'] = $value;
+                    }
+                    break;
+                // Management collections
+                case 'management':
+                    if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                        $result['nested_toggle'][$key] = [$value, false];
+                    } else {
+                        $result['nested_toggle'][$key] = [$value, true];
+                    }
+                    break;
+                case 'public_comment':
+                    $result['text'][$key] = [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ];
+                    break;
+                case 'comment':
+                    $result['multiple_text'][$key] = [
+                        'public_comment'=> [
                             'text' => $value,
-                            'type' => 'any',
-                        ];
-                        break;
-                    case 'comment':
-                        $result['multiple_text'][$key] = [
-                            'public_comment'=> [
-                                'text' => $value,
-                                'type' => 'any',
-                            ],
-                            'private_comment'=> [
-                                'text' => $value,
-                                'type' => 'any',
-                            ],
-                        ];
-                        break;
-                    case 'public':
-                    case 'dbbe':
-                        if (is_int($key)) {
-                            $result['boolean'][] = $value;
-                        } else {
-                            $result['boolean'][$key] = ($value === '1');
-                        }
-                        break;
-                }
+                            'combination' => 'any',
+                        ],
+                        'private_comment'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                    ];
+                    break;
+                case 'public':
+                case 'dbbe':
+                    $result['boolean'][$key] = ($value === '1');
+                    break;
             }
         }
         return $result;

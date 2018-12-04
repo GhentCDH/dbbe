@@ -2,6 +2,8 @@
 
 namespace AppBundle\Service\ElasticSearchService;
 
+use Normalizer;
+
 use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Query;
@@ -83,6 +85,25 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             'count' => $data['hits']['total'],
             'data' => []
         ];
+
+        // Build array to remove _stemmer or _original blow
+        $rename = [];
+        if (isset($params['filters']['text'])) {
+            foreach ($params['filters']['text'] as $key => $value) {
+                if (isset($value['field'])) {
+                    $rename[$value['field']] = explode('_', $value['field'])[0];
+                }
+            }
+        }
+        if (isset($params['filters']['multiple_text'])) {
+            foreach ($params['filters']['multiple_text'] as $multiple) {
+                foreach ($multiple as $key => $value) {
+                    if (isset($value['field'])) {
+                        $rename[$value['field']] = explode('_', $value['field'])[0];
+                    }
+                }
+            }
+        }
         foreach ($data['hits']['hits'] as $result) {
             $part = $result['_source'];
             if (isset($result['highlight'])) {
@@ -91,8 +112,20 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     $part[$key] = self::formatHighlight($value[0]);
                 }
             }
+            // Remove _stemmer or _original
+            foreach ($rename as $key => $value) {
+                if (isset($part[$key])) {
+                    $part[$value] = $part[$key];
+                    unset($part[$key]);
+                }
+                if (isset($part['original_' . $key])) {
+                    $part['original_' . $value] = $part['original_' . $key];
+                    unset($part['original_' . $key]);
+                }
+            }
             $response['data'][] = $part;
         }
+
         return $response;
     }
 
@@ -506,13 +539,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             switch ($filterType) {
                 case 'text':
                     foreach ($filterValues as $key => $value) {
-                        $highlights['fields'][$key] = new \stdClass();
+                        $field = $value['field'] ?? $key;
+                        $highlights['fields'][$field] = new \stdClass();
                     }
                     break;
                 case 'multiple_text':
                     foreach ($filterValues as $options) {
                         foreach ($options as $key => $value) {
-                            $highlights['fields'][$key] = new \stdClass();
+                            $field = $value['field'] ?? $key;
+                            $highlights['fields'][$field] = new \stdClass();
                         }
                     }
                     break;
@@ -537,49 +572,74 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     }
 
     /**
-     * Construct a text query, where correct order, all, 75%, 50%, 25% of words are boosted by counting these results multiple times
-     * Remark: if one of the terms appears in the title and the other in the text, it is not boosted, look into Multi Match with cross fields if other results are wanted
-     * @param  string              $key   Elasticsearch field to match
-     * @param  array               $value Array with [type] of match (any, all, phrase) and the [text] to search for
+     * Construct a text query
+     * @param  string         $key   Elasticsearch field to match (unless $value['field']) is provided
+     * @param  array          $value Array with [combination] of match (any, all, phrase), the [text] to search for and optionally the [field] to search in (if not provided, $key is used)
      * @return AbstractQuery
      */
     protected static function constructTextQuery($key, $value): AbstractQuery
     {
-        $textQuery = new Query\BoolQuery();
-        $anyQuery = new Query\Match($key, $value['text']);
-        $threeQuarterQuery = (new Query\Match())
-            ->setFieldQuery($key, $value['text'])
-            ->setFieldMinimumShouldMatch($key, '75%');
-        $halfQuery = (new Query\Match())
-            ->setFieldQuery($key, $value['text'])
-            ->setFieldMinimumShouldMatch($key, '50%');
-        $quarterQuery = (new Query\Match())
-            ->setFieldQuery($key, $value['text'])
-            ->setFieldMinimumShouldMatch($key, '25%');
-        $allQuery = (new Query\Match())
-            ->setFieldQuery($key, $value['text'])
-            ->setFieldOperator($key, Query\Match::OPERATOR_AND);
-        $phraseQuery = new Query\MatchPhrase($key, $value['text']);
-        switch ($value['type']) {
-            case 'any':
-                $textQuery
-                    ->addShould($phraseQuery)
-                    ->addShould($allQuery)
-                    ->addShould($threeQuarterQuery)
-                    ->addShould($halfQuery)
-                    ->addShould($quarterQuery)
-                    ->addShould($anyQuery);
-                break;
-            case 'all':
-                $textQuery
-                    ->addShould($phraseQuery)
-                    ->addShould($allQuery);
-                break;
-            case 'phrase':
-                $textQuery->addMust($phraseQuery);
-                break;
+        $field = $value['field'] ?? $key;
+        $text = $value['text'];
+
+        // Check if user does not use advanced syntax
+        if (preg_match('/[+|\-"()]/', $text) === 0) {
+            if ($value['combination'] == 'phrase') {
+                if (preg_match('/[*]/', $text) === 0) {
+                    $text = '"' . $text . '"';
+                } else {
+                    $text = implode(' + ', explode(' ', $text));
+                }
+            } elseif ($value['combination'] == 'all') {
+                $text = implode(' + ', explode(' ', $text));
+            }
         }
 
-        return $textQuery;
+        return new Query\SimpleQueryString($text, [$field]);
+    }
+
+    protected function normalizeString(string $input): string
+    {
+        $result = $input;
+
+        // Get wildcard charachter position and remove wildcards
+        // question mark
+        $qPos = [];
+        $lastPos = 0;
+        while (($lastPos = strpos($result, '?', $lastPos))!== false) {
+            $qPos[] = $lastPos;
+            $lastPos = $lastPos + strlen('*');
+        }
+        $result = str_replace('?', '', $result);
+        // asterisk
+        $aPos = [];
+        $lastPos = 0;
+        while (($lastPos = strpos($result, '*', $lastPos))!== false) {
+            $aPos[] = $lastPos;
+            $lastPos = $lastPos + strlen('*');
+        }
+        $result = str_replace('*', '', $result);
+
+        $normalizedArray = $this->type->getIndex()->analyze(
+            [
+                'analyzer' => 'custom_greek_original',
+                'text' => $result,
+            ]
+        );
+        $normalizedTokens = [];
+        foreach ($normalizedArray as $token) {
+            $normalizedTokens[] = $token['token'];
+        }
+        $result = implode(' ', $normalizedTokens);
+
+        // Reinsert wildcards
+        foreach ($aPos as $a) {
+            $result = substr_replace($result, '*', $a, 0);
+        }
+        foreach ($qPos as $q) {
+            $result = substr_replace($result, '?', $q, 0);
+        }
+
+        return $result;
     }
 }

@@ -494,7 +494,8 @@ class Occurrence extends Poem
         $result = parent::getElastic();
 
         if (!empty($this->verses)) {
-            $result['text'] = Verse::getText($this->verses);
+            $result['text_stemmer'] = Verse::getText($this->verses);
+            $result['text_original'] = Verse::getText($this->verses);
         }
         if (!empty($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();

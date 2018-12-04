@@ -233,7 +233,8 @@ class Poem extends Document
         $result['incipit'] = $this->incipit;
 
         if (!empty($this->title)) {
-            $result['title'] = $this->title;
+            $result['title_stemmer'] = $this->title;
+            $result['title_original'] = $this->title;
         }
         if (!empty($this->meters)) {
             $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);

@@ -229,15 +229,18 @@ class Type extends Poem
     {
         $result = parent::getElastic();
 
+        if (!empty($this->verses)) {
+            $result['text_stemmer'] = implode("\n", $this->verses);
+            $result['text_original'] = implode("\n", $this->verses);
+        }
+
         foreach ($this->titles as $lang => $title) {
-            $result['title_' . $lang] = $title;
+            $result['title_' . $lang . '_stemmer'] = $title;
+            $result['title_' . $lang . '_original'] = $title;
         }
 
         $result['number_of_occurrences'] = count($this->occurrences);
 
-        if (!empty($this->verses)) {
-            $result['text'] = implode("\n", $this->verses);
-        }
         if (!empty($this->textStatus)) {
             $result['text_status'] = $this->textStatus->getShortJson();
         }

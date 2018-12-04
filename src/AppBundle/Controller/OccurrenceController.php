@@ -491,9 +491,17 @@ class OccurrenceController extends BaseController
         }
 
         if (isset($filters)) {
-            // sanitize text_type
-            if (!(isset($filters['text_type']) && in_array($filters['text_type'], ['any', 'all', 'phrase']))) {
-                $filters['text_type'] = 'any';
+            // sanitize text_stem
+            if (!(isset($filters['text_stem']) && in_array($filters['text_stem'], ['original', 'stemmer']))) {
+                $filters['text_stem'] = 'original';
+            }
+            // sanitize text_fields
+            if (!(isset($filters['text_fields']) && in_array($filters['text_fields'], ['text', 'title', 'all']))) {
+                $filters['text_fields'] = 'text';
+            }
+            // sanitize text_combination
+            if (!(isset($filters['text_combination']) && in_array($filters['text_combination'], ['any', 'all', 'phrase']))) {
+                $filters['text_combination'] = 'any';
             }
 
             $esParams['filters'] = $filters;

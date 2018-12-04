@@ -153,24 +153,24 @@ class ElasticBibliographyService extends ElasticBaseService
                     case 'title':
                         $result['text'][$key] = [
                             'text' => $value,
-                            'type' => $filters['title_type'],
+                            'combination' => $filters['title_type'],
                         ];
                         break;
                     case 'public_comment':
                         $result['text'][$key] = [
                             'text' => $value,
-                            'type' => 'any',
+                            'combination' => 'any',
                         ];
                         break;
                     case 'comment':
                         $result['multiple_text'][$key] = [
                             'public_comment'=> [
                                 'text' => $value,
-                                'type' => 'any',
+                                'combination' => 'any',
                             ],
                             'private_comment'=> [
                                 'text' => $value,
-                                'type' => 'any',
+                                'combination' => 'any',
                             ],
                         ];
                         break;

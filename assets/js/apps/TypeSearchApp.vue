@@ -19,6 +19,9 @@
                         Reset all filters
                     </button>
                 </div>
+                <div class="form-group">
+                    <a href="/pages/help">More information about the text search options.</a>
+                </div>
                 <vue-form-generator
                     ref="form"
                     :schema="schema"
@@ -268,7 +271,9 @@ export default {
     data() {
         let data = {
             model: {
-                text_type: 'any',
+                text_stem: 'original',
+                text_fields: 'text',
+                text_combination: 'any',
             },
             schema: {
                 fields: {
@@ -277,16 +282,35 @@ export default {
                         inputType: 'text',
                         styleClasses: 'greek',
                         label: 'Text',
-                        model: 'text',
+                        model: 'text'
                     },
-                    text_type: {
+                    text_stem: {
                         type: 'radio',
-                        label: 'Text search options:',
-                        model: 'text_type',
+                        label: 'Stemmer options:',
+                        model: 'text_stem',
+                        values: [
+                            { value: 'original', name: 'Original text' },
+                            { value: 'stemmer', name: 'Stemmed text' },
+                        ],
+                    },
+                    text_fields: {
+                        type: 'radio',
+                        label: 'Which fields should be searched:',
+                        model: 'text_fields',
+                        values: [
+                            { value: 'text', name: 'Text only' },
+                            { value: 'title', name: 'Title only' },
+                            { value: 'all', name: 'Text and title' },
+                        ],
+                    },
+                    text_combination: {
+                        type: 'radio',
+                        label: 'Word combination options:',
+                        model: 'text_combination',
                         values: [
                             { value: 'any', name: 'Match any words' },
                             { value: 'all', name: 'Match all words' },
-                            { value: 'phrase', name: 'Match all words in correct order' },
+                            { value: 'phrase', name: 'Match all words in correct order (not compatible with wildcards)' },
                         ],
                     },
                     meter: this.createMultiSelect('Meter'),
