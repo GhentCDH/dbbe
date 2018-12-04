@@ -4,12 +4,13 @@ namespace AppBundle\Service\DatabaseService;
 
 class PageService extends DatabaseService
 {
-    public function getBySlug(string $slug): array
+    public function getBySlug(string $slug): mixed
     {
         return $this->conn->executeQuery(
             'SELECT slug, title, content, display_navigation from logic.page
             where slug = ?
-            order by revision desc',
+            order by revision desc
+            limit 1',
             [
                 $slug,
             ]
