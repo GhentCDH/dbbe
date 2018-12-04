@@ -128,10 +128,21 @@ class VerseController extends BaseController
             $verses[] = $verse;
         }
 
+        $number = count($verses);
+
         $first = array_shift($verses);
         $updateData = json_decode(json_encode(['linkVerses' => $verses]));
 
-        $this->get('verse_manager')->update($first['id'], $updateData);
+        $new = $this->get('verse_manager')->update($first['id'], $updateData);
+
+        return $this->render(
+            static::TEMPLATE_FOLDER . 'init_confirm.html.twig',
+            [
+                'number' => $number,
+                'groupId' => $new->getGroupId(),
+                'page' => $page,
+            ]
+        );
 
         return $this->redirectToRoute('get_verse_init', ['page' => $page]);
     }
