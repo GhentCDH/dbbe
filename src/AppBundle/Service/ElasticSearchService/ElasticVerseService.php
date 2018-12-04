@@ -37,7 +37,7 @@ class ElasticVerseService extends ElasticBaseService
         $properties = [
             'verse' => [
                 'type' => 'text',
-                'analyzer' => 'custom_greek',
+                'analyzer' => 'custom_greek_stemmer',
             ],
         ];
         $mapping->setProperties($properties);
