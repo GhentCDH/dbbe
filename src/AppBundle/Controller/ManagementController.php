@@ -24,7 +24,7 @@ class ManagementController extends BaseController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         return parent::getAll($request);
     }
 
@@ -35,7 +35,7 @@ class ManagementController extends BaseController
      */
     public function edit(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
             self::TEMPLATE_FOLDER  . 'edit.html.twig',
@@ -60,7 +60,6 @@ class ManagementController extends BaseController
      */
     public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return parent::post($request);
     }
 
@@ -73,7 +72,6 @@ class ManagementController extends BaseController
      */
     public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return parent::put($id, $request);
     }
 
@@ -86,7 +84,6 @@ class ManagementController extends BaseController
      */
     public function delete(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return parent::delete($id, $request);
     }
 }
