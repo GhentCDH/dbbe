@@ -120,6 +120,20 @@ class OccurrenceManager extends PoemManager
 
         $this->setComments($occurrences);
 
+        // paleographical information
+        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos($ids);
+        foreach ($rawPaleographicalInfos as $rawPaleographicalInfo) {
+            $occurrences[$rawPaleographicalInfo['occurrence_id']]
+                ->setPaleographicalInfo($rawPaleographicalInfo['paleographical_info']);
+        }
+
+        // contextual information
+        $rawContextualInfos = $this->dbs->getContextualInfos($ids);
+        foreach ($rawContextualInfos as $rawContextualInfo) {
+            $occurrences[$rawContextualInfo['occurrence_id']]
+                ->setContextualInfo($rawContextualInfo['contextual_info']);
+        }
+
         // statuses
         $rawStatuses = $this->dbs->getStatuses($ids);
         $statuses = $this->container->get('status_manager')->getWithData($rawStatuses);
@@ -193,20 +207,6 @@ class OccurrenceManager extends PoemManager
             $typeIds = self::getUniqueIds($rawTypes, 'type_id');
             $types =  $this->container->get('type_manager')->getMini($typeIds);
             $occurrence->setTypes($types);
-        }
-
-        // paleographical information
-        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos([$id]);
-        if (count($rawPaleographicalInfos) == 1) {
-            $occurrence
-                ->setPaleographicalInfo($rawPaleographicalInfos[0]['paleographical_info']);
-        }
-
-        // contextual information
-        $rawContextualInfos = $this->dbs->getContextualInfos([$id]);
-        if (count($rawContextualInfos) == 1) {
-            $occurrence
-                ->setContextualInfo($rawContextualInfos[0]['contextual_info']);
         }
 
         // images

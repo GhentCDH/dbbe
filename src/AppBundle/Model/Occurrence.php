@@ -518,6 +518,12 @@ class Occurrence extends Poem
         if (!empty($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
+        if (!empty($this->getPaleographicalInfo())) {
+            $result['paleographical_info'] = $this->getPaleographicalInfo();
+        }
+        if (!empty($this->getContextualInfo())) {
+            $result['contextual_info'] = $this->getContextualInfo();
+        }
 
         return $result;
     }

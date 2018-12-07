@@ -114,6 +114,12 @@ class ElasticOccurrenceService extends ElasticBaseService
             if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
                 unset($result['data'][$key]['private_comment']);
             }
+            if (isset($result['data'][$key]['paleographical_info']) && is_string($result['data'][$key]['paleographical_info'])) {
+                unset($result['data'][$key]['paleographical_info']);
+            }
+            if (isset($result['data'][$key]['contextual_info']) && is_string($result['data'][$key]['contextual_info'])) {
+                unset($result['data'][$key]['contextual_info']);
+            }
         }
 
         $aggregationFilters = ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement'];
@@ -296,9 +302,19 @@ class ElasticOccurrenceService extends ElasticBaseService
                     }
                     break;
                 case 'public_comment':
-                    $result['text'][$key] = [
-                        'text' => $value,
-                        'combination' => 'any',
+                    $result['multiple_text'][$key] = [
+                        'public_comment'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'paleographical_info'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'contextual_info'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
                     ];
                     break;
                 case 'comment':
@@ -308,6 +324,14 @@ class ElasticOccurrenceService extends ElasticBaseService
                             'combination' => 'any',
                         ],
                         'private_comment'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'paleographical_info'=> [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'contextual_info'=> [
                             'text' => $value,
                             'combination' => 'any',
                         ],

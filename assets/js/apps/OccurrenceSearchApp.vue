@@ -85,8 +85,29 @@
                 <template
                     slot="comment"
                     slot-scope="props">
+                    <template v-if="props.row.paleographical_info">
+                        <em>Paleographical info</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.paleographical_info"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
+                    <template v-if="props.row.contextual_info">
+                        <em>Contextual info</em>
+                        <ol>
+                            <li
+                                v-for="(item, index) in props.row.contextual_info"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="item" />
+                        </ol>
+                    </template>
                     <template v-if="props.row.public_comment">
-                        <em v-if="isViewInternal">Public</em>
+                        <em v-if="isViewInternal">Public comment</em>
+                        <em v-else>Comment</em>
                         <ol>
                             <li
                                 v-for="(item, index) in props.row.public_comment"
@@ -96,7 +117,7 @@
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
-                        <em>Private</em>
+                        <em>Private comment</em>
                         <ol>
                             <li
                                 v-for="(item, index) in props.row.private_comment"
