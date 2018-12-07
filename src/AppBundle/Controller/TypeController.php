@@ -107,7 +107,7 @@ class TypeController extends BaseController
     {
         // Let the 404 page handle the not found exception
         $newId = $this->get(static::MANAGER)->getNewId($id);
-        return $this->redirectToRoute('type_get', ['id' => $newId]);
+        return $this->redirectToRoute('type_get', ['id' => $newId], 301);
     }
 
     /**

@@ -108,7 +108,7 @@ class OccurrenceController extends BaseController
     {
         // Let the 404 page handle the not found exception
         $newId = $this->get(static::MANAGER)->getNewId($id);
-        return $this->redirectToRoute('occurrence_get', ['id' => $newId]);
+        return $this->redirectToRoute('occurrence_get', ['id' => $newId], 301);
     }
 
     /**
