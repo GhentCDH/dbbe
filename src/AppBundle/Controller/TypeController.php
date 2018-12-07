@@ -98,6 +98,19 @@ class TypeController extends BaseController
     }
 
     /**
+     * @Route("/typ/{id}", name="type_get_old")
+     * @Method("GET")
+     * @param  int    $id
+     * @param Request $request
+     */
+    public function getOld(int $id, Request $request)
+    {
+        // Let the 404 page handle the not found exception
+        $newId = $this->get(static::MANAGER)->getNewId($id);
+        return $this->redirectToRoute('type_get', ['id' => $newId]);
+    }
+
+    /**
      * Get all types that have a dependency on a status
      * (document_status)
      * @Route("/types/statuses/{id}", name="type_deps_by_status")

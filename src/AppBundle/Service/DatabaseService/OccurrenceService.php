@@ -19,6 +19,17 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getNewId(int $oldId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                occurrence_to_entity.identity as new_id
+            from migration.occurrence_to_entity
+            where occurrence_to_entity.old_id = ?',
+            [$oldId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByManuscriptId(int $manuscriptId): array
     {
         return $this->conn->executeQuery(

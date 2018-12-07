@@ -19,6 +19,17 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getNewId(int $oldId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                type_to_reconstructed_poem.identity as new_id
+            from migration.type_to_reconstructed_poem
+            where type_to_reconstructed_poem.idtype = ?',
+            [$oldId]
+        )->fetchAll();
+    }
+
     public function getIdsByIds(array $ids): array
     {
         return $this->conn->executeQuery(

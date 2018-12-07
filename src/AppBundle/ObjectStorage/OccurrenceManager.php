@@ -225,6 +225,15 @@ class OccurrenceManager extends PoemManager
         return $occurrence;
     }
 
+    public function getNewId(int $oldId): int
+    {
+        $rawId = $this->dbs->getNewId($oldId);
+        if (count($rawId) != 1) {
+            throw new NotFoundHttpException('The occurrence with legacy id "' . $oldId . '" does not exist.');
+        }
+        return $rawId[0]['new_id'];
+    }
+
     public function getManuscriptDependencies(int $manuscriptId, $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByManuscriptId($manuscriptId), $method);

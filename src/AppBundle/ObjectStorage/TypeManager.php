@@ -185,6 +185,15 @@ class TypeManager extends PoemManager
         return $type;
     }
 
+    public function getNewId(int $oldId): int
+    {
+        $rawId = $this->dbs->getNewId($oldId);
+        if (count($rawId) != 1) {
+            throw new NotFoundHttpException('The type with legacy id "' . $oldId . '" does not exist.');
+        }
+        return $rawId[0]['new_id'];
+    }
+
     public function getOccurrenceDependencies(int $occurrenceId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $method);
