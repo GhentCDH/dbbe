@@ -114,7 +114,7 @@ class ObjectManager
         if ($old == null && $new == null) {
             throw new Exception('The old and new value cannot both be null.');
         }
-        if ($old == null && $new != null) {
+        if ($old != null && $new != null) {
             $this->dbs->updateModified($new->getId());
         }
         $this->dbs->createRevision(
