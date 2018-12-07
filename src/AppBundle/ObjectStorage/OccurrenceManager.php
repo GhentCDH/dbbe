@@ -183,6 +183,8 @@ class OccurrenceManager extends PoemManager
             throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($occurrences);
+
         $this->setPrevIds($occurrences);
 
         $occurrence = $occurrences[$id];

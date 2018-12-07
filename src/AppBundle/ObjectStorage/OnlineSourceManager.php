@@ -70,6 +70,8 @@ class OnlineSourceManager extends EntityManager
             throw new NotFoundHttpException('Online source with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($onlineSources);
+
         $this->setInverseBibliographies($onlineSources);
 
         return $onlineSources[$id];

@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use DateTime;
+
 use AppBundle\Utils\ArrayToJson;
 
 class Entity implements IdJsonInterface, IdElasticInterface
@@ -22,6 +24,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
      * @var bool
      */
     protected $public;
+    /**
+     * @var DateTime
+     */
+    protected $modified;
     /**
      * @var array
      */
@@ -85,6 +91,18 @@ class Entity implements IdJsonInterface, IdElasticInterface
     public function getPublic(): bool
     {
         return $this->public;
+    }
+
+    public function setModified(DateTime $modified): Entity
+    {
+        $this->modified = $modified;
+
+        return $this;
+    }
+
+    public function getModified(): DateTime
+    {
+        return $this->modified;
     }
 
     public function setIdentifications(array $identifications): Entity

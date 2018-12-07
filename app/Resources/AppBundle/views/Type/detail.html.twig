@@ -315,6 +315,10 @@
             </tbody>
         </table>
 
+        <div class="last-modified">
+            Last modified: {{ type.getModified()|date('Y-m-d') }}.
+        </div>
+
         <div id="feedback-app">
             <feedback-app
                 feedback-url="{{ path('feedback') }}"

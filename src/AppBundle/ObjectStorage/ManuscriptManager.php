@@ -140,6 +140,8 @@ class ManuscriptManager extends DocumentManager
             throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($manuscripts);
+
         $this->setBibliographies($manuscripts);
 
         $manuscript = $manuscripts[$id];

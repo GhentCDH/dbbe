@@ -77,6 +77,8 @@ class BookManager extends DocumentManager
             throw new NotFoundHttpException('Book with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($books);
+
         $this->setInverseBibliographies($books);
 
         $book = $books[$id];

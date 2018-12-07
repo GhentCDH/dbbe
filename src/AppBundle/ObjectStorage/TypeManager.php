@@ -142,6 +142,8 @@ class TypeManager extends PoemManager
             throw new NotFoundHttpException('Type with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($types);
+
         $this->setPrevIds($types);
 
         $type = $types[$id];

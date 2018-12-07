@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use DateTime;
 use Exception;
 use stdClass;
 
@@ -115,6 +116,16 @@ class EntityManager extends ObjectManager
             $entities[$rawPublic['entity_id']]
                 // default: true (if no value is set in the database)
                 ->setPublic(isset($rawPublic['public']) ? $rawPublic['public'] : true);
+        }
+    }
+
+    protected function setModifieds(array &$entities): void
+    {
+        $rawModifieds = $this->dbs->getModifieds(self::getIds($entities));
+        foreach ($rawModifieds as $rawModified) {
+            $entities[$rawModified['entity_id']]
+                // default: true (if no value is set in the database)
+                ->setModified(new DateTime($rawModified['modified']));
         }
     }
 

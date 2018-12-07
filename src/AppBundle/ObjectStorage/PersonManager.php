@@ -129,6 +129,8 @@ class PersonManager extends EntityManager
             throw new NotFoundHttpException('Person with id ' . $id .' not found.');
         }
 
+        $this->setModifieds($persons);
+
         $this->setBibliographies($persons);
 
         $person = $persons[$id];
