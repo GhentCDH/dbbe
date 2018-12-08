@@ -19,6 +19,16 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.manuscript on entity.identity = manuscript.identity'
+        )->fetch();
+    }
+
     /**
      * Get all manuscripts that are dependent on a specific region
      * @param  int   $regionId

@@ -30,6 +30,16 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.original_poem on entity.identity = original_poem.identity'
+        )->fetch();
+    }
+
     public function getDepIdsByManuscriptId(int $manuscriptId): array
     {
         return $this->conn->executeQuery(

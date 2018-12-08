@@ -23,6 +23,16 @@ class OnlineSourceService extends EntityService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.online_source on entity.identity = online_source.identity'
+        )->fetch();
+    }
+
     /**
      * @param  array $ids
      * @return array

@@ -19,6 +19,16 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.person on entity.identity = person.identity'
+        )->fetch();
+    }
+
     public function getHistoricalIds(): array
     {
         return $this->conn->query(

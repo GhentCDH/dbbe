@@ -23,6 +23,16 @@ class ArticleService extends DocumentService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.article on entity.identity = article.identity'
+        )->fetch();
+    }
+
     /**
      * Get all ids of articles that are dependent on a specific journal
      * @param  int   $journalId

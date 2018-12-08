@@ -23,6 +23,16 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.book on entity.identity = book.identity'
+        )->fetch();
+    }
+
     /**
      * Get all ids of books that are dependent on a specific person
      * @param  int   $personId

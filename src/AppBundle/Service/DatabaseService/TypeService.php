@@ -30,6 +30,16 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getLastModified(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                max(modified) as modified
+            from data.entity
+            inner join data.reconstructed_poem on entity.identity = reconstructed_poem.identity'
+        )->fetch();
+    }
+
     public function getIdsByIds(array $ids): array
     {
         return $this->conn->executeQuery(

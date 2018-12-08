@@ -19,6 +19,33 @@ use AppBundle\Model\Identifier;
 
 class EntityManager extends ObjectManager
 {
+    /**
+     * Get entities with enough information for the sitemap: id and modification date
+     * @param  array $ids
+     * @return array
+     */
+    public function getSitemap(array $ids): array
+    {
+        $entities = [];
+        foreach ($ids as $id) {
+            $entities[$id] = (new Entity())
+                ->setId($id);
+        }
+
+        $this->setModifieds($entities);
+
+        return $entities;
+    }
+
+    /**
+     * Get the last modification timestamp of an entity of a specific type
+     * @return DateTime
+     */
+    public function getLastModified(): DateTime
+    {
+        return new DateTime($this->dbs->getLastModified()['modified']);
+    }
+
     public function getAllShortJson(string $sortFunction = null): array
     {
         return $this->getAllCombinedShortJson('all', $sortFunction);
@@ -27,6 +54,11 @@ class EntityManager extends ObjectManager
     public function getAllJson(string $sortFunction = null): array
     {
         return $this->getAllCombinedJson('all', $sortFunction);
+    }
+
+    public function getAllSitemap(string $sortFunction = null): array
+    {
+        return $this->getAllCombined('sitemap', $sortFunction);
     }
 
     public function getAllMiniShortJson(string $sortFunction = null): array
@@ -53,6 +85,9 @@ class EntityManager extends ObjectManager
                 break;
             case 'short':
                 $objects = $this->getShort($ids);
+                break;
+            case 'sitemap':
+                $objects = $this->getSitemap($ids);
                 break;
         }
 
