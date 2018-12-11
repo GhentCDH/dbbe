@@ -359,7 +359,12 @@ export default {
             // Check whether comment column(s) should be displayed
             if (
                 data.data.length > 0
-                && (data.data[0].hasOwnProperty('public_comment') || data.data[0].hasOwnProperty('private_comment'))
+                && (
+                    data.data[0].hasOwnProperty('public_comment')
+                    || data.data[0].hasOwnProperty('private_comment')
+                    || data.data[0].hasOwnProperty('paleographical_info')
+                    || data.data[0].hasOwnProperty('contextual_info')
+                )
             ) {
                 this.commentSearch = true
             }
