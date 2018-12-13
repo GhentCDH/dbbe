@@ -14,36 +14,38 @@
             </div>
         </div>
         <div class="col-sm-6">
-            <h2 class="mbottom-small">
-                News items and events
-                {% if is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
-                {% endif %}
-            </h2>
-            <ul class="linklist-events list-unstyled">
-                {% for newsEvent in newsEvents %}
-                    {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
-                        {% if newsEvent.public %}
-                            <li>
-                        {% else %}
-                            <li class="bg-warning">
-                        {% endif %}
-                            <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
-                                <div class="date-container">
-                                    {% if newsEvent.date != '' %}
-                                        <span class="month">{{ newsEvent.date|month }}</span>
-                                        <span class="day">{{ newsEvent.date|day }}</span>
-                                    {% endif %}
-                                </div>
-                                <div class="content-container">
-                                    <p class="h3"><span>{{ newsEvent.title }}</span></p>
-                                    <p class="date ellipsis"></p>
-                                </div>
-                            </a>
-                        </li>
+            <div class="padding-default">
+                <h2 class="mbottom-small">
+                    News items and events
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
                     {% endif %}
-                {% endfor %}
-            </ul>
+                </h2>
+                <ul class="linklist-events list-unstyled">
+                    {% for newsEvent in newsEvents %}
+                        {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
+                            {% if newsEvent.public %}
+                                <li>
+                            {% else %}
+                                <li class="bg-warning">
+                            {% endif %}
+                                <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
+                                    <div class="date-container">
+                                        {% if newsEvent.date != '' %}
+                                            <span class="month">{{ newsEvent.date|month }}</span>
+                                            <span class="day">{{ newsEvent.date|day }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="content-container">
+                                        <p class="h3"><span>{{ newsEvent.title }}</span></p>
+                                        <p class="date ellipsis"></p>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div class="row">
