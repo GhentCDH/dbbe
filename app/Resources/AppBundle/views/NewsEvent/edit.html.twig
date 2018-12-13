@@ -3,18 +3,18 @@
 {% block content %}
     <div class="col-sm-9">
         <h2 class="h1">
-            Edit page
+            Edit news items or events
             <a
-                href="{{ path('page_get', {'slug': slug}) }}"
+                href="{{ path('homepage') }}"
                 class="action pull-right"
-                title="View the page">
-                <i class="fa fa-eye"></i>
+                title="View on homepage">
+                <i class="fa fa-list"></i>
             </a>
         </h2>
     </div>
     <article class="col-sm-9 mbottom-large">
-        <div id="page-edit-app">
-            <page-edit-app
+        <div id="news-event-edit-app">
+            <news-event-edit-app
                 init-urls = "{{ urls }}"
                 init-data="{{ data }}"
             />
@@ -24,6 +24,5 @@
 
 {% block javascript %}
     <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/ckeditor/ckeditor.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/pageedit.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/newseventedit.js") }}"></script>
 {% endblock %}

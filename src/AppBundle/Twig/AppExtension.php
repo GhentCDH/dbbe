@@ -2,6 +2,8 @@
 
 namespace AppBundle\Twig;
 
+use DateTime;
+
 use Twig_Extension;
 use Twig_SimpleFilter;
 use Twig_SimpleTest;
@@ -47,6 +49,12 @@ class AppExtension extends Twig_Extension
                     },
                     $array
                 );
+            }),
+            new Twig_SimpleFilter('month', function ($string) {
+                return DateTime::createFromFormat('m', substr($string, 5, 2))->format('M');
+            }),
+            new Twig_SimpleFilter('day', function ($string) {
+                return substr($string, 8, 2);
             }),
         ];
     }

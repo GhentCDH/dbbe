@@ -31,8 +31,10 @@ class DefaultController extends Controller
      */
     public function home(Request $request)
     {
+        $newsEvents = $this->get('news_event_service')->getAll();
         return $this->render(
-            'AppBundle:Home:home.html.twig'
+            'AppBundle:Home:home.html.twig',
+            ['newsEvents' => $newsEvents]
         );
     }
 

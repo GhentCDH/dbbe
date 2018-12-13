@@ -7,11 +7,43 @@
 </div>
 <article class="col-sm-9 mbottom-large">
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-6">
             <div class="bg-primary padding-default">
                 <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing project that makes available textual and contextual data of book epigrams (or: metrical paratexts) from medieval Greek manuscripts (seventh to fifteenth century). We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found. They record, react to, or motivate the production, the contents and the use of the book. Further explanation of this definition is to be found on the Help page.</p>
                 <p><a href="{{ path('page_get', {'slug': 'about'}) }}"><i class="glyphicon panno-arrow-right" aria-hidden="true"></i>Read more</a></p>
             </div>
+        </div>
+        <div class="col-sm-6">
+            <h2 class="mbottom-small">
+                News items and events
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                {% endif %}
+            </h2>
+            <ul class="linklist-events list-unstyled">
+                {% for newsEvent in newsEvents %}
+                    {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
+                        {% if newsEvent.public %}
+                            <li>
+                        {% else %}
+                            <li class="bg-warning">
+                        {% endif %}
+                            <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
+                                <div class="date-container">
+                                    {% if newsEvent.date != '' %}
+                                        <span class="month">{{ newsEvent.date|month }}</span>
+                                        <span class="day">{{ newsEvent.date|day }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="content-container">
+                                    <p class="h3"><span>{{ newsEvent.title }}</span></p>
+                                    <p class="date ellipsis"></p>
+                                </div>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
         </div>
     </div>
     <div class="row">
