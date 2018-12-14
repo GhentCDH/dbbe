@@ -3,7 +3,7 @@
         <div class="col-xs-12">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
+                @dismiss="(index) => {alerts.splice(index, 1)}"
             />
         </div>
         <article class="col-sm-9 pbottom-large">
@@ -12,7 +12,7 @@
                     class="action"
                     @click="edit()"
                 >
-                    <i class="fa fa-plus"></i> Add a new news item or event
+                    <i class="fa fa-plus" /> Add a new news item or event
                 </btn>
             </div>
             <draggable
@@ -104,7 +104,7 @@
     </div>
 </template>
 <script>
-window.axios = require('axios')
+window.axios = require('axios');
 
 import Vue from 'vue'
 import draggable from 'vuedraggable'
@@ -113,8 +113,8 @@ import VueFormGenerator from 'vue-form-generator'
 
 import Alerts from '../Components/Alerts'
 
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
 
 export default {
     components: {
@@ -189,7 +189,7 @@ export default {
         }
     },
     methods: {
-        validated (isValid, errors) {
+        validated (isValid) {
             this.invalid = !isValid
         },
         onChange() {
@@ -197,57 +197,57 @@ export default {
                 window.onbeforeunload = function () {}
             } else {
                 window.onbeforeunload = function (e) {
-                    let dialogText = 'There are unsaved changes.'
-                    e.returnValue = dialogText
+                    let dialogText = 'There are unsaved changes.';
+                    e.returnValue = dialogText;
                     return dialogText
                 }
             }
         },
         edit(index) {
-            let model = {}
+            let model = {};
             if (index != null) {
-                model = JSON.parse(JSON.stringify(this.data[index]))
+                model = JSON.parse(JSON.stringify(this.data[index]));
                 model.index = index
             }
-            this.editModel = JSON.parse(JSON.stringify(model))
-            this.originalEditModel = JSON.parse(JSON.stringify(model))
+            this.editModel = JSON.parse(JSON.stringify(model));
+            this.originalEditModel = JSON.parse(JSON.stringify(model));
             this.editModal = true
         },
         del(index) {
-            let model = JSON.parse(JSON.stringify(this.data[index]))
-            model.index = index
-            this.editModel = JSON.parse(JSON.stringify(model))
+            let model = JSON.parse(JSON.stringify(this.data[index]));
+            model.index = index;
+            this.editModel = JSON.parse(JSON.stringify(model));
             this.delModal = true
         },
         submit() {
-            this.$refs.form.validate()
+            this.$refs.form.validate();
             if (this.invalid) {
                 return
             }
 
-            let index = this.editModel.index
+            let index = this.editModel.index;
             if (index == null) {
                 this.data.unshift(JSON.parse(JSON.stringify(this.editModel)))
             } else {
-                delete this.editModel.index
+                delete this.editModel.index;
                 this.data[index] = JSON.parse(JSON.stringify(this.editModel))
             }
             this.editModal = false
         },
         submitDel() {
-            this.data.splice(this.editModel.index, 1)
+            this.data.splice(this.editModel.index, 1);
             this.delModal = false
         },
         save() {
-            this.openRequests++
+            this.openRequests++;
             axios.put(this.urls['news_events_put'], this.data)
-                .then( (response) => {
-                    window.onbeforeunload = function () {}
+                .then( () => {
+                    window.onbeforeunload = function () {};
                     window.location = this.urls['homepage']
                 })
                 .catch( (error) => {
-                    console.log(error)
-                    this.alerts.push({type: 'error', message: 'Something went wrong while saving the news items and events.'})
+                    console.log(error);
+                    this.alerts.push({type: 'error', message: 'Something went wrong while saving the news items and events.'});
                     this.openRequests--
                 })
         },

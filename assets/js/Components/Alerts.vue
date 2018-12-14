@@ -5,7 +5,8 @@
             :key="index"
             :type="item.type"
             dismissible
-            @dismissed="$emit('dismiss', index)">
+            @dismissed="$emit('dismiss', index)"
+        >
             <p>{{ item.message }}</p>
             <p v-if="item.extra">
                 {{ item.extra }}
@@ -30,7 +31,7 @@ export default {
     },
     methods: {
         login(index) {
-            window.open(this.$root.$children[0].urls.login + '?close=true')
+            window.open(this.$root.$children[0].urls.login + '?close=true');
             this.$emit('dismiss', index)
         },
     }
