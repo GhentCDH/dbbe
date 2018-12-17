@@ -2,49 +2,136 @@
 
 namespace AppBundle\Service\DatabaseService;
 
-use DateTime;
-use Exception;
-
 class NewsEventService extends DatabaseService
 {
-    public function getAll()
+    /**
+     * @param int $id
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getSingle(int $id): array
     {
         return $this->conn->executeQuery(
-            'SELECT
-                id,
-                title,
-                link as url,
-                date,
-                public,
-                "order"
-            from logic.news_event
-            order by "order" asc'
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+where id = ?
+SQL
+,
+            [
+                $id,
+            ]
+        )->fetch();
+    }
+
+    /**
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getAll(): array
+    {
+        return $this->conn->executeQuery(
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+order by "order" asc
+SQL
         )->fetchAll();
     }
 
-    public function insert(int $userId, string $title, string $url, string $date, bool $public, int $order): int
+    /**
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getThreePublic(): array
     {
-        return $this->conn->executeUpdate(
-            'INSERT INTO logic.news_event
-            (iduser, title, link, "date", public, "order")
-            values (?, ?, ?, ?, ?, ?)',
-            [
-                $userId,
-                $title,
-                $url,
-                $date,
-                $public ? 'TRUE' : 'FALSE',
-                $order
-            ]
-        );
+        return $this->conn->executeQuery(
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+where public
+order by "order" asc
+limit 3
+SQL
+        )->fetchAll();
     }
 
-    public function update(int $id, int $userId, string $title, string $url, string $date, bool $public, int $order): int
+    /**
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getDateSorted(): array
     {
+        return $this->conn->executeQuery(
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+order by date desc
+SQL
+        )->fetchAll();
+    }
+
+    /**
+     * @param int $userId
+     * @param string $title
+     * @param string $url
+     * @param string $date
+     * @param bool $public
+     * @param int $order
+     * @param string $abstract
+     * @param string $text
+     * @return int
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function insert(
+        int $userId,
+        string $title,
+        string $url,
+        string $date,
+        bool $public,
+        int $order,
+        string $abstract,
+        string $text
+    ): int {
         return $this->conn->executeUpdate(
-            'UPDATE logic.news_event
-            set iduser = ?, title = ?, link = ?, "date" = ?, public = ?, "order" = ?
-            where id = ?',
+            <<<'SQL'
+insert into logic.news_event
+(iduser, title, url, "date", public, "order", abstract, "text")
+values (?, ?, ?, ?, ?, ?, ?, ?)
+SQL
+,
             [
                 $userId,
                 $title,
@@ -52,16 +139,70 @@ class NewsEventService extends DatabaseService
                 $date,
                 $public ? 'TRUE' : 'FALSE',
                 $order,
+                $abstract,
+                $text,
+            ]
+        );
+    }
+
+    /**
+     * @param int $id
+     * @param int $userId
+     * @param string $title
+     * @param string $url
+     * @param string $date
+     * @param bool $public
+     * @param int $order
+     * @param string $abstract
+     * @param string $text
+     * @return int
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function update(
+        int $id,
+        int $userId,
+        string $title,
+        string $url,
+        string $date,
+        bool $public,
+        int $order,
+        string $abstract,
+        string $text
+    ): int {
+        return $this->conn->executeUpdate(
+            <<<'SQL'
+update logic.news_event
+set iduser = ?, title = ?, url = ?, "date" = ?, public = ?, "order" = ?, abstract = ?, "text" = ? 
+where id = ?
+SQL
+,
+            [
+                $userId,
+                $title,
+                $url,
+                $date,
+                $public ? 'TRUE' : 'FALSE',
+                $order,
+                $abstract,
+                $text,
                 $id,
             ]
         );
     }
 
+    /**
+     * @param int $id
+     * @return int
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function delete(int $id): int
     {
         return $this->conn->executeUpdate(
-            'DELETE from logic.news_event
-            where id = ?',
+            <<<'SQL'
+delete from logic.news_event
+where id = ?
+SQL
+,
             [
                 $id,
             ]

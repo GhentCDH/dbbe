@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use Doctrine\DBAL\DBALException;
 use phpCAS;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -25,13 +26,22 @@ class DefaultController extends Controller
         'book_chapter',
         'online_source'
     ];
+
     /**
      * @Route("/", name="homepage")
-     * @param  Request $request
+     * @return Response
      */
-    public function home(Request $request)
+    public function home()
     {
-        $newsEvents = $this->get('news_event_service')->getAll();
+        try {
+            $newsEvents = $this->get('news_event_service')->getThreePublic();
+        }
+        catch (DBALException $e) {
+            return $this->render(
+                'AppBundle:Home:home.html.twig',
+                ['newsEvents' => []]
+            );
+        }
         return $this->render(
             'AppBundle:Home:home.html.twig',
             ['newsEvents' => $newsEvents]

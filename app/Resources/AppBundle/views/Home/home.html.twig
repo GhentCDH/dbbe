@@ -15,12 +15,12 @@
         </div>
         <div class="col-sm-6">
             <div class="padding-default">
-                <h2 class="mbottom-small">
-                    News items and events
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
-                    {% endif %}
-                </h2>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                {% endif %}
+                <a href="{{ path('news_events_get') }}">
+                    <h2>News items and events</h2>
+                </a>
                 <ul class="linklist-events list-unstyled">
                     {% for newsEvent in newsEvents %}
                         {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
@@ -29,12 +29,14 @@
                             {% else %}
                                 <li class="bg-warning">
                             {% endif %}
-                                <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
+                                {% if newsEvent.url %}
+                                    <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
+                                {% else %}
+                                    <a href="{{ path('news_event_get', {'id': newsEvent.id}) }}" class="block-link">
+                                {% endif %}
                                     <div class="date-container">
-                                        {% if newsEvent.date != '' %}
-                                            <span class="month">{{ newsEvent.date|month }}</span>
-                                            <span class="day">{{ newsEvent.date|day }}</span>
-                                        {% endif %}
+                                        <span class="month">{{ newsEvent.date|month }}</span>
+                                        <span class="day">{{ newsEvent.date|day }}</span>
                                     </div>
                                     <div class="content-container">
                                         <p class="h3"><span>{{ newsEvent.title }}</span></p>

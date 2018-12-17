@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-sm-9">
+        <h2 class="h1">
+            {{ newsEvent.title }} <span class="small">({{ newsEvent.date }})</span>
+            <a
+                    href="{{ path('news_events_edit') }}"
+                    class="action pull-right"
+                    title="Edit news items and events">
+                <i class="fa fa-edit"></i>
+            </a>
+        </h2>
+    </div>
+    <article class="col-sm-9 mbottom-large">
+        {{ newsEvent.text|raw }}
+    </article>
+{% endblock %}

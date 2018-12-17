@@ -30,7 +30,21 @@
                             :class="{'bg-warning': !item.public}"
                         >
                             <i class="fa fa-arrows draggable-icon" />
-                            <a :href="item.url">{{ item.title }}</a>
+                            <a
+                                v-if="item.url"
+                                :href="item.url"
+                            >
+                                {{ item.title }}
+                            </a>
+                            <a
+                                v-else-if="item.id"
+                                :href="urls.news_event_get.replace('news_event_id', item.id)"
+                            >
+                                {{ item.title }}
+                            </a>
+                            <template v-else>
+                                {{ item.title }}
+                            </template>
                             <template v-if="item.date">
                                 ({{ item.date }})
                             </template>
@@ -63,7 +77,10 @@
                 Save changes
             </btn>
         </article>
-        <modal v-model="editModal">
+        <modal
+            v-model="editModal"
+            size="lg"
+        >
             <vue-form-generator
                 ref="form"
                 :schema="schema"
@@ -71,6 +88,31 @@
                 :options="formOptions"
                 @validated="validated"
             />
+            <div
+                class="form-group"
+                :class="{'has-error': editorError}"
+            >
+                <label
+                    for="editor"
+                    class="control-label"
+                >
+                    Full text
+                </label>
+                <vue-ckeditor
+                    id="editor"
+                    v-model="editModel.text"
+                    type="classic"
+                    :config="config"
+                />
+                <div
+                    v-if="editorError"
+                    class="errors help-block"
+                >
+                    <span>
+                        Exactly one of the fields "Url", "Full text" is required.
+                    </span>
+                </div>
+            </div>
             <div slot="footer">
                 <btn @click="editModal=false">Cancel</btn>
                 <btn
@@ -88,7 +130,6 @@
                 <btn @click="delModal=false">Cancel</btn>
                 <btn
                     type="danger"
-                    :disabled="invalid"
                     @click="submitDel()"
                 >
                     Delete
@@ -110,6 +151,7 @@ import Vue from 'vue'
 import draggable from 'vuedraggable'
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
+import VueCkeditor from 'vue-ckeditor2'
 
 import Alerts from '../Components/Alerts'
 
@@ -120,6 +162,7 @@ export default {
     components: {
         'alerts': Alerts,
         'draggable': draggable,
+        'vue-ckeditor': VueCkeditor,
     },
     props: {
         initUrls: {
@@ -147,7 +190,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'title',
                         required: true,
-                        validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.required],
+                        validator: VueFormGenerator.validators.string,
                     },
                     url: {
                         type: 'input',
@@ -155,8 +198,7 @@ export default {
                         label: 'Url',
                         labelClasses: 'control-label',
                         model: 'url',
-                        required: true,
-                        validator: [VueFormGenerator.validators.url, VueFormGenerator.validators.required],
+                        validator: [VueFormGenerator.validators.url, this.urlOrText],
                     },
                     date: {
                         type: 'input',
@@ -164,6 +206,7 @@ export default {
                         label: 'Date',
                         labelClasses: 'control-label',
                         model: 'date',
+                        required: true,
                         validator: VueFormGenerator.validators.regexp,
                         hint: 'Please use the format YYYY-MM-DD',
                         pattern: '^\\d{4}-([0]\\d|1[0-2])-([0-2]\\d|3[01])$',
@@ -174,6 +217,14 @@ export default {
                         labelClasses: 'control-label',
                         model: 'public',
                     },
+                    abstract: {
+                        type: 'textArea',
+                        label: 'Abstract',
+                        labelClasses: 'control-label',
+                        model: 'abstract',
+                        required: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
                 },
             },
             formOptions: {
@@ -181,16 +232,54 @@ export default {
                 validationErrorClass: 'has-error',
                 validationSuccessClass: 'success',
             },
+            config: {
+                language: 'en',
+                toolbarGroups: [
+                    { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+                    { name: 'styles', groups: [ 'styles' ] },
+                    { name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi', 'paragraph' ] },
+                    { name: 'clipboard', groups: [ 'clipboard', 'undo' ] },
+                    { name: 'editing', groups: [ 'find', 'selection', 'spellchecker', 'editing' ] },
+                    { name: 'links', groups: [ 'links' ] },
+                    { name: 'insert', groups: [ 'insert' ] },
+                    { name: 'forms', groups: [ 'forms' ] },
+                    { name: 'tools', groups: [ 'tools' ] },
+                    { name: 'document', groups: [ 'mode', 'document', 'doctools' ] },
+                    { name: 'others', groups: [ 'others' ] },
+                    '/',
+                    { name: 'colors', groups: [ 'colors' ] },
+                ],
+                removeButtons: 'Underline,Subscript,Superscript,Scayt,Strike,Styles,Outdent,Indent,Blockquote,About'
+            },
             invalid: false,
+            editorError: false,
             editModal: false,
             editModel: {},
             originalEditModel: {},
             delModal: false,
         }
     },
+    watch: {
+        'editModel.text'() {
+            this.onChange();
+            this.$refs.form.validate();
+            this.urlOrText();
+        }
+    },
     methods: {
         validated (isValid) {
             this.invalid = !isValid
+        },
+        urlOrText() {
+            if (
+                ((this.editModel.url == null || this.editModel.url === '') && (this.editModel.text == null || this.editModel.text === ''))
+                || ((this.editModel.url != null && this.editModel.url !== '') && (this.editModel.text != null && this.editModel.text !== ''))
+            ) {
+                this.editorError = true;
+                return ['Exactly one of the fields "Url", "Full text" is required.']
+            }
+            this.editorError = false;
+            return []
         },
         onChange() {
             if (JSON.stringify(this.data) === JSON.stringify(this.originalData)) {
@@ -243,7 +332,7 @@ export default {
             axios.put(this.urls['news_events_put'], this.data)
                 .then( () => {
                     window.onbeforeunload = function () {};
-                    window.location = this.urls['homepage']
+                    window.location = this.urls['news_events_get']
                 })
                 .catch( (error) => {
                     console.log(error);

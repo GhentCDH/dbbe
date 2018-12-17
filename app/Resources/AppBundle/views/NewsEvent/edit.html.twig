@@ -5,10 +5,16 @@
         <h2 class="h1">
             Edit news items or events
             <a
-                href="{{ path('homepage') }}"
-                class="action pull-right"
-                title="View on homepage">
+                href="{{ path('news_events_get') }}"
+                class="action pull-right padding-left-small"
+                title="View on overview page">
                 <i class="fa fa-list"></i>
+            </a>
+            <a
+                    href="{{ path('homepage') }}"
+                    class="action pull-right"
+                    title="View on homepage">
+                <i class="fa fa-home"></i>
             </a>
         </h2>
     </div>
@@ -24,5 +30,6 @@
 
 {% block javascript %}
     <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/ckeditor/ckeditor.js") }}"></script>
     <script type="text/javascript" src="{{ asset("build/newseventedit.js") }}"></script>
 {% endblock %}

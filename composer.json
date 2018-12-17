@@ -20,7 +20,8 @@
         ]
     },
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=7.1",
+        "ext-json": "*",
         "cweagans/composer-patches": "~1.0",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/orm": "^2.5",

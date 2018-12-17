@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <aside class="col-sm-3 inpage-nav-container xs-hide">
+        <div id="nav-anchor"></div>
+        <nav role="navigation" data-lockfixed="true" class="padding-default bg-tertiary">
+            <h2>On this page</h2>
+            <div class="toc" data-toc="article h2:not(.h1)"></div>
+        </nav>
+    </aside>
+    <article class="col-sm-9 mbottom-large">
+        <h2 class="h1">
+            News items and events
+            <a
+                    href="{{ path('news_events_edit') }}"
+                    class="action pull-right"
+                    title="Edit news items and events">
+                <i class="fa fa-edit"></i>
+            </a>
+        </h2>
+        {% for year, array in data %}
+            <h2>{{ year }}</h2>
+            <div class="content-text pbottom-large">
+                {%  for newsEvent in array %}
+                    {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
+                        {% if newsEvent.public %}
+                            <div class="pbottom-default">
+                        {% else %}
+                                <div class="pbottom-default bg-warning">
+                        {% endif %}
+                            {% if newsEvent.url %}
+                                <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
+                            {% else %}
+                                <a href="{{ path('news_event_get', {'id': newsEvent.id}) }}" class="block-link">
+                            {% endif %}
+                                <div class="date-container">
+                                    <span class="month">{{ newsEvent.date|month }}</span>
+                                    <span class="day">{{ newsEvent.date|day }}</span>
+                                </div>
+                                <div class="content-container">
+                                    <p class="h3"><span>{{ newsEvent.title }}</span></p>
+                                    <p class="text-muted">{{ newsEvent.abstract }}</p>
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+                {%  endfor %}
+            </div>
+        {% endfor %}
+    </article>
+{% endblock %}
