@@ -117,7 +117,6 @@ class NewsEventController extends Controller
         }
         $ids = [];
         foreach ($data as $newsEvent) {
-            var_dump(property_exists($newsEvent, 'text') && !empty($newsEvent->text));
             if ((
                     property_exists($newsEvent, 'id')
                     && !is_numeric($newsEvent->id)
