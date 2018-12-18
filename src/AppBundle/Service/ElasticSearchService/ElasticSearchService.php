@@ -600,7 +600,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
 
-        return new Query\SimpleQueryString($text, [$field]);
+        return (new Query\QueryString($text))->setDefaultField($field);
     }
 
     protected function normalizeString(string $input): string

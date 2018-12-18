@@ -43,6 +43,7 @@ class TypeController extends BaseController
                     'login' => $this->generateUrl('login'),
                     'managements_add' => $this->generateUrl('types_managements_add'),
                     'managements_remove' => $this->generateUrl('types_managements_remove'),
+                    'help' => $this->generateUrl('page_get', ['slug' => 'help']),
                 ]),
                 'data' => json_encode(
                     $this->get('type_elastic_service')->searchAndAggregate(

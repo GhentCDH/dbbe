@@ -1,4 +1,4 @@
-window.axios = require('axios')
+window.axios = require('axios');
 
 import qs from 'qs'
 
@@ -13,17 +13,17 @@ import Alerts from '../Alerts'
 import Delete from '../Edit/Modals/Delete'
 import CollectionManager from './CollectionManager'
 
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
-Vue.use(VueTables.ServerTable)
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
+Vue.use(VueTables.ServerTable);
 
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
-Vue.component('deleteModal', Delete)
-Vue.component('collectionManager', CollectionManager)
+Vue.component('multiselect', VueMultiselect);
+Vue.component('fieldMultiselectClear', fieldMultiselectClear);
+Vue.component('deleteModal', Delete);
+Vue.component('collectionManager', CollectionManager);
 
-const YEAR_MIN = 1
-const YEAR_MAX = (new Date()).getFullYear()
+const YEAR_MIN = 1;
+const YEAR_MAX = (new Date()).getFullYear();
 
 export default {
     props: {
@@ -110,13 +110,13 @@ export default {
         },
     },
     mounted () {
-        this.originalModel = JSON.parse(JSON.stringify(this.model))
-        window.onpopstate = ((event) => {this.popHistory(event)})
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+        window.onpopstate = ((event) => {this.popHistory(event)});
         this.updateCountRecords()
     },
     methods: {
         constructFilterValues() {
-            let result = {}
+            let result = {};
             if (this.model != null) {
                 for (let fieldName of Object.keys(this.model)) {
                     if (this.schema.fields[fieldName].type === 'multiselectClear') {
@@ -149,11 +149,11 @@ export default {
         modelUpdated(value, fieldName) {
             this.lastChangedField = fieldName
         },
-        onValidated(isValid, errors) {
+        onValidated(isValid) {
             // do nothin but cancelling requests if invalid
             if (!isValid) {
                 if (this.inputCancel !== null) {
-                    window.clearTimeout(this.inputCancel)
+                    window.clearTimeout(this.inputCancel);
                     this.inputCancel = null
                 }
                 return
@@ -168,7 +168,7 @@ export default {
                     ) {
                         delete this.model[fieldName]
                     }
-                    let field = this.schema.fields[fieldName]
+                    let field = this.schema.fields[fieldName];
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         delete this.model[fieldName]
                     }
@@ -193,45 +193,45 @@ export default {
 
             // Cancel timeouts caused by input requests not long ago
             if (this.inputCancel != null) {
-                window.clearTimeout(this.inputCancel)
+                window.clearTimeout(this.inputCancel);
                 this.inputCancel = null
             }
 
             // Send requests to update filters and result table
             // Add a delay to requests originated from input field changes to limit the number of requests
-            let timeoutValue = 0
+            let timeoutValue = 0;
             if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
                 timeoutValue = 1000
             }
 
             // Remove column ordering if text or comment is searched, reset when no value is provided
             // Do not refresh twice
-            if (this.lastChangedField == 'text' || this.lastChangedField == 'comment') {
-                this.actualRequest = false
-                if (this.model[this.lastChangedField] == null || this.model[this.lastChangedField == '']) {
+            if (this.lastChangedField === 'text' || this.lastChangedField === 'comment') {
+                this.actualRequest = false;
+                if (this.model[this.lastChangedField] == null || this.model[this.lastChangedField === '']) {
                     if (this.lastOrder == null) {
                         this.$refs.resultTable.setOrder(this.defaultOrdering, true)
                     }
                     else {
-                        let asc = (this.lastOrder.hasOwnProperty('ascending') && this.lastOrder['ascending'])
+                        let asc = (this.lastOrder.hasOwnProperty('ascending') && this.lastOrder['ascending']);
                         this.$refs.resultTable.setOrder(this.lastOrder.column, asc)
                     }
                 }
                 else {
-                    this.lastOrder = JSON.parse(JSON.stringify(this.$refs.resultTable.orderBy))
+                    this.lastOrder = JSON.parse(JSON.stringify(this.$refs.resultTable.orderBy));
                     this.$refs.resultTable.setOrder(null)
                 }
             }
 
             // Don't get new data if last changed field is text_type and text is null or empty
             // else: remove column ordering
-            if (this.lastChangedField == 'text_type') {
-                if (this.model.text == null || this.model.text == '') {
+            if (this.lastChangedField === 'text_type') {
+                if (this.model.text == null || this.model.text === '') {
                     this.actualRequest = false
                 }
                 else {
-                    this.actualRequest = false
-                    this.$refs.resultTable.setOrder(null)
+                    this.actualRequest = false;
+                    this.$refs.resultTable.setOrder(null);
                     this.actualRequest = true
                 }
             }
@@ -246,12 +246,12 @@ export default {
 
 
             this.inputCancel = window.setTimeout(() => {
-                this.inputCancel = null
-                let filterValues = this.constructFilterValues()
+                this.inputCancel = null;
+                let filterValues = this.constructFilterValues();
                 // only send request if the filters have changed
                 // filters are always in the same order, so we can compare serialization
                 if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
-                    this.oldFilterValues = filterValues
+                    this.oldFilterValues = filterValues;
                     VueTables.Event.$emit('vue-tables.filter::filters', filterValues)
                 }
             }, timeoutValue)
@@ -272,8 +272,8 @@ export default {
                 return -1
             }
             // Numeric (a.o. shelf number) (e.g., 571A)
-            let first = a.name.match(this.numRegex)
-            let second = b.name.match(this.numRegex)
+            let first = a.name.match(this.numRegex);
+            let second = b.name.match(this.numRegex);
             if (first && second) {
                 if (parseInt(first[1]) < parseInt(second[1])) {
                     return -1
@@ -284,8 +284,8 @@ export default {
                 // let the string compare below handle cases where the numeric part is equal, but the rest not
             }
             // RGK (e.g., II.513)
-            first = a.name.match(this.rgkRegex)
-            second = b.name.match(this.rgkRegex)
+            first = a.name.match(this.rgkRegex);
+            second = b.name.match(this.rgkRegex);
             if (first && second) {
                 if (first[1] < second[1]) {
                     return -1
@@ -296,8 +296,8 @@ export default {
                 return first[2] - second[2]
             }
             // VGH (e.g., 513.B)
-            first = a.name.match(this.vghRegex)
-            second = b.name.match(this.vghRegex)
+            first = a.name.match(this.vghRegex);
+            second = b.name.match(this.vghRegex);
             if (first) {
                 if (second) {
                     if (first[1] !== second[1]) {
@@ -319,8 +319,8 @@ export default {
                 return 1
             }
             // Role with count (e.g., Patron (7))
-            first = a.name.match(this.roleCountRegex)
-            second = b.name.match(this.roleCountRegex)
+            first = a.name.match(this.roleCountRegex);
+            second = b.name.match(this.roleCountRegex);
             if (first && second) {
                 return second[1] - first[1]
             }
@@ -334,61 +334,56 @@ export default {
             return 0
         },
         resetAllFilters() {
-            this.model = JSON.parse(JSON.stringify(this.originalModel))
+            this.model = JSON.parse(JSON.stringify(this.originalModel));
             this.onValidated(true)
         },
         onData(data) {
-            this.data = data
+            this.data = data;
 
             // Check whether column 'title/text' should be displayed
-            if (
-                data.data.length > 0
-                && (
-                    data.data[0].hasOwnProperty('text')
-                    || data.data[0].hasOwnProperty('title')
-                    || data.data[0].hasOwnProperty('title_GR')
-                    || data.data[0].hasOwnProperty('title_LA')
-                )
-            ) {
-                this.textSearch = true
-            }
-            else {
-                this.textSearch = false
+            this.textSearch = false;
+            for (let item of data.data) {
+                if (
+                    item.hasOwnProperty('text')
+                    || item.hasOwnProperty('title')
+                    || item.hasOwnProperty('title_GR')
+                    || item.hasOwnProperty('title_LA')
+                ) {
+                    this.textSearch = true;
+                    break;
+                }
             }
 
             // Check whether comment column(s) should be displayed
-            if (
-                data.data.length > 0
-                && (
-                    data.data[0].hasOwnProperty('public_comment')
-                    || data.data[0].hasOwnProperty('private_comment')
-                    || data.data[0].hasOwnProperty('paleographical_info')
-                    || data.data[0].hasOwnProperty('contextual_info')
-                )
-            ) {
-                this.commentSearch = true
-            }
-            else {
-                this.commentSearch = false
+            this.commentSearch = false;
+            for (let item of data.data) {
+                if (
+                    item.hasOwnProperty('public_comment')
+                    || item.hasOwnProperty('private_comment')
+                    || item.hasOwnProperty('paleographical_info')
+                    || item.hasOwnProperty('contextual_info')
+                ) {
+                    this.commentSearch = true;
+                    break;
+                }
             }
         },
-        onLoaded(data) {
+        onLoaded() {
             // Update model and ordering if not initialized or history request
             if (!this.initialized) {
-                this.init(true)
+                this.init(true);
                 this.initialized = true
             }
             if (this.historyRequest) {
-                this.init(this.historyRequest === 'init')
+                this.init(this.historyRequest === 'init');
                 this.historyRequest = false
             }
 
             // Update aggregation fields
             for (let fieldName of Object.keys(this.schema.fields)) {
-                let field = this.schema.fields[fieldName]
+                let field = this.schema.fields[fieldName];
                 if (field.type === 'multiselectClear') {
-                    let values = this.data.aggregation[fieldName] == null ? [] : this.data.aggregation[fieldName].sort(this.sortByName)
-                    field.values = values
+                    field.values = this.data.aggregation[fieldName] == null ? [] : this.data.aggregation[fieldName].sort(this.sortByName);
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         this.dependencyField(field)
                     }
@@ -399,14 +394,14 @@ export default {
             }
 
             // Update number of records text
-            this.updateCountRecords()
+            this.updateCountRecords();
 
             this.openRequests--
         },
         pushHistory(data) {
             history.pushState(data, document.title, document.location.href.split('?')[0] + '?' + qs.stringify(data))
         },
-        popHistory(event) {
+        popHistory() {
             // set querystring
             if (window.location.href.split('?', 2).length > 1) {
                 this.historyRequest = window.location.href.split('?', 2)[1]
@@ -416,10 +411,10 @@ export default {
             }
             this.$refs.resultTable.refresh()
         },
-        init(initial) {
+        init() {
             // set model
-            let params = qs.parse(window.location.href.split('?', 2)[1])
-            let model = JSON.parse(JSON.stringify(this.originalModel))
+            let params = qs.parse(window.location.href.split('?', 2)[1]);
+            let model = JSON.parse(JSON.stringify(this.originalModel));
             if (params.hasOwnProperty('filters')) {
                 Object.keys(params['filters']).forEach((key) => {
                     if (key === 'date') {
@@ -440,27 +435,27 @@ export default {
                     }
                 }, this)
             }
-            this.model = model
+            this.model = model;
 
             // set oldFilterValues
-            this.oldFilterValues = this.constructFilterValues()
+            this.oldFilterValues = this.constructFilterValues();
 
             // set table page
             if (params.hasOwnProperty('page')) {
-                this.actualRequest = false
+                this.actualRequest = false;
                 this.$refs.resultTable.setPage(params['page'])
             }
             // set table ordering
-            this.actualRequest = false
+            this.actualRequest = false;
             if (params.hasOwnProperty('orderBy')) {
-                let asc = (params.hasOwnProperty('ascending') && params['ascending'])
+                let asc = (params.hasOwnProperty('ascending') && params['ascending']);
                 this.$refs.resultTable.setOrder(params['orderBy'], asc)
             }
             else if (
                 params.hasOwnProperty('filters')
                 && (
-                (params['filters'].hasOwnProperty('text') && params['filters']['text'] != null && params['filters']['text'] != '')
-                || (params['filters'].hasOwnProperty('comment') && params['filters']['comment'] != null && params['filters']['comment'] != '')
+                (params['filters'].hasOwnProperty('text') && params['filters']['text'] != null && params['filters']['text'] !== '')
+                || (params['filters'].hasOwnProperty('comment') && params['filters']['comment'] != null && params['filters']['comment'] !== '')
                 )
             ) {
                 this.$refs.resultTable.setOrder(null)
@@ -470,18 +465,18 @@ export default {
             }
         },
         updateCountRecords() {
-            let table = this.$refs.resultTable
+            let table = this.$refs.resultTable;
             if (!table.count) {
-                this.countRecords = ''
+                this.countRecords = '';
                 return
             }
-            let perPage = parseInt(table.limit)
+            let perPage = parseInt(table.limit);
 
-            let from = ((table.Page-1) * perPage) + 1
-            let to = table.Page==table.totalPages?table.count:from + perPage - 1
+            let from = ((table.Page-1) * perPage) + 1;
+            let to = table.Page === table.totalPages ? table.count:from + perPage - 1;
 
-            let parts = table.opts.texts.count.split('|')
-            let i = Math.min(table.count==1?2:table.totalPages==1?1:0, parts.length-1)
+            let parts = table.opts.texts.count.split('|');
+            let i = Math.min(table.count === 1 ? 2 : table.totalPages === 1 ? 1 : 0, parts.length-1);
 
             this.countRecords = parts[i].replace('{count}', table.count)
                 .replace('{from}', from)
@@ -491,7 +486,7 @@ export default {
             return error.message === 'Network Error'
         },
         collectionToggle(id) {
-            let index = this.collectionArray.indexOf(id)
+            let index = this.collectionArray.indexOf(id);
             if (index > -1) {
                 this.collectionArray.splice(index, 1)
             }
@@ -500,10 +495,10 @@ export default {
             }
         },
         collectionToggleAll() {
-            let allChecked = true
+            let allChecked = true;
             for (let row of this.data.data) {
                 if (!this.collectionArray.includes(row.id)) {
-                    allChecked = false
+                    allChecked = false;
                     break
                 }
             }
@@ -522,86 +517,86 @@ export default {
             this.collectionArray = []
         },
         addManagementsToSelection(managementCollections) {
-            this.openRequests++
+            this.openRequests++;
             axios.put(this.urls['managements_add'], {ids: this.collectionArray, 'managements': managementCollections})
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Management collections added successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'});
                     console.log(error)
                 })
         },
         removeManagementsFromSelection(managementCollections) {
-            this.openRequests++
+            this.openRequests++;
             axios.put(this.urls['managements_remove'], {ids: this.collectionArray, 'managements': managementCollections})
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Management collections removed successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while removing the management collections.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while removing the management collections.'});
                     console.log(error)
                 })
         },
         addManagementsToResults(managementCollections) {
-            this.openRequests++
+            this.openRequests++;
             axios.put(this.urls['managements_add'], {filter: this.constructFilterValues(), 'managements': managementCollections})
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Management collections added successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while adding the management collections.'});
                     console.log(error)
                 })
         },
         removeManagementsFromResults(managementCollections) {
-            this.openRequests++
+            this.openRequests++;
             axios.put(this.urls['managements_remove'], {filter: this.constructFilterValues(), 'managements': managementCollections})
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Management collections removed successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong removing adding the management collections.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong removing adding the management collections.'});
                     console.log(error)
                 })
         },
     },
     requestFunction (data) {
         // Remove unused parameters
-        delete data['query']
-        delete data['byColumn']
+        delete data['query'];
+        delete data['byColumn'];
         if (!data.hasOwnProperty('orderBy')) {
             delete data['ascending']
         }
         // Add filter values if necessary
-        data['filters'] = this.$parent.constructFilterValues()
-        if (data['filters'] == null || data['filters'] == '') {
+        data['filters'] = this.$parent.constructFilterValues();
+        if (data['filters'] == null || data['filters'] === '') {
             delete data['filters']
         }
-        this.$parent.openRequests++
+        this.$parent.openRequests++;
         if (!this.$parent.initialized) {
-            return new Promise((resolve, reject) => {
-                this.$emit('data', this.$parent.data)
+            return new Promise((resolve) => {
+                this.$emit('data', this.$parent.data);
                 resolve({
                     data : {
                         data: this.$parent.data.data,
@@ -611,7 +606,7 @@ export default {
             })
         }
         if (!this.$parent.actualRequest) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 resolve({
                     data : {
                         data: this.data,
@@ -624,7 +619,7 @@ export default {
             if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
                 this.$parent.tableCancel('Operation canceled by newer request')
             }
-            let url = this.url
+            let url = this.url;
             if (this.$parent.historyRequest !== 'init') {
                 url += '?' + this.$parent.historyRequest
             }
@@ -632,12 +627,12 @@ export default {
                 cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
             })
                 .then( (response) => {
-                    this.$emit('data', response.data)
+                    this.$emit('data', response.data);
                     return response
                 })
                 .catch(function (error) {
-                    this.$parent.historyRequest = false
-                    this.$parent.openRequests--
+                    this.$parent.historyRequest = false;
+                    this.$parent.openRequests--;
                     if (axios.isCancel(error)) {
                         // Return the current data if the request is cancelled
                         return {
@@ -665,7 +660,7 @@ export default {
             cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
         })
             .then( (response) => {
-                this.$emit('data', response.data)
+                this.$emit('data', response.data);
                 return response
             })
             .catch(function (error) {

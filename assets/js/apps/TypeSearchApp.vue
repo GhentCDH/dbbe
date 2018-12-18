@@ -20,7 +20,7 @@
                     </button>
                 </div>
                 <div class="form-group">
-                    <a href="/pages/help">More information about the text search options.</a>
+                    <a :href="urls['help']" class="action"><i class="fa fa-info-circle" /> More information about the text search options.</a>
                 </div>
                 <vue-form-generator
                     ref="form"
@@ -220,7 +220,7 @@
             </div>
             <collectionManager
                 v-if="isViewInternal"
-                :collectionArray="collectionArray"
+                :collection-array="collectionArray"
                 :managements="managements"
                 @addManagementsToSelection="addManagementsToSelection"
                 @removeManagementsFromSelection="removeManagementsFromSelection"
@@ -261,7 +261,7 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 import fieldRadio from '../Components/FormFields/fieldRadio'
 
-Vue.component('fieldRadio', fieldRadio)
+Vue.component('fieldRadio', fieldRadio);
 
 export default {
     mixins: [
@@ -276,69 +276,7 @@ export default {
                 text_combination: 'any',
             },
             schema: {
-                fields: {
-                    text: {
-                        type: 'input',
-                        inputType: 'text',
-                        styleClasses: 'greek',
-                        label: 'Text',
-                        model: 'text'
-                    },
-                    text_stem: {
-                        type: 'radio',
-                        label: 'Stemmer options:',
-                        model: 'text_stem',
-                        values: [
-                            { value: 'original', name: 'Original text' },
-                            { value: 'stemmer', name: 'Stemmed text' },
-                        ],
-                    },
-                    text_fields: {
-                        type: 'radio',
-                        label: 'Which fields should be searched:',
-                        model: 'text_fields',
-                        values: [
-                            { value: 'text', name: 'Text only' },
-                            { value: 'title', name: 'Title only' },
-                            { value: 'all', name: 'Text and title' },
-                        ],
-                    },
-                    text_combination: {
-                        type: 'radio',
-                        label: 'Word combination options:',
-                        model: 'text_combination',
-                        values: [
-                            { value: 'any', name: 'Match any words' },
-                            { value: 'all', name: 'Match all words' },
-                            { value: 'phrase', name: 'Match all words in correct order (not compatible with wildcards)' },
-                        ],
-                    },
-                    meter: this.createMultiSelect('Meter'),
-                    subject: this.createMultiSelect('Subject'),
-                    keyword: this.createMultiSelect('Keyword'),
-                    person: this.createMultiSelect('Person'),
-                    role: this.createMultiSelect('Role', {dependency: 'person'}),
-                    genre: this.createMultiSelect('Genre'),
-                    acknowledgement: this.createMultiSelect('Acknowledgement'),
-                    comment: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Comment',
-                        model: 'comment',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    dbbe: this.createMultiSelect(
-                        'Text source DBBE',
-                        {
-                            model: 'dbbe',
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return name === 'true' ? 'Yes' : 'No'
-                            },
-                        }
-                    )
-                }
+                fields: {},
             },
             tableOptions: {
                 headings: {
@@ -366,9 +304,78 @@ export default {
                 type: {},
             },
             defaultOrdering: 'incipit',
-        }
+        };
 
-        // Add view internal only fields
+        // Add fields
+        data.schema.fields['text'] = {
+            type: 'input',
+            inputType: 'text',
+            styleClasses: 'greek',
+            labelClasses: 'control-label',
+            label: 'Text',
+            model: 'text'
+        };
+        if (this.isViewInternal) {
+            data.schema.fields['text_stem'] = {
+                type: 'radio',
+                styleClasses: 'has-warning',
+                label: 'Stemmer options:',
+                labelClasses: 'control-label',
+                model: 'text_stem',
+                values: [
+                    {value: 'original', name: 'Original text'},
+                    {value: 'stemmer', name: 'Stemmed text'},
+                ],
+            };
+        }
+        data.schema.fields['text_fields'] = {
+            type: 'radio',
+            label: 'Which fields should be searched:',
+            labelClasses: 'control-label',
+            model: 'text_fields',
+            values: [
+                { value: 'text', name: 'Text only' },
+                { value: 'title', name: 'Title only' },
+                { value: 'all', name: 'Text and title' },
+            ],
+        };
+        data.schema.fields['text_combination'] = {
+            type: 'radio',
+            label: 'Word combination options:',
+            labelClasses: 'control-label',
+            model: 'text_combination',
+            values: [
+                { value: 'any', name: 'Match any words' },
+                { value: 'all', name: 'Match all words' },
+                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
+            ],
+        };
+        data.schema.fields['meter'] = this.createMultiSelect('Meter');
+        data.schema.fields['subject'] = this.createMultiSelect('Subject');
+        data.schema.fields['keyword'] = this.createMultiSelect('Keyword');
+        data.schema.fields['person'] = this.createMultiSelect('Person');
+        data.schema.fields['role'] = this.createMultiSelect('Role', {dependency: 'person'});
+        data.schema.fields['genre'] = this.createMultiSelect('Genre');
+        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
+        data.schema.fields['comment'] = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Comment',
+            labelClasses: 'control-label',
+            model: 'comment',
+            validator: VueFormGenerator.validators.string,
+        };
+        data.schema.fields['dbbe'] = this.createMultiSelect(
+            'Text source DBBE',
+            {
+                model: 'dbbe',
+            },
+            {
+                customLabel: ({id, name}) => {
+                    return name === 'true' ? 'Yes' : 'No'
+                },
+            }
+        );
         if (this.isViewInternal) {
             data.schema.fields['text_status'] = this.createMultiSelect(
                 'Text Status',
@@ -376,14 +383,14 @@ export default {
                     model: 'text_status',
                     styleClasses: 'has-warning',
                 }
-            )
+            );
             data.schema.fields['critical_status'] = this.createMultiSelect(
                 'Editorial Status',
                 {
                     model: 'critical_status',
                     styleClasses: 'has-warning',
                 }
-            )
+            );
             data.schema.fields['public'] = this.createMultiSelect(
                 'Public',
                 {
@@ -394,14 +401,14 @@ export default {
                         return name === 'true' ? 'Public only' : 'Internal only'
                     },
                 }
-            )
+            );
             data.schema.fields['management'] = this.createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
                     styleClasses: 'has-warning',
                 }
-            )
+            );
             data.schema.fields['management_inverse'] = {
                 type: 'checkbox',
                 styleClasses: 'has-warning',
@@ -424,7 +431,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['id', 'incipit', 'number_of_occurrences']
+            let columns = ['id', 'incipit', 'number_of_occurrences'];
             if (this.textSearch) {
                 columns.unshift('text')
             }
@@ -432,7 +439,7 @@ export default {
                 columns.unshift('comment')
             }
             if (this.isViewInternal) {
-                columns.push('actions')
+                columns.push('actions');
                 columns.push('c')
             }
             return columns
@@ -443,23 +450,23 @@ export default {
             this.submitModel.type = {
                 id: row.id,
                 name: row.incipit,
-            }
+            };
             AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
-            this.openRequests++
-            this.deleteModal = false
+            this.openRequests++;
+            this.deleteModal = false;
             axios.delete(this.urls['type_delete'].replace('type_id', this.submitModel.type.id))
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Type deleted successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the type.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the type.'});
                     console.log(error)
                 })
         },

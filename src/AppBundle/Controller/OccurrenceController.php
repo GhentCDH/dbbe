@@ -41,6 +41,7 @@ class OccurrenceController extends BaseController
                 'login' => $this->generateUrl('login'),
                 'managements_add' => $this->generateUrl('occurrences_managements_add'),
                 'managements_remove' => $this->generateUrl('occurrences_managements_remove'),
+                'help' => $this->generateUrl('page_get', ['slug' => 'help']),
             ]),
             'data' => json_encode(
                 $this->get('occurrence_elastic_service')->searchAndAggregate(

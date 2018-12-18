@@ -3,21 +3,24 @@
         <div class="col-xs-12">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
-                    class="form-group">
+                    class="form-group"
+                >
                     <button
                         class="btn btn-block"
-                        @click="resetAllFilters">
+                        @click="resetAllFilters"
+                    >
                         Reset all filters
                     </button>
                 </div>
                 <div class="form-group">
-                    <a href="/pages/help">More information about the text search options.</a>
+                    <a :href="urls['help']" class="action"><i class="fa fa-info-circle" /> More information about the text search options.</a>
                 </div>
                 <vue-form-generator
                     ref="form"
@@ -25,13 +28,15 @@
                     :model="model"
                     :options="formOptions"
                     @model-updated="modelUpdated"
-                    @validated="onValidated" />
+                    @validated="onValidated"
+                />
             </div>
         </aside>
         <article class="col-sm-9 search-page">
             <div
                 v-if="countRecords"
-                class="count-records">
+                class="count-records"
+            >
                 <h6>{{ countRecords }}</h6>
             </div>
             <div
@@ -58,72 +63,93 @@
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData"
-                @loaded="onLoaded">
+                @loaded="onLoaded"
+            >
                 <span
                     slot="text"
                     slot-scope="props"
-                    class="greek">
+                    class="greek"
+                >
                     <template v-if="props.row.title">
                         <ol type="A">
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.title"
                                 :key="index"
                                 value="20"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                     <template v-if="props.row.text">
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.text"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                 </span>
                 <template
                     slot="comment"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <template v-if="props.row.paleographical_info">
                         <em>Paleographical info</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.paleographical_info"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                     <template v-if="props.row.contextual_info">
                         <em>Contextual info</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.contextual_info"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                     <template v-if="props.row.public_comment">
                         <em v-if="isViewInternal">Public comment</em>
                         <em v-else>Comment</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
                         <em>Private comment</em>
                         <ol>
+                            <!-- eslint-disable vue/no-v-html -->
                             <li
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="item"
+                            />
+                            <!-- eslint-enable -->
                         </ol>
                     </template>
                 </template>
@@ -139,18 +165,21 @@
                     slot-scope="props"
                     :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
                     class="greek"
-                    v-html="props.row.incipit" />
+                    v-html="props.row.incipit"
+                />
                 <a
                     v-if="props.row.manuscript"
                     slot="manuscript"
                     slot-scope="props"
-                    :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)">
+                    :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)"
+                >
                     {{ props.row.manuscript.name }} ({{ props.row.location }})
                 </a>
                 <template
                     v-if="props.row.date_floor_year && props.row.date_ceiling_year"
                     slot="date"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
                         {{ props.row.date_floor_year }}
                     </template>
@@ -160,18 +189,21 @@
                 </template>
                 <template
                     slot="actions"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <a
                         :href="urls['occurrence_edit'].replace('occurrence_id', props.row.id)"
                         class="action"
-                        title="Edit">
+                        title="Edit"
+                    >
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
                         href="#"
                         class="action"
                         title="Delete"
-                        @click.prevent="del(props.row)">
+                        @click.prevent="del(props.row)"
+                    >
                         <i class="fa fa-trash-o" />
                     </a>
                 </template>
@@ -211,7 +243,7 @@
             </div>
             <collectionManager
                 v-if="isViewInternal"
-                :collectionArray="collectionArray"
+                :collection-array="collectionArray"
                 :managements="managements"
                 @addManagementsToSelection="addManagementsToSelection"
                 @removeManagementsFromSelection="removeManagementsFromSelection"
@@ -230,10 +262,12 @@
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
             @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            @confirm="submitDelete()"
+        />
         <div
             v-if="openRequests"
-            class="loading-overlay">
+            class="loading-overlay"
+        >
             <div class="spinner" />
         </div>
     </div>
@@ -250,7 +284,7 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
 import fieldRadio from '../Components/FormFields/fieldRadio'
 
-Vue.component('fieldRadio', fieldRadio)
+Vue.component('fieldRadio', fieldRadio);
 
 export default {
     mixins: [
@@ -265,87 +299,7 @@ export default {
                 text_combination: 'any',
             },
             schema: {
-                fields: {
-                    text: {
-                        type: 'input',
-                        inputType: 'text',
-                        styleClasses: 'greek',
-                        label: 'Text',
-                        model: 'text'
-                    },
-                    text_stem: {
-                        type: 'radio',
-                        label: 'Stemmer options:',
-                        model: 'text_stem',
-                        values: [
-                            { value: 'original', name: 'Original text' },
-                            { value: 'stemmer', name: 'Stemmed text' },
-                        ],
-                    },
-                    text_fields: {
-                        type: 'radio',
-                        label: 'Which fields should be searched:',
-                        model: 'text_fields',
-                        values: [
-                            { value: 'text', name: 'Text only' },
-                            { value: 'title', name: 'Title only' },
-                            { value: 'all', name: 'Text and title' },
-                        ],
-                    },
-                    text_combination: {
-                        type: 'radio',
-                        label: 'Word combination options:',
-                        model: 'text_combination',
-                        values: [
-                            { value: 'any', name: 'Match any words' },
-                            { value: 'all', name: 'Match all words' },
-                            { value: 'phrase', name: 'Match all words in correct order (not compatible with wildcards)' },
-                        ],
-                    },
-                    meter: this.createMultiSelect('Meter'),
-                    subject: this.createMultiSelect('Subject'),
-                    manuscript_content: this.createMultiSelect('Manuscript Content', {model: 'manuscript_content'}),
-                    person: this.createMultiSelect('Person'),
-                    role: this.createMultiSelect('Role', {dependency: 'person'}),
-                    year_from: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Year from',
-                        model: 'year_from',
-                        min: AbstractSearch.YEAR_MIN,
-                        max: AbstractSearch.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number,
-                    },
-                    year_to: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Year to',
-                        model: 'year_to',
-                        min: AbstractSearch.YEAR_MIN,
-                        max: AbstractSearch.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number,
-                    },
-                    genre: this.createMultiSelect('Genre'),
-                    acknowledgement: this.createMultiSelect('Acknowledgement'),
-                    comment: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Comment',
-                        model: 'comment',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                    dbbe: this.createMultiSelect(
-                        'Transcribed by DBBE',
-                        {
-                            model: 'dbbe',
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return name === 'true' ? 'Yes' : 'No'
-                            },
-                        }
-                    )
-                }
+                fields: {},
             },
             tableOptions: {
                 headings: {
@@ -373,9 +327,98 @@ export default {
                 occurrence: {},
             },
             defaultOrdering: 'incipit',
-        }
+        };
 
-        // Add view internal only fields
+        // Add fields
+        data.schema.fields['text'] = {
+            type: 'input',
+            inputType: 'text',
+            styleClasses: 'greek',
+            labelClasses: 'control-label',
+            label: 'Text',
+            model: 'text'
+        };
+        if (this.isViewInternal) {
+            data.schema.fields['text_stem'] = {
+                type: 'radio',
+                styleClasses: 'has-warning',
+                label: 'Stemmer options:',
+                labelClasses: 'control-label',
+                model: 'text_stem',
+                values: [
+                    {value: 'original', name: 'Original text'},
+                    {value: 'stemmer', name: 'Stemmed text'},
+                ],
+            };
+        }
+        data.schema.fields['text_fields'] = {
+            type: 'radio',
+            label: 'Which fields should be searched:',
+            labelClasses: 'control-label',
+            model: 'text_fields',
+            values: [
+                { value: 'text', name: 'Text only' },
+                { value: 'title', name: 'Title only' },
+                { value: 'all', name: 'Text and title' },
+            ],
+        };
+        data.schema.fields['text_combination'] = {
+            type: 'radio',
+            label: 'Word combination options:',
+            labelClasses: 'control-label',
+            model: 'text_combination',
+            values: [
+                { value: 'any', name: 'Match any words' },
+                { value: 'all', name: 'Match all words' },
+                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
+            ],
+        };
+        data.schema.fields['meter'] = this.createMultiSelect('Meter');
+        data.schema.fields['subject'] = this.createMultiSelect('Subject');
+        data.schema.fields['manuscript_content'] = this.createMultiSelect('Manuscript Content', {model: 'manuscript_content'});
+        data.schema.fields['person'] = this.createMultiSelect('Person');
+        data.schema.fields['role'] = this.createMultiSelect('Role', {dependency: 'person'});
+        data.schema.fields['year_from'] = {
+            type: 'input',
+            inputType: 'number',
+            label: 'Year from',
+            labelClasses: 'control-label',
+            model: 'year_from',
+            min: AbstractSearch.YEAR_MIN,
+            max: AbstractSearch.YEAR_MAX,
+            validator: VueFormGenerator.validators.number,
+        };
+        data.schema.fields['year_to'] = {
+            type: 'input',
+            inputType: 'number',
+            label: 'Year to',
+            labelClasses: 'control-label',
+            model: 'year_to',
+            min: AbstractSearch.YEAR_MIN,
+            max: AbstractSearch.YEAR_MAX,
+            validator: VueFormGenerator.validators.number,
+        };
+        data.schema.fields['genre'] = this.createMultiSelect('Genre');
+        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
+        data.schema.fields['comment'] = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Comment',
+            labelClasses: 'control-label',
+            model: 'comment',
+            validator: VueFormGenerator.validators.string,
+        };
+        data.schema.fields['dbbe'] = this.createMultiSelect(
+            'Transcribed by DBBE',
+            {
+                model: 'dbbe',
+            },
+            {
+                customLabel: ({id, name}) => {
+                    return name === 'true' ? 'Yes' : 'No'
+                },
+            }
+        );
         if (this.isViewInternal) {
             data.schema.fields['text_status'] = this.createMultiSelect(
                 'Text Status',
@@ -383,7 +426,7 @@ export default {
                     model: 'text_status',
                     styleClasses: 'has-warning',
                 }
-            )
+            );
             data.schema.fields['public'] = this.createMultiSelect(
                 'Public',
                 {
@@ -394,14 +437,14 @@ export default {
                         return name === 'true' ? 'Public only' : 'Internal only'
                     },
                 }
-            )
+            );
             data.schema.fields['management'] = this.createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
                     styleClasses: 'has-warning',
                 }
-            )
+            );
             data.schema.fields['management_inverse'] = {
                 type: 'checkbox',
                 styleClasses: 'has-warning',
@@ -424,7 +467,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['id', 'incipit', 'manuscript', 'date']
+            let columns = ['id', 'incipit', 'manuscript', 'date'];
             if (this.textSearch) {
                 columns.unshift('text')
             }
@@ -432,7 +475,7 @@ export default {
                 columns.unshift('comment')
             }
             if (this.isViewInternal) {
-                columns.push('actions')
+                columns.push('actions');
                 columns.push('c')
             }
             return columns
@@ -443,23 +486,23 @@ export default {
             this.submitModel.occurrence = {
                 id: row.id,
                 name: row.incipit,
-            }
+            };
             AbstractListEdit.methods.deleteDependencies.call(this)
         },
         submitDelete() {
-            this.openRequests++
-            this.deleteModal = false
+            this.openRequests++;
+            this.deleteModal = false;
             axios.delete(this.urls['occurrence_delete'].replace('occurrence_id', this.submitModel.occurrence.id))
-                .then((response) => {
+                .then(() => {
                     // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests--;
                     this.alerts.push({type: 'success', message: 'Occurrence deleted successfully.'})
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the occurrence.'})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the occurrence.'});
                     console.log(error)
                 })
         },
