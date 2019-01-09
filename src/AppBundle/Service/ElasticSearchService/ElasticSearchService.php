@@ -588,15 +588,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $text = $value['text'];
 
         // Check if user does not use advanced syntax
-        if (preg_match('/[+|\-"()]/', $text) === 0) {
+        if (preg_match('/AND|OR|[\/~\-"()]/', $text) === 0) {
             if ($value['combination'] == 'phrase') {
-                if (preg_match('/[*]/', $text) === 0) {
+                if (preg_match('/[*?]/', $text) === 0) {
                     $text = '"' . $text . '"';
                 } else {
-                    $text = implode(' + ', explode(' ', $text));
+                    $text = implode(' AND ', explode(' ', $text));
                 }
             } elseif ($value['combination'] == 'all') {
-                $text = implode(' + ', explode(' ', $text));
+                $text = implode(' AND ', explode(' ', $text));
             }
         }
 
