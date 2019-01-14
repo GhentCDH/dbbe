@@ -231,11 +231,13 @@
                                                             <span>Regions</span>
                                                           </a>
                                                         </li>
-                                                        <li>
-                                                          <a href="{{ path('roles_edit') }}">
-                                                            <span>Roles</span>
-                                                          </a>
-                                                        </li>
+                                                        {% if is_granted('ROLE_ADMIN') %}
+                                                            <li>
+                                                                <a href="{{ path('roles_edit') }}">
+                                                                    <span>Roles</span>
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
                                                         <li>
                                                           <a href="{{ path('statuses_edit') }}">
                                                             <span>Statuses</span>
