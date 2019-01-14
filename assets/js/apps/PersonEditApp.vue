@@ -1,48 +1,56 @@
 <template>
     <div>
         <article
+            ref="target"
             class="col-sm-9 mbottom-large"
-            ref="target">
+        >
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
                 :type="item.type"
                 dismissible
-                @dismissed="alerts.splice(index, 1)">
+                @dismissed="alerts.splice(index, 1)"
+            >
                 {{ item.message }}
             </alert>
 
             <basicPersonPanel
                 id="basic"
+                ref="basic"
                 header="Basic Information"
                 :link="{url: urls['origins_edit'], text: 'Edit origins'}"
                 :model="model.basic"
                 :values="origins"
                 @validated="validated"
-                ref="basic" />
+            />
 
             <datePanel
                 id="bornDate"
+                ref="bornDate"
                 header="Date of birth"
                 :model="model.bornDate"
+                :invalid-combo="invalidDateCombo"
                 key-group="bornDate"
                 group-label="Born"
                 @validated="validated"
-                ref="bornDate" />
+            />
 
             <datePanel
                 id="deathDate"
+                ref="deathDate"
                 header="Date of death"
+                :model="model.deathDate"
+                :invalid-combo="invalidDateCombo"
                 key-group="deathDate"
                 group-label="Death"
-                :model="model.deathDate"
                 @validated="validated"
-                ref="deathDate" />
+            />
 
             <panel
-                id="unknownDate"
                 v-if="model.unknownDate || model.unknownInterval"
-                header="Unkown date or interval">
+                id="unknownDate"
+                header="Unkown date or interval"
+            >
                 <p v-if="model.unknownDate">
                     Unknown date: {{ model.unknownDate }}
                 </p>
@@ -53,35 +61,39 @@
 
             <identificationPanel
                 id="identification"
+                ref="identification"
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
                 @validated="validated"
-                ref="identification" />
+            />
 
             <officePanel
                 id="offices"
+                ref="offices"
                 header="Offices"
                 :link="{url: urls['offices_edit'], text: 'Edit offices'}"
                 :model="model.offices"
                 :values="offices"
                 @validated="validated"
-                ref="offices" />
+            />
 
             <bibliographyPanel
                 id="bibliography"
+                ref="bibliography"
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
                 @validated="validated"
-                ref="bibliography" />
+            />
 
             <generalPersonPanel
                 id="general"
+                ref="general"
                 header="General"
                 :model="model.general"
                 @validated="validated"
-                ref="general" />
+            />
 
             <managementPanel
                 id="managements"
@@ -97,31 +109,36 @@
                 id="actions"
                 type="warning"
                 :disabled="diff.length === 0"
-                @click="resetModal=true">
+                @click="resetModal=true"
+            >
                 Reset
             </btn>
             <btn
                 v-if="person"
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save changes
             </btn>
             <btn
                 v-else
                 type="success"
                 :disabled="(diff.length === 0)"
-                @click="saveButton()">
+                @click="saveButton()"
+            >
                 Save
             </btn>
             <btn
                 :disabled="(diff.length !== 0)"
-                @click="reload()">
+                @click="reload()"
+            >
                 Refresh all data
             </btn>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -132,7 +149,8 @@
                 role="navigation"
                 class="padding-default bg-tertiary"
                 :class="{stick: isSticky}"
-                :style="stickyStyle">
+                :style="stickyStyle"
+            >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic Information</a></li>
@@ -152,11 +170,13 @@
             title="person"
             :show="resetModal"
             @cancel="resetModal=false"
-            @confirm="reset()" />
+            @confirm="reset()"
+        />
         <invalidModal
             :show="invalidModal"
             @cancel="invalidModal=false"
-            @confirm="invalidModal=false" />
+            @confirm="invalidModal=false"
+        />
         <saveModal
             title="person"
             :show="saveModal"
@@ -164,7 +184,8 @@
             :alerts="saveAlerts"
             @cancel="cancelSave()"
             @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)" />
+            @dismiss-alert="saveAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -173,10 +194,10 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|Bibliography|GeneralPerson|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicPerson|Date|Identification|Office|Bibliography|GeneralPerson|Management)[.]vue$/);
 
 for(let key of panelComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
+    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '');
     Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
 }
 
@@ -237,6 +258,7 @@ export default {
                 },
                 managements: {managements: null},
             },
+            invalidDateCombo: false,
             forms: [
                 'basic',
                 'bornDate',
@@ -247,29 +269,39 @@ export default {
                 'general',
                 'managements',
             ],
-        }
+        };
         for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
+            data.model.identification[identifier.systemName] = null;
             if (identifier.extra) {
                 data.model.identification[identifier.systemName + '_extra'] = null
             }
         }
         return data
     },
+    watch: {
+        'model.bornDate.floorYear'() {this.validateDate()},
+        'model.bornDate.floorDayMonth'() {this.validateDate()},
+        'model.bornDate.ceilingYear'() {this.validateDate()},
+        'model.bornDate.ceilingDayMonth'() {this.validateDate()},
+        'model.deathDate.floorYear'() {this.validateDate()},
+        'model.deathDate.floorDayMonth'() {this.validateDate()},
+        'model.deathDate.ceilingYear'() {this.validateDate()},
+        'model.deathDate.ceilingDayMonth'() {this.validateDate()},
+    },
     created () {
-        this.person = this.data.person
-        this.offices = this.data.offices
-        this.origins = this.data.origins
+        this.person = this.data.person;
+        this.offices = this.data.offices;
+        this.origins = this.data.origins;
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
-        }
+        };
         this.managements = this.data.managements
     },
     mounted () {
-        this.loadPerson()
+        this.loadPerson();
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
@@ -287,7 +319,7 @@ export default {
                     unprocessed: this.person.unprocessed,
                     historical: this.person.historical,
                     modern: this.person.modern,
-                }
+                };
 
                 // Born date
                 this.model.bornDate = {
@@ -299,7 +331,7 @@ export default {
                     floorDayMonth: null,
                     ceilingYear: null,
                     ceilingDayMonth: null,
-                }
+                };
 
                 // Death date
                 this.model.deathDate = {
@@ -311,16 +343,16 @@ export default {
                     floorDayMonth: null,
                     ceilingYear: null,
                     ceilingDayMonth: null,
-                }
+                };
 
                 // Unkown date and interval
-                this.model.unknownDate = this.person.unknownDate
-                this.model.unknownInterval = this.person.unknownInterval
+                this.model.unknownDate = this.person.unknownDate;
+                this.model.unknownInterval = this.person.unknownInterval;
 
                 // Identification
-                this.model.identification = {}
+                this.model.identification = {};
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.person.identifications != null ? this.person.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.person.identifications != null ? this.person.identifications[identifier.systemName] : null;
                     if (identifier.extra) {
                         this.model.identification[identifier.systemName + '_extra'] = this.person.identifications != null ? this.person.identifications[identifier.systemName + '_extra'] : null
                     }
@@ -329,7 +361,7 @@ export default {
                 // Identification
                 this.model.offices = {
                     offices: this.person.office
-                }
+                };
 
                 // Bibliography
                 this.model.bibliography = {
@@ -337,21 +369,21 @@ export default {
                     articles: [],
                     bookChapters: [],
                     onlineSources: [],
-                }
+                };
                 if (this.person.bibliography != null) {
                     for (let bib of this.person.bibliography) {
                         switch (bib['type']) {
                         case 'book':
-                            this.model.bibliography.books.push(bib)
-                            break
+                            this.model.bibliography.books.push(bib);
+                            break;
                         case 'article':
-                            this.model.bibliography.articles.push(bib)
-                            break
+                            this.model.bibliography.articles.push(bib);
+                            break;
                         case 'bookChapter':
-                            this.model.bibliography.bookChapters.push(bib)
-                            break
+                            this.model.bibliography.bookChapters.push(bib);
+                            break;
                         case 'onlineSource':
-                            this.model.bibliography.onlineSources.push(bib)
+                            this.model.bibliography.onlineSources.push(bib);
                             break
                         }
                     }
@@ -362,7 +394,7 @@ export default {
                     publicComment: this.person.publicComment,
                     privateComment: this.person.privateComment,
                     public: this.person.public,
-                }
+                };
 
                 // Management
                 this.model.managements = {
@@ -375,34 +407,57 @@ export default {
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
+        validateDate() {
+            this.invalidDateCombo = (
+                (this.getFloorDate(this.model.bornDate) > this.getFloorDate(this.model.deathDate))
+                || (this.getCeilingDate(this.model.bornDate) > this.getCeilingDate(this.model.deathDate))
+            );
+            // revalidate both born and death form
+            Vue.nextTick(function() {
+                this.$refs.bornDate.validate();
+                this.$refs.deathDate.validate();
+            }, this);
+        },
+        getCeilingDate(date) {
+            if (date.ceilingDayMonth == null) {
+                date.ceilingDayMonth = '31/12';
+            }
+            return date.ceilingYear + date.ceilingDayMonth.substring(3,5) + date.ceilingDayMonth.substring(0,2);
+        },
+        getFloorDate(date) {
+            if (date.floorDayMonth == null) {
+                date.floorDayMonth = '01/01';
+            }
+            return date.floorYear + date.floorDayMonth.substring(3,5) + date.floorDayMonth.substring(0,2);
+        },
         save() {
-            this.openRequests++
-            this.saveModal = false
+            this.openRequests++;
+            this.saveModal = false;
             if (this.person == null) {
                 axios.post(this.urls['person_post'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
                         window.location = this.urls['person_get'].replace('person_id', response.data.id)
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the person data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the person data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }
             else {
                 axios.put(this.urls['person_put'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
                         window.location = this.urls['person_get']
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the person data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the person data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }

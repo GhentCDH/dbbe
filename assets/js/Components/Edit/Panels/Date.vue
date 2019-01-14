@@ -20,11 +20,11 @@ import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
+Vue.use(VueFormGenerator);
+Vue.component('panel', Panel);
 
-var YEAR_MIN = 1
-var YEAR_MAX = (new Date()).getFullYear()
+const YEAR_MIN = 1;
+const YEAR_MAX = (new Date()).getFullYear();
 
 export default {
     mixins: [
@@ -39,6 +39,14 @@ export default {
         groupLabel: {
             type: String,
             default: null,
+        },
+        invalidCombo: {
+            type: Boolean,
+            default: false,
+        },
+        invalidComboText: {
+            type: String,
+            default: 'Date of birth must be earlier than date of death.',
         },
     },
     data() {
@@ -69,7 +77,7 @@ export default {
                         required: this.floorDayMonth != null,
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: [VueFormGenerator.validators.number, VueFormGenerator.validators.required],
+                        validator: [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.comboError],
                     },
                     floorDayMonth: {
                         type: 'input',
@@ -77,7 +85,7 @@ export default {
                         label: 'Day from',
                         labelClasses: 'control-label',
                         model: 'floorDayMonth',
-                        validator: [VueFormGenerator.validators.regexp],
+                        validator: [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.comboError],
                         pattern: '^\\d{2}[/]\\d{2}$',
                         help: 'Please use the format "DD/MM", e.g. 24/03.',
                     },
@@ -89,7 +97,7 @@ export default {
                         model: 'ceilingYear',
                         min: YEAR_MIN,
                         max: YEAR_MAX,
-                        validator: VueFormGenerator.validators.number,
+                        validator: [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.comboError],
                     },
                     ceilingDayMonth: {
                         type: 'input',
@@ -98,7 +106,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'ceilingDayMonth',
                         required: this.ceilingYear != null,
-                        validator: [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required],
+                        validator: [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.comboError],
                         pattern: '^\\d{2}[/]\\d{2}$',
                         help: 'Please use the format "DD/MM", e.g. 24/03.',
                     },
@@ -107,7 +115,7 @@ export default {
         }
     },
     watch: {
-        'model.exactDate': function (newValue, oldValue) {
+        'model.exactDate' () {
             if (this.model.exactDate == null) {
                 return
             }
@@ -118,7 +126,7 @@ export default {
             }
 
             // Year will be handled by exactYear
-            this.schema.fields.ceilingDayMonth.disabled = this.model.exactDate
+            this.schema.fields.ceilingDayMonth.disabled = this.model.exactDate;
             if (this.model.floorDayMonth == null && this.model.ceilingDayMonth != null) {
                 this.model.floorDayMonth = this.model.ceilingDayMonth
             }
@@ -126,12 +134,12 @@ export default {
                 this.model.ceilingDayMonth = this.model.floorDayMonth
             }
         },
-        'model.exactYear': function (newValue, oldValue) {
+        'model.exactYear' () {
             if (this.model.exactYear == null) {
                 return
             }
 
-            this.schema.fields.ceilingYear.disabled = this.model.exactYear
+            this.schema.fields.ceilingYear.disabled = this.model.exactYear;
             if (this.model.floorYear == null && this.model.ceilingYear != null) {
                 this.model.floorYear = this.model.ceilingYear
             }
@@ -140,15 +148,15 @@ export default {
             }
 
             if (this.model.exactYear) {
-                this.schema.fields.ceilingYear.min = YEAR_MIN
-                this.schema.fields.floorYear.max = YEAR_MAX
+                this.schema.fields.ceilingYear.min = YEAR_MIN;
+                this.schema.fields.floorYear.max = YEAR_MAX;
                 this.$refs.form.validate()
             }
         },
-        'model.floor': function (newValue, oldValue) {
+        'model.floor' () {
             this.updateFieldsFromModel('floor')
         },
-        'model.floorYear': function (newValue, oldValue) {
+        'model.floorYear' () {
             if (this.model.floorYear === this.model.ceilingYear && this.model.floorYear != null) {
                 this.model.exactYear = true
             }
@@ -167,7 +175,7 @@ export default {
 
             this.$refs.form.validate()
         },
-        'model.floorDayMonth': function (newValue, oldValue) {
+        'model.floorDayMonth' () {
             if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
                 this.model.exactDate = true
             }
@@ -178,10 +186,10 @@ export default {
 
             this.$refs.form.validate()
         },
-        'model.ceiling': function (newValue, oldValue) {
+        'model.ceiling' () {
             this.updateFieldsFromModel('ceiling')
         },
-        'model.ceilingYear': function (newValue, oldValue) {
+        'model.ceilingYear' () {
             if (this.model.floorYear === this.model.ceilingYear && this.model.floorYear != null) {
                 this.model.exactYear = true
             }
@@ -197,7 +205,7 @@ export default {
 
             this.$refs.form.validate()
         },
-        'model.ceilingDayMonth': function (newValue, oldValue) {
+        'model.ceilingDayMonth' () {
             if (this.model.exactYear && this.model.floorDayMonth === this.model.ceilingDayMonth && this.model.floorDayMonth != null) {
                 this.model.exactDate = true
             }
@@ -206,7 +214,7 @@ export default {
     },
     methods: {
         calcChanges() {
-            this.changes = []
+            this.changes = [];
             if (this.originalModel == null) {
                 return
             }
@@ -230,7 +238,7 @@ export default {
             }
         },
         formatDateComputer(year, dayMonth, key) {
-            let defaultDayMonth = key === 'floor' ? '01-01' : '12-31'
+            let defaultDayMonth = key === 'floor' ? '01-01' : '12-31';
             if (year == null) {
                 return null
             }
@@ -240,7 +248,7 @@ export default {
             return year + '-' + dayMonth.substr(3,2) + '-' + dayMonth.substr(0,2)
         },
         formatDateHuman(year, dayMonth, key) {
-            let defaultDayMonth = key === 'floor' ? '01/01' : '31/12'
+            let defaultDayMonth = key === 'floor' ? '01/01' : '31/12';
             if (year == null) {
                 return null
             }
@@ -252,47 +260,53 @@ export default {
         updateFieldsFromModel(key) {
             if (this.model[key] != null) {
                 // date in format 'YYYY-MM-DDTHH:mm:ss'
-                let dateString = (new Date(this.model[key])).toISOString()
-                this.model[key + 'Year'] = Number(dateString.substr(0, 4))
+                let dateString = (new Date(this.model[key])).toISOString();
+                this.model[key + 'Year'] = Number(dateString.substr(0, 4));
                 this.model[key + 'DayMonth'] = dateString.substr(8, 2) + '/' + dateString.substr(5, 2)
             }
             else {
-                this.model[key + 'Year'] = null
+                this.model[key + 'Year'] = null;
                 this.model[key + 'DayMonth'] = null
             }
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
-        validated(isValid, errors) {
+        validated(isValid) {
             for (let key of ['floor', 'ceiling']) {
                 // fix NaN
                 if (isNaN(this.model[key + 'Year'])) {
-                    this.model[key + 'Year'] = null
-                    this.$refs.form.validate()
+                    this.model[key + 'Year'] = null;
+                    this.$refs.form.validate();
                     return
                 }
                 // fix empty DayMonth values
                 if (this.model[key + 'DayMonth'] === '') {
-                    this.model[key + 'DayMonth'] = null
-                    this.$refs.form.validate()
+                    this.model[key + 'DayMonth'] = null;
+                    this.$refs.form.validate();
                     return
                 }
                 // check if the complete date actually exists
                 if (isValid && this.model[key + 'DayMonth'] != null) {
-                    let date = new Date(this.model[key + 'Year'] + '-' + this.model[key + 'DayMonth'].substr(3,2) + '-' + this.model[key + 'DayMonth'].substr(0,2))
+                    let date = new Date(this.model[key + 'Year'] + '-' + this.model[key + 'DayMonth'].substr(3,2) + '-' + this.model[key + 'DayMonth'].substr(0,2));
                     if (isNaN(date)) {
                         this.$refs.form.errors.push({
                             error: 'Invalid date',
                             field: this.schema.fields[key + 'DayMonth'],
-                        })
-                        this.isValid = false
+                        });
+                        this.isValid = false;
                         return
                     }
                 }
             }
 
-            this.isValid = isValid
-            this.calcChanges()
+            this.isValid = isValid;
+            this.calcChanges();
             this.$emit('validated', isValid, this.errors, this)
+        },
+        comboError() {
+            if (this.invalidCombo) {
+                return [this.invalidComboText];
+            }
+            return [];
         }
     }
 }
