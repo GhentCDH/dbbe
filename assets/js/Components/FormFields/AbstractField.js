@@ -83,7 +83,7 @@ export default {
             }
 
             field.selectOptions.loading = false
-            field.disabled = false
+            field.disabled = field.originalDisabled == null ? false : field.originalDisabled;
             let label = field.label.toLowerCase()
             let article = ['office', 'origin', 'editorial status'].indexOf(label) < 0 ? 'a ' : 'an '
             field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label

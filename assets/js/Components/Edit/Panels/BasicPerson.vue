@@ -39,10 +39,22 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
-    data() {
+    data: function () {
         return {
             schema: {
                 fields: {
+                    historical: {
+                        type: 'checkbox',
+                        label: 'Historical',
+                        labelClasses: 'control-label',
+                        model: 'historical',
+                    },
+                    modern: {
+                        type: 'checkbox',
+                        label: 'Modern',
+                        labelClasses: 'control-label',
+                        model: 'modern',
+                    },
                     firstName: {
                         type: 'input',
                         inputType: 'text',
@@ -65,12 +77,22 @@ export default {
                         label: 'Self designation',
                         labelClasses: 'control-label',
                         model: 'selfDesignations',
-                        validator: [VueFormGenerator.validators.string],
-                        hint: 'Comma separated list',
+                        validator: [VueFormGenerator.validators.regexp],
+                        pattern: '^(?:(?:[\\u0370-\\u03ff\\u1f00-\\u1fff]+)[,])*(?:[\\u0370-\\u03ff\\u1f00-\\u1fff]+)$',
+                        hint: 'Greek text only; comma (,) separated list. E.g., ελληνικά,καλημέρα',
+                        disabled: (model) => {
+                            return model && !model.historical;
+                        },
                     },
-                    origin:  this.createMultiSelect(
+                    origin: this.createMultiSelect(
                         'Origin',
-                        {values: this.values}
+                        {
+                            values: this.values,
+                            originalDisabled: (model) => {
+                                return model && !model.historical;
+                            },
+                        }
+
                     ),
                     extra: {
                         type: 'input',
@@ -79,6 +101,9 @@ export default {
                         labelClasses: 'control-label',
                         model: 'extra',
                         validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
+                        disabled: (model) => {
+                            return model && !model.historical;
+                        },
                     },
                     unprocessed: {
                         type: 'input',
@@ -88,18 +113,6 @@ export default {
                         model: 'unprocessed',
                         disabled: true,
                     },
-                    historical: {
-                        type: 'checkbox',
-                        label: 'Historical',
-                        labelClasses: 'control-label',
-                        model: 'historical',
-                    },
-                    modern: {
-                        type: 'checkbox',
-                        label: 'Modern',
-                        labelClasses: 'control-label',
-                        model: 'modern',
-                    },
                 }
             },
         }
@@ -108,6 +121,42 @@ export default {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.origin)
+        },
+        calcChanges() {
+            this.changes = []
+            if (this.originalModel == null) {
+                return
+            }
+            for (let key of Object.keys(this.model)) {
+                // Remove selfdesignations, origin or extra if not historical
+                if (!this.model.historical && ['selfDesignations', 'origin', 'extra'].includes(key)) {
+                    if (
+                        this.originalModel[key] != null
+                        && (
+                            ((['selfDesignations', 'extra'].includes(key)) && this.originalModel[key] != '')
+                            || this.originalModel[key] != []
+                        )
+                    ) {
+                        this.changes.push({
+                            'key': key,
+                            'label': this.fields[key].label,
+                            'old': this.originalModel[key],
+                            'new': null,
+                            'value': ['selfDesignations', 'extra'].includes(key) ? '' : null,
+                        })
+                    }
+                    continue;
+                }
+                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
+                    this.changes.push({
+                        'key': key,
+                        'label': this.fields[key].label,
+                        'old': this.originalModel[key],
+                        'new': this.model[key],
+                        'value': this.model[key],
+                    })
+                }
+            }
         },
     },
 }
