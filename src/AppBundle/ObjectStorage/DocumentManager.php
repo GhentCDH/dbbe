@@ -18,7 +18,7 @@ class DocumentManager extends EntityManager
         return $this->getDependencies($this->dbs->getDepIdsByStatusId($statusId), $method);
     }
 
-    public function getPersonDependencies(int $personId, string $method): array
+    public function getPersonDependencies(int $personId, string $method = 'getId'): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $method);
     }
