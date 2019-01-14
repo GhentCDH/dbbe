@@ -79,7 +79,7 @@ export default {
                         model: 'selfDesignations',
                         validator: [VueFormGenerator.validators.regexp],
                         pattern: '^(?:(?:[\\u0370-\\u03ff\\u1f00-\\u1fff ]+)[,][ ])*(?:[\\u0370-\\u03ff\\u1f00-\\u1fff ]+)$',
-                        hint: 'Greek text only; comma (,) separated list. E.g., ελληνικά,καλημέρα',
+                        hint: 'Greek text only; comma (, ) separated list. E.g., ελληνικά, καλημέρα',
                         disabled: (model) => {
                             return model && !model.historical;
                         },
