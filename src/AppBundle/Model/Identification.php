@@ -5,29 +5,37 @@ namespace AppBundle\Model;
 class Identification
 {
     protected $identifier;
-    protected $identifications;
+    protected $identification;
     protected $volume;
     protected $extra;
 
+    /**
+     * @param Identifier $identifier
+     * @param array $identifications
+     * @param array $volumes
+     * @param array $extras
+     * @return array Structure: Identifier $identifier, array $identifications
+     */
     public static function constructFromDB(
         Identifier $identifier,
         array $identifications,
         array $volumes,
         array $extras
     ) {
-        $identification = new Identification();
+        $result = [$identifier, []];
 
-        $identification->identifier = $identifier;
-        $identification->identifications = [];
         $values = array_map(null, $identifications, $volumes, $extras);
+
         foreach ($values as $item) {
-            $identification->identifications[] =
-                (isset($item[1]) ? self::numberToRoman($item[1]) . '.' : '')
-                . $item[0]
-                . (isset($item[2]) ? ' (' . $item[2] . ')' : '');
+            $identification = new Identification();
+            $identification->identifier = $identifier;
+            $identification->identification = $item[0];
+            $identification->volume = $item[1];
+            $identification->extra = $item[2];
+            $result[1][] = $identification;
         }
 
-        return $identification;
+        return $result;
     }
 
     public function getIdentifier(): Identifier
@@ -35,9 +43,9 @@ class Identification
         return $this->identifier;
     }
 
-    public function getIdentifications(): array
+    public function getIdentification(): ?string
     {
-        return $this->identifications;
+        return $this->identification;
     }
 
     public function getVolume(): ?int
@@ -48,6 +56,19 @@ class Identification
     public function getExtra(): ?string
     {
         return $this->extra;
+    }
+
+    public function __toString(): String
+    {
+        return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
+            . $this->identification
+            . (isset($this->extra) ? ' (' . $this->extra . ')' : '');
+    }
+
+    public function getVolumeIdentification(): String
+    {
+        return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
+            . $this->identification;
     }
 
     /**

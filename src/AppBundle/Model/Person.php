@@ -722,13 +722,13 @@ class Person extends Entity implements SubjectInterface
                 $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
             }
         }
-        foreach ($this->identifications as $identification) {
-            if ($identification->getIdentifier()->getPrimary()) {
+        foreach ($this->identifications as $identifications) {
+            if ($identifications[0]->getPrimary()) {
                 $description .=
                     ' - ' .
-                    $identification->getIdentifier()->getName() .
+                    $identifications[0]->getName() .
                     ': ' .
-                    implode(', ', $identification->getIdentifications());
+                    implode(', ', $identifications[1]);
             }
         }
 

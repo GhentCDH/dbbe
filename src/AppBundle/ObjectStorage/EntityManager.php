@@ -179,7 +179,7 @@ class EntityManager extends ObjectManager
         $rawIdentifications = $this->dbs->getIdentifications(self::getIds($entities));
         $identifiers = $this->container->get('identifier_manager')->getWithData($rawIdentifications);
         foreach ($rawIdentifications as $rawIdentification) {
-            $entities[$rawIdentification['entity_id']]->addIdentification(
+            $entities[$rawIdentification['entity_id']]->addIdentifications(
                 Identification::constructFromDB(
                     $identifiers[$rawIdentification['identifier_id']],
                     json_decode($rawIdentification['identifications']),
@@ -351,11 +351,10 @@ class EntityManager extends ObjectManager
                 $newArray[$volume] = $id;
             }
 
-            $currentIdentifications = empty($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()]->getIdentifications();
+            $currentIdentifications = empty($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()][1];
             $currentArray = [];
             foreach ($currentIdentifications as $currentIdentification) {
-                list($volume, $id) = explode('.', $currentIdentification);
-                $currentArray[$volume] = $id;
+                $currentArray[$currentIdentification->getVolume()] = $currentIdentification->getIdentification();
             }
 
             $delArray = [];
@@ -363,17 +362,17 @@ class EntityManager extends ObjectManager
             for ($volume = 0; $volume < $identifier->getVolumes(); $volume++) {
                 $romanVolume = Identification::numberToRoman($volume +1);
                 // No old and no new value
-                if (!isset($currentArray[$romanVolume]) && !isset($newArray[$romanVolume])) {
+                if (!isset($currentArray[$volume]) && !isset($newArray[$romanVolume])) {
                     continue;
                 }
                 // Old value === new value
-                if (isset($currentArray[$romanVolume]) && isset($newArray[$romanVolume])
-                    && $currentArray[$romanVolume] === $newArray[$romanVolume]
+                if (isset($currentArray[$volume]) && isset($newArray[$romanVolume])
+                    && $currentArray[$volume] === $newArray[$romanVolume]
                 ) {
                     continue;
                 }
                 // Old value, but no new value
-                if (isset($currentArray[$romanVolume]) && !isset($newArray[$romanVolume])) {
+                if (isset($currentArray[$volume]) && !isset($newArray[$romanVolume])) {
                     $delArray[] = $volume;
                     continue;
                 }

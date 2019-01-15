@@ -1,5 +1,5 @@
-{% if item.getIdentifier().getLink() is not empty %}
-    {{ item.getIdentifier().getName() }}: <a href="{{ item.getIdentifier().getLink() }}{{ item.getIdentifications()|join(', ') }}">{{ item.getIdentifications()|join(', ') }}{%if item.getExtra() is not empty %} ({{ item.getExtra() }}){% endif %}</a>
+{% if item[0].getLink() is not empty %}
+    {{ item[0].getName() }}: <a href="{{ item[0].getLink() }}{{ item[1]|join(', ') }}">{{ item[1]|join(', ') }}</a>
 {% else %}
-    {{ item.getIdentifier().getName() }}: {{ item.getIdentifications()|join(', ') }}{%if item.getExtra() is not empty %} ({{ item.getExtra() }}){% endif %}
+    {{ item[0].getName() }}: {{ item[1]|join(', ') }}
 {% endif %}

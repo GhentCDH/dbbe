@@ -30,6 +30,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
     protected $modified;
     /**
      * @var array
+     * Structure: [
+     *      identifierSystemName => [ Identifier, [Identification, Identification, ...] ],
+     *      identifierSystemName => [ Identifier, [Identification, Identification, ...] ],
+     * ]
      */
     protected $identifications = [];
     /**
@@ -112,9 +116,13 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this;
     }
 
-    public function addIdentification(Identification $identification): Entity
+    /**
+     * @param array $identifications Strucuture: Identifier $identifier, array $identifications
+     * @return Entity
+     */
+    public function addIdentifications(array $identifications): Entity
     {
-        $this->identifications[$identification->getIdentifier()->getSystemName()] = $identification;
+        $this->identifications[$identifications[0]->getSystemName()] = $identifications;
 
         return $this;
     }
@@ -291,11 +299,27 @@ class Entity implements IdJsonInterface, IdElasticInterface
         }
         if (!empty($this->identifications)) {
             $result['identifications'] = [];
-            foreach ($this->identifications as $identification) {
-                $result['identifications'][$identification->getIdentifier()->getSystemName()] =
-                    implode(', ', $identification->getIdentifications());
-                $result['identifications'][$identification->getIdentifier()->getSystemName() . '_extra'] =
-                    $identification->getExtra();
+            foreach ($this->identifications as $identifications) {
+                $result['identifications'][$identifications[0]->getSystemName()] =
+                    implode(
+                        ', ',
+                        array_map(
+                            function($identification) {
+                                return $identification->getVolumeIdentification();
+                            },
+                            $identifications[1]
+                        )
+                    );
+                $result['identifications'][$identifications[0]->getSystemName() . '_extra'] =
+                    implode(
+                        ', ',
+                        array_map(
+                            function($identification) {
+                                return $identification->getExtra();
+                            },
+                            $identifications[1]
+                        )
+                    );
             }
         }
         if (!empty($this->bibliographies)) {
@@ -315,9 +339,15 @@ class Entity implements IdJsonInterface, IdElasticInterface
             'public' => $this->public,
         ];
 
-        foreach ($this->identifications as $identification) {
-            if ($identification->getIdentifier()->getPrimary()) {
-                $result[$identification->getIdentifier()->getSystemName()] = $identification->getIdentifications();
+        foreach ($this->identifications as $identifications) {
+            if ($identifications[0]->getPrimary()) {
+                $result[$identifications[0]->getSystemName()] =
+                    array_map(
+                        function($identification) {
+                            return $identification->getVolumeIdentification();
+                        },
+                        $identifications[1]
+                    );
             }
         }
 
