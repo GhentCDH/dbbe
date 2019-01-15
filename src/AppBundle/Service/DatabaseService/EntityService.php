@@ -254,11 +254,12 @@ class EntityService extends DatabaseService
 
     public function delIdentification(int $entityId, int $identifierId, int $volume)
     {
+        // Postgresql array indices start with 1
         return $this->conn->executeUpdate(
             'DELETE from data.global_id
             using data.identifier
             where global_id.idsubject = ?
-            and global_id.idauthority = identifier.ids[? + 1]
+            and global_id.idauthority = identifier.ids[?]
             and identifier.ididentifier = ?',
             [
                 $entityId,
@@ -289,7 +290,8 @@ class EntityService extends DatabaseService
             )
             -- primary key constraint on idauthority, idsubject
             on conflict (idauthority, idsubject) do update
-            set identifier = excluded.identifier',
+            set identifier = excluded.identifier,
+                volume = excluded.volume',
             [
                 $volume,
                 $identifierId,
