@@ -191,8 +191,22 @@ class Book extends Document
                 $authorNames[] = $author->getShortDescription();
             }
         }
+        $editornames = [];
+        if (isset($this->personRoles['editor'])) {
+            foreach ($this->personRoles['editor'][1] as $editor) {
+                $editornames[] = $editor->getShortDescription();
+            }
+        }
         return
             implode(', ', $authorNames)
+            . (!empty($authorNames) && !empty($editornames)) {
+                '; '
+            }
+            . (
+                !empty($editornames)
+                    ? implode(', ', $editornames) . (count($editornames) > 1 ? ' (eds.), ' :  ' (ed.), ')
+                    : ''
+            )
             . ' ' . $this->year
             . ', ' . $this->title
             . ', ' . $this->city;

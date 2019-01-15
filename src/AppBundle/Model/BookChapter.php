@@ -60,17 +60,23 @@ class BookChapter extends Document
                 $authorNames[] = $author->getShortDescription();
             }
         }
+        $editornames = [];
+        if (isset($this->book->getPersonRoles()['editor'])) {
+            foreach ($this->book->getPersonRoles()['editor'][1] as $editor) {
+                $editornames[] = $editor->getShortDescription();
+            }
+        }
         return
             implode(', ', $authorNames)
             . ' ' . $this->book->getYear()
             . ', ' . $this->getTitle()
             . ', in '
             . (
-                !empty($this->book->getEditor())
-                    ? $this->book->getEditor() . ' (ed.) '
+                !empty($editornames)
+                    ? implode(', ', $editornames) . (count($editornames) > 1 ? ' (eds.), ' :  ' (ed.), ')
                     : ''
             )
-            . ', ' . $this->book->getTitle()
+            . $this->book->getTitle()
             . ', ' . $this->book->getCity()
             . $this->formatStartEndPages(', ');
     }
