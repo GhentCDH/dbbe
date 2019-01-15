@@ -194,8 +194,7 @@ class ManuscriptService extends DocumentService
                 manuscript.identity as manuscript_id
             from data.manuscript
             inner join data.document_genre on manuscript.identity = document_genre.iddocument
-            where document_genre.idgenre = ?
-            )',
+            where document_genre.idgenre = ?',
             [$contentId]
         )->fetchAll();
     }

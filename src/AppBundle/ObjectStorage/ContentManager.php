@@ -133,7 +133,7 @@ class ContentManager extends ObjectManager
      */
     public function getContentDependencies(int $contentId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByContentId($regionId), 'getWithParents');
+        return $this->getDependencies($this->dbs->getDepIdsByContentId($contentId), 'getWithParents');
     }
 
     /**

@@ -38,7 +38,7 @@ class ContentController extends BaseController
      */
     public function getDepsByContent(int $id, Request $request)
     {
-        $this->getDependencies($id, $request, 'getContentDependencies');
+        return $this->getDependencies($id, $request, 'getContentDependencies');
     }
 
     /**
