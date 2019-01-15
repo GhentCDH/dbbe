@@ -347,7 +347,7 @@ class EntityManager extends ObjectManager
 
             $newArray = [];
             foreach ($newIdentifications as $newIdentification) {
-                list($volume, $id) = explode('.', $newIdentification);
+                list($volume, $id) = explode('.', $newIdentification, 2);
                 $newArray[$volume] = $id;
             }
 
@@ -359,8 +359,8 @@ class EntityManager extends ObjectManager
 
             $delArray = [];
             $upsertArray = [];
-            for ($volume = 0; $volume < $identifier->getVolumes(); $volume++) {
-                $romanVolume = Identification::numberToRoman($volume +1);
+            for ($volume = 1; $volume <= $identifier->getVolumes(); $volume++) {
+                $romanVolume = Identification::numberToRoman($volume);
                 // No old and no new value
                 if (!isset($currentArray[$volume]) && !isset($newArray[$romanVolume])) {
                     continue;

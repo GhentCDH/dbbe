@@ -274,14 +274,16 @@ class EntityService extends DatabaseService
         int $volume,
         string $identification
     ): int {
+        // Postgresql array indices start with 1
         return $this->conn->executeUpdate(
-            'INSERT into data.global_id (idauthority, idsubject, identifier)
+            'INSERT into data.global_id (idauthority, idsubject, identifier, volume)
             VALUES (
                 (
-                    select identifier.ids[? + 1]
+                    select identifier.ids[?]
                     from data.identifier
                     where identifier.ididentifier = ?
                 ),
+                ?,
                 ?,
                 ?
             )
@@ -293,6 +295,7 @@ class EntityService extends DatabaseService
                 $identifierId,
                 $entityId,
                 $identification,
+                $volume,
             ]
         );
     }
