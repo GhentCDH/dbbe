@@ -46,9 +46,19 @@
                                 {% block renderItem %}
                                     {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
                                         {% block renderDetail %}
-                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span> ({{ item.getLocation() }})</a>
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                         {% endblock %}
                                     {% endembed %}
+                                    {% if item[0].getManuscript().getPublic() %}
+                                        <br />
+                                        <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                        <br />
+                                        <span class="bg-warning">
+                                            <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                        </span>
+                                    {% endif %}
+                                    <br />
                                     {% if item[0].getNumberOfVerses() == 0 %}
                                         (? verses)
                                     {% elseif item[0].getNumberOfVerses() == 1 %}
