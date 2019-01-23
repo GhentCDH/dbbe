@@ -61,6 +61,11 @@ class EntityManager extends ObjectManager
         return $this->getAllCombined('sitemap', $sortFunction);
     }
 
+    public function getAllMicroShortJson(string $sortFunction = null): array
+    {
+        return $this->getAllCombinedShortJson('micro', $sortFunction);
+    }
+
     public function getAllMiniShortJson(string $sortFunction = null): array
     {
         return $this->getAllCombinedShortJson('mini', $sortFunction);
@@ -79,6 +84,9 @@ class EntityManager extends ObjectManager
         switch ($level) {
             case 'all':
                 $objects = $this->get($ids);
+                break;
+            case 'micro':
+                $objects = $this->getMicro($ids);
                 break;
             case 'mini':
                 $objects = $this->getMini($ids);

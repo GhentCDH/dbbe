@@ -23,6 +23,32 @@ class TypeManager extends PoemManager
     }
 
     /**
+     * Get types with enough information to get an id and an incipit
+     * @param  array $ids
+     * @return array
+     */
+    public function getMicro(array $ids): array
+    {
+        $types = [];
+        $rawIds = $this->dbs->getIdsByIds($ids);
+        if (count($rawIds) == 0) {
+            return [];
+        }
+
+        foreach ($rawIds as $rawId) {
+            $types[$rawId['type_id']] = (new Type())
+                ->setId($rawId['type_id']);
+        }
+
+        // Remove all ids that did not match above
+        $ids = array_keys($types);
+
+        $this->setIncipits($types);
+
+        return $types;
+    }
+
+    /**
      * Get types with enough information to get an id and a description
      * @param  array $ids
      * @return array

@@ -400,7 +400,7 @@ class OccurrenceController extends BaseController
                         ? null
                         : $this->get('occurrence_manager')->getFull($id)->getJson(),
                     'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
-                    'types' => $this->get('type_manager')->getAllMiniShortJson(),
+                    'types' => $this->get('type_manager')->getAllMicroShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
                     'meters' => $this->get('meter_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),

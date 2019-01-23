@@ -230,6 +230,19 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getLocationConfirmations(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.document_contains on original_poem.identity = document_contains.idcontent
+            where original_poem.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getLocations(array $ids): array
     {
         return $this->conn->executeQuery(

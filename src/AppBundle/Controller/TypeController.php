@@ -381,7 +381,7 @@ class TypeController extends BaseController
                     'type' => empty($id)
                         ? null
                         : $this->get('type_manager')->getFull($id)->getJson(),
-                    'types' => $this->get('type_manager')->getAllMiniShortJson('getId'),
+                    'types' => $this->get('type_manager')->getAllMicroShortJson('getId'),
                     'typeRelationTypes' => $this->get('type_relation_type_manager')->getAllShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
                     'meters' => $this->get('meter_manager')->getAllShortJson(),
@@ -397,7 +397,7 @@ class TypeController extends BaseController
                     'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
                     'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_TEXT),
                     'criticalStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_CRITICAL),
-                    'occurrences' => $this->get('occurrence_manager')->getAllMiniShortJson('getId'),
+                    'occurrences' => $this->get('occurrence_manager')->getAllMicroShortJson('getId'),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(

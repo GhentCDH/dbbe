@@ -18,6 +18,33 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class OccurrenceManager extends PoemManager
 {
     /**
+     * Get occurrences with enough information to get an id and an incipit
+     * @param  array $ids
+     * @return array
+     */
+    public function getMicro(array $ids): array
+    {
+        $occurrences = [];
+        if (!empty($ids)) {
+            $rawLocations = $this->dbs->getLocationConfirmations($ids);
+            if (count($rawLocations) == 0) {
+                return [];
+            }
+            foreach ($rawLocations as $rawLocation) {
+                $occurrences[$rawLocation['occurrence_id']] = (new Occurrence())
+                    ->setId($rawLocation['occurrence_id']);
+            }
+
+            // Remove all ids that did not match above
+            $ids = array_keys($occurrences);
+
+            $this->setIncipits($occurrences);
+        }
+
+        return $occurrences;
+    }
+
+    /**
      * Get occurrences with enough information to get an id and a description
      * @param  array $ids
      * @return array
