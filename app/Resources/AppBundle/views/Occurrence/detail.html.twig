@@ -37,43 +37,6 @@
         </div>
         <table class="table table-hover table-bordered">
             <tbody>
-                {% set relOccurrences = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getRelatedOccurrences() : occurrence.getPublicRelatedOccurrences() %}
-                {% if relOccurrences is not empty %}
-                    <tr>
-                        <td>Related occurrence(s)</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': relOccurrences}%}
-                                {% block renderItem %}
-                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
-                                        {% block renderDetail %}
-                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
-                                        {% endblock %}
-                                    {% endembed %}
-                                    {% if item[0].getManuscript().getPublic() %}
-                                        <br />
-                                        <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
-                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
-                                        <br />
-                                        <span class="bg-warning">
-                                            <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
-                                        </span>
-                                    {% endif %}
-                                    <br />
-                                    {% if item[0].getNumberOfVerses() == 0 %}
-                                        (? verses)
-                                    {% elseif item[0].getNumberOfVerses() == 1 %}
-                                        (1 verse)
-                                    {% else  %}
-                                        ({{ item[0].getNumberOfVerses() }} verses)
-                                    {% endif %}
-                                    {% if item[1] %}
-                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}{% endif %})
-                                    {% endif %}
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
-                    </tr>
-                {% endif %}
                 {% set types = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getTypes() : occurrence.getTypes()|public %}
                 {% if types is not empty %}
                     <tr>
@@ -123,18 +86,6 @@
                         <td>{{ occurrence.getTextStatus() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getGenres() is not empty %}
-                    <tr>
-                        <td>Genre(s)</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
-                                {% block renderItem %}
-                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
-                    </tr>
-                {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
                 {% if manuscript is not empty %}
                     <tr>
@@ -150,27 +101,27 @@
                         <td>{{ occurrence.getLocation() }}</td>
                     </tr>
                 {% endif %}
-                {%
-                    include '@App/Helpers/renderPersonRoles.html.twig'
-                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles()}
-                    only
-                %}
                 {% if occurrence.getDate() is not empty %}
                     <tr>
                         <td>Date</td>
                         <td>{{ occurrence.getDate() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getPaleographicalInfo() is not empty %}
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles()}
+                    only
+                %}
+                {% if occurrence.getGenres() is not empty %}
                     <tr>
-                        <td>Paleographical information</td>
-                        <td>{{ occurrence.getPaleographicalInfo()|nl2br }}</td>
-                    </tr>
-                {% endif %}
-                {% if occurrence.getContextualInfo() is not empty %}
-                    <tr>
-                        <td>Contextual information</td>
-                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getMeters() is not empty %}
@@ -183,12 +134,6 @@
                                 {% endblock %}
                             {% endembed %}
                         </td>
-                    </tr>
-                {% endif %}
-                {% if occurrence.getNumberOfVerses() is not empty %}
-                    <tr>
-                        <td>Number of verses</td>
-                        <td>{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}</td>
                     </tr>
                 {% endif %}
                 {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}
@@ -206,6 +151,18 @@
                                 {% endblock %}
                             {% endembed %}
                         </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getPaleographicalInfo() is not empty %}
+                    <tr>
+                        <td>Paleographical information</td>
+                        <td>{{ occurrence.getPaleographicalInfo()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getContextualInfo() is not empty %}
+                    <tr>
+                        <td>Contextual information</td>
+                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getPublicComment() is not empty %}
@@ -271,6 +228,49 @@
                                     {% endblock %}
                                 {% endembed %}
                             {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getNumberOfVerses() is not empty %}
+                    <tr>
+                        <td>Number of verses</td>
+                        <td>{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}</td>
+                    </tr>
+                {% endif %}
+                {% set relOccurrences = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getRelatedOccurrences() : occurrence.getPublicRelatedOccurrences() %}
+                {% if relOccurrences is not empty %}
+                    <tr>
+                        <td>Related occurrence(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': relOccurrences}%}
+                                {% block renderItem %}
+                                    {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item[0].getManuscript().getPublic() %}
+                                        <br />
+                                        <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                        <br />
+                                        <span class="bg-warning">
+                                            <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                        </span>
+                                    {% endif %}
+                                    <br />
+                                    {% if item[0].getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item[0].getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else  %}
+                                        ({{ item[0].getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                    {% if item[1] %}
+                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}{% endif %})
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
                         </td>
                     </tr>
                 {% endif %}
