@@ -587,6 +587,9 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $field = $value['field'] ?? $key;
         $text = $value['text'];
 
+        // Remove colons
+        $text = str_replace(':', '', $text);
+
         // Check if user does not use advanced syntax
         if (preg_match('/AND|OR|[\/~\-"()]/', $text) === 0) {
             if ($value['combination'] == 'phrase') {
