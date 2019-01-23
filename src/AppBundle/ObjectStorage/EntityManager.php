@@ -394,7 +394,7 @@ class EntityManager extends ObjectManager
                     $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
                 }
                 foreach ($upsertArray as $volume => $value) {
-                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $volume, $value);
+                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $value, $volume);
                 }
 
                 // commit transaction
@@ -408,11 +408,11 @@ class EntityManager extends ObjectManager
             try {
                 // Old value, but no new value
                 if (!empty($entity->getIdentifications()[$identifier->getSystemName()]) && empty($value)) {
-                    $this->dbs->delIdentification($entity->getId(), $identifier->getId(), 0);
+                    $this->dbs->delIdentification($entity->getId(), $identifier->getId());
                 } elseif ((empty($entity->getIdentifications()[$identifier->getSystemName()]) && !empty($value)) // No old value
                     || (!empty($entity->getIdentifications()[$identifier->getSystemName()]) && !empty($value) && $entity->getIdentifications()[$identifier->getSystemName()] !== $value) // Different old value
                 ) {
-                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), 0, $value);
+                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $value);
                 }
 
                 // commit transaction

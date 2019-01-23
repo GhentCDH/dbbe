@@ -272,8 +272,8 @@ class EntityService extends DatabaseService
     public function upsertIdentification(
         int $entityId,
         int $identifierId,
-        int $volume,
-        string $identification
+        string $identification,
+        int $volume = null
     ): int {
         // Postgresql array indices start with 1
         return $this->conn->executeUpdate(
@@ -293,7 +293,7 @@ class EntityService extends DatabaseService
             set identifier = excluded.identifier,
                 volume = excluded.volume',
             [
-                $volume,
+                $volume == null ? 1 : volume,
                 $identifierId,
                 $entityId,
                 $identification,
