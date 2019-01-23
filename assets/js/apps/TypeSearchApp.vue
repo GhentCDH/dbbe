@@ -271,7 +271,6 @@ export default {
     data() {
         let data = {
             model: {
-                text_stem: 'original',
                 text_fields: 'text',
                 text_combination: 'any',
             },
@@ -316,6 +315,7 @@ export default {
             model: 'text'
         };
         if (this.isViewInternal) {
+            data.model['text_stem'] = 'original';
             data.schema.fields['text_stem'] = {
                 type: 'radio',
                 styleClasses: 'has-warning',
