@@ -621,7 +621,7 @@ class OccurrenceManager extends PoemManager
 
             // Reset types (potentially old and new)
             // (number of occurrences)
-            $typeIds = self::getIds($old->getTypes());
+            $typeIds = array_keys($old->getTypes());
             if (isset($data->types)) {
                 foreach ($data->types as $type) {
                     if (!in_array($type->id, $typeIds)) {
@@ -748,7 +748,7 @@ class OccurrenceManager extends PoemManager
         }
 
         // update elastic types search
-        $typeIds = self::getIds($occurrence->getTypes());
+        $typeIds = array_keys($occurrence->getTypes());
         foreach ($types as $type) {
             if (!in_array($type->id, $typeIds)) {
                 $typeIds[] = $type->id;

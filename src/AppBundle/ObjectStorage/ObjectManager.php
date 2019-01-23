@@ -150,15 +150,6 @@ class ObjectManager
         return $uniqueIds;
     }
 
-    protected static function getIds(array $entities): array
-    {
-        $ids = [];
-        foreach ($entities as $entity) {
-            $ids[] = $entity->getId();
-        }
-        return $ids;
-    }
-
     protected static function calcDiff(array $newJsonArray, array $oldObjectArray): array
     {
         $newIds = array_unique(array_map(

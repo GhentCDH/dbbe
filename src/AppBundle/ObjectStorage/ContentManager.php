@@ -308,7 +308,7 @@ class ContentManager extends ObjectManager
 
             // Reset elasticsearch
             if (!empty($manuscripts)) {
-                $this->container->get('manuscript_manager')->updateElasticByIds(self::getIds($manuscripts));
+                $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
             }
 
             throw $e;

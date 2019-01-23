@@ -146,7 +146,7 @@ class EntityManager extends ObjectManager
 
     protected function setPublics(array &$entities): void
     {
-        $rawPublics = $this->dbs->getPublics(self::getIds($entities));
+        $rawPublics = $this->dbs->getPublics(array_keys($entities));
         foreach ($rawPublics as $rawPublic) {
             $entities[$rawPublic['entity_id']]
                 // default: true (if no value is set in the database)
@@ -156,7 +156,7 @@ class EntityManager extends ObjectManager
 
     protected function setModifieds(array &$entities): void
     {
-        $rawModifieds = $this->dbs->getModifieds(self::getIds($entities));
+        $rawModifieds = $this->dbs->getModifieds(array_keys($entities));
         foreach ($rawModifieds as $rawModified) {
             $entities[$rawModified['entity_id']]
                 // default: true (if no value is set in the database)
@@ -166,7 +166,7 @@ class EntityManager extends ObjectManager
 
     protected function setComments(array &$entities): void
     {
-        $rawComments = $this->dbs->getComments(self::getIds($entities));
+        $rawComments = $this->dbs->getComments(array_keys($entities));
         foreach ($rawComments as $rawComment) {
             $entities[$rawComment['entity_id']]
                 ->setPublicComment($rawComment['public_comment'])
@@ -176,7 +176,7 @@ class EntityManager extends ObjectManager
 
     protected function setIdentifications(array &$entities): void
     {
-        $rawIdentifications = $this->dbs->getIdentifications(self::getIds($entities));
+        $rawIdentifications = $this->dbs->getIdentifications(array_keys($entities));
         $identifiers = $this->container->get('identifier_manager')->getWithData($rawIdentifications);
         foreach ($rawIdentifications as $rawIdentification) {
             $entities[$rawIdentification['entity_id']]->addIdentifications(
@@ -192,7 +192,7 @@ class EntityManager extends ObjectManager
 
     protected function setBibliographies(array &$entities): void
     {
-        $rawBibliographies = $this->dbs->getBibliographies(self::getIds($entities));
+        $rawBibliographies = $this->dbs->getBibliographies(array_keys($entities));
         if (!empty($rawBibliographies)) {
             $ids = self::getUniqueIds($rawBibliographies, 'reference_id');
             $bibliographies = $this->container->get('bibliography_manager')->get($ids);
@@ -206,7 +206,7 @@ class EntityManager extends ObjectManager
 
     protected function setInverseBibliographies(array &$entities): void
     {
-        $rawInverseBibliographies = $this->dbs->getInverseBibliographies(self::getIds($entities));
+        $rawInverseBibliographies = $this->dbs->getInverseBibliographies(array_keys($entities));
         if (!empty($rawInverseBibliographies)) {
             $inverseBibliographies = [];
             foreach (['manuscript', 'occurrence', 'type', 'person'] as $type) {
@@ -237,7 +237,7 @@ class EntityManager extends ObjectManager
 
     protected function setManagements(array &$entities): void
     {
-        $rawManagements = $this->dbs->getManagements(self::getIds($entities));
+        $rawManagements = $this->dbs->getManagements(array_keys($entities));
         if (!empty($rawManagements)) {
             $managements = $this->container->get('management_manager')->getWithData($rawManagements);
 

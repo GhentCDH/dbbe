@@ -15,7 +15,7 @@ class TypeManager extends PoemManager
 {
     protected function setTitles(array &$types): void
     {
-        $rawTitles = $this->dbs->getTitles(self::getIds($types));
+        $rawTitles = $this->dbs->getTitles(array_keys($types));
         foreach ($rawTitles as $rawTitle) {
             $types[$rawTitle['poem_id']]
                 ->addTitle($rawTitle['lang'], $rawTitle['title']);

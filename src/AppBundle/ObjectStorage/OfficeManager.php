@@ -398,7 +398,7 @@ class OfficeManager extends ObjectManager
 
             // Reset elasticsearch
             if (!empty($persons)) {
-                $this->container->get('person_manager')->updateElasticByIds(self::getIds($persons));
+                $this->container->get('person_manager')->updateElasticByIds(array_keys($persons));
             }
 
             throw $e;

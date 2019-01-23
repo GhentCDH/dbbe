@@ -425,10 +425,10 @@ class RegionManager extends ObjectManager
 
             // Reset elasticsearch
             if (!empty($manuscripts)) {
-                $this->container->get('manuscript_manager')->updateElasticByIds(self::getIds($manuscripts));
+                $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
             }
             if (!empty($persons)) {
-                $this->container->get('person_manager')->updateElasticByIds(self::getIds($persons));
+                $this->container->get('person_manager')->updateElasticByIds(array_keys($persons));
             }
             throw $e;
         }

@@ -854,12 +854,12 @@ class PersonManager extends EntityManager
             // Reset elasticsearch
             $this->updateElasticByIds([$primaryId]);
 
-            $this->container->get('manuscript_manager')->updateElasticByIds(self::getIds($manuscript));
-            $this->container->get('occurrence_manager')->updateElasticByIds(self::getIds($occurrences));
-            $this->container->get('type_manager')->updateElasticByIds(self::getIds($types));
-            $this->container->get('article_manager')->updateElasticByIds(self::getIds($articles));
-            $this->container->get('book_manager')->updateElasticByIds(self::getIds($books));
-            $this->container->get('book_chapter_manager')->updateElasticByIds(self::getIds($bookChapters));
+            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscript));
+            $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($occurrences));
+            $this->container->get('type_manager')->updateElasticByIds(array_keys($types));
+            $this->container->get('article_manager')->updateElasticByIds(array_keys($articles));
+            $this->container->get('book_manager')->updateElasticByIds(array_keys($books));
+            $this->container->get('book_chapter_manager')->updateElasticByIds(array_keys($bookChapters));
 
             throw $e;
         }

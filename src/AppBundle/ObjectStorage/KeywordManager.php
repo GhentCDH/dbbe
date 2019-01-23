@@ -229,10 +229,10 @@ class KeywordManager extends ObjectManager
             $this->dbs->rollBack();
 
             if (!empty($occurrences)) {
-                $this->container->get('occurrence_manager')->updateElasticByIds(self::getIds($poems));
+                $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($poems));
             }
             if (!empty($types)) {
-                $this->container->get('type_manager')->updateElasticByIds(self::getIds($poems));
+                $this->container->get('type_manager')->updateElasticByIds(array_keys($poems));
             }
 
             throw $e;

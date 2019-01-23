@@ -33,7 +33,7 @@ class PoemManager extends DocumentManager
 
     protected function setIncipits(array &$poems): void
     {
-        $rawIncipits = $this->dbs->getIncipits(self::getIds($poems));
+        $rawIncipits = $this->dbs->getIncipits(array_keys($poems));
         if (count($rawIncipits) > 0) {
             foreach ($rawIncipits as $rawIncipit) {
                 $poems[$rawIncipit['poem_id']]
@@ -44,7 +44,7 @@ class PoemManager extends DocumentManager
 
     protected function setNumberOfVerses(array &$poems): void
     {
-        $rawNumbersOfVerses = $this->dbs->getNumberOfVerses(self::getIds($poems));
+        $rawNumbersOfVerses = $this->dbs->getNumberOfVerses(array_keys($poems));
         if (count($rawNumbersOfVerses) > 0) {
             foreach ($rawNumbersOfVerses as $rawNumberOfVerses) {
                 $poems[$rawNumberOfVerses['poem_id']]
@@ -55,7 +55,7 @@ class PoemManager extends DocumentManager
 
     protected function setTitles(array &$poems): void
     {
-        $rawTitles = $this->dbs->getTitles(self::getIds($poems));
+        $rawTitles = $this->dbs->getTitles(array_keys($poems));
         foreach ($rawTitles as $rawTitle) {
             $poems[$rawTitle['poem_id']]
                 ->setTitle($rawTitle['title']);
@@ -64,7 +64,7 @@ class PoemManager extends DocumentManager
 
     protected function setMeters(array &$poems): void
     {
-        $rawMeters = $this->dbs->getMeters(self::getIds($poems));
+        $rawMeters = $this->dbs->getMeters(array_keys($poems));
         $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
         foreach ($rawMeters as $rawMeter) {
             $poems[$rawMeter['poem_id']]
@@ -74,7 +74,7 @@ class PoemManager extends DocumentManager
 
     protected function setSubjects(array &$poems): void
     {
-        $rawSubjects = $this->dbs->getSubjects(self::getIds($poems));
+        $rawSubjects = $this->dbs->getSubjects(array_keys($poems));
         $personIds = self::getUniqueIds($rawSubjects, 'person_id');
         $persons = [];
         if (count($personIds) > 0) {
@@ -101,7 +101,7 @@ class PoemManager extends DocumentManager
 
     protected function setGenres(array &$poems): void
     {
-        $rawGenres = $this->dbs->getGenres(self::getIds($poems));
+        $rawGenres = $this->dbs->getGenres(array_keys($poems));
         $genres = $this->container->get('genre_manager')->getWithData($rawGenres);
         foreach ($rawGenres as $rawGenre) {
             $poems[$rawGenre['poem_id']]
@@ -111,7 +111,7 @@ class PoemManager extends DocumentManager
 
     protected function setAcknowledgements(array &$poems)
     {
-        $rawAcknowledgements = $this->dbs->getAcknowledgements(self::getIds($poems));
+        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($poems));
         $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
         foreach ($rawAcknowledgements as $rawAcknowledgement) {
             $poems[$rawAcknowledgement['poem_id']]

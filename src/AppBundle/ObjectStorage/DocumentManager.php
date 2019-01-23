@@ -30,7 +30,7 @@ class DocumentManager extends EntityManager
 
     protected function setDates(array &$documents): void
     {
-        $rawCompletionDates = $this->dbs->getCompletionDates(self::getIds($documents));
+        $rawCompletionDates = $this->dbs->getCompletionDates(array_keys($documents));
         foreach ($rawCompletionDates as $rawCompletionDate) {
             $documents[$rawCompletionDate['document_id']]
                 ->setDate(new FuzzyDate($rawCompletionDate['completion_date']));
@@ -39,7 +39,7 @@ class DocumentManager extends EntityManager
 
     protected function setPrevIds(array &$documents): void
     {
-        $rawPrevIds = $this->dbs->getPrevIds(self::getIds($documents));
+        $rawPrevIds = $this->dbs->getPrevIds(array_keys($documents));
         foreach ($rawPrevIds as $rawPrevId) {
             $documents[$rawPrevId['document_id']]
                 ->setPrevId($rawPrevId['prev_id']);
@@ -48,7 +48,7 @@ class DocumentManager extends EntityManager
 
     protected function setPersonRoles(array &$documents): void
     {
-        $rawRoles = $this->dbs->getPersonRoles(self::getIds($documents));
+        $rawRoles = $this->dbs->getPersonRoles(array_keys($documents));
         if (!empty($rawRoles)) {
             $personIds = self::getUniqueIds($rawRoles, 'person_id');
 
