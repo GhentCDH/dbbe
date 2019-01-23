@@ -585,7 +585,8 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         }
 
         $field = $value['field'] ?? $key;
-        $text = $value['text'];
+        // Replace multiple spaces with a single space
+        $text = preg_replace('!\s+!', ' ', $value['text']);
 
         // Remove colons
         $text = str_replace(':', '', $text);
