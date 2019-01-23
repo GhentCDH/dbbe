@@ -146,7 +146,7 @@
                                     {% if item is person %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
                                     {% else %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[subject]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this subject">{{ item.getName() }}</a>
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
