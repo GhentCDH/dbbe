@@ -109,6 +109,7 @@ class KeywordController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('type')),
+                'persons' => json_encode([]),
                 'isSubject' => json_encode(false),
             ]
         );
