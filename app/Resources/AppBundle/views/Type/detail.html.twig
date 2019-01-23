@@ -109,7 +109,7 @@
                                     {% if item is person %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
                                     {% else %}
-                                        {{ item.getName() }}
+                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[subject]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this subject">{{ item.getName() }}</a>
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
