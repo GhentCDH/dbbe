@@ -94,8 +94,8 @@ class FuzzyDate
         if ($this->floor->format('m-d') == '01-01'
             && $this->ceiling->format('m-d') == '12-31'
         ) {
-            $floorYear = $this->floor->format('Y');
-            $ceilingYear = $this->ceiling->format('Y');
+            $floorYear = ltrim($this->floor->format('Y'), '0');
+            $ceilingYear = ltrim($this->ceiling->format('Y'), '0');
 
             if ($floorYear == $ceilingYear) {
                 return $floorYear;
