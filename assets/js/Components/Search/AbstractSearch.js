@@ -360,7 +360,7 @@ export default {
                 if (
                     item.hasOwnProperty('public_comment')
                     || item.hasOwnProperty('private_comment')
-                    || item.hasOwnProperty('paleographical_info')
+                    || item.hasOwnProperty('palaeographical_info')
                     || item.hasOwnProperty('contextual_info')
                 ) {
                     this.commentSearch = true;

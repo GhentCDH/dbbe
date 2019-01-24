@@ -393,7 +393,7 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
-    public function getPaleographicalInfos(array $ids): array
+    public function getPalaeographicalInfos(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -728,17 +728,17 @@ class OccurrenceService extends PoemService
 
     /**
      * @param  int    $id
-     * @param  string $paleographicalInfo
+     * @param  string $palaeographicalInfo
      * @return int
      */
-    public function updatePaleographicalInfo(int $id, string $paleographicalInfo): int
+    public function updatePalaeographicalInfo(int $id, string $palaeographicalInfo): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.original_poem
             set paleographical_info = ?
             where identity = ?',
             [
-                $paleographicalInfo,
+                $palaeographicalInfo,
                 $id,
             ]
         );

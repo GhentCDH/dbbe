@@ -99,12 +99,12 @@
                     slot="comment"
                     slot-scope="props"
                 >
-                    <template v-if="props.row.paleographical_info">
-                        <em>Paleographical info</em>
+                    <template v-if="props.row.palaeographical_info">
+                        <em>Palaeographical info</em>
                         <ol>
                             <!-- eslint-disable vue/no-v-html -->
                             <li
-                                v-for="(item, index) in props.row.paleographical_info"
+                                v-for="(item, index) in props.row.palaeographical_info"
                                 :key="index"
                                 :value="Number(index) + 1"
                                 v-html="item"

@@ -36,11 +36,11 @@ export default {
         return {
             schema: {
                 fields: {
-                    paleographicalInfo: {
+                    palaeographicalInfo: {
                         type: 'textArea',
-                        label: 'Paleographical information',
+                        label: 'Palaeographical information',
                         labelClasses: 'control-label',
-                        model: 'paleographicalInfo',
+                        model: 'palaeographicalInfo',
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },

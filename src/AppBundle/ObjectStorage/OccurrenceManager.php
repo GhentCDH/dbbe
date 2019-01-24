@@ -147,11 +147,11 @@ class OccurrenceManager extends PoemManager
 
         $this->setComments($occurrences);
 
-        // paleographical information
-        $rawPaleographicalInfos = $this->dbs->getPaleographicalInfos($ids);
-        foreach ($rawPaleographicalInfos as $rawPaleographicalInfo) {
-            $occurrences[$rawPaleographicalInfo['occurrence_id']]
-                ->setPaleographicalInfo($rawPaleographicalInfo['paleographical_info']);
+        // palaeographical information
+        $rawPalaeographicalInfos = $this->dbs->getPalaeographicalInfos($ids);
+        foreach ($rawPalaeographicalInfos as $rawPalaeographicalInfo) {
+            $occurrences[$rawPalaeographicalInfo['occurrence_id']]
+                ->setPalaeographicalInfo($rawPalaeographicalInfo['palaeographical_info']);
         }
 
         // contextual information
@@ -546,12 +546,12 @@ class OccurrenceManager extends PoemManager
                 $changes['short'] = true;
                 $this->dbs->updatePrivateComment($id, $data->privateComment);
             }
-            if (property_exists($data, 'paleographicalInfo')) {
-                if (!is_string($data->paleographicalInfo)) {
-                    throw new BadRequestHttpException('Incorrect paleographical information data.');
+            if (property_exists($data, 'palaeographicalInfo')) {
+                if (!is_string($data->palaeographicalInfo)) {
+                    throw new BadRequestHttpException('Incorrect palaeographical information data.');
                 }
                 $changes['full'] = true;
-                $this->dbs->updatePaleographicalInfo($id, $data->paleographicalInfo);
+                $this->dbs->updatePalaeographicalInfo($id, $data->palaeographicalInfo);
             }
             if (property_exists($data, 'contextualInfo')) {
                 if (!is_string($data->contextualInfo)) {

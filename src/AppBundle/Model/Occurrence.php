@@ -91,7 +91,7 @@ class Occurrence extends Poem
     /**
      * @var string
      */
-    protected $paleographicalInfo;
+    protected $palaeographicalInfo;
     /**
      * @var int
      */
@@ -372,16 +372,16 @@ class Occurrence extends Poem
         return $this->sourceStatus;
     }
 
-    public function setPaleographicalInfo(string $paleographicalInfo = null): Occurrence
+    public function setPalaeographicalInfo(string $palaeographicalInfo = null): Occurrence
     {
-        $this->paleographicalInfo = $paleographicalInfo;
+        $this->palaeographicalInfo = $palaeographicalInfo;
 
         return $this;
     }
 
-    public function getPaleographicalInfo(): ?string
+    public function getPalaeographicalInfo(): ?string
     {
-        return $this->paleographicalInfo;
+        return $this->palaeographicalInfo;
     }
 
     public function addImage(Image $image): Occurrence
@@ -467,8 +467,8 @@ class Occurrence extends Poem
         if (!empty($this->date) && !($this->date->isEmpty())) {
             $result['date'] = $this->date->getJson();
         }
-        if (!empty($this->paleographicalInfo)) {
-            $result['paleographicalInfo'] = $this->paleographicalInfo;
+        if (!empty($this->palaeographicalInfo)) {
+            $result['palaeographicalInfo'] = $this->palaeographicalInfo;
         }
         if (!empty($this->contextualInfo)) {
             $result['contextualInfo'] = $this->contextualInfo;
@@ -518,8 +518,8 @@ class Occurrence extends Poem
         if (!empty($this->date) && !empty($this->date->getCeiling())) {
             $result['date_ceiling_year'] = intval($this->date->getCeiling()->format('Y'));
         }
-        if (!empty($this->getPaleographicalInfo())) {
-            $result['paleographical_info'] = $this->getPaleographicalInfo();
+        if (!empty($this->getPalaeographicalInfo())) {
+            $result['palaeographical_info'] = $this->getPalaeographicalInfo();
         }
         if (!empty($this->getContextualInfo())) {
             $result['contextual_info'] = $this->getContextualInfo();

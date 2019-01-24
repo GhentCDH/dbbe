@@ -153,10 +153,10 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getPaleographicalInfo() is not empty %}
+                {% if occurrence.getPalaeographicalInfo() is not empty %}
                     <tr>
-                        <td>Paleographical information</td>
-                        <td>{{ occurrence.getPaleographicalInfo()|nl2br }}</td>
+                        <td>Palaeographical information</td>
+                        <td>{{ occurrence.getPalaeographicalInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getContextualInfo() is not empty %}

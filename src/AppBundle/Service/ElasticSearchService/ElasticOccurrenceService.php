@@ -114,8 +114,8 @@ class ElasticOccurrenceService extends ElasticBaseService
             if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
                 unset($result['data'][$key]['private_comment']);
             }
-            if (isset($result['data'][$key]['paleographical_info']) && is_string($result['data'][$key]['paleographical_info'])) {
-                unset($result['data'][$key]['paleographical_info']);
+            if (isset($result['data'][$key]['palaeographical_info']) && is_string($result['data'][$key]['palaeographical_info'])) {
+                unset($result['data'][$key]['palaeographical_info']);
             }
             if (isset($result['data'][$key]['contextual_info']) && is_string($result['data'][$key]['contextual_info'])) {
                 unset($result['data'][$key]['contextual_info']);
@@ -307,7 +307,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                             'text' => $value,
                             'combination' => 'any',
                         ],
-                        'paleographical_info'=> [
+                        'palaeographical_info'=> [
                             'text' => $value,
                             'combination' => 'any',
                         ],
@@ -327,7 +327,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                             'text' => $value,
                             'combination' => 'any',
                         ],
-                        'paleographical_info'=> [
+                        'palaeographical_info'=> [
                             'text' => $value,
                             'combination' => 'any',
                         ],
