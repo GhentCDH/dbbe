@@ -511,8 +511,8 @@ export default {
         },
         submitAddText() {
             this.$refs.addTextForm.validate()
-            this.isValid = this.$refs.addTextForm.isValid
-            if (this.$refs.addTextForm.errors.length == 0) {
+            this.isValid = (this.$refs.addTextForm.errors.length === 0)
+            if (this.isValid) {
                 for (let verse of this.textModel.text.split(/\r?\n/)) {
                     this.model.verses.push({
                         id: null,
@@ -520,6 +520,7 @@ export default {
                         verse: verse,
                     })
                 }
+                this.textModel = {};
 
                 this.calcChanges()
                 this.$emit('validated', 0, null, this)
@@ -641,8 +642,8 @@ export default {
         },
         updateText() {
             this.$refs.editVerseForm.validate()
-            this.isValid = this.$refs.editVerseForm.isValid
-            if (this.$refs.editVerseForm.errors.length == 0) {
+            this.isValid = (this.$refs.editVerseForm.errors.length === 0)
+            if (this.isValid) {
                 if (this.model.verses[this.verse.index] == null) {
                     // add new
                     this.model.verses.push(JSON.parse(JSON.stringify(this.verse)))
@@ -659,8 +660,8 @@ export default {
         },
         updateTextRemoveLink() {
             this.$refs.editVerseForm.validate()
-            this.isValid = this.$refs.editVerseForm.isValid
-            if (this.$refs.editVerseForm.errors.length == 0) {
+            this.isValid = (this.$refs.editVerseForm.errors.length === 0)
+            if (this.isValid) {
                 // only update is possible
                 this.model.verses[this.verse.index].verse = this.verse.verse
                 this.model.verses[this.verse.index].groupId = null
@@ -673,8 +674,8 @@ export default {
         },
         updateTextSetLinks() {
             this.$refs.editVerseForm.validate()
-            this.isValid = this.$refs.editVerseForm.isValid
-            if (this.$refs.editVerseForm.errors.length == 0) {
+            this.isValid = (this.$refs.editVerseForm.errors.length === 0)
+            if (this.isValid) {
                 if (this.model.verses[this.verse.index] == null) {
                     // add new
                     this.model.verses.push(JSON.parse(JSON.stringify(this.verse)))
