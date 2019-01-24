@@ -47,12 +47,12 @@ class PoemService extends DocumentService
         )->fetchAll();
     }
 
-    public function getMeters(array $ids): array
+    public function getMetres(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 poem.identity as poem_id,
-                meter.idmeter as meter_id,
+                meter.idmeter as metre_id,
                 meter.name as name
             from data.poem
             inner join data.poem_meter on poem.identity = poem_meter.idpoem
@@ -181,27 +181,27 @@ class PoemService extends DocumentService
 
     /**
      * @param  int $id
-     * @param  int $meterId
+     * @param  int $metreId
      * @return int
      */
-    public function addMeter(int $id, int $meterId): int
+    public function addMetre(int $id, int $metreId): int
     {
         return $this->conn->executeUpdate(
             'INSERT into data.poem_meter (idpoem, idmeter)
             values (?, ?)',
             [
                 $id,
-                $meterId,
+                $metreId,
             ]
         );
     }
 
     /**
      * @param  int   $id
-     * @param  array $meterIds
+     * @param  array $metreIds
      * @return int
      */
-    public function delMeters(int $id, array $meterIds): int
+    public function delMetres(int $id, array $metreIds): int
     {
         return $this->conn->executeUpdate(
             'DELETE
@@ -210,7 +210,7 @@ class PoemService extends DocumentService
             and idmeter in (?)',
             [
                 $id,
-                $meterIds,
+                $metreIds,
             ],
             [
                 \PDO::PARAM_INT,

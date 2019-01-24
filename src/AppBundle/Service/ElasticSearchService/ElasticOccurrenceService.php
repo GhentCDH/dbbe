@@ -58,7 +58,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                 'type' => 'text',
                 'analyzer' => 'custom_greek_stemmer',
             ],
-            'meter' => ['type' => 'nested'],
+            'metre' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'manuscript_content' => ['type' => 'nested'],
             'manuscript_content_public' => ['type' => 'nested'],
@@ -87,7 +87,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             unset($result['data'][$key]['manuscript_content']);
             unset($result['data'][$key]['manuscript_content_public']);
             unset($result['data'][$key]['genre']);
-            unset($result['data'][$key]['meter']);
+            unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
@@ -122,7 +122,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['meter', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement'];
+        $aggregationFilters = ['metre', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -186,7 +186,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                 case 'person':
                     $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                     break;
-                case 'meter':
+                case 'metre':
                 case 'subject':
                 case 'genre':
                 case 'acknowledgement':
@@ -256,7 +256,7 @@ class ElasticOccurrenceService extends ElasticBaseService
                             break;
                     }
                     break;
-                case 'meter':
+                case 'metre':
                 case 'subject':
                 case 'genre':
                 case 'acknowledgement':

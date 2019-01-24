@@ -8,17 +8,17 @@ use Doctrine\DBAL\Connection;
 
 use AppBundle\Exceptions\DependencyException;
 
-class MeterService extends DatabaseService
+class MetreService extends DatabaseService
 {
     /**
-     * Get all meter ids
+     * Get all metre ids
      * @return array
      */
     public function getIds(): array
     {
         return $this->conn->query(
             'SELECT
-                meter.idmeter as meter_id
+                meter.idmeter as metre_id
             from data.meter'
         )->fetchAll();
     }
@@ -27,11 +27,11 @@ class MeterService extends DatabaseService
      * @param  array $ids
      * @return array
      */
-    public function getMetersByIds(array $ids): array
+    public function getMetresByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                meter.idmeter as meter_id,
+                meter.idmeter as metre_id,
                 meter.name
             from data.meter
             where meter.idmeter in (?)',
@@ -57,11 +57,11 @@ class MeterService extends DatabaseService
             );
             $id = $this->conn->executeQuery(
                 'SELECT
-                    meter.idmeter as meter_id
+                    meter.idmeter as metre_id
                 from data.meter
                 order by idmeter desc
                 limit 1'
-            )->fetch()['meter_id'];
+            )->fetch()['metre_id'];
             $this->commit();
         } catch (Exception $e) {
             $this->rollBack();
@@ -94,7 +94,7 @@ class MeterService extends DatabaseService
      */
     public function delete(int $id): int
     {
-        // don't delete if this meter is used in poem_meter
+        // don't delete if this metre is used in poem_meter
         $count = $this->conn->executeQuery(
             'SELECT count(*)
             from data.poem_meter
@@ -102,7 +102,7 @@ class MeterService extends DatabaseService
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This meter has dependencies.');
+            throw new DependencyException('This metre has dependencies.');
         }
 
         return $this->conn->executeUpdate(

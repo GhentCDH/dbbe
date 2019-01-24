@@ -7,7 +7,7 @@ use Doctrine\DBAL\Connection;
 class TypeRelationTypeService extends DatabaseService
 {
     /**
-     * Get all meter ids
+     * Get all type relation ids
      * @return array
      */
     public function getIds(): array

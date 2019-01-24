@@ -32,7 +32,7 @@ Encore
     .addEntry('managementsedit', './assets/js/main/managementsedit.js')
     .addEntry('manuscriptedit', './assets/js/main/manuscriptedit.js')
     .addEntry('manuscriptsearch', './assets/js/main/manuscriptsearch.js')
-    .addEntry('metersedit', './assets/js/main/metersedit.js')
+    .addEntry('metresedit', './assets/js/main/metresedit.js')
     .addEntry('newseventedit', './assets/js/main/newseventedit.js')
     .addEntry('occurrenceedit', './assets/js/main/occurrenceedit.js')
     .addEntry('occurrencesearch', './assets/js/main/occurrencesearch.js')

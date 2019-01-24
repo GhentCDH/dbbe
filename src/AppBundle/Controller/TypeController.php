@@ -138,16 +138,16 @@ class TypeController extends BaseController
     }
 
     /**
-     * Get all types that have a dependency on a meter
-     * (poem_meter)
-     * @Route("/types/meters/{id}", name="type_deps_by_meter")
+     * Get all types that have a dependency on a metre
+     * (poem_metre)
+     * @Route("/types/metres/{id}", name="type_deps_by_metre")
      * @Method("GET")
-     * @param  int    $id meter id
+     * @param  int    $id metre id
      * @param Request $request
      */
-    public function getDepsByMeter(int $id, Request $request)
+    public function getDepsByMetre(int $id, Request $request)
     {
-        return $this->getDependencies($id, $request, 'getMeterDependencies');
+        return $this->getDependencies($id, $request, 'getMetreDependencies');
     }
 
     /**
@@ -369,7 +369,7 @@ class TypeController extends BaseController
                     'type_get' => $this->generateUrl('type_get', ['id' => $id == null ? 'type_id' : $id]),
                     'type_post' => $this->generateUrl('type_post'),
                     'type_put' => $this->generateUrl('type_put', ['id' => $id == null ? 'type_id' : $id]),
-                    'meters_edit' => $this->generateUrl('meters_edit'),
+                    'metres_edit' => $this->generateUrl('metres_edit'),
                     'genres_edit' => $this->generateUrl('genres_edit'),
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'keywords_type_edit' => $this->generateUrl('tags_edit'),
@@ -384,7 +384,7 @@ class TypeController extends BaseController
                     'types' => $this->get('type_manager')->getAllMicroShortJson('getId'),
                     'typeRelationTypes' => $this->get('type_relation_type_manager')->getAllShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
-                    'meters' => $this->get('meter_manager')->getAllShortJson(),
+                    'metres' => $this->get('metre_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),
                     'subjectKeywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
                     'typeKeywords' => $this->get('keyword_manager')->getByTypeShortJson('type'),

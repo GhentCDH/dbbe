@@ -3,18 +3,18 @@
 {% block content %}
     <div class="col-xs-12">
         <h2 class="h1">
-            Edit meters
+            Edit metres
         </h2>
     </div>
-    <div id="meters-edit-app">
-        <meters-edit-app
+    <div id="metres-edit-app">
+        <metres-edit-app
             init-urls="{{ urls }}"
-            init-data="{{ meters }}"
+            init-data="{{ metres }}"
         />
     </div>
 {% endblock %}
 
 {% block javascript %}
     <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/metersedit.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/metresedit.js") }}"></script>
 {% endblock %}

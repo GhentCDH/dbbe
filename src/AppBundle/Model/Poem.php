@@ -21,7 +21,7 @@ class Poem extends Document
     /**
      * @var array
      */
-    protected $meters = [];
+    protected $metres = [];
     /**
      * @var array
      */
@@ -68,16 +68,16 @@ class Poem extends Document
         return isset($this->numberOfVerses) ? $this->numberOfVerses : count($this->verses);
     }
 
-    public function addMeter(Meter $meter = null): Poem
+    public function addMetre(Metre $metre = null): Poem
     {
-        $this->meters[$meter->getId()] = $meter;
+        $this->metres[$metre->getId()] = $metre;
 
         return $this;
     }
 
-    public function getMeters(): array
+    public function getMetres(): array
     {
-        return $this->meters;
+        return $this->metres;
     }
 
     public function addGenre(Genre $genre): Poem
@@ -208,8 +208,8 @@ class Poem extends Document
         if (!empty($this->numberOfVerses)) {
             $result['numberOfVerses'] = $this->numberOfVerses;
         }
-        if (!empty($this->meters)) {
-            $result['meters'] = ArrayToJson::arrayToShortJson($this->meters);
+        if (!empty($this->metres)) {
+            $result['metres'] = ArrayToJson::arrayToShortJson($this->metres);
         }
         $result['subjects'] = [
             'persons' => ArrayToJson::arrayToShortJson($this->getPersonSubjects()),
@@ -236,8 +236,8 @@ class Poem extends Document
             $result['title_stemmer'] = $this->title;
             $result['title_original'] = $this->title;
         }
-        if (!empty($this->meters)) {
-            $result['meter'] = ArrayToJson::arrayToShortJson($this->meters);
+        if (!empty($this->metres)) {
+            $result['metre'] = ArrayToJson::arrayToShortJson($this->metres);
         }
         if (!empty($this->subjects)) {
             $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);

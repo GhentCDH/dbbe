@@ -152,16 +152,16 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * Get all occurrences that have a dependency on a meter
-     * (poem_meter)
-     * @Route("/occurrences/meters/{id}", name="occurrence_deps_by_meter")
+     * Get all occurrences that have a dependency on a metre
+     * (poem_metre)
+     * @Route("/occurrences/metres/{id}", name="occurrence_deps_by_metre")
      * @Method("GET")
-     * @param  int    $id meter id
+     * @param  int    $id metre id
      * @param Request $request
      */
-    public function getDepsByMeter(int $id, Request $request)
+    public function getDepsByMetre(int $id, Request $request)
     {
-        return $this->getDependencies($id, $request, 'getMeterDependencies');
+        return $this->getDependencies($id, $request, 'getMetreDependencies');
     }
 
     /**
@@ -383,7 +383,7 @@ class OccurrenceController extends BaseController
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => $id == null ? 'occurrence_id' : $id]),
                     'occurrence_post' => $this->generateUrl('occurrence_post'),
                     'occurrence_put' => $this->generateUrl('occurrence_put', ['id' => $id == null ? 'occurrence_id' : $id]),
-                    'meters_edit' => $this->generateUrl('meters_edit'),
+                    'metres_edit' => $this->generateUrl('metres_edit'),
                     'genres_edit' => $this->generateUrl('genres_edit'),
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
@@ -402,7 +402,7 @@ class OccurrenceController extends BaseController
                     'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
                     'types' => $this->get('type_manager')->getAllMicroShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
-                    'meters' => $this->get('meter_manager')->getAllShortJson(),
+                    'metres' => $this->get('metre_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),
                     'keywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
                     'articles' => $this->get('article_manager')->getAllMiniShortJson(),

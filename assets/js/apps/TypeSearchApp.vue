@@ -350,7 +350,7 @@ export default {
                 { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
             ],
         };
-        data.schema.fields['meter'] = this.createMultiSelect('Meter');
+        data.schema.fields['metre'] = this.createMultiSelect('Metre');
         data.schema.fields['subject'] = this.createMultiSelect('Subject');
         data.schema.fields['tag'] = this.createMultiSelect('Tag');
         data.schema.fields['person'] = this.createMultiSelect('Person');

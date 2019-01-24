@@ -11,9 +11,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class PoemManager extends DocumentManager
 {
-    public function getMeterDependencies(int $meterId, string $method): array
+    public function getMetreDependencies(int $metreId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByMeterId($meterId), $method);
+        return $this->getDependencies($this->dbs->getDepIdsByMetreId($metreId), $method);
     }
 
     public function getGenreDependencies(int $genreId, string $method): array
@@ -62,13 +62,13 @@ class PoemManager extends DocumentManager
         }
     }
 
-    protected function setMeters(array &$poems): void
+    protected function setMetres(array &$poems): void
     {
-        $rawMeters = $this->dbs->getMeters(array_keys($poems));
-        $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
-        foreach ($rawMeters as $rawMeter) {
-            $poems[$rawMeter['poem_id']]
-                ->addMeter($meters[$rawMeter['meter_id']]);
+        $rawMetres = $this->dbs->getMetres(array_keys($poems));
+        $metres = $this->container->get('metre_manager')->getWithData($rawMetres);
+        foreach ($rawMetres as $rawMetre) {
+            $poems[$rawMetre['poem_id']]
+                ->addMetre($metres[$rawMetre['metre_id']]);
         }
     }
 
@@ -122,23 +122,23 @@ class PoemManager extends DocumentManager
         }
     }
 
-    protected function updateMeters(Poem $poem, array $meters): void
+    protected function updateMetres(Poem $poem, array $metres): void
     {
-        foreach ($meters as $meter) {
-            if (!is_object($meter)
-                || !property_exists($meter, 'id')
-                || !is_numeric($meter->id)
+        foreach ($metres as $metre) {
+            if (!is_object($metre)
+                || !property_exists($metre, 'id')
+                || !is_numeric($metre->id)
             ) {
-                throw new BadRequestHttpException('Incorrect meter data.');
+                throw new BadRequestHttpException('Incorrect metre data.');
             }
         }
-        list($delIds, $addIds) = self::calcDiff($meters, $poem->getMeters());
+        list($delIds, $addIds) = self::calcDiff($metres, $poem->getMetres());
 
         if (count($delIds) > 0) {
-            $this->dbs->delMeters($poem->getId(), $delIds);
+            $this->dbs->delMetres($poem->getId(), $delIds);
         }
         foreach ($addIds as $addId) {
-            $this->dbs->addMeter($poem->getId(), $addId);
+            $this->dbs->addMetre($poem->getId(), $addId);
         }
     }
 
@@ -222,23 +222,23 @@ class PoemManager extends DocumentManager
         }
     }
 
-    public function updateElasticMeter(array $ids): void
+    public function updateElasticMetre(array $ids): void
     {
         if (!empty($ids)) {
-            $rawMeters = $this->dbs->getMeters($ids);
-            if (!empty($rawMeters)) {
-                $meters = $this->container->get('meter_manager')->getWithData($rawMeters);
+            $rawMetres = $this->dbs->getMetres($ids);
+            if (!empty($rawMetres)) {
+                $metres = $this->container->get('metre_manager')->getWithData($rawMetres);
                 $data = [];
 
-                foreach ($rawMeters as $rawMeter) {
-                    if (!isset($data[$rawMeter['poem_id']])) {
-                        $data[$rawMeter['poem_id']] = [
-                            'id' => $rawMeter['poem_id'],
-                            'meter' => [],
+                foreach ($rawMetres as $rawMetre) {
+                    if (!isset($data[$rawMetre['poem_id']])) {
+                        $data[$rawMetre['poem_id']] = [
+                            'id' => $rawMetre['poem_id'],
+                            'metre' => [],
                         ];
                     }
-                    $data[$rawMeter['poem_id']]['meter'][] =
-                        $meters[$rawMeter['meter_id']]->getShortJson();
+                    $data[$rawMetre['poem_id']]['metre'][] =
+                        $metres[$rawMetre['metre_id']]->getShortJson();
                 }
 
                 $this->ess->updateMultiple($data);

@@ -124,13 +124,13 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getMeters() is not empty %}
+                {% if occurrence.getMetres() is not empty %}
                     <tr>
-                        <td>Meter(s)</td>
+                        <td>Metre(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getMeters()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getMetres()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[meter]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this meter">{{ item.getName() }}</a>
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this metre">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>

@@ -90,7 +90,7 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
-    public function getDepIdsByMeterId(int $meterId): array
+    public function getDepIdsByMetreId(int $metreId): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -98,7 +98,7 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.poem_meter on reconstructed_poem.identity = poem_meter.idpoem
             where poem_meter.idmeter = ?',
-            [$meterId]
+            [$metreId]
         )->fetchAll();
     }
 

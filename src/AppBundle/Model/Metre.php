@@ -4,10 +4,10 @@ namespace AppBundle\Model;
 
 /**
  */
-class Meter extends IdNameObject
+class Metre extends IdNameObject
 {
     /**
      * @var string
      */
-    const CACHENAME = 'meter';
+    const CACHENAME = 'metre';
 }

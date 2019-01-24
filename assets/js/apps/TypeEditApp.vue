@@ -50,13 +50,13 @@
                 @validated="validated"
             />
 
-            <meterPanel
-                id="meters"
-                ref="meters"
-                header="Meters"
-                :link="{url: urls['meters_edit'], text: 'Edit meters'}"
-                :model="model.meters"
-                :values="meters"
+            <metrePanel
+                id="metres"
+                ref="metres"
+                header="Metres"
+                :link="{url: urls['metres_edit'], text: 'Edit metres'}"
+                :model="model.metres"
+                :values="metres"
                 @validated="validated"
             />
 
@@ -191,7 +191,7 @@
                     <li><a href="#verses">Verses</a></li>
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
-                    <li><a href="#meters">Meters</a></li>
+                    <li><a href="#metres">Metres</a></li>
                     <li><a href="#genres">Genres</a></li>
                     <li><a href="#subjects">Subjects</a></li>
                     <li><a href="#keywords">Keywords</a></li>
@@ -232,7 +232,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Meter|Genre|Subject|Keyword|Identification|Bibliography|Translation|GeneralType|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicType|TypeVerses|TypeTypes|Person|Metre|Genre|Subject|Keyword|Identification|Bibliography|Translation|GeneralType|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -249,7 +249,7 @@ export default {
             manuscripts: null,
             types: null,
             historicalPersons: null,
-            meters: null,
+            metres: null,
             genres: null,
             subjects: null,
             keywords: null,
@@ -268,7 +268,7 @@ export default {
                 },
                 types: {types: null},
                 personRoles: {},
-                meters: {meters: null},
+                metres: {metres: null},
                 genres: {genres: null},
                 subjects: {
                     persons: null,
@@ -304,7 +304,7 @@ export default {
                 'verses',
                 'types',
                 'persons',
-                'meters',
+                'metres',
                 'genres',
                 'subjects',
                 'keywords',
@@ -336,7 +336,7 @@ export default {
             relationTypes: this.data.typeRelationTypes,
         }
         this.historicalPersons = this.data.historicalPersons
-        this.meters = this.data.meters
+        this.metres = this.data.metres
         this.genres = this.data.genres
         this.subjects = {
             personSubjects: this.historicalPersons,
@@ -398,9 +398,9 @@ export default {
                 }
                 this.$refs.persons.init();
 
-                // Meter
-                this.model.meters = {
-                    meters: this.type.meters,
+                // Metre
+                this.model.metres = {
+                    metres: this.type.metres,
                 }
 
                 // Genre

@@ -135,7 +135,7 @@ class OccurrenceManager extends PoemManager
 
         $this->setTitles($occurrences);
 
-        $this->setMeters($occurrences);
+        $this->setMetres($occurrences);
 
         $this->setSubjects($occurrences);
 
@@ -495,12 +495,12 @@ class OccurrenceManager extends PoemManager
                 }
                 $this->container->get('manuscript_manager')->updateElasticByIds([$manuscriptId]);
             }
-            if (property_exists($data, 'meters')) {
-                if (!is_array($data->meters)) {
-                    throw new BadRequestHttpException('Incorrect meter data.');
+            if (property_exists($data, 'metres')) {
+                if (!is_array($data->metres)) {
+                    throw new BadRequestHttpException('Incorrect metre data.');
                 }
                 $changes['short'] = true;
-                $this->updateMeters($old, $data->meters);
+                $this->updateMetres($old, $data->metres);
             }
             if (property_exists($data, 'genres')) {
                 if (!is_array($data->genres)) {

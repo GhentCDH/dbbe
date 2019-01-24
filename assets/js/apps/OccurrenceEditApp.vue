@@ -59,13 +59,13 @@
                 @validated="validated"
             />
 
-            <meterPanel
-                id="meters"
-                ref="meters"
-                header="Meters"
-                :link="{url: urls['meters_edit'], text: 'Edit meters'}"
-                :model="model.meters"
-                :values="meters"
+            <metrePanel
+                id="metres"
+                ref="metres"
+                header="Metres"
+                :link="{url: urls['metres_edit'], text: 'Edit metres'}"
+                :model="model.metres"
+                :values="metres"
                 @validated="validated"
             />
 
@@ -192,7 +192,7 @@
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#date">Date</a></li>
-                    <li><a href="#meters">Meters</a></li>
+                    <li><a href="#metres">Metres</a></li>
                     <li><a href="#genres">Genres</a></li>
                     <li><a href="#subjects">Subjects</a></li>
                     <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
@@ -232,7 +232,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Meter|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Metre|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -249,7 +249,7 @@ export default {
             manuscripts: null,
             types: null,
             historicalPersons: null,
-            meters: null,
+            metres: null,
             genres: null,
             subjects: null,
             bibliographies: null,
@@ -286,7 +286,7 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                meters: {meters: null},
+                metres: {metres: null},
                 genres: {genres: null},
                 subjects: {
                     personSubjects: null,
@@ -323,7 +323,7 @@ export default {
                 'types',
                 'persons',
                 'date',
-                'meters',
+                'metres',
                 'genres',
                 'subjects',
                 'images',
@@ -351,7 +351,7 @@ export default {
         this.manuscripts = this.data.manuscripts
         this.types = this.data.types
         this.historicalPersons = this.data.historicalPersons
-        this.meters = this.data.meters
+        this.metres = this.data.metres
         this.genres = this.data.genres
         this.subjects = {
             personSubjects: this.historicalPersons,
@@ -428,9 +428,9 @@ export default {
                     ceilingDayMonth: null,
                 }
 
-                // Meter
-                this.model.meters = {
-                    meters: this.occurrence.meters,
+                // Metre
+                this.model.metres = {
+                    metres: this.occurrence.metres,
                 }
 
                 // Genre

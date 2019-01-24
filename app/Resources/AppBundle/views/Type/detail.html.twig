@@ -87,13 +87,13 @@
                     with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? type.getPersonRoles() : type.getPublicPersonRoles()}
                     only
                 %}
-                {% if type.getMeters() is not empty %}
+                {% if type.getMetres() is not empty %}
                     <tr>
-                        <td>Meter(s)</td>
+                        <td>Metre(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getMeters()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getMetres()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[meter]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this meter">{{ item.getName() }}</a>
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this metre">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>

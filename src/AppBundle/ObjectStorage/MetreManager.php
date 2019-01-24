@@ -11,68 +11,68 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
-use AppBundle\Model\Meter;
+use AppBundle\Model\Metre;
 
 /**
- * ObjectManager for meters
- * Servicename: meter_manager
+ * ObjectManager for metres
+ * Servicename: metre_manager
  */
-class MeterManager extends ObjectManager
+class MetreManager extends ObjectManager
 {
     /**
-     * Get meters with all information
+     * Get metres with all information
      * @param  array $ids
      * @return array
      */
     public function get(array $ids): array
     {
-        $rawMeters = $this->dbs->getMetersByIds($ids);
-        return $this->getWithData($rawMeters);
+        $rawMetres = $this->dbs->getMetresByIds($ids);
+        return $this->getWithData($rawMetres);
     }
 
     /**
-     * Get meters with all information from existing data
+     * Get metres with all information from existing data
      * @param  array $data
      * @return array
      */
     public function getWithData(array $data): array
     {
-        $meters = [];
-        foreach ($data as $rawMeter) {
-            if (isset($rawMeter['meter_id']) && !isset($meters[$rawMeter['meter_id']])) {
-                $meters[$rawMeter['meter_id']] = new Meter(
-                    $rawMeter['meter_id'],
-                    $rawMeter['name']
+        $metres = [];
+        foreach ($data as $rawMetre) {
+            if (isset($rawMetre['metre_id']) && !isset($metres[$rawMetre['metre_id']])) {
+                $metres[$rawMetre['metre_id']] = new Metre(
+                    $rawMetre['metre_id'],
+                    $rawMetre['name']
                 );
             }
         }
 
-        return $meters;
+        return $metres;
     }
 
     public function getAll(): array
     {
         $rawIds = $this->dbs->getIds();
-        $ids = self::getUniqueIds($rawIds, 'meter_id');
-        $meters = $this->get($ids);
+        $ids = self::getUniqueIds($rawIds, 'metre_id');
+        $metres = $this->get($ids);
 
         // Sort by name
-        usort($meters, function ($a, $b) {
+        usort($metres, function ($a, $b) {
             return strcmp($a->getName(), $b->getName());
         });
 
-        return $meters;
+        return $metres;
     }
 
     /**
-     * Get all meters with minimal information
+     * Get all metres with minimal information
      * @return array
      */
     public function getAllShortJson(): array
     {
         return $this->wrapArrayCache(
-            'meters',
-            ['meters'],
+            'metres',
+            ['metres'],
             function () {
                 return ArrayToJson::arrayToShortJson($this->getAll());
             }
@@ -80,7 +80,7 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Get all meters with all information
+     * Get all metres with all information
      * @return array
      */
     public function getAllJson(): array
@@ -89,11 +89,11 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Add a new meter
+     * Add a new metre
      * @param  stdClass $data
-     * @return Meter
+     * @return Metre
      */
-    public function add(stdClass $data): Meter
+    public function add(stdClass $data): Metre
     {
         $this->dbs->beginTransaction();
         try {
@@ -110,7 +110,7 @@ class MeterManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['meters']);
+            $this->cache->invalidateTags(['metres']);
 
             // commit transaction
             $this->dbs->commit();
@@ -123,21 +123,21 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Update an existing meter
+     * Update an existing metre
      * @param  int      $id
      * @param  stdClass $data
-     * @return Meter
+     * @return Metre
      */
-    public function update(int $id, stdClass $data): Meter
+    public function update(int $id, stdClass $data): Metre
     {
         $this->dbs->beginTransaction();
         try {
-            $meters = $this->get([$id]);
-            if (count($meters) == 0) {
+            $metres = $this->get([$id]);
+            if (count($metres) == 0) {
                 $this->dbs->rollBack();
-                throw new NotFoundHttpException('Meter with id ' . $id .' not found.');
+                throw new NotFoundHttpException('Metre with id ' . $id .' not found.');
             }
-            $old = $meters[$id];
+            $old = $metres[$id];
 
             if (property_exists($data, 'name')
                 && is_string($data->name)
@@ -152,16 +152,16 @@ class MeterManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['meters']);
+            $this->cache->invalidateTags(['metres']);
 
             // update Elastic occurrences
-            $this->container->get('occurrence_manager')->updateElasticMeter(
-                $this->container->get('occurrence_manager')->getMeterDependencies($id, 'getId')
+            $this->container->get('occurrence_manager')->updateElasticMetre(
+                $this->container->get('occurrence_manager')->getMetreDependencies($id, 'getId')
             );
 
             // update Elastic types
-            $this->container->get('type_manager')->updateElasticMeter(
-                $this->container->get('type_manager')->getMeterDependencies($id, 'getId')
+            $this->container->get('type_manager')->updateElasticMetre(
+                $this->container->get('type_manager')->getMetreDependencies($id, 'getId')
             );
 
             // commit transaction
@@ -175,24 +175,24 @@ class MeterManager extends ObjectManager
     }
 
     /**
-     * Delete a meter
+     * Delete a metre
      * @param int $id
      */
     public function delete(int $id): void
     {
         $this->dbs->beginTransaction();
         try {
-            $meters = $this->get([$id]);
-            if (count($meters) == 0) {
-                throw new NotFoundHttpException('Meter with id ' . $id .' not found.');
+            $metres = $this->get([$id]);
+            if (count($metres) == 0) {
+                throw new NotFoundHttpException('Metre with id ' . $id .' not found.');
             }
-            $old = $meters[$id];
+            $old = $metres[$id];
 
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
 
-            $this->cache->invalidateTags(['meters']);
+            $this->cache->invalidateTags(['metres']);
 
             // commit transaction
             $this->dbs->commit();

@@ -91,7 +91,7 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
-    public function getDepIdsByMeterId(int $meterId): array
+    public function getDepIdsByMetreId(int $metreId): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -99,7 +99,7 @@ class OccurrenceService extends PoemService
             from data.original_poem
             inner join data.poem_meter on original_poem.identity = poem_meter.idpoem
             where poem_meter.idmeter = ?',
-            [$meterId]
+            [$metreId]
         )->fetchAll();
     }
 

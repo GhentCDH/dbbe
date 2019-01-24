@@ -54,7 +54,7 @@ class ElasticTypeService extends ElasticBaseService
                 'type' => 'text',
                 'analyzer' => 'custom_greek_stemmer',
             ],
-            'meter' => ['type' => 'nested'],
+            'metre' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'tag' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
@@ -80,7 +80,7 @@ class ElasticTypeService extends ElasticBaseService
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
             unset($result['data'][$key]['genre']);
-            unset($result['data'][$key]['meter']);
+            unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
@@ -120,7 +120,7 @@ class ElasticTypeService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['meter', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement'];
+        $aggregationFilters = ['metre', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -179,7 +179,7 @@ class ElasticTypeService extends ElasticBaseService
                 case 'person':
                     $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                     break;
-                case 'meter':
+                case 'metre':
                 case 'subject':
                 case 'tag':
                 case 'genre':
@@ -265,7 +265,7 @@ class ElasticTypeService extends ElasticBaseService
                             break;
                     }
                     break;
-                case 'meter':
+                case 'metre':
                 case 'subject':
                 case 'tag':
                 case 'genre':

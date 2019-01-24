@@ -35,8 +35,8 @@ export default {
         return {
             schema: {
                 fields: {
-                    meters: this.createMultiSelect(
-                        'Meters',
+                    metres: this.createMultiSelect(
+                        'Metres',
                         {
                             values: this.values
                         },
@@ -52,7 +52,7 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.meters)
+            this.enableField(this.schema.fields.metres)
         },
     }
 }

@@ -99,7 +99,7 @@ class TypeManager extends PoemManager
 
         $this->setTitles($types);
 
-        $this->setMeters($types);
+        $this->setMetres($types);
 
         $this->setSubjects($types);
 
@@ -346,12 +346,12 @@ class TypeManager extends PoemManager
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
-            if (property_exists($data, 'meters')) {
-                if (!is_array($data->meters)) {
-                    throw new BadRequestHttpException('Incorrect meter data.');
+            if (property_exists($data, 'metres')) {
+                if (!is_array($data->metres)) {
+                    throw new BadRequestHttpException('Incorrect metre data.');
                 }
                 $changes['short'] = true;
-                $this->updateMeters($old, $data->meters);
+                $this->updateMetres($old, $data->metres);
             }
             if (property_exists($data, 'genres')) {
                 if (!is_array($data->genres)) {
