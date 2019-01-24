@@ -192,16 +192,6 @@
                                                           </a>
                                                         </li>
                                                         <li>
-                                                          <a href="{{ path('keywords_subject_edit') }}">
-                                                            <span>Keywords (subject)</span>
-                                                          </a>
-                                                        </li>
-                                                        <li>
-                                                          <a href="{{ path('keywords_type_edit') }}">
-                                                            <span>Keywords (type)</span>
-                                                          </a>
-                                                        </li>
-                                                        <li>
                                                           <a href="{{ path('locations_edit') }}">
                                                             <span>Locations</span>
                                                           </a>
@@ -242,6 +232,16 @@
                                                           <a href="{{ path('statuses_edit') }}">
                                                             <span>Statuses</span>
                                                           </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{{ path('subjects_edit') }}">
+                                                                <span>Subjects</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{{ path('tags_edit') }}">
+                                                                <span>Tags</span>
+                                                            </a>
                                                         </li>
                                                         {% if is_granted('ROLE_ADMIN') %}
                                                             <li>

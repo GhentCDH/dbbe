@@ -21,11 +21,11 @@ class KeywordController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Keyword:';
 
     /**
-     * @Route("/keywords/subject", name="keywords_subject_get")
+     * @Route("/subjects", name="subjects_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function getAllSubjectKeywords(Request $request)
+    public function getAllSubjects(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         $this->throwErrorIfNotJson($request);
@@ -36,11 +36,11 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords/type", name="keywords_type_get")
+     * @Route("/tags", name="tags_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function getAllTypeKeywords(Request $request)
+    public function getAllTags(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         $this->throwErrorIfNotJson($request);
@@ -51,7 +51,7 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords/subject/edit", name="keywords_subject_edit")
+     * @Route("/subjects/edit", name="subjects_edit")
      * @Method("GET")
      * @param Request $request
      */
@@ -64,7 +64,7 @@ class KeywordController extends BaseController
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
-                    'keywords_get' => $this->generateUrl('keywords_subject_get'),
+                    'keywords_get' => $this->generateUrl('subjects_get'),
                     'occurrence_deps_by_keyword' => $this->generateUrl('occurrence_deps_by_keyword', ['id' => 'keyword_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'type_deps_by_keyword' => $this->generateUrl('type_deps_by_keyword', ['id' => 'keyword_id']),
@@ -84,11 +84,11 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords/type/edit", name="keywords_type_edit")
+     * @Route("/tags/edit", name="tags_edit")
      * @Method("GET")
      * @param Request $request
      */
-    public function typeEdit(Request $request)
+    public function tagEdit(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
@@ -97,7 +97,7 @@ class KeywordController extends BaseController
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
-                    'keywords_get' => $this->generateUrl('keywords_type_get'),
+                    'keywords_get' => $this->generateUrl('tags_get'),
                     'occurrence_deps_by_keyword' => $this->generateUrl('occurrence_deps_by_keyword', ['id' => 'keyword_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'type_deps_by_keyword' => $this->generateUrl('type_deps_by_keyword', ['id' => 'keyword_id']),

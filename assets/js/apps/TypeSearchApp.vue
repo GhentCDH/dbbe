@@ -352,7 +352,7 @@ export default {
         };
         data.schema.fields['meter'] = this.createMultiSelect('Meter');
         data.schema.fields['subject'] = this.createMultiSelect('Subject');
-        data.schema.fields['keyword'] = this.createMultiSelect('Keyword');
+        data.schema.fields['tag'] = this.createMultiSelect('Tag');
         data.schema.fields['person'] = this.createMultiSelect('Person');
         data.schema.fields['role'] = this.createMultiSelect('Role', {dependency: 'person'});
         data.schema.fields['genre'] = this.createMultiSelect('Genre');

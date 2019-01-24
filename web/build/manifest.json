@@ -35,7 +35,7 @@
   "build/images/fontawesome-webfont.svg?v=4.7.0": "/build/images/fontawesome-webfont.912ec66d.svg",
   "build/images/glyphicons-halflings-regular.svg": "/build/images/glyphicons-halflings-regular.89889688.svg",
   "build/journalsedit.js": "/build/journalsedit.ca5e3dd60f5ae0bb429e.js",
-  "build/keywordsedit.js": "/build/keywordsedit.1fdbe96427b096c96b46.js",
+  "build/keywordsedit.js": "/build/keywordsedit.f578742a29f805c04f2a.js",
   "build/lightbox.js": "/build/lightbox.74c57941f5ad80adf74c.js",
   "build/locationsedit.js": "/build/locationsedit.066627118d9962891951.js",
   "build/main.js": "/build/main.4c994dc51c91d3e752a1.js",
@@ -57,6 +57,6 @@
   "build/screen.css": "/build/screen.57747bc8c403ce0dcd16a69f53c939c4.css",
   "build/statusesedit.js": "/build/statusesedit.8c8fadd1e4f274fd9b3d.js",
   "build/typeedit.js": "/build/typeedit.ef9e92b411c21e7c6f5a.js",
-  "build/typesearch.js": "/build/typesearch.ebdae9e0ff3ecbfb789c.js",
+  "build/typesearch.js": "/build/typesearch.b4030f1f6c2aeb5ef6c3.js",
   "build/usersedit.js": "/build/usersedit.4827c9d018b980f1ab96.js"
 }

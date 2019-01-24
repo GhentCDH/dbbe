@@ -118,11 +118,11 @@
                 {% endif %}
                 {% if type.getKeywords() is not empty %}
                     <tr>
-                        <td>Keyword(s)</td>
+                        <td>Tag(s)</td>
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getKeywords()} only %}
                                 {% block renderItem %}
-                                    {{ item.getName() }}
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[tag]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this tag">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>

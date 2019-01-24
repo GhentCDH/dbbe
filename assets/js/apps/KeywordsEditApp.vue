@@ -5,7 +5,7 @@
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
             />
-            <panel header="Edit keywords">
+            <panel :header="'Edit ' + (isSubject ? 'subjects' : 'tags')">
                 <editListRow
                     :schema="schema"
                     :model="model"
@@ -91,7 +91,7 @@ export default {
             isSubject: JSON.parse(this.initIsSubject),
             schema: {
                 fields: {
-                    keyword: this.createMultiSelect('Keyword'),
+                    keyword: this.createMultiSelect(this.isSubject ? 'Subject' : 'Tag', {model: 'keyword'}),
                 },
             },
             editSchema: {

@@ -56,7 +56,7 @@ class ElasticTypeService extends ElasticBaseService
             ],
             'meter' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
-            'keyword' => ['type' => 'nested'],
+            'tag' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
             'acknowledgement' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
@@ -120,7 +120,7 @@ class ElasticTypeService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['meter', 'subject', 'keyword', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement'];
+        $aggregationFilters = ['meter', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -181,7 +181,7 @@ class ElasticTypeService extends ElasticBaseService
                     break;
                 case 'meter':
                 case 'subject':
-                case 'keyword':
+                case 'tag':
                 case 'genre':
                 case 'acknowledgement':
                 case 'management':
@@ -267,7 +267,7 @@ class ElasticTypeService extends ElasticBaseService
                     break;
                 case 'meter':
                 case 'subject':
-                case 'keyword':
+                case 'tag':
                 case 'genre':
                 case 'acknowledgement':
                     $result['nested'][$key] = $value;

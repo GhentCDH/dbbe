@@ -248,7 +248,7 @@ class Type extends Poem
             $result['critical_status'] = $this->criticalStatus->getShortJson();
         }
         if (!empty($this->keywords)) {
-            $result['keyword'] = ArrayToJson::arrayToShortJson($this->keywords);
+            $result['tag'] = ArrayToJson::arrayToShortJson($this->keywords);
         }
         if (!empty($this->occurrences)) {
             $result['number_of_occurrences_public'] = count(
