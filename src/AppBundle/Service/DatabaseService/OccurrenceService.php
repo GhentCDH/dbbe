@@ -398,7 +398,7 @@ class OccurrenceService extends PoemService
         return $this->conn->executeQuery(
             'SELECT
                 original_poem.identity as occurrence_id,
-                original_poem.paleographical_info
+                original_poem.paleographical_info as palaeographical_info
             from data.original_poem
             where original_poem.identity in (?)',
             [$ids],
