@@ -249,14 +249,16 @@
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                         {% endblock %}
                                     {% endembed %}
-                                    {% if item[0].getManuscript().getPublic() %}
-                                        <br />
-                                        <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
-                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
-                                        <br />
-                                        <span class="bg-warning">
+                                    {% if item[0].getManuscript() is not empty %}
+                                        {% if item[0].getManuscript().getPublic() %}
+                                            <br />
                                             <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
-                                        </span>
+                                        {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                            <br />
+                                            <span class="bg-warning">
+                                                <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
                                     <br />
                                     {% if item[0].getNumberOfVerses() == 0 %}
