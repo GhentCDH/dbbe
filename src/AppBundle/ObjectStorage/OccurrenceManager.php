@@ -151,7 +151,7 @@ class OccurrenceManager extends PoemManager
         $rawPalaeographicalInfos = $this->dbs->getPalaeographicalInfos($ids);
         foreach ($rawPalaeographicalInfos as $rawPalaeographicalInfo) {
             $occurrences[$rawPalaeographicalInfo['occurrence_id']]
-                ->setPalaeographicalInfo($rawPalaeographicalInfo['palaeographical_info']);
+                ->setPalaeographicalInfo($rawPalaeographicalInfo['paleographical_info']);
         }
 
         // contextual information
