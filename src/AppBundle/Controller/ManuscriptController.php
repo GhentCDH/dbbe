@@ -423,7 +423,7 @@ class ManuscriptController extends BaseController
                     'locations' => $this->get('location_manager')->getByTypeJson('manuscript'),
                     'contents' => $this->get('content_manager')->getAllShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
-                    'origins' => $this->get('origin_manager')->getByType('manuscript'),
+                    'origins' => $this->get('origin_manager')->getByTypeShortJson('manuscript'),
                     'articles' => $this->get('article_manager')->getAllMiniShortJson(),
                     'books' => $this->get('book_manager')->getAllMiniShortJson(),
                     'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
