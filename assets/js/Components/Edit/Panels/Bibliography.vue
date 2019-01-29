@@ -86,7 +86,7 @@
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
                         <td v-if="referenceType">
-                            <template v-if="item.referenceTyp != null">
+                            <template v-if="item.referenceType != null">
                                 {{ item.referenceType.name }}
                             </template>
                         </td>
@@ -145,7 +145,7 @@
                         <td>{{ item.endPage }}</td>
                         <td>{{ item.rawPages }}</td>
                         <td v-if="referenceType">
-                            <template v-if="item.referenceTyp != null">
+                            <template v-if="item.referenceType != null">
                                 {{ item.referenceType.name }}
                             </template>
                         </td>
@@ -202,7 +202,7 @@
                         <td>{{ item.onlineSource.url }}</td>
                         <td>{{ item.relUrl }}</td>
                         <td v-if="referenceType">
-                            <template v-if="item.referenceTyp != null">
+                            <template v-if="item.referenceType != null">
                                 {{ item.referenceType.name }}
                             </template>
                         </td>
