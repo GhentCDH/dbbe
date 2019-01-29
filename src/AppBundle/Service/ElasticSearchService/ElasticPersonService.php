@@ -24,12 +24,24 @@ class ElasticPersonService extends ElasticBaseService
         if ($index->exists()) {
             $index->delete();
         }
-        $index->create();
+        // Configure analysis
+        $index->create(CaseInsensitive::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $mapping->setProperties(
             [
+                'name' => [
+                    'type' => 'text',
+                    // Needed for sorting
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'normalizer' => 'case_insensitive',
+                            'ignore_above' => 256,
+                        ],
+                    ],
+                ],
                 'role' => ['type' => 'nested'],
                 'office' => ['type' => 'nested'],
                 'management' => ['type' => 'nested'],
