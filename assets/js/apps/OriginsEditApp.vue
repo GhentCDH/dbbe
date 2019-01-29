@@ -8,17 +8,17 @@
                 header="Edit origins"
                 :link="{
                     url: urls['regions_edit'],
-                    text: 'Add, edit or delete cities (regions)',
+                    text: 'Add, edit or delete regions',
                 }"
             >
                 <editListRow
-                    :schema="citySchema"
+                    :schema="regionSchema"
                     :model="model"
                     name="origin"
                     :conditions="{
                         edit: model.regionWithParents,
                     }"
-                    @edit="editCity()" />
+                    @edit="editRegion()" />
                 <editListRow
                     :schema="monasterySchema"
                     :model="model"
@@ -74,22 +74,22 @@ export default {
     ],
     data() {
         return {
-            citySchema: {
+            regionSchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
+                    region: this.createMultiSelect('Region', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
                 }
             },
             monasterySchema: {
                 fields: {
-                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
+                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'region'}),
                 }
             },
-            editCitySchema: {
+            editRegionSchema: {
                 fields: {
                     individualHistoricalName: {
                         type: 'input',
                         inputType: 'text',
-                        label: 'City name',
+                        label: 'Region name',
                         labelClasses: 'control-label',
                         model: 'regionWithParents.individualHistoricalName',
                         required: true,
@@ -99,7 +99,7 @@ export default {
             },
             editMonasterySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
+                    region: this.createMultiSelect('Region', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -126,7 +126,7 @@ export default {
         editSchema: function() {
             switch (this.submitModel.submitType) {
             case 'regionWithParents':
-                return this.editCitySchema
+                return this.editRegionSchema
                 break;
             default:
                 return this.editMonasterySchema
@@ -154,12 +154,12 @@ export default {
         },
     },
     mounted () {
-        this.loadLocationField(this.citySchema.fields.city)
-        this.enableField(this.citySchema.fields.city)
+        this.loadLocationField(this.regionSchema.fields.region)
+        this.enableField(this.regionSchema.fields.region)
         this.dependencyField(this.monasterySchema.fields.monastery)
     },
     methods: {
-        editCity() {
+        editRegion() {
             this.submitModel.submitType = 'regionWithParents'
             this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
@@ -179,8 +179,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            this.loadLocationField(this.editMonasterySchema.fields.city, this.submitModel)
-            this.enableField(this.editMonasterySchema.fields.city, this.submitModel)
+            this.loadLocationField(this.editMonasterySchema.fields.region, this.submitModel)
+            this.enableField(this.editMonasterySchema.fields.region, this.submitModel)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -301,12 +301,12 @@ export default {
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        this.loadLocationField(this.regionSchema.fields.region, this.submitModel)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        this.loadLocationField(this.regionSchema.fields.region, this.submitModel)
                         this.loadLocationField(this.monasterySchema.fields.monastery, this.submitModel)
                         this.enableField(this.monasterySchema.fields.monastery, this.submitModel)
                         break
@@ -321,7 +321,7 @@ export default {
         },
         formatType(type) {
             if (type === 'regionWithParents') {
-                return 'city'
+                return 'region'
             }
             if (type === 'institution') {
                 return 'monastery'
