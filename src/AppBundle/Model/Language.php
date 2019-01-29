@@ -13,7 +13,7 @@ class Language extends IdNameObject
         return $this;
     }
 
-    public function getcode(): string
+    public function getcode(): ?string
     {
         return $this->code;
     }

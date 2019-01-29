@@ -156,6 +156,20 @@ class Type extends Poem
         return $this->translations;
     }
 
+    /**
+     * Filter out translations where the language isn't set yet.
+     * @return array
+     */
+    public function getPublicTranslations(): array
+    {
+        return array_filter(
+            $this->translations,
+            function ($translation) {
+                return $translation->getLanguage()->getCode() != null;
+            }
+        );
+    }
+
     public function setBasedOn(Occurrence $basedOn = null): Type
     {
         $this->basedOn = $basedOn;

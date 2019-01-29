@@ -134,12 +134,16 @@
                         <td>{{ type.getCriticalApparatus()|nl2br }}</td>
                     </tr>
                 {% endif %}
-                {% if type.getTranslations() is not empty %}
+                {% set translations = is_granted('ROLE_VIEW_INTERNAL') ? type.getTranslations() : type.getPublicTranslations() %}
+                {% if translations is not empty %}
                     <tr>
                         <td>Translation(s)</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getTranslations()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': translations} only %}
                                 {% block renderItem %}
+                                    {% if item.getLanguage() == 'Unknown' %}
+                                        <span class="bg-warning">
+                                    {%  endif %}
                                     {{ item.getText()|replace({'|':'\n'})|nl2br }}
                                     <br />
                                     Language: {{ item.getLanguage() }}
@@ -149,6 +153,9 @@
                                             {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                         {% endblock %}
                                     {% endembed %}
+                                    {% if item.getLanguage() == 'Unknown' %}
+                                        </span>
+                                    {%  endif %}
                                 {% endblock %}
                             {% endembed %}
                         </td>
