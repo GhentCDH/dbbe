@@ -4,7 +4,7 @@ namespace AppBundle\Service\ElasticSearchService;
 
 /**
  */
-class CaseInsensitive
+class CaseInsensitiveAnalysis
 {
     /**
      * Elasticsearch config for Case Insensitive Sorting
