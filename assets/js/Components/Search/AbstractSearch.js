@@ -660,6 +660,7 @@ export default {
             cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
         })
             .then( (response) => {
+                this.$parent.alerts = [];
                 this.$emit('data', response.data);
                 return response
             })
@@ -667,13 +668,24 @@ export default {
                 if (axios.isCancel(error)) {
                     // Return the current data if the request is cancelled
                     return {
-                        data : {
+                        data: {
                             data: this.data,
                             count: this.count
                         }
                     }
                 }
-                this.dispatch('error', error)
+                this.$parent.alerts.push({
+                    type: 'error',
+                    message: 'Something went wrong while processing your request. Please verify your input is valid.'
+                });
+                console.log(error);
+                // Return the current data
+                return {
+                    data: {
+                        data: this.data,
+                        count: this.count
+                    }
+                };
             }.bind(this))
     },
     YEAR_MIN: YEAR_MIN,
