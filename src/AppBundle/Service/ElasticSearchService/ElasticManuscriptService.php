@@ -25,11 +25,23 @@ class ElasticManuscriptService extends ElasticBaseService
         if ($index->exists()) {
             $index->delete();
         }
-        $index->create();
+        // Configure analysis
+        $index->create(Analysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
+            'name' => [
+                'type' => 'text',
+                // Needed for sorting
+                'fields' => [
+                    'keyword' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'text_digits',
+                        'ignore_above' => 256,
+                    ],
+                ],
+            ],
             'content' => ['type' => 'nested'],
             'origin' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
