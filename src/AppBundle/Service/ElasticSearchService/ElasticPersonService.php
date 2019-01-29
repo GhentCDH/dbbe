@@ -25,7 +25,7 @@ class ElasticPersonService extends ElasticBaseService
             $index->delete();
         }
         // Configure analysis
-        $index->create(CaseInsensitiveAnalysis::ANALYSIS);
+        $index->create(Analysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);

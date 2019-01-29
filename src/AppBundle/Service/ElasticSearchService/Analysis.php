@@ -4,10 +4,10 @@ namespace AppBundle\Service\ElasticSearchService;
 
 /**
  */
-class GreekAnalysis
+class Analysis
 {
     /**
-     * Elasticsearch config for Greek Analysis
+     * Elasticsearch config for Special Analysis
      * @var array
      */
     const ANALYSIS = [
@@ -57,6 +57,11 @@ class GreekAnalysis
                 ],
             ],
             'normalizer' => [
+                'case_insensitive' => [
+                    'filter' => [
+                        'lowercase',
+                    ],
+                ],
                 'custom_greek' => [
                     'filter' => [
                         'icu_folding',

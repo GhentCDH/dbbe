@@ -26,7 +26,7 @@ class ElasticTypeService extends ElasticBaseService
             $index->delete();
         }
         // Configure analysis
-        $index->create(GreekAnalysis::ANALYSIS);
+        $index->create(Analysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
