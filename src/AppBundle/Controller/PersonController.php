@@ -409,6 +409,7 @@ class PersonController extends BaseController
 
         // Filtering
         $filters = [];
+
         if (isset($params['filters']) && is_array($params['filters'])) {
             $identifiers = array_keys($this->get('identifier_manager')->getPrimaryByType('person'));
 
@@ -417,14 +418,13 @@ class PersonController extends BaseController
                     case 'name':
                     case 'self_designation':
                     case 'comment':
+                    case 'date_search_type':
                         if (is_string($params['filters'][$key])) {
                             $filters[$key] = $params['filters'][$key];
                         }
                         break;
                     case 'historical':
                     case 'modern':
-                    case 'year_from':
-                    case 'year_to':
                     case 'role':
                     case 'office':
                     case 'origin':
@@ -432,6 +432,21 @@ class PersonController extends BaseController
                     case 'management':
                         if (is_numeric($params['filters'][$key])) {
                             $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'date':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                            foreach (array_keys($params['filters'][$key]) as $subKey) {
+                                switch ($subKey) {
+                                    case 'year_from':
+                                    case 'year_to':
+                                        if (is_numeric($params['filters'][$key][$subKey])) {
+                                            $filters[$key][$subKey] = $params['filters'][$key][$subKey];
+                                        }
+                                        break;
+                                }
+                            }
                         }
                         break;
                 }
