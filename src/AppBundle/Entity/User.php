@@ -147,7 +147,7 @@ class User extends BaseUser
         }
         if (empty($this->username) && isset($data->username) && is_string($data->username)) {
             $this->username = $data->username;
-            # Email will be set using CAS attributes at first login
+            # Email will be set using SAML attributes at first login
             $this->email = $data->username;
             # Password is not used
             $this->password = $data->username;

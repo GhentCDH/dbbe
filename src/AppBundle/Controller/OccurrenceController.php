@@ -52,7 +52,7 @@ class OccurrenceController extends EditController
                 'occurrence_edit' => $this->generateUrl('occurrence_edit', ['id' => 'occurrence_id']),
                 'occurrence_delete' => $this->generateUrl('occurrence_delete', ['id' => 'occurrence_id']),
                 'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                'login' => $this->generateUrl('login'),
+                'login' => $this->generateUrl('saml_login'),
                 'managements_add' => $this->generateUrl('occurrences_managements_add'),
                 'managements_remove' => $this->generateUrl('occurrences_managements_remove'),
                 'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
@@ -448,7 +448,7 @@ class OccurrenceController extends EditController
                     'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'clone' => $clone,

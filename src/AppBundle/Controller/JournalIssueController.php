@@ -64,7 +64,7 @@ class JournalIssueController extends BaseController
                     'journal_issue_post' => $this->generateUrl('journal_issue_post'),
                     'journal_issue_put' => $this->generateUrl('journal_issue_put', ['id' => 'journal_issue_id']),
                     'journal_issue_delete' => $this->generateUrl('journal_issue_delete', ['id' => 'journal_issue_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data'=> json_encode([
                     'journalIssues' => $this->get(self::MANAGER)->getAllJson(),

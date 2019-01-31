@@ -178,7 +178,7 @@ class BookChapterController extends EditController
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'bookChapter' => empty($id)

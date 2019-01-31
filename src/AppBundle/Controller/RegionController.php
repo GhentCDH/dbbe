@@ -67,7 +67,7 @@ class RegionController extends BaseController
                     'region_merge' => $this->generateUrl('region_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'region_put' => $this->generateUrl('region_put', ['id' => 'region_id']),
                     'region_delete' => $this->generateUrl('region_delete', ['id' => 'region_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'regions' => json_encode(

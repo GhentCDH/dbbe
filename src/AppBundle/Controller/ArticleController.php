@@ -180,7 +180,7 @@ class ArticleController extends EditController
                     'journal_issues_edit' => $this->generateUrl('journal_issues_edit'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'article' => empty($id)

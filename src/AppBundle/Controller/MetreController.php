@@ -50,7 +50,7 @@ class MetreController extends BaseController
                     'metre_post' => $this->generateUrl('metre_post'),
                     'metre_put' => $this->generateUrl('metre_put', ['id' => 'metre_id']),
                     'metre_delete' => $this->generateUrl('metre_delete', ['id' => 'metre_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'metres' => json_encode(

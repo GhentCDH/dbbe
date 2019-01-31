@@ -4,15 +4,6 @@ security:
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-        chain_provider:
-            chain:
-                providers: [in_memory, fos_userbundle]
-        in_memory:
-            memory:
-                users:
-                    __NO_USER__:
-                        password:
-                        roles: ROLE_ANO
         fos_userbundle:
             id: fos_user.user_provider.username
 
@@ -24,11 +15,15 @@ security:
 
         main:
             pattern: ^/
-            security: true
-            cas: true
-            provider: chain_provider
+            anonymous: true
+            saml:
+                # Match SAML attribute 'uid' with username.
+                username_attribute: uid
+                check_path: /saml/acs
+                login_path: /saml/login
+            logout:
+                path: /saml/logout
             logout_on_user_change: true
-            access_denied_url: /login
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER

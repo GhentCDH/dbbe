@@ -50,7 +50,7 @@ class GenreController extends BaseController
                     'genre_post' => $this->generateUrl('genre_post'),
                     'genre_put' => $this->generateUrl('genre_put', ['id' => 'genre_id']),
                     'genre_delete' => $this->generateUrl('genre_delete', ['id' => 'genre_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'genres' => json_encode($this->get('genre_manager')->getAllJson()),

@@ -73,7 +73,7 @@ class KeywordController extends BaseController
                     'keyword_put' => $this->generateUrl('keyword_put', ['id' => 'keyword_id']),
                     'keyword_migrate_person' => $this->generateUrl('keyword_migrate_person', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'keyword_delete' => $this->generateUrl('keyword_delete', ['id' => 'keyword_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('subject')),
@@ -105,7 +105,7 @@ class KeywordController extends BaseController
                     'keyword_post' => $this->generateUrl('keyword_post'),
                     'keyword_put' => $this->generateUrl('keyword_put', ['id' => 'keyword_id']),
                     'keyword_delete' => $this->generateUrl('keyword_delete', ['id' => 'keyword_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('type')),

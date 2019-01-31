@@ -177,7 +177,7 @@ class BookController extends EditController
                     'persons_search' => $this->generateUrl('persons_search'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'book' => empty($id)

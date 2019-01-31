@@ -48,7 +48,7 @@ class SelfDesignationController extends BaseController
                     'self_designation_post' => $this->generateUrl('self_designation_post'),
                     'self_designation_put' => $this->generateUrl('self_designation_put', ['id' => 'self_designation_id']),
                     'self_designation_delete' => $this->generateUrl('self_designation_delete', ['id' => 'self_designation_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'selfDesignations' => json_encode(

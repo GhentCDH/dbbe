@@ -85,11 +85,11 @@
                                                                 <span><i class="fa fa-key"></i>&nbsp;{{ app.user.fullName }}</span>
                                                             </li>
                                                             <li>
-                                                                <a href="{{ path('logout') }}">Log out</a>
+                                                                <a href="{{ path('saml_logout') }}">Log out</a>
                                                             </li>
                                                         {% else %}
                                                             <li>
-                                                                <a href="{{ path('login') }}">Login</a>
+                                                                <a href="{{ path('saml_login') }}">Login</a>
                                                             </li>
                                                         {% endif %}
                                                     </ul>

@@ -48,7 +48,7 @@ class ManuscriptController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'manuscript_edit' => $this->generateUrl('manuscript_edit', ['id' => 'manuscript_id']),
                     'manuscript_delete' => $this->generateUrl('manuscript_delete', ['id' => 'manuscript_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     'managements_add' => $this->generateUrl('manuscripts_managements_add'),
                     'managements_remove' => $this->generateUrl('manuscripts_managements_remove'),
                 ]),
@@ -443,7 +443,7 @@ class ManuscriptController extends BaseController
                     'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'manuscript' => empty($id)

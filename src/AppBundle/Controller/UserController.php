@@ -75,7 +75,7 @@ class UserController extends Controller
                     'users_get' => $this->generateUrl('users_get'),
                     'user_post' => $this->generateUrl('user_post'),
                     'user_put' => $this->generateUrl('user_put', ['id' => 'user_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
             ]
         );

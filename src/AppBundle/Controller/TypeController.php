@@ -54,7 +54,7 @@ class TypeController extends EditController
                     'type_edit' => $this->generateUrl('type_edit', ['id' => 'type_id']),
                     'type_delete' => $this->generateUrl('type_delete', ['id' => 'type_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                     'managements_add' => $this->generateUrl('types_managements_add'),
                     'managements_remove' => $this->generateUrl('types_managements_remove'),
                     'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
@@ -409,7 +409,7 @@ class TypeController extends EditController
                     'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('login'),
+                    'login' => $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'type' => empty($id)
