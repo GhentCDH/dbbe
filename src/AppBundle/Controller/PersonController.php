@@ -473,6 +473,11 @@ class PersonController extends BaseController
             }
         }
 
+        // sanitize date search type
+        if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'narrow', 'broad']))) {
+            $filters['date_search_type'] = 'exact';
+        }
+
         $esParams['filters'] = $filters;
 
         return $esParams;

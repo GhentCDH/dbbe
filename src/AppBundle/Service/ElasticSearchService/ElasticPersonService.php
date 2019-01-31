@@ -134,6 +134,7 @@ class ElasticPersonService extends ElasticBaseService
                         $date_result = [
                             'floorField' => 'born_date_floor_year',
                             'ceilingField' => 'death_date_ceiling_year',
+                            'type' => $filters['date_search_type'],
                         ];
                         if (array_key_exists('from', $value)) {
                             $date_result['startDate'] = $value['from'];

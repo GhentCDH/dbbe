@@ -335,52 +335,89 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'date_range':
                     foreach ($filterValues as $value) {
+                        // If type is not set, us broad match (backward compatibility)
+                        // The data interval must exactly match the search interval
+                        if (isset($value['type']) && $value['type'] == 'exact') {
+                            if (isset($value['startDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['floorField'], $value['startDate'])
+                                );
+                            }
+                            if (isset($value['endDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                );
+                            }
+                        }
+                        // The data interval must include the search interval
+                        // If only start or end: exact match with start or end
+                        // range must be between floor and ceiling
+                        if (isset($value['type']) && $value['type'] == 'narrow') {
+                            if (isset($value['startDate']) && !isset($value['endDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['floorField'], $value['startDate'])
+                                );
+                            } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                );
+                            } else {
+                                $filterQuery->addMust(
+                                    (new Query\Range())
+                                        ->addField($value['floorField'], ['lte' => $value['startDate']])
+                                );
+                                $filterQuery->addMust(
+                                    (new Query\Range())
+                                        ->addField($value['ceilingField'], ['gte' => $value['endDate']])
+                                );
+                            }
+                        }
+                        // The data interval must overlap with the search interval
                         // floor or ceiling must be within range, or range must be between floor and ceiling
-                        // the value in this case will be a two-dimentsional array with
-                        // * in the first row the floor and/or ceiling field names
-                        // * in the second row the range min and/or max values
-                        $args = [];
-                        if (isset($value['startDate'])) {
-                            $args['gte'] = $value['startDate'];
-                        }
-                        if (isset($value['endDate'])) {
-                            $args['lte'] = $value['endDate'];
-                        }
-                        $subQuery = (new Query\BoolQuery())
-                            // floor
-                            ->addShould(
-                                (new Query\Range())
-                                    ->addField(
-                                        $value['floorField'],
-                                        $args
-                                    )
-                            )
-                            // ceiling
-                            ->addShould(
-                                (new Query\Range())
-                                    ->addField(
-                                        $value['ceilingField'],
-                                        $args
-                                    )
-                            );
-                        if (isset($value['startDate']) && isset($value['endDate'])) {
-                            $subQuery
-                                // between floor and ceiling
+                        else {
+                            $args = [];
+                            if (isset($value['startDate'])) {
+                                $args['gte'] = $value['startDate'];
+                            }
+                            if (isset($value['endDate'])) {
+                                $args['lte'] = $value['endDate'];
+                            }
+                            $subQuery = (new Query\BoolQuery())
+                                // floor
                                 ->addShould(
-                                    (new Query\BoolQuery())
-                                        ->addMust(
-                                            (new Query\Range())
-                                                ->addField($value['floorField'], ['lte' => $value['startDate']])
+                                    (new Query\Range())
+                                        ->addField(
+                                            $value['floorField'],
+                                            $args
                                         )
-                                        ->addMust(
-                                            (new Query\Range())
-                                                ->addField($value['ceilingField'], ['gte' => $value['endDate']])
+                                )
+                                // ceiling
+                                ->addShould(
+                                    (new Query\Range())
+                                        ->addField(
+                                            $value['ceilingField'],
+                                            $args
                                         )
                                 );
+                            if (isset($value['startDate']) && isset($value['endDate'])) {
+                                $subQuery
+                                    // between floor and ceiling
+                                    ->addShould(
+                                        (new Query\BoolQuery())
+                                            ->addMust(
+                                                (new Query\Range())
+                                                    ->addField($value['floorField'], ['lte' => $value['startDate']])
+                                            )
+                                            ->addMust(
+                                                (new Query\Range())
+                                                    ->addField($value['ceilingField'], ['gte' => $value['endDate']])
+                                            )
+                                    );
+                            }
+                            $filterQuery->addMust(
+                                $subQuery
+                            );
                         }
-                        $filterQuery->addMust(
-                            $subQuery
-                        );
                     }
                     break;
                 case 'nested':

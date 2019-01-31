@@ -203,6 +203,7 @@
     </div>
 </template>
 <script>
+import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
@@ -211,6 +212,10 @@ import AbstractSearch from '../Components/Search/AbstractSearch'
 // used for deleteDependencies
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 
+import fieldRadio from '../Components/FormFields/fieldRadio'
+
+Vue.component('fieldRadio', fieldRadio);
+
 export default {
     mixins: [
         AbstractField,
@@ -218,6 +223,9 @@ export default {
     ],
     data() {
         let data = {
+            model: {
+                date_search_type: 'exact',
+            },
             schema: {
                 fields: {
                     city: this.createMultiSelect('City'),
@@ -241,6 +249,17 @@ export default {
                         min: AbstractSearch.YEAR_MIN,
                         max: AbstractSearch.YEAR_MAX,
                         validator: VueFormGenerator.validators.number,
+                    },
+                    date_search_type: {
+                        type: 'radio',
+                        label: 'The manuscript date interval must ... the search date interval:',
+                        labelClasses: 'control-label',
+                        model: 'date_search_type',
+                        values: [
+                            { value: 'exact', name: 'exactly match' },
+                            { value: 'narrow', name: 'include' },
+                            { value: 'broad', name: 'overlap with' },
+                        ],
                     },
                     content: this.createMultiSelect('Content'),
                     person: this.createMultiSelect('Person'),

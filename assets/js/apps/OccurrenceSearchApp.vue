@@ -294,6 +294,7 @@ export default {
     data() {
         let data = {
             model: {
+                date_search_type: 'exact',
                 text_fields: 'text',
                 text_combination: 'any',
             },
@@ -397,6 +398,17 @@ export default {
             min: AbstractSearch.YEAR_MIN,
             max: AbstractSearch.YEAR_MAX,
             validator: VueFormGenerator.validators.number,
+        };
+        data.schema.fields['date_search_type'] = {
+            type: 'radio',
+            label: 'The occurrence date interval must ... the search date interval:',
+            labelClasses: 'control-label',
+            model: 'date_search_type',
+            values: [
+                { value: 'exact', name: 'exactly match' },
+                { value: 'narrow', name: 'include' },
+                { value: 'broad', name: 'overlap with' },
+            ],
         };
         data.schema.fields['genre'] = this.createMultiSelect('Genre');
         data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
