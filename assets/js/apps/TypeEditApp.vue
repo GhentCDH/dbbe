@@ -389,7 +389,7 @@ export default {
 
                 // Types
                 this.model.types = {
-                    relatedTypes: this.type.relatedTypes,
+                    relatedTypes: this.type.relatedTypes || [],
                 }
 
                 // PersonRoles
