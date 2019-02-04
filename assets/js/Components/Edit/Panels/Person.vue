@@ -37,7 +37,7 @@
                 </ul>
             </div>
             <div
-                v-if="model[role.systemName] && model[role.systemName].length > 1"
+                v-if="role.rank && model[role.systemName] && model[role.systemName].length > 1"
                 :key="'order_' + role.systemName"
             >
                 <p>

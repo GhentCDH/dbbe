@@ -66,6 +66,10 @@ class Person extends Entity implements SubjectInterface
      */
     protected $modern;
     /**
+     * @var bool
+     */
+    protected $dbbe;
+    /**
      * @var array
      */
     protected $roles = [];
@@ -404,6 +408,25 @@ class Person extends Entity implements SubjectInterface
     public function getModern(): bool
     {
         return $this->modern;
+    }
+
+    /**
+     * @param bool|null $dbbe
+     * @return Person
+     */
+    public function setDBBE(bool $dbbe = null): Person
+    {
+        $this->dbbe = empty($dbbe) ? false : $dbbe;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDBBE(): bool
+    {
+        return $this->dbbe;
     }
 
     /**
@@ -795,6 +818,7 @@ class Person extends Entity implements SubjectInterface
         $result['name'] = $this->getFullDescriptionWithOffices();
         $result['historical'] = $this->historical;
         $result['modern'] = $this->modern;
+        $result['dbbe'] = $this->dbbe;
 
         if (isset($this->firstName)) {
             $result['firstName'] = $this->firstName;
@@ -843,6 +867,7 @@ class Person extends Entity implements SubjectInterface
         $result['name'] = $this->getName();
         $result['historical'] = $this->historical;
         $result['modern'] = $this->modern;
+        $result['dbbe'] = $this->dbbe;
 
         if (isset($this->bornDate) && !empty($this->bornDate->getFloor())) {
             $result['born_date_floor_year'] = intval($this->bornDate->getFloor()->format('Y'));

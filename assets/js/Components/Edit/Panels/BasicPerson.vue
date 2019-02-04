@@ -55,6 +55,12 @@ export default {
                         labelClasses: 'control-label',
                         model: 'modern',
                     },
+                    dbbe: {
+                        type: 'checkbox',
+                        label: 'DBBE',
+                        labelClasses: 'control-label',
+                        model: 'dbbe',
+                    },
                     firstName: {
                         type: 'input',
                         inputType: 'text',

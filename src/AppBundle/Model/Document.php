@@ -26,6 +26,11 @@ class Document extends Entity
      * @var array
      */
     protected $personRoles = [];
+    /**
+     * Same structure as $personRoles
+     * @var array
+     */
+    protected $contributorRoles = [];
 
     /**
      * @param  string|null $title
@@ -122,12 +127,52 @@ class Document extends Entity
         return $result;
     }
 
+    protected function setContributorRoles(array $contributorRoles): Document
+    {
+        $this->contributorRoles = $contributorRoles;
+
+        return $this;
+    }
+
+    public function addContributorRole(Role $role, Person $person): Document
+    {
+        if (!isset($this->contributorRoles[$role->getSystemName()])) {
+            $this->contributorRoles[$role->getSystemName()] = [$role, []];
+        }
+        if (!isset($this->contributorRoles[$role->getSystemName()][1][$person->getId()])) {
+            $this->contributorRoles[$role->getSystemName()][1][$person->getId()] = $person;
+        }
+
+        return $this;
+    }
+
+    public function getContributorRoles(): array
+    {
+        return $this->contributorRoles;
+    }
+
+    private function getContributorRolesJson(): array
+    {
+        $result = [];
+        foreach ($this->contributorRoles as $roleName => $contributorRole) {
+            $result[$roleName] = [];
+            foreach ($contributorRole[1] as $person) {
+                $result[$roleName][] = $person->getShortJson();
+            }
+        }
+        return $result;
+    }
+
     public function getJson(): array
     {
         $result = parent::getJson();
 
         if (!empty($this->personRoles)) {
             $result['personRoles'] = $this->getPersonRolesJson();
+        }
+
+        if (!empty($this->contributorRoles)) {
+            $result['contributorRoles'] = $this->getContributorRolesJson();
         }
 
         return $result;

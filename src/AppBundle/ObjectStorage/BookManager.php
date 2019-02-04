@@ -178,7 +178,7 @@ class BookManager extends DocumentManager
             foreach ($roles as $role) {
                 if (property_exists($data, $role->getSystemName())) {
                     $changes['mini'] = true;
-                    $this->updatePersonRoleWithRank($old, $role, $data->{$role->getSystemName()});
+                    $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
             if (property_exists($data, 'title')) {

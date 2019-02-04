@@ -402,6 +402,7 @@ class OccurrenceController extends BaseController
                     'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
                     'types' => $this->get('type_manager')->getAllMicroShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
+                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
                     'metres' => $this->get('metre_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),
                     'keywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
@@ -422,6 +423,9 @@ class OccurrenceController extends BaseController
                 ),
                 'roles' => json_encode(
                     $this->get('role_manager')->getByTypeJson('occurrence')
+                ),
+                'contributorRoles' => json_encode(
+                    $this->get('role_manager')->getContributorByTypeJson('occurrence')
                 ),
                 // @codingStandardsIgnoreEnd
             ]

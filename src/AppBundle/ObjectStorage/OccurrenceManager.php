@@ -192,6 +192,8 @@ class OccurrenceManager extends PoemManager
 
         $this->setIdentifications($occurrences);
 
+        $this->setcontributorRoles($occurrences);
+
         $this->setManagements($occurrences);
 
         return $occurrences;
@@ -608,6 +610,13 @@ class OccurrenceManager extends PoemManager
                 }
                 $changes['full'] = true;
                 $this->updateImageLinks($old, $data->imageLinks);
+            }
+            $contributorRoles = $this->container->get('role_manager')->getContributorByType('occurrence');
+            foreach ($contributorRoles as $role) {
+                if (property_exists($data, $role->getSystemName())) {
+                    $changes['short'] = true;
+                    $this->updateContributorRole($old, $role, $data->{$role->getSystemName()});
+                }
             }
             $this->updateManagementwrapper($old, $data, $changes, 'short');
 

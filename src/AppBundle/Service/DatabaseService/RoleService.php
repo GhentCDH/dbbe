@@ -17,7 +17,9 @@ class RoleService extends DatabaseService
                 role.idrole as role_id,
                 array_to_json(role.type) as role_usage,
                 role.system_name as role_system_name,
-                role.name as role_name
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
             from data.role
             where role.idrole in (?)',
             [$ids],
@@ -32,7 +34,9 @@ class RoleService extends DatabaseService
             role.idrole as role_id,
             array_to_json(role.type) as role_usage,
             role.system_name as role_system_name,
-            role.name as role_name
+            role.name as role_name,
+            role.is_contributor_role as role_is_contributor_role,
+            role.has_rank as role_has_rank
             from data.role'
         )->fetchAll();
     }
@@ -44,24 +48,46 @@ class RoleService extends DatabaseService
                 role.idrole as role_id,
                 array_to_json(role.type) as role_usage,
                 role.system_name as role_system_name,
-                role.name as role_name
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
             from data.role
-            where ? = ANY(role.type)',
+            where (is_contributor_role is null or is_contributor_role = false)
+            and ? = ANY(role.type)',
             [$type]
         )->fetchAll();
     }
 
-    public function insert(array $usage, string $systemName, string $name): int
+    public function getContributorByType(string $type): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
+            from data.role
+            where is_contributor_role = true
+            and ? = ANY(role.type)',
+            [$type]
+        )->fetchAll();
+    }
+
+    public function insert(array $usage, string $systemName, string $name, bool $contributorRole, bool $rank): int
     {
         $this->beginTransaction();
         try {
             $this->conn->executeUpdate(
-                'INSERT INTO data.role (type, system_name, name)
-                values (?, ?, ?)',
+                'INSERT INTO data.role (type, system_name, name, is_contributor_role, has_rank)
+                values (?, ?, ?, ?, ?)',
                 [
                     '{' . implode(',', $usage) . '}',
                     $systemName,
                     $name,
+                    $contributorRole,
+                    $rank,
                 ]
             );
             $id = $this->conn->executeQuery(

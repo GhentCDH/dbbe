@@ -220,6 +220,7 @@ export default {
                     unprocessed: null,
                     historical: null,
                     modern: null,
+                    dbbe: null,
                 },
                 bornDate: {
                     floor: null,
@@ -319,6 +320,7 @@ export default {
                     unprocessed: this.person.unprocessed,
                     historical: this.person.historical,
                     modern: this.person.modern,
+                    dbbe: this.person.dbbe,
                 };
 
                 // Born date

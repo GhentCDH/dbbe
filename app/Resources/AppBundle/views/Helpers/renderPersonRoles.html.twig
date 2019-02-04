@@ -3,16 +3,11 @@
         <td>Person(s)</td>
         <td>
             <dl>
-                {% for rolename, personRole in personRoles %}
-                    <dt>{{ personRole[0].getName() }}</dt>
-                    <dd>
-                        {% embed '@App/Helpers/renderList.html.twig' with {'list': personRole[1]} only %}
-                            {% block renderItem %}
-                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
-                            {% endblock %}
-                        {% endembed %}
-                    </dd>
-                {% endfor %}
+                {%
+                    include '@App/Helpers/renderPersonRolesDetail.html.twig'
+                    with {'personRoles': personRoles }
+                    only
+                %}
             </dl>
         </td>
     </tr>

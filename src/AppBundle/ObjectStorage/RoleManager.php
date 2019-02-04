@@ -30,7 +30,9 @@ class RoleManager extends ObjectManager
                     $rawRole['role_id'],
                     json_decode($rawRole['role_usage']),
                     $rawRole['role_system_name'],
-                    $rawRole['role_name']
+                    $rawRole['role_name'],
+                    $rawRole['role_is_contributor_role'] ? true : false,
+                    $rawRole['role_has_rank'] ? true : false
                 );
             }
         }
@@ -73,6 +75,27 @@ class RoleManager extends ObjectManager
         );
     }
 
+    public function getContributorByType(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            'contributor_roles',
+            $type,
+            ['roles'],
+            function ($type) {
+                $roles = [];
+                $rawRoles = $this->dbs->getContributorByType($type);
+
+                // Keys in this array must be systemnames as they are used in queries
+                $rolesWithId = $this->getWithData($rawRoles);
+                foreach ($rolesWithId as $roleWithId) {
+                    $roles[$roleWithId->getSystemName()] = $roleWithId;
+                }
+
+                return $roles;
+            }
+        );
+    }
+
     public function getByTypeJson(string $type): array
     {
         return $this->wrapArrayTypeCache(
@@ -81,6 +104,18 @@ class RoleManager extends ObjectManager
             ['roles'],
             function ($type) {
                 return ArrayToJson::arrayToJson($this->getByType($type));
+            }
+        );
+    }
+
+    public function getContributorByTypeJson(string $type): array
+    {
+        return $this->wrapArrayTypeCache(
+            'contributor_roles_json',
+            $type,
+            ['roles'],
+            function ($type) {
+                return ArrayToJson::arrayToJson($this->getContributorByType($type));
             }
         );
     }
@@ -98,6 +133,14 @@ class RoleManager extends ObjectManager
                 && property_exists($data, 'name')
                 && is_string($data->name)
                 && !empty($data->name)
+                && !(
+                    property_exists($data, 'contributorRole')
+                    && !($data->contributorRole == null || is_bool($data->contributorRole))
+                )
+                && !(
+                    property_exists($data, 'rank')
+                    && !($data->rank == null || is_bool($data->rank))
+                )
             ) {
                 foreach ($data->usage as $usagePart) {
                     if (!is_string($usagePart)) {
@@ -107,7 +150,9 @@ class RoleManager extends ObjectManager
                 $roleId = $this->dbs->insert(
                     $data->usage,
                     $data->systemName,
-                    $data->name
+                    $data->name,
+                    $data->contributorRole,
+                    $data->rank
                 );
             } else {
                 throw new BadRequestHttpException('Incorrect data.');

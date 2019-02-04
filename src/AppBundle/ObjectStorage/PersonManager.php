@@ -49,7 +49,8 @@ class PersonManager extends EntityManager
                 ->setUnknownDate(new FuzzyDate($rawPerson['unknown_date']))
                 ->setUnknownInterval(FuzzyInterval::fromString($rawPerson['unknown_interval']))
                 ->setHistorical($rawPerson['is_historical'])
-                ->setModern($rawPerson['is_modern']);
+                ->setModern($rawPerson['is_modern'])
+                ->setDBBE($rawPerson['is_dbbe']);
 
             if ($rawPerson['self_designations'] != null) {
                 $person->setSelfDesignations(explode(',', $rawPerson['self_designations']));
@@ -190,6 +191,8 @@ class PersonManager extends EntityManager
             'role_usage' => json_encode(['occurrence']),
             'role_system_name' => 'subject',
             'role_name' => 'Subject',
+            'role_is_contributor_role' => false,
+            'role_has_rank' => false,
         ]])[0];
 
         foreach ($rawOccurrences as $rawOccurrence) {
@@ -229,6 +232,8 @@ class PersonManager extends EntityManager
             'role_usage' => json_encode(['type']),
             'role_system_name' => 'subject',
             'role_name' => 'Subject',
+            'role_is_contributor_role' => false,
+            'role_has_rank' => false,
         ]])[0];
 
         foreach ($rawTypes as $rawType) {
@@ -395,6 +400,9 @@ class PersonManager extends EntityManager
             case 'modern':
                 $rawIds = $this->dbs->getModernIds();
                 break;
+            case 'dbbe':
+                $rawIds = $this->dbs->getDBBEIds();
+                break;
         }
         $ids = self::getUniqueIds($rawIds, 'person_id');
 
@@ -431,6 +439,20 @@ class PersonManager extends EntityManager
             ['persons'],
             function () {
                 return ArrayToJson::arrayToShortJson($this->getByType('modern'));
+            }
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllDBBEShortJson(): array
+    {
+        return $this->wrapArrayCache(
+            'dbbe_persons',
+            ['persons'],
+            function () {
+                return ArrayToJson::arrayToShortJson($this->getByType('dbbe'));
             }
         );
     }
@@ -552,6 +574,13 @@ class PersonManager extends EntityManager
                 $changes['mini'] = true;
                 $this->updateModern($old, $data->modern);
             }
+            if (property_exists($data, 'dbbe')) {
+                if (!is_bool($data->dbbe)) {
+                    throw new BadRequestHttpException('Incorrect dbbe data.');
+                }
+                $changes['mini'] = true;
+                $this->updateDBBE($old, $data->dbbe);
+            }
             if (property_exists($data, 'bornDate')) {
                 if (!is_object($data->bornDate)) {
                     throw new BadRequestHttpException('Incorrect born date data.');
@@ -636,7 +665,7 @@ class PersonManager extends EntityManager
             }
 
             // Reset Elastic dependencies
-            if ($changes['mini']) {
+            if (isset($changes) && $changes['mini']) {
                 foreach ([
                         'manuscript',
                         'occurrence',
@@ -732,7 +761,6 @@ class PersonManager extends EntityManager
             }
 
             if (!empty($manuscripts)) {
-                $roles = $this->container->get('role_manager')->getByType('manuscript');
                 foreach ($manuscripts as $manuscript) {
                     $personRoles = $manuscript->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -745,10 +773,12 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($occurrences)) {
-                $roles = $this->container->get('role_manager')->getByType('occurrence');
                 foreach ($occurrences as $occurrence) {
                     $personRoles = $occurrence->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
+
+                    $contributorRoles = $occurrence->getContributorRoles();
+                    $update += $this->getMergeUpdate($contributorRoles, $primaryId, $secondaryId);
 
                     $subjects = $occurrence->getSubjects();
                     $subjectIds = array_keys($subjects);
@@ -775,10 +805,12 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($types)) {
-                $roles = $this->container->get('role_manager')->getByType('type');
                 foreach ($types as $type) {
                     $personRoles = $type->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
+
+                    $contributorRoles = $type->getContributorRoles();
+                    $update += $this->getMergeUpdate($contributorRoles, $primaryId, $secondaryId);
 
                     $subjects = $type->getSubjects();
                     $subjectIds = array_keys($subjects);
@@ -805,7 +837,6 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($articles)) {
-                $roles = $this->container->get('role_manager')->getByType('article');
                 foreach ($articles as $article) {
                     $personRoles = $article->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -818,7 +849,6 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($books)) {
-                $roles = $this->container->get('role_manager')->getByType('book');
                 foreach ($books as $book) {
                     $personRoles = $book->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -831,7 +861,6 @@ class PersonManager extends EntityManager
                 }
             }
             if (!empty($bookChapters)) {
-                $roles = $this->container->get('role_manager')->getByType('bookChapter');
                 foreach ($bookChapters as $bookChapter) {
                     $personRoles = $bookChapter->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
@@ -937,6 +966,15 @@ class PersonManager extends EntityManager
             }
         }
         $this->dbs->updateModern($person->getId(), $modern);
+    }
+
+    /**
+     * @param Person $person
+     * @param bool   $dbbe
+     */
+    private function updateDBBE(Person $person, bool $dbbe): void
+    {
+        $this->dbs->updateDBBE($person->getId(), $dbbe);
     }
 
     /**

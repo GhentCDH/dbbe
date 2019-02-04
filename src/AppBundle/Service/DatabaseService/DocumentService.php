@@ -39,10 +39,39 @@ class DocumentService extends EntityService
                 role.idrole as role_id,
                 array_to_json(role.type) as role_usage,
                 role.system_name as role_system_name,
-                role.name as role_name
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
             from data.bibrole
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.iddocument in (?)
+            where (role.is_contributor_role is null or role.is_contributor_role = false)
+            and bibrole.iddocument in (?)
+            order by bibrole.rank',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getContributorRoles(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.iddocument as document_id,
+                bibrole.idperson as person_id,
+                role.idrole as role_id,
+                array_to_json(role.type) as role_usage,
+                role.system_name as role_system_name,
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
+            from data.bibrole
+            inner join data.role on bibrole.idrole = role.idrole
+            where role.is_contributor_role = true
+            and bibrole.iddocument in (?)
             order by bibrole.rank',
             [
                 $ids,

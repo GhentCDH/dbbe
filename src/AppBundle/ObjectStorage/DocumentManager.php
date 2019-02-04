@@ -70,6 +70,30 @@ class DocumentManager extends EntityManager
         }
     }
 
+    protected function setContributorRoles(array &$documents): void
+    {
+        $rawRoles = $this->dbs->getContributorRoles(array_keys($documents));
+        if (!empty($rawRoles)) {
+            $personIds = self::getUniqueIds($rawRoles, 'person_id');
+
+            $persons = [];
+            if (count($personIds) > 0) {
+                $persons = $this->container->get('person_manager')->getShort($personIds);
+            }
+
+            $roles = $this->container->get('role_manager')->getWithData($rawRoles);
+
+            // Direct roles
+            foreach ($rawRoles as $raw) {
+                $documents[$raw['document_id']]
+                    ->addContributorRole(
+                        $roles[$raw['role_id']],
+                        $persons[$raw['person_id']]
+                    );
+            }
+        }
+    }
+
     protected function updatePersonRole(Document $document, Role $role, array $persons): void
     {
         if (!is_array($persons)) {
@@ -97,6 +121,16 @@ class DocumentManager extends EntityManager
                 $this->dbs->addPersonRole($document->getId(), $role->getId(), $addId);
             }
 
+            // Update rank if needed
+            if ($role->getRank()) {
+                $oldPersons = isset($personRoles[$role->getSystemName()]) ? $personRoles[$role->getSystemName()][1] : [];
+                foreach ($persons as $index => $person) {
+                    if (!isset($oldPersons[$index]) || $oldPersons[$index]->getId() != $person->id) {
+                        $this->dbs->updatePersonRoleRank($document->getId(), $person->id, $index + 1);
+                    }
+                }
+            }
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -105,17 +139,48 @@ class DocumentManager extends EntityManager
         }
     }
 
-    protected function updatePersonRoleWithRank(Document $document, Role $role, array $persons): void
+    protected function updateContributorRole(Document $document, Role $role, array $persons): void
     {
-        // First make sure all persons are saved
-        $this->updatePersonRole($document, $role, $persons);
-
-        // Update rank
-        $oldPersons = isset($personRoles[$role->getSystemName()]) ? $personRoles[$role->getSystemName()][1] : [];
-        foreach ($persons as $index => $person) {
-            if (!isset($oldPersons[$index]) || $oldPersons[$index]->getId() != $person->id) {
-                $this->dbs->updatePersonRoleRank($document->getId(), $person->id, $index + 1);
+        if (!is_array($persons)) {
+            throw new BadRequestHttpException('Incorrect ' . $role->getSystemName() . ' data.');
+        }
+        foreach ($persons as $person) {
+            if (!is_object($person)
+                || (property_exists($person, 'id') && !is_numeric($person->id))
+            ) {
+                throw new BadRequestHttpException('Incorrect ' . $role->getSystemName() . ' data.');
             }
+        }
+
+        $contributorRoles = $document->getContributorRoles();
+        $oldPersons = isset($contributorRoles[$role->getSystemName()]) ? $contributorRoles[$role->getSystemName()][1] : [];
+
+        list($delIds, $addIds) = self::calcDiff($persons, $oldPersons);
+
+        $this->dbs->beginTransaction();
+        try {
+            if (count($delIds) > 0) {
+                $this->dbs->delPersonRole($document->getId(), $role->getId(), $delIds);
+            }
+            foreach ($addIds as $addId) {
+                $this->dbs->addPersonRole($document->getId(), $role->getId(), $addId);
+            }
+
+            // Update rank if needed
+            if ($role->getRank()) {
+                $oldPersons = isset($contributorRoles[$role->getSystemName()]) ? $contributorRoles[$role->getSystemName()][1] : [];
+                foreach ($persons as $index => $person) {
+                    if (!isset($oldPersons[$index]) || $oldPersons[$index]->getId() != $person->id) {
+                        $this->dbs->updatePersonRoleRank($document->getId(), $person->id, $index + 1);
+                    }
+                }
+            }
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
         }
     }
 

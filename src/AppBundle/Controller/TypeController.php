@@ -384,6 +384,7 @@ class TypeController extends BaseController
                     'types' => $this->get('type_manager')->getAllMicroShortJson('getId'),
                     'typeRelationTypes' => $this->get('type_relation_type_manager')->getAllShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
+                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
                     'metres' => $this->get('metre_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),
                     'subjectKeywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
@@ -405,6 +406,9 @@ class TypeController extends BaseController
                 ),
                 'roles' => json_encode(
                     $this->get('role_manager')->getByTypeJson('type')
+                ),
+                'contributorRoles' => json_encode(
+                    $this->get('role_manager')->getContributorByTypeJson('type')
                 ),
                 // @codingStandardsIgnoreEnd
             ]

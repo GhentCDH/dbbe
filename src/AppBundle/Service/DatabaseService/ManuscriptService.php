@@ -386,7 +386,9 @@ class ManuscriptService extends DocumentService
                 role.idrole as role_id,
                 array_to_json(role.type) as role_usage,
                 role.system_name as role_system_name,
-                role.name as role_name
+                role.name as role_name,
+                role.is_contributor_role as role_is_contributor_role,
+                role.has_rank as role_has_rank
             from data.manuscript
             inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument

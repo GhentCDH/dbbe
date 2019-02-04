@@ -43,6 +43,10 @@ export default {
             type: String,
             default: '',
         },
+        initContributorRoles: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {

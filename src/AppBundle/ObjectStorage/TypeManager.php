@@ -150,6 +150,8 @@ class TypeManager extends PoemManager
 
         $this->setIdentifications($types);
 
+        $this->setcontributorRoles($types);
+
         $this->setManagements($types);
 
         return $types;
@@ -445,6 +447,13 @@ class TypeManager extends PoemManager
                 }
                 $changes['full'] = true;
                 $this->updateBasedOn($old, $data->basedOn);
+            }
+            $contributorRoles = $this->container->get('role_manager')->getContributorByType('type');
+            foreach ($contributorRoles as $role) {
+                if (property_exists($data, $role->getSystemName())) {
+                    $changes['short'] = true;
+                    $this->updateContributorRole($old, $role, $data->{$role->getSystemName()});
+                }
             }
             $this->updateManagementwrapper($old, $data, $changes, 'short');
 

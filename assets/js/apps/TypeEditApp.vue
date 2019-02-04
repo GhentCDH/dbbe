@@ -129,6 +129,16 @@
                 @validated="validated"
             />
 
+            <personPanel
+                id="contributors"
+                ref="contributors"
+                header="Contributors"
+                :roles="contributorRoles"
+                :model="model.contributorRoles"
+                :values="dbbePersons"
+                @validated="validated"
+            />
+
             <managementPanel
                 id="managements"
                 ref="managements"
@@ -199,6 +209,7 @@
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#translations">Translations</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#contributors">Contributors</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -245,6 +256,7 @@ export default {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
+            contributorRoles: JSON.parse(this.initContributorRoles),
             type: null,
             manuscripts: null,
             types: null,
@@ -268,6 +280,7 @@ export default {
                 },
                 types: {types: null},
                 personRoles: {},
+                contributorRoles: {},
                 metres: {metres: null},
                 genres: {genres: null},
                 subjects: {
@@ -311,6 +324,7 @@ export default {
                 'bibliography',
                 'translations',
                 'general',
+                'contributors',
                 'managements',
             ],
         }
@@ -326,6 +340,9 @@ export default {
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
         }
+        for (let role of data.contributorRoles) {
+            data.model.contributorRoles[role.systemName] = null
+        }
         return data
     },
     created () {
@@ -336,6 +353,7 @@ export default {
             relationTypes: this.data.typeRelationTypes,
         }
         this.historicalPersons = this.data.historicalPersons
+        this.dbbePersons = this.data.dbbePersons
         this.metres = this.data.metres
         this.genres = this.data.genres
         this.subjects = {
@@ -503,6 +521,12 @@ export default {
                     basedOn: this.type.basedOn,
                     public: this.type.public,
                 }
+
+                // ContributorRoles
+                for (let role of this.contributorRoles) {
+                    this.model.contributorRoles[role.systemName] = this.type.contributorRoles != null ? this.type.contributorRoles[role.systemName] : null
+                }
+                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {

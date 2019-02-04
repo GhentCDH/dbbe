@@ -291,7 +291,7 @@
                         <td>{{ type.getPublic() ? 'Public': 'Not public' }}</td>
                     </tr>
                 {% endif %}
-                {% if type.getAcknowledgements() is not empty %}
+                {% if type.getAcknowledgements() is not empty or type.getContributorRoles() is not empty %}
                     <tr>
                         <td>Acknowledgements</td>
                         <td>
@@ -300,6 +300,11 @@
                                     {{ item.getName() }}
                                 {% endblock %}
                             {% endembed %}
+                            {%
+                                include '@App/Helpers/renderPersonRolesDetail.html.twig'
+                                with {'personRoles': type.getContributorRoles() }
+                                only
+                            %}
                         </td>
                     </tr>
                 {% endif %}

@@ -3,7 +3,8 @@
         <article class="col-sm-9 mbottom-large">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
             <panel header="Edit roles">
                 <editListRow
                     :schema="roleSchema"
@@ -16,11 +17,13 @@
                     }"
                     @add="editRole(true)"
                     @edit="editRole()"
-                    @del="delRole()" />
+                    @del="delRole()"
+                />
             </panel>
             <div
+                v-if="openRequests"
                 class="loading-overlay"
-                v-if="openRequests">
+            >
                 <div class="spinner" />
             </div>
         </article>
@@ -33,7 +36,8 @@
             @cancel="cancelEdit()"
             @reset="resetEdit()"
             @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)" />
+            @dismiss-alert="editAlerts.splice($event, 1)"
+        />
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -41,7 +45,8 @@
             :alerts="deleteAlerts"
             @cancel="cancelDelete()"
             @confirm="submitDelete()"
-            @dismiss-alert="deleteAlerts.splice($event, 1)" />
+            @dismiss-alert="deleteAlerts.splice($event, 1)"
+        />
     </div>
 </template>
 
@@ -56,7 +61,7 @@ VueFormGenerator.validators.requiredMultiSelect = function (value, field, model)
         return ['This fields is required!']
     }
     return []
-}
+};
 
 export default {
     mixins: [
@@ -112,6 +117,18 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
+                    contributorRole: {
+                        type: 'checkbox',
+                        label: 'Acknowledge contributor role',
+                        labelClasses: 'control-label',
+                        model: 'role.contributorRole',
+                    },
+                    rank: {
+                        type: 'checkbox',
+                        label: 'For this role, the order of persons is important',
+                        labelClasses: 'control-label',
+                        model: 'role.rank',
+                    },
                 },
             },
             model: {
@@ -128,7 +145,7 @@ export default {
             return {
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_role'].replace('role_id', this.submitModel.role.id),
-                    url: this.urls['manuscrip_get'],
+                    url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 },
                 'Occurrences': {
@@ -160,7 +177,7 @@ export default {
         },
     },
     mounted () {
-        this.roleSchema.fields.role.values = this.values
+        this.roleSchema.fields.role.values = this.values;
         this.enableField(this.roleSchema.fields.role)
     },
     methods: {
@@ -169,108 +186,112 @@ export default {
             this.submitModel = {
                 submitType: 'role',
                 role: null,
-            }
+            };
             if (add) {
                 this.submitModel.role =  {
                     name: null,
-                }
+                };
                 this.editRoleSchema.fields.systemName.disabled = false;
+                this.editRoleSchema.fields.contributorRole.disabled = false;
+                this.editRoleSchema.fields.rank.disabled = false;
             }
             else {
-                this.submitModel.role = JSON.parse(JSON.stringify(this.model.role))
+                this.submitModel.role = JSON.parse(JSON.stringify(this.model.role));
                 this.submitModel.role.usage = this.model.role.usage.map(item =>
                     this.editRoleSchema.fields.usage.values.filter(v => v.id === item)[0]
-                )
+                );
                 this.editRoleSchema.fields.systemName.disabled = true;
+                this.editRoleSchema.fields.contributorRole.disabled = true;
+                this.editRoleSchema.fields.rank.disabled = true;
             }
-            this.enableField(this.editRoleSchema.fields.usage)
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
+            this.enableField(this.editRoleSchema.fields.usage);
+            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
         },
         delRole() {
-            this.submitModel.role = JSON.parse(JSON.stringify(this.model.role))
+            this.submitModel.role = JSON.parse(JSON.stringify(this.model.role));
             this.deleteDependencies()
         },
         submitEdit() {
-            this.editModal = false
-            this.openRequests++
+            this.editModal = false;
+            this.openRequests++;
             if (this.submitModel.role.id == null) {
                 axios.post(this.urls['role_post'], {
                     usage: this.submitModel.role.usage == null ? null : this.submitModel.role.usage.map(item => item.id),
                     systemName: this.submitModel.role.systemName,
                     name: this.submitModel.role.name,
+                    contributorRole: this.submitModel.role.contributorRole,
+                    rank: this.submitModel.role.rank,
                 })
                     .then( (response) => {
-                        this.submitModel.role = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Addition successful.'})
+                        this.submitModel.role = response.data;
+                        this.update();
+                        this.editAlerts = [];
+                        this.alerts.push({type: 'success', message: 'Addition successful.'});
                         this.openRequests--
                     })
                     .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the role.', login: this.isLoginError(error)})
+                        this.openRequests--;
+                        this.editModal = true;
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the role.', login: this.isLoginError(error)});
                         console.log(error)
                     })
             }
             else {
-                let data = {}
+                let data = {};
                 if (JSON.stringify(this.submitModel.role.usage) !== JSON.stringify(this.originalSubmitModel.role.usage)) {
                     data.usage = this.submitModel.role.usage.map(item => item.id)
                 }
-                if (this.submitModel.role.systemName !== this.originalSubmitModel.role.systemName) {
-                    data.systemName = this.submitModel.role.systemName
-                }
+                // system name, contributor role and rank are not modifiable
                 if (this.submitModel.role.name !== this.originalSubmitModel.role.name) {
                     data.name = this.submitModel.role.name
                 }
                 axios.put(this.urls['role_put'].replace('role_id', this.submitModel.role.id), data)
                     .then( (response) => {
-                        this.submitModel.role = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Update successful.'})
+                        this.submitModel.role = response.data;
+                        this.update();
+                        this.editAlerts = [];
+                        this.alerts.push({type: 'success', message: 'Update successful.'});
                         this.openRequests--
                     })
                     .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the role.', login: this.isLoginError(error)})
+                        this.openRequests--;
+                        this.editModal = true;
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the role.', login: this.isLoginError(error)});
                         console.log(error)
                     })
             }
         },
         submitDelete() {
-            this.deleteModal = false
-            this.openRequests++
+            this.deleteModal = false;
+            this.openRequests++;
             axios.delete(this.urls['role_delete'].replace('role_id', this.submitModel.role.id))
                 .then( (response) => {
-                    this.submitModel.role = null
-                    this.update()
-                    this.deleteAlerts = []
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
+                    this.submitModel.role = null;
+                    this.update();
+                    this.deleteAlerts = [];
+                    this.alerts.push({type: 'success', message: 'Deletion successful.'});
                     this.openRequests--
                 })
                 .catch( (error) => {
-                    this.openRequests--
-                    this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the role.', login: this.isLoginError(error)})
+                    this.openRequests--;
+                    this.deleteModal = true;
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the role.', login: this.isLoginError(error)});
                     console.log(error)
                 })
         },
         update() {
-            this.openRequests++
+            this.openRequests++;
             axios.get(this.urls['roles_get'])
                 .then( (response) => {
-                    this.values = response.data
-                    this.roleSchema.fields.role.values = this.values
-                    this.model.role = JSON.parse(JSON.stringify(this.submitModel.role))
+                    this.values = response.data;
+                    this.roleSchema.fields.role.values = this.values;
+                    this.model.role = JSON.parse(JSON.stringify(this.submitModel.role));
                     this.openRequests--
                 })
                 .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the role data.', login: this.isLoginError(error)})
+                    this.openRequests--;
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the role data.', login: this.isLoginError(error)});
                     console.log(error)
                 })
         },

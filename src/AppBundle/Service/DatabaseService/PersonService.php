@@ -49,6 +49,16 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDBBEIds(): array
+    {
+        return $this->conn->query(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            where person.is_dbbe= TRUE'
+        )->fetchAll();
+    }
+
     public function getDepIdsByOfficeId(int $officeId): array
     {
         return $this->conn->executeQuery(
@@ -261,6 +271,7 @@ class PersonService extends EntityService
                 name.unprocessed,
                 person.is_historical,
                 person.is_modern,
+                person.is_dbbe,
                 factoid_born.born_date,
                 factoid_died.death_date,
                 factoid_unknown.unknown_date,
@@ -356,7 +367,9 @@ class PersonService extends EntityService
                 bibrole.idrole as role_id
             from data.bibrole
             inner join data.manuscript on bibrole.iddocument = manuscript.identity
+            inner join data.role on bibrole.idrole = role.idrole
             where bibrole.idperson in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)
 
             union all
 
@@ -368,7 +381,9 @@ class PersonService extends EntityService
             from data.bibrole
             inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
-            where bibrole.idperson in (?)',
+            inner join data.role on bibrole.idrole = role.idrole
+            where bibrole.idperson in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)',
             [
                 $ids,
                 $ids,
@@ -389,7 +404,9 @@ class PersonService extends EntityService
                 bibrole.idrole as role_id
             from data.bibrole
             inner join data.original_poem on bibrole.iddocument = original_poem.identity
-            where bibrole.idperson in (?)',
+            inner join data.role on bibrole.idrole = role.idrole
+            where bibrole.idperson in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)',
             [
                 $ids,
             ],
@@ -428,7 +445,9 @@ class PersonService extends EntityService
                 bibrole.idrole as role_id
             from data.bibrole
             inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
-            where bibrole.idperson in (?)',
+            inner join data.role on bibrole.idrole = role.idrole
+            where bibrole.idperson in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)',
             [
                 $ids,
             ],
@@ -699,6 +718,19 @@ class PersonService extends EntityService
             where person.identity = ?',
             [
                 $modern ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    public function updateDBBE(int $id, bool $dbbe): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.person
+            set is_dbbe = ?
+            where person.identity = ?',
+            [
+                $dbbe ? 'TRUE': 'FALSE',
                 $id,
             ]
         );

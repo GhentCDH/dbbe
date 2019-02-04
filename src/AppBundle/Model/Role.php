@@ -11,13 +11,17 @@ class Role extends IdNameObject
 
     private $usage;
     private $systemName;
+    private $contributorRole;
+    private $rank;
 
-    public function __construct(int $id, array $usage, string $systemName, string $name)
+    public function __construct(int $id, array $usage, string $systemName, string $name, bool $contributorRole, bool $rank)
     {
         $this->id = $id;
         $this->usage = $usage;
         $this->systemName = $systemName;
         $this->name = $name;
+        $this->contributorRole = $contributorRole;
+        $this->rank = $rank;
     }
 
     public function getUsage(): array
@@ -30,6 +34,16 @@ class Role extends IdNameObject
         return $this->systemName;
     }
 
+    public function getContributorRole(): bool
+    {
+        return $this->contributorRole;
+    }
+
+    public function getRank(): bool
+    {
+        return $this->rank;
+    }
+
     public function getJson(): array
     {
         return [
@@ -37,6 +51,8 @@ class Role extends IdNameObject
             'usage' => $this->usage,
             'systemName' => $this->systemName,
             'name' => $this->name,
+            'contributorRole' => $this->contributorRole,
+            'rank' => $this->rank,
         ];
     }
 }
