@@ -50,6 +50,14 @@ class AppExtension extends Twig_Extension
                     $array
                 );
             }),
+            new Twig_SimpleFilter('noUnknown', function ($array) {
+                return array_filter(
+                    $array,
+                    function ($item) {
+                        return $item->getName() !== 'Unknown';
+                    }
+                );
+            }),
             new Twig_SimpleFilter('month', function ($string) {
                 return DateTime::createFromFormat('m', substr($string, 5, 2))->format('M');
             }),

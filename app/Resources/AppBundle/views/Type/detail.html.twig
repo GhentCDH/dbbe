@@ -258,7 +258,12 @@
                                         ({{ item[0].getNumberOfVerses() }} verses)
                                     {% endif %}
                                     {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                                        <span class="bg-warning">({{ item[1]|name|join(', ') }})</span>
+                                        ({{ item[1]|name|join(', ')|replace({'Unknown': '<span class="bg-warning">Unknown<span>'})|raw }})
+                                    {%  else  %}
+                                        {% set displayRelationTypes = item[1]|noUnknown %}
+                                        {% if displayRelationTypes is not empty %}
+                                            ({{ item[1]|noUnknown|name|join(', ') }})
+                                        {% endif %}
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
