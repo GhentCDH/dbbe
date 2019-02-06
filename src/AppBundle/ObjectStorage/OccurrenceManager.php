@@ -497,6 +497,10 @@ class OccurrenceManager extends PoemManager
                 }
                 $this->container->get('manuscript_manager')->updateElasticByIds([$manuscriptId]);
             }
+            if (property_exists($data, 'date')) {
+                $changes['short'] = true;
+                $this->updateDate($old, 'completed at', $old->getDate(), $data->date);
+            }
             if (property_exists($data, 'metres')) {
                 if (!is_array($data->metres)) {
                     throw new BadRequestHttpException('Incorrect metre data.');
