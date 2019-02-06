@@ -188,7 +188,7 @@
                                 {% endembed %}
                             {% endif %}
                             {% if type.getOtherSources() is not empty %}
-                                <p><em>To be revised</em></p>
+                                <p><em>Bibliography category to be determined</em></p>
                                 {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getOtherSources()} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
