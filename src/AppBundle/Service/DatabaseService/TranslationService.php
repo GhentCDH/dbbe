@@ -29,7 +29,7 @@ class TranslationService extends DocumentService
         )->fetchAll();
     }
 
-    public function insert(int $languageId): int
+    public function insert(int $documentId, int $languageId, string $text): int
     {
         $this->beginTransaction();
         try {
@@ -49,6 +49,15 @@ class TranslationService extends DocumentService
                 order by identity desc
                 limit 1'
             )->fetch()['translation_id'];
+            $this->conn->executeUpdate(
+                'INSERT INTO data.translation_of (iddocument, idtranslation)
+                values (?, ?)',
+                [
+                    $documentId,
+                    $id,
+                ]
+            );
+            $this->updateText($id, $text);
             $this->commit();
         } catch (Exception $e) {
             $this->rollBack();

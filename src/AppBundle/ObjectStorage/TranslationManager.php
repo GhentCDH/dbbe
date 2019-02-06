@@ -49,13 +49,16 @@ class TranslationManager extends DocumentManager
         return $translations[$id];
     }
 
-    public function add(stdClass $data): Translation
+    public function add(stdClass $data, int $documentId): Translation
     {
         $this->dbs->beginTransaction();
         try {
             // text and language are mandatory
             if (!property_exists($data, 'text') || !property_exists($data, 'language')) {
                 throw new BadRequestHttpException('Incorrect data.');
+            }
+            if (empty($data->text)) {
+                throw new BadRequestHttpException('Incorrect text data.');
             }
             if (!is_object($data->language)
                 || !property_exists($data->language, 'id')
@@ -64,10 +67,11 @@ class TranslationManager extends DocumentManager
             ) {
                 throw new BadRequestHttpException('Incorrect language data.');
             }
-            $id = $this->dbs->insert($data->language->id);
+            $id = $this->dbs->insert($documentId, $data->language->id, $data->text);
 
-            // prevent language from being updated unnecessarily
+            // prevent language and text from being updated unnecessarily
             unset($data->language);
+            unset($data->text);
 
             $new = $this->update($id, $data, true);
 
@@ -115,7 +119,7 @@ class TranslationManager extends DocumentManager
                 $this->updateBibliography($old, $data->bibliography);
             }
 
-            if (!$correct) {
+            if (!$correct && !$isNew) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 
@@ -275,7 +279,7 @@ class TranslationManager extends DocumentManager
             }
         }
 
-        if (!empty($update)) {
+        if (!empty((array)$update)) {
             return $this->update($old->getId(), $update);
         }
 

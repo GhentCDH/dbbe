@@ -617,7 +617,8 @@ class TypeManager extends PoemManager
                 );
             } else {
                 $this->container->get('translation_manager')->add(
-                    $newTranslation
+                    $newTranslation,
+                    $type->getId()
                 );
             }
         }

@@ -165,7 +165,7 @@ class Type extends Poem
         return array_filter(
             $this->translations,
             function ($translation) {
-                return $translation->getLanguage()->getCode() != null;
+                return $translation->getLanguage()->getName() !== 'Unknown';
             }
         );
     }

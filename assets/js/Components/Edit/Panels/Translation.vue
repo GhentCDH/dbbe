@@ -18,7 +18,7 @@
                     :key="index"
                 >
                     <td>{{ item.language.name }}</td>
-                    <td>{{ item.text }}</td>
+                    <td class="preserve-newlines">{{ item.text }}</td>
                     <td>
                         <ul v-if="displayBibliography(item.bibliography).length > 1">
                             <li
@@ -53,6 +53,7 @@
                 </tr>
             </tbody>
         </table>
+        <btn @click="add()"><i class="fa fa-plus" />&nbsp;Add a translation</btn>
         <modal
             v-model="editModal"
             size="lg"
@@ -99,6 +100,23 @@
                 </btn>
             </div>
         </modal>
+        <modal
+            v-model="delModal"
+            title="Delete translation"
+            auto-focus
+            :append-to-body="true"
+        >
+            <p>Are you sure you want to delete this translation?</p>
+            <div slot="footer">
+                <btn @click="delModal=false">Cancel</btn>
+                <btn
+                    type="danger"
+                    @click="submitDelete()"
+                >
+                    Delete
+                </btn>
+            </div>
+        </modal>
     </panel>
 </template>
 <script>
@@ -137,6 +155,7 @@ export default {
                     onlineSources: [],
                 },
             },
+            delModal: false,
             schema: {
                 fields: {
                     text: {
@@ -186,13 +205,25 @@ export default {
             }
         },
         add() {
-            this.editModel = {}
+            this.editModel = {
+                bibliography: {
+                    books: [],
+                    articles: [],
+                    bookChapters: [],
+                    onlineSources: [],
+                },
+            }
             this.editModal = true
         },
         update(item, index) {
             this.editModel = JSON.parse(JSON.stringify(item))
             this.editModel.index = index
             this.editModal = true
+        },
+        del(item, index) {
+            this.editModel = JSON.parse(JSON.stringify(item))
+            this.editModel.index = index
+            this.delModal = true
         },
         submitEdit() {
             this.$refs.editForm.validate()
@@ -217,6 +248,12 @@ export default {
                 this.$emit('validated', 0, null, this)
                 this.editModal = false
             }
+        },
+        submitDelete() {
+            this.model.translations.splice(this.editModel.index, 1)
+            this.calcChanges()
+            this.$emit('validated', 0, null, this)
+            this.delModal = false
         },
         displayTranslations(translations) {
             let result = []
