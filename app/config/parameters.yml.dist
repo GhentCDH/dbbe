@@ -24,3 +24,5 @@ parameters:
     # Google captcha siteKey
     siteKey: ~
     secretKey: ~
+
+    image_directory: ~
