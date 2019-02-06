@@ -171,7 +171,7 @@
         </modal>
         <modal
             v-model="delLinkModal"
-            title="Delete image"
+            title="Delete image link"
             auto-focus
         >
             <p>Are you sure you want to delete this image link?</p>
@@ -342,7 +342,7 @@ export default {
             this.delImageModal = false
         },
         submitDeleteLink() {
-            this.model.images.splice(this.imageIndex, 1)
+            this.model.imageLinks.splice(this.linkIndex, 1)
             this.calcChanges()
             this.$emit('validated', 0, null, this)
             this.delLinkModal = false
