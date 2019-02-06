@@ -6,7 +6,7 @@
     {% for index, key in verses|keys %}
         {% set verse = verses[key] %}
         {% if verse.getGroupId() %}
-            <tr><td class="line-number" data-line-number="{{ index +1 }}"></td><td class="verse"><a href="{{ path('verse_variant_get', {'groupId': verse.getGroupId()}) }}">{{ verse.getVerse() }}</a></td></tr>
+            <tr><td class="line-number" data-line-number="{{ index +1 }}"></td><td class="verse"><a href="{{ path('verse_variant_get', {'groupId': verse.getGroupId()}) }}">{{ verse.getVerse() }}<i class="fa fa-link pull-right"></i></a></td></tr>
         {% else %}
             <tr><td class="line-number" data-line-number="{{ index +1 }}"></td><td class="verse">{{ verse.getVerse() }}</td></tr>
         {% endif %}
