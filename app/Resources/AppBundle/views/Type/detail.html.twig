@@ -305,9 +305,12 @@
                                     {{ item.getName() }}
                                 {% endblock %}
                             {% endembed %}
+                            {% if type.getAcknowledgements() is not empty and type.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
                             {%
-                                include '@App/Helpers/renderPersonRolesDetail.html.twig'
-                                with {'personRoles': type.getContributorRoles() }
+                                include '@App/Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': type.getContributorRoles() }
                                 only
                             %}
                         </td>

@@ -323,9 +323,12 @@
                                     {{ item.getName() }}
                                 {% endblock %}
                             {% endembed %}
+                            {% if occurrence.getAcknowledgements() is not empty and occurrence.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
                             {%
-                                include '@App/Helpers/renderPersonRolesDetail.html.twig'
-                                with {'personRoles': occurrence.getContributorRoles() }
+                                include '@App/Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': occurrence.getContributorRoles() }
                                 only
                             %}
                         </td>

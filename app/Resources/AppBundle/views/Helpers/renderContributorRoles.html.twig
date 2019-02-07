@@ -1,0 +1,10 @@
+{% for rolename, contributorRole in contributorRoles %}
+    <div class="row">
+        <div class="col-sm-2">{{ contributorRole[0].getName() }}(s)</div>
+        <div class="col-sm-10">
+            {% for person in contributorRole[1] %}
+                <a href="{{ path('person_get', {'id': person.getId()}) }}">{{ person.getFullDescriptionWithOffices() }}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
