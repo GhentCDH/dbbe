@@ -40,7 +40,7 @@ trait StartEndPagesTrait
                 return '';
             }
         }
-        if (empty($this->endPage)) {
+        if (empty($this->endPage) || $this->startPage === $this->endPage) {
             return $prefix . $this->startPage;
         }
         return $prefix . $this->startPage . '-' . $this->endPage;

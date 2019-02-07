@@ -302,7 +302,7 @@ export default {
             if (startPage == null) {
                 return ''
             }
-            if (endPage == null) {
+            if (endPage == null || startPage === endPage) {
                 return prefix + startPage
             }
             return prefix + startPage + '-' + endPage
