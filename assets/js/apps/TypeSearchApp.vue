@@ -272,7 +272,7 @@ export default {
         let data = {
             model: {
                 text_fields: 'text',
-                text_combination: 'any',
+                text_combination: 'all',
             },
             schema: {
                 fields: {},
@@ -328,6 +328,17 @@ export default {
                 ],
             };
         }
+        data.schema.fields['text_combination'] = {
+            type: 'radio',
+            label: 'Word combination options:',
+            labelClasses: 'control-label',
+            model: 'text_combination',
+            values: [
+                { value: 'all', name: 'Match all words' },
+                { value: 'any', name: 'Match any words' },
+                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
+            ],
+        };
         data.schema.fields['text_fields'] = {
             type: 'radio',
             label: 'Which fields should be searched:',
@@ -339,24 +350,12 @@ export default {
                 { value: 'all', name: 'Text and title' },
             ],
         };
-        data.schema.fields['text_combination'] = {
-            type: 'radio',
-            label: 'Word combination options:',
-            labelClasses: 'control-label',
-            model: 'text_combination',
-            values: [
-                { value: 'any', name: 'Match any words' },
-                { value: 'all', name: 'Match all words' },
-                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
-            ],
-        };
-        data.schema.fields['metre'] = this.createMultiSelect('Metre');
-        data.schema.fields['subject'] = this.createMultiSelect('Subject');
-        data.schema.fields['tag'] = this.createMultiSelect('Tag');
         data.schema.fields['person'] = this.createMultiSelect('Person');
         data.schema.fields['role'] = this.createMultiSelect('Role', {dependency: 'person'});
+        data.schema.fields['metre'] = this.createMultiSelect('Metre');
         data.schema.fields['genre'] = this.createMultiSelect('Genre');
-        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
+        data.schema.fields['subject'] = this.createMultiSelect('Subject');
+        data.schema.fields['tag'] = this.createMultiSelect('Tag');
         data.schema.fields['comment'] = {
             type: 'input',
             inputType: 'text',
@@ -376,6 +375,7 @@ export default {
                 },
             }
         );
+        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
         if (this.isViewInternal) {
             data.schema.fields['text_status'] = this.createMultiSelect(
                 'Text Status',

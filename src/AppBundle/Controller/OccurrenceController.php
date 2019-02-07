@@ -519,7 +519,7 @@ class OccurrenceController extends BaseController
             }
             // sanitize text_combination
             if (!(isset($filters['text_combination']) && in_array($filters['text_combination'], ['any', 'all', 'phrase']))) {
-                $filters['text_combination'] = 'any';
+                $filters['text_combination'] = 'all';
             }
 
             // sanitize date search type
