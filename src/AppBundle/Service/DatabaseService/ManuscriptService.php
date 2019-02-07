@@ -393,7 +393,8 @@ class ManuscriptService extends DocumentService
             inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument
             inner join data.role on bibrole.idrole = role.idrole
-            where manuscript.identity in (?)',
+            where manuscript.identity in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)',
             [
                 $ids,
             ],
