@@ -642,7 +642,7 @@ class PersonService extends EntityService
      * @param  array $selfDesignationIds
      * @return int
      */
-    public function delMetres(int $id, array $selfDesignationIds): int
+    public function delSelfDesignations(int $id, array $selfDesignationIds): int
     {
         return $this->conn->executeUpdate(
             'DELETE
