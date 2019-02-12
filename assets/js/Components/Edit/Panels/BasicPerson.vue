@@ -1,13 +1,15 @@
 <template>
     <panel
         :header="header"
-        :link="link">
+        :links="links"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -18,8 +20,8 @@ import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
+Vue.use(VueFormGenerator);
+Vue.component('panel', Panel);
 
 VueFormGenerator.validators.name = function(value, field, model) {
     if (
@@ -32,13 +34,21 @@ VueFormGenerator.validators.name = function(value, field, model) {
     }
 
     return []
-}
+};
 
 export default {
     mixins: [
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        values: {
+            type: Object,
+            default: () => {
+                return {}
+            }
+        },
+    },
     data: function () {
         return {
             schema: {
@@ -77,23 +87,37 @@ export default {
                         model: 'lastName',
                         validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
-                    selfDesignations: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Self designation',
-                        labelClasses: 'control-label',
-                        model: 'selfDesignations',
-                        validator: [VueFormGenerator.validators.regexp],
-                        pattern: '^(?:(?:[\\u0370-\\u03ff\\u1f00-\\u1fff ]+)[,][ ])*(?:[\\u0370-\\u03ff\\u1f00-\\u1fff ]+)$',
-                        hint: 'Greek text only; comma (, ) separated list. E.g., "μοναχός, μέγας δούξ" (without quotes)',
-                        disabled: (model) => {
-                            return model && !model.historical;
+                    selfDesignations: this.createMultiSelect(
+                        '(Self) designation',
+                        {
+                            model: 'selfDesignations',
+                            values: this.values.selfDesignations,
+                            originalDisabled: (model) => {
+                                return model && !model.historical;
+                            },
                         },
-                    },
+                        {
+                            multiple: true,
+                            closeOnSelect: false,
+                        }
+
+                    ),
+                    offices: this.createMultiSelect(
+                        'Offices',
+                        {
+                            values: this.values.offices,
+                            originalDisabled: (model) => {
+                                return model && !model.historical;
+                            },
+                        },
+                        {
+                            multiple: true, closeOnSelect: false
+                        }
+                    ),
                     origin: this.createMultiSelect(
                         'Origin',
                         {
-                            values: this.values,
+                            values: this.values.origins,
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },
@@ -125,21 +149,23 @@ export default {
     },
     methods: {
         init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.originalModel = JSON.parse(JSON.stringify(this.model));
+            this.enableField(this.schema.fields.selfDesignations);
+            this.enableField(this.schema.fields.offices);
             this.enableField(this.schema.fields.origin)
         },
         calcChanges() {
-            this.changes = []
+            this.changes = [];
             if (this.originalModel == null) {
                 return
             }
             for (let key of Object.keys(this.model)) {
-                // Remove selfdesignations, origin or extra if not historical
-                if (!this.model.historical && ['selfDesignations', 'origin', 'extra'].includes(key)) {
+                // Remove selfdesignations, offices, origin or extra if not historical
+                if (!this.model.historical && ['selfDesignations', 'offices', 'origin', 'extra'].includes(key)) {
                     if (
                         this.originalModel[key] != null
                         && (
-                            ((['selfDesignations', 'extra'].includes(key)) && this.originalModel[key] != '')
+                            ((['selfDesignations', 'offices', 'extra'].includes(key)) && this.originalModel[key] != '')
                             || this.originalModel[key] != []
                         )
                     ) {
@@ -148,7 +174,7 @@ export default {
                             'label': this.fields[key].label,
                             'old': this.originalModel[key],
                             'new': null,
-                            'value': ['selfDesignations', 'extra'].includes(key) ? '' : null,
+                            'value': ['selfDesignations', 'offices', 'extra'].includes(key) ? '' : null,
                         })
                     }
                     continue;

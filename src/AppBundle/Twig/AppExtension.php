@@ -2,6 +2,7 @@
 
 namespace AppBundle\Twig;
 
+use Collator;
 use DateTime;
 
 use Twig_Extension;
@@ -42,7 +43,7 @@ class AppExtension extends Twig_Extension
                     }
                 }
             }),
-            new Twig_SimpleFilter('name', function ($array) {
+            new Twig_SimpleFilter('name', function (array $array) {
                 return array_map(
                     function ($item) {
                         return $item->getName();
@@ -50,7 +51,7 @@ class AppExtension extends Twig_Extension
                     $array
                 );
             }),
-            new Twig_SimpleFilter('noUnknown', function ($array) {
+            new Twig_SimpleFilter('noUnknown', function (array $array) {
                 return array_filter(
                     $array,
                     function ($item) {
@@ -58,10 +59,10 @@ class AppExtension extends Twig_Extension
                     }
                 );
             }),
-            new Twig_SimpleFilter('month', function ($string) {
+            new Twig_SimpleFilter('month', function (string $string) {
                 return DateTime::createFromFormat('m', substr($string, 5, 2))->format('M');
             }),
-            new Twig_SimpleFilter('day', function ($string) {
+            new Twig_SimpleFilter('day', function (string $string) {
                 return substr($string, 8, 2);
             }),
         ];

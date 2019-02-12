@@ -6,10 +6,10 @@
                 @dismiss="alerts.splice($event, 1)" />
             <panel
                 header="Edit Locations"
-                :link="{
+                :links="[{
                     url: urls['regions_edit'],
                     text: 'Add, edit or delete cities (regions)',
-                }"
+                }]"
             >
                 <editListRow
                     :schema="citySchema"

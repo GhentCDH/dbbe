@@ -128,7 +128,7 @@ class PersonController extends BaseController
 
     /**
      * Get all persons that have a dependency on an office
-     * (person_office)
+     * (person_occupation)
      * @Route("/persons/offices/{id}", name="person_deps_by_office")
      * @Method("GET")
      * @param  int    $id office id
@@ -152,6 +152,20 @@ class PersonController extends BaseController
     public function getDepsByRegion(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getRegionDependencies');
+    }
+
+    /**
+     * Get all persons that have a dependency on a self designation
+     * (person_self_designation)
+     * @Route("/persons/self-designations/{id}", name="person_deps_by_self_designation")
+     * @Method("GET")
+     * @param  int    $id self designation id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsBySelfDesignation(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getSelfDesignationDependencies');
     }
 
     /**
@@ -322,6 +336,7 @@ class PersonController extends BaseController
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
                     'offices_edit' => $this->generateUrl('offices_edit'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
+                    'self_designations_edit' => $this->generateUrl('self_designations_edit'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -332,6 +347,7 @@ class PersonController extends BaseController
                         : $this->get('person_manager')->getFull($id)->getJson(),
                     'offices' => $this->get('office_manager')->getAllJson(),
                     'origins' => $this->get('origin_manager')->getByTypeShortJson('person'),
+                    'selfDesignations' => $this->get('self_designation_manager')->getAllJson(),
                     'articles' => $this->get('article_manager')->getAllMiniShortJson(),
                     'books' => $this->get('book_manager')->getAllMiniShortJson(),
                     'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),

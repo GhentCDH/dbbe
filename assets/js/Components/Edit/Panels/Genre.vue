@@ -1,7 +1,7 @@
 <template>
     <panel
         :header="header"
-        :link="link"
+        :links="links"
     >
         <vue-form-generator
             ref="form"

@@ -21,8 +21,13 @@
                 {% endif %}
                 {% if person.getSelfDesignations() is not empty %}
                     <tr>
-                        <td>Self designation</td>
-                        <td>{{ person.getSelfDesignations()|join(', ') }}</td>
+                        <td>(Self) designation</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getSelfDesignations()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}</td>
                     </tr>
                 {% endif %}
                 {% if person.getInterval() is not empty %}

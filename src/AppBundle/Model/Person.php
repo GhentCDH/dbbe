@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use Collator;
+
 use AppBundle\Utils\ArrayToJson;
 
 /**
@@ -168,12 +170,33 @@ class Person extends Entity implements SubjectInterface
     }
 
     /**
+     * @param  string $selfDesignation
+     * @return Person
+     */
+    public function addSelfDesignation(SelfDesignation $selfDesignation): Person
+    {
+        $this->selfDesignations[] = $selfDesignation;
+
+        return $this;
+    }
+
+    /**
      * @param  array $selfDesignations
      * @return Person
      */
     public function setSelfDesignations(array $selfDesignations): Person
     {
         $this->selfDesignations = $selfDesignations;
+
+        return $this;
+    }
+
+    public function sortSelfDesignations(): Person
+    {
+        $collator = new Collator('');
+        usort($this->selfDesignations, function ($a, $b) use ($collator) {
+            return $collator->compare(strtolower($a->getName()), strtolower($b->getName()));
+        });
 
         return $this;
     }
@@ -360,6 +383,15 @@ class Person extends Entity implements SubjectInterface
     public function addOfficeWithParents(OfficeWithParents $officeWithParents): Person
     {
         $this->officesWithParents[$officeWithParents->getId()] = $officeWithParents;
+
+        return $this;
+    }
+
+    public function sortOfficesWithParents(): Person
+    {
+        usort($this->officesWithParents, function ($a, $b) {
+            return strcmp(strtolower($a->getName()), strtolower($b->getName()));
+        });
 
         return $this;
     }
@@ -826,8 +858,8 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->lastName)) {
             $result['lastName'] = $this->lastName;
         }
-        if (isset($this->selfDesignations)) {
-            $result['selfDesignations'] = implode(', ', $this->selfDesignations);
+        if (!empty($this->selfDesignations)) {
+            $result['selfDesignations'] = ArrayToJson::arrayToShortJson($this->selfDesignations);
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortJson();
@@ -892,7 +924,7 @@ class Person extends Entity implements SubjectInterface
             $result['office'] = $offices;
         }
         if (!empty($this->selfDesignations)) {
-            $result['self_designation'] = $this->selfDesignations;
+            $result['self_designation'] = ArrayToJson::arrayToShortJson($this->selfDesignations);
         }
         if (!empty($this->origin)) {
             $result['origin'] = $this->origin->getShortJson();

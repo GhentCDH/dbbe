@@ -43,6 +43,7 @@ class ElasticPersonService extends ElasticBaseService
                     ],
                 ],
                 'role' => ['type' => 'nested'],
+                'self_designation' => ['type' => 'nested'],
                 'office' => ['type' => 'nested'],
                 'management' => ['type' => 'nested'],
             ]
@@ -145,18 +146,12 @@ class ElasticPersonService extends ElasticBaseService
                         $result['date_range'][] = $date_result;
                         break;
                     case 'role':
+                    case 'self_designation':
                     case 'office':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {
                             $result['nested'][$key] = $value;
-                        }
-                        break;
-                    case 'self_designation':
-                        if (is_int($key)) {
-                            $result['exact_text'][] = $value;
-                        } else {
-                            $result['exact_text'][$key] = $value;
                         }
                         break;
                     case 'origin':

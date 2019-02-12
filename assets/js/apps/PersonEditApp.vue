@@ -18,9 +18,13 @@
                 id="basic"
                 ref="basic"
                 header="Basic Information"
-                :link="{url: urls['origins_edit'], text: 'Edit origins'}"
+                :links="[
+                    {url: urls['self_designations_edit'], text: 'Edit (self) designations'},
+                    {url: urls['offices_edit'], text: 'Edit offices'},
+                    {url: urls['origins_edit'], text: 'Edit origins'},
+                ]"
                 :model="model.basic"
-                :values="origins"
+                :values="{selfDesignations: selfDesignations, offices: offices, origins: origins}"
                 @validated="validated"
             />
 
@@ -68,16 +72,6 @@
                 @validated="validated"
             />
 
-            <officePanel
-                id="offices"
-                ref="offices"
-                header="Offices"
-                :link="{url: urls['offices_edit'], text: 'Edit offices'}"
-                :model="model.offices"
-                :values="offices"
-                @validated="validated"
-            />
-
             <bibliographyPanel
                 id="bibliography"
                 ref="bibliography"
@@ -99,7 +93,7 @@
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
                 :model="model.managements"
                 :values="managements"
                 @validated="validated"
@@ -158,7 +152,6 @@
                     <li><a href="#deathDate">Date of death</a></li>
                     <li v-if="model.unknownDate || model.unknownInterval"><a href="#unknownDate">Unknown date or interval</a></li>
                     <li><a href="#identification">Identification</a></li>
-                    <li><a href="#offices">Offices</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#managements">Management collections</a></li>
@@ -209,6 +202,7 @@ export default {
             person: null,
             offices: null,
             origins: null,
+            selfDesignations: null,
             bibliographies: null,
             model: {
                 basic: {
@@ -265,7 +259,6 @@ export default {
                 'bornDate',
                 'deathDate',
                 'identification',
-                'offices',
                 'bibliography',
                 'general',
                 'managements',
@@ -293,6 +286,7 @@ export default {
         this.person = this.data.person;
         this.offices = this.data.offices;
         this.origins = this.data.origins;
+        this.selfDesignations = this.data.selfDesignations;
         this.bibliographies = {
             books: this.data.books,
             articles: this.data.articles,
@@ -315,6 +309,7 @@ export default {
                     firstName: this.person.firstName,
                     lastName: this.person.lastName,
                     selfDesignations: this.person.selfDesignations,
+                    offices: this.person.officesWithParents,
                     origin: this.person.origin,
                     extra: this.person.extra,
                     unprocessed: this.person.unprocessed,
@@ -359,11 +354,6 @@ export default {
                         this.model.identification[identifier.systemName + '_extra'] = this.person.identifications != null ? this.person.identifications[identifier.systemName + '_extra'] : null
                     }
                 }
-
-                // Identification
-                this.model.offices = {
-                    offices: this.person.office
-                };
 
                 // Bibliography
                 this.model.bibliography = {

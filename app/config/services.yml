@@ -193,6 +193,11 @@ services:
         arguments: ['@language_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
 
+    self_designation_manager:
+        class: AppBundle\ObjectStorage\SelfDesignationManager
+        arguments: ['@self_designation_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        public: true
+
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
         arguments: ['@doctrine.orm.entity_manager']
@@ -319,6 +324,10 @@ services:
 
     language_service:
         class: AppBundle\Service\DatabaseService\LanguageService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    self_designation_service:
+        class: AppBundle\Service\DatabaseService\SelfDesignationService
         arguments: ['@doctrine.orm.entity_manager']
 
     feedback_service:

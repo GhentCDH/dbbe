@@ -1,7 +1,7 @@
 <template>
     <panel
         :header="header"
-        :link="link">
+        :links="links">
         <vue-form-generator
             :schema="schema"
             :model="model"
@@ -33,11 +33,6 @@ export default {
         return {
             schema: {
                 fields: {
-                    offices: this.createMultiSelect(
-                        'Offices',
-                        {values: this.values},
-                        {multiple: true, closeOnSelect: false}
-                    ),
                 }
             }
         }

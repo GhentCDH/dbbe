@@ -63,6 +63,11 @@
                 @loaded="onLoaded"
             >
                 <template
+                    slot="h__self_designation"
+                >
+                    (Self) designation
+                </template>
+                <template
                     slot="comment"
                     slot-scope="props"
                 >
@@ -130,6 +135,23 @@
                     {{ formatIdentification(props.row) }}
                 </template>
                 <template
+                    v-if="props.row.self_designation"
+                    slot="self_designation"
+                    slot-scope="props"
+                >
+                    <ul v-if="props.row.self_designation.length > 1">
+                        <li
+                            v-for="(self_designation, index) in props.row.self_designation"
+                            :key="index"
+                        >
+                            {{ self_designation.name }}
+                        </li>
+                    </ul>
+                    <template v-else>
+                        {{ props.row.self_designation[0].name }}
+                    </template>
+                </template>
+                <template
                     v-if="props.row.office"
                     slot="office"
                     slot-scope="props"
@@ -150,23 +172,6 @@
                         <template v-else>
                             {{ displayOffice[0].name }}
                         </template>
-                    </template>
-                </template>
-                <template
-                    v-if="props.row.self_designation"
-                    slot="self designation"
-                    slot-scope="props"
-                >
-                    <ul v-if="props.row.self_designation.length > 1">
-                        <li
-                            v-for="(designation, index) in props.row.self_designation"
-                            :key="index"
-                        >
-                            {{ designation }}
-                        </li>
-                    </ul>
-                    <template v-else>
-                        {{ props.row.self_designation[0] }}
                     </template>
                 </template>
                 <template
@@ -334,8 +339,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <td>(Self) designation</td>
+                        <td>{{ formatObjectArray(mergeModel.primaryFull.selfDesignations) || formatObjectArray(mergeModel.secondaryFull.selfDesignations) }}</td>
+                    </tr>
+                    <tr>
                         <td>Offices</td>
-                        <td>{{ formatOffices(mergeModel.primaryFull.offices) || formatOffices(mergeModel.secondaryFull.offices) }}</td>
+                        <td>{{ formatObjectArray(mergeModel.primaryFull.officesWithParents) || formatObjectArray(mergeModel.secondaryFull.officesWithParents) }}</td>
                     </tr>
                     <tr>
                         <td>Public comment</td>
@@ -434,7 +443,7 @@ export default {
                     },
                     role: this.createMultiSelect('Role'),
                     office: this.createMultiSelect('Office'),
-                    self_designation: this.createMultiSelect('Self designation', {model: 'self_designation'}),
+                    self_designation: this.createMultiSelect('(Self) designation', {model: 'self_designation'}),
                     origin: this.createMultiSelect('Origination', {model: 'origin'}),
                     comment: {
                         type: 'input',
@@ -598,7 +607,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'office', 'self designation', 'date']
+            let columns = ['name', 'identification', 'self_designation', 'office', 'date']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }
@@ -743,11 +752,11 @@ export default {
             let death = death_floor === death_ceiling ? death_floor : death_floor + '-' + death_ceiling
             return born === death ? born : '(' + born + ') - (' + death + ')'
         },
-        formatOffices(offices) {
-            if (offices == null || offices.length === 0) {
+        formatObjectArray(objects) {
+            if (objects == null || objects.length === 0) {
                 return null
             }
-            return offices.map(office => office.name).join(', ')
+            return objects.map(objects => objects.name).join(', ')
         },
         hasIdentification(person) {
             for (let identifier of this.identifiers) {

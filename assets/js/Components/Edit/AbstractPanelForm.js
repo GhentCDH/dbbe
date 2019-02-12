@@ -4,9 +4,9 @@ export default {
             type: String,
             default: ''
         },
-        link: {
-            type: Object,
-            default: () => {return {}}
+        links: {
+            type: Array,
+            default: () => {return []}
         },
         model: {
             type: Object,

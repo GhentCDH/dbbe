@@ -3,11 +3,13 @@
         <div class="panel-heading">
             {{ header }}
             <a
-                class="action pull-right"
-                v-if="link && link.url && link.text"
-                :href="link.url">
+                v-for="(item, index) in links.slice().reverse()"
+                :key="index"
+                :href="item.url"
+                class="edit-link pull-right"
+            >
                 <i class="fa fa-edit" />
-                {{ link.text }}
+                {{ item.text }}
             </a>
         </div>
         <div class="panel-body">
@@ -22,9 +24,9 @@ export default {
             type: String,
             default: ''
         },
-        link: {
-            type: Object,
-            default: () => {return {}}
+        links: {
+            type: Array,
+            default: () => {return []}
         },
     }
 }

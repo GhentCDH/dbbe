@@ -155,6 +155,17 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsBySelfDesignationId(int $selfDesignationId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person_self_designation.idperson as person_id
+            from data.person_self_designation
+            where person_self_designation.idself_designation = ?',
+            [$selfDesignationId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByManuscriptId(int $manuscriptId): array
     {
         return $this->conn->executeQuery(
@@ -265,7 +276,6 @@ class PersonService extends EntityService
                 person.identity as person_id,
                 name.first_name,
                 name.last_name,
-                name.self_designations,
                 factoid_origination.location_id,
                 name.extra,
                 name.unprocessed,
@@ -312,6 +322,26 @@ class PersonService extends EntityService
                 where factoid_type.type = \'origination\'
             ) as factoid_origination on person.identity = factoid_origination.subject_identity
             where person.identity in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getSelfDesignations(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id,
+                self_designation.id as self_designation_id,
+                self_designation.name
+                from data.person
+                inner join data.person_self_designation on person.identity = person_self_designation.idperson
+                inner join data.self_designation on person_self_designation.idself_designation = self_designation.id
+                where person.identity in (?)',
             [
                 $ids,
             ],
@@ -590,15 +620,42 @@ class PersonService extends EntityService
         );
     }
 
-    public function updateSelfDesignations(int $id, string $selfDesignations = null): int
+    /**
+     * @param  int $id
+     * @param  int $selfDesignationId
+     * @return int
+     */
+    public function addSelfDesignation(int $id, int $selfDesignationId): int
     {
         return $this->conn->executeUpdate(
-            'UPDATE data.name
-            set self_designations = ?
-            where name.idperson = ?',
+            'INSERT into data.person_self_designation (idperson, idself_designation)
+            values (?, ?)',
             [
-                $selfDesignations,
                 $id,
+                $selfDesignationId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $selfDesignationIds
+     * @return int
+     */
+    public function delMetres(int $id, array $selfDesignationIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.person_self_designation
+            where idperson = ?
+            and idself_designation in (?)',
+            [
+                $id,
+                $selfDesignationIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

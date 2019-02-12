@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\SelfDesignation;
 use Exception;
 use stdClass;
 
@@ -52,15 +53,22 @@ class PersonManager extends EntityManager
                 ->setModern($rawPerson['is_modern'])
                 ->setDBBE($rawPerson['is_dbbe']);
 
-            if ($rawPerson['self_designations'] != null) {
-                $person->setSelfDesignations(explode(',', $rawPerson['self_designations']));
-            }
-
             if ($rawPerson['location_id'] != null) {
                 $person->setOrigin(Origin::fromLocation($locations[$rawPerson['location_id']]));
             }
 
             $persons[$rawPerson['person_id']] = $person;
+        }
+
+        $rawSelfDesignations = $this->dbs->getSelfDesignations($ids);
+        $selfDesignations = $this->container->get('self_designation_manager')->getWithData($rawSelfDesignations);
+        foreach ($rawSelfDesignations as $rawSelfDesignation) {
+            $persons[$rawSelfDesignation['person_id']]
+                ->addSelfDesignation($selfDesignations[$rawSelfDesignation['self_designation_id']]);
+        }
+
+        foreach ($persons as $person) {
+            $person->sortSelfDesignations();
         }
 
         $this->setIdentifications($persons);
@@ -108,6 +116,10 @@ class PersonManager extends EntityManager
                 $persons[$rawOffice['person_id']]
                     ->addOfficeWithParents($officesWithParents[$rawOffice['office_id']]);
             }
+        }
+
+        foreach ($persons as $person) {
+            $person->sortOfficesWithParents();
         }
 
         $this->setComments($persons);
@@ -350,6 +362,17 @@ class PersonManager extends EntityManager
     }
 
     /**
+     * Get all persons that are dependent on a specific self designation
+     * @param  int    $selfDesignationId
+     * @param  string $method
+     * @return array
+     */
+    public function getSelfDesignationDependencies(int $selfDesignationId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsBySelfDesignationId($selfDesignationId), $method);
+    }
+
+    /**
      * Get all persons that are dependent on a specific manuscript
      * @param  int    $manuscriptId
      * @param  string $method
@@ -524,12 +547,11 @@ class PersonManager extends EntityManager
                 $this->dbs->updateLastName($id, $data->lastName);
             }
             if (property_exists($data, 'selfDesignations')) {
-                if (!is_string($data->selfDesignations)) {
+                if (!is_array($data->selfDesignations)) {
                     throw new BadRequestHttpException('Incorrect self designation data.');
                 }
                 $changes['mini'] = true;
-                // Remove spaces before and after commas
-                $this->dbs->updateSelfDesignations($id, preg_replace('/\s*,\s*/', ',', $data->selfDesignations));
+                $this->updateSelfDesignations($old, $data->selfDesignations);
             }
             if (property_exists($data, 'origin')) {
                 if (!is_object($data->origin) && !empty($data->origin)) {
@@ -720,17 +742,20 @@ class PersonManager extends EntityManager
         if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
             $updates['deathDate'] = $secondary->getDeathDate();
         }
+        if (empty($primary->getSelfDesignations()) && !empty($secondary->getSelfDesignations())) {
+            $updates['selfDesignations'] = ArrayToJson::arrayToShortJson($secondary->getSelfDesignations());
+        }
         $identifiers = $this->container->get('identifier_manager')->getByType('person');
         foreach ($identifiers as $identifier) {
             if (empty($primary->getIdentifications()[$identifier->getSystemName()])
                 && !empty($secondary->getIdentifications()[$identifier->getSystemName()])
             ) {
                 $updates[$identifier->getSystemName()] =
-                    implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()]->getIdentifications());
+                    implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()][1]);
             }
         }
         if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
-            $updates['offices'] = $secondary->getOfficesWithParents();
+            $updates['offices'] = ArrayToJson::arrayToShortJson($secondary->getOfficesWithParents());
         }
         if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
             $updates['publicComment'] = $secondary->getPublicComment();
@@ -883,7 +908,7 @@ class PersonManager extends EntityManager
             // Reset elasticsearch
             $this->updateElasticByIds([$primaryId]);
 
-            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscript));
+            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
             $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($occurrences));
             $this->container->get('type_manager')->updateElasticByIds(array_keys($types));
             $this->container->get('article_manager')->updateElasticByIds(array_keys($articles));
@@ -894,6 +919,30 @@ class PersonManager extends EntityManager
         }
 
         return $primary;
+    }
+
+    /**
+     * @param Person $person
+     * @param array  $selfDesignations
+     */
+    protected function updateSelfDesignations(Person $person, array $selfDesignations): void
+    {
+        foreach ($selfDesignations as $selfDesignation) {
+            if (!is_object($selfDesignation)
+                || !property_exists($selfDesignation, 'id')
+                || !is_numeric($selfDesignation->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect self designation data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($selfDesignations, $person->getSelfDesignations());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delSelfDesignations($person->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addSelfDesignation($person->getId(), $addId);
+        }
     }
 
     /**
@@ -998,6 +1047,30 @@ class PersonManager extends EntityManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addOffice($person->getId(), $addId);
+        }
+    }
+
+    public function updateElasticSelfDesignation(array $ids): void
+    {
+        if (!empty($ids)) {
+            $rawSelfDesignations = $this->dbs->getSelfDesignations($ids);
+            if (!empty($rawSelfDesignations)) {
+                $selfDesignations = $this->container->get('self_designation_manager')->getWithData($rawSelfDesignations);
+                $data = [];
+
+                foreach ($rawSelfDesignations as $rawSelfDesignation) {
+                    if (!isset($data[$rawSelfDesignation['person_id']])) {
+                        $data[$rawSelfDesignation['person_id']] = [
+                            'id' => $rawSelfDesignation['person_id'],
+                            'self_designation' => [],
+                        ];
+                    }
+                    $data[$rawSelfDesignation['person_id']]['self_designation'][] =
+                        $selfDesignations[$rawSelfDesignation['self_designation_id']]->getShortJson();
+                }
+
+                $this->ess->updateMultiple($data);
+            }
         }
     }
 

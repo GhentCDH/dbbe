@@ -44,6 +44,7 @@ Encore
     .addEntry('personsearch', './assets/js/main/personsearch.js')
     .addEntry('regionsedit', './assets/js/main/regionsedit.js')
     .addEntry('rolesedit', './assets/js/main/rolesedit.js')
+    .addEntry('selfdesignationsedit', './assets/js/main/selfdesignationsedit.js')
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')
     .addEntry('typeedit', './assets/js/main/typeedit.js')
     .addEntry('typesearch', './assets/js/main/typesearch.js')

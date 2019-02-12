@@ -55,7 +55,7 @@
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :link="{url: urls['managements_edit'], text: 'Edit management collections'}"
+                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
                 :model="model.managements"
                 :values="managements"
                 @validated="validated"

@@ -293,7 +293,7 @@ class EntityService extends DatabaseService
             set identifier = excluded.identifier,
                 volume = excluded.volume',
             [
-                $volume == null ? 1 : volume,
+                $volume == null ? 1 : $volume,
                 $identifierId,
                 $entityId,
                 $identification,
