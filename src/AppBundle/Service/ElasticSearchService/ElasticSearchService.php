@@ -648,7 +648,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     {
         $result = $input;
 
-        // Get wildcard charachter position and remove wildcards
+        // Get wildcard character position and remove wildcards
         // question mark
         $qPos = [];
         $lastPos = 0;
