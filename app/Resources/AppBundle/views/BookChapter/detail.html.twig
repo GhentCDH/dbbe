@@ -3,7 +3,7 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 class="h1">
-            Book Chapter "{{ book_chapter.getTitle() }}"
+            <small>Book Chapter</small><br />{{ book_chapter.getTitle() }}
             {% if is_granted('ROLE_EDITOR_VIEW') %}
                 <a href="{{ path('book_chapter_edit', {'id': book_chapter.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}

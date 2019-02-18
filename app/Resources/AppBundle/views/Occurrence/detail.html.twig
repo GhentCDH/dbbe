@@ -4,7 +4,7 @@
     <article class="col-xs-9">
         <h2 class="h1{% if not occurrence.getPublic() %} text-danger{% endif %}">
             Occurrence {{ occurrence.getId() }}
-            {% if occurrence.getPrevId() is not empty %}<small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
+            {% if occurrence.getPrevId() is not empty %}<br /><small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
             {% if not occurrence.getPublic() %}
                 - Not Public
             {% endif %}

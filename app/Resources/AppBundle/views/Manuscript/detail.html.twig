@@ -3,7 +3,7 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 class="h1{% if not manuscript.getPublic() %} text-danger{% endif %}">
-            Manuscript "{{ manuscript.getName() }}"
+            <small>Manuscript</small><br />{{ manuscript.getName() }}
             {% if not manuscript.getPublic() %}
                 - Not Public
             {% endif %}

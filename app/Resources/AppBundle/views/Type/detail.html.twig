@@ -4,7 +4,7 @@
     <article class="col-xs-9">
         <h2 class="h1{% if not type.getPublic() %} text-danger{% endif %}">
             Type {{ type.getId() }}
-            {% if type.getPrevId() is not empty %}<small>(formerly typ/{{ type.getPrevId() }})</small>{% endif %}
+            {% if type.getPrevId() is not empty %}<br /><small>(formerly typ/{{ type.getPrevId() }})</small>{% endif %}
             {% if not type.getPublic() %}
                 - Not Public
             {% endif %}
