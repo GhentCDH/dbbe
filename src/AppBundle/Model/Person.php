@@ -763,8 +763,16 @@ class Person extends Entity implements SubjectInterface
     public function getNameAndDate(): string
     {
         $description = $this->getName();
-        if (!$this->bornDate->isEmpty() && !$this->deathDate->isEmpty()) {
-            $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+        # Add date only if unprocessed name was not used
+        if (!empty(array_filter(array_filter([
+            $this->firstName,
+            $this->lastName,
+            $this->origin ? ' of ' . $this->origin->getName() : null,
+            $this->extra,
+            ])))) {
+            if (!$this->bornDate->isEmpty() && !$this->deathDate->isEmpty()) {
+                $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+            }
         }
         return $description;
     }
