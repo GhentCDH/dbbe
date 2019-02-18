@@ -499,7 +499,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'date')) {
                 $changes['short'] = true;
-                $this->updateDate($old, 'completed at', $old->getDate(), $data->date);
+                $this->updateDate($old, 'completed at', !$old->getDate()->isEmpty(), $data->date);
             }
             if (property_exists($data, 'metres')) {
                 if (!is_array($data->metres)) {

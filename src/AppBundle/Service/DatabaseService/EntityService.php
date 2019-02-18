@@ -198,7 +198,7 @@ class EntityService extends DatabaseService
     {
         return $this->conn->executeUpdate(
             'UPDATE data.factoid
-            set date = ?
+            set date = ?, interval = null
             from data.factoid_type
             where factoid.subject_identity = ?
             and factoid.idfactoid_type = factoid_type.idfactoid_type
@@ -211,7 +211,7 @@ class EntityService extends DatabaseService
         );
     }
 
-    public function deleteDate(int $entityId, string $type): int
+    public function deleteDateOrInterval(int $entityId, string $type): int
     {
         return $this->conn->executeUpdate(
             'DELETE from data.factoid
@@ -220,6 +220,45 @@ class EntityService extends DatabaseService
             and factoid.idfactoid_type = factoid_type.idfactoid_type
             and factoid_type.type = ?',
             [
+                $entityId,
+                $type,
+            ]
+        );
+    }
+
+    public function insertInterval(int $entityId, string $type, string $interval): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.factoid (subject_identity, interval, idfactoid_type)
+            values (
+                ?,
+                ?,
+                (
+                    select
+                        factoid_type.idfactoid_type
+                    from data.factoid_type
+                    where factoid_type.type = ?
+                )
+            )',
+            [
+                $entityId,
+                $interval,
+                $type,
+            ]
+        );
+    }
+
+    public function updateInterval(int $entityId, string $type, string $interval): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set date = null, interval = ?
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
+            and factoid_type.type = ?',
+            [
+                $interval,
                 $entityId,
                 $type,
             ]

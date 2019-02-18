@@ -50,11 +50,11 @@ class Person extends Entity implements SubjectInterface
     /**
      * @var FuzzyDate
      */
-    protected $unknownDate;
+    protected $attestedDate;
     /**
      * @var FuzzyInterval
      */
-    protected $unknownInterval;
+    protected $attestedInterval;
     /**
      * @var array
      */
@@ -306,12 +306,12 @@ class Person extends Entity implements SubjectInterface
     }
 
     /**
-     * @param  FuzzyDate|null $unknownDate
+     * @param  FuzzyDate|null $attestedDate
      * @return Person
      */
-    public function setUnknownDate(FuzzyDate $unknownDate = null): Person
+    public function setAttestedDate(FuzzyDate $attestedDate = null): Person
     {
-        $this->unknownDate = $unknownDate;
+        $this->attestedDate = $attestedDate;
 
         return $this;
     }
@@ -319,18 +319,18 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyDate|null
      */
-    public function getUnknownDate(): ?FuzzyDate
+    public function getAttestedDate(): ?FuzzyDate
     {
-        return $this->unknownDate;
+        return $this->attestedDate;
     }
 
     /**
-     * @param  FuzzyInterval|null $unknownInterval
+     * @param  FuzzyInterval|null $attestedInterval
      * @return Person
      */
-    public function setUnknownInterval(FuzzyInterval $unknownInterval = null): Person
+    public function setAttestedInterval(FuzzyInterval $attestedInterval = null): Person
     {
-        $this->unknownInterval = $unknownInterval;
+        $this->attestedInterval = $attestedInterval;
 
         return $this;
     }
@@ -338,9 +338,9 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyInterval|null
      */
-    public function getUnknownInterval(): ?FuzzyInterval
+    public function getAttestedInterval(): ?FuzzyInterval
     {
-        return $this->unknownInterval;
+        return $this->attestedInterval;
     }
 
     /**
@@ -876,11 +876,12 @@ class Person extends Entity implements SubjectInterface
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
             $result['deathDate'] = $this->deathDate->getJson();
         }
-        if (isset($this->unknownDate) && !($this->unknownDate->isEmpty())) {
-            $result['unknownDate'] = $this->unknownDate->__toString();
+        if (isset($this->attestedDate) && !($this->attestedDate->isEmpty())) {
+            $result['attestedStartDate'] = $this->attestedDate->getJson();
         }
-        if (isset($this->unknownInterval) && !($this->unknownInterval->isEmpty())) {
-            $result['unknownInterval'] = $this->unknownInterval->__toString();
+        if (isset($this->attestedInterval) && !($this->attestedInterval->isEmpty())) {
+            $result['attestedStartDate'] = $this->attestedInterval->getStart()->getJson();
+            $result['attestedEndDate'] = $this->attestedInterval->getEnd()->getJson();
         }
         if (!empty($this->officesWithParents)) {
             $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);

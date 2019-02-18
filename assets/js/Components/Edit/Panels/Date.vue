@@ -46,7 +46,7 @@ export default {
         },
         invalidComboText: {
             type: String,
-            default: 'Date of birth must be earlier than date of death.',
+            default: '',
         },
     },
     data() {

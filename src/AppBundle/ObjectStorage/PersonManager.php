@@ -47,8 +47,8 @@ class PersonManager extends EntityManager
                 ->setUnprocessed($rawPerson['unprocessed'])
                 ->setBornDate(new FuzzyDate($rawPerson['born_date']))
                 ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
-                ->setUnknownDate(new FuzzyDate($rawPerson['unknown_date']))
-                ->setUnknownInterval(FuzzyInterval::fromString($rawPerson['unknown_interval']))
+                ->setAttestedDate(new FuzzyDate($rawPerson['attested_date']))
+                ->setAttestedInterval(FuzzyInterval::fromString($rawPerson['attested_interval']))
                 ->setHistorical($rawPerson['is_historical'])
                 ->setModern($rawPerson['is_modern'])
                 ->setDBBE($rawPerson['is_dbbe']);
@@ -608,14 +608,44 @@ class PersonManager extends EntityManager
                     throw new BadRequestHttpException('Incorrect born date data.');
                 }
                 $changes['mini'] = true;
-                $this->updateDate($old, 'born', $old->getBornDate(), $data->bornDate);
+                $this->updateDate($old, 'born', !$old->getBornDate()->isEmpty(), $data->bornDate);
             }
             if (property_exists($data, 'deathDate')) {
                 if (!is_object($data->deathDate)) {
                     throw new BadRequestHttpException('Incorrect death date data.');
                 }
                 $changes['mini'] = true;
-                $this->updateDate($old, 'died', $old->getDeathDate(), $data->deathDate);
+                $this->updateDate($old, 'died', !$old->getDeathDate()->isEmpty(), $data->deathDate);
+            }
+            if (property_exists($data, 'attestedStartDate') && property_exists($data, 'attestedEndDate')) {
+                if (!is_object($data->attestedStartDate)) {
+                    throw new BadRequestHttpException('Incorrect attested start date data.');
+                }
+                if (!is_object($data->attestedEndDate)) {
+                    throw new BadRequestHttpException('Incorrect attested end date data.');
+                }
+                $changes['mini'] = true;
+                // completely new interval
+                $this->updateInterval($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), $data->attestedStartDate, $data->attestedEndDate);
+            } elseif (property_exists($data, 'attestedStartDate')) {
+                if (!is_object($data->attestedStartDate)) {
+                    throw new BadRequestHttpException('Incorrect attested start date data.');
+                }
+                $changes['mini'] = true;
+                if (!$old->getAttestedInterval()->isEmpty()) {
+                    // new start of interval
+                    $this->updateInterval($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), $data->attestedStartDate, (object) $old->getAttestedInterval()->getEnd()->getJson());
+                } else {
+                    // completely new date
+                    $this->updateDate($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), $data->attestedStartDate);
+                }
+            } elseif (property_exists($data, 'attestedEndDate')) {
+                if (!is_object($data->attestedEndDate)) {
+                    throw new BadRequestHttpException('Incorrect attested end date data.');
+                }
+                $changes['mini'] = true;
+                // new end of interval
+                $this->updateInterval($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), (object) $old->getAttestedInterval()->getStart()->getJson(), $data->attestedEndDate);
             }
             $this->updateIdentificationwrapper($old, $data, $changes, 'mini', 'person');
             if (property_exists($data, 'offices')) {

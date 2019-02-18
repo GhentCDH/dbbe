@@ -15,6 +15,16 @@ class FuzzyInterval
         return $this;
     }
 
+    public function getStart(): FuzzyDate
+    {
+        return $this->start;
+    }
+
+    public function getEnd(): FuzzyDate
+    {
+        return $this->end;
+    }
+
     public function __toString()
     {
         // start and end are the same

@@ -34,6 +34,7 @@
                 header="Date of birth"
                 :model="model.bornDate"
                 :invalid-combo="invalidDateCombo"
+                invalid-combo-text="Date of birth must be earlier than date of death."
                 key-group="bornDate"
                 group-label="Born"
                 @validated="validated"
@@ -45,23 +46,35 @@
                 header="Date of death"
                 :model="model.deathDate"
                 :invalid-combo="invalidDateCombo"
+                invalid-combo-text="Date of birth must be earlier than date of death."
                 key-group="deathDate"
                 group-label="Death"
                 @validated="validated"
             />
 
-            <panel
-                v-if="model.unknownDate || model.unknownInterval"
-                id="unknownDate"
-                header="Unkown date or interval"
-            >
-                <p v-if="model.unknownDate">
-                    Unknown date: {{ model.unknownDate }}
-                </p>
-                <p v-if="model.unknownInterval">
-                    Unknown interval: {{ model.unknownInterval }}
-                </p>
-            </panel>
+            <datePanel
+                id="attestedStartDate"
+                ref="attestedStartDate"
+                header="Attested date or start of attested interval"
+                :model="model.attestedStartDate"
+                :invalid-combo="invalidAttestedDateCombo"
+                invalid-combo-text="Attested start date must be earlier than attested end date."
+                key-group="attestedStartDate"
+                group-label="Attested date or start of attested interval"
+                @validated="validated"
+            />
+
+            <datePanel
+                id="attestedEndDate"
+                ref="attestedEndDate"
+                header="End of attested interval"
+                :model="model.attestedEndDate"
+                :invalid-combo="invalidAttestedDateCombo"
+                invalid-combo-text="Attested start date must be earlier than attested end date."
+                key-group="attestedEndDate"
+                group-label="Attested end"
+                @validated="validated"
+            />
 
             <identificationPanel
                 id="identification"
@@ -150,7 +163,7 @@
                     <li><a href="#basic">Basic Information</a></li>
                     <li><a href="#bornDate">Date of birth</a></li>
                     <li><a href="#deathDate">Date of death</a></li>
-                    <li v-if="model.unknownDate || model.unknownInterval"><a href="#unknownDate">Unknown date or interval</a></li>
+                    <li><a href="#attestedStartDate">Attested date or interval</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
@@ -236,8 +249,26 @@ export default {
                     ceilingYear: null,
                     ceilingDayMonth: null,
                 },
-                unknownDate: null,
-                unknownInterval: null,
+                attestedStartDate: {
+                    floor: null,
+                    ceiling: null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                },
+                attestedEndDate: {
+                    floor: null,
+                    ceiling: null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                },
                 identification: {},
                 offices: {offices: null},
                 bibliography: {
@@ -254,10 +285,13 @@ export default {
                 managements: {managements: null},
             },
             invalidDateCombo: false,
+            invalidAttestedDateCombo: false,
             forms: [
                 'basic',
                 'bornDate',
                 'deathDate',
+                'attestedStartDate',
+                'attestedEndDate',
                 'identification',
                 'bibliography',
                 'general',
@@ -281,6 +315,14 @@ export default {
         'model.deathDate.floorDayMonth'() {this.validateDate()},
         'model.deathDate.ceilingYear'() {this.validateDate()},
         'model.deathDate.ceilingDayMonth'() {this.validateDate()},
+        'model.attestedStartDate.floorYear'() {this.validateAttestedDate()},
+        'model.attestedStartDate.floorDayMonth'() {this.validateAttestedDate()},
+        'model.attestedStartDate.ceilingYear'() {this.validateAttestedDate()},
+        'model.attestedStartDate.ceilingDayMonth'() {this.validateAttestedDate()},
+        'model.attestedEndDate.floorYear'() {this.validateAttestedDate()},
+        'model.attestedEndDate.floorDayMonth'() {this.validateAttestedDate()},
+        'model.attestedEndDate.ceilingYear'() {this.validateAttestedDate()},
+        'model.attestedEndDate.ceilingDayMonth'() {this.validateAttestedDate()},
     },
     created () {
         this.person = this.data.person;
@@ -342,9 +384,29 @@ export default {
                     ceilingDayMonth: null,
                 };
 
-                // Unkown date and interval
-                this.model.unknownDate = this.person.unknownDate;
-                this.model.unknownInterval = this.person.unknownInterval;
+                // Attested start date
+                this.model.attestedStartDate = {
+                    floor: this.person.attestedStartDate != null ? this.person.attestedStartDate.floor : null,
+                    ceiling: this.person.attestedStartDate != null ? this.person.attestedStartDate.ceiling : null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                };
+
+                // Attested end date
+                this.model.attestedEndDate = {
+                    floor: this.person.attestedEndDate != null ? this.person.attestedEndDate.floor : null,
+                    ceiling: this.person.attestedEndDate != null ? this.person.attestedEndDate.ceiling : null,
+                    exactDate: null,
+                    exactYear: null,
+                    floorYear: null,
+                    floorDayMonth: null,
+                    ceilingYear: null,
+                    ceilingDayMonth: null,
+                };
 
                 // Identification
                 this.model.identification = {};
@@ -405,8 +467,19 @@ export default {
                 || (this.getCeilingDate(this.model.bornDate) > this.getCeilingDate(this.model.deathDate))
             );
             // revalidate both born and death form
-            Vue.nextTick(function() {
+            Vue.nextTick(function () {
                 this.$refs.bornDate.validate();
+                this.$refs.deathDate.validate();
+            }, this);
+        },
+        validateAttestedDate(){
+            this.invalidAttestedDateCombo = (
+                (this.getFloorDate(this.model.attestedStartDate) > this.getFloorDate(this.model.attestedEndDate))
+                || (this.getCeilingDate(this.model.attestedStartDate) > this.getCeilingDate(this.model.attestedEndDate))
+            );
+            // revalidate both attested start and end form
+            Vue.nextTick(function() {
+                this.$refs.attestedStartDate.validate();
                 this.$refs.deathDate.validate();
             }, this);
         },

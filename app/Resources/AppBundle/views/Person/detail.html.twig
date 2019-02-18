@@ -36,19 +36,17 @@
                         <td>{{ person.getInterval() }}</td>
                     </tr>
                 {% endif %}
-                {% if is_granted('ROLE_VIEW_INTERNAL') %}
-                    {% if person.getUnknownDate() is not empty %}
-                        <tr class="warning">
-                            <td>Unkown date</td>
-                            <td>{{ person.getUnknownDate() }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if person.getUnknownInterval() is not empty %}
-                        <tr class="warning">
-                            <td>Unkown interval</td>
-                            <td>{{ person.getUnknownInterval() }}</td>
-                        </tr>
-                    {% endif %}
+                {% if person.getAttestedDate() is not empty %}
+                    <tr>
+                        <td>Attested date</td>
+                        <td>{{ person.getAttestedDate() }}</td>
+                    </tr>
+                {% endif %}
+                {% if person.getAttestedInterval() is not empty %}
+                    <tr>
+                        <td>Attested interval</td>
+                        <td>{{ person.getAttestedInterval() }}</td>
+                    </tr>
                 {% endif %}
                 {% if person.getOfficesWithParents() is not empty %}
                     <tr>
