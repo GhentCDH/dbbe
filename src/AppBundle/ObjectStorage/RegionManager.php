@@ -133,6 +133,21 @@ class RegionManager extends ObjectManager
     }
 
     /**
+     * Get all historical regions with parents with minimal information
+     * @return array
+     */
+    public function getAllShortHistoricalJson(): array
+    {
+        return $this->wrapArrayCache(
+            'historical_regions_with_parents',
+            ['regions'],
+            function () {
+                return ArrayToJson::arrayToShortHistoricalJson($this->getAll());
+            }
+        );
+    }
+
+    /**
      * Get all regions with parents with all information
      * @return array
      */

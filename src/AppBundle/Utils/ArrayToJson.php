@@ -28,6 +28,18 @@ class ArrayToJson
         );
     }
 
+    public static function arrayToShortHistoricalJson(array $array): array
+    {
+        return  array_values(
+            array_map(
+                function ($item) {
+                    return $item->getShortHistoricalJson();
+                },
+                $array
+            )
+        );
+    }
+
     public static function arrayToShortElastic(array $array): array
     {
         return array_values(

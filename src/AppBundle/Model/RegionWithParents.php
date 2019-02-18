@@ -49,6 +49,14 @@ class RegionWithParents extends IdNameObjectWithParents
         ];
     }
 
+    public function getShortHistoricalJson(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getHistoricalName(),
+        ];
+    }
+
     public function getHistoricalElastic(bool $display = true): array
     {
         $result = [];
