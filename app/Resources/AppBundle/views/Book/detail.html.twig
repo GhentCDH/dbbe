@@ -64,6 +64,20 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book.getInverseBibliographies()} only %}
+                {% if book.getChapters() is not empty %}
+                    <tr>
+                        <td>Chapters</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getChapters()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('book_chapter_get', {'id': item.getId()}) }}">
+                                        {{ item.getDescription() }}
+                                    </a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if book.getPrivateComment() is not empty %}
                         <tr class="warning">

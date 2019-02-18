@@ -45,6 +45,10 @@ class Book extends Document
      * @var int
      */
     protected $totalVolumes;
+    /**
+     * @var array
+     */
+    protected $chapters = [];
 
     /**
      * @param int         $id
@@ -178,6 +182,38 @@ class Book extends Document
     public function getTotalVolumes(): ?int
     {
         return $this->totalVolumes;
+    }
+
+    public function addChapter(BookChapter $bookChapter): Book
+    {
+        $this->chapters[$bookChapter->getId()] = $bookChapter;
+
+        return $this;
+    }
+
+    public function sortChapters(): Book
+    {
+        usort(
+            $this->chapters,
+            function($a, $b) {
+                if (empty($a->getStartPage()) && empty($b->getStartPage())) {
+                    return 0;
+                } elseif (!empty($a->getStartPage()) && empty($b->getStartPage())) {
+                    return -1;
+                } elseif (empty($a->getStartPage()) && !empty($b->getStartPage())) {
+                    return 1;
+                } else {
+                    return $a->getStartPage() - $b->getStartPage();
+                }
+            }
+        );
+
+        return $this;
+    }
+
+    public function getChapters(): array
+    {
+        return $this->chapters;
     }
 
     /**

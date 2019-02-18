@@ -133,6 +133,19 @@ class BookService extends DocumentService
         )->fetchAll();
     }
 
+    public function getChapters(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                document_contains.idcontainer as book_id,
+                document_contains.idcontent as book_chapter_id
+                from data.document_contains
+                where document_contains.idcontainer in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     /**
      * @param  string $title
      * @param  int    $year

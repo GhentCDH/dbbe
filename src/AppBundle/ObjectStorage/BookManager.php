@@ -93,6 +93,15 @@ class BookManager extends DocumentManager
                 ->setTotalVolumes($rawBooks[0]['total_volumes']);
         }
 
+        // Chapters
+        $rawChapters = $this->dbs->getchapters([$id]);
+        $bookChapterIds = self::getUniqueIds($rawChapters, 'book_chapter_id');
+        $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
+        foreach ($rawChapters as $rawChapter) {
+            $book->addChapter($bookChapters[$rawChapter['book_chapter_id']]);
+        }
+        $book->sortChapters();
+
         return $book;
     }
 
