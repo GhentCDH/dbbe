@@ -20,6 +20,16 @@ class BookController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Book:';
 
     /**
+     * @Route("/books", name="books_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/books/add", name="book_add")
      * @Method("GET")
      * @param Request $request

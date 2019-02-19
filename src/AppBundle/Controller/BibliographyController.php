@@ -13,6 +13,16 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class BibliographyController extends BaseController
 {
     /**
+     * @Route("/bibliographies", name="bibliographies_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
+    }
+
+    /**
     * @Route("/bibliographies/search", name="bibliographies_search")
     * @Method("GET")
     * @param Request $request

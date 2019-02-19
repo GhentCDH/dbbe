@@ -18,6 +18,16 @@ class ManuscriptController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Manuscript:';
 
     /**
+     * @Route("/manuscripts", name="manuscripts_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('manuscripts_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/manuscripts/search", name="manuscripts_search")
      * @Method("GET")
      * @param Request $request

@@ -19,6 +19,16 @@ class ArticleController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Article:';
 
     /**
+     * @Route("/articles", name="articles_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/articles/add", name="article_add")
      * @Method("GET")
      * @param Request $request

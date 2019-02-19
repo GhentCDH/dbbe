@@ -19,6 +19,16 @@ class OnlineSourceController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:OnlineSource:';
 
     /**
+     * @Route("/onlinesources", name="online_sources_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/onlinesources/add", name="online_source_add")
      * @Method("GET")
      * @param Request $request

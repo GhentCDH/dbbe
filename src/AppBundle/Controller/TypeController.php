@@ -22,6 +22,16 @@ class TypeController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Type:';
 
     /**
+     * @Route("/types", name="types_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('types_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/types/search", name="types_search")
      * @Method("GET")
      * @param Request $request

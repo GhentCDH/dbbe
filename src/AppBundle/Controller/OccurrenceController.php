@@ -22,6 +22,16 @@ class OccurrenceController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Occurrence:';
 
     /**
+     * @Route("/occurrences", name="occurrences_base")
+     * @Method("GET")
+     * @param Request $request
+     */
+    public function base(Request $request)
+    {
+        return $this->redirectToRoute('occurrences_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/occurrences/search", name="occurrences_search")
      * @Method("GET")
      * @param Request $request
