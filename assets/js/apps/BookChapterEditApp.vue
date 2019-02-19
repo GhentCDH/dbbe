@@ -145,10 +145,10 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification|GeneralBibItem|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBookChapter|Identification|GeneralBibItem|Management)[.]vue$/);
 
 for(let key of panelComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
+    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '');
     Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
 }
 
@@ -166,6 +166,9 @@ export default {
                 basic: {
                     title: null,
                     book: null,
+                    startPage: null,
+                    endPage: null,
+                    rawPages: null,
                 },
                 identification: {},
                 managements: {managements: null},
@@ -176,9 +179,9 @@ export default {
                 'general',
                 'managements',
             ],
-        }
+        };
         for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
+            data.model.identification[identifier.systemName] = null;
             if (identifier.extra) {
                 data.model.identification[identifier.systemName + '_extra'] = null
             }
@@ -192,13 +195,13 @@ export default {
         return data
     },
     created () {
-        this.bookChapter = this.data.bookChapter
-        this.modernPersons = this.data.modernPersons
-        this.books = this.data.books
+        this.bookChapter = this.data.bookChapter;
+        this.modernPersons = this.data.modernPersons;
+        this.books = this.data.books;
         this.managements = this.data.managements
     },
     mounted () {
-        this.loadData()
+        this.loadData();
         window.addEventListener('scroll', (event) => {
             this.scrollY = Math.round(window.scrollY)
         })
@@ -216,12 +219,15 @@ export default {
                 this.model.basic = {
                     title: this.bookChapter.title,
                     book: this.bookChapter.book,
-                }
+                    startPage: this.bookChapter.startPage,
+                    endPage: this.bookChapter.endPage,
+                    rawPages: this.bookChapter.rawPages,
+                };
 
                 // Identification
-                this.model.identification = {}
+                this.model.identification = {};
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName] : null;
                     if (identifier.extra) {
                         this.model.identification[identifier.systemName + '_extra'] = this.bookChapter.identifications != null ? this.bookChapter.identifications[identifier.systemName + '_extra'] : null
                     }
@@ -230,7 +236,7 @@ export default {
                 // General
                 this.model.general = {
                     privateComment: this.bookChapter.privateComment,
-                }
+                };
 
                 // Management
                 this.model.managements = {
@@ -241,33 +247,33 @@ export default {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         save() {
-            this.openRequests++
-            this.saveModal = false
+            this.openRequests++;
+            this.saveModal = false;
             if (this.bookChapter == null) {
                 axios.post(this.urls['book_chapter_post'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
                         window.location = this.urls['book_chapter_get'].replace('book_chapter_id', response.data.id)
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }
             else {
                 axios.put(this.urls['book_chapter_put'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
                         window.location = this.urls['book_chapter_get']
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }

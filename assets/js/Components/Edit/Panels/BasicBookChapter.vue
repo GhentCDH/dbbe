@@ -43,6 +43,31 @@ export default {
                         'Book',
                         {values: this.values}
                     ),
+                    startPage: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Start Page',
+                        labelClasses: 'control-label',
+                        model: 'startPage',
+                        validator: [VueFormGenerator.validators.number, this.startBeforeEndValidator, this.endWithoutStartValidator],
+                    },
+                    endPage: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'End Page',
+                        labelClasses: 'control-label',
+                        model: 'endPage',
+                        validator: [VueFormGenerator.validators.number, this.startBeforeEndValidator, this.endWithoutStartValidator],
+                    },
+                    rawPages: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Raw Pages',
+                        labelClasses: 'control-label',
+                        model: 'rawPages',
+                        validator: VueFormGenerator.validators.number,
+                        disabled: true,
+                    },
                 }
             },
         }
@@ -51,6 +76,20 @@ export default {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
             this.enableField(this.schema.fields.book)
+        },
+        startBeforeEndValidator() {
+            if (this.model.startPage != null && this.model.endPage != null) {
+                if (this.model.startPage > this.model.endPage) {
+                    return ['End page must be larger than start page.'];
+                }
+            }
+            return [];
+        },
+        endWithoutStartValidator() {
+            if (this.model.startPage == null && this.model.endPage != null) {
+                return ['If an end page is defined, a start page must be defined as well.'];
+            }
+            return [];
         },
     },
 }

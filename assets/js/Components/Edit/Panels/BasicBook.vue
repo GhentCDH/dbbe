@@ -62,6 +62,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'editor',
                         validator: VueFormGenerator.validators.string,
+                        disabled: true,
                     },
                     publisher: {
                         type: 'input',

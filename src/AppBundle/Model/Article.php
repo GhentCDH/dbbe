@@ -122,6 +122,15 @@ class Article extends Document
         if (!empty($this->journal)) {
             $result['journal'] = $this->journal->getShortJson();
         }
+        if (!empty($this->getStartPage())) {
+            $result['startPage'] = (int)$this->getStartPage();
+        }
+        if (!empty($this->getEndPage())) {
+            $result['endPage'] = (int)$this->getEndPage();
+        }
+        if (!empty($this->getRawPages())) {
+            $result['rawPages'] = $this->getRawPages();
+        }
 
         return $result;
     }

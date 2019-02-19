@@ -206,6 +206,32 @@ class BookChapterService extends DocumentService
         );
     }
 
+    public function updateStartPage(int $id, int $startPage): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set page_start = ?
+            where document_contains.idcontent = ?',
+            [
+                $startPage,
+                $id,
+            ]
+        );
+    }
+
+    public function updateEndPage(int $id, int $endPage): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set page_end = ?
+            where document_contains.idcontent = ?',
+            [
+                $endPage,
+                $id,
+            ]
+        );
+    }
+
     /**
      * @param  int $id
      * @return int

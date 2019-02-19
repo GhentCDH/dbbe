@@ -167,6 +167,9 @@ export default {
                 basic: {
                     title: null,
                     journal: null,
+                    startPage: null,
+                    endPage: null,
+                    rawPages: null,
                 },
                 identification: {},
                 managements: {managements: null},
@@ -217,6 +220,9 @@ export default {
                 this.model.basic = {
                     title: this.article.title,
                     journal: this.article.journal,
+                    startPage: this.article.startPage,
+                    endPage: this.article.endPage,
+                    rawPages: this.article.rawPages,
                 }
 
                 // Identification

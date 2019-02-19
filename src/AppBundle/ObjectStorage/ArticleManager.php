@@ -201,6 +201,21 @@ class ArticleManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateJournal($id, $data->journal->id);
             }
+            if (property_exists($data, 'startPage')) {
+                if (!is_numeric($data->startPage)) {
+                    throw new BadRequestHttpException('Incorrect start page data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateStartPage($id, $data->startPage);
+            }
+            if (property_exists($data, 'endPage')) {
+                // StartPage is required if endPage is given
+                if (!is_numeric($data->endPage) || (!empty($data->endPage) && empty($data->startPage) && empty($old->getStartPage()))) {
+                    throw new BadRequestHttpException('Incorrect start page data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateEndPage($id, $data->endPage);
+            }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');
