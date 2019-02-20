@@ -20,16 +20,6 @@ class PersonController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Person:';
 
     /**
-     * @Route("/persons", name="persons_base")
-     * @Method("GET")
-     * @param Request $request
-     */
-    public function base(Request $request)
-    {
-        return $this->redirectToRoute('persons_search', ['request' =>  $request], 301);
-    }
-
-    /**
      * @Route("/persons/search", name="persons_search")
      * @Method("GET")
      * @param Request $request
@@ -105,6 +95,10 @@ class PersonController extends BaseController
      */
     public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
+            return $this->redirectToRoute('persons_search', ['request' =>  $request], 301);
+        }
+
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         $this->throwErrorIfNotJson($request);
 
