@@ -11,6 +11,9 @@
             <a href="{{ path('book_get', {'id': item[0].getIds()[identification.getVolume()]}) }}">{{ identification.getRomanVolume() }}</a>.{{ identification.getIdentification() }}{% if not loop.last %}, {% endif %}
         {% endfor %}
     {% endif %}
+{# Article #}
+{% elseif item[0].getLinkType() == 'article' %}
+    <a href="{{ path('article_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>: {{ item[1]|join(', ') }}
 {# Person #}
 {% elseif item[0].getLinkType() == 'person' %}
     <a href="{{ path('person_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>: {{ item[1]|join(', ') }}
