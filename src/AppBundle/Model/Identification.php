@@ -70,7 +70,7 @@ class Identification
     {
         return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
             . $this->identification
-            . (isset($this->extra) ? ' (' . $this->extra . ')' : '');
+            . (isset($this->extra) ? ': "' . $this->extra . '"' : '');
     }
 
     public function getVolumeIdentification(): String
