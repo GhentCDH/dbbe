@@ -1,5 +1,17 @@
+{# Institution, link is provided by identifier #}
 {% if item[0].getLink() is not empty %}
     {{ item[0].getName() }}: <a href="{{ item[0].getLink() }}{{ item[1]|join(', ') }}">{{ item[1]|join(', ') }}</a>
-{% else %}
-    {{ item[0].getName() }}: {{ item[1]|join(', ') }}
+{# Book (possibly multiple per identifier) #}
+{% elseif item[0].getLinkType() == 'book' %}
+    {% if item[0].getIds()|length == 1 %}
+        <a href="{{ path('book_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>: {{ item[1]|join(', ') }}
+    {% else %}
+        {{ item[0].getName() }}:
+        {% for identification in item[1] %}
+            <a href="{{ path('book_get', {'id': item[0].getIds()[identification.getVolume()]}) }}">{{ identification.getRomanVolume() }}</a>.{{ identification.getIdentification() }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    {% endif %}
+{# Person #}
+{% elseif item[0].getLinkType() == 'person' %}
+    <a href="{{ path('person_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>: {{ item[1]|join(', ') }}
 {% endif %}

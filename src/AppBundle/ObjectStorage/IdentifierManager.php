@@ -27,7 +27,8 @@ class IdentifierManager extends ObjectManager
                     $rawIdentifier['name'],
                     $rawIdentifier['is_primary'],
                     $rawIdentifier['link'],
-                    $rawIdentifier['volumes'],
+                    $rawIdentifier['link_type'],
+                    json_decode($rawIdentifier['ids']),
                     $rawIdentifier['regex'],
                     $rawIdentifier['description'],
                     $rawIdentifier['extra']

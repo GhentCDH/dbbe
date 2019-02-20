@@ -8,10 +8,11 @@ class Identifier extends IdNameObject
 
     private $systemName;
     private $primary;
-    private $volumes;
+    private $ids = [];
     private $regex;
     private $description;
     private $link;
+    private $linkType;
     private $extra;
 
     public function __construct(
@@ -20,7 +21,8 @@ class Identifier extends IdNameObject
         string $name,
         bool $primary,
         string $link = null,
-        int $volumes = null,
+        string $linkType = null,
+        array $ids = null,
         string $regex = null,
         string $description = null,
         bool $extra = null
@@ -30,7 +32,8 @@ class Identifier extends IdNameObject
         $this->name = $name;
         $this->primary = $primary;
         $this->link = $link;
-        $this->volumes = $volumes;
+        $this->linkType = $linkType;
+        $this->ids = $ids;
         $this->regex = $regex;
         $this->description = $description;
         $this->extra = $extra !== null ? $extra : null;
@@ -51,9 +54,19 @@ class Identifier extends IdNameObject
         return $this->link;
     }
 
+    public function getLinkType(): ?string
+    {
+        return $this->linkType;
+    }
+
+    public function getIds(): array
+    {
+        return $this->ids;
+    }
+
     public function getVolumes(): int
     {
-        return $this->volumes;
+        return count($this->ids);
     }
 
     public function getRegex(): string

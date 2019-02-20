@@ -36,12 +36,6 @@ class OnlineSourceBibliography extends Bibliography
         return $this->relUrl;
     }
 
-    public function getUrl(): string
-    {
-        return $this->onlineSource->getBaseUrl()
-            . $this->relUrl;
-    }
-
     public function getDescription(): string
     {
         return

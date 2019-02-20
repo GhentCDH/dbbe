@@ -53,6 +53,14 @@ class Identification
         return $this->volume;
     }
 
+    public function getRomanVolume(): ?string
+    {
+        if (!isset($this->volume)) {
+            return null;
+        }
+        return self::numberToRoman($this->volume);
+    }
+
     public function getExtra(): ?string
     {
         return $this->extra;

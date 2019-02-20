@@ -15,7 +15,8 @@ class IdentifierService extends DatabaseService
                 identifier.name,
                 identifier.is_primary,
                 identifier.link,
-                array_length(identifier.ids, 1) as volumes,
+                identifier.link_type,
+                array_to_json(identifier.ids) as ids,
                 identifier.regex,
                 identifier.description,
                 identifier.extra
@@ -35,7 +36,8 @@ class IdentifierService extends DatabaseService
                 identifier.name,
                 identifier.is_primary,
                 identifier.link,
-                array_length(identifier.ids, 1) as volumes,
+                identifier.link_type,
+                array_to_json(identifier.ids) as ids,
                 identifier.regex,
                 identifier.description,
                 identifier.extra
