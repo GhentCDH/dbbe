@@ -300,9 +300,6 @@ export default {
         };
         for (let identifier of data.identifiers) {
             data.model.identification[identifier.systemName] = null;
-            if (identifier.extra) {
-                data.model.identification[identifier.systemName + '_extra'] = null
-            }
         }
         return data
     },
@@ -412,9 +409,6 @@ export default {
                 this.model.identification = {};
                 for (let identifier of this.identifiers) {
                     this.model.identification[identifier.systemName] = this.person.identifications != null ? this.person.identifications[identifier.systemName] : null;
-                    if (identifier.extra) {
-                        this.model.identification[identifier.systemName + '_extra'] = this.person.identifications != null ? this.person.identifications[identifier.systemName + '_extra'] : null
-                    }
                 }
 
                 // Bibliography

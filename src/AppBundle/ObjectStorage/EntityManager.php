@@ -320,136 +320,109 @@ class EntityManager extends ObjectManager
         string $level,
         string $entityType
     ): void {
-        $identifiers = $this->container->get('identifier_manager')->getByType($entityType);
-        foreach ($identifiers as $identifier) {
-            if (property_exists($data, $identifier->getSystemName())
-                || property_exists($data, $identifier->getSystemName() . '_extra')
-            ) {
-                if ((
-                    property_exists($data, $identifier->getSystemName())
-                    && !is_string($data->{$identifier->getSystemName()})
-                ) || (
-                    property_exists($data, $identifier->getSystemName() . '_extra')
-                    && !is_string($data->{$identifier->getSystemName() . '_extra'})
-                ) || ((
-                        // identification must exist if an extra is to be set
-                        property_exists($data, $identifier->getSystemName() . '_extra')
-                        && !empty($data->{$identifier->getSystemName() . '_extra'})
-                    ) && (
-                        !property_exists($data, $identifier->getSystemName())
-                        && empty($entity->getIdentifications()[$identifier->getSystemName()])
-                    )
-                )
-                ) {
-                    throw new BadRequestHttpException('Incorrect identification data.');
+        if (property_exists($data, 'identification')) {
+            if (!is_object($data->identification)) {
+                throw new BadRequestHttpException('Incorrect identification data.');
+            }
+            $identifiers = $this->container->get('identifier_manager')->getByType($entityType);
+            foreach ($identifiers as $identifier) {
+                if (property_exists($data->identification, $identifier->getSystemName())) {
+                    if (
+                        !empty($data->identification->{$identifier->getSystemName()})
+                        && !is_array($data->identification->{$identifier->getSystemName()})
+                    )  {
+                        throw new BadRequestHttpException('Incorrect identification data.');
+                    }
+                    if (!empty($data->identification->{$identifier->getSystemName()})) {
+                        foreach ($data->identification->{$identifier->getSystemName()} as $identification) {
+                            if (
+                                !property_exists($identification, 'identification')
+                                || empty($identification->identification)
+                                || !is_string($identification->identification)
+                                || !preg_match('~' . $identifier->getRegex() . '~', $identification->identification)
+                            ) {
+                                throw new BadRequestHttpException('Incorrect identification identification data.');
+                            }
+                            if ($identifier->getVolumes() > 1) {
+                                if (
+                                    !property_exists($identification, 'volume')
+                                    || !is_numeric($identification->volume)
+                                ) {
+                                    throw new BadRequestHttpException('Incorrect identification volume data.');
+                                }
+                            }
+                            if ($identifier->getExtra()) {
+                                if (
+                                    !property_exists($identification, 'extra')
+                                    || empty($identification->extra)
+                                    || !is_string($identification->extra)
+                                ) {
+                                    throw new BadRequestHttpException('Incorrect identification extra data.');
+                                }
+                            }
+                        }
+                    }
                 }
-                $changes[$level] = true;
-                if (property_exists($data, $identifier->getSystemName())) {
-                    $this->updateIdentification(
-                        $entity,
-                        $identifier,
-                        $data->{$identifier->getSystemName()}
-                    );
-                }
-                if (property_exists($data, $identifier->getSystemName() . '_extra')) {
-                    $this->updateIdentificationExtra(
-                        $entity,
-                        $identifier,
-                        $data->{$identifier->getSystemName() . '_extra'}
-                    );
+            }
+            $changes[$level] = true;
+            foreach ($identifiers as $identifier) {
+                if (property_exists($data->identification, $identifier->getSystemName())) {
+                    $oldIdentifications = !isset($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()][1];
+                    $newIdentifications = $data->identification->{$identifier->getSystemName()};
+
+                    if ($identifier->getVolumes() == 1) {
+                        $this->updateIdentification(
+                            $entity,
+                            $identifier,
+                            $oldIdentifications,
+                            $newIdentifications
+                        );
+                    } else {
+                        $oldVolumes = array_unique(array_map(function ($oldIdentification) { return $oldIdentification->getVolume(); }, $oldIdentifications));
+                        $newVolumes = array_unique(array_map(function ($newIdentification) { return $newIdentification->volume; }, $newIdentifications));
+                        $allVolumes = array_merge($oldVolumes, $newVolumes);
+
+                        foreach ($allVolumes as $volume) {
+                            $this->updateIdentification(
+                                $entity,
+                                $identifier,
+                                array_filter($oldIdentifications, function ($oldIdentification) use ($volume) { return $oldIdentification->getVolume() == $volume; }),
+                                array_filter($newIdentifications, function ($newIdentification) use ($volume) { return $newIdentification->volume == $volume; }),
+                                $volume
+                            );
+                        }
+                    }
                 }
             }
         }
     }
 
-    protected function updateIdentification(Entity $entity, Identifier $identifier, string $value): void
+    protected function updateIdentification(Entity $entity, Identifier $identifier, array $old, array $new = null, int $volume = null): void
     {
-        if (!empty($value) && !preg_match(
-            '~' . $identifier->getRegex() . '~',
-            $value
-        )) {
-            throw new BadRequestHttpException('Incorrect identification data.');
-        }
-
-        if ($identifier->getVolumes() > 1) {
-            $newIdentifications = empty($value) ? [] : explode(', ', $value);
-            $volumeArray = [];
-            foreach ($newIdentifications as $identification) {
-                $volume = explode('.', $identification)[0];
-                if (in_array($volume, $volumeArray)) {
-                    throw new BadRequestHttpException('Duplicate identification entry.');
-                } else {
-                    $volumeArray[] = $volume;
-                }
-            }
-
-            $newArray = [];
-            foreach ($newIdentifications as $newIdentification) {
-                list($volume, $id) = explode('.', $newIdentification, 2);
-                $newArray[$volume] = $id;
-            }
-
-            $currentIdentifications = empty($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()][1];
-            $currentArray = [];
-            foreach ($currentIdentifications as $currentIdentification) {
-                $currentArray[$currentIdentification->getVolume()] = $currentIdentification->getIdentification();
-            }
-
-            $delArray = [];
-            $upsertArray = [];
-            for ($volume = 1; $volume <= $identifier->getVolumes(); $volume++) {
-                $romanVolume = Identification::numberToRoman($volume);
-                // No old and no new value
-                if (!isset($currentArray[$volume]) && !isset($newArray[$romanVolume])) {
-                    continue;
-                }
-                // Old value === new value
-                if (isset($currentArray[$volume]) && isset($newArray[$romanVolume])
-                    && $currentArray[$volume] === $newArray[$romanVolume]
-                ) {
-                    continue;
-                }
-                // Old value, but no new value
-                if (isset($currentArray[$volume]) && !isset($newArray[$romanVolume])) {
-                    $delArray[] = $volume;
-                    continue;
-                }
-                // No old or different value
-                $upsertArray[$volume] = $newArray[$romanVolume];
-            }
-
-            $this->dbs->beginTransaction();
-            try {
-                foreach ($delArray as $volume) {
-                    $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
-                }
-                foreach ($upsertArray as $volume => $value) {
-                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $value, $volume);
-                }
-
-                // commit transaction
-                $this->dbs->commit();
-            } catch (Exception $e) {
-                $this->dbs->rollBack();
-                throw $e;
-            }
+        // Old value, but no new value => delete
+        if (!empty($old) && empty($new)) {
+            $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
+        // Insert or update
         } else {
-            $this->dbs->beginTransaction();
-            try {
-                // Old value, but no new value
-                if (!empty($entity->getIdentifications()[$identifier->getSystemName()]) && empty($value)) {
-                    $this->dbs->delIdentification($entity->getId(), $identifier->getId());
-                } elseif ((empty($entity->getIdentifications()[$identifier->getSystemName()]) && !empty($value)) // No old value
-                    || (!empty($entity->getIdentifications()[$identifier->getSystemName()]) && !empty($value) && $entity->getIdentifications()[$identifier->getSystemName()] !== $value) // Different old value
-                ) {
-                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $value);
+            $identificationValue = implode('|', array_map(function($identification) {return $identification->identification;}, $new));
+            $extraValue = null;
+            if ($identifier->getExtra()) {
+                $extraValue = implode('|', array_map(function($identification) {return $identification->extra;}, $new));
+            }
+            // Insert
+            if (empty($old)) {
+                $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $identificationValue, $extraValue, $volume);
+            }
+            // Update if necessary
+            else {
+                $oldExtraValue = null;
+                $oldIdentificationValue = implode('|', array_map(function($oldIdentification) {return $oldIdentification->getIdentification();}, $old));
+                if ($identifier->getExtra()) {
+                    $oldExtraValue = implode('|', array_map(function($oldIdentification) {return $oldIdentification->getExtra();}, $old));
                 }
-
-                // commit transaction
-                $this->dbs->commit();
-            } catch (Exception $e) {
-                $this->dbs->rollBack();
-                throw $e;
+                if ($oldIdentificationValue !== $identificationValue || $oldExtraValue !== $extraValue) {
+                    $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $identificationValue, $extraValue, $volume);
+                }
             }
         }
     }

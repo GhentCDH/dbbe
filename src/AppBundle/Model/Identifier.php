@@ -91,10 +91,8 @@ class Identifier extends IdNameObject
             'systemName' => $this->systemName,
             'name' => $this->name,
             'extra' => $this->extra,
+            'volumes' => $this->getVolumes(),
         ];
-        if (isset($this->volumes)) {
-            $result['volumes'] = $this->volumes;
-        }
         if (isset($this->regex)) {
             $result['regex'] = $this->regex;
         }

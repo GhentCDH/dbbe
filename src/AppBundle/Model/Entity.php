@@ -132,6 +132,15 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this->identifications;
     }
 
+    public function getFlatIdentifications(): array
+    {
+        $result = [];
+        foreach ($this->identifications as $identification) {
+            $result = array_merge($result, $identification[1]);
+        }
+        return $result;
+    }
+
     public function setBibliographies(array $bibliographies): Entity
     {
         $this->bibliographies = $bibliographies;
@@ -300,26 +309,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         if (!empty($this->identifications)) {
             $result['identifications'] = [];
             foreach ($this->identifications as $identifications) {
-                $result['identifications'][$identifications[0]->getSystemName()] =
-                    implode(
-                        ', ',
-                        array_map(
-                            function($identification) {
-                                return $identification->getVolumeIdentification();
-                            },
-                            $identifications[1]
-                        )
-                    );
-                $result['identifications'][$identifications[0]->getSystemName() . '_extra'] =
-                    implode(
-                        ', ',
-                        array_map(
-                            function($identification) {
-                                return $identification->getExtra();
-                            },
-                            $identifications[1]
-                        )
-                    );
+                $result['identifications'][$identifications[0]->getSystemName()] = arrayToJson::arrayToJson($identifications[1]);
             }
         }
         if (!empty($this->bibliographies)) {

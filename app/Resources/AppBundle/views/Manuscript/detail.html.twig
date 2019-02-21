@@ -58,7 +58,7 @@
                     <tr>
                         <td>Identification</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getIdentifications()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getFlatIdentifications()} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
                                 {% endblock %}

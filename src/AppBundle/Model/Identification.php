@@ -27,12 +27,16 @@ class Identification
         $values = array_map(null, $identifications, $volumes, $extras);
 
         foreach ($values as $item) {
-            $identification = new Identification();
-            $identification->identifier = $identifier;
-            $identification->identification = $item[0];
-            $identification->volume = $item[1];
-            $identification->extra = $item[2];
-            $result[1][] = $identification;
+            $itemIdentifications = explode('|', $item[0]);
+            $itemExtras = explode('|', $item[2]);
+            foreach (array_keys($itemIdentifications) as $index) {
+                $identification = new Identification();
+                $identification->identifier = $identifier;
+                $identification->identification = $itemIdentifications[$index];
+                $identification->volume = $item[1];
+                $identification->extra = $itemExtras[$index];
+                $result[1][] = $identification;
+            }
         }
 
         return $result;
@@ -70,13 +74,28 @@ class Identification
     {
         return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
             . $this->identification
-            . (isset($this->extra) ? ': "' . $this->extra . '"' : '');
+            . (!empty($this->extra) ? ': "' . $this->extra . '"' : '');
     }
 
     public function getVolumeIdentification(): String
     {
         return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
             . $this->identification;
+    }
+
+    public function getJson(): array
+    {
+        $result = [
+            'identification' => $this->identification,
+        ];
+        if (!empty($this->volume)) {
+            $result['volume'] = $this->volume;
+        }
+        if (!empty($this->extra)) {
+            $result['extra'] = $this->extra;
+        }
+
+        return $result;
     }
 
     /**

@@ -64,7 +64,7 @@
                     <tr>
                         <td>Identification</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getIdentifications()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getFlatIdentifications()} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
                                 {% endblock %}

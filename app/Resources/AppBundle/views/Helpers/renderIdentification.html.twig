@@ -1,20 +1,18 @@
 {# Institution, link is provided by identifier #}
-{% if item[0].getLink() is not empty %}
-    {{ item[0].getName() }}, <a href="{{ item[0].getLink() }}{{ item[1]|join(', ') }}">{{ item[1]|join(', ') }}</a>
+{% if item.getIdentifier().getLink() is not empty %}
+    {{ item.getIdentifier().getName() }}, <a href="{{ item.getIdentifier().getLink() }}{{ item }}">{{ item }}</a>
 {# Book (possibly multiple per identifier) #}
-{% elseif item[0].getLinkType() == 'book' %}
-    {% if item[0].getIds()|length == 1 %}
-        <a href="{{ path('book_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>, {{ item[1]|join(', ') }}
+{% elseif item.getIdentifier().getLinkType() == 'book' %}
+    {% if item.getIdentifier().getVolumes() == 1 %}
+        <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
     {% else %}
-        {{ item[0].getName() }},
-        {% for identification in item[1] %}
-            <a href="{{ path('book_get', {'id': item[0].getIds()[identification.getVolume()]}) }}">{{ identification.getRomanVolume() }}</a>.{{ identification.getIdentification() }}{% if not loop.last %}, {% endif %}
-        {% endfor %}
+        {{ item.getIdentifier().getName() }}, <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[item.getVolume() - 1]}) }}">{{ item.getRomanVolume() }}</a>.{{ item.getIdentification() }}
     {% endif %}
 {# Article #}
-{% elseif item[0].getLinkType() == 'article' %}
-    <a href="{{ path('article_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>, {{ item[1]|join(', ') }}
+{% elseif item.getIdentifier().getLinkType() == 'article' %}
+    {# Specific markup for #}
+    <a href="{{ path('article_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
 {# Person #}
-{% elseif item[0].getLinkType() == 'person' %}
-    <a href="{{ path('person_get', {'id': item[0].getIds()[0]}) }}">{{ item[0].getName() }}</a>, {{ item[1]|join(', ') }}
+{% elseif item.getIdentifier().getLinkType() == 'person' %}
+    <a href="{{ path('person_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
 {% endif %}

@@ -313,11 +313,12 @@ class EntityService extends DatabaseService
         int $entityId,
         int $identifierId,
         string $identification,
+        string $extra = null,
         int $volume = null
     ): int {
         // Postgresql array indices start with 1
         return $this->conn->executeUpdate(
-            'INSERT into data.global_id (idauthority, idsubject, identifier, volume)
+            'INSERT into data.global_id (idauthority, idsubject, identifier, extra, volume)
             VALUES (
                 (
                     select identifier.ids[?]
@@ -326,47 +327,21 @@ class EntityService extends DatabaseService
                 ),
                 ?,
                 ?,
+                ?,
                 ?
             )
             -- primary key constraint on idauthority, idsubject
             on conflict (idauthority, idsubject) do update
             set identifier = excluded.identifier,
+                extra = excluded.extra,
                 volume = excluded.volume',
             [
                 $volume == null ? 1 : $volume,
                 $identifierId,
                 $entityId,
                 $identification,
-                $volume,
-            ]
-        );
-    }
-
-    /**
-     * Extra is not allowed on identifiers with multiple volumes
-     * @param  int    $entityId
-     * @param  int    $identifierId
-     * @param  string $extra
-     * @return int
-     */
-    public function updateIdentificationExtra(
-        int $entityId,
-        int $identifierId,
-        string $extra
-    ): int {
-        return $this->conn->executeUpdate(
-            'UPDATE data.global_id
-            set extra = ?
-            where idauthority = (
-                select identifier.ids[1]
-                from data.identifier
-                where identifier.ididentifier = ?
-            )
-            and idsubject = ?',
-            [
                 $extra,
-                $identifierId,
-                $entityId,
+                $volume,
             ]
         );
     }
