@@ -137,6 +137,7 @@ export default {
             editModel: {
                 index: null,
                 identifier: null,
+                identification: null,
                 volume: null,
                 extra: null,
             },
