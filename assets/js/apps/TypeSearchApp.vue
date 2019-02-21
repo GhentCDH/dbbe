@@ -364,6 +364,12 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
+
+        // Add identifier fields
+        for (let identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
+        }
+
         data.schema.fields['dbbe'] = this.createMultiSelect(
             'Text source DBBE',
             {
