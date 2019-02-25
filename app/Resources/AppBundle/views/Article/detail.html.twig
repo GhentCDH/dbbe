@@ -36,11 +36,23 @@
                         <td>{{ pages }}</td>
                     </tr>
                 {% endif %}
-                {% if article.getIdentifications() is not empty %}
+                {% if article.getIdentifications() is not empty and article.getIdentifications()['vassis'] is defined %}
+                    <tr>
+                        <td><a href="{{ path('person_get', {'id': article.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getIdentifications()['vassis'][1]} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if article.getFlatIdentifications()|notVassis is not empty %}
                     <tr>
                         <td>Identification</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getFlatIdentifications()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getFlatIdentifications()|notVassis} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
                                 {% endblock %}

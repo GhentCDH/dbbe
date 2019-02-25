@@ -59,6 +59,14 @@ class AppExtension extends Twig_Extension
                     }
                 );
             }),
+            new Twig_SimpleFilter('notVassis', function (array $array) {
+                return array_filter(
+                    $array,
+                    function ($item) {
+                        return $item->getIdentifier()->getSystemName() !== 'vassis';
+                    }
+                );
+            }),
             new Twig_SimpleFilter('month', function (string $string) {
                 return DateTime::createFromFormat('m', substr($string, 5, 2))->format('M');
             }),

@@ -1,5 +1,7 @@
+{# Vassis abbreviation is displayed separately #}
+{% if item.getIdentifier().getSystemName == 'vassis' %}
 {# Institution, link is provided by identifier #}
-{% if item.getIdentifier().getLink() is not empty %}
+{% elseif item.getIdentifier().getLink() is not empty %}
     {{ item.getIdentifier().getName() }}, <a href="{{ item.getIdentifier().getLink() }}{{ item }}">{{ item }}</a>
 {# Book (possibly multiple per identifier) #}
 {% elseif item.getIdentifier().getLinkType() == 'book' %}
@@ -12,7 +14,4 @@
 {% elseif item.getIdentifier().getLinkType() == 'article' %}
     {# Specific markup for #}
     <a href="{{ path('article_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
-{# Person #}
-{% elseif item.getIdentifier().getLinkType() == 'person' %}
-    <a href="{{ path('person_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
 {% endif %}

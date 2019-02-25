@@ -51,11 +51,23 @@
                         <td>{{ book.getTotalVolumes() }}</td>
                     </tr>
                 {% endif %}
-                {% if book.getIdentifications() is not empty %}
+                {% if book.getIdentifications() is not empty and book.getIdentifications()['vassis'] is defined %}
+                    <tr>
+                        <td><a href="{{ path('person_get', {'id': book.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getIdentifications()['vassis'][1]} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if book.getFlatIdentifications()|notVassis is not empty %}
                     <tr>
                         <td>Identification</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getFlatIdentifications()} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getFlatIdentifications()|notVassis} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderIdentification.html.twig' with {'item': item} only %}
                                 {% endblock %}
