@@ -399,8 +399,12 @@ class EntityManager extends ObjectManager
 
     protected function updateIdentification(Entity $entity, Identifier $identifier, array $old, array $new = null, int $volume = null): void
     {
+        // No old and no new value => do nothing
+        if (empty($old) && empty($new)) {
+            return;
+        }
         // Old value, but no new value => delete
-        if (!empty($old) && empty($new)) {
+        elseif (!empty($old) && empty($new)) {
             $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
         // Insert or update
         } else {
