@@ -77,7 +77,7 @@ class OnlineSource extends Entity
     public function getDescription(): string
     {
         return $this->name
-            . ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')'
+            . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')' : '')
             . '.';
     }
 
@@ -86,12 +86,17 @@ class OnlineSource extends Entity
      */
     public function getJson(): array
     {
-        return [
+        $result = [
             'id' => $this->id,
             'name' => $this->name,
             'url' => $this->url,
-            'lastAccessed' => $this->lastAccessed->format('d/m/Y'),
         ];
+
+        if (!empty($this->lastAccessed)) {
+            $result['lastAccessed'] = $this->lastAccessed->format('d/m/Y');
+        }
+
+        return $result;
     }
 
     /**
