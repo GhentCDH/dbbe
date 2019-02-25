@@ -83,6 +83,8 @@ class BookChapterManager extends DocumentManager
 
         $this->setModifieds($bookChapters);
 
+        $this->setInverseIdentifications($bookChapters);
+
         $this->setInverseBibliographies($bookChapters);
 
         return $bookChapters[$id];

@@ -83,6 +83,8 @@ class ArticleManager extends DocumentManager
 
         $this->setModifieds($articles);
 
+        $this->setInverseIdentifications($articles);
+
         $this->setInverseBibliographies($articles);
 
         return $articles[$id];

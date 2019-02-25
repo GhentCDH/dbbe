@@ -75,7 +75,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book.getInverseBibliographies()} only %}
+                {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? book.getInverseReferences() : book.getPublicInverseReferences()} only %}
                 {% if book.getChapters() is not empty %}
                     <tr>
                         <td>Chapters</td>

@@ -79,6 +79,8 @@ class BookManager extends DocumentManager
 
         $this->setModifieds($books);
 
+        $this->setInverseIdentifications($books);
+
         $this->setInverseBibliographies($books);
 
         $book = $books[$id];

@@ -72,6 +72,8 @@ class OnlineSourceManager extends EntityManager
 
         $this->setModifieds($onlineSources);
 
+        $this->setInverseIdentifications($onlineSources);
+
         $this->setInverseBibliographies($onlineSources);
 
         return $onlineSources[$id];

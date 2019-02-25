@@ -78,6 +78,71 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getInverseIdentifications(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                global_id.idauthority as identifier_id,
+                global_id.idsubject as entity_id,
+	            coalesce(
+                    manuscript_merge.type::text,
+                    occurrence_merge.type::text,
+                    type_merge.type::text,
+                    person_merge.type::text
+                ) as type
+            from data.global_id
+            left join (
+                select
+                    manuscript.identity as entity_id,
+                    \'manuscript\' as type
+                from data.manuscript
+            ) manuscript_merge on global_id.idsubject = manuscript_merge.entity_id
+            left join (
+                select
+                    original_poem.identity as entity_id,
+                    \'occurrence\' as type
+                from data.original_poem
+            ) occurrence_merge on global_id.idsubject = occurrence_merge.entity_id
+            left join (
+                select
+                    reconstructed_poem.identity as entity_id,
+                    \'type\' as type
+                from data.reconstructed_poem
+            ) type_merge on global_id.idsubject = type_merge.entity_id
+            left join (
+                select
+                    person.identity as entity_id,
+                    \'person\' as type
+                from data.person
+            ) person_merge on global_id.idsubject = person_merge.entity_id
+            left join (
+                select
+                    article.identity as entity_id,
+                    \'article\' as type
+                from data.article
+            ) article_merge on global_id.idsubject = article_merge.entity_id
+            left join (
+                select
+                    book.identity as entity_id,
+                    \'book\' as type
+                from data.book
+            ) book_merge on global_id.idsubject = book_merge.entity_id
+            left join (
+                select
+                    bookchapter.identity as entity_id,
+                    \'book_chapter\' as type
+                from data.bookchapter
+            ) book_chapter_merge on global_id.idsubject = book_chapter_merge.entity_id
+            where global_id.idauthority in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
     public function getBibliographies(array $ids): array
     {
         return $this->conn->executeQuery(

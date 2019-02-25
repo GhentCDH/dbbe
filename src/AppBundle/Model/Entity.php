@@ -39,6 +39,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
     /**
      * @var array
      */
+    protected $inverseIdentifications = [];
+    /**
+     * @var array
+     */
     protected $bibliographies = [];
     /**
      * @var array
@@ -229,6 +233,28 @@ class Entity implements IdJsonInterface, IdElasticInterface
         );
     }
 
+    public function setInverseIdentifications(array $inverseIdentifications): Entity
+    {
+        $this->inverseIdentifications = $inverseIdentifications;
+
+        return $this;
+    }
+
+    public function addInverseIdentification(Entity $entity, string $type): Entity
+    {
+        if (!isset($this->inverseIdentifications[$type])) {
+            $this->inverseIdentifications[$type] = [];
+        }
+        $this->inverseIdentifications[$type][$entity->getId()] = $entity;
+
+        return $this;
+    }
+
+    public function getInverseIdentifications(): array
+    {
+        return $this->inverseIdentifications;
+    }
+
     public function setInverseBibliographies(array $inverseBibliographies): Entity
     {
         $this->inverseBibliographies = $inverseBibliographies;
@@ -246,30 +272,66 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this;
     }
 
-    public function sortInverseBibliographies(): void
-    {
-        foreach ($this->inverseBibliographies as $type => $array) {
-            usort(
-                $this->inverseBibliographies[$type],
-                function ($a, $b) use ($type) {
-                    switch ($type) {
-                        case 'manuscript':
-                        case 'person':
-                            return strcmp($a->getDescription(), $b->getDescription());
-                            break;
-                        case 'occurrence':
-                        case 'type':
-                            return strcmp($a->getIncipit(), $b->getIncipit());
-                            break;
-                    }
-                }
-            );
-        }
-    }
-
     public function getInverseBibliographies(): array
     {
         return $this->inverseBibliographies;
+    }
+
+    public function getInverseReferences(): array
+    {
+        $inverseReferences = [];
+
+        // Bibliographies
+        foreach ($this->inverseBibliographies as $type => $entities) {
+            $inverseReferences[$type] = [];
+            foreach ($entities as $id => $entity) {
+                $inverseReferences[$type][$id] = [$entity, ['bibliography']];
+            }
+        }
+
+        // Identifications
+        foreach ($this->inverseIdentifications as $type => $entities) {
+            if (!isset($inverseReferences[$type])) {
+                $inverseReferences[$type] = [];
+            }
+            foreach ($entities as $id => $entity) {
+                if (!isset($inverseReferences[$type][$id])) {
+                    $inverseReferences[$type][$id] = [$entity, ['identification']];
+                } else {
+                    $inverseReferences[$type][$id][1][] = 'identification';
+                }
+            }
+        }
+
+        // Sort
+        foreach (array_keys($inverseReferences) as $type) {
+            usort(
+                $inverseReferences[$type],
+                function($a, $b) {
+                    return $a[0]->getId() > $b[0]->getId();
+                }
+            );
+        }
+
+        return $inverseReferences;
+    }
+
+    public function getPublicInverseReferences(): array
+    {
+        $inverseReferences = $this->getInverseReferences();
+
+        foreach ($inverseReferences as $type => $entitiesWithReferenceTypes) {
+            foreach ($entitiesWithReferenceTypes as $id => $entityWithReferenceTypes) {
+                if (!$entityWithReferenceTypes->getPublic()) {
+                    unset($inverseReferences[$type][$id]);
+                }
+            }
+            if(empty($inverseReferences[$type])) {
+                unset($inverseReferences[$type]);
+            }
+        }
+
+        return $inverseReferences;
     }
 
     public function setManagements(array $managements): Entity

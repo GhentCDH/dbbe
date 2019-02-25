@@ -52,7 +52,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': book_chapter.getInverseBibliographies()} only %}
+                {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? book_chapter.getInverseReferences() : book_chapter.getPublicInverseReferences()} only %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if book_chapter.getPrivateComment() is not empty %}
                         <tr class="warning">

@@ -198,6 +198,26 @@ class EntityManager extends ObjectManager
         }
     }
 
+    protected function setInverseIdentifications(array &$entities): void
+    {
+        $rawInverseIdentifications = $this->dbs->getInverseIdentifications(array_keys($entities));
+        if (!empty($rawInverseIdentifications)) {
+            $inverseIdentifications = [];
+            foreach (['manuscript', 'occurrence', 'type', 'person', 'book', 'article', 'book_chapter'] as $type) {
+                $ids = self::getUniqueIds($rawInverseIdentifications, 'entity_id', 'type', $type);
+                $inverseIdentifications += $this->container->get($type . '_manager')->getMini($ids);
+            }
+
+            foreach ($rawInverseIdentifications as $rawInverseIdentification) {
+                $entities[$rawInverseIdentification['identifier_id']]
+                    ->addInverseIdentification(
+                        $inverseIdentifications[$rawInverseIdentification['entity_id']],
+                        $rawInverseIdentification['type']
+                    );
+            }
+        }
+    }
+
     protected function setBibliographies(array &$entities): void
     {
         $rawBibliographies = $this->dbs->getBibliographies(array_keys($entities));
@@ -234,11 +254,6 @@ class EntityManager extends ObjectManager
                         $inverseBibliographies[$rawInverseBibliography['entity_id']],
                         $rawInverseBibliography['type']
                     );
-            }
-
-            $biblioIds = self::getUniqueIds($rawInverseBibliographies, 'biblio_id');
-            foreach ($biblioIds as $biblioId) {
-                $entities[$biblioId]->sortInverseBibliographies();
             }
         }
     }
