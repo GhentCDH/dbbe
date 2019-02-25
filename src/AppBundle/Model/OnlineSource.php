@@ -36,7 +36,7 @@ class OnlineSource extends Entity
         int $id,
         string $url,
         string $name,
-        DateTime $lastAccessed
+        DateTime $lastAccessed = null
     ) {
         $this->id = $id;
         $this->url = $url;
@@ -66,7 +66,7 @@ class OnlineSource extends Entity
     /**
      * @return DateTime
      */
-    public function getLastAccessed(): DateTime
+    public function getLastAccessed(): ?DateTime
     {
         return $this->lastAccessed;
     }

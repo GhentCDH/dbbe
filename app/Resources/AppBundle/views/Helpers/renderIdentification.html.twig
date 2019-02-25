@@ -1,8 +1,8 @@
 {# Vassis abbreviation is displayed separately #}
 {% if item.getIdentifier().getSystemName == 'vassis' %}
 {# Institution, link is provided by identifier #}
-{% elseif item.getIdentifier().getLink() is not empty %}
-    {{ item.getIdentifier().getName() }}, <a href="{{ item.getIdentifier().getLink() }}{{ item }}">{{ item }}</a>
+{% elseif item.getIdentifier().getLinkType() == 'online_source' %}
+<a href="{{ path('online_source_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, <a href="{{ item.getIdentifier().getLink() }}{{ item }}">{{ item }}</a>
 {# Book (possibly multiple per identifier) #}
 {% elseif item.getIdentifier().getLinkType() == 'book' %}
     {% if item.getIdentifier().getVolumes() == 1 %}

@@ -14,10 +14,12 @@
                     <td>Url</td>
                     <td><a href="{{ online_source.getUrl() }}">{{ online_source.getUrl() }}</a></td>
                 </tr>
-                <tr>
-                    <td>Last accessed</td>
-                    <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
-                </tr>
+                {% if online_source.getLastAccessed() is not empty %}
+                    <tr>
+                        <td>Last accessed</td>
+                        <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
+                    </tr>
+                {% endif %}
                 {% include '@App/Helpers/renderInverseBibliographies.html.twig' with {'inverseBibliographies': online_source.getInverseBibliographies()} only %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if online_source.getPrivateComment() is not empty %}

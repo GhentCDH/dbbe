@@ -33,7 +33,7 @@ class OnlineSourceManager extends EntityManager
                     $rawOnlineSource['online_source_id'],
                     $rawOnlineSource['url'],
                     $rawOnlineSource['institution_name'],
-                    new DateTime($rawOnlineSource['last_accessed'])
+                    $rawOnlineSource['last_accessed'] != null ? new DateTime($rawOnlineSource['last_accessed']): null
                 );
             }
         }
