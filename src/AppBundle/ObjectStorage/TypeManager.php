@@ -154,6 +154,8 @@ class TypeManager extends PoemManager
 
         $this->setManagements($types);
 
+        $this->setPrevIds($types);
+
         return $types;
     }
 
@@ -171,8 +173,6 @@ class TypeManager extends PoemManager
         }
 
         $this->setModifieds($types);
-
-        $this->setPrevIds($types);
 
         $type = $types[$id];
 

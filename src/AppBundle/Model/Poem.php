@@ -232,6 +232,10 @@ class Poem extends Document
         $result['dbbe'] = $this->getDBBE();
         $result['incipit'] = $this->incipit;
 
+        if (!empty($this->prevId)) {
+            $result['prev_id'] = $this->prevId;
+        }
+
         if (!empty($this->title)) {
             $result['title_stemmer'] = $this->title;
             $result['title_original'] = $this->title;

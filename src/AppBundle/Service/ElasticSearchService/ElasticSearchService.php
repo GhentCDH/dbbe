@@ -138,6 +138,16 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 
         foreach ($fieldTypes as $fieldType => $fieldNames) {
             switch ($fieldType) {
+                case 'numeric':
+                    foreach ($fieldNames as $fieldName) {
+                        $query->addAggregation(
+                            (new Aggregation\Terms($fieldName))
+                                ->setSize(self::MAX_AGG)
+                                ->setField($fieldName)
+                        );
+                    }
+                    break;
+                    break;
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
@@ -215,6 +225,17 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $results = [];
         foreach ($fieldTypes as $fieldType => $fieldNames) {
             switch ($fieldType) {
+                case 'numeric':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $searchResult->getAggregation($fieldName);
+                        foreach ($aggregation['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['key'],
+                            ];
+                        }
+                    }
+                    break;
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName);
@@ -319,6 +340,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
         $filterQuery = new Query\BoolQuery();
         foreach ($filterTypes as $filterType => $filterValues) {
             switch ($filterType) {
+                case 'numeric':
+                    foreach ($filterValues as $key => $value) {
+                        $filterQuery->addMust(
+                            new Query\Match($key, $value)
+                        );
+                    }
+                    break;
                 case 'object':
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field

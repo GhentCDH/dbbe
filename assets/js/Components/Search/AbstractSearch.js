@@ -271,58 +271,60 @@ export default {
             if (a.name === 'true' && b.name === 'false') {
                 return -1
             }
-            // Numeric (a.o. shelf number) (e.g., 571A)
-            let first = a.name.match(this.numRegex);
-            let second = b.name.match(this.numRegex);
-            if (first && second) {
-                if (parseInt(first[1]) < parseInt(second[1])) {
-                    return -1
-                }
-                if (parseInt(first[1]) > parseInt(second[1])) {
-                    return 1
-                }
-                // let the string compare below handle cases where the numeric part is equal, but the rest not
-            }
-            // RGK (e.g., II.513)
-            first = a.name.match(this.rgkRegex);
-            second = b.name.match(this.rgkRegex);
-            if (first && second) {
-                if (first[1] < second[1]) {
-                    return -1
-                }
-                if (first[1] > second[1]) {
-                    return 1
-                }
-                return first[2] - second[2]
-            }
-            // VGH (e.g., 513.B)
-            first = a.name.match(this.vghRegex);
-            second = b.name.match(this.vghRegex);
-            if (first) {
-                if (second) {
-                    if (first[1] !== second[1]) {
-                        return first[1] - second[1]
-                    }
-                    if (first[2] < second[2]) {
+            if (a.name instanceof String && b.name instanceof String) {
+                // Numeric (a.o. shelf number) (e.g., 571A)
+                let first = a.name.match(this.numRegex);
+                let second = b.name.match(this.numRegex);
+                if (first && second) {
+                    if (parseInt(first[1]) < parseInt(second[1])) {
                         return -1
                     }
-                    if (first[2] > second[2]) {
+                    if (parseInt(first[1]) > parseInt(second[1])) {
                         return 1
                     }
-                    return 0
+                    // let the string compare below handle cases where the numeric part is equal, but the rest not
                 }
-                // place irregular vghs at the end
-                return -1
-            }
-            if (second) {
-                // place irregular vghs at the end
-                return 1
-            }
-            // Role with count (e.g., Patron (7))
-            first = a.name.match(this.roleCountRegex);
-            second = b.name.match(this.roleCountRegex);
-            if (first && second) {
-                return second[1] - first[1]
+                // RGK (e.g., II.513)
+                first = a.name.match(this.rgkRegex);
+                second = b.name.match(this.rgkRegex);
+                if (first && second) {
+                    if (first[1] < second[1]) {
+                        return -1
+                    }
+                    if (first[1] > second[1]) {
+                        return 1
+                    }
+                    return first[2] - second[2]
+                }
+                // VGH (e.g., 513.B)
+                first = a.name.match(this.vghRegex);
+                second = b.name.match(this.vghRegex);
+                if (first) {
+                    if (second) {
+                        if (first[1] !== second[1]) {
+                            return first[1] - second[1]
+                        }
+                        if (first[2] < second[2]) {
+                            return -1
+                        }
+                        if (first[2] > second[2]) {
+                            return 1
+                        }
+                        return 0
+                    }
+                    // place irregular vghs at the end
+                    return -1
+                }
+                if (second) {
+                    // place irregular vghs at the end
+                    return 1
+                }
+                // Role with count (e.g., Patron (7))
+                first = a.name.match(this.roleCountRegex);
+                second = b.name.match(this.roleCountRegex);
+                if (first && second) {
+                    return second[1] - first[1]
+                }
             }
             // Default
             if (a.name < b.name) {

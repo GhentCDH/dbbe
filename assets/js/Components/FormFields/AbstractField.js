@@ -85,7 +85,16 @@ export default {
             field.selectOptions.loading = false
             field.disabled = field.originalDisabled == null ? false : field.originalDisabled;
             let label = field.label.toLowerCase()
-            let article = ['office', 'origin', 'editorial status'].indexOf(label) < 0 ? 'a ' : 'an '
+            let article = 'a ';
+            switch(label) {
+                case 'office':
+                case 'origin':
+                case 'editorial status':
+                case 'acknowledgement':
+                case 'id':
+                    article = 'an ';
+                    break;
+            }
             field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label
             if (field.model === 'diktyon') {
                 field.placeholder = 'Select a Diktyon number'

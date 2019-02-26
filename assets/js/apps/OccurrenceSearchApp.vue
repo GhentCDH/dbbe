@@ -431,6 +431,8 @@ export default {
             }
         );
         data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
+        data.schema.fields['id'] = this.createMultiSelect('Id');
+        data.schema.fields['prev_id'] = this.createMultiSelect('Former id', {model: 'prev_id'});
         if (this.isViewInternal) {
             data.schema.fields['text_status'] = this.createMultiSelect(
                 'Text Status',

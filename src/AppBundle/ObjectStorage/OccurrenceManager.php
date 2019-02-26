@@ -196,6 +196,8 @@ class OccurrenceManager extends PoemManager
 
         $this->setManagements($occurrences);
 
+        $this->setPrevIds($occurrences);
+
         return $occurrences;
     }
 
@@ -213,8 +215,6 @@ class OccurrenceManager extends PoemManager
         }
 
         $this->setModifieds($occurrences);
-
-        $this->setPrevIds($occurrences);
 
         $occurrence = $occurrences[$id];
 

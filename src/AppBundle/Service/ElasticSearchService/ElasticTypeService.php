@@ -79,6 +79,7 @@ class ElasticTypeService extends ElasticBaseService
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
+            unset($result['data'][$key]['prevId']);
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
@@ -120,7 +121,7 @@ class ElasticTypeService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['metre', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement'];
+        $aggregationFilters = ['metre', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -176,6 +177,10 @@ class ElasticTypeService extends ElasticBaseService
             }
 
             switch ($value) {
+                case 'id':
+                case 'prev_id':
+                    $result['numeric'][] = $value;
+                    break;
                 case 'person':
                     $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                     break;
@@ -221,6 +226,10 @@ class ElasticTypeService extends ElasticBaseService
             }
 
             switch ($key) {
+                case 'id':
+                case 'prev_id':
+                    $result['numeric'][$key] = $value;
+                    break;
                 case 'text':
                     switch ($filters['text_fields']) {
                         case 'text':

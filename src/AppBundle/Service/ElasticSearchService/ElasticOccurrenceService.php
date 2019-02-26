@@ -84,6 +84,7 @@ class ElasticOccurrenceService extends ElasticBaseService
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
+            unset($result['data'][$key]['prevId']);
             unset($result['data'][$key]['manuscript_content']);
             unset($result['data'][$key]['manuscript_content_public']);
             unset($result['data'][$key]['genre']);
@@ -122,7 +123,7 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['metre', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement'];
+        $aggregationFilters = ['metre', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement', 'id', 'prev_id'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -183,6 +184,10 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
 
             switch ($value) {
+                case 'id':
+                case 'prev_id':
+                    $result['numeric'][] = $value;
+                    break;
                 case 'person':
                     $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                     break;
@@ -230,6 +235,10 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
 
             switch ($key) {
+                case 'id':
+                case 'prev_id':
+                    $result['numeric'][$key] = $value;
+                    break;
                 case 'text':
                     switch ($filters['text_fields']) {
                         case 'text':
