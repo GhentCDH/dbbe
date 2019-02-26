@@ -205,6 +205,7 @@ class NewsEventController extends Controller
             if (property_exists($item, 'id')) {
                 $oldItem = $oldItems[$oldItemIndices[$item->id]];
                 if ($oldItem['title'] != $item->title
+                    || $oldItem['abstract'] != $item->abstract
                     || $oldItem['url'] != $item->url
                     || $oldItem['date'] != $item->date
                     || $oldItem['public'] != $item->public
