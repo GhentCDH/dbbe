@@ -39,8 +39,7 @@
         (image: plate {{ item.getImage() }})
     {% endif %}
     {%  if item.getRelUrl() is not empty %}
-        &nbsp;&nbsp;&nbsp;
-        <a href="{{ item.getRelUrl() }}" class="action">
+        <a href="{{ item.getRelUrl() }}" class="action" target="_blank">
             <i class="fa fa-external-link"></i>
             {{ item.getRelUrl() }}
         </a>
