@@ -132,18 +132,14 @@ class NewsEventController extends Controller
                     property_exists($newsEvent, 'public')
                     && !is_bool($newsEvent->public)
                 )
-                || !property_exists($newsEvent, 'abstract')
-                || empty($newsEvent->abstract)
-                || !is_string($newsEvent->abstract)
-                // url or full text
-                || !(
-                    (
-                        property_exists($newsEvent, 'url') && !empty($newsEvent->url)
-                    )
-                    xor
-                    (
-                        property_exists($newsEvent, 'text') && !empty($newsEvent->text)
-                    )
+                || (
+                    property_exists($newsEvent, 'abstract')
+                    && !is_string($newsEvent->abstract)
+                )
+                // only url or full text can be used
+                || (
+                    (property_exists($newsEvent, 'url') && !empty($newsEvent->url))
+                    && (property_exists($newsEvent, 'text') && !empty($newsEvent->text))
                 )
                 || (
                     property_exists($newsEvent, 'url')
@@ -170,13 +166,16 @@ class NewsEventController extends Controller
                 $ids[] = $newsEvent->id;
             }
             if (!property_exists($newsEvent, 'public')) {
-                $newsEvent->public = false;
+                $newsEvent->public = true;
+            }
+            if (!property_exists($newsEvent, 'abstract')) {
+                $newsEvent->abstract = null;
             }
             if (!property_exists($newsEvent, 'url')) {
-                $newsEvent->url = '';
+                $newsEvent->url = null;
             }
             if (!property_exists($newsEvent, 'text')) {
-                $newsEvent->text = '';
+                $newsEvent->text = null;
             }
         }
         if (count($ids) > 0) {

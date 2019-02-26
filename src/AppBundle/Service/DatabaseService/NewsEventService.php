@@ -142,12 +142,12 @@ SQL
     public function insert(
         int $userId,
         string $title,
-        string $url,
+        string $url = null,
         string $date,
         bool $public,
         int $order,
-        string $abstract,
-        string $text
+        string $abstract = null,
+        string $text = null
     ): int {
         return $this->conn->executeUpdate(
             <<<'SQL'
@@ -186,12 +186,12 @@ SQL
         int $id,
         int $userId,
         string $title,
-        string $url,
+        string $url = null,
         string $date,
         bool $public,
         int $order,
-        string $abstract,
-        string $text
+        string $abstract = null,
+        string $text = null
     ): int {
         return $this->conn->executeUpdate(
             <<<'SQL'

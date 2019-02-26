@@ -31,7 +31,7 @@
                             {% endif %}
                                 {% if newsEvent.url %}
                                     <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
-                                {% else %}
+                                {% elseif newsEvent.text %}
                                     <a href="{{ path('news_event_get', {'id': newsEvent.id}) }}" class="block-link">
                                 {% endif %}
                                     <div class="date-container">
@@ -42,7 +42,9 @@
                                         <p class="h3"><span>{{ newsEvent.title }}</span></p>
                                         <p class="date ellipsis"></p>
                                     </div>
-                                </a>
+                                {% if newsEvent.url or newsEvent.text %}
+                                    </a>
+                                {% endif %}
                             </li>
                         {% endif %}
                     {% endfor %}

@@ -222,7 +222,6 @@ export default {
                         label: 'Abstract',
                         labelClasses: 'control-label',
                         model: 'abstract',
-                        required: true,
                         validator: VueFormGenerator.validators.string,
                     },
                 },
@@ -272,11 +271,11 @@ export default {
         },
         urlOrText() {
             if (
-                ((this.editModel.url == null || this.editModel.url === '') && (this.editModel.text == null || this.editModel.text === ''))
-                || ((this.editModel.url != null && this.editModel.url !== '') && (this.editModel.text != null && this.editModel.text !== ''))
+                (this.editModel.url != null && this.editModel.url !== '')
+                && (this.editModel.text != null && this.editModel.text !== '')
             ) {
                 this.editorError = true;
-                return ['Exactly one of the fields "Url", "Full text" is required.']
+                return ['Only one of the fields "Url", "Full text" can be used.']
             }
             this.editorError = false;
             return []
@@ -297,6 +296,8 @@ export default {
             if (index != null) {
                 model = JSON.parse(JSON.stringify(this.data[index]));
                 model.index = index
+            } else {
+                model.public = true;
             }
             this.editModel = JSON.parse(JSON.stringify(model));
             this.originalEditModel = JSON.parse(JSON.stringify(model));
