@@ -59,6 +59,30 @@ SQL
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
+    public function getThree(): array
+    {
+        return $this->conn->executeQuery(
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+order by "order" asc
+limit 3
+SQL
+        )->fetchAll();
+    }
+
+    /**
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function getThreePublic(): array
     {
         return $this->conn->executeQuery(

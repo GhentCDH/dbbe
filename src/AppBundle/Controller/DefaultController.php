@@ -34,7 +34,11 @@ class DefaultController extends Controller
     public function home()
     {
         try {
-            $newsEvents = $this->get('news_event_service')->getThreePublic();
+            if ($this->isGranted('ROLE_VIEW_INTERNAL')) {
+                $newsEvents = $this->get('news_event_service')->getThree();
+            } else {
+                $newsEvents = $this->get('news_event_service')->getThreePublic();
+            }
         }
         catch (DBALException $e) {
             return $this->render(
