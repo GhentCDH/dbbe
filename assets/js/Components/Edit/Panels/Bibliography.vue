@@ -615,8 +615,7 @@ export default {
             for (let bib of bibliography['onlineSources']) {
                 result.push(
                     bib.onlineSource.url
-                        + (bib.relUrl == null ? '' : bib.relUrl)
-                        + '.'
+                        + (bib.relUrl == null ? '' : '\n(Relative url: ' + bib.relUrl + ')')
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
                         + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
