@@ -2,7 +2,6 @@
 
 namespace AppBundle\Twig;
 
-use Collator;
 use DateTime;
 
 use Twig_Extension;
