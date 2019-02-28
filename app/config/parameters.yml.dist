@@ -26,3 +26,9 @@ parameters:
     secretKey: ~
 
     image_directory: ~
+
+    router.request_context.host: ~
+    router.request_context.scheme: ~
+    router.request_context.base_url: ''
+    asset.request_context.base_path: '%router.request_context.base_url%'
+    asset.request_context.secure: true
