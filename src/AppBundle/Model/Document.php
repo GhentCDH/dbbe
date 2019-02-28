@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\ArrayToJson;
+
 class Document extends Entity
 {
     /**
@@ -189,6 +191,20 @@ class Document extends Entity
 
         if (!empty($this->contributorRoles)) {
             $result['contributorRoles'] = $this->getContributorRolesJson();
+        }
+
+        return $result;
+    }
+
+    public function getElastic(): array
+    {
+        $result = parent::getElastic();
+
+        foreach ($this->getContributorRoles() as $roleName => $contributorRole) {
+            $result[$roleName] = ArrayToJson::arrayToShortJson($contributorRole[1]);
+        }
+        foreach ($this->getPublicContributorRoles() as $roleName => $contributorRole) {
+            $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($contributorRole[1]);
         }
 
         return $result;
