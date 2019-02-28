@@ -74,7 +74,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                         $output->writeln('* Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
-                
+
                 curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, false);
             }
         }
