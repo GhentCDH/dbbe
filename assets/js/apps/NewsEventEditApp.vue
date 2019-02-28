@@ -260,7 +260,6 @@ export default {
     },
     watch: {
         'editModel.text'() {
-            this.onChange();
             this.$refs.form.validate();
             this.urlOrText();
         }
@@ -320,9 +319,10 @@ export default {
                 this.data.unshift(JSON.parse(JSON.stringify(this.editModel)))
             } else {
                 delete this.editModel.index;
-                this.data[index] = JSON.parse(JSON.stringify(this.editModel))
+                this.data[index] = JSON.parse(JSON.stringify(this.editModel));
             }
-            this.editModal = false
+            this.editModal = false;
+            this.onChange();
         },
         submitDel() {
             this.data.splice(this.editModel.index, 1);
