@@ -166,7 +166,7 @@ class PoemService extends DocumentService
      * @param  int $numberOfVerses
      * @return int
      */
-    public function updateNumberOfVerses(int $id, int $numberOfVerses): int
+    public function updateNumberOfVerses(int $id, int $numberOfVerses = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.poem

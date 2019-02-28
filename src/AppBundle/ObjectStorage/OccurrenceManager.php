@@ -459,7 +459,7 @@ class OccurrenceManager extends PoemManager
                 $this->dbs->updateAlternativeFoliumEndRecto($id, $data->alternativeFoliumEndRecto);
             }
             if (property_exists($data, 'numberOfVerses')) {
-                if (!is_numeric($data->numberOfVerses)) {
+                if (!empty($data->numberOfVerses) && !is_numeric($data->numberOfVerses)) {
                     throw new BadRequestHttpException('Incorrect number of verses data.');
                 }
                 $changes['mini'] = true;

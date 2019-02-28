@@ -84,6 +84,15 @@ export default {
                 }
             }
         },
+        validated(isValid, errors) {
+            if (isNaN(this.model.numberOfVerses)) {
+                this.model.numberOfVerses = null;
+            }
+
+            this.isValid = isValid;
+            this.calcChanges();
+            this.$emit('validated', isValid, this.errors, this)
+        },
         displayVerses(verses) {
             return verses.split('\n').map(verse => '<span class="greek">' + verse + '</span>')
         }

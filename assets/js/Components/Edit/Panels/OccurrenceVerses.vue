@@ -456,6 +456,15 @@ export default {
                 }
             }
         },
+        validated(isValid, errors) {
+            if (isNaN(this.model.numberOfVerses)) {
+                this.model.numberOfVerses = null;
+            }
+
+            this.isValid = isValid;
+            this.calcChanges();
+            this.$emit('validated', isValid, this.errors, this)
+        },
         setVerse(index) {
             let self = this
             return new Promise(function(resolve, reject) {
