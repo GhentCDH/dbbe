@@ -58,8 +58,14 @@ class FindDeadLinkCommand extends ContainerAwareCommand
             foreach ($occurrenceImageLinks as $occurrenceImageLink) {
                 curl_setopt ($curl, CURLOPT_URL, $occurrenceImageLink['url']);
 
+                // Do get request if head method is not supported
+                if (strpos($occurrenceImageLink['url'], 'https://digi.vatlib.it/view/') === 0) {
+                    curl_setopt($curl, CURLOPT_NOBODY, false);
+                }
+
                 // Follow redirects for certain sites
-                if (strpos($occurrenceImageLink['url'], 'http://daten.digitale-sammlungen.de') === 0
+                if (
+                    strpos($occurrenceImageLink['url'], 'http://daten.digitale-sammlungen.de') === 0
                     || strpos($occurrenceImageLink['url'], 'https://digital.bodleian.ox.ac.uk') === 0
                     || strpos($occurrenceImageLink['url'], 'http://www.bl.uk/manuscripts/') === 0
                 ) {
@@ -75,6 +81,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                     }
                 }
 
+                curl_setopt($curl, CURLOPT_NOBODY, true);
                 curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, false);
             }
         }
