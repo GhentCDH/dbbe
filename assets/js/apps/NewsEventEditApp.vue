@@ -248,7 +248,8 @@ export default {
                     '/',
                     { name: 'colors', groups: [ 'colors' ] },
                 ],
-                removeButtons: 'Underline,Subscript,Superscript,Scayt,Strike,Styles,Outdent,Indent,Blockquote,About'
+                removeButtons: 'Underline,Subscript,Superscript,Scayt,Strike,Styles,Outdent,Indent,Blockquote,About',
+                extraAllowedContent: 'iframe[*]',
             },
             invalid: false,
             editorError: false,
