@@ -39,7 +39,7 @@
                                 </div>
                                 <div class="content-container">
                                     <p class="h3"><span>{{ newsEvent.title }}</span></p>
-                                    <p class="text-muted">{{ newsEvent.abstract }}</p>
+                                    <p class="text-muted">{{ newsEvent.abstract|nl2br }}</p>
                                 </div>
                             {% if newsEvent.url or newsEvent.text %}
                                 </a>
