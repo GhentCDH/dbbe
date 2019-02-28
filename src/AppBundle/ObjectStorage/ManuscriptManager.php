@@ -121,6 +121,8 @@ class ManuscriptManager extends DocumentManager
 
         $this->setComments($manuscripts);
 
+        $this->setcontributorRoles($manuscripts);
+
         $this->setManagements($manuscripts);
 
         return $manuscripts;
@@ -315,6 +317,13 @@ class ManuscriptManager extends DocumentManager
                 }
                 $changes['full'] = true;
                 $this->updateIllustrated($old, $data->illustrated);
+            }
+            $contributorRoles = $this->container->get('role_manager')->getContributorByType('manuscript');
+            foreach ($contributorRoles as $role) {
+                if (property_exists($data, $role->getSystemName())) {
+                    $changes['short'] = true;
+                    $this->updateContributorRole($old, $role, $data->{$role->getSystemName()});
+                }
             }
             $this->updateManagementwrapper($old, $data, $changes, 'short');
 

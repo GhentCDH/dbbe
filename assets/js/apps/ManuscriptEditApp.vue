@@ -94,6 +94,16 @@
                 @validated="validated"
             />
 
+            <personPanel
+                id="contributors"
+                ref="contributors"
+                header="Contributors"
+                :roles="contributorRoles"
+                :model="model.contributorRoles"
+                :values="dbbePersons"
+                @validated="validated"
+            />
+
             <managementPanel
                 id="managements"
                 ref="managements"
@@ -161,6 +171,7 @@
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
+                    <li><a href="#contributors">Contributors</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
@@ -207,6 +218,7 @@ export default {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
+            contributorRoles: JSON.parse(this.initContributorRoles),
             manuscript: null,
             locations: null,
             contents: null,
@@ -227,6 +239,7 @@ export default {
                 },
                 content: {content: null},
                 personRoles: {},
+                contributorRoles: {},
                 date: {
                     floor: null,
                     ceiling: null,
@@ -265,6 +278,7 @@ export default {
                 'identification',
                 'bibliography',
                 'general',
+                'contributors',
                 'managements',
             ],
         }
@@ -274,6 +288,9 @@ export default {
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
         }
+        for (let role of data.contributorRoles) {
+            data.model.contributorRoles[role.systemName] = null
+        }
         return data
     },
     created () {
@@ -281,6 +298,7 @@ export default {
         this.locations = this.data.locations
         this.contents = this.data.contents
         this.historicalPersons = this.data.historicalPersons
+        this.dbbePersons = this.data.dbbePersons
         this.origins = this.data.origins
         this.bibliographies = {
             books: this.data.books,
@@ -376,6 +394,12 @@ export default {
                     illustrated: this.manuscript.illustrated,
                     public: this.manuscript.public,
                 }
+
+                // ContributorRoles
+                for (let role of this.contributorRoles) {
+                    this.model.contributorRoles[role.systemName] = this.manuscript.contributorRoles != null ? this.manuscript.contributorRoles[role.systemName] : null
+                }
+                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {

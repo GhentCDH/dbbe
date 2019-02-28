@@ -127,6 +127,18 @@
                         <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
                     </tr>
                 {% endif %}
+                {% if manuscript.getContributorRoles() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {%
+                                include '@App/Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getContributorRoles() : manuscript.getPublicContributorRoles() }
+                                only
+                            %}
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

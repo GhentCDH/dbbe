@@ -433,6 +433,7 @@ class ManuscriptController extends BaseController
                     'locations' => $this->get('location_manager')->getByTypeJson('manuscript'),
                     'contents' => $this->get('content_manager')->getAllShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
+                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
                     'origins' => $this->get('origin_manager')->getByTypeShortJson('manuscript'),
                     'articles' => $this->get('article_manager')->getAllMiniShortJson(),
                     'books' => $this->get('book_manager')->getAllMiniShortJson(),
@@ -446,6 +447,9 @@ class ManuscriptController extends BaseController
                 ),
                 'roles' => json_encode(
                     $this->get('role_manager')->getByTypeJson('manuscript')
+                ),
+                'contributorRoles' => json_encode(
+                    $this->get('role_manager')->getContributorByTypeJson('manuscript')
                 ),
                 // @codingStandardsIgnoreEnd
             ]
