@@ -57,6 +57,15 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
             foreach ($occurrenceImageLinks as $occurrenceImageLink) {
                 curl_setopt ($curl, CURLOPT_URL, $occurrenceImageLink['url']);
+
+                // Follow redirects for certain sites
+                if (strpos($occurrenceImageLink['url'], 'http://daten.digitale-sammlungen.de') === 0
+                    || strpos($occurrenceImageLink['url'], 'https://digital.bodleian.ox.ac.uk') === 0
+                    || strpos($occurrenceImageLink['url'], 'http://www.bl.uk/manuscripts/') === 0
+                ) {
+                    curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, true);
+                }
+
                 curl_exec($curl);
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
@@ -65,7 +74,8 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                         $output->writeln('* Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
-
+                
+                curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, false);
             }
         }
 
