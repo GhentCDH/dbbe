@@ -88,7 +88,10 @@ class EntityService extends DatabaseService
                     manuscript_merge.type::text,
                     occurrence_merge.type::text,
                     type_merge.type::text,
-                    person_merge.type::text
+                    person_merge.type::text,
+                    article_merge.type::text,
+                    book_merge.type::text,
+                    book_chapter_merge.type::text
                 ) as type
             from data.global_id
             left join (
