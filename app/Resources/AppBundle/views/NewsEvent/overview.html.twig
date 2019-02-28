@@ -24,9 +24,9 @@
                 {%  for newsEvent in array %}
                     {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
                         {% if newsEvent.public %}
-                            <div class="pbottom-default">
+                            <div class="pbottom-default date-wrapper">
                         {% else %}
-                                <div class="pbottom-default bg-warning">
+                            <div class="pbottom-default bg-warning date-wrapper">
                         {% endif %}
                             {% if newsEvent.url %}
                                 <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
