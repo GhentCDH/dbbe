@@ -333,7 +333,7 @@
                             {% endif %}
                             {%
                                 include '@App/Helpers/renderContributorRoles.html.twig'
-                                with {'contributorRoles': occurrence.getContributorRoles() }
+                                with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getContributorRoles() : occurrence.getPublicContributorRoles() }
                                 only
                             %}
                         </td>

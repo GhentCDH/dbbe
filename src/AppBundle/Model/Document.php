@@ -151,6 +151,22 @@ class Document extends Entity
         return $this->contributorRoles;
     }
 
+    public function getPublicContributorRoles(): array
+    {
+        $contributorRoles = $this->contributorRoles;
+        foreach ($contributorRoles as $roleName => $contributorRole) {
+            foreach ($contributorRole[1] as $personId => $person) {
+                if (!$person->getPublic()) {
+                    unset($contributorRoles[$roleName][1][$personId]);
+                }
+            }
+            if (empty($contributorRoles[$roleName][1])) {
+                unset($contributorRoles[$roleName]);
+            }
+        }
+        return $contributorRoles;
+    }
+
     private function getContributorRolesJson(): array
     {
         $result = [];
