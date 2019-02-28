@@ -43,9 +43,9 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
             foreach ($occurrenceImages as $occurrenceImage) {
                 if (!$fileSystem->exists($imageDirectory . $occurrenceImage['filename'])) {
-                    $output->writeln('Image: ' . $router->generate('image_get', ['id' => $occurrenceImage['image_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('* Image: ' . $router->generate('image_get', ['id' => $occurrenceImage['image_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                     foreach (json_decode($occurrenceImage['occurrence_ids']) as $occurrenceId) {
-                        $output->writeln('* Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
+                        $output->writeln('  * Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
             }
@@ -75,9 +75,9 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 curl_exec($curl);
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
-                    $output->writeln('Image link (' . $info['http_code'] . '): ' . $occurrenceImageLink['url']);
+                    $output->writeln('* Image link (' . $info['http_code'] . '): ' . $occurrenceImageLink['url']);
                     foreach (json_decode($occurrenceImageLink['occurrence_ids']) as $occurrenceId) {
-                        $output->writeln('* Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
+                        $output->writeln('  * Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
 
@@ -95,8 +95,8 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 curl_exec($curl);
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
-                    $output->writeln('Online source (' . $info['http_code'] . '): ' . $onlineSource['url']);
-                    $output->writeln('* Online source: ' . $router->generate('online_source_get', ['id' => $onlineSource['online_source_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('* Online source (' . $info['http_code'] . '): ' . $onlineSource['url']);
+                    $output->writeln('  * Online source: ' . $router->generate('online_source_get', ['id' => $onlineSource['online_source_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }
@@ -111,8 +111,8 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 curl_exec($curl);
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
-                    $output->writeln('Online source relative link (' . $info['http_code'] . '): ' . $onlineSourceRelativeLink['url']);
-                    $output->writeln('* ' . ucfirst($onlineSourceRelativeLink['type']) . ': ' . $router->generate($onlineSourceRelativeLink['type'] . '_get', ['id' => $onlineSourceRelativeLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('* Online source relative link (' . $info['http_code'] . '): ' . $onlineSourceRelativeLink['url']);
+                    $output->writeln('  * ' . ucfirst($onlineSourceRelativeLink['type']) . ': ' . $router->generate($onlineSourceRelativeLink['type'] . '_get', ['id' => $onlineSourceRelativeLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }
@@ -131,8 +131,8 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 curl_exec($curl);
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
-                    $output->writeln('Identifier link (' . $info['http_code'] . '): ' . $identifierLink['link'] . $identifierLink['identification'] . $suffix);
-                    $output->writeln('* ' . ucfirst($identifierLink['type']) . ': ' . $router->generate($identifierLink['type'] . '_get', ['id' => $identifierLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('* Identifier link (' . $info['http_code'] . '): ' . $identifierLink['link'] . $identifierLink['identification'] . $suffix);
+                    $output->writeln('  * ' . ucfirst($identifierLink['type']) . ': ' . $router->generate($identifierLink['type'] . '_get', ['id' => $identifierLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }
