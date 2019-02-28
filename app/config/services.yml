@@ -345,6 +345,11 @@ services:
         arguments: ['@doctrine.orm.entity_manager']
         public: true
 
+    dead_link_service:
+        class: AppBundle\Service\DatabaseService\DeadLinkService
+        arguments: ['@doctrine.orm.entity_manager']
+        public: true
+
     manuscript_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticManuscriptService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
