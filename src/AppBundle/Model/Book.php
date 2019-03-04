@@ -3,6 +3,7 @@
 namespace AppBundle\Model;
 
 use AppBundle\Utils\ArrayToJson;
+use AppBundle\Utils\RomanFormatter;
 
 /**
  */
@@ -62,13 +63,15 @@ class Book extends Document
         int $year,
         string $title,
         string $city,
-        string $editor = null
+        string $editor = null,
+        int $volume = null
     ) {
         $this->id = $id;
         $this->year = $year;
         $this->title = $title;
         $this->city = $city;
         $this->editor = $editor;
+        $this->volume = $volume;
 
         // All books are public
         $this->public = true;
@@ -144,17 +147,6 @@ class Book extends Document
     public function getSeries(): ?string
     {
         return $this->series;
-    }
-
-    /**
-     * @param  int|null $volume
-     * @return Book
-     */
-    public function setVolume(int $volume = null): Book
-    {
-        $this->volume = $volume;
-
-        return $this;
     }
 
     /**
@@ -245,6 +237,7 @@ class Book extends Document
             )
             . ' ' . $this->year
             . ', ' . $this->title
+            . (!empty($this->volume) ? ' ' . RomanFormatter::numberToRoman($this->volume) : '')
             . ', ' . $this->city;
     }
 

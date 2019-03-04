@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\RomanFormatter;
+
 class Identification
 {
     protected $identifier;
@@ -62,7 +64,7 @@ class Identification
         if (!isset($this->volume)) {
             return null;
         }
-        return self::numberToRoman($this->volume);
+        return RomanFormatter::numberToRoman($this->volume);
     }
 
     public function getExtra(): ?string
@@ -72,14 +74,14 @@ class Identification
 
     public function __toString(): String
     {
-        return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
+        return (isset($this->volume) ? RomanFormatter::numberToRoman($this->volume) . '.' : '')
             . $this->identification
             . (!empty($this->extra) ? ': "' . $this->extra . '"' : '');
     }
 
     public function getVolumeIdentification(): String
     {
-        return (isset($this->volume) ? self::numberToRoman($this->volume) . '.' : '')
+        return (isset($this->volume) ? RomanFormatter::numberToRoman($this->volume) . '.' : '')
             . $this->identification;
     }
 
@@ -96,25 +98,5 @@ class Identification
         }
 
         return $result;
-    }
-
-    /**
-     * @param int $number
-     * @return string
-     */
-    public static function numberToRoman($number)
-    {
-        $map = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
-        $returnValue = '';
-        while ($number > 0) {
-            foreach ($map as $roman => $int) {
-                if ($number >= $int) {
-                    $number -= $int;
-                    $returnValue .= $roman;
-                    break;
-                }
-            }
-        }
-        return $returnValue;
     }
 }

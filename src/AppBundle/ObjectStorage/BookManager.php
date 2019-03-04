@@ -33,7 +33,8 @@ class BookManager extends DocumentManager
                     $rawBook['year'],
                     $rawBook['title'],
                     $rawBook['city'],
-                    $rawBook['editor']
+                    $rawBook['editor'],
+                    $rawBook['volume']
                 );
 
                 $books[$rawBook['book_id']] = $book;
@@ -91,7 +92,6 @@ class BookManager extends DocumentManager
             $book
                 ->setPublisher($rawBooks[0]['publisher'])
                 ->setSeries($rawBooks[0]['series'])
-                ->setVolume($rawBooks[0]['volume'])
                 ->setTotalVolumes($rawBooks[0]['total_volumes']);
         }
 

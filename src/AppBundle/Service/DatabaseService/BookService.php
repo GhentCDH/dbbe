@@ -104,7 +104,8 @@ class BookService extends DocumentService
                 document_title.title,
                 book.year,
                 book.city,
-                book.editor
+                book.editor,
+                book.volume
             from data.book
             inner join data.document_title on book.identity = document_title.iddocument
             where book.identity in (?)',
@@ -124,7 +125,6 @@ class BookService extends DocumentService
                 book.identity as book_id,
                 book.publisher,
                 book.series,
-                book.volume,
                 book.total_volumes
             from data.book
             where book.identity in (?)',
