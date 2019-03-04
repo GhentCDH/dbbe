@@ -208,7 +208,7 @@ class DocumentService extends EntityService
             and document_status.idstatus = status.idstatus
             and status.type = ?',
             [
-                $manuscriptId,
+                $id,
                 $statusType,
             ]
         );
