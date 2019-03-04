@@ -119,7 +119,7 @@ class OfficeManager extends ObjectManager
     {
         return $this->wrapArrayCache(
             'offices_with_parents',
-            ['offices'],
+            ['offices', 'regions'],
             function () {
                 return ArrayToJson::arrayToJson($this->getAll());
             }
