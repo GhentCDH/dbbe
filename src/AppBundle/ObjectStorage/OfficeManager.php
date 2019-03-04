@@ -133,7 +133,7 @@ class OfficeManager extends ObjectManager
      */
     public function getOfficeDependencies(int $officeId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($regionId), 'getWithParents');
+        return $this->getDependencies($this->dbs->getDepIdsByOfficeId($officeId), 'getWithParents');
     }
 
     /**
