@@ -269,7 +269,7 @@ class ContentManager extends ObjectManager
                 'Contents with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
             );
         }
-        list($primary, $secondary) = array_values($contentsWithParents);
+        $primary = $contentsWithParents[$primaryId];
 
         $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, 'getShort');
         $contents = $this->getContentDependencies($secondaryId);

@@ -352,7 +352,8 @@ class RegionManager extends ObjectManager
                 'Regions with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
             );
         }
-        list($primary, $secondary) = array_values($regionsWithParents);
+        $primary = $regionsWithParents[$primaryId];
+        $secondary = $regionsWithParents[$secondaryId];
         $updates = [];
         if (empty($primary->getIndividualName()) && !empty($secondary->getIndividualName())) {
             $updates['individualName'] = $secondary->getIndividualName();

@@ -359,7 +359,7 @@ class OfficeManager extends ObjectManager
                 'Offices with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
             );
         }
-        list($primary, $secondary) = array_values($officesWithParents);
+        $primary = $officesWithParents[$primaryId];
 
         $persons = $this->container->get('person_manager')->getOfficeDependencies($secondaryId, 'getShort');
         $offices = $this->getOfficesWithParentsByOffice($secondaryId);
