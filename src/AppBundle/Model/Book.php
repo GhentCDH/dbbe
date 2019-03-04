@@ -299,7 +299,7 @@ class Book extends Document
             'name' => 'Book',
         ];
 
-        $result['title'] = $this->title;
+        $result['title'] = $this->title . (!empty($this->volume) ? ' ' . RomanFormatter::numberToRoman($this->volume) : '');
         foreach ($this->getPersonRoles() as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
