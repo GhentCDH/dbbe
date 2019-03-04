@@ -15,9 +15,10 @@ class OfficeWithParents extends IdNameObjectWithParents
     {
         $names = [];
         foreach ($this->array as $office) {
-            $names[] = $office->getName() ? $office->getName() : 'of ' . $office->getRegionWithParents();
+            $names[] = $office->getName() ? $office->getName() : 'of ' . $office->getRegionWithParents()->getInverseName();
         }
-        return implode(' > ', $names);
+        $name = implode(' > ', $names);
+        return str_replace(' > of ', ' of ', $name);
     }
 
     public function getJson(): array

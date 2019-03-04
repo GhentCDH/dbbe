@@ -32,6 +32,15 @@ class IdNameObjectWithParents implements IdJsonInterface
         return implode(' > ', $names);
     }
 
+    public function getInverseName(): string
+    {
+        $names = [];
+        foreach ($this->array as $idNameObject) {
+            $names[] = $idNameObject->getName();
+        }
+        return implode(' < ', array_reverse($names));
+    }
+
     public function getIndividualName(): ?string
     {
         return $this->getLastChild()->getName();

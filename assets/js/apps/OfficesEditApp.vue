@@ -358,9 +358,10 @@ export default {
             }
 
             let id = model.office.id
-            let name = 'of ' + value.name
+            // calculate reverse region name
+            let name = ' of ' + value.name.split(' > ').reverse().join(' < ');
             if (model.office.parent != null) {
-                name = model.office.parent.name + ' > ' + name
+                name = model.office.parent.name + name
             }
 
             // Check if there is any other value (different id) with the same constructed name
