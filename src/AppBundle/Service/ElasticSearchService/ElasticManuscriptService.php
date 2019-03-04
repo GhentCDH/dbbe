@@ -44,6 +44,7 @@ class ElasticManuscriptService extends ElasticBaseService
             ],
             'content' => ['type' => 'nested'],
             'origin' => ['type' => 'nested'],
+            'acknowledgement' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
@@ -70,6 +71,7 @@ class ElasticManuscriptService extends ElasticBaseService
             unset($result['data'][$key]['collection']);
             unset($result['data'][$key]['shelf']);
             unset($result['data'][$key]['origin']);
+            unset($result['data'][$key]['acknowledgement']);
             unset($result['data'][$key]['management']);
             foreach ($this->getRoleSystemNames(true) as $role) {
                 unset($result['data'][$key][$role]);
@@ -85,7 +87,7 @@ class ElasticManuscriptService extends ElasticBaseService
             }
         }
 
-        $aggregationFilters = ['city', 'content', 'person', 'origin'];
+        $aggregationFilters = ['city', 'content', 'person', 'origin', 'acknowledgement'];
         if (isset($originalFilters['city'])) {
             $aggregationFilters[] = 'library';
         }
@@ -217,6 +219,7 @@ class ElasticManuscriptService extends ElasticBaseService
                         break;
                     case 'content':
                     case 'origin':
+                    case 'acknowledgement':
                         if (is_int($key)) {
                             $result['nested'][] = $value;
                         } else {

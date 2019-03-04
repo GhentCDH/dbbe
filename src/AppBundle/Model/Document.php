@@ -33,6 +33,10 @@ class Document extends Entity
      * @var array
      */
     protected $contributorRoles = [];
+    /**
+     * @var array
+     */
+    protected $acknowledgements = [];
 
     /**
      * @param  string|null $title
@@ -181,6 +185,28 @@ class Document extends Entity
         return $result;
     }
 
+    public function addAcknowledgement(Acknowledgement $acknowledgement): Document
+    {
+        $this->acknowledgements[] = $acknowledgement;
+
+        return $this;
+    }
+
+    public function getAcknowledgements(): array
+    {
+        return $this->acknowledgements;
+    }
+
+    public function sortAcknowledgements(): void
+    {
+        usort(
+            $this->acknowledgements,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+    }
+
     public function getJson(): array
     {
         $result = parent::getJson();
@@ -191,6 +217,9 @@ class Document extends Entity
 
         if (!empty($this->contributorRoles)) {
             $result['contributorRoles'] = $this->getContributorRolesJson();
+        }
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
 
         return $result;
@@ -205,6 +234,9 @@ class Document extends Entity
         }
         foreach ($this->getPublicContributorRoles() as $roleName => $contributorRole) {
             $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($contributorRole[1]);
+        }
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
 
         return $result;

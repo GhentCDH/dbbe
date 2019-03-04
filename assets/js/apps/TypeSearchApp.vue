@@ -381,7 +381,7 @@ export default {
                 },
             }
         );
-        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgement');
+        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgements', {model: 'acknowledgement'});
         data.schema.fields['id'] = this.createMultiSelect('DBBE ID', {model: 'id'});
         data.schema.fields['prev_id'] = this.createMultiSelect('Former DBBE ID', {model: 'prev_id'});
         if (this.isViewInternal) {

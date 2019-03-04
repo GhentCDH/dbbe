@@ -90,9 +90,11 @@ export default {
                 case 'office':
                 case 'origin':
                 case 'editorial status':
-                case 'acknowledgement':
                 case 'id':
                     article = 'an ';
+                    break;
+                case 'acknowledgements':
+                    article = '';
                     break;
             }
             field.placeholder = (field.selectOptions.multiple ? 'Select ' : 'Select ' + article) + label

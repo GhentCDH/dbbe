@@ -28,6 +28,11 @@ class DocumentManager extends EntityManager
         return $this->getDependencies($this->dbs->getDepIdsByRoleId($roleId), $method);
     }
 
+    public function getAcknowledgementDependencies(int $acknowledgementId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByAcknowledgementId($acknowledgementId), $method);
+    }
+
     protected function setDates(array &$documents): void
     {
         $rawCompletionDates = $this->dbs->getCompletionDates(array_keys($documents));
@@ -91,6 +96,19 @@ class DocumentManager extends EntityManager
                         $persons[$raw['person_id']]
                     );
             }
+        }
+    }
+
+    protected function setAcknowledgements(array &$poems)
+    {
+        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($poems));
+        $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
+        foreach ($rawAcknowledgements as $rawAcknowledgement) {
+            $poems[$rawAcknowledgement['poem_id']]
+                ->addAcknowledgement($acknowledgements[$rawAcknowledgement['acknowledgement_id']]);
+        }
+        foreach (array_keys($poems) as $poemId) {
+            $poems[$poemId]->sortAcknowledgements();
         }
     }
 
@@ -194,6 +212,26 @@ class DocumentManager extends EntityManager
             throw new BadRequestHttpException('Incorrect record status data.');
         } else {
             $this->dbs->upsertStatus($document->getId(), $status->id, $statusType);
+        }
+    }
+
+    protected function updateAcknowledgements(Document $document, array $acknowledgements): void
+    {
+        foreach ($acknowledgements as $acknowledgement) {
+            if (!is_object($acknowledgement)
+                || !property_exists($acknowledgement, 'id')
+                || !is_numeric($acknowledgement->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect acknowledgement data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($acknowledgements, $document->getAcknowledgements());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delAcknowledgements($document->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addAcknowledgement($document->getId(), $addId);
         }
     }
 }

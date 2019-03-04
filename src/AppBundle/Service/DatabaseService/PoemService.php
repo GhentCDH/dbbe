@@ -98,21 +98,6 @@ class PoemService extends DocumentService
         )->fetchAll();
     }
 
-    public function getAcknowledgements(array $ids): array
-    {
-        return $this->conn->executeQuery(
-            'SELECT
-                document_acknowledgement.iddocument as poem_id,
-                document_acknowledgement.idacknowledgement as acknowledgement_id,
-                acknowledgement.acknowledgement as name
-            from data.document_acknowledgement
-            inner join data.acknowledgement on document_acknowledgement.idacknowledgement = acknowledgement.id
-            where document_acknowledgement.iddocument in (?)',
-            [$ids],
-            [Connection::PARAM_INT_ARRAY]
-        )->fetchAll();
-    }
-
     /**
      * @param  int    $id
      * @param  string $incipit
@@ -304,46 +289,6 @@ class PoemService extends DocumentService
             [
                 Connection::PARAM_INT_ARRAY,
                 \PDO::PARAM_INT,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
-     * @param  int $acknowledgementId
-     * @return int
-     */
-    public function addAcknowledgement(int $id, int $acknowledgementId): int
-    {
-        return $this->conn->executeUpdate(
-            'INSERT into data.document_acknowledgement (iddocument, idacknowledgement)
-            values (?, ?)',
-            [
-                $id,
-                $acknowledgementId,
-            ]
-        );
-    }
-
-    /**
-     * @param  int   $id
-     * @param  array $acknowledgementIds
-     * @return int
-     */
-    public function delAcknowledgements(int $id, array $acknowledgementIds): int
-    {
-        return $this->conn->executeUpdate(
-            'DELETE
-            from data.document_genre
-            where iddocument = ?
-            and idacknowledgement in (?)',
-            [
-                $id,
-                $acknowledgementIds,
-            ],
-            [
-                \PDO::PARAM_INT,
-                Connection::PARAM_INT_ARRAY,
             ]
         );
     }

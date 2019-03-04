@@ -26,11 +26,6 @@ class PoemManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByKeywordId($keywordId), $method);
     }
 
-    public function getAcknowledgementDependencies(int $acknowledgementId, string $method): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByAcknowledgementId($acknowledgementId), $method);
-    }
-
     protected function setIncipits(array &$poems): void
     {
         $rawIncipits = $this->dbs->getIncipits(array_keys($poems));
@@ -106,19 +101,6 @@ class PoemManager extends DocumentManager
         foreach ($rawGenres as $rawGenre) {
             $poems[$rawGenre['poem_id']]
                 ->addGenre($genres[$rawGenre['genre_id']]);
-        }
-    }
-
-    protected function setAcknowledgements(array &$poems)
-    {
-        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($poems));
-        $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
-        foreach ($rawAcknowledgements as $rawAcknowledgement) {
-            $poems[$rawAcknowledgement['poem_id']]
-                ->addAcknowledgement($acknowledgements[$rawAcknowledgement['acknowledgement_id']]);
-        }
-        foreach (array_keys($poems) as $poemId) {
-            $poems[$poemId]->sortAcknowledgements();
         }
     }
 
@@ -199,26 +181,6 @@ class PoemManager extends DocumentManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addSubject($poem->getId(), $addId);
-        }
-    }
-
-    protected function updateAcknowledgements(Poem $poem, array $acknowledgements): void
-    {
-        foreach ($acknowledgements as $acknowledgement) {
-            if (!is_object($acknowledgement)
-                || !property_exists($acknowledgement, 'id')
-                || !is_numeric($acknowledgement->id)
-            ) {
-                throw new BadRequestHttpException('Incorrect acknowledgement data.');
-            }
-        }
-        list($delIds, $addIds) = self::calcDiff($acknowledgements, $poem->getAcknowledgements());
-
-        if (count($delIds) > 0) {
-            $this->dbs->delAcknowledgements($poem->getId(), $delIds);
-        }
-        foreach ($addIds as $addId) {
-            $this->dbs->addAcknowledgement($poem->getId(), $addId);
         }
     }
 

@@ -34,10 +34,6 @@ class Poem extends Document
      * @var Status
      */
     protected $textStatus;
-    /**
-     * @var array
-     */
-    protected $acknowledgements = [];
 
     public function setIncipit(string $incipit): Poem
     {
@@ -158,28 +154,6 @@ class Poem extends Document
         return $this->textStatus;
     }
 
-    public function addAcknowledgement(Acknowledgement $acknowledgement): Poem
-    {
-        $this->acknowledgements[] = $acknowledgement;
-
-        return $this;
-    }
-
-    public function getAcknowledgements(): array
-    {
-        return $this->acknowledgements;
-    }
-
-    public function sortAcknowledgements(): void
-    {
-        usort(
-            $this->acknowledgements,
-            function ($a, $b) {
-                return strcmp($a->getName(), $b->getName());
-            }
-        );
-    }
-
     public function getDescription(): string
     {
         return $this->incipit;
@@ -218,9 +192,6 @@ class Poem extends Document
         if (!empty($this->genres)) {
             $result['genres'] = ArrayToJson::arrayToShortJson($this->genres);
         }
-        if (!empty($this->acknowledgements)) {
-            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
-        }
 
         return $result;
     }
@@ -254,9 +225,6 @@ class Poem extends Document
         }
         if (!empty($this->genres)) {
             $result['genre'] =  ArrayToJson::arrayToShortJson($this->genres);
-        }
-        if (!empty($this->acknowledgements)) {
-            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
         }
 
         return $result;

@@ -127,10 +127,18 @@
                         <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
                     </tr>
                 {% endif %}
-                {% if manuscript.getContributorRoles() is not empty %}
+                {% if manuscript.getAcknowledgements() is not empty or manuscript.getContributorRoles() is not empty %}
                     <tr>
                         <td>Acknowledgements</td>
                         <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if manuscript.getAcknowledgements() is not empty and manuscript.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
                             {%
                                 include '@App/Helpers/renderContributorRoles.html.twig'
                                 with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getContributorRoles() : manuscript.getPublicContributorRoles() }

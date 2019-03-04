@@ -383,6 +383,7 @@ class TypeController extends BaseController
                     'genres_edit' => $this->generateUrl('genres_edit'),
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'keywords_type_edit' => $this->generateUrl('tags_edit'),
+                    'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),

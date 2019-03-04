@@ -88,9 +88,9 @@
                 id="general"
                 ref="general"
                 header="General"
-                :links="[{url: urls['statuses_edit'], text: 'Edit statuses'}]"
+                :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
                 :model="model.general"
-                :values="statuses"
+                :values="generals"
                 @validated="validated"
             />
 
@@ -260,6 +260,7 @@ export default {
                     onlineSources: [],
                 },
                 general: {
+                    acknowledgements: null,
                     publicComment: null,
                     privateComment: null,
                     illustrated: null,
@@ -306,7 +307,10 @@ export default {
             bookChapters: this.data.bookChapters,
             onlineSources: this.data.onlineSources,
         }
-        this.statuses = this.data.statuses
+        this.generals = {
+            acknowledgements: this.data.acknowledgements,
+            statuses: this.data.statuses,
+        }
         this.managements = this.data.managements
     },
     mounted () {
@@ -388,6 +392,7 @@ export default {
 
                 // General
                 this.model.general = {
+                    acknowledgements: this.manuscript.acknowledgements,
                     publicComment: this.manuscript.publicComment,
                     privateComment: this.manuscript.privateComment,
                     status: this.manuscript.status,

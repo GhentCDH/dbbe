@@ -272,6 +272,7 @@ export default {
                         model: 'comment',
                         validator: VueFormGenerator.validators.string,
                     },
+                    acknowledgement: this.createMultiSelect('Acknowledgements', {model: 'acknowledgement'}),
                 }
             },
             tableOptions: {

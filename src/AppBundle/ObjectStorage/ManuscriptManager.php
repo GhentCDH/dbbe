@@ -117,6 +117,8 @@ class ManuscriptManager extends DocumentManager
             }
         }
 
+        $this->setAcknowledgements($manuscripts);
+
         $this->setIdentifications($manuscripts);
 
         $this->setComments($manuscripts);
@@ -303,6 +305,13 @@ class ManuscriptManager extends DocumentManager
                 }
                 $changes['full'] = true;
                 $this->updateBibliography($old, $data->bibliography);
+            }
+            if (property_exists($data, 'acknowledgements')) {
+                if (!is_array($data->acknowledgements)) {
+                    throw new BadRequestHttpException('Incorrect acknowledgements data.');
+                }
+                $changes['short'] = true;
+                $this->updateAcknowledgements($old, $data->acknowledgements);
             }
             if (property_exists($data, 'status')) {
                 if (!(is_object($data->status) || empty($data->status))) {

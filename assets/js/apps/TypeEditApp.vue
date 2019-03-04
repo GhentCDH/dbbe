@@ -123,7 +123,7 @@
                 id="general"
                 ref="general"
                 header="General"
-                :links="[{url: urls['statuses_edit'], text: 'Edit statuses'}]"
+                :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
                 :model="model.general"
                 :values="generals"
                 @validated="validated"

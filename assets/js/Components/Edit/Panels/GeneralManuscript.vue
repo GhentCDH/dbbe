@@ -26,10 +26,27 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        values: {
+            type: Object,
+            default: () => {return {}}
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
+                    acknowledgements: this.createMultiSelect(
+                        'Acknowledgements',
+                        {
+                            model: 'acknowledgements',
+                            values: this.values.acknowledgements,
+                        },
+                        {
+                            multiple: true,
+                            closeOnSelect: false,
+                        }
+                    ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -47,7 +64,7 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    status: this.createMultiSelect('Status', {values: this.values}, {}),
+                    status: this.createMultiSelect('Status', {values: this.values.statuses}, {}),
                     illustrated: {
                         type: 'checkbox',
                         styleClasses: 'has-warning',
@@ -69,6 +86,7 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.enableField(this.schema.fields.acknowledgements)
             this.enableField(this.schema.fields.status)
         },
     }

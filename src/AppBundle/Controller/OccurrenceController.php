@@ -396,6 +396,7 @@ class OccurrenceController extends BaseController
                     'metres_edit' => $this->generateUrl('metres_edit'),
                     'genres_edit' => $this->generateUrl('genres_edit'),
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
+                    'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
                     'verse_variant_get' => $this->generateUrl('verse_variant_get', ['groupId' => 'verse_variant_id']),
                     'verse_search' => $this->generateUrl('verse_search'),
