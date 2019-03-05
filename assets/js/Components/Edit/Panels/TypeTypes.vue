@@ -59,6 +59,7 @@
                 <btn @click="updateRelatedTypeModal=false">Cancel</btn>
                 <btn
                     type="alert"
+                    :disabled="!(isValid && editRelatedType != null && editRelatedType.type != null && editRelatedType.relationTypes != null && editRelatedType.relationTypes.length > 0)"
                     @click="submitUpdateRelatedType()"
                 >
                     {{ relatedTypeIndex > -1 ? 'Update' : 'Add' }}
@@ -121,6 +122,8 @@ export default {
                         {
                             values: this.values.types,
                             styleClasses: 'greek',
+                            required: true,
+                            validator: [VueFormGenerator.validators.required, this.noDuplicateType]
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -133,6 +136,8 @@ export default {
                         {
                             model: 'relationTypes',
                             values: this.values.relationTypes,
+                            required: true,
+                            validator: VueFormGenerator.validators.required,
                         },
                         {
                             multiple: true,
@@ -166,9 +171,18 @@ export default {
                 }
             }
         },
+        noDuplicateType(value, field, model) {
+            if (
+                this.relatedTypeIndex === -1
+                && this.editRelatedType.type != null
+                && this.model.relatedTypes.map(x => x.type.id).includes(this.editRelatedType.type.id)
+            ) {
+                return ['There already is a relation with this type'];
+            }
+            return [];
+        },
         validated(isValid, errors) {
-            // TODO: check if a related type is present multiple times
-            this.isValid = isValid
+            this.isValid = isValid;
         },
         newRelatedType() {
             this.relatedTypeIndex = -1
@@ -189,7 +203,7 @@ export default {
         },
         submitUpdateRelatedType() {
             this.$refs.editForm.validate()
-            if (this.$refs.editForm.errors.length == 0) {
+            if (this.isValid) {
                 if (this.relatedTypeIndex > -1) {
                     // update existing
                     this.model.relatedTypes[this.relatedTypeIndex] = JSON.parse(JSON.stringify(this.editRelatedType))
