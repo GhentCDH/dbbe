@@ -42,7 +42,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'numberOfVerses',
                         validator: VueFormGenerator.validators.number,
-                        hint: 'Should be left blank if equal to the number of verses listed below. A "0" (without quotes) should input when the number of verses is unknown.',
+                        hint: 'Should be left blank if equal to the number of verses listed below. A "0" (without quotes) should be input when the number of verses is unknown.',
                     },
                     verses: {
                         type: 'textArea',
