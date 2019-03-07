@@ -24,7 +24,6 @@
 </template>
 
 <script>
-import {isObject} from "lodash";
 import {abstractField} from 'vue-form-generator'
 
 export default {
@@ -45,8 +44,12 @@ export default {
     },
 
     methods: {
+        isObject(value) {
+            const type = typeof value
+            return value != null && (type == 'object' || type == 'function')
+        },
         getItemValue(item) {
-            if (isObject(item)){
+            if (this.isObject(item)){
                 if (typeof this.schema["radiosOptions"] !== "undefined" && typeof this.schema["radiosOptions"]["value"] !== "undefined") {
                     return item[this.schema.radiosOptions.value];
                 } else {
@@ -61,7 +64,7 @@ export default {
             }
         },
         getItemName(item) {
-            if (isObject(item)){
+            if (this.isObject(item)){
                 if (typeof this.schema["radiosOptions"] !== "undefined" && typeof this.schema["radiosOptions"]["name"] !== "undefined") {
                     return item[this.schema.radiosOptions.name];
                 } else {
