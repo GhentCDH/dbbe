@@ -12,9 +12,6 @@ cp ./node_modules/ckeditor/contents.css ./web/build/ckeditor
 cp ./node_modules/ckeditor/styles.js ./web/build/ckeditor
 
 # remove unnecessary language files
-base_path=`pwd`
 find web/build/ckeditor -name "lang" -print0 | while IFS= read -r -d $'\0' line; do
-    cd "$base_path/$line"
-    ls | grep -v "en.js" | xargs rm
+    ls -d -1 "$line/"*.* | grep -v "en.js" | xargs -r rm
 done
-cd "$base_path"

@@ -43,8 +43,8 @@
         >
             <transition-group>
                 <div
-                    v-for="(individualVerse, index) in model.verses"
-                    :key="index"
+                    v-for="individualVerse in model.verses"
+                    :key="individualVerse.order"
                     class="panel panel-default draggable-item greek"
                 >
                     <div class="panel-body row">

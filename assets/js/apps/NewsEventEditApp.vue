@@ -21,8 +21,8 @@
             >
                 <transition-group>
                     <div
-                        v-for="(item, index) in data"
-                        :key="index"
+                        v-for="item in data"
+                        :key="item.order"
                         class="panel panel-default draggable-item"
                     >
                         <div

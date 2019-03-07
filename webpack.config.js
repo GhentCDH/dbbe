@@ -59,8 +59,17 @@ Encore
     // provide source maps for dev environment
     .enableSourceMaps(!Encore.isProduction())
 
+    // don't load chunks of code
+    .disableSingleRuntimeChunk()
+
     // empty the outputPath dir before each build
     .cleanupOutputBeforeBuild()
+
+    // enable pug templates in vue
+    .addLoader({
+        test: /\.pug$/,
+        loader: 'pug-plain-loader'
+    })
 ;
 
 // further config tweaking
