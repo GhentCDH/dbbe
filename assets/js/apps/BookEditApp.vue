@@ -110,6 +110,7 @@
                 <ul class="linklist linklist-dark">
                     <li><a href="#persons">Persons</a></li>
                     <li><a href="#basic">Basic information</a></li>
+                    <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
                     <li><a href="#general">General</a></li>
                     <li><a href="#managements">Management collections</a></li>
                     <li><a href="#actions">Actions</a></li>
