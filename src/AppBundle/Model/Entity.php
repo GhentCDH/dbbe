@@ -322,7 +322,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
 
         foreach ($inverseReferences as $type => $entitiesWithReferenceTypes) {
             foreach ($entitiesWithReferenceTypes as $id => $entityWithReferenceTypes) {
-                if (!$entityWithReferenceTypes->getPublic()) {
+                if (!$entityWithReferenceTypes[0]->getPublic()) {
                     unset($inverseReferences[$type][$id]);
                 }
             }
