@@ -32,10 +32,7 @@ class JournalService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 journal.identity as journal_id,
-                document_title.title,
-                journal.year,
-                journal.volume,
-                journal.number
+                document_title.title
             from data.journal
             inner join data.document_title on journal.identity = document_title.iddocument
             where journal.identity in (?)',
@@ -51,20 +48,14 @@ class JournalService extends DatabaseService
      * @param  int|null $number
      * @return int
      */
-    public function insert(string $title, int $year, int $volume = null, int $number = null): int
+    public function insert(string $title): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_journal_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.journal (year, volume, number)
-                values (?, ?, ?)',
-                [
-                    $year,
-                    $volume,
-                    $number,
-                ]
+                'INSERT INTO data.journal DEFAULT VALUES'
             );
             $id = $this->conn->executeQuery(
                 'SELECT
@@ -109,74 +100,22 @@ class JournalService extends DatabaseService
 
     /**
      * @param  int $id
-     * @param  int $year
-     * @return int
-     */
-    public function updateYear(int $id, int $year): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.journal
-            set year = ?
-            where journal.identity = ?',
-            [
-                $year,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int      $id
-     * @param  int|null $volume
-     * @return int
-     */
-    public function updateVolume(int $id, int $volume = null): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.journal
-            set volume = ?
-            where journal.identity = ?',
-            [
-                $volume,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int      $id
-     * @param  int|null $number
-     * @return int
-     */
-    public function updateNumber(int $id, int $number = null): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.journal
-            set number = ?
-            where journal.identity = ?',
-            [
-                $number,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int $id
      * @return int
      */
     public function delete(int $id): int
     {
-        // don't delete if this journal is used in document_contains
+        // don't delete if this journal is used in a journal issue
         $count = $this->conn->executeQuery(
             'SELECT count(*)
-            from data.document_contains
-            where document_contains.idcontainer = ?',
+            from data.journal_issue
+            where journal_issue.idjournal = ?',
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
             throw new DependencyException('This journal has dependencies.');
         }
+        // Set search_path for triggers
+        $this->conn->exec('SET SEARCH_PATH TO data');
         return $this->conn->executeUpdate(
             'DELETE from data.journal
             where journal.identity = ?',

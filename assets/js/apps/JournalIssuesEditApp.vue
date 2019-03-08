@@ -5,15 +5,15 @@
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
             />
-            <panel header="Edit journals">
+            <panel header="Edit journal issues">
                 <editListRow
                     :schema="schema"
                     :model="model"
                     name="origin"
                     :conditions="{
                         add: true,
-                        edit: model.journal,
-                        del: model.journal,
+                        edit: model.journalIssue,
+                        del: model.journalIssue,
                     }"
                     @add="edit(true)"
                     @edit="edit()"
@@ -62,67 +62,101 @@ export default {
         AbstractListEdit,
     ],
     data() {
+        let data = JSON.parse(this.initData);
         return {
+            values: data.journalIssues,
+            journals: data.journals,
             schema: {
                 fields: {
-                    journal: this.createMultiSelect('Journal'),
+                    journalIssue: this.createMultiSelect('JournalIssue', {label: 'Journal issue'}),
                 },
             },
             editSchema: {
                 fields: {
-                    title: {
+                    journal: this.createMultiSelect(
+                        'Journal',
+                        {
+                            model: 'journal issue.journal',
+                            required: true,
+                            validator: VueFormGenerator.validators.required,
+                        }
+                    ),
+                    year: {
                         type: 'input',
-                        inputType: 'text',
-                        label: 'Title',
+                        inputType: 'number',
+                        label: 'Year',
                         labelClasses: 'control-label',
-                        model: 'journal.title',
+                        model: 'journal issue.year',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: VueFormGenerator.validators.number,
+                    },
+                    volume: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Volume',
+                        labelClasses: 'control-label',
+                        model: 'journal issue.volume',
+                        validator: VueFormGenerator.validators.number,
+                    },
+                    number: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Number',
+                        labelClasses: 'control-label',
+                        model: 'journal issue.number',
+                        validator: VueFormGenerator.validators.number,
                     },
                 },
             },
             model: {
-                journal: null,
+                journalIssue: null,
             },
             submitModel: {
-                submitType: 'journal',
-                journal: null,
+                submitType: 'journal issue',
+                'journal issue': null,
             },
         }
     },
     computed: {
         depUrls: function() {
             return {
-                'Journal issues': {
-                    depUrl: this.urls['journal_issue_deps_by_journal'].replace('journal_id', this.submitModel.journal.id),
+                'Articles': {
+                    depUrl: this.urls['article_deps_by_journal_issue'].replace('journal_issue_id', this.submitModel['journal issue'].id),
+                    url: this.urls['article_get'],
+                    urlIdentifier: 'article_id',
                 }
             }
         },
     },
     mounted () {
-        this.schema.fields.journal.values = this.values;
-        this.enableField(this.schema.fields.journal)
+        this.schema.fields.journalIssue.values = this.values;
+        this.enableField(this.schema.fields.journalIssue)
     },
     methods: {
         edit(add = false) {
-            // TODO: check if title already exists
+            // TODO: check if combination journal, year, volume, number already exists
             this.submitModel = {
-                submitType: 'journal',
-                journal: null,
+                submitType: 'journal issue',
+                'journal issue': null,
             };
             if (add) {
-                this.submitModel.journal =  {
-                    title: null,
+                this.submitModel['journal issue'] =  {
+                    journal: null,
+                    year: null,
+                    volume: null,
+                    number: null,
                 }
             }
             else {
-                this.submitModel.journal = this.model.journal
+                this.submitModel['journal issue'] = this.model.journalIssue
             }
+            this.editSchema.fields.journal.values = this.journals;
+            this.enableField(this.editSchema.fields.journal);
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
         },
         del() {
-            this.submitModel.journal = JSON.parse(JSON.stringify(this.model.journal));
+            this.submitModel['journal issue'] = JSON.parse(JSON.stringify(this.model.journalIssue));
             this.deleteDependencies()
         },
         submitEdit() {
@@ -130,16 +164,16 @@ export default {
             this.openRequests++;
 
             let data = {};
-            for (let key of Object.keys(this.submitModel.journal)) {
-                if (this.submitModel.journal.id == null || this.submitModel.journal[key] !== this.originalSubmitModel.journal[key]) {
-                    data[key] = this.submitModel.journal[key]
+            for (let key of Object.keys(this.submitModel['journal issue'])) {
+                if (this.submitModel['journal issue'].id == null || this.submitModel['journal issue'][key] !== this.originalSubmitModel['journal issue'][key]) {
+                    data[key] = this.submitModel['journal issue'][key]
                 }
             }
 
-            if (this.submitModel.journal.id == null) {
-                axios.post(this.urls['journal_post'], data)
+            if (this.submitModel['journal issue'].id == null) {
+                axios.post(this.urls['journal_issue_post'], data)
                     .then( (response) => {
-                        this.submitModel.journal = response.data;
+                        this.submitModel['journal issue'] = response.data;
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Addition successful.'});
@@ -148,14 +182,14 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal issue.', login: this.isLoginError(error)});
                         console.log(error)
                     })
             }
             else {
-                axios.put(this.urls['journal_put'].replace('journal_id', this.submitModel.journal.id), data)
+                axios.put(this.urls['journal_issue_put'].replace('journal_issue_id', this.submitModel['journal issue'].id), data)
                     .then( (response) => {
-                        this.submitModel.journal = response.data;
+                        this.submitModel['journal issue'] = response.data;
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Update successful.'});
@@ -164,7 +198,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal issue.', login: this.isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -172,9 +206,9 @@ export default {
         submitDelete() {
             this.deleteModal = false;
             this.openRequests++;
-            axios.delete(this.urls['journal_delete'].replace('journal_id', this.submitModel.journal.id))
+            axios.delete(this.urls['journal_issue_delete'].replace('journal_issue_id', this.submitModel['journal issue'].id))
                 .then( (response) => {
-                    this.submitModel.journal = null;
+                    this.submitModel['journal issue'] = null;
                     this.update();
                     this.deleteAlerts = [];
                     this.alerts.push({type: 'success', message: 'Deletion successful.'});
@@ -189,16 +223,16 @@ export default {
         },
         update() {
             this.openRequests++;
-            axios.get(this.urls['journals_get'])
+            axios.get(this.urls['journal_issues_get'])
                 .then( (response) => {
                     this.values = response.data;
-                    this.schema.fields.journal.values = this.values;
-                    this.model.journal = JSON.parse(JSON.stringify(this.submitModel.journal));
+                    this.schema.fields.journalIssue.values = this.values;
+                    this.model.journalIssue = JSON.parse(JSON.stringify(this.submitModel['journal issue']));
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: this.isLoginError(error)});
                     console.log(error)
                 })
         },

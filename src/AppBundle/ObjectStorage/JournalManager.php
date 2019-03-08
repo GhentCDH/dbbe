@@ -30,10 +30,7 @@ class JournalManager extends DocumentManager
         foreach ($rawJournals as $rawJournal) {
             $journals[$rawJournal['journal_id']] = new Journal(
                 $rawJournal['journal_id'],
-                $rawJournal['title'],
-                $rawJournal['year'],
-                $rawJournal['volume'],
-                $rawJournal['number']
+                $rawJournal['title']
             );
         }
 
@@ -71,23 +68,16 @@ class JournalManager extends DocumentManager
             !property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
-            || !property_exists($data, 'year')
-            || !is_numeric($data->year)
-            || empty($data->year)
-            # optional
-            || (property_exists($data, 'volume') && !is_numeric($data->volume))
-            || (property_exists($data, 'number') && !is_numeric($data->volume))
         ) {
             throw new BadRequestHttpException('Incorrect data to add a new journal');
         }
         $this->dbs->beginTransaction();
         try {
-            # insert with mandatory fields
-            $journalId = $this->dbs->insert($data->title, $data->year, $data->volume, $data->number);
+            $id = $this->dbs->insert($data->title);
 
-            $newJournal = $this->get([$journalId])[$journalId];
+            $new = $this->get([$id])[$id];
 
-            $this->updateModified(null, $newOffice);
+            $this->updateModified(null, $new);
 
             $this->cache->invalidateTags(['journals']);
 
@@ -98,7 +88,7 @@ class JournalManager extends DocumentManager
             throw $e;
         }
 
-        return $newJournal;
+        return $new;
     }
 
     /**
@@ -124,34 +114,13 @@ class JournalManager extends DocumentManager
                 $correct = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            if (property_exists($data, 'year')
-                && is_numeric($data->year)
-                && !empty($data->year)
-            ) {
-                $correct = true;
-                $this->dbs->updateYear($id, $data->year);
-            }
-            if (property_exists($data, 'volume')
-                && (is_numeric($data->volume) || empty($data->volume))
-            ) {
-                $correct = true;
-                $this->dbs->updateVolume($id, $data->volume);
-            }
-            if (property_exists($data, 'number')
-                && (is_numeric($data->number) || empty($data->number))
-            ) {
-                $correct = true;
-                $this->dbs->updateNumber($id, $data->number);
-            }
-
-            if (!$correct) {
-                throw new BadRequestHttpException('Incorrect data.');
-            }
 
             // load new data
-            $newJournal = $this->get([$id])[$id];
+            $new = $this->get([$id])[$id];
 
-            $this->updateModified($journals[$id], $newJournal);
+            $this->updateModified($journals[$id], $new);
+
+            $this->cache->invalidateTags(['journals']);
 
             // commit transaction
             $this->dbs->commit();
@@ -160,7 +129,7 @@ class JournalManager extends DocumentManager
             throw $e;
         }
 
-        return $newJournal;
+        return $new;
     }
 
     /**

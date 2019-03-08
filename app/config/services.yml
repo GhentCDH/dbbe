@@ -108,6 +108,11 @@ services:
         arguments: ['@journal_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal']
         public: true
 
+    journal_issue_manager:
+        class: AppBundle\ObjectStorage\JournalIssueManager
+        arguments: ['@journal_issue_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal_issue']
+        public: true
+
     online_source_manager:
         class: AppBundle\ObjectStorage\OnlineSourceManager
         arguments: ['@online_source_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'online_source']
@@ -252,6 +257,10 @@ services:
 
     journal_service:
         class: AppBundle\Service\DatabaseService\JournalService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    journal_issue_service:
+        class: AppBundle\Service\DatabaseService\JournalIssueService
         arguments: ['@doctrine.orm.entity_manager']
 
     online_source_service:

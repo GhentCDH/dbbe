@@ -21,23 +21,23 @@ class Article extends Document
      */
     protected $title;
     /**
-     * @var Journal
+     * @var JournalIssue
      */
-    protected $journal;
+    protected $journalIssue;
 
     /**
      * @param int     $id
      * @param string  $title
-     * @param Journal $journal
+     * @param JournalIssue $journalIssue
      */
     public function __construct(
         int $id,
         string $title,
-        Journal $journal
+        JournalIssue $journalIssue
     ) {
         $this->id = $id;
         $this->title = $title;
-        $this->journal = $journal;
+        $this->journalIssue = $journalIssue;
 
         // All articles are public
         $this->public = true;
@@ -62,11 +62,11 @@ class Article extends Document
     }
 
     /**
-     * @return Journal
+     * @return JournalIssue
      */
-    public function getJournal(): Journal
+    public function getJournalIssue(): JournalIssue
     {
-        return $this->journal;
+        return $this->journalIssue;
     }
 
     /**
@@ -82,17 +82,17 @@ class Article extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->journal->getYear()
+            . ' ' . $this->journalIssue->getYear()
             . ', ' . $this->title
-            . ', ' . $this->journal->getTitle()
+            . ', ' . $this->journalIssue->getJournal()->getTitle()
             . (
-                !empty($this->journal->getVolume())
-                    ? ', ' . $this->journal->getVolume()
+                !empty($this->journalIssue->getVolume())
+                    ? ', ' . $this->journalIssue->getVolume()
                     : ''
             )
             . (
-                !empty($this->journal->getNumber())
-                    ? '(' . $this->journal->getNumber() . ')'
+                !empty($this->journalIssue->getNumber())
+                    ? '(' . $this->journalIssue->getNumber() . ')'
                     : ''
             )
             . $this->formatStartEndPages(', ', $this->rawPages);
@@ -119,8 +119,8 @@ class Article extends Document
         if (!empty($this->title)) {
             $result['title'] = $this->title;
         }
-        if (!empty($this->journal)) {
-            $result['journal'] = $this->journal->getShortJson();
+        if (!empty($this->journalIssue)) {
+            $result['journalIssue'] = $this->journalIssue->getShortJson();
         }
         if (!empty($this->getStartPage())) {
             $result['startPage'] = (int)$this->getStartPage();

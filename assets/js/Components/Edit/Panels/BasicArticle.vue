@@ -42,7 +42,7 @@ export default {
                         validator: VueFormGenerator.validators.string,
                     },
                     journal: this.createMultiSelect(
-                        'Journal',
+                        'JIssue',
                         {values: this.values}
                     ),
                     startPage: {

@@ -34,11 +34,11 @@ class ArticleService extends DocumentService
     }
 
     /**
-     * Get all ids of articles that are dependent on a specific journal
-     * @param  int   $journalId
+     * Get all ids of articles that are dependent on a specific journal issue
+     * @param  int   $journalIssueId
      * @return array
      */
-    public function getDepIdsByJournalId(int $journalId): array
+    public function getDepIdsByJournalIssueId(int $journalIssueId): array
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -46,7 +46,7 @@ class ArticleService extends DocumentService
             from data.article
             inner join data.document_contains on article.identity = document_contains.idcontent
             where document_contains.idcontainer = ?',
-            [$journalId]
+            [$journalIssueId]
         )->fetchAll();
     }
 
@@ -120,7 +120,7 @@ class ArticleService extends DocumentService
                 article.identity as article_id,
                 document_title.title as article_title,
                 array_to_json(array_agg(bibrole.idperson order by bibrole.rank)) as person_ids,
-                journal.identity as journal_id,
+                journal_issue.identity as journal_issue_id,
                 document_contains.page_start as article_page_start,
                 document_contains.page_end as article_page_end,
                 case when document_contains.page_start is null
@@ -132,11 +132,11 @@ class ArticleService extends DocumentService
             left join data.role on bibrole.idrole = role.idrole  and role.system_name = \'author\'
             inner join data.document_title on article.identity = document_title.iddocument
             inner join data.document_contains on article.identity = document_contains.idcontent
-            inner join data.journal on document_contains.idcontainer = journal.identity
+            inner join data.journal_issue on document_contains.idcontainer = journal_issue.identity
             where article.identity in (?)
             group by
                 article.identity, document_title.title,
-                journal.identity,
+                journal_issue.identity,
                 document_contains.page_start, document_contains.page_end, document_contains.physical_location_removeme',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
@@ -145,10 +145,10 @@ class ArticleService extends DocumentService
 
     /**
      * @param  string $title
-     * @param  int    $journalId
+     * @param  int    $journalIssueId
      * @return int    id of the new article
      */
-    public function insert(string $title, int $journalId): int
+    public function insert(string $title, int $journalIssueId): int
     {
         $this->beginTransaction();
         try {
@@ -176,7 +176,7 @@ class ArticleService extends DocumentService
                 'INSERT INTO data.document_contains (idcontainer, idcontent)
                 values (?, ?)',
                 [
-                    $journalId,
+                    $journalIssueId,
                     $id,
                 ]
             );
@@ -190,17 +190,17 @@ class ArticleService extends DocumentService
 
     /**
      * @param  int $id
-     * @param  int $journalId
+     * @param  int $journalIssueId
      * @return int
      */
-    public function updateJournal(int $id, int $journalId): int
+    public function updateJournalIssue(int $id, int $journalIssueId): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set idcontainer = ?
             where document_contains.idcontent = ?',
             [
-                $journalId,
+                $journalIssueId,
                 $id,
             ]
         );

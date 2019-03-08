@@ -27,14 +27,14 @@ class ArticleManager extends DocumentManager
         if (!empty($ids)) {
             $rawArticles = $this->dbs->getMiniInfoByIds($ids);
 
-            $journalIds = self::getUniqueIds($rawArticles, 'journal_id');
-            $journals = $this->container->get('journal_manager')->get($journalIds);
+            $journalIssueIds = self::getUniqueIds($rawArticles, 'journal_issue_id');
+            $journalIssues = $this->container->get('journal_issue_manager')->get($journalIssueIds);
 
             foreach ($rawArticles as $rawArticle) {
                 $article = (new Article(
                     $rawArticle['article_id'],
                     $rawArticle['article_title'],
-                    $journals[$rawArticle['journal_id']]
+                    $journalIssues[$rawArticle['journal_issue_id']]
                 ))
                     ->setStartPage($rawArticle['article_page_start'])
                     ->setEndPage($rawArticle['article_page_end'])
@@ -100,13 +100,13 @@ class ArticleManager extends DocumentManager
     }
 
     /**
-     * Get all articles that are dependent on a specific journal
-     * @param  int   $journalId
+     * Get all articles that are dependent on a specific journal issue
+     * @param  int   $journalIssueId
      * @return array
      */
-    public function getJournalDependencies(int $journalId): array
+    public function getJournalIssueDependencies(int $journalIssueId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId), 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByJournalIssueId($journalIssueId), 'getMini');
     }
 
     /**
@@ -129,20 +129,20 @@ class ArticleManager extends DocumentManager
         if (!property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
-            || !property_exists($data, 'journal')
-            || !is_object($data->journal)
-            || !property_exists($data->journal, 'id')
-            || !is_numeric($data->journal->id)
-            || empty($data->journal->id)
+            || !property_exists($data, 'journalIssue')
+            || !is_object($data->journalIssue)
+            || !property_exists($data->journalIssue, 'id')
+            || !is_numeric($data->journalIssue->id)
+            || empty($data->journalIssue->id)
         ) {
             throw new BadRequestHttpException('Incorrect data to add a new article');
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title, $data->journal->id);
+            $id = $this->dbs->insert($data->title, $data->journalIssue->id);
 
             unset($data->title);
-            unset($data->journal);
+            unset($data->journalIssue);
 
             $new = $this->update($id, $data, true);
 
@@ -191,17 +191,17 @@ class ArticleManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            if (property_exists($data, 'journal')) {
-                // Journal is a required field
-                if (!is_object($data->journal)
-                    || !property_exists($data->journal, 'id')
-                    || !is_numeric($data->journal->id)
-                    || empty($data->journal->id)
+            if (property_exists($data, 'journalIssue')) {
+                // JIssue is a required field
+                if (!is_object($data->journalIssue)
+                    || !property_exists($data->journalIssue, 'id')
+                    || !is_numeric($data->journalIssue->id)
+                    || empty($data->journalIssue->id)
                 ) {
-                    throw new BadRequestHttpException('Incorrect journal data.');
+                    throw new BadRequestHttpException('Incorrect journal issue data.');
                 }
                 $changes['mini'] = true;
-                $this->dbs->updateJournal($id, $data->journal->id);
+                $this->dbs->updateJournalIssue($id, $data->journalIssue->id);
             }
             if (property_exists($data, 'startPage')) {
                 if (!is_numeric($data->startPage)) {

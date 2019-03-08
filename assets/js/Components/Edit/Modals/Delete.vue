@@ -8,7 +8,7 @@
             :alerts="alerts"
             @dismiss="$emit('dismiss-alert', $event)" />
         <div v-if="Object.keys(delDependencies).length !== 0">
-            <p>This location has following dependencies that need to be resolved first:</p>
+            <p>This {{ submitModel.submitType }} has following dependencies that need to be resolved first:</p>
             <template v-for="(dependencyCategory, key) in delDependencies">
                 <em :key="'header-' + key">{{ key }}</em>
                 <ul :key="'list-' + key">

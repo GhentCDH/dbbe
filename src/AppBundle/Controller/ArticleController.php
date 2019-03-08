@@ -50,17 +50,17 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Get all articles that have a dependency on a journal
+     * Get all articles that have a dependency on a journal issue
      * (document_contains)
-     * @Route("/articles/journals/{id}", name="article_deps_by_journal")
+     * @Route("/articles/journal_issues/{id}", name="article_deps_by_journal_issue")
      * @Method("GET")
-     * @param  int    $id journal id
+     * @param  int    $id journal issue id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByJournal(int $id, Request $request)
+    public function getDepsByJournalIssue(int $id, Request $request)
     {
-        return $this->getDependencies($id, $request, 'getJournalDependencies');
+        return $this->getDependencies($id, $request, 'getJournalIssueDependencies');
     }
 
     /**

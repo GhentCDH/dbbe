@@ -42,8 +42,7 @@ class JournalController extends BaseController
             [
                 'urls' => json_encode([
                     'journals_get' => $this->generateUrl('journals_get'),
-                    'article_deps_by_journal' => $this->generateUrl('article_deps_by_journal', ['id' => 'journal_id']),
-                    'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
+                    'journal_issue_deps_by_journal' => $this->generateUrl('journal_issue_deps_by_journal', ['id' => 'journal_id']),
                     'journal_post' => $this->generateUrl('journal_post'),
                     'journal_put' => $this->generateUrl('journal_put', ['id' => 'journal_id']),
                     'journal_delete' => $this->generateUrl('journal_delete', ['id' => 'journal_id']),
@@ -86,6 +85,6 @@ class JournalController extends BaseController
      */
     public function delete(int $id, Request $request)
     {
-        return parent::delete($id);
+        return parent::delete($id, $request);
     }
 }
