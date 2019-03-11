@@ -44,6 +44,7 @@ class JournalController extends BaseController
                     'journals_get' => $this->generateUrl('journals_get'),
                     'journal_issue_deps_by_journal' => $this->generateUrl('journal_issue_deps_by_journal', ['id' => 'journal_id']),
                     'journal_post' => $this->generateUrl('journal_post'),
+                    'journal_merge' => $this->generateUrl('journal_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'journal_put' => $this->generateUrl('journal_put', ['id' => 'journal_id']),
                     'journal_delete' => $this->generateUrl('journal_delete', ['id' => 'journal_id']),
                     'login' => $this->generateUrl('login'),
@@ -51,6 +52,19 @@ class JournalController extends BaseController
                 'journals' => json_encode($this->get(self::MANAGER)->getAllJson()),
             ]
         );
+    }
+
+    /**
+     * @Route("/journals/{primaryId}/{secondaryId}", name="journal_merge")
+     * @Method("PUT")
+     * @param  int    $primaryId   first journal id (will stay)
+     * @param  int    $secondaryId second journal id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**

@@ -133,6 +133,57 @@ class JournalManager extends DocumentManager
     }
 
     /**
+     * Merge two journals
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return Journal
+     */
+    public function merge(int $primaryId, int $secondaryId): Journal
+    {
+        $journals = $this->get([$primaryId, $secondaryId]);
+        if (count($journals) != 2) {
+            if (!array_key_exists($primaryId, $journals)) {
+                throw new NotFoundHttpException('Journal with id ' . $primaryId .' not found.');
+            }
+            if (!array_key_exists($secondaryId, $journals)) {
+                throw new NotFoundHttpException('Journal with id ' . $secondaryId .' not found.');
+            }
+            throw new BadRequestHttpException(
+                'Journals with id ' . $primaryId .' and id ' . $secondaryId . ' cannot be merged.'
+            );
+        }
+        $primary = $journals[$primaryId];
+
+        $journalIssues = $this->container->get('journal_issue_manager')->getJournalDependencies($secondaryId, 'get');
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($journalIssues)) {
+                foreach ($journalIssues as $journalIssue) {
+                    $this->container->get('journal_issue_manager')->update(
+                        $journalIssue->getId(),
+                        json_decode(json_encode([
+                            'journal' => [
+                                'id' => $primaryId,
+                            ],
+                        ]))
+                    );
+                }
+            }
+            $this->delete($secondaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+
+            throw $e;
+        }
+
+        return $primary;
+    }
+
+    /**
      * Delete a journal
      * @param int $id
      */
