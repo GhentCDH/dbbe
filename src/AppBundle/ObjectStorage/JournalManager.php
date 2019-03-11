@@ -58,6 +58,30 @@ class JournalManager extends DocumentManager
     }
 
     /**
+     * Get a list with all related issues and articles
+     * @param int $id
+     * @return array Structure: [journalIssueId => [issue, [article, article]], ...]] (ordered by year, volume, number)
+     */
+    public function getIssuesArticles(int $id) {
+        $raws = $this->dbs->getIssuesArticles($id);
+
+        $articleIds = self::getUniqueIds($raws, 'article_id');
+        $articles = $this->container->get('article_manager')->getMini($articleIds);
+        $journalIssueIds = self::getUniqueIds($raws, 'journal_issue_id');
+        $journalIssues = $this->container->get('journal_issue_manager')->get($journalIssueIds);
+
+        $issuesArticles = [];
+
+        foreach ($raws as $raw) {
+            if (!isset($issuesArticles[$raw['journal_issue_id']])) {
+                $issuesArticles[$raw['journal_issue_id']] = [$journalIssues[$raw['journal_issue_id']], []];
+            }
+            $issuesArticles[$raw['journal_issue_id']][1][] = $articles[$raw['article_id']];
+        }
+        return $issuesArticles;
+    }
+
+    /**
      * Add a new journal
      * @param  stdClass $data
      * @return Journal

@@ -19,6 +19,27 @@ class JournalController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Journal:';
 
     /**
+     * @Route("/journals/{id}", name="journal_get")
+     * @Method("GET")
+     * @param int     $id
+     * @param Request $request
+     */
+    public function getSingle(int $id, Request $request)
+    {
+        $objects = $this->get(static::MANAGER)->get([$id]);
+        if(count($objects) != 1) {
+            $this->createNotFoundException('Journal with id ' . $id . ' not found.');
+        }
+        return $this->render(
+            static::TEMPLATE_FOLDER . 'detail.html.twig',
+            [
+                $objects[$id]::CACHENAME => $objects[$id],
+                'issuesArticles' => $this->get(static::MANAGER)->getIssuesArticles($id),
+            ]
+        );
+    }
+
+    /**
      * @Route("/journals", name="journals_get")
      * @Method("GET")
      * @param Request $request

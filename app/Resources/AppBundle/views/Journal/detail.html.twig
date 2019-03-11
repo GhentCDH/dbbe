@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            <small>Journal</small><br />{{ journal.getTitle() }}
+        </h2>
+        {% for issueArticles in issuesArticles %}
+            <h2> {{ issueArticles[0].getDescription() }}</h2>
+            <ul>
+            {% for article in issueArticles[1] %}
+                <li><a href="{{ path('article_get', {'id': article.getId()}) }}">{{ article.getDescription() }}</a></li>
+            {% endfor %}
+            </ul>
+        {% endfor %}
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

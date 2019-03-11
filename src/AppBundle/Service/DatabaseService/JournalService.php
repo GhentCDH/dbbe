@@ -41,6 +41,22 @@ class JournalService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getIssuesArticles(int $id): array
+    {
+        return $this->conn->executeQuery(
+            'select 
+                journal_issue.identity as journal_issue_id,
+                article.identity as article_id
+            from data.journal
+            inner join data.journal_issue on journal.identity = journal_issue.idjournal
+            inner join data.document_contains on journal_issue.identity = document_contains.idcontainer
+            inner join data.article on document_contains.idcontent = article.identity
+            where journal.identity = ?
+            order by journal_issue.year, journal_issue.volume, journal_issue.number',
+            [$id]
+        )->fetchAll();
+    }
+
     /**
      * @param  string   $title
      * @param  int      $year
