@@ -67,6 +67,7 @@ class BibliographyController extends BaseController
                     'online_source_get' => $this->generateUrl('online_source_get', ['id' => 'online_source_id']),
                     'online_source_edit' => $this->generateUrl('online_source_edit', ['id' => 'online_source_id']),
                     'online_source_delete' => $this->generateUrl('online_source_delete', ['id' => 'online_source_id']),
+                    'journal_get' => $this->generateUrl('journal_get', ['id' => 'journal_id']),
                     'managements_add' => $this->generateUrl('bibliographies_managements_add'),
                     'managements_remove' => $this->generateUrl('bibliographies_managements_remove'),
                 ]),

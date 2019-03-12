@@ -38,6 +38,17 @@ class JournalManager extends DocumentManager
     }
 
     /**
+     * Get all journals
+     * @return array
+     */
+    public function getAll(): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'journal_id');
+        return $this->get($ids);
+    }
+
+    /**
      * Get all journals with minimal information
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array

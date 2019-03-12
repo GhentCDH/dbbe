@@ -94,12 +94,14 @@
                     slot="actions"
                     slot-scope="props">
                     <a
+                        v-if="urls[types[props.row.type.id] + '_edit']"
                         :href="urls[types[props.row.type.id] + '_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
                         class="action"
                         title="Edit">
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
+                        v-if="urls[types[props.row.type.id] + '_delete']"
                         href="#"
                         class="action"
                         title="Delete"
@@ -254,6 +256,7 @@ export default {
                 1: 'book',
                 2: 'book_chapter',
                 3: 'online_source',
+                4: 'journal',
             }
         }
 

@@ -68,6 +68,9 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
                 $items = $this->getContainer()->get($type . '_manager')->getAllShort();
                 $bibliographyElasticService->addMultiple($items);
             }
+
+            $items = $this->getContainer()->get('journal_manager')->getAll();
+            $bibliographyElasticService->addMultiple($items);
         }
 
         // (Re)index verses

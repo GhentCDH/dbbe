@@ -40,4 +40,21 @@ class Journal extends Document
 
         return $result;
     }
+
+    /**
+     * @return array
+     */
+    public function getElastic(): array
+    {
+        $result = parent::getElastic();
+
+        $result['type'] = [
+            'id' => 4,
+            'name' => 'Journal',
+        ];
+
+        $result['title'] = $this->title;
+
+        return $result;
+    }
 }
