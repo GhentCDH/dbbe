@@ -116,6 +116,9 @@ class JournalManager extends DocumentManager
 
             $this->cache->invalidateTags(['journals']);
 
+            // (re-)index in elastic search
+            $this->ess->add($new);
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -155,7 +158,10 @@ class JournalManager extends DocumentManager
 
             $this->updateModified($journals[$id], $new);
 
-            $this->cache->invalidateTags(['journals']);
+            $this->cache->invalidateTags(['journals', 'journal_issues', 'articles']);
+
+            // (re-)index in elastic search
+            $this->ess->add($new);
 
             // commit transaction
             $this->dbs->commit();
@@ -205,6 +211,7 @@ class JournalManager extends DocumentManager
                     );
                 }
             }
+
             $this->delete($secondaryId);
 
             // commit transaction
@@ -234,9 +241,12 @@ class JournalManager extends DocumentManager
 
             $this->dbs->delete($id);
 
+            $this->updateModified($journal, null);
+
             $this->cache->invalidateTags(['journals']);
 
-            $this->updateModified($journal, null);
+            // (re-)index in elastic search
+            $this->ess->delete($id);
 
             // commit transaction
             $this->dbs->commit();

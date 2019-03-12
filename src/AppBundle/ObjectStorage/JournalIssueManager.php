@@ -171,7 +171,7 @@ class JournalIssueManager extends DocumentManager
 
             $this->updateModified($journalIssues[$id], $new);
 
-            $this->cache->invalidateTags(['journal_issues']);
+            $this->cache->invalidateTags(['journal_issues', 'articles']);
 
             // commit transaction
             $this->dbs->commit();

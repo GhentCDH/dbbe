@@ -105,7 +105,7 @@ services:
 
     journal_manager:
         class: AppBundle\ObjectStorage\JournalManager
-        arguments: ['@journal_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal']
+        arguments: ['@journal_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'journal']
         public: true
 
     journal_issue_manager:
