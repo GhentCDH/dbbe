@@ -8,7 +8,7 @@ use AppBundle\Exceptions\DependencyException;
 
 use Doctrine\DBAL\Connection;
 
-class JournalService extends DatabaseService
+class JournalService extends DocumentService
 {
     /**
      * Get all journal ids

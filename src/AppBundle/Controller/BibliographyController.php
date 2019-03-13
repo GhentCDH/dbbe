@@ -127,6 +127,9 @@ class BibliographyController extends BaseController
             $this
                 ->get('online_source_manager')
                 ->addManagements($content);
+            $this
+                ->get('journal_manager')
+                ->addManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -168,6 +171,9 @@ class BibliographyController extends BaseController
                 ->removeManagements($content);
             $this
                 ->get('online_source_manager')
+                ->removeManagements($content);
+            $this
+                ->get('journal_manager')
                 ->removeManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(

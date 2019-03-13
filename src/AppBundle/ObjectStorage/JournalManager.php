@@ -37,6 +37,14 @@ class JournalManager extends DocumentManager
         return $journals;
     }
 
+    public function getShort(array $ids): array
+    {
+        $journals = $this->get($ids);
+        $this->setManagements($journals);
+
+        return $journals;
+    }
+
     /**
      * Get all journals
      * @return array
