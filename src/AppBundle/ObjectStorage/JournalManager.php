@@ -161,6 +161,10 @@ class JournalManager extends DocumentManager
                 $this->dbs->updateTitle($id, $data->title);
             }
 
+            if (!$correct) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+
             // load new data
             $new = $this->get([$id])[$id];
 
