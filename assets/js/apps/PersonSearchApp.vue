@@ -228,10 +228,10 @@
                     <span class="checkbox checkbox-primary">
                         <input
                             :id="props.row.id"
+                            v-model="collectionArray"
                             :name="props.row.id"
+                            :value="props.row.id"
                             type="checkbox"
-                            :checked="collectionArray.includes(props.row.id)"
-                            @click.prevent="collectionToggle(props.row.id)"
                         >
                         <label :for="props.row.id" />
                     </span>
@@ -257,7 +257,7 @@
             </div>
             <collectionManager
                 v-if="isViewInternal"
-                :collectionArray="collectionArray"
+                :collection-array="collectionArray"
                 :managements="managements"
                 @addManagementsToSelection="addManagementsToSelection"
                 @removeManagementsFromSelection="removeManagementsFromSelection"

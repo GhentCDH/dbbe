@@ -505,13 +505,13 @@ export default {
                 }
             }
             if (allChecked) {
-                for (let row of this.data.data) {
-                    this.collectionArray.splice(this.collectionArray.indexOf(row.id), 1)
-                }
+                this.clearCollection()
             }
             else {
                 for (let row of this.data.data) {
-                    this.collectionArray.push(row.id)
+                    if (!this.collectionArray.includes(row.id)) {
+                        this.collectionArray.push(row.id)
+                    }
                 }
             }
         },
