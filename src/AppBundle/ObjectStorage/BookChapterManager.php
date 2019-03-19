@@ -238,7 +238,7 @@ class BookChapterManager extends DocumentManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            if (!$isNew && isset($new)) {
+            if (!$isNew && isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
             throw $e;

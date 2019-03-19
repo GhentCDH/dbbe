@@ -646,30 +646,32 @@ class OccurrenceManager extends PoemManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            if (!$isNew && isset($new)) {
+            if (!$isNew && isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
 
-            // Reset manuscripts (potentially old and new)
-            // (person roles)
-            // If this is a new occurrence, the manuscript will be linked in the old occurrence
-            $manuscriptIds = [$old->getManuscript()->getId()];
-            if (isset($data->manuscript)) {
-                $manuscriptIds[] = $data->manuscript->id;
-            }
-            $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
+            if (isset($old)) {
+                // Reset manuscripts (potentially old and new)
+                // (person roles)
+                // If this is a new occurrence, the manuscript will be linked in the old occurrence
+                $manuscriptIds = [$old->getManuscript()->getId()];
+                if (isset($data->manuscript)) {
+                    $manuscriptIds[] = $data->manuscript->id;
+                }
+                $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
 
-            // Reset types (potentially old and new)
-            // (number of occurrences)
-            $typeIds = array_keys($old->getTypes());
-            if (isset($data->types)) {
-                foreach ($data->types as $type) {
-                    if (!in_array($type->id, $typeIds)) {
-                        $typeIds[] = $type->id;
+                // Reset types (potentially old and new)
+                // (number of occurrences)
+                $typeIds = array_keys($old->getTypes());
+                if (isset($data->types)) {
+                    foreach ($data->types as $type) {
+                        if (!in_array($type->id, $typeIds)) {
+                            $typeIds[] = $type->id;
+                        }
                     }
                 }
+                $this->container->get('type_manager')->updateElasticByIds($typeIds);
             }
-            $this->container->get('type_manager')->updateElasticByIds($typeIds);
 
             // Reset verses
             if (isset($touched)) {

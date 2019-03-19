@@ -478,7 +478,7 @@ class TypeManager extends PoemManager
             $this->dbs->rollBack();
 
             // reset elasticsearch
-            if (!$isNew && isset($new)) {
+            if (!$isNew && isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
             throw $e;
