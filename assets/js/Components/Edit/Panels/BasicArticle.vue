@@ -101,9 +101,11 @@ export default {
     },
     methods: {
         init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model));
-            this.enableField(this.schema.fields.journal);
-            this.journalChange();
+            if (Object.keys(this.originalModel).length === 0) {
+                this.originalModel = JSON.parse(JSON.stringify(this.model));
+                this.enableField(this.schema.fields.journal);
+                this.journalChange();
+            }
         },
         journalChange() {
             if (this.model.journal == null) {
