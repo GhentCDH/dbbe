@@ -28,6 +28,12 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        values: {
+            type: Object,
+            default: () => {return {}}
+        },
+    },
     data() {
         return {
             schema: {
@@ -42,8 +48,22 @@ export default {
                         validator: VueFormGenerator.validators.string,
                     },
                     journal: this.createMultiSelect(
-                        'JIssue',
-                        {values: this.values}
+                        'Journal',
+                        {
+                            values: this.values.journals,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
+                    journalIssue: this.createMultiSelect(
+                        'Journal Issue',
+                        {
+                            model: 'journalIssue',
+                            dependency: 'journal',
+                            values: this.values.journalIssues,
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
                     ),
                     startPage: {
                         type: 'input',
@@ -74,10 +94,24 @@ export default {
             },
         }
     },
+    watch: {
+        'model.journal'() {
+            this.journalChange();
+        },
+    },
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model));
-            this.enableField(this.schema.fields.journal)
+            this.enableField(this.schema.fields.journal);
+            this.journalChange();
+        },
+        journalChange() {
+            if (this.model.journal == null) {
+                this.dependencyField(this.schema.fields.journalIssue)
+            } else {
+                this.schema.fields.journalIssue.values = this.values.journalIssues.filter((journalIssue) => journalIssue.journalId === this.model.journal.id);
+                this.enableField(this.schema.fields.journalIssue)
+            }
         },
         startBeforeEndValidator() {
             if (this.model.startPage != null && this.model.endPage != null) {

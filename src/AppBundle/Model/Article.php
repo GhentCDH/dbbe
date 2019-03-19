@@ -120,6 +120,7 @@ class Article extends Document
             $result['title'] = $this->title;
         }
         if (!empty($this->journalIssue)) {
+            $result['journal'] = $this->journalIssue->getJournal()->getShortJson();
             $result['journalIssue'] = $this->journalIssue->getShortJson();
         }
         if (!empty($this->getStartPage())) {

@@ -30,7 +30,7 @@
                 header="Basic Information"
                 :links="[{url: urls['journals_edit'], text: 'Edit journals'}]"
                 :model="model.basic"
-                :values="journals"
+                :values="journalsAndIssues"
                 @validated="validated"
             />
 
@@ -168,6 +168,7 @@ export default {
                 basic: {
                     title: null,
                     journal: null,
+                    journalIssue: null,
                     startPage: null,
                     endPage: null,
                     rawPages: null,
@@ -196,7 +197,10 @@ export default {
     created () {
         this.article = this.data.article
         this.modernPersons = this.data.modernPersons
-        this.journals = this.data.journals
+        this.journalsAndIssues = {
+            journals: this.data.journals,
+            journalIssues: this.data.journalIssues,
+        }
         this.managements = this.data.managements
     },
     mounted () {
@@ -218,6 +222,7 @@ export default {
                 this.model.basic = {
                     title: this.article.title,
                     journal: this.article.journal,
+                    journalIssue: this.article.journalIssue,
                     startPage: this.article.startPage,
                     endPage: this.article.endPage,
                     rawPages: this.article.rawPages,

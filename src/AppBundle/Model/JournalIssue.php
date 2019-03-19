@@ -68,6 +68,7 @@ class JournalIssue extends Document
         return [
             'id' => $this->id,
             'name' => $this->getDescription(),
+            'journalId' => $this->journal->getId(),
         ];
     }
 
