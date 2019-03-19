@@ -108,6 +108,7 @@ class ManagementManager extends ObjectManager
             }
             $old = $managements[$id];
 
+            $correct = false;
             if (property_exists($data, 'name')
                 && is_string($data->name)
                 && !empty($data->name)

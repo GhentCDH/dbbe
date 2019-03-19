@@ -39,6 +39,7 @@ class LocationManager extends ObjectManager
 
     private function getByType(string $type): array
     {
+        $rawIds = [];
         switch ($type) {
             case 'manuscript':
                 $rawIds = $this->dbs->getLocationIdsForManuscripts();

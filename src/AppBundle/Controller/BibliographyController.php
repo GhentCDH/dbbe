@@ -249,7 +249,7 @@ class BibliographyController extends BaseController
             }
         }
 
-        if (isset($filters) && is_array($filters)) {
+        if (!empty($filters)) {
             $esParams['filters'] = $filters;
         }
 

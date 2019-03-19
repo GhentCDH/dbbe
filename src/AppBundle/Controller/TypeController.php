@@ -494,7 +494,7 @@ class TypeController extends EditController
             }
         }
 
-        if (isset($filters)) {
+        if (!empty($filters)) {
             // sanitize text_stem
             if (!(isset($filters['text_stem']) && in_array($filters['text_stem'], ['original', 'stemmer']))) {
                 $filters['text_stem'] = 'original';

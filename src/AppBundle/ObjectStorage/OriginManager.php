@@ -20,16 +20,19 @@ class OriginManager extends ObjectManager
 
     public function getByType(string $type): array
     {
+        $rawIds = [];
         switch ($type) {
             case 'manuscript':
-                $rawOrigins = $this->dbs->getOriginIdsForManuscripts();
+                $rawIds = $this->dbs->getOriginIdsForManuscripts();
                 break;
             case 'person':
-                $rawOrigins = $this->dbs->getOriginIdsForPersons();
+                $rawIds = $this->dbs->getOriginIdsForPersons();
                 break;
         }
-        $originIds = self::getUniqueIds($rawOrigins, 'origin_id');
+        $originIds = self::getUniqueIds($rawIds, 'origin_id');
         $locations = $this->container->get('location_manager')->get($originIds);
+
+        $origins = [];
         foreach ($locations as $location) {
             $origins[$location->getId()] = Origin::fromLocation($location);
         }

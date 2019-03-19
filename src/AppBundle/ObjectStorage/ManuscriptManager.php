@@ -240,10 +240,8 @@ class ManuscriptManager extends DocumentManager
     {
         $this->dbs->beginTransaction();
         try {
+            // Throws NotFoundException if not found
             $old = $this->getFull($id);
-            if ($old == null) {
-                throw new NotFoundHttpException('Manuscript with id ' . $id .' not found.');
-            }
 
             $changes = [
                 'mini' => $isNew,
@@ -366,12 +364,12 @@ class ManuscriptManager extends DocumentManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch on elasticsearch error
-            if (!$isNew && isset($new)) {
+            if (!$isNew && isset($new) && isset($old)) {
                 $this->ess->add($old);
 
                 // New manuscripts cannot have occurrence dependencies
                 // Elastic occurrences are only updated when mini information is modified
-                if ($changes['mini'] || $changes['short']) {
+                if (isset($changes) && ($changes['mini'] || $changes['short'])) {
                     $this->container->get('occurrence_manager')->updateElasticByIds(
                         $this->container->get('occurrence_manager')->getManuscriptDependencies($id, 'getId')
                     );

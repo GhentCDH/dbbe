@@ -415,6 +415,7 @@ class PersonManager extends ObjectEntityManager
 
     private function getByType(string $type): array
     {
+        $rawIds = [];
         switch ($type) {
             case 'historical':
                 $rawIds = $this->dbs->getHistoricalIds();
@@ -709,7 +710,7 @@ class PersonManager extends ObjectEntityManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            if (!$isNew && isset($new)) {
+            if (!$isNew && isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
 

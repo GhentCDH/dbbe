@@ -18,6 +18,7 @@ abstract class PoemManager extends DocumentManager
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
 
+        $objects = [];
         switch ($level) {
             case 'micro':
                 $objects = $this->getMicro($ids);

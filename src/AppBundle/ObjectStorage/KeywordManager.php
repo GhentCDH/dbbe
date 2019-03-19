@@ -41,6 +41,7 @@ class KeywordManager extends ObjectManager
 
     public function getByType(string $type): array
     {
+        $rawIds = [];
         switch ($type) {
             case 'subject':
                 $rawIds = $this->dbs->getSubjectIds();

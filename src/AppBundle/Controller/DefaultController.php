@@ -147,10 +147,6 @@ class DefaultController extends Controller
      */
     public function forceAction(Request $request)
     {
-        if (!isset($_SESSION)) {
-                session_start();
-        }
-
         session_destroy();
 
         // Redirect so the security token is loaded properly

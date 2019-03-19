@@ -15,6 +15,7 @@ abstract class ElasticBaseService extends ElasticSearchService
     {
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
+        $properties = [];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];
             $properties[$role . '_public'] = ['type' => 'nested'];

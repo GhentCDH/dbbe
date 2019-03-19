@@ -45,6 +45,7 @@ abstract class ObjectEntityManager extends EntityManager
         $rawIds = $this->dbs->getIds();
         $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
 
+        $objects = [];
         switch ($level) {
             case 'mini':
                 $objects = $this->getMini($ids);
