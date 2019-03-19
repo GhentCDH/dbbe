@@ -59,7 +59,8 @@
         ],
         "post-update-cmd": [
             "@symfony-scripts"
-        ]
+        ],
+        "phpcs": "phpcs --standard=PSR2"
     },
     "config": {
         "sort-packages": true
