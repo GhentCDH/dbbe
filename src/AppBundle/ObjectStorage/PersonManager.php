@@ -2,7 +2,6 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\SelfDesignation;
 use Exception;
 use stdClass;
 
@@ -22,7 +21,7 @@ use AppBundle\Model\Origin;
  * ObjectManager for persons
  * Servicename: person_manager
  */
-class PersonManager extends EntityManager
+class PersonManager extends ObjectEntityManager
 {
     /**
      * Get persons with enough information to get an id and a full description (without offices)
@@ -514,10 +513,8 @@ class PersonManager extends EntityManager
     {
         $this->dbs->beginTransaction();
         try {
+            // Throws NotFoundException if not found
             $old = $this->getFull($id);
-            if ($old == null) {
-                throw new NotFoundHttpException('Person with id ' . $id .' not found.');
-            }
 
             // update person data
             $changes = [

@@ -11,7 +11,7 @@ use AppBundle\Model\Document;
 use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Role;
 
-class DocumentManager extends EntityManager
+abstract class DocumentManager extends ObjectEntityManager
 {
     public function getStatusDependencies(int $statusId, string $method): array
     {

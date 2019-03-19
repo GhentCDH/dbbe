@@ -12,6 +12,8 @@ use AppBundle\Model\Verse;
 
 class VerseManager extends ObjectManager
 {
+    use UpdateElasticByIdsTrait;
+
     public function getMini(array $ids): array
     {
         $rawVerses = $this->dbs->getBasicInfoByIds($ids);

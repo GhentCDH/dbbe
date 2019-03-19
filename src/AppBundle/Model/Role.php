@@ -16,10 +16,10 @@ class Role extends IdNameObject
 
     public function __construct(int $id, array $usage, string $systemName, string $name, bool $contributorRole, bool $rank)
     {
-        $this->id = $id;
+        parent::__construct($id, $name);
+
         $this->usage = $usage;
         $this->systemName = $systemName;
-        $this->name = $name;
         $this->contributorRole = $contributorRole;
         $this->rank = $rank;
     }

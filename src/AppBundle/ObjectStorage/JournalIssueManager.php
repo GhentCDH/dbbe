@@ -22,13 +22,13 @@ class JournalIssueManager extends DocumentManager
      * @param  array $ids
      * @return array
      */
-    public function get(array $ids): array
+    public function getMini(array $ids): array
     {
         $journalIssues = [];
         $rawJournalIssues = $this->dbs->getJournalIssuesByIds($ids);
 
         $journalIds = self::getUniqueIds($rawJournalIssues, 'journal_id');
-        $journals = $this->container->get('journal_manager')->get($journalIds);
+        $journals = $this->container->get('journal_manager')->getMini($journalIds);
 
         foreach ($rawJournalIssues as $rawJournalIssue) {
             $journalIssues[$rawJournalIssue['journal_issue_id']] = new JournalIssue(
@@ -41,6 +41,20 @@ class JournalIssueManager extends DocumentManager
         }
 
         return $journalIssues;
+    }
+
+    public function getShort(array $ids): array
+    {
+        return $this->getMini($ids);
+    }
+
+    public function getFull(int $id): JournalIssue
+    {
+        $journalIssues = $this->getShort([$id]);
+        if (count($journalIssues) == 0) {
+            throw new NotFoundHttpException('Journal issue with id ' . $id .' not found.');
+        }
+        return $journalIssues[$id];
     }
 
     /**
@@ -100,7 +114,7 @@ class JournalIssueManager extends DocumentManager
         try {
             $id = $this->dbs->insert($data->journal->id, $data->year, $data->volume, $data->number);
 
-            $new = $this->get([$id])[$id];
+            $new = $this->getFull($id);
 
             $this->updateModified(null, $new);
 
@@ -124,10 +138,8 @@ class JournalIssueManager extends DocumentManager
      */
     public function update(int $id, stdClass $data): JournalIssue
     {
-        $journalIssues = $this->get([$id]);
-        if (count($journalIssues) == 0) {
-            throw new NotFoundHttpException('Journal issue with id ' . $id .' not found.');
-        }
+        // Throws NotFoundException if not found
+        $old = $this->getFull($id);
 
         $this->dbs->beginTransaction();
         try {
@@ -167,9 +179,9 @@ class JournalIssueManager extends DocumentManager
             }
 
             // load new data
-            $new = $this->get([$id])[$id];
+            $new = $this->getFull($id);
 
-            $this->updateModified($journalIssues[$id], $new);
+            $this->updateModified($old, $new);
 
             $this->cache->invalidateTags(['journal_issues', 'articles']);
 
@@ -191,17 +203,14 @@ class JournalIssueManager extends DocumentManager
     {
         $this->dbs->beginTransaction();
         try {
-            $journalIssues = $this->get([$id]);
-            if (count($journalIssues) == 0) {
-                throw new NotFoundHttpException('Journal issue with id ' . $id .' not found.');
-            }
-            $journalIssue = $journalIssues[$id];
+            // Throws NotFoundException if not found
+            $old = $this->getFull($id);
 
             $this->dbs->delete($id);
 
             $this->cache->invalidateTags(['journal_issues']);
 
-            $this->updateModified($journalIssue, null);
+            $this->updateModified($old, null);
 
             // commit transaction
             $this->dbs->commit();

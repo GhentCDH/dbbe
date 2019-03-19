@@ -23,7 +23,7 @@ class TranslationManager extends DocumentManager
      * @param  array $ids
      * @return array
      */
-    public function get(array $ids): array
+    public function getMini(array $ids): array
     {
         $translations = [];
         $rawTranslations = $this->dbs->getTranslationsByIds($ids);
@@ -40,11 +40,16 @@ class TranslationManager extends DocumentManager
         return $translations;
     }
 
-    public function getSingle(int $id): Translation
+    public function getShort(array $ids): array
     {
-        $translations = $this->get([$id]);
-        if (empty($translations)) {
-            throw new NotFoundHttpException('Translation with id ' . $id . ' not found.');
+        return $this->getMini($ids);
+    }
+
+    public function getFull(int $id): Translation
+    {
+        $translations = $this->getShort([$id]);
+        if (count($translations) == 0) {
+            throw new NotFoundHttpException('Translation with id ' . $id .' not found.');
         }
         return $translations[$id];
     }
@@ -90,7 +95,7 @@ class TranslationManager extends DocumentManager
     {
         $this->dbs->beginTransaction();
         try {
-            $old = $this->getSingle($id);
+            $old = $this->getFull($id);
 
             $correct = false;
             if (property_exists($data, 'text')) {
@@ -124,7 +129,7 @@ class TranslationManager extends DocumentManager
             }
 
             // load new data
-            $new = $this->getSingle($id);
+            $new = $this->getFull($id);
 
             $this->updateModified($isNew ? null : $old, $new);
 
@@ -292,7 +297,7 @@ class TranslationManager extends DocumentManager
         $this->dbs->beginTransaction();
         try {
             // Throws NotFoundException if not found
-            $old = $this->getSingle($id);
+            $old = $this->getFull($id);
 
             // Cascades to translation_of table
             $this->dbs->delete($id);

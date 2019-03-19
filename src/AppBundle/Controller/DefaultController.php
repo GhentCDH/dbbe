@@ -24,7 +24,7 @@ class DefaultController extends Controller
         'article',
         'book',
         'book_chapter',
-        'online_source'
+        'online_source',
     ];
 
     /**

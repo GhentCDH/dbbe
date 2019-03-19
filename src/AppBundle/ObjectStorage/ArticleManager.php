@@ -28,7 +28,7 @@ class ArticleManager extends DocumentManager
             $rawArticles = $this->dbs->getMiniInfoByIds($ids);
 
             $journalIssueIds = self::getUniqueIds($rawArticles, 'journal_issue_id');
-            $journalIssues = $this->container->get('journal_issue_manager')->get($journalIssueIds);
+            $journalIssues = $this->container->get('journal_issue_manager')->getMini($journalIssueIds);
 
             foreach ($rawArticles as $rawArticle) {
                 $article = (new Article(

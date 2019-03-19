@@ -9,8 +9,42 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 /**
  * ObjectManager for poems (occurrences and types)
  */
-class PoemManager extends DocumentManager
+abstract class PoemManager extends DocumentManager
 {
+    abstract public function getMicro(array $ids): array;
+
+    protected function getAllCombined(string $level, string $sortFunction = null): array
+    {
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, $this->entityType . '_id');
+
+        switch ($level) {
+            case 'micro':
+                $objects = $this->getMicro($ids);
+                break;
+            case 'mini':
+                $objects = $this->getMini($ids);
+                break;
+            case 'short':
+                $objects = $this->getShort($ids);
+                break;
+            case 'sitemap':
+                $objects = $this->getSitemap($ids);
+                break;
+        }
+
+        if (!empty($sortFunction)) {
+            usort($objects, function ($a, $b) use ($sortFunction) {
+                if ($sortFunction == 'getId') {
+                    return $a->{$sortFunction}() > $b->{$sortFunction}();
+                }
+                return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
+            });
+        }
+
+        return $objects;
+    }
+
     public function getMetreDependencies(int $metreId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByMetreId($metreId), $method);

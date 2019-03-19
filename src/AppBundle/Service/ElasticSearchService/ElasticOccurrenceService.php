@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticOccurrenceService extends ElasticBaseService
+class ElasticOccurrenceService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -184,31 +184,31 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
 
             switch ($value) {
-                case 'id':
-                case 'prev_id':
-                    $result['numeric'][] = $value;
-                    break;
-                case 'person':
-                    $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                    break;
-                case 'metre':
-                case 'subject':
-                case 'genre':
-                case 'acknowledgement':
-                case 'management':
-                    $result['nested'][] = $value;
-                    break;
-                case 'manuscript':
-                case 'text_status':
-                    $result['object'][] = $value;
-                    break;
-                case 'manuscript_content':
-                    $result['nested'][] = $viewInternal ? $value : $value . '_public';
-                    break;
-                case 'public':
-                case 'dbbe':
-                    $result['boolean'][] = $value;
-                    break;
+            case 'id':
+            case 'prev_id':
+                $result['numeric'][] = $value;
+                break;
+            case 'person':
+                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                break;
+            case 'metre':
+            case 'subject':
+            case 'genre':
+            case 'acknowledgement':
+            case 'management':
+                $result['nested'][] = $value;
+                break;
+            case 'manuscript':
+            case 'text_status':
+                $result['object'][] = $value;
+                break;
+            case 'manuscript_content':
+                $result['nested'][] = $viewInternal ? $value : $value . '_public';
+                break;
+            case 'public':
+            case 'dbbe':
+                $result['boolean'][] = $value;
+                break;
             }
         }
         return $result;
@@ -235,122 +235,121 @@ class ElasticOccurrenceService extends ElasticBaseService
             }
 
             switch ($key) {
-                case 'id':
-                case 'prev_id':
-                    $result['numeric'][$key] = $value;
-                    break;
-                case 'text':
-                    switch ($filters['text_fields']) {
-                        case 'text':
-                        case 'title':
-                            $result['text'][$key] = [
-                                'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
+            case 'id':
+            case 'prev_id':
+                $result['numeric'][$key] = $value;
+                break;
+            case 'text':
+                switch ($filters['text_fields']) {
+                    case 'text':
+                    case 'title':
+                        $result['text'][$key] = [
+                            'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
+                            'text' => $value,
+                            'combination' => $filters['text_combination'],
+                        ];
+                        break;
+                    case 'all':
+                        $result['multiple_text'][$key] = [
+                            'text' => [
+                                'field' => 'text_' . $filters['text_stem'],
                                 'text' => $value,
                                 'combination' => $filters['text_combination'],
-                            ];
-                            break;
-                        case 'all':
-                            $result['multiple_text'][$key] = [
-                                'text' => [
-                                    'field' => 'text_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                                'title' => [
-                                    'field' => 'title_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                            ];
-                            break;
-                    }
-                    break;
-                case 'metre':
-                case 'subject':
-                case 'genre':
-                case 'acknowledgement':
+                            ],
+                            'title' => [
+                                'field' => 'title_' . $filters['text_stem'],
+                                'text' => $value,
+                                'combination' => $filters['text_combination'],
+                            ],
+                        ];
+                        break;
+                }
+                break;
+            case 'metre':
+            case 'subject':
+            case 'genre':
+            case 'acknowledgement':
+                $result['nested'][$key] = $value;
+                break;
+            case 'manuscript':
+            case 'text_status':
+                $result['object'][$key] = $value;
+                break;
+            case 'person':
+                if (isset($filters['role'])) {
+                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                } else {
+                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                }
+                break;
+            case 'date':
+                $date_result = [
+                    'floorField' => 'date_floor_year',
+                    'ceilingField' => 'date_ceiling_year',
+                    'type' => $filters['date_search_type'],
+                ];
+                if (array_key_exists('from', $value)) {
+                    $date_result['startDate'] = $value['from'];
+                }
+                if (array_key_exists('to', $value)) {
+                    $date_result['endDate'] = $value['to'];
+                }
+                $result['date_range'][] = $date_result;
+                break;
+            case 'manuscript_content':
+                if ($viewInternal) {
                     $result['nested'][$key] = $value;
-                    break;
-                case 'manuscript':
-                case 'text_status':
-                    $result['object'][$key] = $value;
-                    break;
-                case 'person':
-                    if (isset($filters['role'])) {
-                        $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
-                    } else {
-                        $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                    }
-                    break;
-                case 'date':
-                    $date_result = [
-                        'floorField' => 'date_floor_year',
-                        'ceilingField' => 'date_ceiling_year',
-                        'type' => $filters['date_search_type'],
-                    ];
-                    if (array_key_exists('from', $value)) {
-                        $date_result['startDate'] = $value['from'];
-                    }
-                    if (array_key_exists('to', $value)) {
-                        $date_result['endDate'] = $value['to'];
-                    }
-                    $result['date_range'][] = $date_result;
-                    break;
-                case 'manuscript_content':
-                    if ($viewInternal) {
-                        $result['nested'][$key] = $value;
-                    } else {
-                        $result['nested'][$key . '_public'] = $value;
-                    }
-                    break;
-                // Management collections
-                case 'management':
-                    if (isset($filters['management_inverse']) && $filters['management_inverse']) {
-                        $result['nested_toggle'][$key] = [$value, false];
-                    } else {
-                        $result['nested_toggle'][$key] = [$value, true];
-                    }
-                    break;
-                case 'public_comment':
-                    $result['multiple_text'][$key] = [
-                        'public_comment'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'palaeographical_info'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'contextual_info'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                    ];
-                    break;
-                case 'comment':
-                    $result['multiple_text'][$key] = [
-                        'public_comment'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'private_comment'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'palaeographical_info'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'contextual_info'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                    ];
-                    break;
-                case 'public':
-                case 'dbbe':
-                    $result['boolean'][$key] = ($value === '1');
-                    break;
+                } else {
+                    $result['nested'][$key . '_public'] = $value;
+                }
+                break;
+            case 'management':
+                if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                    $result['nested_toggle'][$key] = [$value, false];
+                } else {
+                    $result['nested_toggle'][$key] = [$value, true];
+                }
+                break;
+            case 'public_comment':
+                $result['multiple_text'][$key] = [
+                    'public_comment'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                    'palaeographical_info'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                    'contextual_info'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                ];
+                break;
+            case 'comment':
+                $result['multiple_text'][$key] = [
+                    'public_comment'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                    'private_comment'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                    'palaeographical_info'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                    'contextual_info'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                ];
+                break;
+            case 'public':
+            case 'dbbe':
+                $result['boolean'][$key] = ($value === '1');
+                break;
             }
         }
         return $result;

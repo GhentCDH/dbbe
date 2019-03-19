@@ -5,7 +5,7 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ElasticTypeService extends ElasticBaseService
+class ElasticTypeService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
@@ -177,29 +177,29 @@ class ElasticTypeService extends ElasticBaseService
             }
 
             switch ($value) {
-                case 'id':
-                case 'prev_id':
-                    $result['numeric'][] = $value;
-                    break;
-                case 'person':
-                    $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                    break;
-                case 'metre':
-                case 'subject':
-                case 'tag':
-                case 'genre':
-                case 'acknowledgement':
-                case 'management':
-                    $result['nested'][] = $value;
-                    break;
-                case 'text_status':
-                case 'critical_status':
-                    $result['object'][] = $value;
-                    break;
-                case 'public':
-                case 'dbbe':
-                    $result['boolean'][] = $value;
-                    break;
+            case 'id':
+            case 'prev_id':
+                $result['numeric'][] = $value;
+                break;
+            case 'person':
+                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                break;
+            case 'metre':
+            case 'subject':
+            case 'tag':
+            case 'genre':
+            case 'acknowledgement':
+            case 'management':
+                $result['nested'][] = $value;
+                break;
+            case 'text_status':
+            case 'critical_status':
+                $result['object'][] = $value;
+                break;
+            case 'public':
+            case 'dbbe':
+                $result['boolean'][] = $value;
+                break;
             }
         }
         return $result;
@@ -226,102 +226,101 @@ class ElasticTypeService extends ElasticBaseService
             }
 
             switch ($key) {
-                case 'id':
-                case 'prev_id':
-                    $result['numeric'][$key] = $value;
-                    break;
-                case 'text':
-                    switch ($filters['text_fields']) {
-                        case 'text':
-                            $result['text'][$key] = [
-                                'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
+            case 'id':
+            case 'prev_id':
+                $result['numeric'][$key] = $value;
+                break;
+            case 'text':
+                switch ($filters['text_fields']) {
+                    case 'text':
+                        $result['text'][$key] = [
+                            'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
+                            'text' => $value,
+                            'combination' => $filters['text_combination'],
+                        ];
+                        break;
+                    case 'title':
+                        $result['multiple_text'][$key] = [
+                            'title_GR' => [
+                                'field' => 'title_GR_' . $filters['text_stem'],
                                 'text' => $value,
                                 'combination' => $filters['text_combination'],
-                            ];
-                            break;
-                        case 'title':
-                            $result['multiple_text'][$key] = [
-                                'title_GR' => [
-                                    'field' => 'title_GR_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                                'title_LA' => [
-                                    'field' => 'title_LA_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                            ];
-                            break;
-                        case 'all':
-                            $result['multiple_text'][$key] = [
-                                'text' => [
-                                    'field' => 'text_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                                'title_GR' => [
-                                    'field' => 'title_GR_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                                'title_LA' => [
-                                    'field' => 'title_LA_' . $filters['text_stem'],
-                                    'text' => $value,
-                                    'combination' => $filters['text_combination'],
-                                ],
-                            ];
-                            break;
-                    }
-                    break;
-                case 'metre':
-                case 'subject':
-                case 'tag':
-                case 'genre':
-                case 'acknowledgement':
-                    $result['nested'][$key] = $value;
-                    break;
-                case 'text_status':
-                case 'critical_status':
-                    $result['object'][$key] = $value;
-                    break;
-                case 'person':
-                    if (isset($filters['role'])) {
-                        $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
-                    } else {
-                        $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
-                    }
-                    break;
-                // Management collections
-                case 'management':
-                    if (isset($filters['management_inverse']) && $filters['management_inverse']) {
-                        $result['nested_toggle'][$key] = [$value, false];
-                    } else {
-                        $result['nested_toggle'][$key] = [$value, true];
-                    }
-                    break;
-                case 'public_comment':
-                    $result['text'][$key] = [
+                            ],
+                            'title_LA' => [
+                                'field' => 'title_LA_' . $filters['text_stem'],
+                                'text' => $value,
+                                'combination' => $filters['text_combination'],
+                            ],
+                        ];
+                        break;
+                    case 'all':
+                        $result['multiple_text'][$key] = [
+                            'text' => [
+                                'field' => 'text_' . $filters['text_stem'],
+                                'text' => $value,
+                                'combination' => $filters['text_combination'],
+                            ],
+                            'title_GR' => [
+                                'field' => 'title_GR_' . $filters['text_stem'],
+                                'text' => $value,
+                                'combination' => $filters['text_combination'],
+                            ],
+                            'title_LA' => [
+                                'field' => 'title_LA_' . $filters['text_stem'],
+                                'text' => $value,
+                                'combination' => $filters['text_combination'],
+                            ],
+                        ];
+                        break;
+                }
+                break;
+            case 'metre':
+            case 'subject':
+            case 'tag':
+            case 'genre':
+            case 'acknowledgement':
+                $result['nested'][$key] = $value;
+                break;
+            case 'text_status':
+            case 'critical_status':
+                $result['object'][$key] = $value;
+                break;
+            case 'person':
+                if (isset($filters['role'])) {
+                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                } else {
+                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                }
+                break;
+            case 'management':
+                if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                    $result['nested_toggle'][$key] = [$value, false];
+                } else {
+                    $result['nested_toggle'][$key] = [$value, true];
+                }
+                break;
+            case 'public_comment':
+                $result['text'][$key] = [
+                    'text' => $value,
+                    'combination' => 'any',
+                ];
+                break;
+            case 'comment':
+                $result['multiple_text'][$key] = [
+                    'public_comment'=> [
                         'text' => $value,
                         'combination' => 'any',
-                    ];
-                    break;
-                case 'comment':
-                    $result['multiple_text'][$key] = [
-                        'public_comment'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                        'private_comment'=> [
-                            'text' => $value,
-                            'combination' => 'any',
-                        ],
-                    ];
-                    break;
-                case 'public':
-                case 'dbbe':
-                    $result['boolean'][$key] = ($value === '1');
-                    break;
+                    ],
+                    'private_comment'=> [
+                        'text' => $value,
+                        'combination' => 'any',
+                    ],
+                ];
+                break;
+            case 'public':
+            case 'dbbe':
+                $result['boolean'][$key] = ($value === '1');
+                break;
             }
         }
         return $result;

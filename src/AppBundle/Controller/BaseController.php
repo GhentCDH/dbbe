@@ -14,14 +14,18 @@ use AppBundle\Utils\ArrayToJson;
 class BaseController extends Controller
 {
     /**
-     * @param Request $request
+     * The name of the manager that can be used to manage relevant objects.
+     *
+     * @var string
      */
-    public function add(Request $request)
-    {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+    const MANAGER = 'abstract';
 
-        return $this->edit(null, $request);
-    }
+    /**
+     * The folder where relevant templates are located.
+     *
+     * @var string
+     */
+    const TEMPLATE_FOLDER = 'abstract';
 
     /**
      * @param int     $id

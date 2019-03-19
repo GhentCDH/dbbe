@@ -27,9 +27,9 @@ class Identifier extends IdNameObject
         string $description = null,
         bool $extra = null
     ) {
-        $this->id = $id;
+        parent::__construct($id, $name);
+
         $this->systemName = $systemName;
-        $this->name = $name;
         $this->primary = $primary;
         $this->link = $link;
         $this->linkType = $linkType;

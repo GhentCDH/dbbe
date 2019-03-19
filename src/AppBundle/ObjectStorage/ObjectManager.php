@@ -87,23 +87,6 @@ class ObjectManager
         return $result;
     }
 
-
-    /**
-     * (Re-)index elasticsearch
-     * @param  array  $ids
-     */
-    public function updateElasticByIds(array $ids): void
-    {
-        $shorts = $this->getShort($ids);
-        $delIds = array_diff($ids, array_keys($shorts));
-        if (count($shorts) > 0) {
-            $this->ess->addMultiple($shorts);
-        }
-        if (count($delIds) > 0) {
-            $this->ess->deleteMultiple($delIds);
-        }
-    }
-
     /**
      * Update entity modified date and create a revision
      * @param IdJsonInterface|null $old Old values, null in case of an inserted object

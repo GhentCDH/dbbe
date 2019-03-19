@@ -15,7 +15,7 @@ use AppBundle\Model\OnlineSource;
  * ObjectManager for online sources
  * Servicename: online_source_manager
  */
-class OnlineSourceManager extends EntityManager
+class OnlineSourceManager extends ObjectEntityManager
 {
     /**
      * Get online sources with enough information to get an id and a description

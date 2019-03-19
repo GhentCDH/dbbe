@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class BookController extends BaseController
+class BookController extends EditController
 {
     /**
      * @var string
@@ -36,9 +36,7 @@ class BookController extends BaseController
      */
     public function add(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-
-        return $this->edit(null, $request);
+        return parent::add($request);
     }
 
     /**

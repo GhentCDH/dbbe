@@ -362,7 +362,7 @@ class OfficeManager extends ObjectManager
         $primary = $officesWithParents[$primaryId];
 
         $persons = $this->container->get('person_manager')->getOfficeDependencies($secondaryId, 'getShort');
-        $offices = $this->getOfficesWithParentsByOffice($secondaryId);
+        $offices = $this->getOfficeDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
         try {

@@ -200,7 +200,7 @@ class TypeManager extends PoemManager
         $rawTranslations = $this->dbs->getTranslations([$id]);
         $translationIds = self::getUniqueIds($rawTranslations, 'translation_id');
         if (!empty($translationIds)) {
-            $translations = $this->container->get('translation_manager')->get($translationIds);
+            $translations = $this->container->get('translation_manager')->getMini($translationIds);
             $type->setTranslations($translations);
         }
 

@@ -19,6 +19,10 @@ class Poem extends Document
      */
     protected $verses = [];
     /**
+     * @var int
+     */
+    protected $numberOfVerses;
+    /**
      * @var array
      */
     protected $metres = [];

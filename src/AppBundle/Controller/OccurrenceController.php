@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class OccurrenceController extends BaseController
+class OccurrenceController extends EditController
 {
     /**
      * @var string
