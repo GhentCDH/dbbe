@@ -62,14 +62,11 @@ class JournalController extends BaseController
      */
     public function getSingle(int $id, Request $request)
     {
-        $objects = $this->get(static::MANAGER)->get([$id]);
-        if(count($objects) != 1) {
-            $this->createNotFoundException('Journal with id ' . $id . ' not found.');
-        }
+        $object = $this->get(static::MANAGER)->getFull($id);
         return $this->render(
             static::TEMPLATE_FOLDER . 'detail.html.twig',
             [
-                $objects[$id]::CACHENAME => $objects[$id],
+                $object::CACHENAME => $object,
                 'issuesArticles' => $this->get(static::MANAGER)->getIssuesArticles($id),
             ]
         );
