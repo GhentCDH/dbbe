@@ -170,7 +170,7 @@ class Person extends Entity implements SubjectInterface
     }
 
     /**
-     * @param  string $selfDesignation
+     * @param  SelfDesignation $selfDesignation
      * @return Person
      */
     public function addSelfDesignation(SelfDesignation $selfDesignation): Person

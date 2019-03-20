@@ -55,7 +55,7 @@ class DefaultController extends Controller
     /**
      * @Route("/sitemap.xml", name="sitemap")
      * @param  Request $request
-     * @return
+     * @return Response
      */
     public function sitemap(Request $request)
     {
@@ -76,7 +76,7 @@ class DefaultController extends Controller
      * @Route("/sitemap_{part}.xml", name="sitemap_part")
      * @param  string  $part
      * @param  Request $request
-     * @return
+     * @return Response
      */
     public function sitemapPart(string $part, Request $request)
     {

@@ -378,7 +378,7 @@ class ManuscriptController extends BaseController
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             try {
-                $manuscript = $this
+                $this
                     ->get('manuscript_manager')
                     ->delete($id);
             } catch (NotFoundHttpException $e) {

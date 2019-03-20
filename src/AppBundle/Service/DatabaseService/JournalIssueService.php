@@ -60,7 +60,6 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  string   $title
      * @param  int      $year
      * @param  int|null $volume
      * @param  int|null $number

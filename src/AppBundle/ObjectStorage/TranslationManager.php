@@ -230,37 +230,37 @@ class TranslationManager extends DocumentManager
                         $matchedIds[] = $newBibItem->id;
                         $oldBibItem = $oldBiblio[$newBibItem->id];
                         switch ($key) {
-                            case 'articles':
-                                if ($oldBibItem->getArticle()->getId() !== $newBibItem->article->id
-                                    || $oldBibItem->getStartPage() !== $newBibItem->startPage
-                                    || $oldBibItem->getEndPage() !== $newBibItem->endPage
-                                ) {
-                                    $updated = true;
-                                }
-                                break;
-                            case 'books':
-                                if ($oldBibItem->getBook()->getId() !== $newBibItem->book->id
-                                    || $oldBibItem->getStartPage() !== $newBibItem->startPage
-                                    || $oldBibItem->getEndPage() !== $newBibItem->endPage
-                                ) {
-                                    $updated = true;
-                                }
-                                break;
-                            case 'bookChapters':
-                                if ($oldBibItem->getBookChapter()->getId() !== $newBibItem->bookChapter->id
-                                    || $oldBibItem->getStartPage() !== $newBibItem->startPage
-                                    || $oldBibItem->getEndPage() !== $newBibItem->endPage
-                                ) {
-                                    $updated = true;
-                                }
-                                break;
-                            case 'onlineSources':
-                                if ($oldBibItem->getOnlineSourcce()->getId() !== $newBibItem->onlineSource->id
-                                    || $oldBibItem->getRelUrl() !== $newBibItem->relUrl
-                                ) {
-                                    $updated = true;
-                                }
-                                break;
+                        case 'articles':
+                            if ($oldBibItem->getArticle()->getId() !== $newBibItem->article->id
+                                || $oldBibItem->getStartPage() !== $newBibItem->startPage
+                                || $oldBibItem->getEndPage() !== $newBibItem->endPage
+                            ) {
+                                $updated = true;
+                            }
+                            break;
+                        case 'books':
+                            if ($oldBibItem->getBook()->getId() !== $newBibItem->book->id
+                                || $oldBibItem->getStartPage() !== $newBibItem->startPage
+                                || $oldBibItem->getEndPage() !== $newBibItem->endPage
+                            ) {
+                                $updated = true;
+                            }
+                            break;
+                        case 'bookChapters':
+                            if ($oldBibItem->getBookChapter()->getId() !== $newBibItem->bookChapter->id
+                                || $oldBibItem->getStartPage() !== $newBibItem->startPage
+                                || $oldBibItem->getEndPage() !== $newBibItem->endPage
+                            ) {
+                                $updated = true;
+                            }
+                            break;
+                        case 'onlineSources':
+                            if ($oldBibItem->getOnlineSourcce()->getId() !== $newBibItem->onlineSource->id
+                                || $oldBibItem->getRelUrl() !== $newBibItem->relUrl
+                            ) {
+                                $updated = true;
+                            }
+                            break;
                         }
                     }
                     if ($updated) {

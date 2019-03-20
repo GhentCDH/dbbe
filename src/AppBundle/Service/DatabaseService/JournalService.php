@@ -59,9 +59,6 @@ class JournalService extends DocumentService
 
     /**
      * @param  string   $title
-     * @param  int      $year
-     * @param  int|null $volume
-     * @param  int|null $number
      * @return int
      */
     public function insert(string $title): int
