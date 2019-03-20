@@ -57,7 +57,6 @@ class ElasticManuscriptService extends ElasticEntityService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $originalFilters = $params['filters'];
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
         }
@@ -88,13 +87,13 @@ class ElasticManuscriptService extends ElasticEntityService
         }
 
         $aggregationFilters = ['city', 'content', 'person', 'origin', 'acknowledgement'];
-        if (isset($originalFilters['city'])) {
+        if (isset($params['filters']['city'])) {
             $aggregationFilters[] = 'library';
         }
-        if (isset($originalFilters['library'])) {
+        if (isset($params['filters']['library'])) {
             $aggregationFilters[] = 'collection';
         }
-        if (isset($originalFilters['collection'])) {
+        if (isset($params['filters']['collection'])) {
             $aggregationFilters[] = 'shelf';
         }
         if ($viewInternal) {
