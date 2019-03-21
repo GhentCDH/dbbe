@@ -64,6 +64,8 @@ class OccurrenceManager extends PoemManager
                     ->setFoliumStartRecto($rawLocation['folium_start_recto'])
                     ->setFoliumEnd($rawLocation['folium_end'])
                     ->setFoliumEndRecto($rawLocation['folium_end_recto'])
+                    ->setPageStart($rawLocation['page_start'])
+                    ->setPageEnd($rawLocation['page_end'])
                     ->setUnsure($rawLocation['unsure'])
                     ->setGeneralLocation($rawLocation['general_location'])
                     ->setAlternativeFoliumStart($rawLocation['alternative_folium_start'])
@@ -412,6 +414,24 @@ class OccurrenceManager extends PoemManager
 
                 $changes['mini'] = true;
                 $this->dbs->updateUnsure($id, $data->unsure);
+            }
+            if (property_exists($data, 'pageStart')) {
+                if (!is_string($data->pageStart)
+                ) {
+                    throw new BadRequestHttpException('Incorrect pageStart data.');
+                }
+
+                $changes['mini'] = true;
+                $this->dbs->updatePageStart($id, $data->pageStart);
+            }
+            if (property_exists($data, 'pageEnd')) {
+                if (!is_string($data->pageEnd)
+                ) {
+                    throw new BadRequestHttpException('Incorrect pageEnd data.');
+                }
+
+                $changes['mini'] = true;
+                $this->dbs->updatePageEnd($id, $data->pageEnd);
             }
             if (property_exists($data, 'generalLocation')) {
                 if (!is_string($data->generalLocation)

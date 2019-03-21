@@ -88,6 +88,22 @@ export default {
                                 label: 'Unsure',
                                 model: 'unsure',
                             },
+                            pageStart: {
+                                type: 'input',
+                                inputType: 'text',
+                                label: 'Page start',
+                                labelClasses: 'control-label',
+                                model: 'pageStart',
+                                validator: VueFormGenerator.validators.string,
+                            },
+                            pageEnd: {
+                                type: 'input',
+                                inputType: 'text',
+                                label: 'Page end',
+                                labelClasses: 'control-label',
+                                model: 'pageEnd',
+                                validator: VueFormGenerator.validators.string,
+                            },
                             generalLocation: {
                                 type: 'input',
                                 inputType: 'text',

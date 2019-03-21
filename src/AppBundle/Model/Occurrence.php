@@ -36,6 +36,14 @@ class Occurrence extends Poem
     /**
      * @var string
      */
+    protected $pageStart;
+    /**
+     * @var string
+     */
+    protected $pageEnd;
+    /**
+     * @var string
+     */
     protected $generalLocation;
     /**
      * @var string
@@ -163,6 +171,28 @@ class Occurrence extends Poem
     }
 
     /**
+     * @param  string|null $pageStart
+     * @return Occurrence
+     */
+    public function setPageStart(string $pageStart = null): Occurrence
+    {
+        $this->pageStart = $pageStart;
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $pageEnd
+     * @return Occurrence
+     */
+    public function setPageEnd(string $pageEnd = null): Occurrence
+    {
+        $this->pageEnd = $pageEnd;
+
+        return $this;
+    }
+
+    /**
      * @param  string|null $generalLocation
      * @return Occurrence
      */
@@ -229,6 +259,14 @@ class Occurrence extends Poem
                     . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto);
             } else {
                 $resultArray[] = 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto);
+            }
+        }
+        if (!empty($this->pageStart)) {
+            if (!empty($this->pageEnd)) {
+                $resultArray[] = 'p. ' . $this->pageStart
+                    . '-' . $this->pageEnd;
+            } else {
+                $resultArray[] = 'p. ' . $this->pageStart;
             }
         }
 
@@ -438,6 +476,12 @@ class Occurrence extends Poem
         }
         if (isset($this->unsure)) {
             $result['unsure'] = $this->unsure;
+        }
+        if (!empty($this->pageStart)) {
+            $result['pageStart'] = $this->pageStart;
+        }
+        if (!empty($this->pageEnd)) {
+            $result['pageEnd'] = $this->pageEnd;
         }
         if (!empty($this->generalLocation)) {
             $result['generalLocation'] = $this->generalLocation;

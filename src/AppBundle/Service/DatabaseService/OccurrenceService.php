@@ -253,6 +253,8 @@ class OccurrenceService extends PoemService
                 document_contains.folium_end,
                 document_contains.folium_end_recto,
                 document_contains.unsure,
+                document_contains.page_start,
+                document_contains.page_end,
                 document_contains.general_location,
                 document_contains.alternative_folium_start,
                 document_contains.alternative_folium_start_recto,
@@ -581,6 +583,42 @@ class OccurrenceService extends PoemService
             where document_contains.idcontent = ?',
             [
                 $unsure ? 'TRUE': 'FALSE',
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $pageStart
+     * @return int
+     */
+    public function updatePageStart(int $id, string $pageStart): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set page_start = ?
+            where document_contains.idcontent = ?',
+            [
+                $pageStart,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $pageEnd
+     * @return int
+     */
+    public function updatePageEnd(int $id, string $pageEnd): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set page_end = ?
+            where document_contains.idcontent = ?',
+            [
+                $pageEnd,
                 $id,
             ]
         );
