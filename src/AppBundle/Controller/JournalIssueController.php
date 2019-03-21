@@ -65,7 +65,7 @@ class JournalIssueController extends BaseController
                 ]),
                 'data'=> json_encode([
                     'journalIssues' => $this->get(self::MANAGER)->getAllJson(),
-                    'journals' => $this->get('journal_manager')->getAllShortJson(),
+                    'journals' => $this->get('journal_manager')->getAllMiniShortJson(),
                 ]),
             ]
         );

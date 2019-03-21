@@ -70,9 +70,9 @@ class JournalManager extends DocumentManager
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
-    public function getAllShortJson(string $sortFunction = null): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return parent::getAllShortJson($sortFunction == null ? 'getTitle' : $sortFunction);
+        return parent::getAllMiniShortJson($sortFunction == null ? 'getTitle' : $sortFunction);
     }
 
     /**

@@ -18,7 +18,7 @@ use AppBundle\Model\JournalIssue;
 class JournalIssueManager extends DocumentManager
 {
     /**
-     * Get journals with all information
+     * Get journal issues with all information
      * @param  array $ids
      * @return array
      */
@@ -58,23 +58,24 @@ class JournalIssueManager extends DocumentManager
     }
 
     /**
-     * Get all journals with minimal information
+     * Get all journal issues with minimal information
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
-    public function getAllShortJson(string $sortFunction = null): array
+    public function getAllMiniShortJson(string $sortFunction = null): array
     {
-        return parent::getAllShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
+        return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
     /**
-     * Get all journals with all information
+     * Get all journal issues with all information
      * @param  string|null $sortFunction Name of the optional method to call for sorting
      * @return array
      */
+
     public function getAllJson(string $sortFunction = null): array
     {
-        return parent::getAllJson($sortFunction == null ? 'getDescription' : $sortFunction);
+        return $this->getAllCombinedJson('short', $sortFunction);
     }
 
     /**

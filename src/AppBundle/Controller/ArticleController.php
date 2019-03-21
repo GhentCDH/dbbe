@@ -177,8 +177,8 @@ class ArticleController extends EditController
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
                     'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
-                    'journals' => $this->get('journal_manager')->getAllShortJson(),
-                    'journalIssues' => $this->get('journal_issue_manager')->getAllShortJson(),
+                    'journals' => $this->get('journal_manager')->getAllMiniShortJson(),
+                    'journalIssues' => $this->get('journal_issue_manager')->getAllMiniShortJson(),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('article')),
