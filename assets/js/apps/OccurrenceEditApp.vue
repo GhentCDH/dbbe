@@ -20,6 +20,7 @@
                 header="Basic information"
                 :model="model.basic"
                 :values="manuscripts"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -29,6 +30,7 @@
                 header="Verses"
                 :model="model.verses"
                 :urls="urls"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -38,6 +40,7 @@
                 header="Types"
                 :model="model.types"
                 :values="types"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -48,6 +51,7 @@
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -56,6 +60,7 @@
                 ref="date"
                 header="Date"
                 :model="model.date"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -66,6 +71,7 @@
                 :links="[{url: urls['metres_edit'], text: 'Edit metres'}]"
                 :model="model.metres"
                 :values="metres"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -76,6 +82,7 @@
                 :links="[{url: urls['genres_edit'], text: 'Edit genres'}]"
                 :model="model.genres"
                 :values="genres"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -86,6 +93,7 @@
                 :links="[{url: urls['keywords_subject_get'], text: 'Edit keywords'}]"
                 :model="model.subjects"
                 :values="subjects"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -96,6 +104,7 @@
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -105,6 +114,7 @@
                 header="Images"
                 :model="model.images"
                 :urls="urls"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -116,6 +126,7 @@
                 :reference-type="true"
                 :image="true"
                 :values="bibliographies"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -126,6 +137,7 @@
                 :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
                 :model="model.general"
                 :values="generals"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -136,6 +148,7 @@
                 :roles="contributorRoles"
                 :model="model.contributorRoles"
                 :values="dbbePersons"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -146,6 +159,7 @@
                 :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
                 :model="model.managements"
                 :values="managements"
+                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -310,8 +324,8 @@ export default {
                 },
                 identification: {},
                 images: {
-                    images: null,
-                    imageLinks: null,
+                    images: [],
+                    imageLinks: [],
                 },
                 bibliography: {
                     books: [],
@@ -356,10 +370,10 @@ export default {
             data.forms.push('identification')
         }
         for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = null
+            data.model.personRoles[role.systemName] = []
         }
         for (let role of data.contributorRoles) {
-            data.model.contributorRoles[role.systemName] = null
+            data.model.contributorRoles[role.systemName] = []
         }
         return data
     },
@@ -432,9 +446,10 @@ export default {
 
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.occurrence.personRoles != null ? this.occurrence.personRoles[role.systemName] : null
+                    if (this.occurrence.personRoles[role.systemName] != null) {
+                        this.model.personRoles[role.systemName] = this.occurrence.personRoles[role.systemName];
+                    }
                 }
-                this.$refs.persons.init();
 
                 // Date
                 this.model.date = {
@@ -518,21 +533,25 @@ export default {
 
                 // ContributorRoles
                 for (let role of this.contributorRoles) {
-                    this.model.contributorRoles[role.systemName] = this.occurrence.contributorRoles != null ? this.occurrence.contributorRoles[role.systemName] : null
+                    if (this.occurrence.contributorRoles[role.systemName] != null) {
+                        this.model.contributorRoles[role.systemName] = this.occurrence.contributorRoles[role.systemName];
+                    }
                 }
-                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {
                     managements: this.occurrence.managements,
                 }
             }
-
             else {
                 this.model.general.public = true
             }
 
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            // Make sure a duplicated occurrence is saved as a new occurrence
+            if (this.data.clone) {
+                this.occurrence = null;
+                this.validateForms();
+            }
         },
         save() {
             this.openRequests++

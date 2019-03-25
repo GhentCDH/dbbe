@@ -167,7 +167,7 @@ export default {
                     let oldValue = this.originalModel[key]
                     let newValue = this.model[key]
                     if (['foliumStartRecto', 'foliumEndRecto', 'alternativeFoliumStartRecto', 'alternativeFoliumEndRecto'].indexOf(key) > -1) {
-                        oldValue = this.originalModel[key] ? 'Recto' : 'Verso'
+                        oldValue = this.originalModel[key] == null ? null : (this.originalModel[key] ? 'Recto' : 'Verso');
                         newValue = this.model[key] ? 'Recto' : 'Verso'
                     }
                     this.changes.push({

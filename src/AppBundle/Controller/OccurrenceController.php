@@ -384,11 +384,33 @@ class OccurrenceController extends EditController
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
+        $occurrenceJson = null;
+        $clone = false;
+        if (!empty($id)) {
+            $occurrenceJson = $this->get('occurrence_manager')->getFull($id)->getJson();
+            if (!empty($request->query->get('clone')) && $request->query->get('clone') === '1') {
+                $clone = true;
+                $id = null;
+                unset($occurrenceJson['id']);
+                if (isset($occurrenceJson['verses'])) {
+                    foreach (array_keys($occurrenceJson['verses']) as $index) {
+                        $occurrenceJson['verses'][$index]['id'] = null;
+                    }
+                }
+                if (isset($occurrenceJson['bibliography'])) {
+                    foreach (array_keys($occurrenceJson['bibliography']) as $index) {
+                        unset($occurrenceJson['bibliography'][$index]['id']);
+                    }
+                }
+            }
+        }
+
         return $this->render(
             'AppBundle:Occurrence:edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
+                'clone' => $clone,
                 'urls' => json_encode([
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => $id == null ? 'occurrence_id' : $id]),
                     'occurrence_post' => $this->generateUrl('occurrence_post'),
@@ -407,9 +429,8 @@ class OccurrenceController extends EditController
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
-                    'occurrence' => empty($id)
-                        ? null
-                        : $this->get('occurrence_manager')->getFull($id)->getJson(),
+                    'clone' => $clone,
+                    'occurrence' => $occurrenceJson,
                     'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
                     'types' => $this->get('type_manager')->getAllMicroShortJson(),
                     'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),

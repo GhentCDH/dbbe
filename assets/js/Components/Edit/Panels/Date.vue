@@ -268,7 +268,9 @@ export default {
                 this.model[key + 'Year'] = null;
                 this.model[key + 'DayMonth'] = null
             }
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            if (!this.clone) {
+                this.originalModel = JSON.parse(JSON.stringify(this.model));
+            }
         },
         validated(isValid) {
             for (let key of ['floor', 'ceiling']) {

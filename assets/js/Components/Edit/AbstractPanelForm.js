@@ -2,19 +2,23 @@ export default {
     props: {
         header: {
             type: String,
-            default: ''
+            default: '',
         },
         links: {
             type: Array,
-            default: () => {return []}
+            default: () => {return []},
         },
         model: {
             type: Object,
-            default: () => {return {}}
+            default: () => {return {}},
         },
         values: {
             type: Array,
-            default: () => {return []}
+            default: () => {return []},
+        },
+        clone: {
+            type: Boolean,
+            default: false,
         },
     },
     data () {
@@ -37,7 +41,11 @@ export default {
     watch: {
         // Only called when a new key is added to a specific model, so make sure to initialize correctly
         model() {
-            this.init()
+            if (!this.clone) {
+                this.init();
+            } else {
+                this.calcChanges();
+            }
         },
     },
     mounted() {
