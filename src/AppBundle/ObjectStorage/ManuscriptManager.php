@@ -272,7 +272,7 @@ class ManuscriptManager extends DocumentManager
             }
             if (property_exists($data, 'date')) {
                 $changes['short'] = true;
-                $this->updateDate($old, 'completed at', !$old->getDate()->isEmpty(), $data->date);
+                $this->updateDate($old, 'completed at', !($old->getDate() == null || $old->getDate()->isEmpty()), $data->date);
             }
             if (property_exists($data, 'origin')) {
                 $changes['short'] = true;
