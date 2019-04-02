@@ -262,7 +262,7 @@ class Occurrence extends Poem
             }
         }
         if (!empty($this->pageStart)) {
-            if (!empty($this->pageEnd)) {
+            if (!empty($this->pageEnd) && $this->pageStart !== $this->pageEnd) {
                 $resultArray[] = 'p. ' . $this->pageStart
                     . '-' . $this->pageEnd;
             } else {
