@@ -161,6 +161,7 @@ export default {
 
                 // General
                 this.model.general = {
+                    publicComment: this.onlineSource.publicComment,
                     privateComment: this.onlineSource.privateComment,
                 }
 

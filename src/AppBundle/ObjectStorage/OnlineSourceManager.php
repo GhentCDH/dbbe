@@ -191,6 +191,13 @@ class OnlineSourceManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->dbs->updateLastAccessed($id, $data->lastAccessed);
             }
+            if (property_exists($data, 'publicComment')) {
+                if (!is_string($data->publicComment)) {
+                    throw new BadRequestHttpException('Incorrect public comment data.');
+                }
+                $changes['short'] = true;
+                $this->dbs->updatePublicComment($id, $data->publicComment);
+            }
             if (property_exists($data, 'privateComment')) {
                 if (!is_string($data->privateComment)) {
                     throw new BadRequestHttpException('Incorrect private comment data.');

@@ -230,6 +230,7 @@ export default {
 
                 // General
                 this.model.general = {
+                    publicComment: this.bookChapter.publicComment,
                     privateComment: this.bookChapter.privateComment,
                 };
 

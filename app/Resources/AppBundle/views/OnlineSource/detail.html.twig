@@ -21,6 +21,12 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? online_source.getInverseReferences() : online_source.getPublicInverseReferences()} only %}
+                {% if online_source.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ online_source.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if online_source.getPrivateComment() is not empty %}
                         <tr class="warning">

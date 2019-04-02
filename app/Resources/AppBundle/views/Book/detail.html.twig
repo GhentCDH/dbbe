@@ -90,6 +90,12 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if book.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ book.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if book.getPrivateComment() is not empty %}
                         <tr class="warning">

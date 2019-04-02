@@ -32,6 +32,14 @@ export default {
         return {
             schema: {
                 fields: {
+                    publicComment: {
+                        type: 'textArea',
+                        label: 'Public comment',
+                        labelClasses: 'control-label',
+                        model: 'publicComment',
+                        rows: 4,
+                        validator: VueFormGenerator.validators.string,
+                    },
                     privateComment: {
                         type: 'textArea',
                         styleClasses: 'has-warning',

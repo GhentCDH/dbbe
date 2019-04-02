@@ -53,6 +53,12 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? book_chapter.getInverseReferences() : book_chapter.getPublicInverseReferences()} only %}
+                {% if book_chapter.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ book_chapter.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
                 {% if is_granted('ROLE_VIEW_INTERNAL') %}
                     {% if book_chapter.getPrivateComment() is not empty %}
                         <tr class="warning">

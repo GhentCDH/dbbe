@@ -17,12 +17,12 @@
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.a2d5cc7a.js"
+        "/build/bookedit.523a7d64.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.9e867dec.js"
+        "/build/bookchapteredit.2b73f6a7.js"
       ]
     },
     "contentsedit": {
@@ -87,7 +87,7 @@
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.6cb7d140.js"
+        "/build/articleedit.48a147dd.js"
       ]
     },
     "newseventedit": {
@@ -112,7 +112,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.661990fe.js"
+        "/build/onlinesourceedit.761cbda4.js"
       ]
     },
     "originsedit": {
