@@ -372,6 +372,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'foliumStart')) {
                 if (!is_string($data->foliumStart)
+                    && !is_null($data->foliumStart)
                 ) {
                     throw new BadRequestHttpException('Incorrect foliumStart data.');
                 }
@@ -381,6 +382,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'foliumStartRecto')) {
                 if (!is_bool($data->foliumStartRecto)
+                    && !is_null($data->foliumStartRecto)
                 ) {
                     throw new BadRequestHttpException('Incorrect foliumStartRecto data.');
                 }
@@ -390,6 +392,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'foliumEnd')) {
                 if (!is_string($data->foliumEnd)
+                    && !is_null($data->foliumEnd)
                 ) {
                     throw new BadRequestHttpException('Incorrect foliumEnd data.');
                 }
@@ -399,6 +402,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'foliumEndRecto')) {
                 if (!is_bool($data->foliumEndRecto)
+                    && !is_null($data->foliumEndRecto)
                 ) {
                     throw new BadRequestHttpException('Incorrect foliumEndRecto data.');
                 }
@@ -444,6 +448,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'alternativeFoliumStart')) {
                 if (!is_string($data->alternativeFoliumStart)
+                    && !is_null($data->alternativeFoliumStart)
                 ) {
                     throw new BadRequestHttpException('Incorrect alternativeFoliumStart data.');
                 }
@@ -453,6 +458,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'alternativeFoliumStartRecto')) {
                 if (!is_bool($data->alternativeFoliumStartRecto)
+                    && !is_null($data->alternativeFoliumStartRecto)
                 ) {
                     throw new BadRequestHttpException('Incorrect alternativeFoliumStartRecto data.');
                 }
@@ -462,6 +468,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'alternativeFoliumEnd')) {
                 if (!is_string($data->alternativeFoliumEnd)
+                    && !is_null($data->alternativeFoliumEnd)
                 ) {
                     throw new BadRequestHttpException('Incorrect alternativeFoliumEnd data.');
                 }
@@ -471,6 +478,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'alternativeFoliumEndRecto')) {
                 if (!is_bool($data->alternativeFoliumEndRecto)
+                    && !is_null($data->alternativeFoliumEndRecto)
                 ) {
                     throw new BadRequestHttpException('Incorrect alternativeFoliumEndRecto data.');
                 }

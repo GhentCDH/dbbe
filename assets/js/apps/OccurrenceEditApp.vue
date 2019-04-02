@@ -411,17 +411,17 @@ export default {
                     title: this.occurrence.title,
                     manuscript: this.occurrence.manuscript,
                     foliumStart: this.occurrence.foliumStart,
-                    foliumStartRecto: this.occurrence.foliumStartRecto ? true : false,
+                    foliumStartRecto: this.occurrence.foliumStartRecto,
                     foliumEnd: this.occurrence.foliumEnd,
-                    foliumEndRecto: this.occurrence.foliumEndRecto ? true : false,
+                    foliumEndRecto: this.occurrence.foliumEndRecto,
                     unsure: this.occurrence.unsure,
                     pageStart: this.occurrence.pageStart,
                     pageEnd: this.occurrence.pageEnd,
                     generalLocation: this.occurrence.generalLocation,
                     alternativeFoliumStart: this.occurrence.alternativeFoliumStart,
-                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto ? true : false,
+                    alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
                     alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
-                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto ? true : false,
+                    alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
                 }
 
                 // Verses

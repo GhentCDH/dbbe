@@ -503,7 +503,7 @@ class OccurrenceService extends PoemService
      * @param  string $foliumStart
      * @return int
      */
-    public function updateFoliumStart(int $id, string $foliumStart): int
+    public function updateFoliumStart(int $id, string $foliumStart = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
@@ -521,14 +521,14 @@ class OccurrenceService extends PoemService
      * @param  bool $foliumStartRecto
      * @return int
      */
-    public function updateFoliumStartRecto(int $id, bool $foliumStartRecto): int
+    public function updateFoliumStartRecto(int $id, bool $foliumStartRecto = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set folium_start_recto = ?
             where document_contains.idcontent = ?',
             [
-                $foliumStartRecto ? 'TRUE': 'FALSE',
+                $foliumStartRecto === null ? null : ($foliumStartRecto ? 'TRUE': 'FALSE'),
                 $id,
             ]
         );
@@ -539,7 +539,7 @@ class OccurrenceService extends PoemService
      * @param  string $foliumEnd
      * @return int
      */
-    public function updateFoliumEnd(int $id, string $foliumEnd): int
+    public function updateFoliumEnd(int $id, string $foliumEnd = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
@@ -557,14 +557,14 @@ class OccurrenceService extends PoemService
      * @param  bool $foliumEndRecto
      * @return int
      */
-    public function updateFoliumEndRecto(int $id, bool $foliumEndRecto): int
+    public function updateFoliumEndRecto(int $id, bool $foliumEndRecto = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set folium_end_recto = ?
             where document_contains.idcontent = ?',
             [
-                $foliumEndRecto ? 'TRUE': 'FALSE',
+                $foliumEndRecto === null ? null : ($foliumEndRecto ? 'TRUE': 'FALSE'),
                 $id,
             ]
         );
@@ -647,7 +647,7 @@ class OccurrenceService extends PoemService
      * @param  string $alternativeFoliumStart
      * @return int
      */
-    public function updateAlternativeFoliumStart(int $id, string $alternativeFoliumStart): int
+    public function updateAlternativeFoliumStart(int $id, string $alternativeFoliumStart = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
@@ -665,14 +665,14 @@ class OccurrenceService extends PoemService
      * @param  bool $alternativeFoliumStartRecto
      * @return int
      */
-    public function updateAlternativeFoliumStartRecto(int $id, bool $alternativeFoliumStartRecto): int
+    public function updateAlternativeFoliumStartRecto(int $id, bool $alternativeFoliumStartRecto = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set alternative_folium_start_recto = ?
             where document_contains.idcontent = ?',
             [
-                $alternativeFoliumStartRecto ? 'TRUE': 'FALSE',
+                $alternativeFoliumStartRecto === null ? null : ($alternativeFoliumStartRecto ? 'TRUE': 'FALSE'),
                 $id,
             ]
         );
@@ -683,7 +683,7 @@ class OccurrenceService extends PoemService
      * @param  string $alternativeFoliumEnd
      * @return int
      */
-    public function updateAlternativeFoliumEnd(int $id, string $alternativeFoliumEnd): int
+    public function updateAlternativeFoliumEnd(int $id, string $alternativeFoliumEnd = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
@@ -701,14 +701,14 @@ class OccurrenceService extends PoemService
      * @param  bool $alternativeFoliumEndRecto
      * @return int
      */
-    public function updateAlternativeFoliumEndRecto(int $id, bool $alternativeFoliumEndRecto): int
+    public function updateAlternativeFoliumEndRecto(int $id, bool $alternativeFoliumEndRecto = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set alternative_folium_end_recto = ?
             where document_contains.idcontent = ?',
             [
-                $alternativeFoliumEndRecto ? 'TRUE': 'FALSE',
+                $alternativeFoliumEndRecto === null ? null : ($alternativeFoliumEndRecto ? 'TRUE': 'FALSE'),
                 $id,
             ]
         );

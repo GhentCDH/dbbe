@@ -152,6 +152,36 @@ export default {
             )
         }
     },
+    watch: {
+        'model.foliumStart'(val) {
+            if (val == null || val === '') {
+                this.model.foliumStart = null;
+                this.model.foliumStartRecto = null;
+            }
+            this.$refs.form.validate();
+        },
+        'model.foliumEnd'(val) {
+            if (val == null || val === '') {
+                this.model.foliumEnd = null;
+                this.model.foliumEndRecto = null;
+            }
+            this.$refs.form.validate();
+        },
+        'model.alternativeFoliumStart'(val) {
+            if (val == null || val === '') {
+                this.model.alternativeFoliumStart = null;
+                this.model.alternativeFoliumStartRecto = null;
+            }
+            this.$refs.form.validate();
+        },
+        'model.alternativeFoliumEnd'(val) {
+            if (val == null || val === '') {
+                this.model.alternativeFoliumEnd = null;
+                this.model.alternativeFoliumEndRecto = null;
+            }
+            this.$refs.form.validate();
+        },
+    },
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model))
@@ -168,7 +198,7 @@ export default {
                     let newValue = this.model[key]
                     if (['foliumStartRecto', 'foliumEndRecto', 'alternativeFoliumStartRecto', 'alternativeFoliumEndRecto'].indexOf(key) > -1) {
                         oldValue = this.originalModel[key] == null ? null : (this.originalModel[key] ? 'Recto' : 'Verso');
-                        newValue = this.model[key] ? 'Recto' : 'Verso'
+                        newValue = this.model[key] == null ? null : (this.model[key] ? 'Recto' : 'Verso');
                     }
                     this.changes.push({
                         'key': key,
@@ -194,8 +224,16 @@ export default {
                         name: 'Verso',
                         value: false,
                     },
-                ]
+                ],
+                validator: this.validateRecto,
             }
+        },
+        validateRecto(value, field, model) {
+            let folium = model[field.model.substr(0, "foliumStartRecto".length -5)];
+            if (folium != null && value == null) {
+                return ['This field is required if a folium is selected.'];
+            }
+            return [];
         },
     }
 }
