@@ -435,7 +435,7 @@ class ManuscriptService extends DocumentService
             -- then folium start recto
             order by document_contains.order,
                 NULLIF(regexp_replace(document_contains.folium_start, \'\\D\', \'\', \'g\'), \'\')::int,
-                document_contains.folium_start_recto
+                document_contains.folium_start_recto desc
             ',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
