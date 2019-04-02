@@ -446,9 +446,7 @@ export default {
 
                 // PersonRoles
                 for (let role of this.roles) {
-                    if (this.occurrence.personRoles[role.systemName] != null) {
-                        this.model.personRoles[role.systemName] = this.occurrence.personRoles[role.systemName];
-                    }
+                    this.model.personRoles[role.systemName] = this.occurrence.personRoles == null ? [] : this.occurrence.personRoles[role.systemName];
                 }
 
                 // Date
@@ -482,7 +480,7 @@ export default {
                 // Identification
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.occurrence.identifications != null ? this.occurrence.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.occurrence.identifications == null ? [] : this.occurrence.identifications[identifier.systemName];
                 }
 
                 // Images
@@ -533,10 +531,9 @@ export default {
 
                 // ContributorRoles
                 for (let role of this.contributorRoles) {
-                    if (this.occurrence.contributorRoles[role.systemName] != null) {
-                        this.model.contributorRoles[role.systemName] = this.occurrence.contributorRoles[role.systemName];
-                    }
+                    this.model.contributorRoles[role.systemName] = this.occurrence.contributorRoles == null ? [] : this.occurrence.contributorRoles[role.systemName];
                 }
+                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {

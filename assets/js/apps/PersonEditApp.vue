@@ -408,7 +408,7 @@ export default {
                 // Identification
                 this.model.identification = {};
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.person.identifications != null ? this.person.identifications[identifier.systemName] : null;
+                    this.model.identification[identifier.systemName] = this.person.identifications == null ? [] : this.person.identifications[identifier.systemName];
                 }
 
                 // Bibliography

@@ -209,7 +209,7 @@ export default {
             if (this.book != null) {
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.book.personRoles != null ? this.book.personRoles[role.systemName] : null
+                    this.model.personRoles[role.systemName] = this.book.personRoles == null ? [] : this.book.personRoles[role.systemName];
                 }
                 this.$refs.persons.init();
 
@@ -228,7 +228,7 @@ export default {
                 // Identification
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.book.identifications != null ? this.book.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.book.identifications == null ? [] : this.book.identifications[identifier.systemName];
                 }
 
                 // General

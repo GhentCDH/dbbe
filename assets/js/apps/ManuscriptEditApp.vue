@@ -332,7 +332,7 @@ export default {
 
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.manuscript.personRoles != null ? this.manuscript.personRoles[role.systemName] : null
+                    this.model.personRoles[role.systemName] = this.manuscript.personRoles == null ? [] : this.manuscript.personRoles[role.systemName];
                 }
                 this.$refs.persons.init();
 
@@ -387,7 +387,7 @@ export default {
                 // Identification
                 this.model.identification = {}
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.manuscript.identifications != null ? this.manuscript.identifications[identifier.systemName] : null
+                    this.model.identification[identifier.systemName] = this.manuscript.identifications == null ? [] : this.manuscript.identifications[identifier.systemName];
                 }
 
                 // General
@@ -402,7 +402,7 @@ export default {
 
                 // ContributorRoles
                 for (let role of this.contributorRoles) {
-                    this.model.contributorRoles[role.systemName] = this.manuscript.contributorRoles != null ? this.manuscript.contributorRoles[role.systemName] : null
+                    this.model.contributorRoles[role.systemName] = this.manuscript.contributorRoles == null ? [] : this.manuscript.contributorRoles[role.systemName];
                 }
                 this.$refs.contributors.init();
 
