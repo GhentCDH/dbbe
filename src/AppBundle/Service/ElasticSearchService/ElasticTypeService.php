@@ -94,14 +94,14 @@ class ElasticTypeService extends ElasticEntityService
             }
 
             // Keep text / title if there was a search, then these will be an array
-            if (isset($result['data'][$key]['text']) && is_string($result['data'][$key]['text'])) {
-                unset($result['data'][$key]['text']);
+            foreach (['text', 'title_GR', 'title_LA'] as $field) {
+                unset($result['data'][$key][$field . '_stemmer']);
+                unset($result['data'][$key][$field . '_original']);
             }
-            if (isset($result['data'][$key]['title_GR']) && is_string($result['data'][$key]['title_GR'])) {
-                unset($result['data'][$key]['title_GR']);
-            }
-            if (isset($result['data'][$key]['title_LA']) && is_string($result['data'][$key]['title_LA'])) {
-                unset($result['data'][$key]['title_LA']);
+            foreach (['text', 'title'] as $field) {
+                if (isset($result['data'][$key][$field]) && is_string($result['data'][$key][$field])) {
+                    unset($result['data'][$key][$field]);
+                }
             }
 
             // Keep comments if there was a search, then these will be an array

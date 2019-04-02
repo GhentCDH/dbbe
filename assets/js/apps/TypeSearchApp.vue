@@ -69,7 +69,7 @@
                     slot="text"
                     slot-scope="props"
                 >
-                    <template v-if="props.row.title_GR">
+                    <template v-if="props.row.title">
                         <!-- T for title: T is the 20th letter in the alphabet -->
                         <ol
                             type="A"
@@ -77,20 +77,7 @@
                         >
                             <!-- eslint-disable vue/no-v-html -->
                             <li
-                                v-for="(item, index) in props.row.title_GR"
-                                :key="index"
-                                value="20"
-                                v-html="item"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                    <template v-if="props.row.title_LA">
-                        <!-- T for title: T is the 20th letter in the alphabet -->
-                        <ol type="A">
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.title_LA"
+                                v-for="(item, index) in props.row.title"
                                 :key="index"
                                 value="20"
                                 v-html="item"
