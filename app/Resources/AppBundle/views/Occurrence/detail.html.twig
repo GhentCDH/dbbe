@@ -100,7 +100,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getLocation() is defined %}
+                {% if occurrence.getLocation() is not empty %}
                     <tr>
                         <td>Place in Manuscript</td>
                         <td>{{ occurrence.getLocation() }}</td>

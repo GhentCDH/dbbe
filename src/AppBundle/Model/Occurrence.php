@@ -288,6 +288,10 @@ class Occurrence extends Poem
             }
         }
 
+        if (empty($resultArray)) {
+            return null;
+        }
+
         if (isset($this->unsure) && $this->unsure) {
             return '(unsure) ' . implode(' -- ', $resultArray);
         } else {
