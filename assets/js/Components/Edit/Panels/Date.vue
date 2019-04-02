@@ -287,7 +287,6 @@ export default {
                     },
                 },
             },
-            validationArray: [],
         };
         data.startSchema = JSON.parse(JSON.stringify(data.schema));
         data.endSchema = JSON.parse(JSON.stringify(data.schema));
