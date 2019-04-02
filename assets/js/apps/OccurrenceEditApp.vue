@@ -517,7 +517,6 @@ export default {
                 for (let role of this.contributorRoles) {
                     this.model.contributorRoles[role.systemName] = this.occurrence.contributorRoles == null ? [] : this.occurrence.contributorRoles[role.systemName];
                 }
-                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {
@@ -532,6 +531,9 @@ export default {
             if (this.data.clone) {
                 this.occurrence = null;
                 this.validateForms();
+            } else {
+                this.$refs.persons.init();
+                this.$refs.contributors.init();
             }
         },
         save() {
