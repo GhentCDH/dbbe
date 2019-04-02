@@ -738,9 +738,12 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyInterval
      */
-    public function getInterval(): FuzzyInterval
+    public function getInterval(): ?FuzzyInterval
     {
-        return new FuzzyInterval($this->bornDate, $this->deathDate);
+        if ($this->bornDate != null && $this->deathDate != null) {
+            return new FuzzyInterval($this->bornDate, $this->deathDate);
+        }
+        return null;
     }
 
     /**
