@@ -22,10 +22,10 @@
                     <td>
                         <ul v-if="displayBibliography(item.bibliography).length > 1">
                             <li
-                                v-for="(item, index) in displayBibliography(item.bibliography)"
-                                :key="index"
+                                v-for="(bibItem, bibIndex) in displayBibliography(item.bibliography)"
+                                :key="bibIndex"
                             >
-                                {{ item }}
+                                {{ bibItem }}
                             </li>
                         </ul>
                         <template v-else-if="displayBibliography(item.bibliography).length == 1">

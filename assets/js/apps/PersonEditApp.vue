@@ -29,50 +29,11 @@
             />
 
             <datePanel
-                id="bornDate"
-                ref="bornDate"
-                header="Date of birth"
-                :model="model.bornDate"
-                :invalid-combo="invalidDateCombo"
-                invalid-combo-text="Date of birth must be earlier than date of death."
-                key-group="bornDate"
-                group-label="Born"
-                @validated="validated"
-            />
-
-            <datePanel
-                id="deathDate"
-                ref="deathDate"
-                header="Date of death"
-                :model="model.deathDate"
-                :invalid-combo="invalidDateCombo"
-                invalid-combo-text="Date of birth must be earlier than date of death."
-                key-group="deathDate"
-                group-label="Death"
-                @validated="validated"
-            />
-
-            <datePanel
-                id="attestedStartDate"
-                ref="attestedStartDate"
-                header="Attested date or start of attested interval"
-                :model="model.attestedStartDate"
-                :invalid-combo="invalidAttestedDateCombo"
-                invalid-combo-text="Attested start date must be earlier than attested end date."
-                key-group="attestedStartDate"
-                group-label="Attested date or start of attested interval"
-                @validated="validated"
-            />
-
-            <datePanel
-                id="attestedEndDate"
-                ref="attestedEndDate"
-                header="End of attested interval"
-                :model="model.attestedEndDate"
-                :invalid-combo="invalidAttestedDateCombo"
-                invalid-combo-text="Attested start date must be earlier than attested end date."
-                key-group="attestedEndDate"
-                group-label="Attested end"
+                id="dates"
+                ref="dates"
+                header="Dates"
+                :model="model.dates"
+                :config="{'born': {limit: 1, type: 'date'}, 'died': {limit: 1, type: 'date'}, 'attested': {limit: 0, type: 'dateOrInterval'}}"
                 @validated="validated"
             />
 
@@ -161,9 +122,7 @@
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
                     <li><a href="#basic">Basic Information</a></li>
-                    <li><a href="#bornDate">Date of birth</a></li>
-                    <li><a href="#deathDate">Date of death</a></li>
-                    <li><a href="#attestedStartDate">Attested date or interval</a></li>
+                    <li><a href="#dates">Dates</a></li>
                     <li><a href="#identification">Identification</a></li>
                     <li><a href="#bibliography">Bibliography</a></li>
                     <li><a href="#general">General</a></li>
@@ -229,46 +188,7 @@ export default {
                     modern: null,
                     dbbe: null,
                 },
-                bornDate: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
-                deathDate: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
-                attestedStartDate: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
-                attestedEndDate: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
+                dates: [],
                 identification: {},
                 offices: {offices: null},
                 bibliography: {
@@ -284,14 +204,9 @@ export default {
                 },
                 managements: {managements: null},
             },
-            invalidDateCombo: false,
-            invalidAttestedDateCombo: false,
             forms: [
                 'basic',
-                'bornDate',
-                'deathDate',
-                'attestedStartDate',
-                'attestedEndDate',
+                'dates',
                 'identification',
                 'bibliography',
                 'general',
@@ -302,24 +217,6 @@ export default {
             data.model.identification[identifier.systemName] = null;
         }
         return data
-    },
-    watch: {
-        'model.bornDate.floorYear'() {this.validateDate()},
-        'model.bornDate.floorDayMonth'() {this.validateDate()},
-        'model.bornDate.ceilingYear'() {this.validateDate()},
-        'model.bornDate.ceilingDayMonth'() {this.validateDate()},
-        'model.deathDate.floorYear'() {this.validateDate()},
-        'model.deathDate.floorDayMonth'() {this.validateDate()},
-        'model.deathDate.ceilingYear'() {this.validateDate()},
-        'model.deathDate.ceilingDayMonth'() {this.validateDate()},
-        'model.attestedStartDate.floorYear'() {this.validateAttestedDate()},
-        'model.attestedStartDate.floorDayMonth'() {this.validateAttestedDate()},
-        'model.attestedStartDate.ceilingYear'() {this.validateAttestedDate()},
-        'model.attestedStartDate.ceilingDayMonth'() {this.validateAttestedDate()},
-        'model.attestedEndDate.floorYear'() {this.validateAttestedDate()},
-        'model.attestedEndDate.floorDayMonth'() {this.validateAttestedDate()},
-        'model.attestedEndDate.ceilingYear'() {this.validateAttestedDate()},
-        'model.attestedEndDate.ceilingDayMonth'() {this.validateAttestedDate()},
     },
     created () {
         this.person = this.data.person;
@@ -357,53 +254,8 @@ export default {
                     dbbe: this.person.dbbe,
                 };
 
-                // Born date
-                this.model.bornDate = {
-                    floor: this.person.bornDate != null ? this.person.bornDate.floor : null,
-                    ceiling: this.person.bornDate != null ? this.person.bornDate.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                };
-
-                // Death date
-                this.model.deathDate = {
-                    floor: this.person.deathDate != null ? this.person.deathDate.floor : null,
-                    ceiling: this.person.deathDate != null ? this.person.deathDate.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                };
-
-                // Attested start date
-                this.model.attestedStartDate = {
-                    floor: this.person.attestedStartDate != null ? this.person.attestedStartDate.floor : null,
-                    ceiling: this.person.attestedStartDate != null ? this.person.attestedStartDate.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                };
-
-                // Attested end date
-                this.model.attestedEndDate = {
-                    floor: this.person.attestedEndDate != null ? this.person.attestedEndDate.floor : null,
-                    ceiling: this.person.attestedEndDate != null ? this.person.attestedEndDate.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                };
+                // Dates
+                this.model.dates = this.person.dates;
 
                 // Identification
                 this.model.identification = {};
@@ -454,40 +306,6 @@ export default {
             }
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))
-        },
-        validateDate() {
-            this.invalidDateCombo = (
-                (this.getFloorDate(this.model.bornDate) > this.getFloorDate(this.model.deathDate))
-                || (this.getCeilingDate(this.model.bornDate) > this.getCeilingDate(this.model.deathDate))
-            );
-            // revalidate both born and death form
-            Vue.nextTick(function () {
-                this.$refs.bornDate.validate();
-                this.$refs.deathDate.validate();
-            }, this);
-        },
-        validateAttestedDate(){
-            this.invalidAttestedDateCombo = (
-                (this.getFloorDate(this.model.attestedStartDate) > this.getFloorDate(this.model.attestedEndDate))
-                || (this.getCeilingDate(this.model.attestedStartDate) > this.getCeilingDate(this.model.attestedEndDate))
-            );
-            // revalidate both attested start and end form
-            Vue.nextTick(function() {
-                this.$refs.attestedStartDate.validate();
-                this.$refs.deathDate.validate();
-            }, this);
-        },
-        getCeilingDate(date) {
-            if (date.ceilingDayMonth == null) {
-                date.ceilingDayMonth = '31/12';
-            }
-            return date.ceilingYear + date.ceilingDayMonth.substring(3,5) + date.ceilingDayMonth.substring(0,2);
-        },
-        getFloorDate(date) {
-            if (date.floorDayMonth == null) {
-                date.floorDayMonth = '01/01';
-            }
-            return date.floorYear + date.floorDayMonth.substring(3,5) + date.floorDayMonth.substring(0,2);
         },
         save() {
             this.openRequests++;

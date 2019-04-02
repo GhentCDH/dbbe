@@ -36,16 +36,16 @@
                         <td>{{ person.getInterval() }}</td>
                     </tr>
                 {% endif %}
-                {% if person.getAttestedDate() is not empty %}
+                {% if person.getAttestedDatesAndIntervals() is not empty %}
                     <tr>
-                        <td>Attested date</td>
-                        <td>{{ person.getAttestedDate() }}</td>
-                    </tr>
-                {% endif %}
-                {% if person.getAttestedInterval() is not empty %}
-                    <tr>
-                        <td>Attested interval</td>
-                        <td>{{ person.getAttestedInterval() }}</td>
+                        <td>Attested dates and intervals</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getAttestedDatesAndIntervals()} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if person.getOfficesWithParents() is not empty %}

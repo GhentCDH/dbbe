@@ -56,11 +56,11 @@
             />
 
             <datePanel
-                id="date"
-                ref="date"
-                header="Date"
-                :model="model.date"
-                :clone="data.clone"
+                id="dates"
+                ref="dates"
+                header="Dates"
+                :model="model.dates"
+                :config="{'completed at': {limit: 1, type: 'date'}}"
                 @validated="validated"
             />
 
@@ -215,7 +215,7 @@
                     <li><a href="#verses">Verses</a></li>
                     <li><a href="#types">Types</a></li>
                     <li><a href="#persons">Persons</a></li>
-                    <li><a href="#date">Date</a></li>
+                    <li><a href="#dates">Dates</a></li>
                     <li><a href="#metres">Metres</a></li>
                     <li><a href="#genres">Genres</a></li>
                     <li><a href="#subjects">Subjects</a></li>
@@ -306,16 +306,7 @@ export default {
                 types: {types: null},
                 personRoles: {},
                 contributorRoles: {},
-                date: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
+                dates: [],
                 metres: {metres: null},
                 genres: {genres: null},
                 subjects: {
@@ -352,7 +343,7 @@ export default {
                 'verses',
                 'types',
                 'persons',
-                'date',
+                'dates',
                 'metres',
                 'genres',
                 'subjects',
@@ -449,16 +440,9 @@ export default {
                     this.model.personRoles[role.systemName] = this.occurrence.personRoles == null ? [] : this.occurrence.personRoles[role.systemName];
                 }
 
-                // Date
-                this.model.date = {
-                    floor: this.occurrence.date != null ? this.occurrence.date.floor : null,
-                    ceiling: this.occurrence.date != null ? this.occurrence.date.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
+                // Dates
+                if (this.occurrence.dates != null) {
+                    this.model.dates = this.occurrence.dates;
                 }
 
                 // Metre

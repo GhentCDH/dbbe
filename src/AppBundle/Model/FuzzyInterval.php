@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use stdClass;
+
 class FuzzyInterval
 {
     private $start;
@@ -28,7 +30,7 @@ class FuzzyInterval
     public function __toString()
     {
         // start and end are the same
-        if ($this->start == $this->end) {
+        if ($this->start === $this->end) {
             return $this->start->__toString();
         }
 
@@ -46,23 +48,19 @@ class FuzzyInterval
         return $this->start->isEmpty() && $this->end->isEmpty();
     }
 
-    public static function fromString(string $inputString = null): FuzzyInterval
+    public function getJson(): array
     {
-        $start = null;
-        $end = null;
-        if ($inputString != null && $inputString != '') {
-            $regMatch = [];
-            preg_match(
-                '/^[(]([^,]*)[,]([^,]*)[,]([^,]*)[,]([^,]*)[)]$/',
-                $inputString,
-                $regMatch
-            );
-            if (count($regMatch) != 0) {
-                $start = new FuzzyDate('(' . $regMatch[1] . ',' . $regMatch[2] . ')');
-                $end = new FuzzyDate('(' . $regMatch[3] . ',' . $regMatch[4] . ')');
-            }
-        }
+        return [
+            'start' => $this->start->getJson(),
+            'end' => $this->end->getJson(),
+        ];
+    }
 
-        return new FuzzyInterval($start ? $start : new FuzzyDate(), $end ? $end : new FuzzyDate());
+    public static function fromDB(stdClass $input): FuzzyInterval
+    {
+        return new FuzzyInterval(
+            new FuzzyDate('(' . $input->start_floor . ',' . $input->start_ceiling . ')'),
+            new FuzzyDate('(' . $input->end_floor . ',' . $input->end_ceiling . ')')
+        );
     }
 }

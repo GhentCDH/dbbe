@@ -48,13 +48,9 @@ class Person extends Entity implements SubjectInterface
      */
     protected $deathDate;
     /**
-     * @var FuzzyDate
+     * @var array
      */
-    protected $attestedDate;
-    /**
-     * @var FuzzyInterval
-     */
-    protected $attestedInterval;
+    protected $attestedDatesAndIntervals = [];
     /**
      * @var array
      */
@@ -306,41 +302,31 @@ class Person extends Entity implements SubjectInterface
     }
 
     /**
-     * @param  FuzzyDate|null $attestedDate
+     * @param  FuzzyDate|FuzzyInterval $attestedDate
      * @return Person
      */
-    public function setAttestedDate(FuzzyDate $attestedDate = null): Person
+    public function addAttestedDateOrInterval($attested): Person
     {
-        $this->attestedDate = $attestedDate;
+        $this->attestedDatesAndIntervals[] = $attested;
+
+        return $this;
+    }
+
+    public function sortAttestedDatesAndIntervals(): Person
+    {
+        usort($this->attestedDatesAndIntervals, function ($a, $b) {
+//            return strcmp(strtolower($a->getName()), strtolower($b->getName()));
+        });
 
         return $this;
     }
 
     /**
-     * @return FuzzyDate|null
+     * @return array
      */
-    public function getAttestedDate(): ?FuzzyDate
+    public function getAttestedDatesAndIntervals(): array
     {
-        return $this->attestedDate;
-    }
-
-    /**
-     * @param  FuzzyInterval|null $attestedInterval
-     * @return Person
-     */
-    public function setAttestedInterval(FuzzyInterval $attestedInterval = null): Person
-    {
-        $this->attestedInterval = $attestedInterval;
-
-        return $this;
-    }
-
-    /**
-     * @return FuzzyInterval|null
-     */
-    public function getAttestedInterval(): ?FuzzyInterval
-    {
-        return $this->attestedInterval;
+        return $this->attestedDatesAndIntervals;
     }
 
     /**
@@ -770,7 +756,7 @@ class Person extends Entity implements SubjectInterface
             $this->origin ? ' of ' . $this->origin->getName() : null,
             $this->extra,
             ])))) {
-            if (!$this->bornDate->isEmpty() && !$this->deathDate->isEmpty()) {
+            if ($this->bornDate != null && !$this->bornDate->isEmpty() && $this->deathDate != null && !$this->deathDate->isEmpty()) {
                 $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
             }
         }
@@ -857,6 +843,7 @@ class Person extends Entity implements SubjectInterface
         $result['historical'] = $this->historical;
         $result['modern'] = $this->modern;
         $result['dbbe'] = $this->dbbe;
+        $result['dates'] = [];
 
         if (isset($this->firstName)) {
             $result['firstName'] = $this->firstName;
@@ -877,17 +864,33 @@ class Person extends Entity implements SubjectInterface
             $result['unprocessed'] = $this->unprocessed;
         }
         if (isset($this->bornDate) && !($this->bornDate->isEmpty())) {
-            $result['bornDate'] = $this->bornDate->getJson();
+            $result['dates'][] = [
+                'type' => 'born',
+                'isInterval' => false,
+                'date' => $this->bornDate->getJson(),
+            ];
         }
         if (isset($this->deathDate) && !($this->deathDate->isEmpty())) {
-            $result['deathDate'] = $this->deathDate->getJson();
+            $result['dates'][] = [
+                'type' => 'died',
+                'isInterval' => false,
+                'date' => $this->deathDate->getJson(),
+            ];
         }
-        if (isset($this->attestedDate) && !($this->attestedDate->isEmpty())) {
-            $result['attestedStartDate'] = $this->attestedDate->getJson();
-        }
-        if (isset($this->attestedInterval) && !($this->attestedInterval->isEmpty())) {
-            $result['attestedStartDate'] = $this->attestedInterval->getStart()->getJson();
-            $result['attestedEndDate'] = $this->attestedInterval->getEnd()->getJson();
+        foreach ($this->attestedDatesAndIntervals as $attested) {
+            if (get_class($attested) == 'AppBundle\Model\FuzzyDate') {
+                $result['dates'][] = [
+                    'type' => 'attested',
+                    'isInterval' => false,
+                    'date' => $attested->getJson(),
+                ];
+            } else {
+                $result['dates'][] = [
+                    'type' => 'attested',
+                    'isInterval' => true,
+                    'interval' => $attested->getJson(),
+                ];
+            }
         }
         if (!empty($this->officesWithParents)) {
             $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);

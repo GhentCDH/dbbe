@@ -352,8 +352,13 @@ class Manuscript extends Document
         if (!empty($this->occurrencePersonRoles)) {
             $result['occurrencePersonRoles'] = $this->getOccurrencePersonRolesJson();
         }
-        if (isset($this->date) && !($this->date->isEmpty())) {
-            $result['date'] = $this->date->getJson();
+        $result['dates'] = [];
+        if (!empty($this->date) && !($this->date->isEmpty())) {
+            $result['dates'][] = [
+                'type' => 'completed at',
+                'isInterval' => false,
+                'date' => $this->date->getJson(),
+            ];
         }
         if (isset($this->origin)) {
             $result['origin'] = $this->origin->getShortJson();

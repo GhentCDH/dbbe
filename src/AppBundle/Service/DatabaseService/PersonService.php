@@ -284,8 +284,8 @@ class PersonService extends EntityService
                 person.is_dbbe,
                 factoid_born.born_date,
                 factoid_died.death_date,
-                factoid_attested.attested_date,
-                factoid_attested.attested_interval
+                factoid_attested.attested_dates,
+                factoid_attested.attested_intervals
             from data.person
             inner join data.name on name.idperson = person.identity
             left join (
@@ -307,11 +307,12 @@ class PersonService extends EntityService
             left join (
                 select
                     factoid.subject_identity,
-                    factoid.date as attested_date,
-                    factoid.interval as attested_interval
+                    array_to_json(array_agg(factoid.date)) as attested_dates,
+                    array_to_json(array_agg(factoid.interval)) as attested_intervals
                 from data.factoid
                 inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
                 where factoid_type.type = \'attested\'
+                group by factoid.subject_identity
             ) as factoid_attested on person.identity = factoid_attested.subject_identity
             left join (
                 select

@@ -270,9 +270,10 @@ class ManuscriptManager extends DocumentManager
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
-            if (property_exists($data, 'date')) {
-                $changes['short'] = true;
-                $this->updateDate($old, 'completed at', !($old->getDate() == null || $old->getDate()->isEmpty()), $data->date);
+            if (property_exists($data, 'dates')) {
+                $this->validateDates($data->dates);
+                $changes['mini'] = true;
+                $this->updateDates($old, $data->dates);
             }
             if (property_exists($data, 'origin')) {
                 $changes['short'] = true;

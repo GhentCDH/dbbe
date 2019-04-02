@@ -508,8 +508,13 @@ class Occurrence extends Poem
             'images' => ArrayToJson::arrayToJson($this->getImages()),
             'imageLinks' => ArrayToJson::arrayToJson($this->getImageLinks()),
         ];
+        $result['dates'] = [];
         if (!empty($this->date) && !($this->date->isEmpty())) {
-            $result['date'] = $this->date->getJson();
+            $result['dates'][] = [
+                'type' => 'completed at',
+                'isInterval' => false,
+                'date' => $this->date->getJson(),
+            ];
         }
         if (!empty($this->palaeographicalInfo)) {
             $result['palaeographicalInfo'] = $this->palaeographicalInfo;

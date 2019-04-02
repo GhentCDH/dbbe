@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use DateTime;
 use Exception;
 use stdClass;
 
@@ -199,6 +200,37 @@ abstract class DocumentManager extends ObjectEntityManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
             throw $e;
+        }
+    }
+
+    protected function validateDates($dates): void
+    {
+        parent::validateDates($dates);
+
+        $completedItems = array_filter($dates, function ($item) {return $item->type == 'completed';});
+        if (count($completedItems) > 1) {
+            throw new BadRequestHttpException('Too many completed dates (only one allowed).');
+        }
+        foreach ($completedItems as $completedItem) {
+            if ($completedItem->isInterval) {
+                throw new BadRequestHttpException('Only dates are allowed for completed dates.');
+            }
+        }
+    }
+
+    protected function updateDates(Document $document, array $dates): void
+    {
+        $completedItems = array_values(array_filter($dates, function ($item) {return $item->type == 'completed at';}));
+        if ($document->getDate() == null && count($completedItems) != 0) {
+            $this->dbs->insertDate($document->getId(), 'completed at', $this->getDBDate($completedItems[0]->date));
+        } elseif ($document->getDate() != null && count($completedItems) != 0) {
+            if ($document->getDate()->getFloor() != new DateTime($completedItems[0]->date->floor)
+                || $document->getDate()->getCeiling() != new DateTime($completedItems[0]->date->ceiling)
+            ) {
+                $this->dbs->updateDate($document->getId(), 'completed at', $this->getDBDate($completedItems[0]->date));
+            }
+        } elseif ($document->getDate() != null && count($completedItems) == 0) {
+            $this->dbs->deleteDateOrInterval($document->getId(), 'completed at');
         }
     }
 

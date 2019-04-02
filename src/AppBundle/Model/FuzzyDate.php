@@ -4,6 +4,7 @@ namespace AppBundle\Model;
 
 use DateTime;
 use NumberFormatter;
+use stdClass;
 
 class FuzzyDate
 {
@@ -177,5 +178,12 @@ class FuzzyDate
             'floor' => empty($this->floor) ? null : $this->floor->format('Y-m-d'),
             'ceiling' => empty($this->ceiling) ? null : $this->ceiling->format('Y-m-d'),
         ];
+    }
+
+    public static function fromDB(stdClass $input): FuzzyDate
+    {
+        return (new FuzzyDate())
+            ->setFloor(new DateTime($input->floor))
+            ->setCeiling(new DateTime($input->ceiling));
     }
 }

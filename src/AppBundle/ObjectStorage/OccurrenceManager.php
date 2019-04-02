@@ -517,9 +517,10 @@ class OccurrenceManager extends PoemManager
                 }
                 $this->container->get('manuscript_manager')->updateElasticByIds([$manuscriptId]);
             }
-            if (property_exists($data, 'date')) {
-                $changes['short'] = true;
-                $this->updateDate($old, 'completed at', !($old->getDate() == null || $old->getDate()->isEmpty()), $data->date);
+            if (property_exists($data, 'dates')) {
+                $this->validateDates($data->dates);
+                $changes['mini'] = true;
+                $this->updateDates($old, $data->dates);
             }
             if (property_exists($data, 'metres')) {
                 if (!is_array($data->metres)) {

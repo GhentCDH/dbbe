@@ -41,10 +41,11 @@
             />
 
             <datePanel
-                id="date"
-                ref="date"
-                header="Date"
-                :model="model.date"
+                id="dates"
+                ref="dates"
+                header="Dates"
+                :model="model.dates"
+                :config="{'completed at': {limit: 1, type: 'date'}}"
                 @validated="validated"
             />
 
@@ -165,7 +166,7 @@
                     <li><a href="#location">Location</a></li>
                     <li><a href="#content">Content</a></li>
                     <li><a href="#persons">Persons</a></li>
-                    <li><a href="#date">Date</a></li>
+                    <li><a href="#dates">Dates</a></li>
                     <li><a href="#origin">Origin</a></li>
                     <li><a href="#occurrenceOrder">Occurrence Order</a></li>
                     <li><a href="#identification">Identification</a></li>
@@ -240,16 +241,7 @@ export default {
                 content: {content: null},
                 personRoles: {},
                 contributorRoles: {},
-                date: {
-                    floor: null,
-                    ceiling: null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
-                },
+                dates: [],
                 origin: {origin: null},
                 occurrenceOrder: {occurrenceOrder: []},
                 identification: {},
@@ -273,7 +265,7 @@ export default {
                 'locatedAt',
                 'content',
                 'persons',
-                'date',
+                'dates',
                 'origin',
                 'occurrenceOrder',
                 'identification',
@@ -336,16 +328,9 @@ export default {
                 }
                 this.$refs.persons.init();
 
-                // Date
-                this.model.date = {
-                    floor: this.manuscript.date != null ? this.manuscript.date.floor : null,
-                    ceiling: this.manuscript.date != null ? this.manuscript.date.ceiling : null,
-                    exactDate: null,
-                    exactYear: null,
-                    floorYear: null,
-                    floorDayMonth: null,
-                    ceilingYear: null,
-                    ceilingDayMonth: null,
+                // Dates
+                if (this.manuscript.dates != null) {
+                    this.model.dates = this.manuscript.dates;
                 }
 
                 // Origin

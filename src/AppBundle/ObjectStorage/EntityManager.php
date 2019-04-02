@@ -3,6 +3,7 @@
 namespace AppBundle\ObjectStorage;
 
 use DateTime;
+use Elastica\Processor\Date;
 use Exception;
 use stdClass;
 
@@ -220,54 +221,86 @@ abstract class EntityManager extends ObjectManager
         $this->dbs->updatePublic($entity->getId(), $public);
     }
 
-    protected function updateDate(Entity $entity, string $type, bool $exists = false, stdClass $newdate = null): void
+    protected function getDBDate(stdClass $date) {
+        return '('
+            . (empty($date->floor) ? '-infinity' : $date->floor)
+            . ', '
+            . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
+            . ')';
+    }
+
+    protected  function getDBInterval(stdClass $date) {
+        return '('
+            . (empty($date->start->floor) ? '-infinity' : $date->start->floor)
+            . ', '
+            . (empty($date->start->ceiling) ? 'infinity' : $date->start->ceiling)
+            . ', '
+            . (empty($date->end->floor) ? '-infinity' : $date->end->floor)
+            . ', '
+            . (empty($date->end->ceiling) ? 'infinity' : $date->end->ceiling)
+            . ')';
+    }
+
+    protected function validateDates($dates): void
     {
-        if (!property_exists($newdate, 'floor') || (!empty($newdate->floor) && !is_string($newdate->floor))
-            || !property_exists($newdate, 'ceiling') || (!empty($newdate->ceiling) && !is_string($newdate->ceiling))
-        ) {
-            throw new BadRequestHttpException('Incorrect date data.');
-        } elseif (empty($newdate->floor) && empty($newdate->ceiling)) {
-            $this->dbs->deleteDateOrInterval($entity->getId(), $type);
-        } else {
-            $dbDate = '('
-                . (empty($newdate->floor) ? '-infinity' : $newdate->floor)
-                . ', '
-                . (empty($newdate->ceiling) ? 'infinity' : $newdate->ceiling)
-                . ')';
-            if (!$exists) {
-                $this->dbs->insertDate($entity->getId(), $type, $dbDate);
+        if (!is_array($dates)) {
+            throw new BadRequestHttpException('Incorrect dates data.');
+        }
+        foreach ($dates as $index => $item) {
+            if (!is_object($item)
+                || !property_exists($item, 'type')
+                || !is_string($item->type)
+                || empty($item->type)
+                || !property_exists($item, 'isInterval')
+                || !is_bool($item->isInterval)
+                || (!$item->isInterval
+                    && (!property_exists($item, 'date')
+                        || !is_object($item->date)
+                        || !property_exists($item->date, 'floor')
+                        || (!is_string($item->date->floor) && !is_null($item->date->floor))
+                        || !property_exists($item->date, 'ceiling')
+                        || (!is_string($item->date->ceiling) && !is_null($item->date->ceiling))
+                    )
+                )
+                || ($item->isInterval
+                    && (!property_exists($item, 'interval')
+                        || !is_object($item->interval)
+                        || !property_exists($item->interval, 'start')
+                        || !is_object($item->interval->start)
+                        || !property_exists($item->interval->start, 'floor')
+                        || (!is_string($item->interval->start->floor) && !is_null($item->interval->start->floor))
+                        || !property_exists($item->interval->start, 'ceiling')
+                        || (!is_string($item->interval->start->ceiling) && !is_null($item->interval->start->ceiling))
+                        || !property_exists($item->interval, 'end')
+                        || !is_object($item->interval->end)
+                        || !property_exists($item->interval->end, 'floor')
+                        || (!is_string($item->interval->end->floor) && !is_null($item->interval->end->floor))
+                        || !property_exists($item->interval->end, 'ceiling')
+                        || (!is_string($item->interval->end->ceiling) && !is_null($item->interval->end->ceiling))
+                    )
+                )
+            ) {
+                throw new BadRequestHttpException('Incorrect date or interval in dates data (' . $index . ').');
+            }
+            // date check
+            if (!$item->isInterval) {
+                $this->validateDate($item->date->floor, $index);
+                $this->validateDate($item->date->ceiling, $index);
             } else {
-                $this->dbs->updateDate($entity->getId(), $type, $dbDate);
+                $this->validateDate($item->interval->start->floor, $index);
+                $this->validateDate($item->interval->start->ceiling, $index);
+                $this->validateDate($item->interval->end->floor, $index);
+                $this->validateDate($item->interval->end->ceiling, $index);
             }
         }
     }
 
-    protected function updateInterval(Entity $entity, string $type, bool $exists = False, stdClass $startDate = null, stdClass $endDate = null): void
-    {
-        if (!property_exists($startDate, 'floor') || (!empty($startDate->floor) && !is_string($startDate->floor))
-            || !property_exists($startDate, 'ceiling') || (!empty($startDate->ceiling) && !is_string($startDate->ceiling))
-            || !property_exists($endDate, 'floor') || (!empty($endDate->floor) && !is_string($endDate->floor))
-            || !property_exists($endDate, 'ceiling') || (!empty($endDate->ceiling) && !is_string($endDate->ceiling))
-        ) {
-            throw new BadRequestHttpException('Incorrect interval data.');
-        } elseif (empty($startDate->floor) && empty($startDate->ceiling)) {
-            $this->dbs->deleteDateOrInterval($entity->getId(), $type);
-        } elseif (empty($endDate->floor) && empty($endDate->ceiling)) {
-            $this->updateDate($entity, $type, $exists, $startDate);
-        } else {
-            $dbInterval = '('
-                . (empty($startDate->floor) ? '-infinity' : $startDate->floor)
-                . ', '
-                . (empty($startDate->ceiling) ? 'infinity' : $startDate->ceiling)
-                . ', '
-                . (empty($endDate->floor) ? '-infinity' : $endDate->floor)
-                . ', '
-                . (empty($endDate->ceiling) ? 'infinity' : $endDate->ceiling)
-                . ')';
-            if (!$exists) {
-                $this->dbs->insertInterval($entity->getId(), $type, $dbInterval);
-            } else {
-                $this->dbs->updateInterval($entity->getId(), $type, $dbInterval);
+    private function validateDate($input, $index) {
+        if (is_string($input)) {
+            try {
+                new DateTime($input);
+            } catch (Exception $e) {
+                throw new BadRequestHttpException('Invalid date or interval date in dates data (' . $index . ').');
             }
         }
     }

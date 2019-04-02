@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use DateTime;
 use Exception;
 use stdClass;
 
@@ -39,22 +40,42 @@ class PersonManager extends ObjectEntityManager
 
         foreach ($rawPersons as $rawPerson) {
              $person = (new Person())
-                ->setId($rawPerson['person_id'])
-                ->setFirstName($rawPerson['first_name'])
-                ->setLastName($rawPerson['last_name'])
-                ->setExtra($rawPerson['extra'])
-                ->setUnprocessed($rawPerson['unprocessed'])
-                ->setBornDate(new FuzzyDate($rawPerson['born_date']))
-                ->setDeathDate(new FuzzyDate($rawPerson['death_date']))
-                ->setAttestedDate(new FuzzyDate($rawPerson['attested_date']))
-                ->setAttestedInterval(FuzzyInterval::fromString($rawPerson['attested_interval']))
-                ->setHistorical($rawPerson['is_historical'])
-                ->setModern($rawPerson['is_modern'])
-                ->setDBBE($rawPerson['is_dbbe']);
+                 ->setId($rawPerson['person_id'])
+                 ->setFirstName($rawPerson['first_name'])
+                 ->setLastName($rawPerson['last_name'])
+                 ->setExtra($rawPerson['extra'])
+                 ->setUnprocessed($rawPerson['unprocessed'])
+                 ->setHistorical($rawPerson['is_historical'])
+                 ->setModern($rawPerson['is_modern'])
+                 ->setDBBE($rawPerson['is_dbbe']);
 
             if ($rawPerson['location_id'] != null) {
                 $person->setOrigin(Origin::fromLocation($locations[$rawPerson['location_id']]));
             }
+
+            if (!empty($rawPerson['born_date'])) {
+                $person->setBornDate(new FuzzyDate($rawPerson['born_date']));
+            }
+
+            if (!empty($rawPerson['death_date'])) {
+                $person->setDeathDate(new FuzzyDate($rawPerson['death_date']));
+            }
+
+            if (!empty($rawPerson['attested_dates'])) {
+                foreach (json_decode($rawPerson['attested_dates']) as $attestedDate) {
+                    if ($attestedDate != null) {
+                        $person->addAttestedDateOrInterval(FuzzyDate::fromDB($attestedDate));
+                    }
+                }
+            }
+            if (!empty($rawPerson['attested_intervals'])) {
+                foreach (json_decode($rawPerson['attested_intervals']) as $attestedInterval) {
+                    if ($attestedInterval != null) {
+                        $person->addAttestedDateOrInterval(FuzzyInterval::fromDB($attestedInterval));
+                    }
+                }
+            }
+            $person->sortAttestedDatesAndIntervals();
 
             $persons[$rawPerson['person_id']] = $person;
         }
@@ -601,49 +622,10 @@ class PersonManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->updateDBBE($old, $data->dbbe);
             }
-            if (property_exists($data, 'bornDate')) {
-                if (!is_object($data->bornDate)) {
-                    throw new BadRequestHttpException('Incorrect born date data.');
-                }
+            if (property_exists($data, 'dates')) {
+                $this->validateDates($data->dates);
                 $changes['mini'] = true;
-                $this->updateDate($old, 'born', !($old->getBornDate() == null || $this->getBornDate()->isEmpty()), $data->bornDate);
-            }
-            if (property_exists($data, 'deathDate')) {
-                if (!is_object($data->deathDate)) {
-                    throw new BadRequestHttpException('Incorrect death date data.');
-                }
-                $changes['mini'] = true;
-                $this->updateDate($old, 'died', !($old->getDeathDate() == null || $old->getDeathDate()->isEmpty()), $data->deathDate);
-            }
-            if (property_exists($data, 'attestedStartDate') && property_exists($data, 'attestedEndDate')) {
-                if (!is_object($data->attestedStartDate)) {
-                    throw new BadRequestHttpException('Incorrect attested start date data.');
-                }
-                if (!is_object($data->attestedEndDate)) {
-                    throw new BadRequestHttpException('Incorrect attested end date data.');
-                }
-                $changes['mini'] = true;
-                // completely new interval
-                $this->updateInterval($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), $data->attestedStartDate, $data->attestedEndDate);
-            } elseif (property_exists($data, 'attestedStartDate')) {
-                if (!is_object($data->attestedStartDate)) {
-                    throw new BadRequestHttpException('Incorrect attested start date data.');
-                }
-                $changes['mini'] = true;
-                if (!$old->getAttestedInterval()->isEmpty()) {
-                    // new start of interval
-                    $this->updateInterval($old, 'attested', !($old->getAttestedDate() == null || $old->getAttestedDate()->isEmpty()) || !($old->getAttestedInterval() == null || $old->getAttestedInterval()->isEmpty()), $data->attestedStartDate, (object) $old->getAttestedInterval()->getEnd()->getJson());
-                } else {
-                    // completely new date
-                    $this->updateDate($old, 'attested', !($old->getAttestedDate() == null || $old->getAttestedDate()->isEmpty()) || !($old->getAttestedInterval() == null || $old->getAttestedInterval()->isEmpty()), $data->attestedStartDate);
-                }
-            } elseif (property_exists($data, 'attestedEndDate')) {
-                if (!is_object($data->attestedEndDate)) {
-                    throw new BadRequestHttpException('Incorrect attested end date data.');
-                }
-                $changes['mini'] = true;
-                // new end of interval
-                $this->updateInterval($old, 'attested', !$old->getAttestedDate()->isEmpty() || !$old->getAttestedInterval()->isEmpty(), (object) $old->getAttestedInterval()->getStart()->getJson(), $data->attestedEndDate);
+                $this->updateDates($old, $data->dates);
             }
             $this->updateIdentificationwrapper($old, $data, $changes, 'mini', 'person');
             if (property_exists($data, 'offices')) {
@@ -1052,6 +1034,116 @@ class PersonManager extends ObjectEntityManager
     private function updateDBBE(Person $person, bool $dbbe): void
     {
         $this->dbs->updateDBBE($person->getId(), $dbbe);
+    }
+
+    protected function validateDates($dates): void
+    {
+        parent::validateDates($dates);
+
+        $bornItems = array_filter($dates, function ($item) {return $item->type == 'born';});
+        if (count($bornItems) > 1) {
+            throw new BadRequestHttpException('Too many born dates (only one allowed).');
+        }
+        foreach ($bornItems as $bornItem) {
+            if ($bornItem->isInterval) {
+                throw new BadRequestHttpException('Only dates are allowed for born dates.');
+            }
+        }
+        $diedItems = array_filter($dates, function ($item) {return $item->type == 'died';});
+        if (count($diedItems) > 1) {
+            throw new BadRequestHttpException('Too many died dates (only one allowed).');
+        }
+        foreach ($diedItems as $diedItem) {
+            if ($diedItem->isInterval) {
+                throw new BadRequestHttpException('Only dates are allowed for died dates.');
+            }
+        }
+        $attestedItems = array_filter($dates, function ($item) {return $item->type == 'attested';});
+        if (count($bornItems) + count($diedItems) + count($attestedItems) != count($dates)) {
+            throw new BadRequestHttpException('Invalid date type used.');
+        }
+    }
+
+    private function updateDates(Person $person, array $dates): void
+    {
+        $bornItems = array_values(array_filter($dates, function ($item) {return $item->type == 'born';}));
+        if ($person->getBornDate() == null && count($bornItems) != 0) {
+            $this->dbs->insertDate($person->getId(), 'born', $this->getDBDate($bornItems[0]->date));
+        } elseif ($person->getBornDate() != null && count($bornItems) != 0) {
+            if ($person->getBornDate()->getFloor() != new DateTime($bornItems[0]->date->floor)
+                || $person->getBornDate()->getCeiling() != new DateTime($bornItems[0]->date->ceiling)
+            ) {
+                $this->dbs->updateDate($person->getId(), 'born', $this->getDBDate($bornItems[0]->date));
+            }
+        } elseif ($person->getBornDate() != null && count($bornItems) == 0) {
+            $this->dbs->deleteDateOrInterval($person->getId(), 'born');
+        }
+
+        $diedItems = array_values(array_filter($dates, function ($item) {return $item->type == 'died';}));
+        if ($person->getDeathDate() == null && count($diedItems) != 0) {
+            $this->dbs->insertDate($person->getId(), 'died', $this->getDBDate($diedItems[0]->date));
+        } elseif ($person->getDeathDate() != null && count($diedItems) != 0) {
+            if ($person->getDeathDate()->getFloor() != new DateTime($diedItems[0]->date->floor)
+                || $person->getDeathDate()->getCeiling() != new DateTime($diedItems[0]->date->ceiling)
+            ) {
+                $this->dbs->updateDate($person->getId(), 'died', $this->getDBDate($diedItems[0]->date));
+            }
+        } elseif ($person->getDeathDate() != null && count($diedItems) == 0) {
+            $this->dbs->deleteDateOrInterval($person->getId(), 'died');
+        }
+
+        $attestedItems = array_values(array_filter($dates, function ($item) {return $item->type == 'attested';}));
+        $oldIndexes = [];
+        $newIndexes = [];
+        foreach ($person->getAttestedDatesAndIntervals() as $oldIndex => $old) {
+            foreach ($attestedItems as $newIndex => $new) {
+                if (in_array($newIndex, $newIndexes)) {
+                    continue;
+                }
+                if (get_class($old) === 'AppBundle\Model\FuzzyDate' && !$new->isInterval) {
+                    if ($old->getFloor() == new DateTime($new->date->floor)
+                        && $old->getCeiling() == new DateTime($new->date->ceiling)
+                    ) {
+                        $oldIndexes[] = $oldIndex;
+                        $newIndexes[] = $newIndex;
+                        break;
+                    }
+                } elseif (get_class($old) === 'AppBundle\Model\FuzzyInterval' && $new->isInterval) {
+                    if ($old->getStart()->getFloor() == new DateTime($new->interval->start->floor)
+                        && $old->getStart()->getCeiling() == new DateTime($new->interval->start->ceiling)
+                        && $old->getEnd()->getFloor() == new DateTime($new->interval->end->floor)
+                        && $old->getEnd()->getCeiling() == new DateTime($new->interval->end->ceiling)
+                    ) {
+                        $oldIndexes[] = $oldIndex;
+                        $newIndexes[] = $newIndex;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (count($person->getAttestedDatesAndIntervals()) == count($oldIndexes)) {
+            if (count($attestedItems) != count($newIndexes)) {
+                foreach ($attestedItems as $newIndex => $new) {
+                    if (!in_array($newIndex, $newIndexes)) {
+                        if (!$new->isInterval) {
+                            $this->dbs->insertDate($person->getId(), 'attested', $this->getDBDate($new->date));
+                        } else {
+                            $this->dbs->insertInterval($person->getId(), 'attested', $this->getDBInterval($new->interval));
+                        }
+                    }
+                }
+            }
+        } else {
+            $this->dbs->deleteDateOrInterval($person->getId(), 'attested');
+            foreach ($attestedItems as $newIndex => $new) {
+                if (!$new->isInterval) {
+                    $this->dbs->insertDate($person->getId(), 'attested', $this->getDBDate($new->date));
+                } else {
+                    $this->dbs->insertInterval($person->getId(), 'attested', $this->getDBInterval($new->interval));
+                }
+            }
+        }
     }
 
     /**
