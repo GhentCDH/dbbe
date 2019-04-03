@@ -49,7 +49,7 @@ class JournalController extends BaseController
                     'journal_delete' => $this->generateUrl('journal_delete', ['id' => 'journal_id']),
                     'login' => $this->generateUrl('login'),
                 ]),
-                'journals' => json_encode($this->get(self::MANAGER)->getAllJson()),
+                'journals' => json_encode($this->get(self::MANAGER)->getAllMiniShortJson()),
             ]
         );
     }
