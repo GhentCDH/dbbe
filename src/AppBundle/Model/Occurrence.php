@@ -254,7 +254,12 @@ class Occurrence extends Poem
     {
         $resultArray = [];
         if (!empty($this->foliumStart)) {
-            if (!empty($this->foliumEnd)) {
+            if (!empty($this->foliumEnd)
+                && (
+                    $this->foliumStart !== $this->foliumEnd
+                    || $this->foliumStartRecto !== $this->foliumEndRecto
+                )
+            ) {
                 $resultArray[] = 'f. ' . $this->foliumStart . self::formatRecto($this->foliumStartRecto)
                     . '-' . $this->foliumEnd . self::formatRecto($this->foliumEndRecto);
             } else {
@@ -275,7 +280,12 @@ class Occurrence extends Poem
         }
 
         if (!empty($this->alternativeFoliumStart)) {
-            if (!empty($this->alternativeFoliumEnd)) {
+            if (!empty($this->alternativeFoliumEnd)
+                && (
+                    $this->alternativeFoliumStart !== $this->alternativeFoliumEnd
+                    || $this->alternativeFoliumStartRecto !== $this->alternativeFoliumEndRecto
+                )
+            ) {
                 $resultArray[] = '(alt.) f. '
                     . $this->alternativeFoliumStart
                     . self::formatRecto($this->alternativeFoliumStartRecto)
