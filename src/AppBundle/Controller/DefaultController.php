@@ -98,6 +98,20 @@ class DefaultController extends Controller
         );
     }
 
+
+    /**
+     * @Route("/julie", name="julie")
+     * @Route("/julie/{route}", name="julie_pages", requirements={"route"="^.+"})
+     * @param  Request $request
+     * @return Response
+     */
+    public function julie(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_JULIE');
+
+        return $this->render('AppBundle:Julie:index.html.twig');
+    }
+
     /**
      * @Route("/login", name="login")
      * @param  Request $request
