@@ -65,7 +65,7 @@
                 <tbody>
                     <tr>
                         <td>Title</td>
-                        <td>{{ mergeModel.primary.title }}</td>
+                        <td>{{ mergeModel.primary.name }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -107,7 +107,7 @@ export default {
                         inputType: 'text',
                         label: 'Title',
                         labelClasses: 'control-label',
-                        model: 'journal.title',
+                        model: 'journal.name',
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
@@ -155,7 +155,7 @@ export default {
             };
             if (add) {
                 this.submitModel.journal =  {
-                    title: null,
+                    name: null,
                 }
             }
             else {

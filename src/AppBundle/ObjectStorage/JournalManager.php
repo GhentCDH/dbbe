@@ -117,7 +117,7 @@ class JournalManager extends DocumentManager
     public function add(stdClass $data): Journal
     {
         if (# mandatory
-            !property_exists($data, 'title')
+            !property_exists($data, 'name')
             || !is_string($data->title)
             || empty($data->title)
         ) {
@@ -125,7 +125,7 @@ class JournalManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title);
+            $id = $this->dbs->insert($data->name);
 
             $new = $this->getFull($id);
 
@@ -160,12 +160,12 @@ class JournalManager extends DocumentManager
         $this->dbs->beginTransaction();
         try {
             $correct = false;
-            if (property_exists($data, 'title')
-                && is_string($data->title)
-                && !empty($data->title)
+            if (property_exists($data, 'name')
+                && is_string($data->name)
+                && !empty($data->name)
             ) {
                 $correct = true;
-                $this->dbs->updateTitle($id, $data->title);
+                $this->dbs->updateTitle($id, $data->name);
             }
 
             if (!$correct) {
@@ -209,7 +209,7 @@ class JournalManager extends DocumentManager
         $primary = $this->getFull($primaryId);
         $this->getFull($secondaryId);
 
-        $journalIssues = $this->container->get('journal_issue_manager')->getJournalDependencies($secondaryId, 'get');
+        $journalIssues = $this->container->get('journal_issue_manager')->getJournalDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
         try {

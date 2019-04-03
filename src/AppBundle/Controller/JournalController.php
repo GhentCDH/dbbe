@@ -25,7 +25,12 @@ class JournalController extends BaseController
      */
     public function getAll(Request $request)
     {
-        return parent::getAll($request);
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->throwErrorIfNotJson($request);
+
+        return new JsonResponse(
+            $this->get(static::MANAGER)->getAllMiniShortJson()
+        );
     }
 
     /**

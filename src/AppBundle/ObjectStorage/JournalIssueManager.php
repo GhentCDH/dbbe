@@ -85,7 +85,7 @@ class JournalIssueManager extends DocumentManager
      */
     public function getJournalDependencies(int $journalId): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId), 'get');
+        return $this->getDependencies($this->dbs->getDepIdsByJournalId($journalId), 'getMini');
     }
 
     /**
