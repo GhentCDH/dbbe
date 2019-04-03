@@ -593,7 +593,7 @@ class OccurrenceService extends PoemService
      * @param  string $pageStart
      * @return int
      */
-    public function updatePageStart(int $id, string $pageStart): int
+    public function updatePageStart(int $id, string $pageStart = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
@@ -611,7 +611,7 @@ class OccurrenceService extends PoemService
      * @param  string $pageEnd
      * @return int
      */
-    public function updatePageEnd(int $id, string $pageEnd): int
+    public function updatePageEnd(int $id, string $pageEnd = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains

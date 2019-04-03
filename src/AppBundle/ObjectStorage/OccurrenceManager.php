@@ -421,6 +421,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'pageStart')) {
                 if (!is_string($data->pageStart)
+                    && !is_null($data->pageStart)
                 ) {
                     throw new BadRequestHttpException('Incorrect pageStart data.');
                 }
@@ -430,6 +431,7 @@ class OccurrenceManager extends PoemManager
             }
             if (property_exists($data, 'pageEnd')) {
                 if (!is_string($data->pageEnd)
+                    && !is_null($data->pageEnd)
                 ) {
                     throw new BadRequestHttpException('Incorrect pageEnd data.');
                 }

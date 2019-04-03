@@ -71,7 +71,7 @@ export default {
                                 label: 'Folium start',
                                 labelClasses: 'control-label',
                                 model: 'foliumStart',
-                                validator: VueFormGenerator.validators.string,
+                                validator: [VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             foliumStartRecto: this.createRectoRadio('foliumStartRecto', 'Folium start recto'),
                             foliumEnd: {
@@ -80,7 +80,7 @@ export default {
                                 label: 'Folium end',
                                 labelClasses: 'control-label',
                                 model: 'foliumEnd',
-                                validator: VueFormGenerator.validators.string,
+                                validator: [VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             foliumEndRecto: this.createRectoRadio('foliumEndRecto', 'Folium end recto'),
                             unsure: {
@@ -94,7 +94,7 @@ export default {
                                 label: 'Page start',
                                 labelClasses: 'control-label',
                                 model: 'pageStart',
-                                validator: VueFormGenerator.validators.string,
+                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
                             },
                             pageEnd: {
                                 type: 'input',
@@ -102,7 +102,7 @@ export default {
                                 label: 'Page end',
                                 labelClasses: 'control-label',
                                 model: 'pageEnd',
-                                validator: VueFormGenerator.validators.string,
+                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
                             },
                             generalLocation: {
                                 type: 'input',
@@ -123,7 +123,7 @@ export default {
                                 label: 'Folium start',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumStart',
-                                validator: VueFormGenerator.validators.string,
+                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             alternativeFoliumStartRecto: this.createRectoRadio('alternativeFoliumStartRecto', 'Alternative folium start recto'),
                             alternativeFoliumEnd: {
@@ -132,7 +132,7 @@ export default {
                                 label: 'Folium end',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumEnd',
-                                validator: VueFormGenerator.validators.string,
+                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             alternativeFoliumEndRecto: this.createRectoRadio('alternativeFoliumEndRecto', 'Alternative folium end recto'),
                         },
@@ -160,10 +160,28 @@ export default {
             }
             this.$refs.form.validate();
         },
+        'model.foliumStartRecto'() {
+            this.$refs.form.validate();
+        },
         'model.foliumEnd'(val) {
             if (val == null || val === '') {
                 this.model.foliumEnd = null;
                 this.model.foliumEndRecto = null;
+            }
+            this.$refs.form.validate();
+        },
+        'model.foliumEndRecto'() {
+            this.$refs.form.validate();
+        },
+        'model.pageStart'(val) {
+            if (val === '') {
+                this.model.pageStart = null;
+            }
+            this.$refs.form.validate();
+        },
+        'model.pageEnd'(val) {
+            if (val === '') {
+                this.model.pageEnd = null;
             }
             this.$refs.form.validate();
         },
@@ -174,11 +192,17 @@ export default {
             }
             this.$refs.form.validate();
         },
+        'model.alternativeFoliumStartRecto'() {
+            this.$refs.form.validate();
+        },
         'model.alternativeFoliumEnd'(val) {
             if (val == null || val === '') {
                 this.model.alternativeFoliumEnd = null;
                 this.model.alternativeFoliumEndRecto = null;
             }
+            this.$refs.form.validate();
+        },
+        'model.alternativeFoliumEndRecto'() {
             this.$refs.form.validate();
         },
     },
@@ -225,13 +249,45 @@ export default {
                         value: false,
                     },
                 ],
-                validator: this.validateRecto,
+                validator: this.validateFoliumAndRecto,
             }
         },
-        validateRecto(value, field, model) {
-            let folium = model[field.model.substr(0, "foliumStartRecto".length -5)];
-            if (folium != null && value == null) {
-                return ['This field is required if a folium is selected.'];
+        validateFoliumAndRecto(value, field, model) {
+            let folium = null;
+            let recto = null;
+            if (field.model.substr(field.model.length -5) === 'Recto') {
+                folium = model[field.model.substr(0, field.model.length - 5)];
+                recto = value;
+            } else {
+                folium = value;
+                recto = model[field.model + 'Recto'];
+            }
+            if (folium != null && recto == null) {
+                return ['The recto field is required if the folium field is used.'];
+            }
+            if (folium == null && recto != null ) {
+                return ['The recto field cannot be used if the folium field is unused.']
+            }
+            return [];
+        },
+        validateFoliumEndWithoutStart(value, field, model) {
+            if (model.foliumStart == null && model.foliumEnd != null) {
+                return ['The folium start field is required if a folium end is selected.'];
+            }
+            return [];
+        },
+        validateAlternativeFoliumEndWithoutStart(value, field, model) {
+            if (model.foliumStart == null && model.foliumEnd != null) {
+                return ['The alternative folium start field is required if an alternative folium end is selected.'];
+            }
+            return [];
+        },
+        validateFoliumOrPages(value, field, model) {
+            if (
+                (model.foliumStart != null || model.foliumEnd != null || model.alternativeFoliumStart || model.alternativeFoliumEnd)
+                && (model.pageStart != null || model.pageEnd != null)
+            ) {
+                return ['Folium and pages fields cannot be used simultaneously.'];
             }
             return [];
         },
