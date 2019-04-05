@@ -23,7 +23,7 @@ export class AdminService {
 
 
   getOriginalPoem(poemid: number): Observable<any> {
-    return this.http.get(this.baseUrl + "/occurrences/" + poemid, this.options)
+    return this.http.get(this.baseUrl + "/originalpoem/" + poemid, this.options)
       .map(val => val.json()).catch(e=>{
         console.log(e);
         return Observable.empty();

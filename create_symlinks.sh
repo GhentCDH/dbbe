@@ -10,3 +10,4 @@ ln -rs ./assets/images/* ./web/build/static/images
 mkdir -p ./web/build/julie
 ln -rs ./assets/dbbe-julie-frontend/dist/*.js ./web/build/julie
 ln -rs ./assets/dbbe-julie-frontend/dist/*.css ./web/build/julie
+ln -rs ./assets/dbbe-julie-frontend/dist/fontawesome-webfont* ./web/build/julie

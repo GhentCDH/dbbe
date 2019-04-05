@@ -25,21 +25,10 @@ export class SelectorComponent implements OnInit {
     this.route.params.forEach((params: Params) => {
 
       let id = params['idpoem'];
-      console.log('got this id for original poem: ' + id);
 
       let originalPoem$: Observable<any[]> = this.adminService.getOriginalPoem(id);
       originalPoem$.subscribe(val => {
         this.originalPoem = val;
-
-        // Calculate transcription reviewed
-        this.originalPoem.transcription_reviewed = 0;
-        if (this.originalPoem.managements != null) {
-          this.originalPoem.managements.forEach((management) => {
-            if (management.name == 'Transcription reviewed') {
-              this.originalPoem.transcription_reviewed = 1;
-            }
-          });
-        }
 
         /**
         * Get any annotations that were already made.
@@ -89,13 +78,8 @@ export class SelectorComponent implements OnInit {
 
   refreshPoemAnnotation() {
     this.adminService.getPoemAnnotation(this.originalPoem.id).subscribe(val => {
-      if (val.length == 1) {
-        this.poemAnnotation = val[0];
-      } else {
-        this.poemAnnotation = null;
-      }
-    }
-    );
+      this.poemAnnotation = val;
+    });
   }
 
   deleteAnnotation(annotation: any) {
