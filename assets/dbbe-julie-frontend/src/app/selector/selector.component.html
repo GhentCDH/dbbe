@@ -1,0 +1,128 @@
+<div class="jumbotron">
+  <h3 class="justify-content-start d-flex">Julie's Poem Annotator <button type="button" (click)="logout()" class="btn btn-outline-dark ml-auto"><i class="fa fa-sign-out" aria-hidden="true"></i></button></h3>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Original Poem ID {{originalPoem.id}}</h4>
+    <div class="d-flex justify-content-between">
+      <div class="card bg-light w-75 mr-2" id="poeminfo">
+        <div class="card-header">Info</div>
+        <div class="card-body">
+          <dl>
+            <dt>Transcription reviewed</dt>
+            <dd>{{originalPoem.transcription_reviewed}}</dd>
+            <dt>Palographical Information</dt>
+            <dd>{{originalPoem.paleographical_info}}</dd>
+            <dt>Incipit</dt>
+            <dd>{{originalPoem.incipit}}</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="card bg-light w-25" id="poemactions">
+        <div class="card-header">Actions</div>
+        <div class="card-body">
+          <div class="btn-group-vertical btn-group-sm" role="group" aria-label="prosody" data-toggle="buttons">
+            <button type="button" class="btn btn-dark">Prosody</button>
+            <button type="button" class="btn btn-secondary"(click)="setProsodyCorrect(true)" [ngClass]="isProsodyCorrect(true)?'btn-success':'btn-secondary'">Correct</button>
+            <button type="button" class="btn btn-secondary"(click)="setProsodyCorrect(false)" [ngClass]="isProsodyCorrect(false)?'btn-success':'btn-secondary'">Niet correct</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <h4 class="card-title">Substring annotator <span *ngIf="selectedText!=null && selectedText.length > 0" class="badge badge-secondary">[{{startIndex}},{{endIndex}}[ = <em>"{{shortVersionOfSelectedText()}}"</em></span></h4>
+    <div class="d-flex flex-row justify-content-start">
+      <!-- this is the text itself -->
+      <div class="card">
+        <!-- don't introduce a newline before {{originalPoem.occurrence_content}} -> this screws up the character index detection of the selection -->
+        <pre class="card-body" (mouseup)="updateSelection()" #poemtext>{{originalPoem.occurrence_content}}</pre>
+      </div>
+
+      <!-- these are the options -->
+      <div class="card ml-auto" *ngIf="validSelectionPresent()">
+
+        <div class="card-body d-flex flex-wrap">
+
+          <div class="flex-column d-flex mr-2 mb-2">
+            <div class="btn-group-vertical btn-group-sm align-top" role="group" aria-label="B options" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">Caesura</button>
+              <button *ngFor="let number of [2,3,4,5,6,7,8,9,10]" type="button" class="btn" [ngClass]="isCaesuraEnabled(number)?'btn-success':'btn-secondary'"
+                (click)="setCaesura(number)">B{{number}}</button>
+            </div>
+          </div>
+
+          <div class="flex-column d-flex mr-2">
+            <div class="btn-group-vertical btn-group-sm align-top mb-2" role="group" aria-label="new clause options" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">New clause</button>
+              <button type="button" class="btn btn-secondary" (click)="setNewClause(true)" [ngClass]="isNewClauseEnabled(true)?'btn-success':'btn-secondary'">Valt samen met colon</button>
+              <button type="button" class="btn btn-secondary" (click)="setNewClause(false)" [ngClass]="isNewClauseEnabled(false)?'btn-success':'btn-secondary'">Valt niet samen met colon</button>
+            </div>
+
+            <div class="btn-group-vertical btn-group-sm align-top mb-2" role="group" aria-label="P2 words" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">P2 Words</button>
+              <button type="button" class="btn btn-secondary" (click)="setP2('on')" [ngClass]="isP2('on')?'btn-success':'btn-secondary'">Op P2</button>
+              <button type="button" class="btn btn-secondary" (click)="setP2('else')" [ngClass]="isP2('else')?'btn-success':'btn-secondary'">Ergens anders</button>
+            </div>
+
+            <div class="btn-group-vertical btn-group-sm align-top" role="group" aria-label="apostrophe" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">Apostrophe</button>
+              <button type="button" class="btn btn-secondary" (click)="setApostrophe('independent')" [ngClass]="isApostropheSet('independent')?'btn-success':'btn-secondary'">Zelfstandig colon</button>
+              <button type="button" class="btn btn-secondary" (click)="setApostrophe('partofcolon')" [ngClass]="isApostropheSet('partofcolon')?'btn-success':'btn-secondary'">Deel van een colon</button>
+              <button type="button" class="btn btn-secondary" (click)="setApostrophe('spreadovercola')" [ngClass]="isApostropheSet('spreadovercola')?'btn-success':'btn-secondary'">Verspreid over cola</button>
+            </div>
+          </div>
+
+          <div class="flex-column d-flex">
+            <div class="btn-group-vertical btn-group-sm align-top mb-2" role="group" aria-label="enjambment" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">Enjambment</button>
+              <button type="button" class="btn btn-secondary" (click)="setEnjambment('cesuur')" [ngClass]="isEnjambmentSet('cesuur')?'btn-success':'btn-secondary'">Over cesuur</button>
+              <button type="button" class="btn btn-secondary" (click)="setEnjambment('vers')" [ngClass]="isEnjambmentSet('vers')?'btn-success':'btn-secondary'">Over vers</button>
+            </div>
+
+            <div class="btn-group-vertical btn-group-sm align-top mb-2" role="group" aria-label="enjambment" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">Apposition</button>
+              <button type="button" class="btn btn-secondary" (click)="setApposition('independentcolon')" [ngClass]="isAppositionSet('independentcolon')?'btn-success':'btn-secondary'">Independent colon</button>
+              <button type="button" class="btn btn-secondary" (click)="setApposition('partofcolon')" [ngClass]="isAppositionSet('partofcolon')?'btn-success':'btn-secondary'">Part of colon</button>
+              <button type="button" class="btn btn-secondary" (click)="setApposition('spreadovercola')" [ngClass]="isAppositionSet('spreadovercola')?'btn-success':'btn-secondary'">Spread over cola</button>
+            </div>
+
+            <div class="btn-group-vertical btn-group-sm align-top" role="group" aria-label="enjambment" data-toggle="buttons">
+              <button type="button" class="btn btn-dark">Clitics</button>
+              <button type="button" class="btn btn-secondary" (click)="setClitics('p2')" [ngClass]="isCliticsSet('p2')?'btn-success':'btn-secondary'">P2</button>
+              <button type="button" class="btn btn-secondary" (click)="setClitics('pre-verbal')" [ngClass]="isCliticsSet('pre-verbal')?'btn-success':'btn-secondary'">Pre-verbal</button>
+              <button type="button" class="btn btn-secondary" (click)="setClitics('post-verbal')" [ngClass]="isCliticsSet('post-verbal')?'btn-success':'btn-secondary'">Post-verbal</button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" *ngIf="substringAnnotations!=null && substringAnnotations.length > 0">
+    <div class="card-body">
+      <h4 class="card-title">Saved annotations for the poem</h4>
+      <ul class="list-group">
+
+        <li class="list-group-item flex-column" *ngFor="let substringAnnotation of substringAnnotations">
+          <div class="d-flex w-100 justify-content-start">
+            <!-- <div class="align-self-center">
+              <i class="fa fa-text-width fa-2x" aria-hidden="true"></i>
+            </div> -->
+            <div>
+              <h5 class="mb-1">{{substringAnnotation.key}}: {{substringAnnotation.value}}</h5>
+              <small>{{substringAnnotation.substring}}</small>
+            </div>
+            <div class="ml-auto">
+              <button type="button" class="btn btn-danger" (click)="deleteAnnotation(substringAnnotation)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+</div>
