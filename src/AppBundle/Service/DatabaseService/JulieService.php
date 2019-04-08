@@ -31,7 +31,7 @@ class JulieService extends DatabaseService
         )->fetch();
     }
 
-    public function getSubstringAnnotation(int $id)
+    public function getSubstringAnnotation(int $occurrenceId)
     {
         return $this->conn->executeQuery(
             'SELECT
@@ -44,11 +44,11 @@ class JulieService extends DatabaseService
                 value
             FROM julie.substringannotation
             WHERE idoccurrence = ?',
-            [$id]
+            [$occurrenceId]
         )->fetchAll();
     }
 
-    public function postSubstringAnnotation(int $id, $content)
+    public function postSubstringAnnotation(int $occurrenceId, $content)
     {
         // Delete previous annotation with the same key, poemid and substring indices
         $this->conn->executeUpdate(
@@ -59,7 +59,7 @@ class JulieService extends DatabaseService
             AND endindex = ?
             AND key = ?',
             [
-                $id,
+                $occurrenceId,
                 $content['startindex'],
                 $content['endindex'],
                 $content['key'],
@@ -84,12 +84,24 @@ class JulieService extends DatabaseService
                 ?
             )',
             [
-                $id,
+                $occurrenceId,
                 $content['startindex'],
                 $content['endindex'],
                 $content['key'],
                 $content['value'],
                 $content['substring'],
+            ]
+        );
+    }
+
+    public function deleteSubstringAnnotation(int $annotationId)
+    {
+        // Delete annotation
+        return $this->conn->executeUpdate(
+            'DELETE FROM julie.substringannotation
+            WHERE idsubstringannotation = ?',
+            [
+                $annotationId,
             ]
         );
     }
@@ -104,5 +116,26 @@ class JulieService extends DatabaseService
             WHERE idoccurrence = ?',
             [$id]
         )->fetch();
+    }
+
+    public function upsertPoemAnnotationProsodyCorrect(int $occurrenceId, string $prosodyCorrect = null)
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO julie.poemannotation
+            (
+                idoccurrence,
+                prosodycorrect      
+            ) VALUES (
+                ?,
+                ?
+            )
+            ON CONFLICT (idoccurrence)
+            DO UPDATE SET prosodycorrect = ?',
+            [
+                $occurrenceId,
+                $prosodyCorrect,
+                $prosodyCorrect,
+            ]
+        );
     }
 }
