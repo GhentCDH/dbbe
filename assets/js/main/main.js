@@ -1,6 +1,7 @@
-var $ = require('jquery')
-require('bootstrap-sass')
-require('ekko-lightbox')
+import $ from 'jquery';
+require('mark.js/dist/jquery.mark.js');
+require('bootstrap-sass');
+require('ekko-lightbox');
 import '@firstandthird/toc/dist/toc.js';
 
 (function() {
@@ -72,4 +73,16 @@ import '@firstandthird/toc/dist/toc.js';
 
     jQuery.fn.load = function(callback){ $(window).on("load", callback) };
 
+    // Use special font-family for greek characters
+    $('article').markRegExp(
+        /(?:[[\].,()|+]*)(?:[[\].,():|+ ]*)[^\x00-\x7F]+(?:[[\].,():|+ ]*[^\x00-\x7F]+)*(?:[[\].,():|+ ]*)(?:[[\].,():|]*)/g,
+        {
+            'element': 'span',
+            'className': 'greek',
+            'exclude': [
+                '.greek',
+                '.greek *'
+            ]
+        }
+    );
 }());
