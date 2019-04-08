@@ -91,6 +91,12 @@
                         <td>{{ occurrence.getTextStatus() }}</td>
                     </tr>
                 {% endif %}
+                {% if occurrence.getDate() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ occurrence.getDate() }}</td>
+                    </tr>
+                {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
                 {% if manuscript is not empty %}
                     <tr>
@@ -106,27 +112,21 @@
                         <td>{{ occurrence.getLocation() }}</td>
                     </tr>
                 {% endif %}
-                {% if occurrence.getDate() is not empty %}
-                    <tr>
-                        <td>Date</td>
-                        <td>{{ occurrence.getDate() }}</td>
-                    </tr>
-                {% endif %}
                 {%
                     include '@App/Helpers/renderPersonRoles.html.twig'
                     with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles()}
                     only
                 %}
-                {% if occurrence.getGenres() is not empty %}
+                {% if occurrence.getPalaeographicalInfo() is not empty %}
                     <tr>
-                        <td>Genre(s)</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
-                                {% block renderItem %}
-                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
+                        <td>Palaeographical information</td>
+                        <td>{{ occurrence.getPalaeographicalInfo()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getContextualInfo() is not empty %}
+                    <tr>
+                        <td>Contextual information</td>
+                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getMetres() is not empty %}
@@ -136,6 +136,18 @@
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getMetres()} only %}
                                 {% block renderItem %}
                                     <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this metre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getGenres() is not empty %}
+                    <tr>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -156,18 +168,6 @@
                                 {% endblock %}
                             {% endembed %}
                         </td>
-                    </tr>
-                {% endif %}
-                {% if occurrence.getPalaeographicalInfo() is not empty %}
-                    <tr>
-                        <td>Palaeographical information</td>
-                        <td>{{ occurrence.getPalaeographicalInfo()|nl2br }}</td>
-                    </tr>
-                {% endif %}
-                {% if occurrence.getContextualInfo() is not empty %}
-                    <tr>
-                        <td>Contextual information</td>
-                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
                     </tr>
                 {% endif %}
                 {% if occurrence.getPublicComment() is not empty %}
