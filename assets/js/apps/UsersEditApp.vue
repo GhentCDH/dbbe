@@ -122,6 +122,7 @@ export default {
                 'ROLE_VIEW_INTERNAL': 'View internal',
                 'ROLE_EDITOR_VIEW': 'Editor (read only)',
                 'ROLE_EDITOR': 'Editor',
+                'ROLE_JULIE': 'Julie plugin',
                 'ROLE_ADMIN': 'Admin',
                 'ROLE_SUPER_ADMIN': 'Super admin'
             },
