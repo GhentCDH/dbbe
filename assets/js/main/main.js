@@ -75,7 +75,7 @@ import '@firstandthird/toc/dist/toc.js';
 
     // Use special font-family for greek characters
     $('article').markRegExp(
-        /(?:[[\].,()|+]*)(?:[[\].,():|+ ]*)[^\x00-\x7F]+(?:[[\].,():|+ ]*[^\x00-\x7F]+)*(?:[[\].,():|+ ]*)(?:[[\].,():|]*)/g,
+        /(?:[[.,(|+][[\].,():|+\- ]*)?[\u0370-\u03ff\u1f00-\u1fff]+(?:[[\].,():|+\- ]*[\u0370-\u03ff\u1f00-\u1fff]+)*(?:[[\].,():|+\- ]*[\].,):|])?/g,
         {
             'element': 'span',
             'className': 'greek',
