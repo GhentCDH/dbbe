@@ -21,12 +21,9 @@ export class AdminService {
     this.baseUrl = environment.webserviceBase;
   }
 
-
   getOriginalPoem(poemid: number): Observable<any> {
     return this.http.get(this.baseUrl + "/originalpoem/" + poemid, this.options)
       .map(val => val.json()).catch(e=>{
-        console.log('going to redirect!');
-        this.router.navigate(["/login"]);
         return Observable.empty();
       });
   }
@@ -50,13 +47,4 @@ export class AdminService {
   deleteAnnotation(annotation:any):Observable<any> {
     return this.http.delete(this.baseUrl+"/substringannotation/"+annotation.idsubstringannotation, this.options).map(val=>val.json());
   }
-
-  login(username:string, password:string):Observable<any> {
-    return this.http.post(this.baseUrl+"/login", {"username":username, "password":password}, this.options).map(val=>val.json());
-  }
-
-  logout():Observable<any> {
-    return this.http.get(this.baseUrl+"/logout", this.options).map(val=>val.json());
-  }
-
 }

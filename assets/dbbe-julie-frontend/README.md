@@ -2,6 +2,9 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.0.3.
 
+## Specific build instructions for DBBE
+Run `ng build --prod --bh /julie/ -d /build/julie`. Don't forget to run Webpack afterwards, so the newly build files are symlinked correctly.
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.

@@ -25,20 +25,16 @@ export class SelectorComponent implements OnInit {
     this.route.params.forEach((params: Params) => {
 
       let id = params['idpoem'];
-      console.log('got this id for original poem: ' + id);
 
       let originalPoem$: Observable<any[]> = this.adminService.getOriginalPoem(id);
       originalPoem$.subscribe(val => {
-        console.log(val);
-        if (val.length == 1) {
-          this.originalPoem = val[0];
-          console.log(this.originalPoem);
-          /**
-                * Get any annotations that were already made.
-                */
-          this.refreshSubstringAnnotations();
-          this.refreshPoemAnnotation();
-        }
+        this.originalPoem = val;
+
+        /**
+        * Get any annotations that were already made.
+        */
+        this.refreshSubstringAnnotations();
+        this.refreshPoemAnnotation();
       });
 
 
@@ -82,13 +78,8 @@ export class SelectorComponent implements OnInit {
 
   refreshPoemAnnotation() {
     this.adminService.getPoemAnnotation(this.originalPoem.id).subscribe(val => {
-      if (val.length == 1) {
-        this.poemAnnotation = val[0];
-      } else {
-        this.poemAnnotation = null;
-      }
-    }
-    );
+      this.poemAnnotation = val;
+    });
   }
 
   deleteAnnotation(annotation: any) {
@@ -101,8 +92,6 @@ export class SelectorComponent implements OnInit {
     let selection = window.getSelection();
     let range = window.getSelection().getRangeAt(0);
 
-
-    let startOfSelectionNode = selection.anchorNode;
     let theActualPoemTextNode = this.poemTextElement.nativeElement.childNodes[0];
 
 
@@ -217,25 +206,12 @@ export class SelectorComponent implements OnInit {
     return this.poemAnnotation!=null && this.poemAnnotation.prosodycorrect!=null && this.poemAnnotation.prosodycorrect == b;
   }
 
-  logout():void {
-    this.adminService.logout().subscribe(val=>{
-      this.router.navigate(["/login"]);
-    });
-  }
-
-
 
 
   isSubstringAnnotationPresent(key: string, value: string): boolean {
     //loop over the current annotations
     for (let i = 0; i < this.substringAnnotations.length; i++) {
       let sa = this.substringAnnotations[i];
-      // console.log(this.substringAnnotations[i]);
-      // console.log(key+";"+value);
-      // console.log(sa.startIndex==this.startIndex);
-      // console.log(sa.endIndex==this.endIndex);
-      // console.log(sa.key==key);
-      // console.log(sa.value == value);
       if (sa.startindex == this.startIndex && sa.endindex == this.endIndex && sa.key == key && sa.value == value) {
         //found it!
         return true;

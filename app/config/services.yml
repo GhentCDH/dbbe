@@ -359,6 +359,11 @@ services:
         arguments: ['@doctrine.orm.entity_manager']
         public: true
 
+    julie_service:
+        class: AppBundle\Service\DatabaseService\JulieService
+        arguments: ['@doctrine.orm.entity_manager']
+        public: true
+
     manuscript_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticManuscriptService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']

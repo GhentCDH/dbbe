@@ -10,14 +10,12 @@ import { AppRoutingModule } from './app-routing/app-routing.module';
 
 import { AdminService } from './admin.service';
 import { ListerComponent } from './lister/lister.component';
-import { LoginComponent } from './login/login.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SelectorComponent,
-    ListerComponent,
-    LoginComponent
+    ListerComponent
   ],
   imports: [
     BrowserModule,
