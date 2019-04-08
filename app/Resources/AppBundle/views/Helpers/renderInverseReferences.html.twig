@@ -10,10 +10,10 @@
                     {{ type|capitalize }}(s)
                 {% endif %}
             </td>
-            <td class="{{ type in ['occurrence', 'type', 'translation'] ? 'greek' }}">
-                {% embed '@App/Helpers/renderList.html.twig' with {'list': entitiesWithReferenceTypes} only %}
+            <td>
+                {% embed '@App/Helpers/renderList.html.twig' with {'list': entitiesWithReferenceTypes, 'enableCollapse': 1, 'label': type ~ 's'} only %}
                     {% block renderItem %}
-                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item[0], 'path': constant('CACHENAME', item[0]) ~ '_get','display': '[' ~ item[0].getId() ~ '] ' ~ item[0].getDescription()} only %}
+                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item[0], 'path': constant('CACHENAME', item[0]) ~ '_get','display': '[' ~ item[0].getId() ~ '] ' ~ item[0].getDescription() } only %}
                         ({{ item[1]|join(', ') }})
                     {% endblock %}
                 {% endembed %}

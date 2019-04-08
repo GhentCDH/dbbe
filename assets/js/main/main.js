@@ -85,4 +85,14 @@ import '@firstandthird/toc/dist/toc.js';
             ]
         }
     );
+
+    // Make long lists collapsible
+    $('.collapse-toggle[data-action="display"]').click(function(){
+        $(this).closest('.collapsed').removeClass('collapsed').addClass('collapsible');
+        return false;
+    });
+    $('.collapse-toggle[data-action="hide"]').click(function(){
+        $(this).closest('.collapsible').removeClass('collapsible').addClass('collapsed');
+        return false;
+    });
 }());

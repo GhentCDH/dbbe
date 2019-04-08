@@ -1,0 +1,15 @@
+.collapsed {
+  li:nth-child(n+4) {
+    display: none;
+  }
+
+  .collapse-toggle[data-action="hide"] {
+    display: none;
+  }
+}
+
+.collapsible {
+  .collapse-toggle[data-action="display"] {
+    display: none;
+  }
+}

@@ -1,3 +1,6 @@
+{% if list|length > 5 and (enableCollapse is defined and enableCollapse) %}
+    <div class="collapsed">
+{% endif %}
 {% if list|length > 1 or (forceList is defined and forceList) %}
     <ul>
 {% endif %}
@@ -15,7 +18,11 @@
             </li>
         {% endif %}
     {% endfor %}
-
 {% if list|length > 1 or (forceList is defined and forceList) %}
     </ul>
+{% endif %}
+{% if list|length > 5 and (enableCollapse is defined and enableCollapse) %}
+        <a href="#" class="collapse-toggle" data-action="display">display {{ list|length - 3 }} more {{ label }} ({{ list|length }} in total)</a>
+        <a href="#" class="collapse-toggle" data-action="hide">hide {{ list|length - 3 }} {{ label }} ({{ list|length }} in total)</a>
+    </div>
 {% endif %}
