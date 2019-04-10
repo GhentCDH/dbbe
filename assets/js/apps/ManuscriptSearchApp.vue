@@ -66,7 +66,7 @@
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="greekFont(item)" />
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
@@ -76,7 +76,7 @@
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="greekFont(item)" />
                         </ol>
                     </template>
                 </template>

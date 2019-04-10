@@ -66,7 +66,7 @@
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="greekFont(item)" />
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
@@ -76,7 +76,7 @@
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item" />
+                                v-html="greekFont(item)" />
                         </ol>
                     </template>
                 </template>
@@ -89,7 +89,7 @@
                     slot="title"
                     slot-scope="props"
                     :href="urls[types[props.row.type.id] + '_get'].replace(types[props.row.type.id] + '_id', props.row.id)"
-                    v-html="formatTitle(props.row.title)" />
+                    v-html="greekFont(formatTitle(props.row.title))" />
                 <template
                     slot="actions"
                     slot-scope="props">

@@ -107,7 +107,7 @@
                                 v-for="(item, index) in props.row.palaeographical_info"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>
@@ -120,7 +120,7 @@
                                 v-for="(item, index) in props.row.contextual_info"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>
@@ -134,7 +134,7 @@
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>
@@ -147,7 +147,7 @@
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>

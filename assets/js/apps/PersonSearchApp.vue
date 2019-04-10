@@ -79,7 +79,7 @@
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>
@@ -92,7 +92,7 @@
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="item"
+                                v-html="greekFont(item)"
                             />
                             <!-- eslint-enable -->
                         </ol>
@@ -143,12 +143,13 @@
                         <li
                             v-for="(self_designation, index) in props.row.self_designation"
                             :key="index"
+                            class="greek"
                         >
                             {{ self_designation.name }}
                         </li>
                     </ul>
                     <template v-else>
-                        {{ props.row.self_designation[0].name }}
+                        <span class="greek">{{ props.row.self_designation[0].name }}</span>
                     </template>
                 </template>
                 <template

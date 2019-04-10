@@ -573,6 +573,9 @@ export default {
                     console.log(error)
                 })
         },
+        greekFont(input) {
+            return input.replace(/((?:[[.,(|+][[\].,():|+\- ]*)?[\u0370-\u03ff\u1f00-\u1fff]+(?:[[\].,():|+\- ]*[\u0370-\u03ff\u1f00-\u1fff]+)*(?:[[\].,():|+\- ]*[\].,):|])?)/g, '<span class="greek">$1</span>');
+        },
     },
     requestFunction (data) {
         // Remove unused parameters
