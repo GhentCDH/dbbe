@@ -487,15 +487,6 @@ export default {
         isLoginError(error) {
             return error.message === 'Network Error'
         },
-        collectionToggle(id) {
-            let index = this.collectionArray.indexOf(id);
-            if (index > -1) {
-                this.collectionArray.splice(index, 1)
-            }
-            else {
-                this.collectionArray.push(id)
-            }
-        },
         collectionToggleAll() {
             let allChecked = true;
             for (let row of this.data.data) {
