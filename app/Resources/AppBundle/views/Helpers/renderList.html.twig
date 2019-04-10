@@ -22,7 +22,8 @@
     </ul>
 {% endif %}
 {% if list|length > 5 and (enableCollapse is defined and enableCollapse) %}
-        <a href="#" class="collapse-toggle" data-action="display">display {{ list|length - 3 }} more {{ label }} ({{ list|length }} in total)</a>
-        <a href="#" class="collapse-toggle" data-action="hide">hide {{ list|length - 3 }} {{ label }} ({{ list|length }} in total)</a>
+        <br />
+        <a href="#" class="collapse-toggle action" data-action="display"><strong>display {{ list|length - 3 }} more {{ label }} ({{ list|length }} in total)</strong></a>
+        <a href="#" class="collapse-toggle action" data-action="hide"><strong>hide {{ list|length - 3 }} {{ label }} ({{ list|length }} in total)</strong></a>
     </div>
 {% endif %}
