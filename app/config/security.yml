@@ -4,8 +4,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-        fos_userbundle:
-            id: fos_user.user_provider.username
+        user_provider:
+            id: AppBundle\Security\UserProvider
 
     firewalls:
         # disables authentication for assets and the profiler, adapt it according to your needs
@@ -16,9 +16,11 @@ security:
         main:
             pattern: ^/
             anonymous: true
+            provider: user_provider
             saml:
-                # Match SAML attribute 'uid' with username.
-                username_attribute: uid
+                # Match SAML attribute 'mail' with username.
+                username_attribute: mail
+#                user_factory: user_factory
                 check_path: /saml/acs
                 login_path: /saml/login
             logout:

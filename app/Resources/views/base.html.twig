@@ -82,7 +82,7 @@
                                                         </li>
                                                         {% if is_granted("ROLE_USER") %}
                                                             <li>
-                                                                <span><i class="fa fa-key"></i>&nbsp;{{ app.user.fullName }}</span>
+                                                                <span><i class="fa fa-key"></i>&nbsp;{{ app.user.getUsername() }}</span>
                                                             </li>
                                                             <li>
                                                                 <a href="{{ path('saml_logout') }}">Log out</a>

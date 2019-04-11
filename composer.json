@@ -25,7 +25,6 @@
         "cweagans/composer-patches": "~1.0",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/orm": "^2.5",
-        "friendsofsymfony/user-bundle": "^2.0",
         "hslavich/oneloginsaml-bundle": "^1.4",
         "incenteev/composer-parameter-handler": "^2.0",
         "mashape/unirest-php": "^3.0",

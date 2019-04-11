@@ -2,39 +2,34 @@
 
 namespace AppBundle\Entity;
 
-use stdClass;
-
 use Doctrine\ORM\Mapping as ORM;
-use FOS\UserBundle\Model\User as BaseUser;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * @ORM\Entity
- * @ORM\Table(name="fos_user", schema="logic")
+ * @ORM\Entity(repositoryClass="AppBundle\Repository\UserRepository")
+ * @ORM\Table(name="user", schema="logic")
+ * @UniqueEntity("email")
  */
-class User extends BaseUser
+class User implements UserInterface
 {
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     protected $id;
 
     /**
-     * @ORM\Column(name="full_name", type="string", nullable=true)
+     * @ORM\Column(name="username", type="string")
      */
-    protected $fullName;
+    protected $username;
 
     /**
-     * @ORM\Column(name="start_tenure", type="date", nullable=true)
+     * @ORM\Column(type="array")
      */
-    protected $startTenure;
+    private $roles = ['ROLE_USER'];
 
-    /**
-     * @ORM\Column(name="end_tenure", type="date", nullable=true)
-     */
-    protected $endTenure;
 
     /**
      * @ORM\Column(name="created", type="datetime")
@@ -46,126 +41,60 @@ class User extends BaseUser
      */
     protected $modified;
 
-    public function __construct()
-    {
-        parent::__construct();
-
-        // Set creation date
-        if (empty($this->created)) {
-            $this->created = new \DateTime();
-        }
-
-        // Set modification date
-        $this->modified = new \DateTime();
-    }
-
-    public function getFullName()
-    {
-        return $this->fullName;
-    }
-
-    public function setFullName(string $fullName)
-    {
-        $this->fullName = $fullName;
-
-        return $this;
-    }
-
-    public function getCreated()
-    {
-        return $this->created;
-    }
-
-    public function getModified()
-    {
-        return $this->modified;
-    }
-
-    public function setModified(\DateTime $dateTime)
-    {
-        $this->modified = $dateTime;
-
-        return $this;
-    }
+    /**
+     * @ORM\Column(name="last_login", type="datetime", nullable=true)
+     */
+    protected $lastLogin;
 
     /**
      * {@inheritdoc}
      */
     public function getRoles()
     {
-        if (!$this->isEnabled()) {
-            return [];
-        }
-
-        $roles = $this->roles;
-
-        foreach ($this->getGroups() as $group) {
-            $roles = array_merge($roles, $group->getRoles());
-        }
-
-        // we need to make sure to have at least one role
-        $roles[] = static::ROLE_DEFAULT;
-
-        return array_unique($roles);
+        return $this->roles;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasRole($role)
+    public function getPassword()
     {
-        if (!$this->isEnabled()) {
-            return false;
-        }
-
-        return in_array(strtoupper($role), $this->getRoles(), true);
+        return null;
     }
 
-    public function getJson()
+    /**
+     * {@inheritdoc}
+     */
+    public function getSalt()
     {
-        return [
-            'id' => $this->id,
-            'username' => $this->username,
-            'email' => $this->email == $this->username ? null : $this->email,
-            'full name' => $this->fullName,
-            'roles' => $this->getRoles(),
-            'status' => $this->enabled,
-            'created' => $this->created->format('Y-m-d H:i:s'),
-            'modified' => $this->modified->format('Y-m-d H:i:s'),
-            // last login is not required
-            'last login' => $this->lastLogin ? $this->lastLogin->format('Y-m-d H:i:s') : null,
-        ];
+        return null;
     }
 
-    public function setFromJson(stdClass $data)
+    /**
+     * {@inheritdoc}
+     */
+    public function getUsername()
     {
-        if (!empty($this->username) && isset($data->username) && $this->username != $data->username) {
-            throw new BadRequestHttpException('Username already set');
-        }
-        if (empty($this->username) && (!isset($data->username) || !is_string($data->username))) {
-            throw new BadRequestHttpException('Username is required');
-        }
-        if (empty($this->username) && isset($data->username) && is_string($data->username)) {
-            $this->username = $data->username;
-            # Email will be set using SAML attributes at first login
-            $this->email = $data->username;
-            # Password is not used
-            $this->password = $data->username;
-        }
+        return $this->username;
+    }
 
-        if (!isset($data->roles)) {
-            $data->roles = [];
-        }
-        $addRoles = array_diff($data->roles, $this->getRoles());
-        $removeRoles = array_diff($this->getRoles(), $data->roles);
-        foreach ($addRoles as $role) {
-            $this->addRole($role);
-        }
-        foreach ($removeRoles as $role) {
-            $this->removeRole($role);
-        }
+    public function setUsername(string $username)
+    {
+        $this->username = $username;
 
-        $this->setEnabled($data->status);
-        $this->setModified(new \DateTime());
+        return $this;
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function eraseCredentials()
+    {
+        return null;
     }
 }
