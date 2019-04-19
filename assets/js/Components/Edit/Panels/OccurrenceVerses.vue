@@ -60,7 +60,7 @@
                                 href="#"
                                 title="Display links"
                                 class="action"
-                                @click.prevent="displayLinks(index)"
+                                @click.prevent="displayLinks(individualVerse.order)"
                             >
                                 <i class="fa fa-link" />
                             </a>
@@ -68,7 +68,7 @@
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="editVerse(index)"
+                                @click.prevent="editVerse(individualVerse.order)"
                             >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
@@ -76,7 +76,7 @@
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delVerse(index)"
+                                @click.prevent="delVerse(individualVerse.order)"
                             >
                                 <i class="fa fa-trash-o" />
                             </a>
