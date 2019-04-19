@@ -2,6 +2,8 @@
 
 namespace AppBundle\Entity;
 
+use DateTime;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -46,6 +48,11 @@ class User implements UserInterface
      */
     protected $lastLogin;
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -85,9 +92,11 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getId()
+    public function setLastLogin(DateTime $dateTime)
     {
-        return $this->id;
+        $this->lastLogin = $dateTime;
+
+        return $this;
     }
 
     /**

@@ -40,6 +40,10 @@ services:
         class: AppBundle\Security\UserProvider
         arguments: ['@user_repostiroy']
 
+    AppBundle\EventListener\LoginListener:
+        tags:
+            - { name: kernel.event_listener, event: security.interactive_login }
+
     manuscript_manager:
         class: AppBundle\ObjectStorage\ManuscriptManager
         arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage', 'manuscript']
