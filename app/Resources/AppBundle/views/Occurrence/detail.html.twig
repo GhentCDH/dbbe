@@ -9,6 +9,7 @@
                 - Not Public
             {% endif %}
             {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('occurrence_edit', {'id': occurrence.getId(), 'clone': 1}) }}" class="action action-margin-left pull-right" title="Duplicate"><i class="fa fa-files-o"></i></a>
                 <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
         </h2>
