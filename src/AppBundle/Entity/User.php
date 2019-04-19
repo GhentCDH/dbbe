@@ -22,33 +22,38 @@ class User implements Serializable, UserInterface, EquatableInterface
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
-    protected $id;
+    private $id;
 
     /**
      * @ORM\Column(name="username", type="string")
      */
-    protected $username;
+    private $username;
 
     /**
      * @ORM\Column(type="array")
      */
-    private $roles = ['ROLE_USER'];
-
+    private $roles = [];
 
     /**
      * @ORM\Column(name="created", type="datetime")
      */
-    protected $created;
+    private $created;
 
     /**
      * @ORM\Column(name="modified", type="datetime")
      */
-    protected $modified;
+    private $modified;
 
     /**
      * @ORM\Column(name="last_login", type="datetime", nullable=true)
      */
-    protected $lastLogin;
+    private $lastLogin;
+
+    public function __construct()
+    {
+        $this->created = new DateTime();
+        $this->modified = new DateTime();
+    }
 
     public function getId()
     {
@@ -100,6 +105,13 @@ class User implements Serializable, UserInterface, EquatableInterface
     public function setUsername(string $username)
     {
         $this->username = $username;
+
+        return $this;
+    }
+
+    public function setModified(DateTime $dateTime)
+    {
+        $this->modified = $dateTime;
 
         return $this;
     }
@@ -160,5 +172,17 @@ class User implements Serializable, UserInterface, EquatableInterface
         }
 
         return true;
+    }
+
+    public function getJson()
+    {
+        return [
+            'id' => $this->id,
+            'username' => $this->username,
+            'roles' => $this->roles,
+            'created' => $this->created->format('Y-m-d H:i:s'),
+            'modified' => $this->modified->format('Y-m-d H:i:s'),
+            'last login' => $this->lastLogin ? $this->lastLogin->format('Y-m-d H:i:s') : null,
+        ];
     }
 }

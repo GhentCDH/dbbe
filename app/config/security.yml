@@ -41,6 +41,3 @@ security:
         ROLE_EDITOR:        ROLE_EDITOR_VIEW
         ROLE_ADMIN:         [ROLE_EDITOR, ROLE_JULIE]
         ROLE_SUPER_ADMIN:   ROLE_ADMIN
-
-    access_control:
-        - { path: ^/admin, role: ROLE_ADMIN }

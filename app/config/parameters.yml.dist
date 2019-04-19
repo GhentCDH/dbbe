@@ -32,3 +32,8 @@ parameters:
     router.request_context.base_url: ''
     asset.request_context.base_path: '%router.request_context.base_url%'
     asset.request_context.secure: true
+
+    saml_create: ~
+    saml_mail: ~
+    saml_username: ~
+    saml_password: ~
