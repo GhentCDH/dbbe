@@ -31,14 +31,14 @@ services:
 
     user_repository:
         class: AppBundle\Repository\UserRepository
-        factory:
-            - "@doctrine.orm.entity_manager"
-            - getRepository
+        factory: ['@doctrine.orm.entity_manager', getRepository]
         arguments: [AppBundle\Entity\User]
+
+    AppBundle\Repository\UserRepository: '@user_repository'
 
     user_provider:
         class: AppBundle\Security\UserProvider
-        arguments: ['@user_repostiroy']
+        arguments: ['@user_repository']
 
     AppBundle\EventListener\LoginListener:
         tags:
