@@ -3,17 +3,19 @@
 namespace AppBundle\Entity;
 
 use DateTime;
+use Serializable;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 
 /**
  * @ORM\Entity(repositoryClass="AppBundle\Repository\UserRepository")
  * @ORM\Table(name="user", schema="logic")
  * @UniqueEntity("email")
  */
-class User implements UserInterface
+class User implements Serializable, UserInterface, EquatableInterface
 {
     /**
      * @ORM\Id
@@ -58,7 +60,17 @@ class User implements UserInterface
      */
     public function getRoles()
     {
+        if (empty($this->roles)) {
+            return ['ROLE_USER'];
+        }
         return $this->roles;
+    }
+
+    public function setRoles(array $roles)
+    {
+        $this->roles = $roles;
+
+        return $this;
     }
 
     /**
@@ -105,5 +117,48 @@ class User implements UserInterface
     public function eraseCredentials()
     {
         return null;
+    }
+
+    public function serialize()
+    {
+        return serialize(
+            [
+                $this->id,
+                $this->username,
+                $this->roles,
+            ]
+        );
+    }
+
+    public function unserialize($serialized)
+    {
+        list (
+            $this->id,
+            $this->username,
+            $this->roles
+        ) = unserialize($serialized);
+    }
+
+    public function isEqualTo(UserInterface $user)
+    {
+        if (!($user instanceof User)) {
+            return false;
+        }
+
+        if ($this->username !== $user->getUsername()) {
+            return false;
+        }
+
+        // Check that the roles are the same, in any order
+        if (count($this->getRoles()) != count($user->getRoles())) {
+            return false;
+        }
+        foreach($this->getRoles() as $role) {
+            if (!in_array($role, $user->getRoles())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -26,6 +26,14 @@ security:
             logout:
                 path: /saml/logout
             logout_on_user_change: true
+            remember_me:
+                secret:   '%secret%'
+                lifetime: 604800 # 1 week in seconds
+                path:     /
+                # by default, the feature is enabled by checking a
+                # checkbox in the login form (see below), uncomment the
+                # following line to always enable it.
+                always_remember_me: true
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER
