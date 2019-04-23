@@ -730,7 +730,14 @@ export default {
                 let second = this.splitDateOrInterval(verify[1]);
                 // date and date
                 if ('floor' in first && 'floor' in second) {
-                    for (let floorCeil of ['floor', 'ceiling']) {
+                    let floorCeilArray = ['floor', 'ceiling'];
+                    if (first.type === 'attested') {
+                        floorCeilArray = ['ceiling'];
+                    }
+                    else if (second.type === 'attested') {
+                        floorCeilArray = ['floor'];
+                    }
+                    for (let floorCeil of floorCeilArray) {
                         if (first[floorCeil] == null || second[floorCeil] == null) {
                             continue;
                         }
@@ -754,7 +761,14 @@ export default {
                 }
                 // date and interval
                 else if ('floor' in first && !('floor' in second)) {
-                    for (let floorCeil of ['floor', 'ceiling']) {
+                    let floorCeilArray = ['floor', 'ceiling'];
+                    if (first.type === 'attested') {
+                        floorCeilArray = ['ceiling'];
+                    }
+                    else if (second.type === 'attested') {
+                        floorCeilArray = ['floor'];
+                    }
+                    for (let floorCeil of floorCeilArray) {
                         if (first[floorCeil] == null || second.start[floorCeil] == null) {
                             continue;
                         }
@@ -778,7 +792,14 @@ export default {
                 }
                 // interval and date
                 else if (!('floor' in first) && 'floor' in second) {
-                    for (let floorCeil of ['floor', 'ceiling']) {
+                    let floorCeilArray = ['floor', 'ceiling'];
+                    if (first.type === 'attested') {
+                        floorCeilArray = ['ceiling'];
+                    }
+                    else if (second.type === 'attested') {
+                        floorCeilArray = ['floor'];
+                    }
+                    for (let floorCeil of floorCeilArray) {
                         if (first.end[floorCeil] == null || second[floorCeil] == null) {
                             continue;
                         }
@@ -817,6 +838,7 @@ export default {
                         month: input.date.ceiling.substr(5, 2),
                         day: input.date.ceiling.substr(8, 2),
                     },
+                    type: input.type,
                 }
             } else {
                 return {
@@ -844,6 +866,7 @@ export default {
                             day: input.interval.end.ceiling.substr(8, 2),
                         }
                     },
+                    type: input.type,
                 }
             }
         },
