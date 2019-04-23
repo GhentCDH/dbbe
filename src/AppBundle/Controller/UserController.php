@@ -2,9 +2,10 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Exceptions\CurlException;
+use AppBundle\Exceptions\HttpException;
 use DateTime;
 
+use GuzzleHttp;
 use Ramsey\Uuid\Uuid;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -85,6 +86,9 @@ class UserController extends Controller
     public function editUsers(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $this->get('logger')->debug('Edit users.');
+
         return $this->render(
             'AppBundle:User:edit.html.twig',
             [
@@ -109,6 +113,8 @@ class UserController extends Controller
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $this->throwErrorIfNotJson($request);
 
+        $this->get('logger')->debug('Create user.');
+
         $input = json_decode($request->getContent(), true);
 
         if (!isset($input['username'])
@@ -132,6 +138,8 @@ class UserController extends Controller
             }
         }
 
+        $this->get('logger')->debug('Create user correct input.');
+
         $em = $this->getDoctrine()->getManager();
         $repo = $em->getRepository('AppBundle:User');
 
@@ -139,6 +147,8 @@ class UserController extends Controller
         if ($user != null) {
             throw new BadRequestHttpException('There already is a user with the requested username.');
         }
+
+        $this->get('logger')->debug('Create user no existing user found.');
 
         $user = new User();
         $user->setUsername($input['username']);
@@ -151,6 +161,8 @@ class UserController extends Controller
 
         // non-ugent user
         if ($match === 0) {
+            $this->get('logger')->debug('Create user non ugent user.');
+
             // create welkom account
             $this->createWelkomAccount($input['username']);
             // send invite mail
@@ -219,77 +231,53 @@ class UserController extends Controller
 
     private function createWelkomAccount(string $username): void
     {
-        $dataString = json_encode(
+        $client = new GuzzleHttp\Client();
+        $response = $client->request(
+            'POST',
+            $this->getParameter('saml_create'),
             [
-                'genUid' => $username,
-                'accountUUID' => Uuid::uuid4()->toString(),
-                'userClass' => 'casonly',
+                'auth' => [
+                    $this->getParameter('saml_username'),
+                    $this->getParameter('saml_password'),
+                ],
+                'body' => json_encode(
+                    [
+                        'genUid' => $username,
+                        'accountUUID' => Uuid::uuid4()->toString(),
+                        'userClass' => 'casonly',
+                    ]
+                ),
             ]
         );
-        $ch = curl_init($this->getParameter('saml_create'));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt(
-            $ch,
-            CURLOPT_HTTPHEADER,
-            [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($dataString),
-            ]
-        );
-        curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt(
-            $ch,
-            CURLOPT_USERPWD,
-            $this->getParameter('saml_username') . ':' . $this->getParameter('saml_password')
-        );
-        curl_exec($ch);
-        if (curl_errno($ch) !== 0) {
-            throw new CurlException(curl_error($ch));
-        }
-        if (curl_getinfo($ch, CURLINFO_RESPONSE_CODE) !== 200) {
-            throw new CurlException('Unexpected response code: ' . curl_getinfo($ch, CURLINFO_RESPONSE_CODE));
-        }
 
-        curl_close($ch);
+        if ($response->getStatusCode() !== 200) {
+            throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
+        }
     }
 
     private function sendWelkomMail(string $username): void
     {
-        $dataString = json_encode(
+        $client = new GuzzleHttp\Client();
+        $response = $client->request(
+            'POST',
+            $this->getParameter('saml_mail'),
             [
-                'username' => $username,
-                'language' => 'en',
-                'personalizedEmailTemplate' => 'dbbe',
+                'auth' => [
+                    $this->getParameter('saml_username'),
+                    $this->getParameter('saml_password'),
+                ],
+                'body' => json_encode(
+                    [
+                        'username' => $username,
+                        'language' => 'en',
+                        'personalizedEmailTemplate' => 'dbbe',
+                    ]
+                ),
             ]
         );
-        $ch = curl_init($this->getParameter('saml_mail'));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt(
-            $ch,
-            CURLOPT_HTTPHEADER,
-            [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($dataString),
-            ]
-        );
-        curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt(
-            $ch,
-            CURLOPT_USERPWD,
-            $this->getParameter('saml_username') . ':' . $this->getParameter('saml_password')
-        );
-        curl_exec($ch);
-        if (curl_errno($ch) !== 0) {
-            throw new CurlException(curl_error($ch));
-        }
-        if (curl_getinfo($ch, CURLINFO_RESPONSE_CODE) !== 200) {
-            throw new CurlException('Unexpected response code: ' . curl_getinfo($ch, CURLINFO_RESPONSE_CODE));
-        }
 
-        curl_close($ch);
+        if ($response->getStatusCode() !== 200) {
+            throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
+        }
     }
 }
