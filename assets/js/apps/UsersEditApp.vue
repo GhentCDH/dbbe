@@ -36,12 +36,6 @@
                     </ul>
                 </template>
                 <template
-                    slot="status"
-                    slot-scope="props"
-                >
-                    {{ props.row.status ? 'active' : 'inactive' }}
-                </template>
-                <template
                     slot="actions"
                     slot-scope="props"
                 >
@@ -164,7 +158,7 @@ export default {
             model: {},
             resetModel: {},
             defaultModel: {
-                status: true,
+                roles: [],
             },
             schema: {
                 fields: {
