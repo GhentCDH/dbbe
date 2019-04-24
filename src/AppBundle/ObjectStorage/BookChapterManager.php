@@ -81,7 +81,7 @@ class BookChapterManager extends DocumentManager
             throw new NotFoundHttpException('Book chapter with id ' . $id .' not found.');
         }
 
-        $this->setModifieds($bookChapters);
+        $this->setCreatedAndModifiedDates($bookChapters);
 
         $this->setInverseIdentifications($bookChapters);
 

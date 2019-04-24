@@ -146,6 +146,8 @@ class PersonManager extends ObjectEntityManager
 
         $this->setManagements($persons);
 
+        $this->setCreatedAndModifiedDates($persons);
+
         return $persons;
     }
 
@@ -161,8 +163,6 @@ class PersonManager extends ObjectEntityManager
         if (count($persons) == 0) {
             throw new NotFoundHttpException('Person with id ' . $id .' not found.');
         }
-
-        $this->setModifieds($persons);
 
         $this->setBibliographies($persons);
 

@@ -195,6 +195,18 @@
                     </template>
                 </template>
                 <template
+                    slot="created"
+                    slot-scope="props"
+                >
+                    {{ formatDate(props.row.created) }}
+                </template>
+                <template
+                    slot="modified"
+                    slot-scope="props"
+                >
+                    {{ formatDate(props.row.modified) }}
+                </template>
+                <template
                     slot="actions"
                     slot-scope="props"
                 >
@@ -465,7 +477,7 @@ export default {
                 },
                 'perPage': 25,
                 'perPageValues': [25, 50, 100],
-                'sortable': ['name', 'date'],
+                'sortable': ['name', 'date', 'created', 'modified'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {
@@ -613,7 +625,9 @@ export default {
                 columns.unshift('comment')
             }
             if (this.isViewInternal) {
-                columns.push('actions')
+                columns.push('created');
+                columns.push('modified');
+                columns.push('actions');
                 columns.push('c')
             }
             return columns

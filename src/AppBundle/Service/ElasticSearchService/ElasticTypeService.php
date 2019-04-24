@@ -119,6 +119,11 @@ class ElasticTypeService extends ElasticEntityService
                 $result['data'][$key]['number_of_occurrences'] = $result['data'][$key]['number_of_occurrences_public'];
                 unset($result['data'][$key]['number_of_occurrences_public']);
             }
+
+            if (!$viewInternal) {
+                unset($result['data'][$key]['created']);
+                unset($result['data'][$key]['modified']);
+            }
         }
 
         $aggregationFilters = ['metre', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];

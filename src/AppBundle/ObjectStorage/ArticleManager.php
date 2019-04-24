@@ -81,7 +81,7 @@ class ArticleManager extends DocumentManager
             throw new NotFoundHttpException('Article with id ' . $id .' not found.');
         }
 
-        $this->setModifieds($articles);
+        $this->setCreatedAndModifiedDates($articles);
 
         $this->setInverseIdentifications($articles);
 

@@ -19,11 +19,12 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
-    public function getModifieds(array $ids = null): array
+    public function getCreatedAndModifiedDates(array $ids = null): array
     {
         return $this->conn->executeQuery(
             'SELECT
                 entity.identity as entity_id,
+                entity.created,
                 entity.modified
             from data.entity
             where entity.identity in (?)',

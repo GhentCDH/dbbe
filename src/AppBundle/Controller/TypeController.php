@@ -466,6 +466,10 @@ class TypeController extends EditController
                 $esParams['orderBy'] = ['incipit.keyword'];
             } elseif (($params['orderBy']) == 'number_of_occurrences') {
                 $esParams['orderBy'] = ['number_of_occurrences'];
+            } elseif (($params['orderBy']) == 'created') {
+                $esParams['orderBy'] = ['created'];
+            } elseif (($params['orderBy']) == 'modified') {
+                $esParams['orderBy'] = ['modified'];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }

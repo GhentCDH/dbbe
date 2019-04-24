@@ -32,7 +32,7 @@ abstract class EntityManager extends ObjectManager
                 ->setId($id);
         }
 
-        $this->setModifieds($entities);
+        $this->setCreatedAndModifiedDates($entities);
 
         return $entities;
     }
@@ -107,13 +107,14 @@ abstract class EntityManager extends ObjectManager
         }
     }
 
-    protected function setModifieds(array &$entities): void
+    protected function setCreatedAndModifiedDates(array &$entities): void
     {
-        $rawModifieds = $this->dbs->getModifieds(array_keys($entities));
-        foreach ($rawModifieds as $rawModified) {
-            $entities[$rawModified['entity_id']]
+        $rawCreatedAndModifiedDates = $this->dbs->getCreatedAndModifiedDates(array_keys($entities));
+        foreach ($rawCreatedAndModifiedDates as $rawCreatedAndModifiedDate) {
+            $entities[$rawCreatedAndModifiedDate['entity_id']]
                 // default: true (if no value is set in the database)
-                ->setModified(new DateTime($rawModified['modified']));
+                ->setCreated(new DateTime($rawCreatedAndModifiedDate['created']))
+                ->setModified(new DateTime($rawCreatedAndModifiedDate['modified']));
         }
     }
 

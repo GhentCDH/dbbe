@@ -419,6 +419,10 @@ class PersonController extends EditController
                         'death_date_ceiling_year',
                     ];
                 }
+            } elseif (($params['orderBy']) == 'created') {
+                $esParams['orderBy'] = ['created'];
+            } elseif (($params['orderBy']) == 'modified') {
+                $esParams['orderBy'] = ['modified'];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }

@@ -27,6 +27,10 @@ class Entity implements IdJsonInterface, IdElasticInterface
     /**
      * @var DateTime
      */
+    protected $created;
+    /**
+     * @var DateTime
+     */
     protected $modified;
     /**
      * @var array
@@ -99,6 +103,18 @@ class Entity implements IdJsonInterface, IdElasticInterface
     public function getPublic(): bool
     {
         return $this->public;
+    }
+
+    public function setCreated(DateTime $created): Entity
+    {
+        $this->created = $created;
+
+        return $this;
+    }
+
+    public function getCreated(): DateTime
+    {
+        return $this->created;
     }
 
     public function setModified(DateTime $modified): Entity
@@ -411,6 +427,12 @@ class Entity implements IdJsonInterface, IdElasticInterface
         }
         if (isset($this->managements)) {
             $result['management'] = ArrayToJson::arrayToShortJson($this->managements);
+        }
+        if (!empty($this->created)) {
+            $result['created'] = $this->created->format('c');
+        }
+        if (!empty($this->modified)) {
+            $result['modified'] = $this->modified->format('c');
         }
 
         return $result;

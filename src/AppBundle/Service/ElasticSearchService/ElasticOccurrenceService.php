@@ -121,6 +121,11 @@ class ElasticOccurrenceService extends ElasticEntityService
             if (isset($result['data'][$key]['contextual_info']) && is_string($result['data'][$key]['contextual_info'])) {
                 unset($result['data'][$key]['contextual_info']);
             }
+
+            if (!$viewInternal) {
+                unset($result['data'][$key]['created']);
+                unset($result['data'][$key]['modified']);
+            }
         }
 
         $aggregationFilters = ['metre', 'subject', 'manuscript_content', 'person', 'genre', 'dbbe', 'text_status', 'acknowledgement', 'id', 'prev_id'];

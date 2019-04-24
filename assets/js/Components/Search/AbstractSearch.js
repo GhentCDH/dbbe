@@ -576,6 +576,10 @@ export default {
         greekFont(input) {
             return input.replace(/((?:[[.,(|+][[\].,():|+\- ]*)?[\u0370-\u03ff\u1f00-\u1fff]+(?:[[\].,():|+\- ]*[\u0370-\u03ff\u1f00-\u1fff]+)*(?:[[\].,():|+\- ]*[\].,):|])?)/g, '<span class="greek">$1</span>');
         },
+        formatDate(input) {
+            const date = new Date(input);
+            return date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear();
+        },
     },
     requestFunction (data) {
         // Remove unused parameters

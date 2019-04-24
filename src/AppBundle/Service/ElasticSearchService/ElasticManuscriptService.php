@@ -85,6 +85,11 @@ class ElasticManuscriptService extends ElasticEntityService
             if (isset($result['data'][$key]['private_comment']) && is_string($result['data'][$key]['private_comment'])) {
                 unset($result['data'][$key]['private_comment']);
             }
+
+            if (!$viewInternal) {
+                unset($result['data'][$key]['created']);
+                unset($result['data'][$key]['modified']);
+            }
         }
 
         $aggregationFilters = ['city', 'content', 'person', 'origin', 'acknowledgement'];

@@ -512,6 +512,10 @@ class OccurrenceController extends EditController
                 } else {
                     $esParams['orderBy'] = ['date_floor_year', 'date_ceiling_year'];
                 }
+            } elseif (($params['orderBy']) == 'created') {
+                $esParams['orderBy'] = ['created'];
+            } elseif (($params['orderBy']) == 'modified') {
+                $esParams['orderBy'] = ['modified'];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }

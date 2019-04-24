@@ -156,6 +156,8 @@ class TypeManager extends PoemManager
 
         $this->setPrevIds($types);
 
+        $this->setCreatedAndModifiedDates($types);
+
         return $types;
     }
 
@@ -171,8 +173,6 @@ class TypeManager extends PoemManager
         if (count($types) == 0) {
             throw new NotFoundHttpException('Type with id ' . $id .' not found.');
         }
-
-        $this->setModifieds($types);
 
         $type = $types[$id];
 

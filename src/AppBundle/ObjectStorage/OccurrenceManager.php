@@ -200,6 +200,8 @@ class OccurrenceManager extends PoemManager
 
         $this->setPrevIds($occurrences);
 
+        $this->setCreatedAndModifiedDates($occurrences);
+
         return $occurrences;
     }
 
@@ -215,8 +217,6 @@ class OccurrenceManager extends PoemManager
         if (count($occurrences) == 0) {
             throw new NotFoundHttpException('Occurrence with id ' . $id .' not found.');
         }
-
-        $this->setModifieds($occurrences);
 
         $occurrence = $occurrences[$id];
 
