@@ -4,9 +4,18 @@
     <article class="col-xs-9">
         <h2 class="h1">
             <small>Journal</small><br />{{ journal.getTitle() }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('journals_edit', {'id': journal.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
         </h2>
         {% for issueArticles in issuesArticles %}
-            <h2> {{ issueArticles[0].getDescription() }}</h2>
+            <h2>
+                {{ issueArticles[0].getDescription() }}
+                {% if is_granted('ROLE_EDITOR_VIEW') %}
+                    <a href="{{ path('journal_issues_edit', {'id': issueArticles[0].getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                {% endif %}
+            </h2>
+
             <ul>
             {% for article in issueArticles[1] %}
                 <li><a href="{{ path('article_get', {'id': article.getId()}) }}">{{ article.getDescription() }}</a></li>

@@ -51,6 +51,9 @@
 </template>
 
 <script>
+
+import qs from 'qs'
+
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
@@ -130,6 +133,14 @@ export default {
     },
     mounted () {
         this.schema.fields.journalIssue.values = this.values;
+        const params = qs.parse(window.location.href.split('?', 2)[1]);
+        if (!isNaN(params['id'])) {
+            const filteredValues = this.values.filter(v => v.id === parseInt(params['id']));
+            if (filteredValues.length === 1) {
+                this.model.journalIssue = JSON.parse(JSON.stringify(filteredValues[0]));
+            }
+        }
+        window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
         this.enableField(this.schema.fields.journalIssue)
     },
     methods: {

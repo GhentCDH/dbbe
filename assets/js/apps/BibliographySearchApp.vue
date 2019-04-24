@@ -101,11 +101,27 @@
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
+                        v-else-if="urls[types[props.row.type.id] + 's_edit']"
+                        :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
+                        class="action"
+                        title="Edit"
+                    >
+                        <i class="fa fa-pencil-square-o" />
+                    </a>
+                    <a
                         v-if="urls[types[props.row.type.id] + '_delete']"
                         href="#"
                         class="action"
                         title="Delete"
                         @click.prevent="del(props.row)">
+                        <i class="fa fa-trash-o" />
+                    </a>
+                    <a
+                        v-else-if="urls[types[props.row.type.id] + 's_edit']"
+                        :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
+                        class="action"
+                        title="Delete"
+                    >
                         <i class="fa fa-trash-o" />
                     </a>
                 </template>

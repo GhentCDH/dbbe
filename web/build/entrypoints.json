@@ -12,7 +12,7 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.640e0964.js"
+        "/build/bibliographysearch.063901f1.js"
       ]
     },
     "bookedit": {
@@ -42,12 +42,12 @@
     },
     "journalsedit": {
       "js": [
-        "/build/journalsedit.0c4907f8.js"
+        "/build/journalsedit.bd94416a.js"
       ]
     },
     "journalissuesedit": {
       "js": [
-        "/build/journalissuesedit.ad2c6a3f.js"
+        "/build/journalissuesedit.097e757a.js"
       ]
     },
     "keywordsedit": {
