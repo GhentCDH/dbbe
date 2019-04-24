@@ -415,4 +415,109 @@ class Entity implements IdJsonInterface, IdElasticInterface
 
         return $result;
     }
+
+    public static function getBibliographyDisplay(array $bibliographies): array
+    {
+        // Transform bibliographies: merge bibliographies referencing the same
+        // item at different page(s)
+        // Sort:
+        // 1. online sources last -> add a or z at start
+        // articles, books, book chapters:
+        // a2. first author last name; no author: add zzz at start
+        // a3. publication year; no publication year: add 9999
+        // online sources:
+        // b2. title
+        $result = [];
+        foreach ($bibliographies as $bibliography) {
+            if ($bibliography->getType() === 'article') {
+                $id = $bibliography->getArticle()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'article',
+                        'article' => $bibliography->getArticle(),
+                        'pages' => [$bibliography->formatPages()],
+                        'sortKey' => $bibliography->getArticle()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['pages'][] = $bibliography->formatPages();
+                }
+            } elseif ($bibliography->getType() === 'book') {
+                $id = $bibliography->getBook()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'book',
+                        'book' => $bibliography->getBook(),
+                        'pages' => [$bibliography->formatPages()],
+                        'sortKey' => $bibliography->getBook()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['pages'][] = $bibliography->formatPages();
+                }
+            } elseif ($bibliography->getType() === 'bookChapter') {
+                $id = $bibliography->getBookChapter()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'bookChapter',
+                        'bookChapter' => $bibliography->getBookChapter(),
+                        'pages' => [$bibliography->formatPages()],
+                        'sortKey' => $bibliography->getBookChapter()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['pages'][] = $bibliography->formatPages();
+                }
+            } elseif ($bibliography->getType() === 'onlineSource') {
+                $id = $bibliography->getOnlineSource()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'onlineSource',
+                        'onlineSource' => $bibliography->getOnlineSource(),
+                        'relUrl' => [$bibliography->getRelUrl()],
+                        'sortKey' => $bibliography->getOnlineSource()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['relUrl'][] = $bibliography->getRelUrl();
+                }
+            }
+
+            // Add image references
+            if (!empty($bibliography->getImage())) {
+                if (isset($result[$id]['pages'])) {
+                    $result[$id]['pages'][count($result[$id]['pages']) - 1] .= ' (image: plate ' . $bibliography->getImage() . ')';
+                }
+                elseif (isset($result[$id]['relUrl'])) {
+                    $result[$id]['relUrl'][count($result[$id]['relUrl']) - 1] .= ' (image: plate ' . $bibliography->getImage() . ')';
+                }
+            }
+        }
+
+        // Sort pages
+        foreach (array_keys($result) as $id) {
+            if (isset($result[$id]['pages'])) {
+                usort(
+                    $result[$id]['pages'],
+                    function ($a, $b) {
+                        // compare starting integer part
+                        return (int)$a <=> (int)$b;
+                    }
+                );
+            }
+        }
+
+        // Sort relUrl
+        foreach (array_keys($result) as $id) {
+            if (isset($result[$id]['relUrl'])) {
+                sort($result[$id]['relUrl']);
+            }
+        }
+
+        // Sort bibliography items
+        usort(
+            $result,
+            function ($a, $b) {
+                return $a['sortKey'] <=> $b['sortKey'];
+            }
+        );
+
+        return $result;
+    }
 }

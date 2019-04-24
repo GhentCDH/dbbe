@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use URLify;
+
 use AppBundle\Utils\ArrayToJson;
 use AppBundle\Utils\RomanFormatter;
 
@@ -239,6 +241,36 @@ class Book extends Document
             . ', ' . $this->title
             . (!empty($this->volume) ? ' ' . RomanFormatter::numberToRoman($this->volume) : '')
             . ', ' . $this->city;
+    }
+
+    /**
+     * Generate a sortKey; see Entity -> getBibliographiesForDisplay()
+     *
+     * @return string
+     */
+    public function getSortKey(): string
+    {
+        $sortKey = 'a';
+
+        if (!empty($this->personRoles['author'])) {
+            $lastName = reset($this->personRoles['author'][1])->getLastName();
+            if (!empty($lastName)) {
+                $sortKey .= URLify::filter($lastName);
+            } else {
+                $sortKey .= 'zzz';
+            }
+        } else {
+            $sortKey .= 'zzz';
+        }
+
+        $year = $this->getYear();
+        if (!empty($year)) {
+            $sortKey .= $year;
+        } else {
+            $sortKey .- '9999';
+        }
+
+        return $sortKey;
     }
 
     /**

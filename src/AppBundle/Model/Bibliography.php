@@ -67,6 +67,11 @@ abstract class Bibliography
         return $this->image;
     }
 
+    public function formatPages(string $prefix = ''): string
+    {
+        return $this->formatStartEndPages($prefix, $this->rawPages);
+    }
+
     abstract public function getDescription(): string;
 
     abstract public function getShortJson(): array;

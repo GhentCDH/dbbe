@@ -82,6 +82,16 @@ class OnlineSource extends Entity
     }
 
     /**
+     * Generate a sortKey; see Entity -> getBibliographiesForDisplay()
+     *
+     * @return string
+     */
+    public function getSortKey(): string
+    {
+        return 'z' . $this->name;
+    }
+
+    /**
      * @return array
      */
     public function getJson(): array

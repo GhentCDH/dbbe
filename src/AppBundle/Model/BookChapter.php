@@ -2,6 +2,8 @@
 
 namespace AppBundle\Model;
 
+use URLify;
+
 use AppBundle\Utils\ArrayToJson;
 
 /**
@@ -79,6 +81,36 @@ class BookChapter extends Document
             . $this->book->getTitle()
             . ', ' . $this->book->getCity()
             . $this->formatStartEndPages(', ');
+    }
+
+    /**
+     * Generate a sortKey; see Entity -> getBibliographiesForDisplay()
+     *
+     * @return string
+     */
+    public function getSortKey(): string
+    {
+        $sortKey = 'a';
+
+        if (!empty($this->personRoles['author'])) {
+            $lastName = reset($this->personRoles['author'][1])->getLastName();
+            if (!empty($lastName)) {
+                $sortKey .= URLify::filter($lastName);
+            } else {
+                $sortKey .= 'zzz';
+            }
+        } else {
+            $sortKey .= 'zzz';
+        }
+
+        $year = $this->book->getYear();
+        if (!empty($year)) {
+            $sortKey .= $year;
+        } else {
+            $sortKey .- '9999';
+        }
+
+        return $sortKey;
     }
 
     /**

@@ -51,7 +51,7 @@
                                             <a class="greek" href="{{ path('occurrence_get', {'id': type.getBasedOn().getId()}) }}">{{ type.getBasedOn().getDescription() }}</a>)
                                         {% endif %}
                                     {% else %}
-                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item } only %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': type.getBibliographyDisplay([item])[0]} only %}
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
@@ -148,7 +148,7 @@
                                     <br />
                                     Language: {{ item.getLanguage() }}
                                     <br />
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': item.getBibliographies()} only %}
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list':  item.getBibliographyDisplay(item.getBibliographies())} only %}
                                         {% block renderItem %}
                                             {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                         {% endblock %}
@@ -173,7 +173,7 @@
                         <td>
                             {% if type.getPrimarySources() is not empty %}
                                 <p><em>Primary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getPrimarySources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getPrimarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}
@@ -181,7 +181,7 @@
                             {% endif %}
                             {% if type.getSecondarySources() is not empty %}
                                 <p><em>Secondary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getSecondarySources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getSecondarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}
@@ -189,7 +189,7 @@
                             {% endif %}
                             {% if type.getOtherSources() is not empty %}
                                 <p><em>Bibliography category to be determined</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': type.getOtherSources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getOtherSources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}

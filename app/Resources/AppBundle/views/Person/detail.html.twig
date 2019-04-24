@@ -142,7 +142,7 @@
                     <tr>
                         <td>Bibliography</td>
                         <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getBibliographies(), 'enableCollapse': 1, 'label': 'references'} only %}
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getBibliographyDisplay(person.getBibliographies()), 'enableCollapse': 1, 'label': 'references'} only %}
                                 {% block renderItem %}
                                     {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                 {% endblock %}

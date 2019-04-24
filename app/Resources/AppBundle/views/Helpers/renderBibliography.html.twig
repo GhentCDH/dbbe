@@ -1,47 +1,35 @@
-{% if item.getType() == 'book' %}
-    <a href="{{ path('book_get', {'id': item.getBook().getId()}) }}">
-        {{ item.getDescription() }}
+{% if item['type'] == 'book' %}
+    <a href="{{ path('book_get', {'id': item['book'].getId()}) }}">
+        {{ item['book'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
-    {% if item.getImage() is not empty %}
-        (image: plate {{ item.getImage() }})
-    {% endif %}
-{% elseif item.getType() == 'article' %}
-    <a href="{{ path('article_get', {'id': item.getArticle().getId()}) }}">
-        {{ item.getDescription() }}
+{% elseif item['type'] == 'article' %}
+    <a href="{{ path('article_get', {'id': item['article'].getId()}) }}">
+        {{ item['article'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
-    {% if item.getImage() is not empty %}
-        (image: plate {{ item.getImage() }})
-    {% endif %}
-{% elseif item.getType() == 'bookChapter' %}
-    <a href="{{ path('book_chapter_get', {'id': item.getBookChapter().getId()}) }}">
-        {{ item.getDescription() }}
+{% elseif item['type'] == 'bookChapter' %}
+    <a href="{{ path('book_chapter_get', {'id': item['bookChapter'].getId()}) }}">
+        {{ item['bookChapter'].getDescription() ~ ': ' ~ item['pages']|join(', ') }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
-    {% if item.getImage() is not empty %}
-        (image: plate {{ item.getImage() }})
-    {% endif %}
-{% elseif item.getType() == 'onlineSource' %}
-    <a href="{{ path('online_source_get', {'id': item.getOnlineSource().getId()}) }}">
-        {{ item.getDescription() }}
+{% elseif item['type'] == 'onlineSource' %}
+    <a href="{{ path('online_source_get', {'id': item['onlineSource'].getId()}) }}">
+        {{ item['onlineSource'].getDescription() }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
-    {% if item.getImage() is not empty %}
-        (image: plate {{ item.getImage() }})
-    {% endif %}
-    {%  if item.getRelUrl() is not empty %}
-        <a href="{{ item.getRelUrl() }}" class="action" target="_blank">
+    {% for relUrl in item['relUrl'] %}
+        <a href="{{ relUrl }}" class="action" target="_blank">
             <i class="fa fa-external-link"></i>
-            {{ item.getRelUrl() }}
+            {{ relUrl }}
         </a>
-    {% endif %}
+    {% endfor %}
 {% endif %}

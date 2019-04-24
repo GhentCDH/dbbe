@@ -79,7 +79,7 @@
                                         {% if occurrence.getSourceStatus() is not empty %}({{ occurrence.getSourceStatus().getName() }}){% endif %}
                                         </a>
                                     {% else %}
-                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item, 'sourceStatus': occurrence.getSourceStatus() } only %}
+                                        {% include '@App/Helpers/renderBibliography.html.twig' with {'item': occurrence.getBibliographyDisplay([item])[0], 'sourceStatus': occurrence.getSourceStatus() } only %}
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
@@ -212,7 +212,7 @@
                         <td>
                             {% if occurrence.getPrimarySources() is not empty %}
                                 <p><em>Primary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getPrimarySources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getPrimarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}
@@ -220,7 +220,7 @@
                             {% endif %}
                             {% if occurrence.getSecondarySources() is not empty %}
                                 <p><em>Secondary</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getSecondarySources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getSecondarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}
@@ -228,7 +228,7 @@
                             {% endif %}
                             {% if occurrence.getOtherSources() is not empty %}
                                 <p><em>Bibliography category to be determined</em></p>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getOtherSources(), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getOtherSources()), 'enableCollapse': 1, 'label': 'references'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
                                     {% endblock %}

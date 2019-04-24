@@ -30,7 +30,7 @@ class BookChapterBibliography extends Bibliography
     {
         return
             $this->bookChapter->getDescription()
-            . $this->formatStartEndPages(': ')
+            . $this->formatPages(': ')
             . '.';
     }
 
