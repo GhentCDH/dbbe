@@ -363,9 +363,9 @@ export default {
                 columns.unshift('comment')
             }
             if (this.isViewInternal) {
+                columns.push('occ');
                 columns.push('created');
                 columns.push('modified');
-                columns.push('occ');
                 columns.push('actions');
                 columns.push('c')
             }

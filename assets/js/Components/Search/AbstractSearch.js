@@ -578,7 +578,7 @@ export default {
         },
         formatDate(input) {
             const date = new Date(input);
-            return date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear();
+            return ('00' + date.getDate()).slice(-2) + '/' + ('00' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
         },
     },
     requestFunction (data) {
