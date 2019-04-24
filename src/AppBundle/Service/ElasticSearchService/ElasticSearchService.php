@@ -306,7 +306,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     if ($result['key'] == $filterValues['multiple_fields_object'][$fieldName[1]][1]) {
                                         $results[$fieldName[2]][] = [
                                             'id' => $key,
-                                            'name' => $this->roles[$key]->getName() . ' (' . $result['doc_count'] . ')',
+                                            'name' => $this->roles[str_replace('_public', '', $key)]->getName() . ' (' . $result['doc_count'] . ')',
                                         ];
                                     }
                                 }
