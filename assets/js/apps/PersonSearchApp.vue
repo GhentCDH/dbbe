@@ -321,11 +321,11 @@
                     </tr>
                     <tr>
                         <td>Born Date</td>
-                        <td>{{ formatDate(mergeModel.primaryFull.bornDate) || formatDate(mergeModel.secondaryFull.bornDate) }}</td>
+                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'born') }}</td>
                     </tr>
                     <tr>
                         <td>Death Date</td>
-                        <td>{{ formatDate(mergeModel.primaryFull.deathDate) || formatDate(mergeModel.secondaryFull.deathDate) }}</td>
+                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'died') }}</td>
                     </tr>
                     <tr
                         v-for="identifier in identifiers"
@@ -742,7 +742,16 @@ export default {
                     console.log(error)
                 })
         },
-        formatDate(date) {
+        formatMergeDate(primary, secondary, type) {
+            if (primary.filter(d => d.type === type).length === 1) {
+                return this.formatPersonDate(primary.filter(d => d.type === type)[0].date);
+            }
+            if (secondary.filter(d => d.type === type).length === 1) {
+                return this.formatPersonDate(secondary.filter(d => d.type === type)[0].date);
+            }
+            return null;
+        },
+        formatPersonDate(date) {
             if (date == null || date.floor == null || date.ceiling == null) {
                 return null
             }
