@@ -297,7 +297,7 @@ export default {
                 },
                 'perPage': 25,
                 'perPageValues': [25, 50, 100],
-                'sortable': ['name', 'date', 'created', 'modified'],
+                'sortable': ['name', 'date', 'occ', 'created', 'modified'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {
