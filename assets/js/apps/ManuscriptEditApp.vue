@@ -397,7 +397,9 @@ export default {
                 }
             }
             else {
-                this.model.general.public = true
+                // Set defaults
+                this.model.general.illustrated = false;
+                this.model.general.public = true;
             }
 
             this.originalModel = JSON.parse(JSON.stringify(this.model))
