@@ -203,7 +203,7 @@ export default {
             return {
                 'Manuscripts': {
                     depUrl: this.urls['manuscript_deps_by_region'].replace('region_id', this.submitModel.region.id),
-                    url: this.urls['manuscripts_get'],
+                    url: this.urls['manuscript_get'],
                     urlIdentifier: 'manuscript_id',
                 },
                 'Institutions': {
@@ -214,7 +214,7 @@ export default {
                 },
                 'Persons': {
                     depUrl: this.urls['person_deps_by_region'].replace('region_id', this.submitModel.region.id),
-                    url: this.urls['persons_get'],
+                    url: this.urls['person_get'],
                     urlIdentifier: 'person_id',
                 },
                 'Regions': {
