@@ -691,6 +691,7 @@ export default {
                     this.model[this.editModel.index].type = this.editModel.type;
                 }
             }
+            this.recalculateTypeValues();
             this.validateTotal();
             this.calcChanges();
             this.$emit('validated', this.isValid, null, this)
@@ -698,6 +699,7 @@ export default {
         },
         submitDelete() {
             this.model.splice(this.editModel.index, 1);
+            this.recalculateTypeValues();
             this.validateTotal();
             this.calcChanges();
             this.$emit('validated', this.isValid, null, this)
