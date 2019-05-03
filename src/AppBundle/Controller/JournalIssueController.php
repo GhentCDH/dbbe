@@ -25,6 +25,9 @@ class JournalIssueController extends BaseController
      */
     public function getAll(Request $request)
     {
+        if ($request->query->get('mini') === '1') {
+            return parent::getAllMini($request);
+        }
         return parent::getAll($request);
     }
 

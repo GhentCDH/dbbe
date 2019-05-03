@@ -2,6 +2,8 @@
     <panel
         :header="header"
         :links="links"
+        :reloads="reloads"
+        @reload="reload"
     >
         <vue-form-generator
             ref="form"
@@ -48,6 +50,16 @@ export default {
                 return {}
             }
         },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    selfDesignations: {field: 'selfDesignations', init: true},
+                    offices: {field: 'offices', init: true},
+                    origins: {field: 'origin', init: true},
+                };
+            },
+        },
     },
     data: function () {
         return {
@@ -91,7 +103,6 @@ export default {
                         '(Self) designation',
                         {
                             model: 'selfDesignations',
-                            values: this.values.selfDesignations,
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },
@@ -105,7 +116,6 @@ export default {
                     offices: this.createMultiSelect(
                         'Offices',
                         {
-                            values: this.values.offices,
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },
@@ -117,7 +127,6 @@ export default {
                     origin: this.createMultiSelect(
                         'Origin',
                         {
-                            values: this.values.origins,
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },
@@ -148,12 +157,6 @@ export default {
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model));
-            this.enableField(this.schema.fields.selfDesignations);
-            this.enableField(this.schema.fields.offices);
-            this.enableField(this.schema.fields.origin)
-        },
         calcChanges() {
             this.changes = [];
             if (this.originalModel == null) {

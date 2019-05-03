@@ -2,6 +2,8 @@
     <panel
         :header="header"
         :links="links"
+        :reloads="reloads"
+        @reload="reload"
     >
         <vue-form-generator
             ref="form"
@@ -33,6 +35,15 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    journals: {field: 'journal', init: false},
+                    journalIssues: {field: 'journalIssue', init: false},
+                };
+            },
+        },
     },
     data() {
         return {
@@ -50,7 +61,6 @@ export default {
                     journal: this.createMultiSelect(
                         'Journal',
                         {
-                            values: this.values.journals,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -60,7 +70,6 @@ export default {
                         {
                             model: 'journalIssue',
                             dependency: 'journal',
-                            values: this.values.journalIssues,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -100,14 +109,23 @@ export default {
         },
     },
     methods: {
-        init() {
-            if (Object.keys(this.originalModel).length === 0) {
-                this.originalModel = JSON.parse(JSON.stringify(this.model));
-                this.enableField(this.schema.fields.journal);
-                this.journalChange();
+        enableFields(enableKeys) {
+            if (enableKeys != null) {
+                if (enableKeys.includes('journals')) {
+                    this.fields.journal.values = this.values.journals;
+                    this.enableField(this.fields.journal);
+                    this.journalChange();
+                } else if (enableKeys.includes('journalIssues')) {
+                    this.fields.journalIssue.values = this.values.journalIssues;
+                    this.enableField(this.fields.journalIssue);
+                    this.journalChange();
+                }
             }
         },
         journalChange() {
+            if (this.values.journalIssues.length === 0) {
+                return;
+            }
             if (this.model.journal == null) {
                 this.dependencyField(this.schema.fields.journalIssue)
             } else {

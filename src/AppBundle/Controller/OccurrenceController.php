@@ -22,13 +22,17 @@ class OccurrenceController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:Occurrence:';
 
     /**
-     * @Route("/occurrences", name="occurrences_base")
+     * @Route("/occurrences", name="occurrences_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
-        return $this->redirectToRoute('occurrences_search', ['request' =>  $request], 301);
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMicro($request);
+        }
+        // Redirect to search page if not a json request
+        return $this->redirectToRoute('occurrences_search_search', ['request' =>  $request], 301);
     }
 
     /**
@@ -415,33 +419,42 @@ class OccurrenceController extends EditController
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => $id == null ? 'occurrence_id' : $id]),
                     'occurrence_post' => $this->generateUrl('occurrence_post'),
                     'occurrence_put' => $this->generateUrl('occurrence_put', ['id' => $id == null ? 'occurrence_id' : $id]),
-                    'metres_edit' => $this->generateUrl('metres_edit'),
-                    'genres_edit' => $this->generateUrl('genres_edit'),
-                    'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
-                    'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
-                    'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'manuscripts_get' => $this->generateUrl('manuscripts_get'),
+                    'manuscripts_search' => $this->generateUrl('manuscripts_search'),
                     'verse_variant_get' => $this->generateUrl('verse_variant_get', ['groupId' => 'verse_variant_id']),
                     'verse_search' => $this->generateUrl('verse_search'),
-                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
+                    'types_get' => $this->generateUrl('types_get'),
+                    'types_search' => $this->generateUrl('types_search'),
+                    'persons_search' => $this->generateUrl('persons_search'),
+                    'historical_persons_get' => $this->generateUrl('persons_get', ['type' => 'historical']),
+                    'metres_get' => $this->generateUrl('metres_get'),
+                    'metres_edit' => $this->generateUrl('metres_edit'),
+                    'genres_get' => $this->generateUrl('genres_get'),
+                    'genres_edit' => $this->generateUrl('genres_edit'),
+                    'keywords_subject_get' => $this->generateUrl('subjects_get'),
+                    'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'image_get' => $this->generateUrl('image_get', ['id' => 'image_id']),
                     'image_post' => $this->generateUrl('image_post'),
+                    'books_get' => $this->generateUrl('books_get'),
+                    'articles_get' => $this->generateUrl('articles_get'),
+                    'book_chapters_get' => $this->generateUrl('book_chapters_get'),
+                    'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
+                    'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
+                    'statuses_get' => $this->generateUrl('statuses_get', ['type' => 'occurrence']),
+                    'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'clone' => $clone,
                     'occurrence' => $occurrenceJson,
-                    'manuscripts' => $this->get('manuscript_manager')->getAllMiniShortJson(),
-                    'types' => $this->get('type_manager')->getAllMicroShortJson(),
-                    'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
                     'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
                     'metres' => $this->get('metre_manager')->getAllShortJson(),
                     'genres' => $this->get('genre_manager')->getAllShortJson(),
                     'keywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
-                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
-                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
-                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
-                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
                     'referenceTypes' => $this->get('reference_type_manager')->getAllShortJson(),
                     'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
                     'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_TEXT),

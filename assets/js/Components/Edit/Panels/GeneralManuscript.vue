@@ -1,13 +1,17 @@
 <template>
     <panel
         :header="header"
-        :links="links">
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -30,6 +34,15 @@ export default {
         values: {
             type: Object,
             default: () => {return {}}
+        },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    acknowledgements: {field: 'acknowledgements', init: true},
+                    statuses: {field: 'status', init: true},
+                };
+            },
         },
     },
     data() {
@@ -83,12 +96,5 @@ export default {
             },
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.acknowledgements)
-            this.enableField(this.schema.fields.status)
-        },
-    }
 }
 </script>

@@ -13,6 +13,10 @@ class Status extends IdNameObject
     /**
      * @var string
      */
+    const MANUSCRIPT = 'manuscript';
+    /**
+     * @var string
+     */
     const OCCURRENCE_DIVIDED = 'occurrence_divided';
     /**
      * @var string
@@ -26,10 +30,6 @@ class Status extends IdNameObject
      * @var string
      */
     const OCCURRENCE_TEXT = 'occurrence_text';
-    /**
-     * @var string
-     */
-    const MANUSCRIPT = 'manuscript';
     /**
      * @var string
      */

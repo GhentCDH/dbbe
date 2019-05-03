@@ -1,9 +1,6 @@
 <template>
     <div>
-        <article
-            ref="target"
-            class="col-sm-9 mbottom-large"
-        >
+        <article class="col-sm-9 mbottom-large">
             <alerts
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
@@ -11,33 +8,41 @@
 
             <locatedAtPanel
                 id="location"
-                ref="locatedAt"
+                ref="location"
                 header="Location"
-                :links="[{url: urls['locations_edit'], text: 'Edit locations'}]"
+                :links="[{title: 'Locations', reload: 'locations', edit: urls['locations_edit']}]"
                 :model="model.locatedAt"
                 :values="locations"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <contentPanel
-                id="content"
-                ref="content"
-                header="Content"
-                :links="[{url: urls['contents_edit'], text: 'Edit contents'}]"
-                :model="model.content"
+                id="contents"
+                ref="contents"
+                header="Contents"
+                :links="[{title: 'Contents', reload: 'contents', edit: urls['contents_edit']}]"
+                :model="model.contents"
                 :values="contents"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="persons"
                 ref="persons"
                 header="Persons"
+                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}]"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
                 :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : {}"
+                :keys="{historicalPersons: {init: false}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <datePanel
@@ -53,10 +58,12 @@
                 id="origin"
                 ref="origin"
                 header="Origin"
-                :links="[{url: urls['origins_edit'], text: 'Edit origins'}]"
+                :links="[{title: 'Origins', reload: 'origins', edit: urls['origins_edit']}]"
                 :model="model.origin"
                 :values="origins"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <occurrenceOrderPanel
@@ -82,37 +89,47 @@
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <generalManuscriptPanel
                 id="general"
                 ref="general"
                 header="General"
-                :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
+                :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}, {title: 'Statuses', reload: 'statuses', edit: urls['statuses_edit']}]"
                 :model="model.general"
                 :values="generals"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="contributors"
                 ref="contributors"
                 header="Contributors"
+                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
                 :roles="contributorRoles"
                 :model="model.contributorRoles"
                 :values="dbbePersons"
+                :keys="{dbbePersons: {init: true}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <managementPanel
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
+                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
                 :values="managements"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <btn
@@ -139,12 +156,6 @@
             >
                 Save
             </btn>
-            <btn
-                :disabled="(diff.length !== 0)"
-                @click="reload()"
-            >
-                Refresh all data
-            </btn>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -163,17 +174,72 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#location">Location</a></li>
-                    <li><a href="#content">Content</a></li>
-                    <li><a href="#persons">Persons</a></li>
-                    <li><a href="#dates">Dates</a></li>
-                    <li><a href="#origin">Origin</a></li>
-                    <li><a href="#occurrenceOrder">Occurrence Order</a></li>
-                    <li><a href="#identification">Identification</a></li>
-                    <li><a href="#bibliography">Bibliography</a></li>
-                    <li><a href="#general">General</a></li>
-                    <li><a href="#contributors">Contributors</a></li>
-                    <li><a href="#managements">Management collections</a></li>
+                    <li>
+                        <a
+                            href="#location"
+                            :class="{'bg-danger': !($refs.location && $refs.location.isValid)}"
+                        >Location</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#contents"
+                            :class="{'bg-danger': !($refs.contents && $refs.contents.isValid)}"
+                        >Contents</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#persons"
+                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                        >Persons</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#dates"
+                            :class="{'bg-danger': !($refs.dates && $refs.dates.isValid)}"
+                        >Dates</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#origin"
+                            :class="{'bg-danger': !($refs.origin && $refs.origin.isValid)}"
+                        >Origin</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#occurrenceOrder"
+                            :class="{'bg-danger': !($refs.occurrenceOrder && $refs.occurrenceOrder.isValid)}"
+                        >Occurrence Order</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#identification"
+                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                        >Identification</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#bibliography"
+                            :class="{'bg-danger': !($refs.bibliography && $refs.bibliography.isValid)}"
+                        >Bibliography</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#general"
+                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                        >General</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#contributors"
+                            :class="{'bg-danger': !($refs.contributors && $refs.contributors.isValid)}"
+                        >Contributors</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#managements"
+                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                        >Management collections</a>
+                    </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -238,7 +304,7 @@ export default {
                     shelf: null,
                     extra: null,
                 },
-                content: {content: null},
+                contents: {contents: null},
                 personRoles: {},
                 contributorRoles: {},
                 dates: [],
@@ -261,9 +327,9 @@ export default {
                 },
                 managements: {managements: null},
             },
-            forms: [
-                'locatedAt',
-                'content',
+            panels: [
+                'location',
+                'contents',
                 'persons',
                 'dates',
                 'origin',
@@ -287,46 +353,48 @@ export default {
         return data
     },
     created () {
-        this.manuscript = this.data.manuscript
-        this.locations = this.data.locations
-        this.contents = this.data.contents
-        this.historicalPersons = this.data.historicalPersons
-        this.dbbePersons = this.data.dbbePersons
-        this.origins = this.data.origins
+        this.manuscript = this.data.manuscript;
+
+        this.locations = [];
+        this.contents = this.data.contents;
+        this.historicalPersons = [];
+        this.origins = this.data.origins;
         this.bibliographies = {
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
-        }
+            books: [],
+            articles: [],
+            bookChapters: [],
+            onlineSources: [],
+        };
         this.generals = {
             acknowledgements: this.data.acknowledgements,
             statuses: this.data.statuses,
-        }
-        this.managements = this.data.managements
-    },
-    mounted () {
-        this.loadManuscript()
-        window.addEventListener('scroll', (event) => {
-            this.scrollY = Math.round(window.scrollY)
-        })
+        };
+        this.dbbePersons = this.data.dbbePersons;
+        this.managements = this.data.managements;
     },
     methods: {
-        loadManuscript() {
+        loadAsync() {
+            this.reload('locations');
+            this.reload('historicalPersons');
+            this.reload('books');
+            this.reload('articles');
+            this.reload('bookChapters');
+            this.reload('onlineSources');
+        },
+        setData() {
             if (this.manuscript != null) {
                 // Located At
                 this.model.locatedAt = this.manuscript.locatedAt
 
-                // Content
-                this.model.content = {
-                    content: this.manuscript.content,
+                // Contents
+                this.model.contents = {
+                    contents: this.manuscript.contents,
                 }
 
                 // PersonRoles
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.manuscript.personRoles == null ? [] : this.manuscript.personRoles[role.systemName];
                 }
-                this.$refs.persons.init();
 
                 // Dates
                 if (this.manuscript.dates != null) {
@@ -389,7 +457,6 @@ export default {
                 for (let role of this.contributorRoles) {
                     this.model.contributorRoles[role.systemName] = this.manuscript.contributorRoles == null ? [] : this.manuscript.contributorRoles[role.systemName];
                 }
-                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {
@@ -401,8 +468,6 @@ export default {
                 this.model.general.illustrated = false;
                 this.model.general.public = true;
             }
-
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         save() {
             this.openRequests++
@@ -434,6 +499,22 @@ export default {
                         this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: this.isLoginError(error)})
                         this.openRequests--
                     })
+            }
+        },
+        reload(type) {
+            switch (type) {
+            case 'books':
+            case 'articles':
+            case 'bookChapters':
+            case 'onlineSources':
+                this.reloadNestedItems(type, this.bibliographies);
+                break;
+            case 'acknowledgements':
+            case 'statuses':
+                this.reloadNestedItems(type, this.generals);
+                break;
+            default:
+                this.reloadSimpleItems(type);
             }
         },
     }

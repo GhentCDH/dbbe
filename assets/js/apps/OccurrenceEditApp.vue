@@ -1,27 +1,20 @@
 <template>
     <div>
-        <article
-            ref="target"
-            class="col-sm-9 mbottom-large"
-        >
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)"
-            >
-                {{ item.message }}
-            </alert>
-
+        <article class="col-sm-9 mbottom-large">
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)"
+            />
             <basicOccurrencePanel
                 id="basic"
                 ref="basic"
                 header="Basic information"
+                :links="[{title: 'Manuscripts', reload: 'manuscripts', edit: urls['manuscripts_search']}]"
                 :model="model.basic"
                 :values="manuscripts"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <occurrenceVersesPanel
@@ -30,7 +23,6 @@
                 header="Verses"
                 :model="model.verses"
                 :urls="urls"
-                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -38,21 +30,26 @@
                 id="types"
                 ref="types"
                 header="Types"
+                :links="[{title: 'Types', reload: 'types', edit: urls['types_search']}]"
                 :model="model.types"
                 :values="types"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="persons"
                 ref="persons"
                 header="Persons"
+                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}]"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
-                :clone="data.clone"
+                :keys="{historicalPersons: {init: false}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <datePanel
@@ -68,33 +65,36 @@
                 id="metres"
                 ref="metres"
                 header="Metres"
-                :links="[{url: urls['metres_edit'], text: 'Edit metres'}]"
+                :links="[{title: 'Metres', reload: 'metres', edit: urls['metres_edit']}]"
                 :model="model.metres"
                 :values="metres"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <genrePanel
                 id="genres"
                 ref="genres"
                 header="Genres"
-                :links="[{url: urls['genres_edit'], text: 'Edit genres'}]"
+                :links="[{title: 'Genres', reload: 'genres', edit: urls['genres_edit']}]"
                 :model="model.genres"
                 :values="genres"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <subjectPanel
                 id="subjects"
                 ref="subjects"
                 header="Subjects"
-                :links="[{url: urls['keywords_subject_get'], text: 'Edit keywords'}]"
+                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}, {title: 'Keywords', reload: 'keywordSubjects', edit: urls['keywords_subject_edit']}]"
                 :model="model.subjects"
                 :values="subjects"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <identificationPanel
@@ -104,7 +104,6 @@
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
-                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -114,7 +113,6 @@
                 header="Images"
                 :model="model.images"
                 :urls="urls"
-                :clone="data.clone"
                 @validated="validated"
             />
 
@@ -126,47 +124,53 @@
                 :reference-type="true"
                 :image="true"
                 :values="bibliographies"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <generalOccurrencePanel
                 id="general"
                 ref="general"
                 header="General"
-                :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
+                :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}, {title: 'Statuses', reload: 'statuses', edit: urls['statuses_edit']}]"
                 :model="model.general"
                 :values="generals"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="contributors"
                 ref="contributors"
                 header="Contributors"
+                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
                 :roles="contributorRoles"
                 :model="model.contributorRoles"
                 :values="dbbePersons"
-                :clone="data.clone"
+                :keys="{dbbePersons: {init: true}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <managementPanel
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
+                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
                 :values="managements"
-                :clone="data.clone"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <btn
                 id="actions"
                 type="warning"
-                :disabled="diff.length === 0"
+                :disabled="data.clone ? JSON.stringify(originalModel) !== JSON.stringify(model) : diff.length === 0"
                 @click="resetModal=true"
             >
                 Reset
@@ -187,12 +191,6 @@
             >
                 Save
             </btn>
-            <btn
-                :disabled="(diff.length !== 0)"
-                @click="reload()"
-            >
-                Refresh all data
-            </btn>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -211,20 +209,90 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#basic">Basic information</a></li>
-                    <li><a href="#verses">Verses</a></li>
-                    <li><a href="#types">Types</a></li>
-                    <li><a href="#persons">Persons</a></li>
-                    <li><a href="#dates">Dates</a></li>
-                    <li><a href="#metres">Metres</a></li>
-                    <li><a href="#genres">Genres</a></li>
-                    <li><a href="#subjects">Subjects</a></li>
-                    <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
-                    <li><a href="#images">Images</a></li>
-                    <li><a href="#bibliography">Bibliography</a></li>
-                    <li><a href="#general">General</a></li>
-                    <li><a href="#contributors">Contributors</a></li>
-                    <li><a href="#managements">Management collections</a></li>
+                    <li>
+                        <a
+                            href="#basic"
+                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                        >Basic information</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#verses"
+                            :class="{'bg-danger': !($refs.verses && $refs.verses.isValid)}"
+                        >Verses</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#types"
+                            :class="{'bg-danger': !($refs.types && $refs.types.isValid)}"
+                        >Types</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#persons"
+                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                        >Persons</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#dates"
+                            :class="{'bg-danger': !($refs.dates && $refs.dates.isValid)}"
+                        >Dates</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#metres"
+                            :class="{'bg-danger': !($refs.metres && $refs.metres.isValid)}"
+                        >Metres</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#genres"
+                            :class="{'bg-danger': !($refs.genres && $refs.genres.isValid)}"
+                        >Genres</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#subjects"
+                            :class="{'bg-danger': !($refs.subjects && $refs.subjects.isValid)}"
+                        >Subjects</a>
+                    </li>
+                    <li v-if="identifiers.length > 0">
+                        <a
+                            href="#identification"
+                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                        >Identification</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#images"
+                            :class="{'bg-danger': !($refs.images && $refs.images.isValid)}"
+                        >Images</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#bibliography"
+                            :class="{'bg-danger': !($refs.bibliography && $refs.bibliography.isValid)}"
+                        >Bibliography</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#general"
+                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                        >General</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#contributors"
+                            :class="{'bg-danger': !($refs.contributors && $refs.contributors.isValid)}"
+                        >Contributors</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#managements"
+                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                        >Management collections</a>
+                    </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -275,12 +343,13 @@ export default {
             manuscripts: null,
             types: null,
             historicalPersons: null,
-            dbbePersons: null,
             metres: null,
             genres: null,
             subjects: null,
             bibliographies: null,
             generals: null,
+            dbbePersons: null,
+            managements: null,
             model: {
                 basic: {
                     incipit: null,
@@ -338,7 +407,7 @@ export default {
                 },
                 managements: {managements: null},
             },
-            forms: [
+            panels: [
                 'basic',
                 'verses',
                 'types',
@@ -358,7 +427,7 @@ export default {
             data.model.identification[identifier.systemName] = null
         }
         if (data.identifiers.length > 0) {
-            data.forms.push('identification')
+            data.panels.push('identification')
         }
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = []
@@ -369,41 +438,71 @@ export default {
         return data
     },
     created () {
-        this.occurrence = this.data.occurrence
-        this.manuscripts = this.data.manuscripts
-        this.types = this.data.types
-        this.historicalPersons = this.data.historicalPersons
-        this.dbbePersons = this.data.dbbePersons
-        this.metres = this.data.metres
-        this.genres = this.data.genres
+        this.occurrence = this.data.occurrence;
+
+        this.manuscripts = [];
+        this.types = [];
+        this.historicalPersons = [];
+        this.metres = this.data.metres;
+        this.genres = this.data.genres;
         this.subjects = {
-            personSubjects: this.historicalPersons,
+            historicalPersons: [],
             keywordSubjects: this.data.keywords,
-        }
+        };
         this.bibliographies = {
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
+            books: [],
+            articles: [],
+            bookChapters: [],
+            onlineSources: [],
             referenceTypes: this.data.referenceTypes,
-        }
+        };
         this.generals = {
             acknowledgements: this.data.acknowledgements,
             textStatuses: this.data.textStatuses,
             recordStatuses: this.data.recordStatuses,
             dividedStatuses: this.data.dividedStatuses,
             sourceStatuses: this.data.sourceStatuses,
-        }
-        this.managements = this.data.managements
+        };
+        this.dbbePersons = this.data.dbbePersons;
+        this.managements = this.data.managements;
     },
-    mounted () {
-        this.loadOccurrence()
-        window.addEventListener('scroll', (event) => {
-            this.scrollY = Math.round(window.scrollY)
-        })
+    mounted() {
+        this.initScroll();
+
+        this.setData();
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+
+        // Initialize panels after model is updated
+        // Make sure a duplicated occurrence is saved as a new occurrence
+        this.$nextTick(() => {
+            if (this.data.clone) {
+                this.occurrence = null;
+                this.validateForms();
+                this.calcAllChanges();
+                for (let panel of this.panels) {
+                    this.$refs[panel].enableFields();
+                }
+            } else {
+                for (let panel of this.panels) {
+                    this.$refs[panel].init();
+                }
+            }
+        });
+
+        // Load some (slower) data asynchronously
+        this.loadAsync();
     },
     methods: {
-        loadOccurrence() {
+        loadAsync() {
+            this.reload('manuscripts');
+            this.reload('types');
+            this.reload('historicalPersons');
+            this.reload('books');
+            this.reload('articles');
+            this.reload('bookChapters');
+            this.reload('onlineSources');
+        },
+        setData() {
             if (this.occurrence != null) {
                 // Basic information
                 this.model.basic = {
@@ -526,15 +625,6 @@ export default {
             else {
                 this.model.general.public = true
             }
-
-            // Make sure a duplicated occurrence is saved as a new occurrence
-            if (this.data.clone) {
-                this.occurrence = null;
-                this.validateForms();
-            } else {
-                this.$refs.persons.init();
-                this.$refs.contributors.init();
-            }
         },
         save() {
             this.openRequests++
@@ -566,6 +656,46 @@ export default {
                         this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: this.isLoginError(error)})
                         this.openRequests--
                     })
+            }
+        },
+        reload(type) {
+            switch(type) {
+            case 'historicalPersons':
+                this.reloadItems(
+                    'historicalPersons',
+                    ['historicalPersons'],
+                    [this.historicalPersons, this.subjects.historicalPersons],
+                    this.urls['historical_persons_get']
+                );
+                break;
+            case 'keywordSubjects':
+                this.reloadItems(
+                    'keywordSubjects',
+                    ['keywordSubjects'],
+                    [this.subjects.keywordSubjects],
+                    this.urls['keywords_subject_get']
+                );
+                break;
+            case 'books':
+            case 'articles':
+            case 'bookChapters':
+            case 'onlineSources':
+                this.reloadNestedItems(type, this.bibliographies);
+                break;
+            case 'acknowledgements':
+                this.reloadNestedItems(type, this.generals);
+                break;
+            case 'statuses':
+                this.reloadItems(
+                    'statuses',
+                    ['textStatuses', 'recordStatuses', 'dividedStatuses', 'sourceStatuses'],
+                    [this.generals.textStatuses, this.generals.recordStatuses, this.generals.dividedStatuses, this.generals.sourceStatuses],
+                    this.urls['statuses_get'],
+                    [(i) => i.type === 'occurrence_text', (i) => i.type === 'occurrence_record', (i) => i.type === 'occurrence_divided', (i) => i.type === 'occurrence_source'],
+                );
+                break;
+            default:
+                this.reloadSimpleItems(type);
             }
         },
     }

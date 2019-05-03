@@ -2,6 +2,8 @@
     <panel
         :header="header"
         :links="links"
+        :reloads="reloads"
+        @reload="reload"
     >
         <vue-form-generator
             ref="form"
@@ -33,6 +35,17 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    acknowledgements: {field: 'acknowledgements', init: true},
+                    textStatuses: {field: 'textStatus', init: true},
+                    criticalStatuses: {field: 'criticalStatus', init: true},
+                    occurrences: {field: 'basedOn', init: false},
+                };
+            },
+        },
     },
     data() {
         return {
@@ -50,7 +63,6 @@ export default {
                         'Acknowledgements',
                         {
                             model: 'acknowledgements',
-                            values: this.values.acknowledgements,
                         },
                         {
                             multiple: true,
@@ -78,7 +90,6 @@ export default {
                         'Text Status',
                         {
                             model: 'textStatus',
-                            values: this.values.textStatuses,
                             required: true,
                             validator: VueFormGenerator.validators.required,
                         }
@@ -87,7 +98,6 @@ export default {
                         'Editorial Status',
                         {
                             model: 'criticalStatus',
-                            values: this.values.criticalStatuses,
                             required: true,
                             validator: VueFormGenerator.validators.required,
                         }
@@ -96,7 +106,6 @@ export default {
                         'Based On (occurrence)',
                         {
                             model: 'basedOn',
-                            values: this.values.occurrences,
                             styleClasses: 'greek',
                         },
                         {
@@ -116,14 +125,5 @@ export default {
             },
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.acknowledgements)
-            this.enableField(this.schema.fields.textStatus)
-            this.enableField(this.schema.fields.criticalStatus)
-            this.enableField(this.schema.fields.basedOn)
-        },
-    }
 }
 </script>

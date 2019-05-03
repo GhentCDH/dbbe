@@ -1,9 +1,6 @@
 <template>
     <div>
-        <article
-            ref="target"
-            class="col-sm-9 mbottom-large"
-        >
+        <article class="col-sm-9 mbottom-large">
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -18,10 +15,14 @@
                 id="persons"
                 ref="persons"
                 header="Persons"
+                :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="modernPersons"
+                :keys="{modernPersons: {init: false}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <basicBookPanel
@@ -54,10 +55,12 @@
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
+                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
                 :values="managements"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <btn
@@ -84,12 +87,6 @@
             >
                 Save
             </btn>
-            <btn
-                :disabled="(diff.length !== 0)"
-                @click="reload()"
-            >
-                Refresh all data
-            </btn>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -108,11 +105,36 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#persons">Persons</a></li>
-                    <li><a href="#basic">Basic information</a></li>
-                    <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
-                    <li><a href="#general">General</a></li>
-                    <li><a href="#managements">Management collections</a></li>
+                    <li>
+                        <a
+                            href="#persons"
+                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                        >Persons</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#basic"
+                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                        >Basic information</a>
+                    </li>
+                    <li v-if="identifiers.length > 0">
+                        <a
+                            href="#identification"
+                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                        >Identification</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#general"
+                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                        >General</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#managements"
+                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                        >Management collections</a>
+                    </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -175,7 +197,7 @@ export default {
                 identification: {},
                 managements: {managements: null},
             },
-            forms: [
+            panels: [
                 'persons',
                 'basic',
                 'general',
@@ -186,7 +208,7 @@ export default {
             data.model.identification[identifier.systemName] = null
         }
         if (data.identifiers.length > 0) {
-            data.forms.push('identification')
+            data.panels.push('identification')
         }
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
@@ -194,24 +216,21 @@ export default {
         return data
     },
     created () {
-        this.book = this.data.book
-        this.modernPersons = this.data.modernPersons
-        this.managements = this.data.managements
-    },
-    mounted () {
-        this.loadData()
-        window.addEventListener('scroll', (event) => {
-            this.scrollY = Math.round(window.scrollY)
-        })
+        this.book = this.data.book;
+
+        this.modernPersons = [];
+        this.managements = this.data.managements;
     },
     methods: {
-        loadData() {
+        loadAsync() {
+            this.reload('modernPersons');
+        },
+        setData() {
             if (this.book != null) {
                 // PersonRoles
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.book.personRoles == null ? [] : this.book.personRoles[role.systemName];
                 }
-                this.$refs.persons.init();
 
                 // Basic info
                 this.model.basic = {
@@ -242,8 +261,6 @@ export default {
                     managements: this.book.managements,
                 }
             }
-
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         save() {
             this.openRequests++
@@ -276,6 +293,9 @@ export default {
                         this.openRequests--
                     })
             }
+        },
+        reload(type) {
+            this.reloadSimpleItems(type);
         },
     }
 }

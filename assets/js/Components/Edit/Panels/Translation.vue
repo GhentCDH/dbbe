@@ -72,8 +72,10 @@
                 header="Bibliography"
                 :model="editModel.bibliography"
                 :values="values"
+                :reloads="reloads"
                 :append-to-body="true"
                 @validated="calcChanges"
+                @reload="reload"
             />
             <div slot="header">
                 <h4
@@ -180,12 +182,25 @@ export default {
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableFields()
+        enableFields(enableKeys) {
+            if (enableKeys == null) {
+                this.enableField(this.schema.fields.language);
+            } else if (enableKeys.includes('books')
+                || enableKeys.includes('articles')
+                || enableKeys.includes('bookChapters')
+                || enableKeys.includes('onlineSources')
+            ) {
+                this.$refs.translationBibliography.enableFields(enableKeys);
+            }
         },
-        enableFields() {
-            this.enableField(this.schema.fields.language)
+        disableFields(disableKeys) {
+            if (disableKeys.includes('books')
+                || disableKeys.includes('articles')
+                || disableKeys.includes('bookChapters')
+                || disableKeys.includes('onlineSources')
+            ) {
+                this.$refs.translationBibliography.disableFields(disableKeys);
+            }
         },
         validate() {},
         calcChanges() {

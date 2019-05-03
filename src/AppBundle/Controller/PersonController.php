@@ -20,6 +20,41 @@ class PersonController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:Person:';
 
     /**
+     * @Route("/persons", name="persons_get")
+     * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAll(Request $request)
+    {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            if ($request->query->get('type') === 'historical') {
+                return new JsonResponse(
+                    $this->get(static::MANAGER)->getAllHistoricalShortJson()
+                );
+            }
+            if ($request->query->get('type') === 'dbbe') {
+                return new JsonResponse(
+                    $this->get(static::MANAGER)->getAllDBBEShortJson()
+                );
+            }
+            if ($request->query->get('type') === 'modern') {
+                return new JsonResponse(
+                    $this->get(static::MANAGER)->getAllModernShortJson()
+                );
+            }
+
+            return new JsonResponse(
+                $this->get(static::MANAGER)->getAllMiniShortJson()
+            );
+        }
+
+        // Redirect to search page if not a json request
+        return $this->redirectToRoute('types_search', ['request' =>  $request], 301);
+    }
+
+    /**
      * @Route("/persons/search", name="persons_search")
      * @Method("GET")
      * @param Request $request
@@ -85,26 +120,6 @@ class PersonController extends EditController
         );
 
         return new JsonResponse($result);
-    }
-
-    /**
-     * @Route("/persons", name="persons_get")
-     * @Method("GET")
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getAll(Request $request)
-    {
-        if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
-            return $this->redirectToRoute('persons_search', ['request' =>  $request], 301);
-        }
-
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-        $this->throwErrorIfNotJson($request);
-
-        return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMiniShortJson('getId')
-        );
     }
 
     /**
@@ -338,9 +353,17 @@ class PersonController extends EditController
                     'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
                     'person_post' => $this->generateUrl('person_post'),
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
+                    'offices_get' => $this->generateUrl('offices_get'),
                     'offices_edit' => $this->generateUrl('offices_edit'),
+                    'origins_get' => $this->generateUrl('origins_get'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
+                    'self_designations_get' => $this->generateUrl('self_designations_get'),
                     'self_designations_edit' => $this->generateUrl('self_designations_edit'),
+                    'books_get' => $this->generateUrl('books_get'),
+                    'articles_get' => $this->generateUrl('articles_get'),
+                    'book_chapters_get' => $this->generateUrl('book_chapters_get'),
+                    'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -352,10 +375,6 @@ class PersonController extends EditController
                     'offices' => $this->get('office_manager')->getAllJson(),
                     'origins' => $this->get('origin_manager')->getByTypeShortJson('person'),
                     'selfDesignations' => $this->get('self_designation_manager')->getAllJson(),
-                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
-                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
-                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
-                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(

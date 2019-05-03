@@ -61,18 +61,19 @@ export default {
             alerts: [],
             saveAlerts: [],
             originalModel: {},
-            diff:[],
+            diff: [],
             resetModal: false,
             invalidModal: false,
             saveModal: false,
-            invalidForms: false,
+            invalidPanels: false,
             scrollY: null,
             isSticky: false,
             stickyStyle: {},
+            reloads: [],
         }
     },
     watch: {
-        scrollY(newValue) {
+        scrollY() {
             let anchor = this.$refs.anchor.getBoundingClientRect()
             if (anchor.top < 30) {
                 this.isSticky = true
@@ -86,34 +87,61 @@ export default {
             }
         },
     },
+    mounted () {
+        this.initScroll();
+
+        this.setData();
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+
+        // Initialize panels after model is updated
+        this.$nextTick(() => {
+            for (let panel of this.panels) {
+                this.$refs[panel].init();
+            }
+        });
+
+        // Load some (slower) data asynchronously
+        this.loadAsync();
+    },
     methods: {
+        initScroll() {
+            window.addEventListener('scroll', () => {
+                this.scrollY = Math.round(window.scrollY);
+            });
+        },
+        loadAsync() {},
         validateForms() {
-            for (let form of this.forms) {
-                this.$refs[form].validate()
+            for (let panel of this.panels) {
+                this.$refs[panel].validate();
+            }
+        },
+        calcAllChanges() {
+            for (let panel of this.panels) {
+                this.$refs[panel].calcChanges();
             }
         },
         validated(isValid, errors) {
-            this.invalidForms = false;
-            for (let form of this.forms) {
-                if (!this.$refs[form].isValid) {
-                    this.invalidForms = true;
+            this.invalidPanels = false;
+            for (let panel of this.panels) {
+                if (!this.$refs[panel].isValid) {
+                    this.invalidPanels = true;
                     break;
                 }
             }
 
-            this.calcDiff()
+            this.calcDiff();
         },
         calcDiff() {
             this.diff = []
-            for (let form of this.forms) {
-                this.diff = this.diff.concat(this.$refs[form].changes)
+            for (let panel of this.panels) {
+                this.diff = this.diff.concat(this.$refs[panel].changes);
             }
 
             if (this.diff.length !== 0) {
                 window.onbeforeunload = function(e) {
-                    let dialogText = 'There are unsaved changes.'
-                    e.returnValue = dialogText
-                    return dialogText
+                    let dialogText = 'There are unsaved changes.';
+                    e.returnValue = dialogText;
+                    return dialogText;
                 }
             }
         },
@@ -139,16 +167,12 @@ export default {
         },
         saveButton() {
             this.validateForms()
-            if (this.invalidForms) {
+            if (this.invalidPanels) {
                 this.invalidModal = true
             }
             else {
                 this.saveModal = true
             }
-        },
-        reload() {
-            window.onbeforeunload = function () {}
-            window.location.reload(true)
         },
         cancelSave() {
             this.saveModal = false
@@ -163,6 +187,64 @@ export default {
 
             }
             return null
-        }
+        },
+        reloadSimpleItems(type) {
+            this.reloadItems(
+                type,
+                [type],
+                [this[type]],
+                this.urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+            );
+        },
+        // parent can either be an array of multiple parents or a single parent
+        reloadNestedItems(type, parent) {
+            this.reloadItems(
+                type,
+                [type],
+                Array.isArray(parent) ? parent.map(p => p[type]) : [parent[type]],
+                this.urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+            );
+        },
+        reloadItems(type, keys, items, url, filters) {
+            // Be carefull to mutate the existing array and not create a new one
+            for (let panel of this.panels) {
+                this.$refs[panel].disableFields(keys);
+            }
+            this.reloads.push(type);
+            axios.get(url)
+                .then( (response) => {
+                    for (let i = 0; i < items.length; i++) {
+                        let data = [];
+                        if (filters == null || filters[i] == null) {
+                            // Copy data
+                            data = response.data.filter(() => true);
+                        } else {
+                            data = response.data.filter(filters[i]);
+                        }
+                        items[i].splice(0, 1);
+                        while (data.length) {
+                            items[i].push(data.shift());
+                        }
+                        for (let panel of this.panels) {
+                            this.$refs[panel].enableFields(keys);
+                        }
+                    }
+                    let typeIndex = this.reloads.indexOf(type);
+                    if (typeIndex > -1) {
+                        this.reloads.splice(typeIndex, 1);
+                    }
+                })
+                .catch( (error) => {
+                    this.alerts.push({type: 'error', message: 'Something went wrong while loading data.', login: this.isLoginError(error)});
+                    this.$notify({
+                        placement: 'top-left',
+                        type: 'danger',
+                        title: 'Oh snap!',
+                        content: this.alerts[this.alerts.length - 1].message,
+                        duration: 0,
+                    });
+                    console.log(error);
+                })
+        },
     },
 }

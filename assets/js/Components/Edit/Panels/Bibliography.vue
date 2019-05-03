@@ -1,7 +1,17 @@
 <template>
     <panel :header="header">
         <div class="pbottom-large">
-            <h3>Books</h3>
+            <h3>
+                Books
+                <a
+                    href="#"
+                    class="action"
+                    :class="{'link-disabled': reloads.includes('books')}"
+                    @click.prevent="reload('books')"
+                >
+                    <i class="fa fa-refresh" />
+                </a>
+            </h3>
             <table
                 v-if="model.books.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -60,7 +70,17 @@
             <btn @click="newBib('book')"><i class="fa fa-plus" />&nbsp;Add a book reference</btn>
         </div>
         <div class="pbottom-large">
-            <h3>Articles</h3>
+            <h3>
+                Articles
+                <a
+                    href="#"
+                    class="action"
+                    :class="{'link-disabled': reloads.includes('articles')}"
+                    @click.prevent="reload('articles')"
+                >
+                    <i class="fa fa-refresh" />
+                </a>
+            </h3>
             <table
                 v-if="model.articles.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -119,7 +139,17 @@
             <btn @click="newBib('article')"><i class="fa fa-plus" />&nbsp;Add an article reference</btn>
         </div>
         <div class="pbottom-large">
-            <h3>Book chapters</h3>
+            <h3>
+                Book chapters
+                <a
+                    href="#"
+                    class="action"
+                    :class="{'link-disabled': reloads.includes('bookChapters')}"
+                    @click.prevent="reload('bookChapters')"
+                >
+                    <i class="fa fa-refresh" />
+                </a>
+            </h3>
             <table
                 v-if="model.bookChapters.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -178,7 +208,17 @@
             <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
         </div>
         <div>
-            <h3>Online sources</h3>
+            <h3>
+                Online sources
+                <a
+                    href="#"
+                    class="action"
+                    :class="{'link-disabled': reloads.includes('onlineSources')}"
+                    @click.prevent="reload('onlineSources')"
+                >
+                    <i class="fa fa-refresh" />
+                </a>
+            </h3>
             <table
                 v-if="model.onlineSources.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -351,7 +391,7 @@ export default {
         appendToBody: {
             type: Boolean,
             default: false,
-        }
+        },
     },
     data() {
         let data = {
@@ -360,7 +400,6 @@ export default {
                     book: this.createMultiSelect(
                         'Book',
                         {
-                            values: this.values.books,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -372,7 +411,6 @@ export default {
                     article: this.createMultiSelect(
                         'Article',
                         {
-                            values: this.values.articles,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -384,7 +422,6 @@ export default {
                     bookChapter: this.createMultiSelect(
                         'Book Chapter',
                         {
-                            values: this.values.bookChapters,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -396,7 +433,6 @@ export default {
                     onlineSource: this.createMultiSelect(
                         'Online Source',
                         {
-                            values: this.values.onlineSources,
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
@@ -487,31 +523,45 @@ export default {
         return data
     },
     computed: {
+        // Fields is not used in this panel
         fields() {
-            return Object.assign(
-                {},
-                this.editBookBibSchema.fields,
-                this.editArticleBibSchema.fields,
-                this.editBookChapterBibSchema.fields,
-                this.editOnlineSourceBibSchema.fields
-            )
+            return {};
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableFields()
+        enableFields(enableKeys) {
+            if (enableKeys == null) {
+                if (this.referenceType) {
+                    this.enableField(this.editBookBibSchema.fields.referenceType);
+                    this.enableField(this.editArticleBibSchema.fields.referenceType);
+                    this.enableField(this.editBookChapterBibSchema.fields.referenceType);
+                    this.enableField(this.editOnlineSourceBibSchema.fields.referenceType);
+                }
+            } else {
+                if (enableKeys.includes('books')) {
+                    this.editBookBibSchema.fields.book.values = this.values.books;
+                    this.enableField(this.editBookBibSchema.fields.book);
+                } else if (enableKeys.includes('articles')) {
+                    this.editArticleBibSchema.fields.article.values = this.values.articles;
+                    this.enableField(this.editArticleBibSchema.fields.article);
+                } else if (enableKeys.includes('bookChapters')) {
+                    this.editBookChapterBibSchema.fields.bookChapter.values = this.values.bookChapters;
+                    this.enableField(this.editBookChapterBibSchema.fields.bookChapter);
+                } else if (enableKeys.includes('onlineSources')) {
+                    this.editOnlineSourceBibSchema.fields.onlineSource.values = this.values.onlineSources;
+                    this.enableField(this.editOnlineSourceBibSchema.fields.onlineSource);
+                }
+            }
         },
-        enableFields() {
-            this.enableField(this.editBookBibSchema.fields.book)
-            this.enableField(this.editArticleBibSchema.fields.article)
-            this.enableField(this.editBookChapterBibSchema.fields.bookChapter)
-            this.enableField(this.editOnlineSourceBibSchema.fields.onlineSource)
-            if (this.referenceType) {
-                this.enableField(this.editBookBibSchema.fields.referenceType)
-                this.enableField(this.editArticleBibSchema.fields.referenceType)
-                this.enableField(this.editBookChapterBibSchema.fields.referenceType)
-                this.enableField(this.editOnlineSourceBibSchema.fields.referenceType)
+        disableFields(disableKeys) {
+            if (disableKeys.includes('books')) {
+                this.disableField(this.editBookBibSchema.fields.book);
+            } else if (disableKeys.includes('articles')) {
+                this.disableField(this.editArticleBibSchema.fields.article);
+            } else if (disableKeys.includes('bookChapters')) {
+                this.disableField(this.editBookChapterBibSchema.fields.bookChapter);
+            } else if (disableKeys.includes('onlineSources')) {
+                this.disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
             }
         },
         validate() {},
@@ -584,6 +634,10 @@ export default {
             this.delBibModal = false
         },
         displayBibliography(bibliography) {
+            // Return null if bibliography is empty (e.g. old values when cloning)
+            if (Object.keys(bibliography).length === 0) {
+                return [];
+            }
             let result = []
             for (let bib of bibliography['books']) {
                 result.push(

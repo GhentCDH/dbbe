@@ -19,12 +19,16 @@ class BookChapterController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:BookChapter:';
 
     /**
-     * @Route("/bookchapters", name="book_chapters_base")
+     * @Route("/bookchapters", name="book_chapters_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMini($request);
+        }
+        // Redirect to search page if not a json request
         return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
     }
 
@@ -168,6 +172,11 @@ class BookChapterController extends EditController
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => $id == null ? 'book_chapter_id' : $id]),
                     'book_chapter_post' => $this->generateUrl('book_chapter_post'),
                     'book_chapter_put' => $this->generateUrl('book_chapter_put', ['id' => $id == null ? 'book_chapter_id' : $id]),
+                    'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
+                    'persons_search' => $this->generateUrl('persons_search'),
+                    'books_get' => $this->generateUrl('books_get'),
+                    'bibliographies_search' => $this->generateUrl('bibliographies_search'),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -175,8 +184,6 @@ class BookChapterController extends EditController
                     'bookChapter' => empty($id)
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
-                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('bookChapter')),

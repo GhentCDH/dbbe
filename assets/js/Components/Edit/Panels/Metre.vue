@@ -2,6 +2,8 @@
     <panel
         :header="header"
         :links="links"
+        :reloads="reloads"
+        @reload="reload"
     >
         <vue-form-generator
             ref="form"
@@ -31,15 +33,21 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {metres: {field: 'metres', init: true}};
+            },
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
                     metres: this.createMultiSelect(
                         'Metres',
-                        {
-                            values: this.values
-                        },
+                        {},
                         {
                             multiple: true,
                             closeOnSelect: false,
@@ -49,11 +57,5 @@ export default {
             }
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.metres)
-        },
-    }
 }
 </script>

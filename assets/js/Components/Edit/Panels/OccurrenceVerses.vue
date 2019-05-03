@@ -723,6 +723,10 @@ export default {
             this.$emit('validated', 0, null, this)
         },
         displayVerses(verses) {
+            // Return null if verses are undefined (e.g. old values when cloning)
+            if (verses == null) {
+                return [];
+            }
             let result = []
             for (let verse of verses) {
                 let display = '<span class="greek">' + verse.verse + '</span>'

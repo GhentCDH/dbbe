@@ -1,7 +1,13 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <div
             v-for="role in roles"
+            :key="role.id"
             class="pbottom-default"
         >
             <vue-form-generator
@@ -100,9 +106,17 @@ export default {
         AbstractPanelForm,
     ],
     props: {
+        header: {
+            type: String,
+            default: '',
+        },
         roles: {
             type: Array,
             default: () => {return []}
+        },
+        url: {
+            type: String,
+            default: '',
         },
         occurrencePersonRoles: {
             type: Object,
@@ -122,7 +136,6 @@ export default {
                         role.name,
                         {
                             model: role.systemName,
-                            values: this.values,
                         },
                         {
                             multiple: true,
@@ -146,13 +159,23 @@ export default {
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableFields()
+        enableFields(enableKeys) {
+            for (let key of Object.keys(this.keys)) {
+                if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
+                    for (let role of this.roles) {
+                        this.schemas[role.systemName]['fields'][role.systemName].values = this.values;
+                        this.enableField(this.schemas[role.systemName]['fields'][role.systemName]);
+                    }
+                }
+            }
         },
-        enableFields() {
-            for (let role of this.roles) {
-                this.enableField(this.schemas[role.systemName]['fields'][role.systemName])
+        disableFields(disableKeys) {
+            for (let key of Object.keys(this.keys)) {
+                if (disableKeys.includes(key)) {
+                    for (let role of this.roles) {
+                        this.disableField(this.schemas[role.systemName]['fields'][role.systemName]);
+                    }
+                }
             }
         },
         validate() {

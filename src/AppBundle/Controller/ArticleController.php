@@ -19,12 +19,16 @@ class ArticleController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:Article:';
 
     /**
-     * @Route("/articles", name="articles_base")
+     * @Route("/articles", name="articles_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMini($request);
+        }
+        // Redirect to search page if not a json request
         return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
     }
 
@@ -168,7 +172,13 @@ class ArticleController extends EditController
                     'article_get' => $this->generateUrl('article_get', ['id' => $id == null ? 'article_id' : $id]),
                     'article_post' => $this->generateUrl('article_post'),
                     'article_put' => $this->generateUrl('article_put', ['id' => $id == null ? 'article_id' : $id]),
+                    'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
+                    'persons_search' => $this->generateUrl('persons_search'),
+                    'journals_get' => $this->generateUrl('journals_get'),
                     'journals_edit' => $this->generateUrl('journals_edit'),
+                    'journal_issues_get' => $this->generateUrl('journal_issues_get', ['mini' => 1]),
+                    'journal_issues_edit' => $this->generateUrl('journal_issues_edit'),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -177,8 +187,6 @@ class ArticleController extends EditController
                         ? null
                         : $this->get(self::MANAGER)->getFull($id)->getJson(),
                     'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
-                    'journals' => $this->get('journal_manager')->getAllMiniShortJson(),
-                    'journalIssues' => $this->get('journal_issue_manager')->getAllMiniShortJson(),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('article')),

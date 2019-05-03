@@ -9,7 +9,6 @@ import VueTables from 'vue-tables-2'
 import * as uiv from 'uiv'
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
-import Alerts from '../Alerts'
 import Delete from '../Edit/Modals/Delete'
 import CollectionManager from './CollectionManager'
 

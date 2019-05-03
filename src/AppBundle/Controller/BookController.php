@@ -20,12 +20,16 @@ class BookController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:Book:';
 
     /**
-     * @Route("/books", name="books_base")
+     * @Route("/books", name="books_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMini($request);
+        }
+        // Redirect to search page if not a json request
         return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
     }
 
@@ -156,6 +160,9 @@ class BookController extends EditController
                     'book_get' => $this->generateUrl('book_get', ['id' => $id == null ? 'book_id' : $id]),
                     'book_post' => $this->generateUrl('book_post'),
                     'book_put' => $this->generateUrl('book_put', ['id' => $id == null ? 'book_id' : $id]),
+                    'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
+                    'persons_search' => $this->generateUrl('persons_search'),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -163,7 +170,6 @@ class BookController extends EditController
                     'book' => empty($id)
                         ? null
                         : $this->get('book_manager')->getFull($id)->getJson(),
-                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
                     'managements' => $this->get('management_manager')->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('book')),

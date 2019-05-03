@@ -1,18 +1,10 @@
 <template>
     <div>
-        <article
-            ref="target"
-            class="col-sm-9 mbottom-large"
-        >
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)"
-            >
-                {{ item.message }}
-            </alert>
+        <article class="col-sm-9 mbottom-large">
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)"
+            />
 
             <basicTypePanel
                 id="basic"
@@ -35,59 +27,74 @@
                 id="types"
                 ref="types"
                 header="Types"
+                :links="[{title: 'Types', reload: 'types', edit: urls['types_search']}]"
                 :model="model.types"
                 :values="types"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="persons"
                 ref="persons"
                 header="Persons"
+                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}]"
                 :roles="roles"
                 :model="model.personRoles"
                 :values="historicalPersons"
+                :keys="{historicalPersons: {init: false}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <metrePanel
                 id="metres"
                 ref="metres"
                 header="Metres"
-                :links="[{url: urls['metres_edit'], text: 'Edit metres'}]"
+                :links="[{title: 'Metres', reload: 'metres', edit: urls['metres_edit']}]"
                 :model="model.metres"
                 :values="metres"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <genrePanel
                 id="genres"
                 ref="genres"
                 header="Genres"
-                :links="[{url: urls['genres_edit'], text: 'Edit genres'}]"
+                :links="[{title: 'Genres', reload: 'genres', edit: urls['genres_edit']}]"
                 :model="model.genres"
                 :values="genres"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <subjectPanel
                 id="subjects"
                 ref="subjects"
                 header="Subjects"
-                :links="[{url: urls['keywords_subject_edit'], text: 'Edit subject keywords'}]"
+                :links="[{title: 'Subject keywords', reload: 'subjectKeywords', edit: urls['keywords_subject_edit']}]"
                 :model="model.subjects"
                 :values="subjects"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <keywordPanel
                 id="keywords"
                 ref="keywords"
                 header="Keywords"
-                :links="[{url: urls['keywords_type_edit'], text: 'Edit type keywords'}]"
+                :links="[{title: 'Type keywords', reload: 'typeKeywords', edit: urls['keywords_type_edit']}]"
                 :model="model.keywords"
                 :values="keywords"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <identificationPanel
@@ -107,7 +114,9 @@
                 :model="model.bibliography"
                 :reference-type="true"
                 :values="bibliographies"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <translationPanel
@@ -116,37 +125,47 @@
                 header="Translations"
                 :model="model.translations"
                 :values="translations"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <generalTypePanel
                 id="general"
                 ref="general"
                 header="General"
-                :links="[{url: urls['acknowledgements_edit'], text: 'Edit acknowledgements'}, {url: urls['statuses_edit'], text: 'Edit statuses'}]"
+                :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}, {title: 'Statuses', reload: 'statuses', edit: urls['statuses_edit']}, {title: 'Occurrences', reload: 'occurrences', edit: urls['occurrences_search']}]"
                 :model="model.general"
                 :values="generals"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <personPanel
                 id="contributors"
                 ref="contributors"
                 header="Contributors"
+                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
                 :roles="contributorRoles"
                 :model="model.contributorRoles"
                 :values="dbbePersons"
+                :keys="{dbbePersons: {init: true}}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <managementPanel
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
+                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
                 :values="managements"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <btn
@@ -173,12 +192,6 @@
             >
                 Save
             </btn>
-            <btn
-                :disabled="(diff.length !== 0)"
-                @click="reload()"
-            >
-                Refresh all data
-            </btn>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -197,21 +210,94 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#basic">Basic information</a></li>
-                    <li><a href="#verses">Verses</a></li>
-                    <li><a href="#types">Types</a></li>
-                    <li><a href="#persons">Persons</a></li>
-                    <li><a href="#metres">Metres</a></li>
-                    <li><a href="#genres">Genres</a></li>
-                    <li><a href="#subjects">Subjects</a></li>
-                    <li><a href="#keywords">Keywords</a></li>
-                    <li v-if="identifiers.length > 0"><a href="#identification">Identification</a></li>
-                    <li><a href="#bibliography">Bibliography</a></li>
-                    <li><a href="#translations">Translations</a></li>
-                    <li><a href="#general">General</a></li>
-                    <li><a href="#contributors">Contributors</a></li>
-                    <li><a href="#managements">Management collections</a></li>
-                    <li><a href="#actions">Actions</a></li>
+                    <li>
+                        <a
+                            href="#basic"
+                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                        >Basic information</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#verses"
+                            :class="{'bg-danger': !($refs.verses && $refs.verses.isValid)}"
+                        >Verses</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#types"
+                            :class="{'bg-danger': !($refs.types && $refs.types.isValid)}"
+                        >Types</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#persons"
+                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                        >Persons</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#metres"
+                            :class="{'bg-danger': !($refs.metres && $refs.metres.isValid)}"
+                        >Metres</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#genres"
+                            :class="{'bg-danger': !($refs.genres && $refs.genres.isValid)}"
+                        >Genres</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#subjects"
+                            :class="{'bg-danger': !($refs.subjects && $refs.subjects.isValid)}"
+                        >Subjects</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#keywords"
+                            :class="{'bg-danger': !($refs.keywords && $refs.keywords.isValid)}"
+                        >Keywords</a>
+                    </li>
+                    <li v-if="identifiers.length > 0">
+                        <a
+                            href="#identification"
+                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                        >Identification</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#bibliography"
+                            :class="{'bg-danger': !($refs.bibliography && $refs.bibliography.isValid)}"
+                        >Bibliography</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#translations"
+                            :class="{'bg-danger': !($refs.translations && $refs.translations.isValid)}"
+                        >Translations</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#general"
+                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                        >
+                            General
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href="#contributors"
+                            :class="{'bg-danger': !($refs.contributors && $refs.contributors.isValid)}"
+                        >Contributors</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#managements"
+                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                        >Management collections</a>
+                    </li>
+                    <li>
+                    <a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
@@ -258,7 +344,6 @@ export default {
             roles: JSON.parse(this.initRoles),
             contributorRoles: JSON.parse(this.initContributorRoles),
             type: null,
-            manuscripts: null,
             types: null,
             historicalPersons: null,
             metres: null,
@@ -312,7 +397,7 @@ export default {
                 },
                 managements: {managements: null},
             },
-            forms: [
+            panels: [
                 'basic',
                 'verses',
                 'types',
@@ -332,7 +417,7 @@ export default {
             data.model.identification[identifier.systemName] = null
         }
         if (data.identifiers.length > 0) {
-            data.forms.push('identification')
+            data.panels.push('identification')
         }
         for (let role of data.roles) {
             data.model.personRoles[role.systemName] = null
@@ -343,51 +428,54 @@ export default {
         return data
     },
     created () {
-        this.type = this.data.type
-        this.manuscripts = this.data.manuscripts
+        this.type = this.data.type;
+
         this.types = {
-            types: this.data.types,
+            types: [],
             relationTypes: this.data.typeRelationTypes,
-        }
-        this.historicalPersons = this.data.historicalPersons
-        this.dbbePersons = this.data.dbbePersons
-        this.metres = this.data.metres
-        this.genres = this.data.genres
+        };
+        this.historicalPersons = [];
+        this.metres = this.data.metres;
+        this.genres = this.data.genres;
         this.subjects = {
-            personSubjects: this.historicalPersons,
+            historicalPersons: [],
             keywordSubjects: this.data.subjectKeywords,
-        }
-        this.keywords = this.data.typeKeywords,
+        };
+        this.keywords = this.data.typeKeywords;
         this.bibliographies = {
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
+            books: [],
+            articles: [],
+            bookChapters: [],
+            onlineSources: [],
             referenceTypes: this.data.referenceTypes,
-        }
+        };
         this.translations = {
             languages: this.data.languages,
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
-        }
+            books: [],
+            articles: [],
+            bookChapters: [],
+            onlineSources: [],
+        };
         this.generals = {
             acknowledgements: this.data.acknowledgements,
             textStatuses: this.data.textStatuses,
             criticalStatuses: this.data.criticalStatuses,
-            occurrences: this.data.occurrences,
-        }
+            occurrences: [],
+        };
+        this.dbbePersons = this.data.dbbePersons;
         this.managements = this.data.managements
     },
-    mounted () {
-        this.loadType()
-        window.addEventListener('scroll', (event) => {
-            this.scrollY = Math.round(window.scrollY)
-        })
-    },
     methods: {
-        loadType() {
+        loadAsync() {
+            this.reload('types');
+            this.reload('historicalPersons');
+            this.reload('books');
+            this.reload('articles');
+            this.reload('bookChapters');
+            this.reload('onlineSources');
+            this.reload('occurrences');
+        },
+        setData() {
             if (this.type != null) {
                 // Basic information
                 this.model.basic = {
@@ -411,7 +499,6 @@ export default {
                 for (let role of this.roles) {
                     this.model.personRoles[role.systemName] = this.type.personRoles == null ? [] : this.type.personRoles[role.systemName];
                 }
-                this.$refs.persons.init();
 
                 // Metre
                 this.model.metres = {
@@ -520,7 +607,6 @@ export default {
                 for (let role of this.contributorRoles) {
                     this.model.contributorRoles[role.systemName] = this.type.contributorRoles == null ? [] : this.type.contributorRoles[role.systemName];
                 }
-                this.$refs.contributors.init();
 
                 // Management
                 this.model.managements = {
@@ -531,8 +617,6 @@ export default {
             else {
                 this.model.general.public = true
             }
-
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         save() {
             this.openRequests++
@@ -564,6 +648,60 @@ export default {
                         this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: this.isLoginError(error)})
                         this.openRequests--
                     })
+            }
+        },
+        reload(type) {
+            switch(type) {
+            case 'types':
+                this.reloadNestedItems(type, this.types);
+                break;
+            case 'historicalPersons':
+                this.reloadItems(
+                    'historicalPersons',
+                    ['historicalPersons'],
+                    [this.historicalPersons, this.subjects.historicalPersons],
+                    this.urls['historical_persons_get']
+                );
+                break;
+            case 'keywordSubjects':
+                this.reloadItems(
+                    'keywordSubjects',
+                    ['subjectKeywords'],
+                    [this.subjects.keywordSubjects],
+                    this.urls['keywords_subject_get']
+                );
+                break;
+            case 'typeKeywords':
+                this.reloadItems(
+                    'keywords',
+                    ['keywords'],
+                    [this.keywords],
+                    this.urls['keywords_type_get']
+                );
+                break;
+            case 'books':
+            case 'articles':
+            case 'bookChapters':
+            case 'onlineSources':
+                this.reloadNestedItems(type, [this.bibliographies, this.translations]);
+                break;
+            case 'acknowledgements':
+                this.reloadNestedItems(type, this.generals);
+                break;
+            case 'statuses':
+                this.reloadItems(
+                    'statuses',
+                    ['textStatuses', 'criticalStatuses'],
+                    [this.generals.textStatuses, this.generals.criticalStatuses],
+                    this.urls['statuses_get'],
+                    [(i) => i.type === 'type_text', (i) => i.type === 'type_critical'],
+                );
+                break;
+            case 'occurrences':
+                this.reloadNestedItems(type, this.generals);
+                break;
+            default:
+                this.reloadSimpleItems(type);
             }
         },
     }

@@ -1,9 +1,6 @@
 <template>
     <div>
-        <article
-            ref="target"
-            class="col-sm-9 mbottom-large"
-        >
+        <article class="col-sm-9 mbottom-large">
             <alert
                 v-for="(item, index) in alerts"
                 :key="index"
@@ -19,13 +16,15 @@
                 ref="basic"
                 header="Basic Information"
                 :links="[
-                    {url: urls['self_designations_edit'], text: 'Edit (self) designations'},
-                    {url: urls['offices_edit'], text: 'Edit offices'},
-                    {url: urls['origins_edit'], text: 'Edit origins'},
+                    {title:'Self designations', reload: 'selfDesignations', edit: urls['self_designations_edit']},
+                    {title: 'Offices', reload: 'offices', edit: urls['offices_edit']},
+                    {title: 'Origins', reload: 'origins', edit: urls['origins_edit']},
                 ]"
                 :model="model.basic"
                 :values="{selfDesignations: selfDesignations, offices: offices, origins: origins}"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <datePanel
@@ -52,7 +51,9 @@
                 header="Bibliography"
                 :model="model.bibliography"
                 :values="bibliographies"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <generalPersonPanel
@@ -67,10 +68,12 @@
                 id="managements"
                 ref="managements"
                 header="Management collections"
-                :links="[{url: urls['managements_edit'], text: 'Edit management collections'}]"
+                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
                 :values="managements"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <btn
@@ -97,12 +100,6 @@
             >
                 Save
             </btn>
-            <btn
-                :disabled="(diff.length !== 0)"
-                @click="reload()"
-            >
-                Refresh all data
-            </btn>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -121,12 +118,42 @@
             >
                 <h2>Quick navigation</h2>
                 <ul class="linklist linklist-dark">
-                    <li><a href="#basic">Basic Information</a></li>
-                    <li><a href="#dates">Dates</a></li>
-                    <li><a href="#identification">Identification</a></li>
-                    <li><a href="#bibliography">Bibliography</a></li>
-                    <li><a href="#general">General</a></li>
-                    <li><a href="#managements">Management collections</a></li>
+                    <li>
+                        <a
+                            href="#basic"
+                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                        >Basic Information</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#dates"
+                            :class="{'bg-danger': !($refs.dates && $refs.dates.isValid)}"
+                        >Dates</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#identification"
+                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                        >Identification</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#bibliography"
+                            :class="{'bg-danger': !($refs.bibliography && $refs.bibliography.isValid)}"
+                        >Bibliography</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#general"
+                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                        >General</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#managements"
+                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                        >Management collections</a>
+                    </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
@@ -204,7 +231,7 @@ export default {
                 },
                 managements: {managements: null},
             },
-            forms: [
+            panels: [
                 'basic',
                 'dates',
                 'identification',
@@ -220,25 +247,26 @@ export default {
     },
     created () {
         this.person = this.data.person;
+
         this.offices = this.data.offices;
         this.origins = this.data.origins;
         this.selfDesignations = this.data.selfDesignations;
         this.bibliographies = {
-            books: this.data.books,
-            articles: this.data.articles,
-            bookChapters: this.data.bookChapters,
-            onlineSources: this.data.onlineSources,
+            books: [],
+            articles: [],
+            bookChapters: [],
+            onlineSources: [],
         };
         this.managements = this.data.managements
     },
-    mounted () {
-        this.loadPerson();
-        window.addEventListener('scroll', (event) => {
-            this.scrollY = Math.round(window.scrollY)
-        })
-    },
     methods: {
-        loadPerson() {
+        loadAsync() {
+            this.reload('books');
+            this.reload('articles');
+            this.reload('bookChapters');
+            this.reload('onlineSources');
+        },
+        setData() {
             if (this.person != null) {
                 // Basic info
                 this.model.basic = {
@@ -304,8 +332,6 @@ export default {
             else {
                 this.model.general.public = true
             }
-
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
         },
         save() {
             this.openRequests++;
@@ -337,6 +363,18 @@ export default {
                         this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the person data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
+            }
+        },
+        reload(type) {
+            switch (type) {
+            case 'books':
+            case 'articles':
+            case 'bookChapters':
+            case 'onlineSources':
+                this.reloadNestedItems(type, this.bibliographies);
+                break;
+            default:
+                this.reloadSimpleItems(type);
             }
         },
     }

@@ -1,5 +1,10 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
             ref="form"
             :schema="schema"
@@ -28,6 +33,14 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {manuscripts: {field: 'manuscript', init: false}};
+            },
+        },
+    },
     data() {
         return {
             schema: {
@@ -59,7 +72,13 @@ export default {
                     {
                         legend: 'Manuscript',
                         fields: {
-                            manuscript: this.createMultiSelect('Manuscript', {values: this.values, required: true, validator: VueFormGenerator.validators.required}),
+                            manuscript: this.createMultiSelect(
+                                'Manuscript',
+                                {
+                                    required: true,
+                                    validator: VueFormGenerator.validators.required,
+                                }
+                            ),
                         },
                     },
                     {
@@ -158,58 +177,60 @@ export default {
                 this.model.foliumStart = null;
                 this.model.foliumStartRecto = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.foliumStartRecto'() {
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.foliumEnd'(val) {
             if (val == null || val === '') {
                 this.model.foliumEnd = null;
                 this.model.foliumEndRecto = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.foliumEndRecto'() {
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.pageStart'(val) {
             if (val === '') {
                 this.model.pageStart = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.pageEnd'(val) {
             if (val === '') {
                 this.model.pageEnd = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.alternativeFoliumStart'(val) {
             if (val == null || val === '') {
                 this.model.alternativeFoliumStart = null;
                 this.model.alternativeFoliumStartRecto = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.alternativeFoliumStartRecto'() {
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.alternativeFoliumEnd'(val) {
             if (val == null || val === '') {
                 this.model.alternativeFoliumEnd = null;
                 this.model.alternativeFoliumEndRecto = null;
             }
-            this.$refs.form.validate();
+            this.validate();
         },
         'model.alternativeFoliumEndRecto'() {
-            this.$refs.form.validate();
+            this.validate();
         },
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.groups[1].fields.manuscript)
+        enableFields(enableKeys) {
+            AbstractPanelForm.methods.enableFields.call(this, enableKeys);
+
+            // Validate after input is set
+            this.validate();
         },
         calcChanges() {
             this.changes = []

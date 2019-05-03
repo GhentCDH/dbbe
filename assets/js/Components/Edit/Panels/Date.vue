@@ -309,9 +309,10 @@ export default {
         },
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model));
-            this.recalculateTypeValues();
+        enableFields(enableKeys) {
+            if (enableKeys == null) {
+                this.recalculateTypeValues();
+            }
         },
         modelUpdated() {
             this.$nextTick(function() {
@@ -388,6 +389,10 @@ export default {
             }
         },
         displayDates(model) {
+            // Return null if model is empty (e.g. old values when cloning)
+            if (Object.keys(model).length === 0) {
+                return [];
+            }
             let results = [];
             for (let item of model) {
                 if (!item.isInterval) {

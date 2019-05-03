@@ -16,9 +16,13 @@ export default {
             type: Array,
             default: () => {return []},
         },
-        clone: {
-            type: Boolean,
-            default: false,
+        keys: {
+            type: Object,
+            default: () => {return {}},
+        },
+        reloads: {
+            type: Array,
+            default: () => {return []},
         },
     },
     data () {
@@ -26,8 +30,8 @@ export default {
             changes: [],
             formOptions: {
                 validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
+                validationErrorClass: 'has-error',
+                validationSuccessClass: 'success',
             },
             isValid: true,
             originalModel: {},
@@ -38,22 +42,34 @@ export default {
             return this.schema.fields
         }
     },
-    watch: {
-        // Only called when a new key is added to a specific model, so make sure to initialize correctly
-        model() {
-            if (!this.clone) {
-                this.init();
-            } else {
-                this.calcChanges();
-            }
-        },
-    },
-    mounted() {
-        this.init()
-    },
     methods: {
         init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
+            this.originalModel = JSON.parse(JSON.stringify(this.model));
+            this.enableFields();
+        },
+        enableFields(enableKeys) {
+            for (let key of Object.keys(this.keys)) {
+                if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
+                    if (Array.isArray(this.values)) {
+                        this.fields[this.keys[key].field].values = this.values;
+                    } else {
+                        this.fields[this.keys[key].field].values = this.values[key];
+                    }
+                    this.enableField(this.fields[this.keys[key].field]);
+                }
+            }
+        },
+        disableFields(disableKeys) {
+            for (let key of Object.keys(this.keys)) {
+                if (disableKeys.includes(key)) {
+                    this.disableField(this.fields[this.keys[key].field]);
+                }
+            }
+        },
+        reload(type) {
+            if (!this.reloads.includes(type)) {
+                this.$emit('reload', type);
+            }
         },
         calcChanges() {
             this.changes = []

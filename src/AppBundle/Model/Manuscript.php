@@ -347,7 +347,7 @@ class Manuscript extends Document
         $result['$result['] = $this->getName();
 
         if (!empty($this->contentsWithParents)) {
-            $result['content'] = ArrayToJson::arrayToShortJson($this->contentsWithParents);
+            $result['contents'] = ArrayToJson::arrayToShortJson($this->contentsWithParents);
         }
         if (!empty($this->occurrencePersonRoles)) {
             $result['occurrencePersonRoles'] = $this->getOccurrencePersonRolesJson();

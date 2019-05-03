@@ -1,13 +1,17 @@
 <template>
     <panel
         :header="header"
-        :links="links">
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -30,6 +34,18 @@ export default {
         values: {
             type: Object,
             default: () => {return {}}
+        },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    acknowledgements: {field: 'acknowledgements', init: true},
+                    textStatuses: {field: 'textStatus', init: true},
+                    recordStatuses: {field: 'recordStatus', init: true},
+                    dividedStatuses: {field: 'dividedStatus', init: true},
+                    sourceStatuses: {field: 'sourceStatus', init: true},
+                };
+            },
         },
     },
     data() {
@@ -56,7 +72,6 @@ export default {
                         'Acknowledgements',
                         {
                             model: 'acknowledgements',
-                            values: this.values.acknowledgements,
                         },
                         {
                             multiple: true,
@@ -80,10 +95,10 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    textStatus: this.createMultiSelect('Text Status', {model: 'textStatus', values: this.values.textStatuses}),
-                    recordStatus: this.createMultiSelect('Record Status', {model: 'recordStatus', values: this.values.recordStatuses}),
-                    dividedStatus: this.createMultiSelect('Verses correctly divided', {model: 'dividedStatus', values: this.values.dividedStatuses}),
-                    sourceStatus: this.createMultiSelect('Source', {model: 'sourceStatus', values: this.values.sourceStatuses}),
+                    textStatus: this.createMultiSelect('Text Status', {model: 'textStatus'}),
+                    recordStatus: this.createMultiSelect('Record Status', {model: 'recordStatus'}),
+                    dividedStatus: this.createMultiSelect('Verses correctly divided', {model: 'dividedStatus'}),
+                    sourceStatus: this.createMultiSelect('Source', {model: 'sourceStatus'}),
                     public: {
                         type: 'checkbox',
                         styleClasses: 'has-error',
@@ -95,15 +110,5 @@ export default {
             },
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.acknowledgements)
-            this.enableField(this.schema.fields.textStatus)
-            this.enableField(this.schema.fields.recordStatus)
-            this.enableField(this.schema.fields.dividedStatus)
-            this.enableField(this.schema.fields.sourceStatus)
-        },
-    }
 }
 </script>

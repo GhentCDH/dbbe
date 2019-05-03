@@ -1,5 +1,10 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <div>
             <table
                 v-if="model.relatedTypes && model.relatedTypes.length > 0"
@@ -108,6 +113,15 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    types: {field: 'type', init: false},
+                    relationTypes: {field: 'relationTypes', init: true},
+                };
+            },
+        },
     },
     data() {
         return {
@@ -120,7 +134,6 @@ export default {
                     type: this.createMultiSelect(
                         'Type',
                         {
-                            values: this.values.types,
                             styleClasses: 'greek',
                             required: true,
                             validator: [VueFormGenerator.validators.required, this.noDuplicateType]
@@ -135,7 +148,6 @@ export default {
                         'Relation types',
                         {
                             model: 'relationTypes',
-                            values: this.values.relationTypes,
                             required: true,
                             validator: VueFormGenerator.validators.required,
                         },
@@ -149,11 +161,6 @@ export default {
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.type)
-            this.enableField(this.schema.fields.relationTypes)
-        },
         validate() {},
         calcChanges() {
             this.changes = []

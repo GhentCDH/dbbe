@@ -19,12 +19,16 @@ class OnlineSourceController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:OnlineSource:';
 
     /**
-     * @Route("/onlinesources", name="online_sources_base")
+     * @Route("/onlinesources", name="online_sources_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMini($request);
+        }
+        // Redirect to search page if not a json request
         return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
     }
 
@@ -140,6 +144,7 @@ class OnlineSourceController extends EditController
                     'online_source_get' => $this->generateUrl('online_source_get', ['id' => $id == null ? 'online_source_id' : $id]),
                     'online_source_post' => $this->generateUrl('online_source_post'),
                     'online_source_put' => $this->generateUrl('online_source_put', ['id' => $id == null ? 'online_source_id' : $id]),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     // @codingStandardsIgnoreEnd
                     'login' => $this->generateUrl('login'),

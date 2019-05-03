@@ -1,11 +1,12 @@
 <template>
     <panel :header="header">
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -16,8 +17,8 @@ import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
+Vue.use(VueFormGenerator);
+Vue.component('panel', Panel);
 
 export default {
     mixins: [

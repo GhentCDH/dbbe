@@ -1,11 +1,12 @@
 <template>
     <panel :header="header">
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>

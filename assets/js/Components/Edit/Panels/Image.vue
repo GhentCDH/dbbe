@@ -17,8 +17,12 @@
                 >
                     <div
                         class="thumbnail"
-                        :class="{'bg-warning' : !(image.public)}"
+                        :class="{'bg-warning' : !(image.public), 'spinner-wrapper': !loadedImages.includes(image.id)}"
                     >
+                        <div
+                            v-if="!loadedImages.includes(image.id)"
+                            class="spinner"
+                        />
                         <a
                             :href="urls['image_get'].replace('image_id', image.id)"
                             data-type="image"
@@ -27,17 +31,14 @@
                             :data-title="image.filename"
                         >
                             <img
+                                v-if="pageLoaded"
                                 :src="urls['image_get'].replace('image_id', image.id)"
                                 :alt="image.filename"
+                                @load="imageLoaded(image.id)"
                             >
                         </a>
                         <a
-                            class="image-delete"
-                            @click.prevent="delImage(index)"
-                        >
-                            <i class="fa fa-trash-o" />
-                        </a>
-                        <a
+                            v-if="loadedImages.includes(image.id)"
                             class="image-public"
                             @click.prevent="toggleImagePublic(index)"
                         >
@@ -49,6 +50,13 @@
                                 v-else
                                 class="fa fa-user"
                             />
+                        </a>
+                        <a
+                            v-if="loadedImages.includes(image.id)"
+                            class="image-delete"
+                            @click.prevent="delImage(index)"
+                        >
+                            <i class="fa fa-trash-o" />
                         </a>
                     </div>
                 </div>
@@ -217,6 +225,8 @@ export default {
     },
     data() {
         return {
+            pageLoaded: false,
+            loadedImages: [],
             publicImageModal: false,
             updateLinkModal: false,
             delImageModal: false,
@@ -251,10 +261,14 @@ export default {
             },
         }
     },
+    mounted() {
+        // Defer image loading until the application is fully loaded an thus responsive
+        let self = this;
+        window.addEventListener("load", function() {
+            self.pageLoaded = true;
+        });
+    },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-        },
         validate() {},
         calcChanges() {
             this.changes = []
@@ -354,6 +368,10 @@ export default {
             this.$emit('validated', 0, null, this)
         },
         displayImages(images) {
+            // Return null if images are undefined (e.g. old values when cloning)
+            if (images == null) {
+                return [];
+            }
             let result = []
             for (let image of images) {
                 result.push(image.filename + ' (' + (image.public ? 'Public' : 'Not public') + ')')
@@ -361,11 +379,18 @@ export default {
             return result
         },
         displayLinks(links) {
+            // Return null if links are undefined (e.g. old values when cloning)
+            if (links == null) {
+                return null;
+            }
             let result = []
             for (let link of links) {
                 result.push(link.url + ' (' + (link.public ? 'Public' : 'Not public') + ')')
             }
             return result
+        },
+        imageLoaded(id) {
+            this.loadedImages.push(id);
         },
     }
 }

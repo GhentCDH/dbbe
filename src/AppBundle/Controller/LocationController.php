@@ -21,9 +21,17 @@ class LocationController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                $this->get('location_manager')->getByTypeJson('location')
-            );
+            if (!empty($request->query->get('type'))
+                && $request->query->get('type') == 'manuscript'
+            ) {
+                return new JsonResponse(
+                    $this->get('location_manager')->getByTypeJson('manuscript')
+                );
+            } else {
+                return new JsonResponse(
+                    $this->get('location_manager')->getByTypeJson('location')
+                );
+            }
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
     }

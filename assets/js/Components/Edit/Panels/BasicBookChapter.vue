@@ -1,13 +1,17 @@
 <template>
     <panel
         :header="header"
-        :links="links">
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
-            ref="form"
-            @validated="validated" />
+            @validated="validated"
+        />
     </panel>
 </template>
 <script>
@@ -26,6 +30,16 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    books: {field: 'book', init: false},
+                };
+            },
+        },
+    },
     data() {
         return {
             schema: {
@@ -40,8 +54,7 @@ export default {
                         validator: VueFormGenerator.validators.string,
                     },
                     book: this.createMultiSelect(
-                        'Book',
-                        {values: this.values}
+                        'Book'
                     ),
                     startPage: {
                         type: 'input',
@@ -73,10 +86,6 @@ export default {
         }
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.book)
-        },
         startBeforeEndValidator() {
             if (this.model.startPage != null && this.model.endPage != null) {
                 if (this.model.startPage > this.model.endPage) {

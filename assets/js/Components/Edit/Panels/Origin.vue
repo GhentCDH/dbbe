@@ -1,13 +1,17 @@
 <template>
     <panel
         :header="header"
-        :links="links">
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
             @validated="validated"
-            ref="form" />
+        />
     </panel>
 </template>
 <script>
@@ -29,28 +33,22 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {origins: {field: 'origin', init: true}};
+            },
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
-                    origin: this.createMultiSelect('Origin', {values: this.values}),
+                    origin: this.createMultiSelect('Origin'),
                 }
             }
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.origin)
-        },
-        validate() {
-            this.$refs.form.validate()
-        },
-        validated(isValid, errors) {
-            this.isValid = isValid
-            this.calcChanges()
-            this.$emit('validated', isValid, this.errors, this)
-        }
-    }
 }
 </script>

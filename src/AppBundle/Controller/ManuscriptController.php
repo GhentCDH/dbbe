@@ -18,12 +18,16 @@ class ManuscriptController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Manuscript:';
 
     /**
-     * @Route("/manuscripts", name="manuscripts_base")
+     * @Route("/manuscripts", name="manuscripts_get")
      * @Method("GET")
      * @param Request $request
      */
-    public function base(Request $request)
+    public function getAll(Request $request)
     {
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            return parent::getAllMini($request);
+        }
+        // Redirect to search page if not a json request
         return $this->redirectToRoute('manuscripts_search', ['request' =>  $request], 301);
     }
 
@@ -419,11 +423,24 @@ class ManuscriptController extends BaseController
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => $id == null ? 'manuscript_id' : $id]),
                     'manuscript_post' => $this->generateUrl('manuscript_post'),
                     'manuscript_put' => $this->generateUrl('manuscript_put', ['id' => $id == null ? 'manuscript_id' : $id]),
+                    'locations_get'=> $this->generateUrl('locations_get', ['type' => 'manuscript']),
                     'locations_edit' => $this->generateUrl('locations_edit'),
+                    'contents_get' => $this->generateUrl('contents_get'),
                     'contents_edit' => $this->generateUrl('contents_edit'),
+                    'persons_search' => $this->generateUrl('persons_search'),
+                    'historical_persons_get' => $this->generateUrl('persons_get', ['type' => 'historical']),
+                    'origins_get' => $this->generateUrl('origins_get'),
                     'origins_edit' => $this->generateUrl('origins_edit'),
+                    'books_get' => $this->generateUrl('books_get'),
+                    'articles_get' => $this->generateUrl('articles_get'),
+                    'book_chapters_get' => $this->generateUrl('book_chapters_get'),
+                    'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
+                    'statuses_get' => $this->generateUrl('statuses_get', ['type' => 'manuscript']),
                     'statuses_edit' => $this->generateUrl('statuses_edit'),
+                    'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
+                    'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('login'),
                 ]),
@@ -431,15 +448,9 @@ class ManuscriptController extends BaseController
                     'manuscript' => empty($id)
                         ? null
                         : $this->get('manuscript_manager')->getFull($id)->getJson(),
-                    'locations' => $this->get('location_manager')->getByTypeJson('manuscript'),
                     'contents' => $this->get('content_manager')->getAllShortJson(),
-                    'historicalPersons' => $this->get('person_manager')->getAllHistoricalShortJson(),
                     'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
                     'origins' => $this->get('origin_manager')->getByTypeShortJson('manuscript'),
-                    'articles' => $this->get('article_manager')->getAllMiniShortJson(),
-                    'books' => $this->get('book_manager')->getAllMiniShortJson(),
-                    'bookChapters' => $this->get('book_chapter_manager')->getAllMiniShortJson(),
-                    'onlineSources' => $this->get('online_source_manager')->getAllMiniShortJson(),
                     'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
                     'statuses' => $this->get('status_manager')->getByTypeShortJson(Status::MANUSCRIPT),
                     'managements' => $this->get('management_manager')->getAllShortJson(),

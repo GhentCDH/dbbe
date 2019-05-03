@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+use AppBundle\Model\Status;
+
 class StatusController extends Controller
 {
     /**
@@ -23,9 +25,33 @@ class StatusController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                $this->get('status_manager')->getAllJson()
-            );
+            if (!empty($request->query->get('type'))) {
+                switch($request->query->get('type')) {
+                case 'occurrence':
+                    return new JsonResponse(
+                        $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_TEXT)
+                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_RECORD)
+                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_DIVIDED)
+                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_SOURCE)
+                    );
+                    break;
+                case 'manuscript':
+                    return new JsonResponse(
+                        $this->get('status_manager')->getByTypeShortJson(Status::MANUSCRIPT)
+                    );
+                    break;
+                case 'type':
+                    return new JsonResponse(
+                        $this->get('status_manager')->getByTypeShortJson(Status::TYPE_CRITICAL)
+                        + $this->get('status_manager')->getByTypeShortJson(Status::TYPE_TEXT)
+                    );
+                    break;
+                }
+            } else {
+                return new JsonResponse(
+                    $this->get('status_manager')->getAllJson()
+                );
+            }
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
     }

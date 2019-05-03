@@ -69,6 +69,34 @@ class BaseController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAllMicro(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->throwErrorIfNotJson($request);
+
+        return new JsonResponse(
+            $this->get(static::MANAGER)->getAllMicroShortJson()
+        );
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAllMini(Request $request)
+    {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->throwErrorIfNotJson($request);
+
+        return new JsonResponse(
+            $this->get(static::MANAGER)->getAllMiniShortJson()
+        );
+    }
+
+    /**
      * @param  int     $id
      * @param  Request $request
      * @param  string  $method The method to be invoked on the manager to retrieve the objects

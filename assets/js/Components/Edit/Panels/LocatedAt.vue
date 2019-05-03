@@ -1,13 +1,17 @@
 <template>
     <panel
         :header="header"
-        :links="links">
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
+            ref="form"
             :schema="schema"
             :model="model"
             :options="formOptions"
             @validated="validated"
-            ref="form" />
+        />
     </panel>
 </template>
 <script>
@@ -69,14 +73,25 @@ export default {
         },
     },
     methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.loadLocationField(this.schema.fields.city, this.model.location)
-            this.enableField(this.schema.fields.city, this.model.location)
-            this.cityChange()
-            this.libraryChange()
+        enableFields(enableKeys) {
+            if (enableKeys != null && enableKeys.includes('locations')) {
+                this.loadLocationField(this.schema.fields.city, this.model.location);
+                this.enableField(this.schema.fields.city, this.model.location);
+                this.cityChange();
+                this.libraryChange();
+            }
+        },
+        disableFields(disableKeys) {
+            if (disableKeys.includes('locations')) {
+                this.disableField(this.schema.fields.city);
+                this.disableField(this.schema.fields.library);
+                this.disableField(this.schema.fields.collection);
+            }
         },
         cityChange() {
+            if (this.values.length === 0) {
+                return;
+            }
             if (!this.model.location.regionWithParents || this.model.location.regionWithParents.locationId != null) {
                 this.model.location.id = null
             }
@@ -90,6 +105,9 @@ export default {
             this.$refs.form.validate()
         },
         libraryChange() {
+            if (this.values.length === 0) {
+                return;
+            }
             if (this.model.location.institution == null) {
                 this.dependencyField(this.schema.fields.collection, this.model.location)
             }
@@ -103,6 +121,9 @@ export default {
             this.$refs.form.validate()
         },
         collectionChange() {
+            if (this.values.length === 0) {
+                return;
+            }
             if (this.model.location.collection != null && this.model.location.collection.locationId != null) {
                 this.model.location.id = this.model.location.collection.locationId
             }
@@ -110,7 +131,7 @@ export default {
         },
         calcChanges() {
             this.changes = []
-            if (this.originalModel == null) {
+            if (this.originalModel == null || Object.keys(this.originalModel).length === 0) {
                 return
             }
             if (this.model.shelf !== this.originalModel.shelf && !(this.model.shelf == null && this.originalModel.shelf == null)) {

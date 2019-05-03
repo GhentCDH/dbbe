@@ -2,6 +2,8 @@
     <panel
         :header="header"
         :links="links"
+        :reloads="reloads"
+        @reload="reload"
     >
         <vue-form-generator
             ref="form"
@@ -36,6 +38,15 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    historicalPersons: {field: 'personSubjects', init: false},
+                    keywordSubjects: {field: 'keywordSubjects', init: true},
+                };
+            },
+        },
     },
     data() {
         return {
@@ -45,7 +56,6 @@ export default {
                         'Persons',
                         {
                             model: 'personSubjects',
-                            values: this.values.personSubjects,
                         },
                         {
                             multiple: true,
@@ -56,7 +66,6 @@ export default {
                         'Keywords',
                         {
                             model: 'keywordSubjects',
-                            values: this.values.keywordSubjects,
                         },
                         {
                             multiple: true,
@@ -67,12 +76,5 @@ export default {
             }
         }
     },
-    methods: {
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model))
-            this.enableField(this.schema.fields.personSubjects)
-            this.enableField(this.schema.fields.keywordSubjects)
-        },
-    }
 }
 </script>
