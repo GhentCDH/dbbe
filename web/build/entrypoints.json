@@ -17,12 +17,12 @@
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.488e13b5.js"
+        "/build/bookedit.bf9f003c.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.2ac1cae0.js"
+        "/build/bookchapteredit.9310aed3.js"
       ]
     },
     "contentsedit": {
@@ -77,7 +77,7 @@
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.1b8e37c2.js"
+        "/build/manuscriptedit.71049193.js"
       ]
     },
     "manuscriptsearch": {
@@ -87,7 +87,7 @@
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.a63d4559.js"
+        "/build/articleedit.09e6ed69.js"
       ]
     },
     "newseventedit": {
@@ -97,7 +97,7 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.02c767f7.js"
+        "/build/occurrenceedit.0d357675.js"
       ]
     },
     "occurrencesearch": {
@@ -112,7 +112,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.d752fe14.js"
+        "/build/onlinesourceedit.3573ad63.js"
       ]
     },
     "originsedit": {
@@ -127,7 +127,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.ec378912.js"
+        "/build/personedit.28e367c8.js"
       ]
     },
     "personsearch": {
@@ -157,7 +157,7 @@
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.5702a408.js"
+        "/build/typeedit.e4d141cb.js"
       ]
     },
     "typesearch": {

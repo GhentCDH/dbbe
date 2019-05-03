@@ -95,8 +95,10 @@ export default {
 
         // Initialize panels after model is updated
         this.$nextTick(() => {
-            for (let panel of this.panels) {
-                this.$refs[panel].init();
+            if (!this.data.clone) {
+                for (let panel of this.panels) {
+                    this.$refs[panel].init();
+                }
             }
         });
 

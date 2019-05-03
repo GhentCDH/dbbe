@@ -467,12 +467,8 @@ export default {
         this.managements = this.data.managements;
     },
     mounted() {
-        this.initScroll();
+        // AbstractEntityEdit mounted hook is called first
 
-        this.setData();
-        this.originalModel = JSON.parse(JSON.stringify(this.model));
-
-        // Initialize panels after model is updated
         // Make sure a duplicated occurrence is saved as a new occurrence
         this.$nextTick(() => {
             if (this.data.clone) {
@@ -482,15 +478,8 @@ export default {
                 for (let panel of this.panels) {
                     this.$refs[panel].enableFields();
                 }
-            } else {
-                for (let panel of this.panels) {
-                    this.$refs[panel].init();
-                }
             }
         });
-
-        // Load some (slower) data asynchronously
-        this.loadAsync();
     },
     methods: {
         loadAsync() {
