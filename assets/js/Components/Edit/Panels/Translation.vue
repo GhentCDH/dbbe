@@ -79,16 +79,16 @@
             />
             <div slot="header">
                 <h4
-                    v-if="editModel.id"
-                    class="modal-title"
-                >
-                    Edit translation
-                </h4>
-                <h4
-                    v-if="!editModel.id"
+                    v-if="editModel.index == null"
                     class="modal-title"
                 >
                     Add a new translation
+                </h4>
+                <h4
+                    v-else
+                    class="modal-title"
+                >
+                    Edit translation
                 </h4>
             </div>
             <div slot="footer">
@@ -98,7 +98,7 @@
                     :disabled="!isValid"
                     @click="submitEdit()"
                 >
-                    {{ editModel.id ? 'Update' : 'Add' }}
+                    {{ editModel.index == null ? 'Add' : 'Update' }}
                 </btn>
             </div>
         </modal>
@@ -124,9 +124,6 @@
 <script>
 import Vue from 'vue'
 import VueFormGenerator from 'vue-form-generator'
-
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
 import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
@@ -244,7 +241,7 @@ export default {
             this.$refs.editForm.validate()
             if (this.$refs.editForm.errors.length == 0) {
                 // Edit existing bibliography
-                if (this.editModel.id) {
+                if (this.editModel.index != null) {
                     let index = this.editModel.index
                     delete this.editModel.index
                     // remove null properties
