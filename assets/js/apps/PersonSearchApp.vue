@@ -742,19 +742,8 @@ export default {
         },
         update() {
             // Don't create a new history item
-            this.noHistory = true
-            this.$refs.resultTable.refresh()
-            this.openRequests++
-            axios.get(this.urls['persons_get'])
-                .then( (response) => {
-                    this.persons = response.data
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the person data.', login: this.isLoginError(error)})
-                    console.log(error)
-                })
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
         },
         formatMergeDate(primary, secondary, type) {
             if (primary.filter(d => d.type === type).length === 1) {
