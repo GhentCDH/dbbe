@@ -29,21 +29,25 @@ class StatusController extends Controller
                 switch($request->query->get('type')) {
                 case 'occurrence':
                     return new JsonResponse(
-                        $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_TEXT)
-                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_RECORD)
-                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_DIVIDED)
-                        + $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_SOURCE)
+                        array_merge(
+                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_TEXT),
+                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_RECORD),
+                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_DIVIDED),
+                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_SOURCE)
+                        )
                     );
                     break;
                 case 'manuscript':
                     return new JsonResponse(
-                        $this->get('status_manager')->getByTypeShortJson(Status::MANUSCRIPT)
+                        $this->get('status_manager')->getByTypeJson(Status::MANUSCRIPT)
                     );
                     break;
                 case 'type':
                     return new JsonResponse(
-                        $this->get('status_manager')->getByTypeShortJson(Status::TYPE_CRITICAL)
-                        + $this->get('status_manager')->getByTypeShortJson(Status::TYPE_TEXT)
+                        array_merge(
+                            $this->get('status_manager')->getByTypeJson(Status::TYPE_CRITICAL),
+                            $this->get('status_manager')->getByTypeJson(Status::TYPE_TEXT)
+                        )
                     );
                     break;
                 }
