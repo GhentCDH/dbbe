@@ -94,11 +94,11 @@ class AcknowledgementService extends DatabaseService
      */
     public function delete(int $id): int
     {
-        // don't delete if this acknowledgement is used in poem_acknowledgement
+        // don't delete if this acknowledgement is used in document_acknowledgement
         $count = $this->conn->executeQuery(
             'SELECT count(*)
-            from data.poem_acknowledgement
-            where poem_acknowledgement.id = ?',
+            from data.document_acknowledgement
+            where document_acknowledgement.idacknowledgement = ?',
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
