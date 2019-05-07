@@ -223,7 +223,9 @@ export default {
                         } else {
                             data = response.data.filter(filters[i]);
                         }
-                        items[i].splice(0, 1);
+                        while (items[i].length) {
+                            items[i].splice(0, 1);
+                        }
                         while (data.length) {
                             items[i].push(data.shift());
                         }
