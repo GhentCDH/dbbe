@@ -249,6 +249,8 @@ abstract class PoemManager extends DocumentManager
             $rawAcknowledgements = $this->dbs->getAcknowledgements($ids);
             if (!empty($rawAcknowledgements)) {
                 $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
+                var_dump($acknowledgements);
+                var_dump($rawAcknowledgements);
                 $data = [];
 
                 foreach ($rawAcknowledgements as $rawAcknowledgement) {
@@ -259,7 +261,7 @@ abstract class PoemManager extends DocumentManager
                         ];
                     }
                     $data[$rawAcknowledgement['poem_id']]['acknowledgement'][] =
-                        $acknowledgements[$rawAcknowledgement['acknowledement_id']]->getShortJson();
+                        $acknowledgements[$rawAcknowledgement['acknowledgement_id']]->getShortJson();
                 }
 
                 $this->ess->updateMultiple($data);
