@@ -249,8 +249,6 @@ abstract class PoemManager extends DocumentManager
             $rawAcknowledgements = $this->dbs->getAcknowledgements($ids);
             if (!empty($rawAcknowledgements)) {
                 $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
-                var_dump($acknowledgements);
-                var_dump($rawAcknowledgements);
                 $data = [];
 
                 foreach ($rawAcknowledgements as $rawAcknowledgement) {
