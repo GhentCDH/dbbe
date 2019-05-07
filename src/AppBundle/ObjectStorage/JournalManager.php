@@ -118,8 +118,8 @@ class JournalManager extends DocumentManager
     {
         if (# mandatory
             !property_exists($data, 'name')
-            || !is_string($data->title)
-            || empty($data->title)
+            || !is_string($data->name)
+            || empty($data->name)
         ) {
             throw new BadRequestHttpException('Incorrect data to add a new journal');
         }
