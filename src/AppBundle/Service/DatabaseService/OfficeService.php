@@ -197,7 +197,7 @@ class OfficeService extends DatabaseService
      * @param  int|null $regionId
      * @return int
      */
-    public function insert(int $parentId, string $name, int $regionId = null): int
+    public function insert(int $parentId = null, string $name, int $regionId = null): int
     {
         $this->beginTransaction();
         try {
