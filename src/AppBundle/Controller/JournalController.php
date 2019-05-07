@@ -6,6 +6,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class JournalController extends BaseController
 {
@@ -67,14 +69,28 @@ class JournalController extends BaseController
      */
     public function getSingle(int $id, Request $request)
     {
-        $object = $this->get(static::MANAGER)->getFull($id);
-        return $this->render(
-            static::TEMPLATE_FOLDER . 'detail.html.twig',
-            [
-                $object::CACHENAME => $object,
-                'issuesArticles' => $this->get(static::MANAGER)->getIssuesArticles($id),
-            ]
-        );
+        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
+            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            try {
+                $object = $this->get(static::MANAGER)->getFull($id);
+            } catch (NotFoundHttpException $e) {
+                return new JsonResponse(
+                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
+                    Response::HTTP_NOT_FOUND
+                );
+            }
+            return new JsonResponse($object->getJson());
+        } else {
+            // Let the 404 page handle the not found exception
+            $object = $this->get(static::MANAGER)->getFull($id);
+            return $this->render(
+                static::TEMPLATE_FOLDER . 'detail.html.twig',
+                [
+                    $object::CACHENAME => $object,
+                    'issuesArticles' => $this->get(static::MANAGER)->getIssuesArticles($id),
+                ]
+            );
+        }
     }
 
     /**

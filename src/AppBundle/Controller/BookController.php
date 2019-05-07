@@ -130,6 +130,19 @@ class BookController extends EditController
     }
 
     /**
+     * @Route("/books/{primaryId}/{secondaryId}", name="book_merge")
+     * @Method("PUT")
+     * @param  int    $primaryId   first book id (will stay)
+     * @param  int    $secondaryId second book id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        return parent::merge($primaryId, $secondaryId, $request);
+    }
+
+    /**
      * @Route("/books/{id}", name="book_delete")
      * @Method("DELETE")
      * @param  int    $id

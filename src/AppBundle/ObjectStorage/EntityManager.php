@@ -462,7 +462,7 @@ abstract class EntityManager extends ObjectManager
                             || !is_numeric($bib->referenceType->id)
                         )
                     )
-                    || (property_exists($bib, 'image') && !is_string($bib->image))
+                    || (property_exists($bib, 'image') && !(is_string($bib->image)||is_null($bib->image)))
                 ) {
                     throw new BadRequestHttpException('Incorrect bibliography data.');
                 }
@@ -527,7 +527,7 @@ abstract class EntityManager extends ObjectManager
                                 self::certainString($bib, 'endPage'),
                                 self::certainString($bib, 'rawPages'),
                                 null,
-                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'referenceType') && $bib->referenceType != null ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
                         } else {

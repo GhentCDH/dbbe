@@ -799,6 +799,10 @@ class PersonManager extends ObjectEntityManager
                 foreach ($manuscripts as $manuscript) {
                     $personRoles = $manuscript->getPersonRoles();
                     $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
+
+                    $contributorRoles = $manuscript->getContributorRoles();
+                    $update += $this->getMergeUpdate($contributorRoles, $primaryId, $secondaryId);
+
                     if (!empty($update)) {
                         $this->container->get('manuscript_manager')->update(
                             $manuscript->getId(),

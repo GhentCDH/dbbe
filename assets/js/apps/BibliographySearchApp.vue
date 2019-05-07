@@ -109,6 +109,15 @@
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
+                        v-if="types[props.row.type.id] === 'book' || types[props.row.type.id] === 'journal'"
+                        href="#"
+                        class="action"
+                        title="Merge"
+                        @click.prevent="merge(props.row)"
+                    >
+                        <i class="fa fa-compress" />
+                    </a>
+                    <a
                         v-if="urls[types[props.row.type.id] + '_delete']"
                         href="#"
                         class="action"
@@ -175,6 +184,94 @@
                 @dismiss="alerts.splice($event, 1)"
             />
         </div>
+        <mergeModal
+            :show="mergeModal"
+            :schema="mergeSchema"
+            :merge-model="mergeModel"
+            :original-merge-model="originalMergeModel"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
+            @reset="resetMerge()"
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)"
+        >
+            <table
+                v-if="mergeModel.primaryFull && mergeModel.secondaryFull"
+                slot="preview"
+                class="table table-striped table-hover"
+            >
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody v-if="mergeModel.submitType === 'book'">
+                    <tr>
+                        <td>Title</td>
+                        <td>{{ mergeModel.primaryFull.title || mergeModel.secondaryFull.title }}</td>
+                    </tr>
+                    <tr>
+                        <td>Year</td>
+                        <td>{{ mergeModel.primaryFull.year || mergeModel.secondaryFull.year }}</td>
+                    </tr>
+                    <tr>
+                        <td>City</td>
+                        <td>{{ mergeModel.primaryFull.city || mergeModel.secondaryFull.city }}</td>
+                    </tr>
+                    <tr>
+                        <td>Person roles</td>
+                        <td>{{ formatPersonRoles(mergeModel.primaryFull.personRoles || mergeModel.secondaryFull.personRoles) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Publisher</td>
+                        <td>{{ mergeModel.primaryFull.publisher || mergeModel.secondaryFull.publisher }}</td>
+                    </tr>
+                    <tr>
+                        <td>Series</td>
+                        <td>{{ mergeModel.primaryFull.series || mergeModel.secondaryFull.series }}</td>
+                    </tr>
+                    <tr>
+                        <td>Volume</td>
+                        <td>{{ mergeModel.primaryFull.volume || mergeModel.secondaryFull.volume }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Volumes</td>
+                        <td>{{ mergeModel.primaryFull.totalVolumes || mergeModel.secondaryFull.totalVolumes }}</td>
+                    </tr>
+                    <tr
+                        v-for="identifier in identifiers"
+                        :key="identifier.systemName"
+                    >
+                        <td>{{ identifier.name }}</td>
+                        <td>
+                            {{
+                                (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
+                                    || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
+                            }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>{{ mergeModel.primaryFull.acknowledgements || mergeModel.secondaryFull.acknowledgements }}</td>
+                    </tr>
+                    <tr>
+                        <td>Public comment</td>
+                        <td>{{ mergeModel.primaryFull.publicComment || mergeModel.secondaryFull.publicComment }}</td>
+                    </tr>
+                    <tr>
+                        <td>Private comment</td>
+                        <td>{{ mergeModel.primaryFull.privateComment || mergeModel.secondaryFull.privateComment }}</td>
+                    </tr>
+                </tbody>
+                <tbody v-else-if="mergeModel.submitType === 'journal'">
+                    <tr>
+                        <td>Title</td>
+                        <td>{{ mergeModel.primaryFull.name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </mergeModal>
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -206,12 +303,15 @@ export default {
     mixins: [
         AbstractField,
         AbstractSearch,
+        AbstractListEdit, // merge functionality
     ],
     data() {
         let data = {
             model: {
                 title_type: 'any',
             },
+            books: null,
+            journals: null,
             schema: {
                 fields: {
                     type: this.createMultiSelect('Type'),
@@ -258,6 +358,41 @@ export default {
                 rowClassCallback: function(row) {
                     return (row.public == null || row.public) ? '' : 'warning'
                 },
+            },
+            mergeSchema: {
+                fields: {
+                    primary: this.createMultiSelect(
+                        'Primary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return '[' + id + '] ' + name
+                            },
+                        }
+                    ),
+                    secondary: this.createMultiSelect(
+                        'Secondary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return '[' + id + '] ' + name
+                            },
+                        }
+                    ),
+                },
+            },
+            mergeModel: {
+                submitType: null,
+                primary: null,
+                primaryFull: null,
+                secondary: null,
+                secondaryFull: null,
             },
             submitModel: {
                 submitType: null,
@@ -338,7 +473,118 @@ export default {
             return columns
         },
     },
+    watch: {
+        'mergeModel.primary'() {
+            if (this.mergeModel.primary == null) {
+                this.mergeModel.primaryFull = null;
+            }
+            else {
+                this.mergeModal = false;
+                this.openRequests++;
+                let url = '';
+                if (this.mergeModel.submitType === 'book') {
+                    url = this.urls['book_get'].replace('book_id', this.mergeModel.primary.id);
+                } else if (this.mergeModel.submitType === 'journal') {
+                    url = this.urls['journal_get'].replace('journal_id', this.mergeModel.primary.id);
+                }
+                axios.get(url)
+                    .then((response) => {
+                        this.mergeModel.primaryFull = response.data;
+                        this.mergeModal = true;
+                        this.openRequests--;
+                    })
+                    .catch((error) => {
+                        this.mergeModal = true;
+                        this.openRequests--;
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the person data.',
+                            login: this.isLoginError(error)
+                        });
+                        console.log(error);
+                    })
+            }
+        },
+        'mergeModel.secondary'() {
+            if (this.mergeModel.secondary == null) {
+                this.mergeModel.secondaryFull = null;
+            }
+            else {
+                this.mergeModal = false;
+                this.openRequests++;
+                let url = '';
+                if (this.mergeModel.submitType === 'book') {
+                    url = this.urls['book_get'].replace('book_id', this.mergeModel.secondary.id);
+                } else if (this.mergeModel.submitType === 'journal') {
+                    url = this.urls['journal_get'].replace('journal_id', this.mergeModel.secondary.id);
+                }
+                axios.get(url)
+                    .then( (response) => {
+                        this.mergeModel.secondaryFull = response.data;
+                        this.mergeModal = true;
+                        this.openRequests--;
+                    })
+                    .catch( (error) => {
+                        this.mergeModal = true;
+                        this.openRequests--;
+                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)});
+                        console.log(error);
+                    })
+            }
+        },
+    },
     methods: {
+        merge(row) {
+            this.mergeModel.submitType = this.types[row.type.id];
+            this.openRequests++;
+            if (this.types[row.type.id] === 'book') {
+                axios.get(this.urls['books_get'])
+                    .then((response) => {
+                        this.books = response.data;
+                        this.openRequests--;
+                        this.mergeModel.primary = JSON.parse(JSON.stringify(this.books.filter(book => book.id === row.id)[0]));
+                        this.mergeModel.secondary = null;
+                        this.mergeSchema.fields.primary.values = this.books;
+                        this.mergeSchema.fields.secondary.values = this.books;
+                        this.enableField(this.mergeSchema.fields.primary);
+                        this.enableField(this.mergeSchema.fields.secondary);
+                        this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
+                        this.mergeModal = true;
+                    })
+                    .catch((error) => {
+                        this.openRequests--
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the book data.',
+                            login: this.isLoginError(error)
+                        })
+                        console.log(error)
+                    });
+            } else if (this.types[row.type.id] === 'journal') {
+                axios.get(this.urls['journals_get'])
+                    .then((response) => {
+                        this.journals = response.data;
+                        this.openRequests--;
+                        this.mergeModel.primary = JSON.parse(JSON.stringify(this.journals.filter(journal => journal.id === row.id)[0]));
+                        this.mergeModel.secondary = null;
+                        this.mergeSchema.fields.primary.values = this.journals;
+                        this.mergeSchema.fields.secondary.values = this.journals;
+                        this.enableField(this.mergeSchema.fields.primary);
+                        this.enableField(this.mergeSchema.fields.secondary);
+                        this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
+                        this.mergeModal = true;
+                    })
+                    .catch((error) => {
+                        this.openRequests--
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the journal data.',
+                            login: this.isLoginError(error)
+                        })
+                        console.log(error)
+                    });
+            }
+        },
         del(row) {
             this.submitModel.submitType = this.types[row.type.id]
             this.submitModel[this.types[row.type.id]] = row
@@ -349,6 +595,29 @@ export default {
                 this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].title
             }
             AbstractListEdit.methods.deleteDependencies.call(this)
+        },
+        submitMerge() {
+            this.mergeModal = false;
+            this.openRequests++;
+            let url = '';
+            if (this.mergeModel.submitType === 'book') {
+                url = this.urls['book_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id);
+            } else if (this.mergeModel.submitType === 'journal') {
+                url = this.urls['journal_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id);
+            }
+            axios.put(url)
+                .then( (response) => {
+                    this.update();
+                    this.mergeAlerts = [];
+                    this.alerts.push({type: 'success', message: 'Merge successful.'});
+                    this.openRequests--;
+                })
+                .catch( (error) => {
+                    this.openRequests--;
+                    this.mergeModal = true;
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the ' + this.mergeModel.submitType + 's.', login: this.isLoginError(error)});
+                    console.log(error);
+                })
         },
         submitDelete() {
             this.openRequests++
@@ -367,6 +636,11 @@ export default {
                     console.log(error)
                 })
         },
+        update() {
+            // Don't create a new history item
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
+        },
         formatTitle(title) {
             if (Array.isArray(title)) {
                 return title[0]
@@ -374,6 +648,20 @@ export default {
             else {
                 return title
             }
+        },
+        formatPersonRoles(personRoles) {
+            if (personRoles == null) {
+                return null;
+            }
+            let result = [];
+            for (let key of Object.keys(personRoles)) {
+                let rolePersons = [];
+                for (let person of personRoles[key]) {
+                    rolePersons.push(person.name);
+                }
+                result.push(key.charAt(0).toUpperCase() + key.substr(1) + '(s): ' + rolePersons.join(', '));
+            }
+            return result.join('<br />');
         },
     }
 }

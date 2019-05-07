@@ -2,6 +2,11 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\ArticleBibliography;
+use AppBundle\Model\BookBibliography;
+use AppBundle\Model\BookChapterBibliography;
+use AppBundle\Model\OnlineSourceBibliography;
+use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
@@ -289,5 +294,209 @@ class BookManager extends DocumentManager
         }
 
         return $new;
+    }
+
+    /**
+     * Merge two books
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return Book
+     */
+    public function merge(int $primaryId, int $secondaryId): Book
+    {
+        if ($primaryId == $secondaryId) {
+            throw new BadRequestHttpException(
+                'Books with id ' . $primaryId .' and id ' . $secondaryId . ' are identical and cannot be merged.'
+            );
+        }
+        $primary = $this->getFull($primaryId);
+        $secondary = $this->getFull($secondaryId);
+
+        $updates = [];
+        if (empty($primary->getPersonRoles()) && !empty($secondary->getPersonRoles())) {
+            $roles = $this->container->get('role_manager')->getByType('book');
+            foreach ($roles as $role) {
+                if (!empty($secondary->getPersonRoles()[$role->getSystemName()])) {
+                    $updates[$role->getSystemName()] = ArrayToJson::arrayToShortJson($secondary->getPersonRoles()[$role->getSystemName()][1]);
+                }
+            }
+        }
+        if (empty($primary->getTitle()) && !empty($secondary->getTitle())) {
+            $updates['title'] = $secondary->getTitle();
+        }
+        if (empty($primary->getYear()) && !empty($secondary->getYear())) {
+            $updates['year'] = $secondary->getYear();
+        }
+        if (empty($primary->getCity()) && !empty($secondary->getCity())) {
+            $updates['city'] = $secondary->getCity();
+        }
+        if (empty($primary->getPublisher()) && !empty($secondary->getPublisher())) {
+            $updates['publisher'] = $secondary->getPublisher();
+        }
+        if (empty($primary->getSeries()) && !empty($secondary->getSeries())) {
+            $updates['series'] = $secondary->getSeries();
+        }
+        if (empty($primary->getVolume()) && !empty($secondary->getVolume())) {
+            $updates['volume'] = $secondary->getVolume();
+        }
+        if (empty($primary->getTotalVolumes()) && !empty($secondary->getTotalVolumes())) {
+            $updates['totalVolumes'] = $secondary->getTotalVolumes();
+        }
+        if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
+            $updates['publicComment'] = $secondary->getPublicComment();
+        }
+        if (empty($primary->getPrivateComment()) && !empty($secondary->getPrivateComment())) {
+            $updates['privateComment'] = $secondary->getPrivateComment();
+        }
+
+        $manuscripts = $this->container->get('manuscript_manager')->getBookDependencies($secondaryId, 'getMini');
+        $occurrences = $this->container->get('occurrence_manager')->getBookDependencies($secondaryId, 'getMini');
+        $types = $this->container->get('type_manager')->getBookDependencies($secondaryId, 'getMini');
+        $persons = $this->container->get('person_manager')->getBookDependencies($secondaryId, 'getMini');
+        $bookChapters = $this->container->get('book_chapter_manager')->getBookDependencies($secondaryId, 'getMini');
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($updates)) {
+                $primary = $this->update($primaryId, json_decode(json_encode($updates)));
+            }
+
+            if (!empty($manuscripts)) {
+                foreach ($manuscripts as $manuscript) {
+                    $full = $this->container->get('manuscript_manager')->getFull($manuscript->getId());
+                    $bibliographies = $full->getBibliographies();
+                    $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
+                    $this->container->get('manuscript_manager')->update(
+                        $manuscript->getId(),
+                        json_decode(json_encode(['bibliography' => $update]))
+                    );
+                }
+            }
+            if (!empty($occurrences)) {
+                foreach ($occurrences as $occurrence) {
+                    $bibliographies = $occurrence->getBibliographies();
+                    $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
+                    $this->container->get('occurrence_manager')->update(
+                        $occurrence->getId(),
+                        json_decode(json_encode(['bibliography' => $update]))
+                    );
+                }
+            }
+            if (!empty($types)) {
+                foreach ($types as $type) {
+                    $bibliographies = $type->getBibliographies();
+                    $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
+                    $this->container->get('type_manager')->update(
+                        $type->getId(),
+                        json_decode(json_encode(['bibliography' => $update]))
+                    );
+                }
+            }
+            if (!empty($persons)) {
+                foreach ($persons as $person) {
+                    $bibliographies = $person->getBibliographies();
+                    $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
+                    $this->container->get('person_manager')->update(
+                        $person->getId(),
+                        json_decode(json_encode(['bibliography' => $update]))
+                    );
+                }
+            }
+            if (!empty($bookChapters)) {
+                foreach ($bookChapters as $bookChapter) {
+                    $this->container->get('book_chapter_manager')->update(
+                        $bookChapter->getId(),
+                        json_decode(json_encode(['book' => ['id' => $primaryId]]))
+                    );
+                }
+            }
+
+            $this->delete($secondaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+
+            // Reset elasticsearch
+            $this->updateElasticByIds([$primaryId]);
+
+            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
+            $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($occurrences));
+            $this->container->get('type_manager')->updateElasticByIds(array_keys($types));
+            $this->container->get('person_manager')->updateElasticByIds(array_keys($persons));
+            $this->container->get('book_chapter_manager')->updateElasticByIds(array_keys($bookChapters));
+
+            throw $e;
+        }
+
+        return $primary;
+    }
+
+    /**
+     * Construct the data to update a (biblio) dependent entity when merging books
+     * @param  array $bibliographies
+     * @param  int   $primaryId
+     * @param  int   $secondaryId
+     * @return array
+     */
+    private static function getBiblioMergeUpdate(array $bibliographies, int $primaryId, int $secondaryId): array
+    {
+        $update = [
+            'books' => [],
+            'articles' => [],
+            'bookChapters' => [],
+            'onlineSources' => [],
+        ];
+        foreach ($bibliographies as $bibliography) {
+            if ($bibliography instanceof BookBibliography) {
+                $bookId = $bibliography->getBook()->getId();
+                if ($bookId == $secondaryId) {
+                    $bookId = $primaryId;
+                }
+                $update['books'][] = [
+                    'type' => 'book',
+                    'id' => $bibliography->getId(),
+                    'book' => ['id' => $bookId],
+                    'startPage' => $bibliography->getStartPage(),
+                    'endPage' => $bibliography->getEndPage(),
+                    'rawPages' => $bibliography->getRawPages(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            } elseif ($bibliography instanceof ArticleBibliography) {
+                $update['articles'][] = [
+                    'type' => 'article',
+                    'id' => $bibliography->getId(),
+                    'article' => ['id' => $bibliography->getArticle()->getId()],
+                    'startPage' => $bibliography->getStartPage(),
+                    'endPage' => $bibliography->getEndPage(),
+                    'rawPages' => $bibliography->getRawPages(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            } elseif ($bibliography instanceof BookChapterBibliography) {
+                $update['bookChapters'][] = [
+                    'type' => 'bookChapter',
+                    'id' => $bibliography->getId(),
+                    'bookChapter' => ['id' => $bibliography->getBookChapter()->getId()],
+                    'startPage' => $bibliography->getStartPage(),
+                    'endPage' => $bibliography->getEndPage(),
+                    'rawPages' => $bibliography->getRawPages(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage(),
+                ];
+            } elseif ($bibliography instanceof OnlineSourceBibliography) {
+                $update['onlineSources'][] = [
+                    'type' => 'onlineSource',
+                    'id' => $bibliography->getId(),
+                    'onlineSource' => ['id' => $bibliography->getOnlineSource()->getId()],
+                    'relUrl' => $bibliography->getRelUrl(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            }
+        }
+        return $update;
     }
 }
