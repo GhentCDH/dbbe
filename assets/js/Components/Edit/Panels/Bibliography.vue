@@ -1,17 +1,12 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <div class="pbottom-large">
-            <h3>
-                Books
-                <a
-                    href="#"
-                    class="action"
-                    :class="{'link-disabled': reloads.includes('books')}"
-                    @click.prevent="reload('books')"
-                >
-                    <i class="fa fa-refresh" />
-                </a>
-            </h3>
+            <h3>Books</h3>
             <table
                 v-if="model.books.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -70,17 +65,7 @@
             <btn @click="newBib('book')"><i class="fa fa-plus" />&nbsp;Add a book reference</btn>
         </div>
         <div class="pbottom-large">
-            <h3>
-                Articles
-                <a
-                    href="#"
-                    class="action"
-                    :class="{'link-disabled': reloads.includes('articles')}"
-                    @click.prevent="reload('articles')"
-                >
-                    <i class="fa fa-refresh" />
-                </a>
-            </h3>
+            <h3>Articles</h3>
             <table
                 v-if="model.articles.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -139,17 +124,7 @@
             <btn @click="newBib('article')"><i class="fa fa-plus" />&nbsp;Add an article reference</btn>
         </div>
         <div class="pbottom-large">
-            <h3>
-                Book chapters
-                <a
-                    href="#"
-                    class="action"
-                    :class="{'link-disabled': reloads.includes('bookChapters')}"
-                    @click.prevent="reload('bookChapters')"
-                >
-                    <i class="fa fa-refresh" />
-                </a>
-            </h3>
+            <h3>Book chapters</h3>
             <table
                 v-if="model.bookChapters.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -208,17 +183,7 @@
             <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
         </div>
         <div>
-            <h3>
-                Online sources
-                <a
-                    href="#"
-                    class="action"
-                    :class="{'link-disabled': reloads.includes('onlineSources')}"
-                    @click.prevent="reload('onlineSources')"
-                >
-                    <i class="fa fa-refresh" />
-                </a>
-            </h3>
+            <h3>Online sources</h3>
             <table
                 v-if="model.onlineSources.length > 0"
                 class="table table-striped table-bordered table-hover"
@@ -391,6 +356,17 @@ export default {
         appendToBody: {
             type: Boolean,
             default: false,
+        },
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    books: {field: 'book', init: false},
+                    articles: {field: 'article', init: false},
+                    bookChapters: {field: 'bookChapter', init: false},
+                    onlineSources: {field: 'onlineSource', init: false},
+                };
+            },
         },
     },
     data() {

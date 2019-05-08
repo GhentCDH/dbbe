@@ -70,6 +70,7 @@
                 id="translationBibliography"
                 ref="translationBibliography"
                 header="Bibliography"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']}]"
                 :model="editModel.bibliography"
                 :values="values"
                 :reloads="reloads"
@@ -139,6 +140,10 @@ export default {
     ],
     props: {
         values: {
+            type: Object,
+            default: () => {return {}}
+        },
+        urls: {
             type: Object,
             default: () => {return {}}
         },

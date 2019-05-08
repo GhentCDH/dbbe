@@ -439,6 +439,7 @@ class OccurrenceController extends EditController
                     'articles_get' => $this->generateUrl('articles_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
                     'statuses_get' => $this->generateUrl('statuses_get', ['type' => 'occurrence']),

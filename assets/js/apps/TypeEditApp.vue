@@ -111,6 +111,7 @@
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']}]"
                 :model="model.bibliography"
                 :reference-type="true"
                 :values="bibliographies"
@@ -126,6 +127,7 @@
                 :model="model.translations"
                 :values="translations"
                 :reloads="reloads"
+                :urls="urls"
                 @validated="validated"
                 @reload="reload"
             />
