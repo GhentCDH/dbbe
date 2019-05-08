@@ -51,7 +51,7 @@ class PersonController extends EditController
         }
 
         // Redirect to search page if not a json request
-        return $this->redirectToRoute('types_search', ['request' =>  $request], 301);
+        return $this->redirectToRoute('persons_search', ['request' =>  $request], 301);
     }
 
     /**
