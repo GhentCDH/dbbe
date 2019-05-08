@@ -633,6 +633,14 @@ class Person extends Entity implements SubjectInterface
                 $allManuscriptRoles['related'][1] = $relatedManuscriptRoles;
             }
         }
+        foreach (array_keys($allManuscriptRoles) as $role) {
+            usort(
+                $allManuscriptRoles[$role][1],
+                function ($a, $b) {
+                    return $a->getDescription() <=> $b->getDescription();
+                }
+            );
+        }
         return $allManuscriptRoles;
     }
 
@@ -649,6 +657,14 @@ class Person extends Entity implements SubjectInterface
             } else {
                 $allManuscriptRoles['related'][1] = $relatedManuscriptRoles;
             }
+        }
+        foreach (array_keys($allManuscriptRoles) as $role) {
+            usort(
+                $allManuscriptRoles[$role][1],
+                function ($a, $b) {
+                    return $a->getDescription() <=> $b->getDescription();
+                }
+            );
         }
         return $allManuscriptRoles;
     }
@@ -692,6 +708,23 @@ class Person extends Entity implements SubjectInterface
     public function getDocumentRoles(string $documentType): array
     {
         if (isset($this->documentRoles[$documentType])) {
+            foreach (array_keys($this->documentRoles[$documentType]) as $role) {
+                if (in_array($documentType, ['article', 'book', 'bookChapter'])) {
+                    usort(
+                        $this->documentRoles[$documentType][$role][1],
+                        function ($a, $b) {
+                            return $a->getSortKey() <=> $b->getSortKey();
+                        }
+                    );
+                } else {
+                    usort(
+                        $this->documentRoles[$documentType][$role][1],
+                        function ($a, $b) {
+                            return $a->getDescription() <=> $b->getDescription();
+                        }
+                    );
+                }
+            }
             return $this->documentRoles[$documentType];
         }
         return [];
