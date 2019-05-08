@@ -355,7 +355,7 @@ class PersonController extends EditController
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
                     'offices_get' => $this->generateUrl('offices_get'),
                     'offices_edit' => $this->generateUrl('offices_edit'),
-                    'origins_get' => $this->generateUrl('origins_get'),
+                    'origins_get' => $this->generateUrl('origins_get', ['type' => 'person']),
                     'origins_edit' => $this->generateUrl('origins_edit'),
                     'self_designations_get' => $this->generateUrl('self_designations_get'),
                     'self_designations_edit' => $this->generateUrl('self_designations_edit'),

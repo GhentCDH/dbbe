@@ -429,7 +429,7 @@ class ManuscriptController extends BaseController
                     'contents_edit' => $this->generateUrl('contents_edit'),
                     'persons_search' => $this->generateUrl('persons_search'),
                     'historical_persons_get' => $this->generateUrl('persons_get', ['type' => 'historical']),
-                    'origins_get' => $this->generateUrl('origins_get'),
+                    'origins_get' => $this->generateUrl('origins_get', ['type' => 'manuscript']),
                     'origins_edit' => $this->generateUrl('origins_edit'),
                     'books_get' => $this->generateUrl('books_get'),
                     'articles_get' => $this->generateUrl('articles_get'),

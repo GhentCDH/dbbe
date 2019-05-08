@@ -22,10 +22,23 @@ class OriginController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            return new JsonResponse(
-                // origins for manuscript is a superset of origins for persons
-                $this->get('origin_manager')->getByTypeJson('manuscript')
-            );
+            if ($request->query->get('type') == 'person') {
+                // person edit page
+                return new JsonResponse(
+                    $this->get('origin_manager')->getByTypeShortJson('person')
+                );
+            } elseif ($request->query->get('type') == 'manuscript') {
+                // manuscript edit page
+                return new JsonResponse(
+                    $this->get('origin_manager')->getByTypeShortJson('manuscript')
+                );
+            } else {
+                // origins edit page
+                return new JsonResponse(
+                    // origins for manuscript is a superset of origins for persons
+                    $this->get('origin_manager')->getByTypeJson('manuscript')
+                );
+            }
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
     }
