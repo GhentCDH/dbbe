@@ -36,7 +36,7 @@ class Identification
                 $identification->identifier = $identifier;
                 $identification->identification = $itemIdentifications[$index];
                 $identification->volume = $item[1];
-                $identification->extra = $itemExtras[$index];
+                $identification->extra = $identifier->getExtra() ? $itemExtras[$index] : null;
                 $result[1][] = $identification;
             }
         }
