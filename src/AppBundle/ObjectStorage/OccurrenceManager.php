@@ -68,6 +68,7 @@ class OccurrenceManager extends PoemManager
                     ->setPageEnd($rawLocation['page_end'])
                     ->setUnsure($rawLocation['unsure'])
                     ->setGeneralLocation($rawLocation['general_location'])
+                    ->setOldLocation($rawLocation['physical_location_removeme'])
                     ->setAlternativeFoliumStart($rawLocation['alternative_folium_start'])
                     ->setAlternativeFoliumStartRecto($rawLocation['alternative_folium_start_recto'])
                     ->setAlternativeFoliumEnd($rawLocation['alternative_folium_end'])

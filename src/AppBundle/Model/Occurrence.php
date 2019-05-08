@@ -48,6 +48,10 @@ class Occurrence extends Poem
     /**
      * @var string
      */
+    protected $oldLocation;
+    /**
+     * @var string
+     */
     protected $contextualInfo;
     /**
      * @var string
@@ -199,6 +203,17 @@ class Occurrence extends Poem
     public function setGeneralLocation(string $generalLocation = null): Occurrence
     {
         $this->generalLocation = $generalLocation;
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $oldLocation
+     * @return Occurrence
+     */
+    public function setOldLocation(string $oldLocation = null): Occurrence
+    {
+        $this->oldLocation = $oldLocation;
 
         return $this;
     }
@@ -499,6 +514,9 @@ class Occurrence extends Poem
         }
         if (!empty($this->generalLocation)) {
             $result['generalLocation'] = $this->generalLocation;
+        }
+        if (!empty($this->oldLocation)) {
+            $result['oldLocation'] = $this->oldLocation;
         }
         if (!empty($this->alternativeFoliumStart)) {
             $result['alternativeFoliumStart'] = $this->alternativeFoliumStart;

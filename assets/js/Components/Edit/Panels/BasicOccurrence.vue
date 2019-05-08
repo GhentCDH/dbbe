@@ -131,6 +131,14 @@ export default {
                                 model: 'generalLocation',
                                 validator: VueFormGenerator.validators.string,
                             },
+                            oldLocation: {
+                                type: 'input',
+                                inputType: 'text',
+                                label: 'Old location',
+                                labelClasses: 'control-label',
+                                model: 'oldLocation',
+                                disabled: true,
+                            },
                         },
                     },
                     {

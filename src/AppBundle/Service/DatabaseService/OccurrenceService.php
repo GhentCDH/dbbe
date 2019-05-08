@@ -256,6 +256,7 @@ class OccurrenceService extends PoemService
                 document_contains.page_start,
                 document_contains.page_end,
                 document_contains.general_location,
+                document_contains.physical_location_removeme,
                 document_contains.alternative_folium_start,
                 document_contains.alternative_folium_start_recto,
                 document_contains.alternative_folium_end,
