@@ -87,7 +87,9 @@ export default {
             let label = field.label.toLowerCase()
             let article = 'a ';
             switch(label) {
+                case 'article':
                 case 'office':
+                case 'online source':
                 case 'origin':
                 case 'editorial status':
                 case 'id':
