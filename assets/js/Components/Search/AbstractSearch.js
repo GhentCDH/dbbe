@@ -270,7 +270,7 @@ export default {
             if (a.name === 'true' && b.name === 'false') {
                 return -1
             }
-            if (a.name instanceof String && b.name instanceof String) {
+            if ((typeof(a.name) === 'string' || a.name instanceof String) && (typeof(b.name) === 'string' || b.name instanceof String)) {
                 // Numeric (a.o. shelf number) (e.g., 571A)
                 let first = a.name.match(this.numRegex);
                 let second = b.name.match(this.numRegex);
