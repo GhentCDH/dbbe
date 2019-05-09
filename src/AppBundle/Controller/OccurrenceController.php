@@ -420,6 +420,7 @@ class OccurrenceController extends EditController
                     'occurrence_post' => $this->generateUrl('occurrence_post'),
                     'occurrence_put' => $this->generateUrl('occurrence_put', ['id' => $id == null ? 'occurrence_id' : $id]),
                     'manuscripts_get' => $this->generateUrl('manuscripts_get'),
+                    'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'manuscripts_search' => $this->generateUrl('manuscripts_search'),
                     'verse_variant_get' => $this->generateUrl('verse_variant_get', ['groupId' => 'verse_variant_id']),
                     'verse_search' => $this->generateUrl('verse_search'),
