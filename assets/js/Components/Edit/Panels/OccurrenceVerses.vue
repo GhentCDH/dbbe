@@ -56,7 +56,7 @@
                         </div>
                         <div class="col-xs-2 text-right">
                             <a
-                                v-if="individualVerse.linkVerses || individualVerse.groupId"
+                                v-if="(individualVerse.linkVerses && individualVerse.linkVerses.length) || individualVerse.groupId"
                                 href="#"
                                 title="Display links"
                                 class="action"
@@ -85,7 +85,7 @@
                 </div>
             </transition-group>
         </draggable>
-        <btn @click="addVerse()"><i class="fa fa-plus" />&nbsp;Add single verse</btn>
+        <btn @click="addVerse()"><i class="fa fa-plus" />&nbsp;Add a single verse</btn>
         <modal
             v-if="verse"
             v-model="linksModal"
@@ -522,12 +522,15 @@ export default {
             this.$refs.addTextForm.validate()
             this.isValid = (this.$refs.addTextForm.errors.length === 0)
             if (this.isValid) {
+                let order = 0;
                 for (let verse of this.textModel.text.split(/\r?\n/)) {
                     this.model.verses.push({
                         id: null,
                         groupId: null,
                         verse: verse,
-                    })
+                        order: this.model.verses.length + order,
+                    });
+                    order++;
                 }
                 this.textModel = {};
 
@@ -541,7 +544,7 @@ export default {
                 verse: '',
                 linkVerses: [],
                 index: this.model.verses.length,
-                order: this.model.verses.length,
+                order: this.model.verses.length + 1,
             }
             this.search.search = ''
             this.linkableVerses = null

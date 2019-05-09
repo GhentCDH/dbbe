@@ -517,7 +517,7 @@ export default {
 
                 // Verses
                 this.model.verses = {
-                    verses: this.occurrence.verses,
+                    verses: this.occurrence.verses != null ? this.occurrence.verses : [],
                     numberOfVerses: this.occurrence.numberOfVerses,
                 }
 
@@ -615,7 +615,10 @@ export default {
                 }
             }
             else {
-                this.model.general.public = true
+                this.model.general.public = true;
+                this.model.verses = {
+                    verses: [],
+                };
             }
         },
         save() {
