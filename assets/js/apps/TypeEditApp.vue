@@ -617,7 +617,10 @@ export default {
             }
 
             else {
-                this.model.general.public = true
+                this.model.general.public = true;
+                this.model.types = {
+                    relatedTypes: [],
+                };
             }
         },
         save() {
