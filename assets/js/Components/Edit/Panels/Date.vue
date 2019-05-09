@@ -366,7 +366,8 @@ export default {
             return this.formatFuzzyDatePart(input.floor) + ' - ' + this.formatFuzzyDatePart(input.ceiling, true);
         },
         formatFuzzyDatePart(input, isCeiling = false) {
-            return input == null ? (isCeiling ? 'infinity' : '-infinity') : (input.substr(8, 2) + '/' + input.substr(5, 2) + '/' + input.substr(0, 4));
+            let yearLength = input.indexOf('-');
+            return input == null ? (isCeiling ? 'infinity' : '-infinity') : (input.substr(yearLength + 4, 2) + '/' + input.substr(yearLength + 1, 2) + '/' + input.substr(0, yearLength));
         },
         formatFuzzyInterval(input) {
             if (input == null) {
@@ -375,12 +376,23 @@ export default {
             return '[' + this.formatFuzzyDate(input.start) + ']' + ' -> ' + '[' + this.formatFuzzyDate(input.end) + ']';
         },
         getFormDate(input) {
-            return {
-                floorYear: input.floor == null ? null : parseInt(input.floor.substr(0,4)),
-                floorDayMonth: input.floor == null ? null : input.floor.substr(8,2) + '/' + input.floor.substr(5,2),
-                ceilingYear: input.ceiling == null ? null : parseInt(input.ceiling.substr(0,4)),
-                ceilingDayMonth: input.ceiling == null ? null : input.ceiling.substr(8,2) + '/' + input.ceiling.substr(5,2),
+            let result = {
+                floorYear: null,
+                floorDayMonth: null,
+                ceilingYear: null,
+                ceilingDayMonth: null,
             };
+            if (input.floor != null) {
+                let yearLength = input.floor.indexOf('-');
+                result.floorYear = parseInt(input.floor.substr(0, yearLength));
+                result.floorDayMonth = input.floor.substr(yearLength + 4, 2) + '/' + input.floor.substr(yearLength + 1, 2);
+            }
+            if (input.ceiling != null) {
+                let yearLength = input.ceiling.indexOf('-');
+                result.ceilingYear = parseInt(input.ceiling.substr(0, yearLength));
+                result.ceilingDayMonth = input.ceiling.substr(yearLength + 4, 2) + '/' + input.ceiling.substr(yearLength + 1, 2);
+            }
+            return result;
         },
         getTableDate(input) {
             return {
