@@ -92,9 +92,28 @@ class Poem extends Document
         return $this->genres;
     }
 
+    public function setSubjects(array $subjects): Poem
+    {
+        $this->subjects = $subjects;
+
+        return $this;
+    }
+
     public function addSubject(SubjectInterface $subject): Poem
     {
         $this->subjects[$subject->getId()] = $subject;
+
+        return $this;
+    }
+
+    public function delSubjectById(int $subjectId): Poem
+    {
+        foreach ($this->subjects as $key => $subject) {
+            if ($subject->getId() == $subjectId) {
+                unset($this->subjects[$key]);
+                break;
+            }
+        }
 
         return $this;
     }

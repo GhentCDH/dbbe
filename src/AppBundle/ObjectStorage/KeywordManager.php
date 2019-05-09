@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Keyword;
 use AppBundle\Model\Person;
+use AppBundle\Model\Poem;
 use AppBundle\Utils\ArrayToJson;
 
 /**
@@ -179,7 +180,6 @@ class KeywordManager extends ObjectManager
         if (count($keywords) != 1) {
             throw new NotFoundHttpException('Keyword with id ' . $primaryId .' not found.');
         }
-        $keyword = $keywords[$primaryId];
         // Will throw an exception if not found
         $person = $this->container->get('person_manager')->getFull($secondaryId);
 
@@ -187,56 +187,64 @@ class KeywordManager extends ObjectManager
         $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, 'getShort');
         $poems = $occurrences + $types;
 
-        $this->dbs->beginTransaction();
-        try {
-            if (!empty($poems)) {
+        if (!empty($poems)) {
+            $this->dbs->beginTransaction();
+            try {
+                $esData = [];
+                $this->dbs->migrateSubjectFactoidToPerson($primaryId, $secondaryId);
                 foreach ($poems as $poem) {
-                    $keywordArray = ArrayToJson::arrayToShortJson($poem->getKeywordSubjects());
-                    // filter out the keywords that are not equal to the selected keyword
-                    $keywordArray = array_values(
-                        array_filter(
-                            $keywordArray,
-                            function ($keywordItem) use ($primaryId) {
-                                return $keywordItem['id'] != $primaryId;
-                            }
-                        )
-                    );
-                    $personArray = ArrayToJson::arrayToShortJson($poem->getPersonSubjects());
-                    // filter out the keywords that are not equal to the selected person
-                    // (preventing a possible duplicate)
-                    $personArray = array_values(
-                        array_filter(
-                            $personArray,
-                            function ($personItem) use ($secondaryId) {
-                                return $personItem['id'] != $secondaryId;
-                            }
-                        )
-                    );
-                    $personArray[] = ['id' => $secondaryId];
-                    $this->container->get($poem::CACHENAME . '_manager')->update(
-                        $poem->getId(),
-                        json_decode(json_encode([
-                            'keywordSubjects' => $keywordArray,
-                            'personSubjects' => $personArray,
-                        ]))
-                    );
+                    $old = (new Poem())
+                        ->setId($poem->getId())
+                        ->setSubjects($poem->getSubjects());
+
+                    $poem->delSubjectById($primaryId)->addSubject($person)->sortSubjects();
+
+                    $new = (new Poem())
+                        ->setId($poem->getId())
+                        ->setSubjects($poem->getSubjects());
+
+                    $this->updateModified($old, $new);
+
+                    $esData[$new->getId()] = [
+                        'id' => $new->getId(),
+                        'subject' => ArrayToJson::arrayToShortJson($new->getSubjects()),
+                    ];
                 }
-            }
-            $this->delete($primaryId);
+                $this->delete($primaryId);
 
-            // commit transaction
-            $this->dbs->commit();
-        } catch (\Exception $e) {
-            $this->dbs->rollBack();
+                $this->container->get('occurrence_elastic_service')->updateMultiple(
+                    array_filter(
+                        $esData,
+                        function ($key) use ($occurrences) {
+                            return in_array($key, array_keys($occurrences));
+                        },
+                        ARRAY_FILTER_USE_KEY
+                    )
+                );
+                $this->container->get('type_elastic_service')->updateMultiple(
+                    array_filter(
+                        $esData,
+                        function ($key) use ($types) {
+                            return in_array($key, array_keys($types));
+                        },
+                        ARRAY_FILTER_USE_KEY
+                    )
+                );
 
-            if (!empty($occurrences)) {
-                $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($poems));
-            }
-            if (!empty($types)) {
-                $this->container->get('type_manager')->updateElasticByIds(array_keys($poems));
-            }
+                // commit transaction
+                $this->dbs->commit();
+            } catch (\Exception $e) {
+                $this->dbs->rollBack();
 
-            throw $e;
+                if (!empty($occurrences)) {
+                    $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($poems));
+                }
+                if (!empty($types)) {
+                    $this->container->get('type_manager')->updateElasticByIds(array_keys($poems));
+                }
+
+                throw $e;
+            }
         }
 
         return $person;
