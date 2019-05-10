@@ -208,10 +208,6 @@ Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 Vue.component('vueDropzone', vue2Dropzone)
 
-var $ = require('jquery')
-require('bootstrap-sass')
-require('ekko-lightbox')
-
 export default {
     mixins: [
         AbstractField,
