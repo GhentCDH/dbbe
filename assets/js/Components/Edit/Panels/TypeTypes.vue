@@ -224,6 +224,12 @@ export default {
                 this.updateRelatedTypeModal = false
             }
         },
+        submitDeleteRelatedType() {
+            this.model.relatedTypes.splice(this.relatedTypeIndex, 1);
+            this.calcChanges();
+            this.$emit('validated', 0, null, this);
+            this.delRelatedTypeModal = false;
+        },
         displayRelatedTypes(relatedTypes) {
             let result = []
             for (let relatedType of relatedTypes.relatedTypes) {
