@@ -38,7 +38,6 @@ class ManagementManager extends ObjectManager
 
     public function getAll(): array
     {
-        $managements = [];
         $rawManagements = $this->dbs->getAllManagements();
         $managements = $this->getWithData($rawManagements);
 
