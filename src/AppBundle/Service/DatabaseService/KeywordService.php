@@ -107,13 +107,14 @@ class KeywordService extends DatabaseService
         );
     }
 
-    public function migrateSubjectFactoidToPerson(int $keywordId, int $personId)
+    public function migrateSubjectFactoidToPerson(int $keywordId, int $personId): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.factoid
             set subject_identity = ?
             from data.factoid_type
             where factoid.subject_identity = ?
+            and factoid.idfactoid_type = factoid_type.idfactoid_type
             and factoid_type.type = \'subject of\'',
             [
                 $personId,
