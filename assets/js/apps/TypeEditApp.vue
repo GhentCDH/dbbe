@@ -89,7 +89,7 @@
                 id="tags"
                 ref="keywords"
                 header="Tags"
-                :links="[{title: 'Type keywords', reload: 'typeKeywords', edit: urls['keywords_type_edit']}]"
+                :links="[{title: 'Tags', reload: 'typeKeywords', edit: urls['keywords_type_edit']}]"
                 :model="model.keywords"
                 :values="keywords"
                 :reloads="reloads"
