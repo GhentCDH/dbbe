@@ -6,6 +6,10 @@
     }
   }
 
+  .app-logo-container {
+    text-align: center;
+  }
+
   .app-logo {
     width: 200px;
     @media(min-width: $screen-sm-min) {
