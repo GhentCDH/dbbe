@@ -77,7 +77,7 @@
                 id="subjects"
                 ref="subjects"
                 header="Subjects"
-                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}, {title: 'Subject keywords', reload: 'keywordSubjects', edit: urls['keywords_subject_edit']}]"
+                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}, {title: 'Keywords', reload: 'keywordSubjects', edit: urls['keywords_subject_edit']}]"
                 :model="model.subjects"
                 :values="subjects"
                 :reloads="reloads"
