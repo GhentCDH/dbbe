@@ -21,7 +21,7 @@ class KeywordController extends BaseController
     const TEMPLATE_FOLDER = 'AppBundle:Keyword:';
 
     /**
-     * @Route("/subjects", name="subjects_get")
+     * @Route("/keywords", name="subjects_get")
      * @Method("GET")
      * @param Request $request
      */
@@ -51,7 +51,7 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/subjects/edit", name="subjects_edit")
+     * @Route("/keywords/edit", name="subjects_edit")
      * @Method("GET")
      * @param Request $request
      */

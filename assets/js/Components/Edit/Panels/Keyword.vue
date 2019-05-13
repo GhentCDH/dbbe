@@ -46,8 +46,10 @@ export default {
             schema: {
                 fields: {
                     keywords: this.createMultiSelect(
-                        'Keywords',
-                        {},
+                        'Tags',
+                        {
+                            model: 'keywords'
+                        },
                         {
                             multiple: true,
                             closeOnSelect: false,

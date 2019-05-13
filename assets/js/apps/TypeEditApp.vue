@@ -86,9 +86,9 @@
             />
 
             <keywordPanel
-                id="keywords"
+                id="tags"
                 ref="keywords"
-                header="Keywords"
+                header="Tags"
                 :links="[{title: 'Type keywords', reload: 'typeKeywords', edit: urls['keywords_type_edit']}]"
                 :model="model.keywords"
                 :values="keywords"
@@ -256,9 +256,9 @@
                     </li>
                     <li>
                         <a
-                            href="#keywords"
+                            href="#tags"
                             :class="{'bg-danger': !($refs.keywords && $refs.keywords.isValid)}"
-                        >Keywords</a>
+                        >Tags</a>
                     </li>
                     <li v-if="identifiers.length > 0">
                         <a
