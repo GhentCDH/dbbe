@@ -281,9 +281,6 @@ export default {
             return []
         },
         onChange() {
-            // for (let index of this.data.keys()) {
-            //     this.data[index].order = index;
-            // }
             if (JSON.stringify(this.data) === JSON.stringify(this.originalData)) {
                 window.onbeforeunload = function () {}
             } else {
