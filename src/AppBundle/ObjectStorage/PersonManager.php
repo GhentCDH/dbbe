@@ -15,8 +15,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\FuzzyDate;
-use AppBundle\Model\Person;
 use AppBundle\Model\Origin;
+use AppBundle\Model\Person;
+use AppBundle\Model\Poem;
 
 /**
  * ObjectManager for persons
@@ -777,6 +778,7 @@ class PersonManager extends ObjectEntityManager
         $manuscripts = $this->container->get('manuscript_manager')->getPersonDependencies($secondaryId, 'getShort');
         $occurrences = $this->container->get('occurrence_manager')->getPersonDependencies($secondaryId, 'getShort');
         $types = $this->container->get('type_manager')->getPersonDependencies($secondaryId, 'getShort');
+        $poems = $occurrences + $types;
 
         if ((!empty($manuscripts) || !empty($occurrences) || !empty($types)) && !$primary->getHistorical()) {
             $updates['historical'] = true;
@@ -811,69 +813,113 @@ class PersonManager extends ObjectEntityManager
                     }
                 }
             }
-            if (!empty($occurrences)) {
-                foreach ($occurrences as $occurrence) {
-                    $personRoles = $occurrence->getPersonRoles();
-                    $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
+            if (!empty($poems)) {
+                $this->dbs->mergePoemBibroles($primaryId, $secondaryId);
+                $this->dbs->mergePoemSubjects($primaryId, $secondaryId);
+                $esData = [];
+                $manuscriptIds = [];
+                foreach ($poems as $poem) {
+                    $old = (new Poem())
+                        ->setId($poem->getId());
+                    $new = (new Poem())
+                        ->setId($poem->getId());
 
-                    $contributorRoles = $occurrence->getContributorRoles();
-                    $update += $this->getMergeUpdate($contributorRoles, $primaryId, $secondaryId);
-
-                    $subjects = $occurrence->getSubjects();
-                    $subjectIds = array_keys($subjects);
-                    if (in_array($secondaryId, $subjectIds)) {
-                        $update['subjects'] = [];
-                        foreach ($subjectIds as $id) {
+                    $personRoles = $poem->getPersonRoles();
+                    $newPersonRoles = $personRoles;
+                    $found = false;
+                    foreach ($personRoles as $roleName => $roleAndPersons) {
+                        foreach ($roleAndPersons[1] as $id => $person) {
                             if ($id == $secondaryId) {
-                                // Prevent duplicate values
-                                if (!in_array($primaryId, $subjectIds)) {
-                                    $update['subjects'][] = ['id' => $primaryId];
-                                }
-                            } else {
-                                $update['subjects'][] = ['id' => $id];
+                                unset($newPersonRoles[$roleName][1][$secondaryId]);
+                                $newPersonRoles[$roleName][1][$primaryId] = $primary;
+                                $found = true;
+                                break;
                             }
+                        }
+                        if ($found) {
+                            break;
+                        }
+                    }
+                    if ($found) {
+                        $old->setPersonRoles($personRoles);
+                        $new->setPersonRoles($newPersonRoles);
+                        if (get_class($poem == 'AppBundle\Model\Occurrences')) {
+                            $manuscriptIds[] = $poem->getManuscript()->getId();
                         }
                     }
 
-                    if (!empty($update)) {
-                        $this->container->get('occurrence_manager')->update(
-                            $occurrence->getId(),
-                            json_decode(json_encode($update))
-                        );
-                    }
-                }
-            }
-            if (!empty($types)) {
-                foreach ($types as $type) {
-                    $personRoles = $type->getPersonRoles();
-                    $update = $this->getMergeUpdate($personRoles, $primaryId, $secondaryId);
-
-                    $contributorRoles = $type->getContributorRoles();
-                    $update += $this->getMergeUpdate($contributorRoles, $primaryId, $secondaryId);
-
-                    $subjects = $type->getSubjects();
-                    $subjectIds = array_keys($subjects);
-                    if (in_array($secondaryId, $subjectIds)) {
-                        $update['subjects'] = [];
-                        foreach ($subjectIds as $id) {
+                    $contributorRoles = $poem->getContributorRoles();
+                    $newContributorRoles = $contributorRoles;
+                    $found = false;
+                    foreach ($contributorRoles as $roleName => $roleAndPersons) {
+                        foreach ($roleAndPersons[1] as $id => $person) {
                             if ($id == $secondaryId) {
-                                // Prevent duplicate values
-                                if (!in_array($primaryId, $subjectIds)) {
-                                    $update['subjects'][] = ['id' => $primaryId];
-                                }
-                            } else {
-                                $update['subjects'][] = ['id' => $id];
+                                unset($newContributorRoles[$roleName][1][$secondaryId]);
+                                $newContributorRoles[$roleName][1][$primaryId] = $primary;
+                                $found = true;
+                                break;
                             }
                         }
+                        if ($found) {
+                            break;
+                        }
+                    }
+                    if ($found) {
+                        $old->setContributorRoles($contributorRoles);
+                        $new->setContributorRoles($newContributorRoles);
                     }
 
-                    if (!empty($update)) {
-                        $this->container->get('type_manager')->update(
-                            $type->getId(),
-                            json_decode(json_encode($update))
-                        );
+                    $subjects = $poem->getSubjects();
+                    $newSubjects = $subjects;
+                    $new->delSubjectById($secondaryId);
+                    if (count($subjects) != count($newSubjects)) {
+                        $newSubjects->addSubject($primary)->sortSubjects();
+                        $old->setSubjects($subjects);
+                        $new->setSubjects($newSubjects);
+                    }
+
+                    $this->updateModified($old, $new);
+
+                    $esData[$new->getId()] = [
+                        'id' => $new->getId(),
+                    ];
+                    foreach ($new->getPersonRoles() as $roleName => $personRole) {
+                        $esData[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
+                    }
+                    foreach ($new->getPublicPersonRoles() as $roleName => $personRole) {
+                        $esData[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
+                    }
+                    foreach ($new->getContributorRoles() as $roleName => $contributorRole) {
+                        $esData[$roleName] = ArrayToJson::arrayToShortJson($contributorRole[1]);
+                    }
+                    foreach ($new->getPublicContributorRoles() as $roleName => $contributorRole) {
+                        $esData[$roleName . '_public'] = ArrayToJson::arrayToShortJson($contributorRole[1]);
+                    }
+                    if (!empty($new->subjects)) {
+                        $esData['subject'] = ArrayToJson::arrayToShortJson($new->subjects);
                     }
                 }
+                $this->container->get('occurrence_elastic_service')->updateMultiple(
+                    array_filter(
+                        $esData,
+                        function ($key) use ($occurrences) {
+                            return in_array($key, array_keys($occurrences));
+                        },
+                        ARRAY_FILTER_USE_KEY
+                    )
+                );
+                $this->container->get('type_elastic_service')->updateMultiple(
+                    array_filter(
+                        $esData,
+                        function ($key) use ($types) {
+                            return in_array($key, array_keys($types));
+                        },
+                        ARRAY_FILTER_USE_KEY
+                    )
+                );
+
+                // Reindex manuscripts (occurrencePersonRoles)
+                $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
             }
             if (!empty($articles)) {
                 foreach ($articles as $article) {

@@ -824,6 +824,68 @@ class PersonService extends EntityService
         );
     }
 
+    public function mergePoemBibroles(int $primaryId, int $secondaryId): int
+    {
+        $numberOfRows = $this->conn->executeUpdate(
+            'UPDATE data.bibrole
+            set idperson = ?
+            from data.poem
+            where bibrole.idperson = ? and bibrole.iddocument = poem.identity',
+            [
+                $primaryId,
+                $secondaryId,
+            ]
+        );
+
+        // Remove duplicates
+        $this->conn->executeUpdate(
+            'delete from data.bibrole a using (
+                select min(ctid) as ctid, idperson, iddocument, idrole
+                from data.bibrole
+                group by idperson, iddocument, idrole
+                having count(*) > 1
+            ) b
+            where a.idperson = b.idperson and a.iddocument = b.iddocument and a.idrole = b.idrole and a.ctid <> b.ctid'
+        );
+
+        return $numberOfRows;
+    }
+
+    public function mergePoemSubjects(int $primaryId, int $secondaryId): int
+    {
+        $numberOfRows = $this->conn->executeUpdate(
+        'UPDATE data.factoid
+                set subject_identity = ?
+                from data.factoid_type
+                where factoid.subject_identity = ?
+                and factoid.idfactoid_type = factoid_type.idfactoid_type
+                and factoid_type.type = \'subject of\'',
+            [
+                $primaryId,
+                $secondaryId,
+            ]
+        );
+
+        // Remove duplicates
+        $this->conn->executeUpdate(
+            'delete from data.factoid a using (
+                select min(idfactoid) as idfactoid, subject_identity, object_identity, date, interval, idlocation, idfactoid_type
+                from data.factoid
+                group by subject_identity, object_identity, date, interval, idlocation, idfactoid_type
+                having count(*) > 1
+            ) b
+            where a.subject_identity = b.subject_identity
+            and a.object_identity = b.object_identity
+            and a.date = b.date
+            and a.interval = b.interval
+            and a.idlocation = b.idlocation
+            and a.idfactoid_type = b.idfactoid_type
+            and a.idfactoid <> b.idfactoid'
+        );
+
+        return $numberOfRows;
+    }
+
     public function delete(int $id): int
     {
         $this->beginTransaction();
