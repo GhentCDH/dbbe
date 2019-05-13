@@ -27,7 +27,7 @@ class OriginService extends DatabaseService
                 inner join data.monastery on institution.identity = monastery.identity
              ) as moninst on location.idinstitution = moninst.institution_id
             inner join data.region on coalesce(moninst.city_id, location.idregion) = region.identity
-            where region.historical_name is not null
+            where region.historical_name is not null and region.historical_name <> \'\'
             order by region.historical_name, moninst.institution_name'
         )->fetchAll();
     }
@@ -44,7 +44,7 @@ class OriginService extends DatabaseService
                 location.idlocation as origin_id
             from data.location
             inner join data.region on location.idregion = region.identity
-            where region.historical_name is not null
+            where region.historical_name is not null and region.historical_name <> \'\'
             order by region.historical_name'
         )->fetchAll();
     }
