@@ -43,7 +43,7 @@
         >
             <transition-group>
                 <div
-                    v-for="individualVerse in model.verses"
+                    v-for="(individualVerse, index) in model.verses"
                     :key="individualVerse.order"
                     class="panel panel-default draggable-item greek"
                 >
@@ -60,7 +60,7 @@
                                 href="#"
                                 title="Display links"
                                 class="action"
-                                @click.prevent="displayLinks(individualVerse.order)"
+                                @click.prevent="displayLinks(index)"
                             >
                                 <i class="fa fa-link" />
                             </a>
@@ -68,7 +68,7 @@
                                 href="#"
                                 title="Edit"
                                 class="action"
-                                @click.prevent="editVerse(individualVerse.order)"
+                                @click.prevent="editVerse(index)"
                             >
                                 <i class="fa fa-pencil-square-o" />
                             </a>
@@ -76,7 +76,7 @@
                                 href="#"
                                 title="Delete"
                                 class="action"
-                                @click.prevent="delVerse(individualVerse.order)"
+                                @click.prevent="delVerse(index)"
                             >
                                 <i class="fa fa-trash-o" />
                             </a>
@@ -722,8 +722,8 @@ export default {
             this.delVerseModal = false
         },
         onVerseOrderChange() {
-            this.calcChanges()
-            this.$emit('validated', 0, null, this)
+            this.calcChanges();
+            this.$emit('validated', 0, null, this);
         },
         displayVerses(verses) {
             // Return null if verses are undefined (e.g. old values when cloning)

@@ -21,7 +21,7 @@
             >
                 <transition-group>
                     <div
-                        v-for="item in data"
+                        v-for="(item, index) in data"
                         :key="item.order"
                         class="panel panel-default draggable-item"
                     >
@@ -281,6 +281,9 @@ export default {
             return []
         },
         onChange() {
+            // for (let index of this.data.keys()) {
+            //     this.data[index].order = index;
+            // }
             if (JSON.stringify(this.data) === JSON.stringify(this.originalData)) {
                 window.onbeforeunload = function () {}
             } else {
