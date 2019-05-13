@@ -1,8 +1,8 @@
 <template>
     <panel :header="header">
         <vue-form-generator
-            ref="numberOfVersesForm"
-            :schema="numberOfVersesSchema"
+            ref="generalForm"
+            :schema="generalSchema"
             :model="model"
             :options="formOptions"
             @validated="validated"
@@ -290,8 +290,27 @@ export default {
     },
     data() {
         return {
-            numberOfVersesSchema: {
+            generalSchema: {
                 fields: {
+                    incipit: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Incipit',
+                        labelClasses: 'control-label',
+                        styleClasses: 'greek',
+                        model: 'incipit',
+                        required: true,
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    title: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Title',
+                        labelClasses: 'control-label',
+                        styleClasses: 'greek',
+                        model: 'title',
+                        validator: VueFormGenerator.validators.string,
+                    },
                     numberOfVerses: {
                         type: 'input',
                         inputType: 'number',
@@ -435,25 +454,33 @@ export default {
         },
     },
     methods: {
-        // validated (inherited) is only called on numberOfVersesForm
+        // validated (inherited) is only called on generalForm
         validate() {
-            this.$refs.numberOfVersesForm.validate()
+            this.$refs.generalForm.validate()
         },
         calcChanges() {
             this.changes = []
             for (let key of Object.keys(this.model)) {
                 if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
                     switch(key) {
-                    case 'verses':
-
+                    case 'incipit':
                         this.changes.push({
-                            'key': 'verses',
-                            'label': 'Verses',
-                            'old': this.displayVerses(this.originalModel.verses),
-                            'new': this.displayVerses(this.model.verses),
-                            'value': this.model.verses,
-                        })
-                        break
+                            'key': 'incipit',
+                            'label': 'Incipit',
+                            'old': this.originalModel.incipit,
+                            'new': this.model.incipit,
+                            'value': this.model.incipit,
+                        });
+                        break;
+                    case 'title':
+                        this.changes.push({
+                            'key': 'title',
+                            'label': 'title',
+                            'old': this.originalModel.title,
+                            'new': this.model.title,
+                            'value': this.model.title,
+                        });
+                        break;
                     case 'numberOfVerses':
                         this.changes.push({
                             'key': 'numberOfVerses',
@@ -461,8 +488,17 @@ export default {
                             'old': this.originalModel.numberOfVerses,
                             'new': this.model.numberOfVerses,
                             'value': this.model.numberOfVerses,
-                        })
-                        break
+                        });
+                        break;
+                    case 'verses':
+                        this.changes.push({
+                            'key': 'verses',
+                            'label': 'Verses',
+                            'old': this.displayVerses(this.originalModel.verses),
+                            'new': this.displayVerses(this.model.verses),
+                            'value': this.model.verses,
+                        });
+                        break;
                     }
                 }
             }

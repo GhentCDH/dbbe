@@ -46,30 +46,6 @@ export default {
             schema: {
                 groups: [
                     {
-                        legend: 'Incipit / Title',
-                        fields: {
-                            incipit: {
-                                type: 'input',
-                                inputType: 'text',
-                                label: 'Incipit',
-                                labelClasses: 'control-label',
-                                styleClasses: 'greek',
-                                model: 'incipit',
-                                required: true,
-                                validator: VueFormGenerator.validators.string,
-                            },
-                            title: {
-                                type: 'input',
-                                inputType: 'text',
-                                label: 'Title',
-                                labelClasses: 'control-label',
-                                styleClasses: 'greek',
-                                model: 'title',
-                                validator: VueFormGenerator.validators.string,
-                            },
-                        },
-                    },
-                    {
                         legend: 'Manuscript',
                         fields: {
                             manuscript: this.createMultiSelect(

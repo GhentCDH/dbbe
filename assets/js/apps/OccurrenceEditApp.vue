@@ -5,6 +5,16 @@
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
             />
+
+            <occurrenceVersesPanel
+                id="verses"
+                ref="verses"
+                header="Verses"
+                :model="model.verses"
+                :urls="urls"
+                @validated="validated"
+            />
+
             <basicOccurrencePanel
                 id="basic"
                 ref="basic"
@@ -15,15 +25,6 @@
                 :reloads="reloads"
                 @validated="validated"
                 @reload="reload"
-            />
-
-            <occurrenceVersesPanel
-                id="verses"
-                ref="verses"
-                header="Verses"
-                :model="model.verses"
-                :urls="urls"
-                @validated="validated"
             />
 
             <occurrenceTypesPanel
@@ -212,15 +213,15 @@
                 <ul class="linklist linklist-dark">
                     <li>
                         <a
-                            href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
-                        >Basic information</a>
-                    </li>
-                    <li>
-                        <a
                             href="#verses"
                             :class="{'bg-danger': !($refs.verses && $refs.verses.isValid)}"
                         >Verses</a>
+                    </li>
+                    <li>
+                        <a
+                            href="#basic"
+                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                        >Basic information</a>
                     </li>
                     <li>
                         <a
@@ -326,7 +327,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:BasicOccurrence|OccurrenceVerses|OccurrenceTypes|Person|Date|Metre|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:OccurrenceVerses|BasicOccurrence|OccurrenceTypes|Person|Date|Metre|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -352,9 +353,13 @@ export default {
             dbbePersons: null,
             managements: null,
             model: {
-                basic: {
+                verses: {
                     incipit: null,
                     title: null,
+                    verses: [],
+                    numberOfVerses: null,
+                },
+                basic: {
                     manuscript: null,
                     foliumStart:  null,
                     foliumStartRecto:  null,
@@ -369,10 +374,6 @@ export default {
                     alternativeFoliumStartRecto:  null,
                     alternativeFoliumEnd:  null,
                     alternativeFoliumEndRecto:  null,
-                },
-                verses: {
-                    verses: [],
-                    numberOfVerses: null,
                 },
                 types: {types: null},
                 personRoles: {},
@@ -410,8 +411,8 @@ export default {
                 managements: {managements: null},
             },
             panels: [
-                'basic',
                 'verses',
+                'basic',
                 'types',
                 'persons',
                 'dates',
@@ -495,10 +496,16 @@ export default {
         },
         setData() {
             if (this.occurrence != null) {
-                // Basic information
-                this.model.basic = {
+                // Verses
+                this.model.verses = {
                     incipit: this.occurrence.incipit,
                     title: this.occurrence.title,
+                    verses: this.occurrence.verses != null ? this.occurrence.verses : [],
+                    numberOfVerses: this.occurrence.numberOfVerses,
+                }
+
+                // Basic information
+                this.model.basic = {
                     manuscript: this.occurrence.manuscript,
                     foliumStart: this.occurrence.foliumStart,
                     foliumStartRecto: this.occurrence.foliumStartRecto,
@@ -513,12 +520,6 @@ export default {
                     alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
                     alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
                     alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
-                }
-
-                // Verses
-                this.model.verses = {
-                    verses: this.occurrence.verses != null ? this.occurrence.verses : [],
-                    numberOfVerses: this.occurrence.numberOfVerses,
                 }
 
                 // Types
