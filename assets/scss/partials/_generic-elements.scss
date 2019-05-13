@@ -51,3 +51,13 @@
 .preserve-newlines {
   white-space: pre-line;
 }
+
+a {
+  &.relUrl {
+    margin-left: 1em;
+
+    .fa {
+      margin-left: 0;
+    }
+  }
+}
