@@ -151,7 +151,6 @@ export default {
                 this.schema.groups[0].fields,
                 this.schema.groups[1].fields,
                 this.schema.groups[2].fields,
-                this.schema.groups[3].fields,
             )
         }
     },
