@@ -92,12 +92,12 @@
     },
     "newseventedit": {
       "js": [
-        "/build/newseventedit.43772986.js"
+        "/build/newseventedit.ffd6ebe1.js"
       ]
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.713717ff.js"
+        "/build/occurrenceedit.e60bedbd.js"
       ]
     },
     "occurrencesearch": {
@@ -172,7 +172,7 @@
     },
     "screen": {
       "css": [
-        "/build/screen.8070bc1a.css"
+        "/build/screen.467935db.css"
       ]
     }
   }

@@ -19,7 +19,7 @@
                 v-model="data"
                 @change="onChange"
             >
-                <transition-group>
+                <transition-group name="draggable">
                     <div
                         v-for="(item, index) in data"
                         :key="item.order"
@@ -259,6 +259,11 @@ export default {
             delModal: false,
         }
     },
+    computed: {
+        maxOrder: function() {
+            return Math.max.apply(Math, this.data.map(function(d) { return d.order; }));
+        },
+    },
     watch: {
         'editModel.text'() {
             this.$refs.form.validate();
@@ -295,13 +300,17 @@ export default {
             let model = {};
             if (index != null) {
                 model = JSON.parse(JSON.stringify(this.data[index]));
-                model.index = index
+                model.index = index;
             } else {
+                model.order = this.maxOrder + 1;
                 model.public = true;
             }
             this.editModel = JSON.parse(JSON.stringify(model));
+            if (index == null) {
+                this.editModel.text = '';
+            }
             this.originalEditModel = JSON.parse(JSON.stringify(model));
-            this.editModal = true
+            this.editModal = true;
         },
         del(index) {
             let model = JSON.parse(JSON.stringify(this.data[index]));

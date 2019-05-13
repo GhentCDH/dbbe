@@ -27,6 +27,14 @@
                             :href="urls['verse_variant_get'].replace('verse_variant_id', individualVerse.groupId)"
                         >
                             {{ individualVerse.verse }}
+                            <i class="fa fa-link pull-right"></i>
+                        </a>
+                        <a
+                            v-else-if="individualVerse.linkVerses"
+                            href="#"
+                        >
+                            {{ individualVerse.verse }}
+                            <i class="fa fa-link pull-right"></i>
                         </a>
                         <template v-else>
                             {{ individualVerse.verse }}
@@ -41,7 +49,7 @@
             v-model="model.verses"
             @change="onVerseOrderChange"
         >
-            <transition-group>
+            <transition-group name="draggable">
                 <div
                     v-for="(individualVerse, index) in model.verses"
                     :key="individualVerse.order"
@@ -56,7 +64,7 @@
                         </div>
                         <div class="col-xs-2 text-right">
                             <a
-                                v-if="(individualVerse.linkVerses && individualVerse.linkVerses.length) || individualVerse.groupId"
+                                v-if="individualVerse.linkVerses || individualVerse.groupId"
                                 href="#"
                                 title="Display links"
                                 class="action"
@@ -415,6 +423,9 @@ export default {
 
             return result
         },
+        maxOrder: function() {
+            return Math.max.apply(Math, this.model.verses.map(function(v) { return v.order; }));
+        },
     },
     watch: {
         'verse.verse'(newValue, oldValue) {
@@ -522,15 +533,13 @@ export default {
             this.$refs.addTextForm.validate()
             this.isValid = (this.$refs.addTextForm.errors.length === 0)
             if (this.isValid) {
-                let order = 0;
                 for (let verse of this.textModel.text.split(/\r?\n/)) {
                     this.model.verses.push({
                         id: null,
                         groupId: null,
                         verse: verse,
-                        order: this.model.verses.length + order,
+                        order: this.maxOrder + 1,
                     });
-                    order++;
                 }
                 this.textModel = {};
 
@@ -657,6 +666,9 @@ export default {
             this.isValid = (this.$refs.editVerseForm.errors.length === 0)
             if (this.isValid) {
                 if (this.model.verses[this.verse.index] == null) {
+                    if (this.verse.linkVerses.length === 0) {
+                        delete this.verse.linkVerses;
+                    }
                     // add new
                     this.model.verses.push(JSON.parse(JSON.stringify(this.verse)))
                 }
