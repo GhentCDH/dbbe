@@ -222,6 +222,7 @@
                 </div>
             </div>
             <verseTable
+                v-if="linkableVerses != null"
                 :link-verses="linkableVerses"
                 :linked-groups="linkedGroups"
                 :linked-verses="linkedVerses"
