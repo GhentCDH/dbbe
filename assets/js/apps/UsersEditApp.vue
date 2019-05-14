@@ -217,7 +217,7 @@ export default {
                         .then( (response) => {
                             this.$refs.table.refresh();
                             this.openRequests--;
-                            this.alerts.push({type: 'success', message: 'User added successfully.'})
+                            this.alerts.push({type: 'success', message: 'User ' + response.data.username + ' added successfully.'})
                         })
                         .catch( (error) => {
                             this.formModal = true;
@@ -232,7 +232,7 @@ export default {
                         .then( (response) => {
                             this.$refs.table.refresh();
                             this.openRequests--;
-                            this.alerts.push({type: 'success', message: 'User ' + response.username + 'updated successfully.'})
+                            this.alerts.push({type: 'success', message: 'User ' + response.data.username + ' updated successfully.'})
                         })
                         .catch( (error) => {
                             this.formModal = true;
