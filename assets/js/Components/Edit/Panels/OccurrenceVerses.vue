@@ -111,7 +111,7 @@
             />
             <div slot="header">
                 <h4 class="modal-title">
-                    <span>Linked verses for verse "<span class="greeek">{{ verse.verse }}</span>" ({{ verse.index + 1 }})</span>
+                    <span>Linked verses for verse "<span class="greek">{{ verse.verse }}</span>" ({{ verse.index + 1 }})</span>
                 </h4>
             </div>
         </modal>
