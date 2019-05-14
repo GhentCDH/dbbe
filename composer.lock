@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "ae838391b3520662c5934b9e1be187c4",
+    "content-hash": "ad0dbd1cbd76152ca27d87e4af1c2188",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -1649,6 +1649,63 @@
                 "parameters management"
             ],
             "time": "2018-02-13T18:05:56+00:00"
+        },
+        {
+            "name": "jbroadway/urlify",
+            "version": "1.1.2-stable",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jbroadway/urlify.git",
+                "reference": "78118277ba31189fef18323bb78e9c1b89254dcc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jbroadway/urlify/zipball/78118277ba31189fef18323bb78e9c1b89254dcc",
+                "reference": "78118277ba31189fef18323bb78e9c1b89254dcc",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8.36 || ^5.7 || ^6.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "URLify": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause-Clear"
+            ],
+            "authors": [
+                {
+                    "name": "Johnny Broadway",
+                    "email": "johnny@johnnybroadway.com",
+                    "homepage": "http://www.johnnybroadway.com/"
+                }
+            ],
+            "description": "PHP port of URLify.js from the Django project. Transliterates non-ascii characters for use in URLs.",
+            "homepage": "https://github.com/jbroadway/urlify",
+            "keywords": [
+                "encode",
+                "iconv",
+                "link",
+                "slug",
+                "translit",
+                "transliterate",
+                "transliteration",
+                "url",
+                "urlify"
+            ],
+            "time": "2018-12-08T15:51:20+00:00"
         },
         {
             "name": "jdorn/sql-formatter",

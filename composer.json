@@ -29,6 +29,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "hslavich/oneloginsaml-bundle": "^1.4",
         "incenteev/composer-parameter-handler": "^2.0",
+        "jbroadway/urlify": "^1.1",
         "mashape/unirest-php": "^3.0",
         "ramsey/uuid": "^3.8",
         "ruflin/elastica": "6.*",
