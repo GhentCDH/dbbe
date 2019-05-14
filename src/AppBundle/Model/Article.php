@@ -124,7 +124,7 @@ class Article extends Document
         if (!empty($year)) {
             $sortKey .= $year;
         } else {
-            $sortKey .- '9999';
+            $sortKey .= '9999';
         }
 
         return $sortKey;
