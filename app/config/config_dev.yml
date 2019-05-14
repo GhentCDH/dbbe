@@ -41,3 +41,40 @@ monolog:
 
 swiftmailer:
    delivery_addresses: ['pieterjan.depotter@ugent.be']
+
+hslavich_onelogin_saml:
+    # Basic settings
+    idp:
+        entityId: 'https://qelkom.ugent.be/saml2/idp/metadata.php'
+        singleSignOnService:
+            url: 'https://qelkom.ugent.be/saml2/idp/SSOService.php'
+            binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+        singleLogoutService:
+            url: 'https://qelkom.ugent.be/saml2/idp/SingleLogoutService.php'
+            binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+        x509cert: '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'
+    sp:
+        entityId: 'https://ca60c223.ugent.be/saml/metadata'
+        assertionConsumerService:
+            url: 'https://ca60c223.ugent.be/saml/acs'
+            binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+        singleLogoutService:
+            url: 'https://ca60c223.ugent.be/saml/logout'
+            binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+        x509cert: 'MIICWzCCAcSgAwIBAgIJAP3sVZvCANJWMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNVBAYTAmJlMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwHhcNMTgxMDE2MDgwOTE0WhcNMTkxMDE2MDgwOTE0WjBFMQswCQYDVQQGEwJiZTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9DdFdw4haULrvE0ZYexVIaUgrRvefZ5J81pSJp8bRjtmFv78zrJ7aDPIABdag+I6+XviLVTvfYLG1ieLt2hXFeC40fC0MdlAL+w/1M9nlXmzgSAxWm4PHMF27Z44Le77ysTxNsNZBNCjsChA9cTieJCHABENtgCrCC5X5Pt2eSwIDAQABo1MwUTAdBgNVHQ4EFgQU1H8mqvTWuC4IOviQ6P0pK2CNVWgwHwYDVR0jBBgwFoAU1H8mqvTWuC4IOviQ6P0pK2CNVWgwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQUFAAOBgQAM+bT3pVxX/9NJEdSosBVBVnemL3lDipa4NEqdqgGW+HLPNkocCFCuQHdrT27Yh1cwV/c6PacGqWO+ScXrS2mvRG8w5Iy1gPVSZG1J/WhG6zGN8TzOApJ2Lu20RbXqZwX2SfeP66zQjt9Mn5HAQO5yXmayRaBQrveTFBi3Y4NlAQ'
+    # Optional settings
+    strict: true
+    debug: true
+    security:
+        nameIdEncrypted:       false
+        authnRequestsSigned:   false
+        logoutRequestSigned:   false
+        logoutResponseSigned:  false
+        wantMessagesSigned:    false
+        wantAssertionsSigned:  false
+        wantNameIdEncrypted:   false
+        requestedAuthnContext: true
+        signMetadata: false
+        wantXMLValidation: true
+        signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
+        digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
