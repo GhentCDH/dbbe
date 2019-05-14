@@ -462,7 +462,7 @@ class TypeService extends PoemService
                 ) or
                 (
                     factoid.subject_identity in (?)
-                    and factoid_object_identity = ?
+                    and factoid.object_identity = ?
                 )
             )
             and factoid_type.group = \'reconstructed_poem_related_to_reconstructed_poem\'',
