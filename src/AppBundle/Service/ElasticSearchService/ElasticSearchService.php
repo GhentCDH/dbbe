@@ -377,10 +377,33 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 );
                             }
                         }
+                        // The data interval must be included in the search interval
+                        // If only start or end: exact match with start or end
+                        // range must be between floor and ceiling
+                        if (isset($value['type']) && $value['type'] == 'included') {
+                            if (isset($value['startDate']) && !isset($value['endDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['floorField'], $value['startDate'])
+                                );
+                            } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
+                                $filterQuery->addMust(
+                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                );
+                            } else {
+                                $filterQuery->addMust(
+                                    (new Query\Range())
+                                        ->addField($value['floorField'], ['gte' => $value['startDate']])
+                                );
+                                $filterQuery->addMust(
+                                    (new Query\Range())
+                                        ->addField($value['ceilingField'], ['lte' => $value['endDate']])
+                                );
+                            }
+                        }
                         // The data interval must include the search interval
                         // If only start or end: exact match with start or end
                         // range must be between floor and ceiling
-                        if (isset($value['type']) && $value['type'] == 'narrow') {
+                        if (isset($value['type']) && $value['type'] == 'include') {
                             if (isset($value['startDate']) && !isset($value['endDate'])) {
                                 $filterQuery->addMust(
                                     new Query\Match($value['floorField'], $value['startDate'])

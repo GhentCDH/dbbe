@@ -574,7 +574,7 @@ class OccurrenceController extends EditController
             }
 
             // sanitize date search type
-            if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'narrow', 'broad']))) {
+            if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))) {
                 $filters['date_search_type'] = 'exact';
             }
 

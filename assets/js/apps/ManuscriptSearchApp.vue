@@ -269,8 +269,9 @@ export default {
                         model: 'date_search_type',
                         values: [
                             { value: 'exact', name: 'exactly match' },
-                            { value: 'narrow', name: 'include' },
-                            { value: 'broad', name: 'overlap with' },
+                            { value: 'included', name: 'be included in' },
+                            { value: 'include', name: 'include' },
+                            { value: 'overlap', name: 'overlap with' },
                         ],
                     },
                     content: this.createMultiSelect('Content'),
