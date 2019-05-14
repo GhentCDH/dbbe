@@ -143,6 +143,9 @@ class TypeManager extends PoemManager
             foreach ($rawOccurrences as $rawOccurrence) {
                 $types[$rawOccurrence['type_id']]->addOccurrence($occurrences[$rawOccurrence['occurrence_id']]);
             }
+            foreach ($types as $id => $type) {
+                $types[$id]->sortOccurrences();
+            }
         }
 
         // Needed to index DBBE in elasticsearch

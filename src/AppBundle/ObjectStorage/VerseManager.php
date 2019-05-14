@@ -93,7 +93,15 @@ class VerseManager extends ObjectManager
             throw new NotFoundHttpException('Verse variants with id ' . $groupId .' not found.');
         }
         $ids = self::getUniqueIds($rawIds, 'verse_id');
-        return $this->getShort($ids);
+        $verses = $this->getShort($ids);
+
+        usort($verses,
+            function($a, $b) {
+                return $a->getOccurrence()->getSortKey() <=> $b->getOccurrence()->getSortKey();
+            }
+        );
+
+        return $verses;
     }
 
     public function add(stdClass $data): Verse

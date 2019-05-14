@@ -379,6 +379,16 @@ class Occurrence extends Poem
         );
     }
 
+    public function sortRelatedOccurrences(): void
+    {
+        usort(
+            $this->relatedOccurrences,
+            function ($a, $b) {
+                return $a[0]->getSortKey() <=> $b[0]->getSortKey();
+            }
+        );
+    }
+
     public function setTypes(array $types): Occurrence
     {
         $this->types = $types;
@@ -473,6 +483,44 @@ class Occurrence extends Poem
     public function getImageLinks(): array
     {
         return $this->imageLinks;
+    }
+
+    public function getSortKey(): string
+    {
+        $sortKey = '';
+
+        // manuscript name
+        $nameParts = [];
+        preg_match_all('/([^\d]+|[\d]+)/',$this->manuscript->getName(), $nameParts);
+        foreach ($nameParts[0] as $index => $namePart) {
+            if (is_numeric($namePart)) {
+                $nameParts[0][$index] = str_pad($namePart, 10, '0', STR_PAD_LEFT);
+            }
+        }
+        $sortKey .= ''.join($nameParts[0]);
+
+        // folium
+        if ($this->foliumStart != null) {
+            $sortKey .= str_pad($this->foliumStart, 10, '0', STR_PAD_LEFT);
+        } else {
+            $sortKey .= '9999999999';
+        }
+        if ($this->foliumStartRecto != null) {
+            $sortKey .= $this->foliumStartRecto ? '0' : '1';
+        } else {
+            $sortKey .= '9';
+        }
+        if ($this->foliumEnd != null) {
+            $sortKey .= str_pad($this->foliumEnd, 10, '0', STR_PAD_LEFT);
+        } else {
+            $sortKey .= '9999999999';
+        }
+        if ($this->foliumEndRecto != null) {
+            $sortKey .= $this->foliumEndRecto ? '0' : '1';
+        } else {
+            $sortKey .= '9';
+        }
+        return $sortKey;
     }
 
     public function getShortJson(): array

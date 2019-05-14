@@ -233,6 +233,7 @@ class OccurrenceManager extends PoemManager
                     $rawRelOccurrence['count']
                 );
             }
+            $occurrence->sortRelatedOccurrences();
         }
 
         // types

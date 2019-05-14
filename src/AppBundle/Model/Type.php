@@ -95,6 +95,16 @@ class Type extends Poem
         return $this->occurrences;
     }
 
+    public function sortOccurrences(): void
+    {
+        usort(
+            $this->occurrences,
+            function ($a, $b) {
+                return $a->getSortKey() <=> $b->getSortKey();
+            }
+        );
+    }
+
     public function addRelatedType(Type $type, TypeRelationType $relationType): Type
     {
         if (!isset($this->relatedTypes[$type->getId()])) {
