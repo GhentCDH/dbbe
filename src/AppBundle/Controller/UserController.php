@@ -2,7 +2,6 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Exceptions\HttpException;
 use DateTime;
 
 use GuzzleHttp;
@@ -16,6 +15,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use AppBundle\Entity\User;
+use AppBundle\Exceptions\HttpException;
+use AppBundle\Exceptions\UserAlreadyExistsException;
 use AppBundle\Utils\ArrayToJson;
 
 class UserController extends Controller
@@ -163,10 +164,15 @@ class UserController extends Controller
         if ($match === 0) {
             $this->get('logger')->debug('Create user non ugent user.');
 
-            // create welkom account
-            $this->createWelkomAccount($input['username']);
-            // send invite mail
-            $this->sendWelkomMail($input['username']);
+            try {
+                // create welkom account
+                $this->createWelkomAccount($input['username']);
+                // send invite mail
+                $this->sendWelkomMail($input['username']);
+            }
+            catch (UserAlreadyExistsException $e) {
+                // If the user already exists, no e-mail will be sent.
+            }
         }
 
         $em->persist($user);
@@ -232,23 +238,30 @@ class UserController extends Controller
     private function createWelkomAccount(string $username): void
     {
         $client = new GuzzleHttp\Client();
-        $response = $client->request(
-            'POST',
-            $this->getParameter('saml_create'),
-            [
-                'auth' => [
-                    $this->getParameter('saml_username'),
-                    $this->getParameter('saml_password'),
-                ],
-                'body' => json_encode(
-                    [
-                        'genUid' => $username,
-                        'accountUUID' => Uuid::uuid4()->toString(),
-                        'userClass' => 'casonly',
-                    ]
-                ),
-            ]
-        );
+        try {
+            $response = $client->request(
+                'POST',
+                $this->getParameter('saml_create'),
+                [
+                    'auth' => [
+                        $this->getParameter('saml_username'),
+                        $this->getParameter('saml_password'),
+                    ],
+                    'body' => json_encode(
+                        [
+                            'genUid' => $username,
+                            'accountUUID' => Uuid::uuid4()->toString(),
+                            'userClass' => 'casonly',
+                        ]
+                    ),
+                ]
+            );
+        } catch (GuzzleHttp\Exception\ClientException $e) {
+            if (json_decode($e->getResponse()->getBody()->getContents(), true)['message'] === 'User already exist') {
+                throw new UserAlreadyExistsException('User already exist');
+            }
+            throw $e;
+        }
 
         if ($response->getStatusCode() !== 200) {
             throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
