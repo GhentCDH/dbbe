@@ -82,7 +82,7 @@
     },
     "manuscriptsearch": {
       "js": [
-        "/build/manuscriptsearch.a8e7f8ab.js"
+        "/build/manuscriptsearch.60e3e33e.js"
       ]
     },
     "articleedit": {
@@ -102,7 +102,7 @@
     },
     "occurrencesearch": {
       "js": [
-        "/build/occurrencesearch.c3b9c0e7.js"
+        "/build/occurrencesearch.efd4c521.js"
       ]
     },
     "officesedit": {
@@ -132,7 +132,7 @@
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.af93a73f.js"
+        "/build/personsearch.51f22139.js"
       ]
     },
     "regionsedit": {

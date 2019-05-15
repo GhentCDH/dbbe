@@ -421,7 +421,6 @@ export default {
             values: [
                 { value: 'exact', name: 'exactly match' },
                 { value: 'included', name: 'be included in' },
-                { value: 'include', name: 'include' },
                 { value: 'overlap', name: 'overlap with' },
             ],
         };
