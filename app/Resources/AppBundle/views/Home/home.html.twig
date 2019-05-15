@@ -9,8 +9,8 @@
     <div class="row">
         <div class="col-sm-6">
             <div class="bg-primary padding-default">
-                <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing project that makes available textual and contextual data of book epigrams (or: metrical paratexts) from medieval Greek manuscripts (seventh to fifteenth century). We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found. They record, react to, or motivate the production, the contents and the use of the book. Further explanation of this definition is to be found on the Help page.</p>
-                <p><a href="{{ path('page_get', {'slug': 'about'}) }}"><i class="glyphicon panno-arrow-right" aria-hidden="true"></i>Read more</a></p>
+                <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing <a href="{{ path('page_get', {'slug': 'about'}) }}">project</a> that makes available both textual and contextual data of book epigrams - also known as “metrical paratexts” - from medieval Greek <a href="{{ path('manuscripts_search') }}">manuscripts</a> dating up to the fifteenth century. We define book epigrams as poems in and on books: they have as subject the very manuscript in which they are found, elaborating on its production, contents and use.</p>
+                <p>We distinguish between two kinds of textual material, namely <a href="{{ path('occurrences_search') }}">occurrences</a> and <a href="{{ path('types_search') }}">types</a>. Further explanation of our definitions and working principles is to be found on the <a href="{{ path('page_get', {'slug': 'help'}) }}">Help page</a>. A technical guide to the use of DBBE is to be found on the <a href="{{ path('page_get', {'slug': 'search-tips-tricks'}) }}">Search tips and tricks page</a>.</p>
             </div>
         </div>
         <div class="col-sm-6">
@@ -57,16 +57,16 @@
             <div class="padding-default">
                 <a href="{{ path('occurrences_search') }}">
                     <h2>Occurrences</h2>
-                    <p class="text-muted">Epigrams as they occur in one specific manuscript. Currently, more than the half of the data collected here is the result of manuscript consultation carefully conducted by members of our team. The remainder is compiled from descriptive catalogues and other related publications, such as articles, editions, etc.</p>
                 </a>
+                <p class="text-muted">Book epigrams exactly as they occur in one specific manuscript. The data collected here is largely the result of careful manuscript consultation, either in situ or based on (digital) reproductions, conducted by the <a href="{{ path('page_get', {'slug': 'team'}) }}">DBBE team</a>. The remainder is compiled from descriptive catalogues and other relevant publications. Individual verses found in multiple occurrences are linked together by means of dedicated <a href="{{ path('page_get', {'slug': 'search-tips-tricks'}) }}">Verse variants pages</a>.</p>
             </div>
         </div>
         <div class="col-sm-6">
             <div class="padding-default">
                 <a href="{{ path('types_search') }}">
                     <h2>Types</h2>
-                    <p class="text-muted">Normalised versions of the poems, often regrouping several similar occurrences. This part of the database is still very provisional. The types are meant to evolve into a corpus of editions over the next years.</p>
                 </a>
+                <p class="text-muted">Book epigrams independently of how exactly they occur in the manuscripts, often - yet not always - regrouping several occurrences that have an identical or at least very similar text. If available, the text of a type is drawn from a critical edition. If not, it is a normalised version of a single representative occurrence.</p>
             </div>
         </div>
     </div>
@@ -75,16 +75,16 @@
             <div class="padding-default">
                 <a href="{{ path('manuscripts_search') }}">
                     <h2>Manuscripts</h2>
-                    <p class="text-muted">Manuscript identifications are given according to city, library, name of the collection, shelf number: it basically follows the system of the Pinakes database.</p>
                 </a>
+                <p class="text-muted">The medieval Greek manuscripts in which these book epigrams have come down to us.  Manuscripts are identified by city, library, collection, and shelfmark. We generally follow the system used by the <a href="https://pinakes.irht.cnrs.fr/" target="_blank">Pinakes</a> database and for each manuscript provide the unique <a href="http://www.diktyon.org/en/" target="_blank">Diktyon</a> identifier.</p>
             </div>
         </div>
         <div class="col-sm-6">
             <div class="padding-default">
                 <a href="{{ path('persons_search') }}">
                     <h2>Persons</h2>
-                    <p class="text-muted">...</p>
                 </a>
+                <p class="text-muted">Byzantine people involved in the production of book epigrams, not only poets but also scribes and patrons of manuscripts. If available, basic information such as a (tentative) date or date range as well as references to the repertoria is provided consistently. Bibliographical references are recorded occasionally.</p>
             </div>
         </div>
     </div>
