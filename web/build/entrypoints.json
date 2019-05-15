@@ -2,32 +2,32 @@
   "entrypoints": {
     "metresedit": {
       "js": [
-        "/build/metresedit.8406106a.js"
+        "/build/metresedit.4230b6ec.js"
       ]
     },
     "acknowledgementsedit": {
       "js": [
-        "/build/acknowledgementsedit.ae18f588.js"
+        "/build/acknowledgementsedit.3858ccd6.js"
       ]
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.0f3200df.js"
+        "/build/bibliographysearch.0203f6c9.js"
       ]
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.39b6f0c4.js"
+        "/build/bookedit.4eee0168.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.0ca2dc0a.js"
+        "/build/bookchapteredit.ef2a1d24.js"
       ]
     },
     "contentsedit": {
       "js": [
-        "/build/contentsedit.c7f2b950.js"
+        "/build/contentsedit.013ea414.js"
       ]
     },
     "feedback": {
@@ -37,22 +37,22 @@
     },
     "genresedit": {
       "js": [
-        "/build/genresedit.f8af0352.js"
+        "/build/genresedit.2d272aab.js"
       ]
     },
     "journalsedit": {
       "js": [
-        "/build/journalsedit.e957114c.js"
+        "/build/journalsedit.4be0e682.js"
       ]
     },
     "journalissuesedit": {
       "js": [
-        "/build/journalissuesedit.938baf44.js"
+        "/build/journalissuesedit.e0ed5f2d.js"
       ]
     },
     "keywordsedit": {
       "js": [
-        "/build/keywordsedit.44bfec59.js"
+        "/build/keywordsedit.f0bfa7cf.js"
       ]
     },
     "lightbox": {
@@ -62,7 +62,7 @@
     },
     "locationsedit": {
       "js": [
-        "/build/locationsedit.67c76035.js"
+        "/build/locationsedit.f7b83ee0.js"
       ]
     },
     "main": {
@@ -72,22 +72,22 @@
     },
     "managementsedit": {
       "js": [
-        "/build/managementsedit.4f7dd4f2.js"
+        "/build/managementsedit.03dc807d.js"
       ]
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.a860573d.js"
+        "/build/manuscriptedit.df409525.js"
       ]
     },
     "manuscriptsearch": {
       "js": [
-        "/build/manuscriptsearch.6b4e0f27.js"
+        "/build/manuscriptsearch.a8e7f8ab.js"
       ]
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.fb9fd1f0.js"
+        "/build/articleedit.254f84c9.js"
       ]
     },
     "newseventedit": {
@@ -97,27 +97,27 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.a120dda7.js"
+        "/build/occurrenceedit.22be7813.js"
       ]
     },
     "occurrencesearch": {
       "js": [
-        "/build/occurrencesearch.7804d9a5.js"
+        "/build/occurrencesearch.c3b9c0e7.js"
       ]
     },
     "officesedit": {
       "js": [
-        "/build/officesedit.f3d5df45.js"
+        "/build/officesedit.f6e7bc8c.js"
       ]
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.85d0d59a.js"
+        "/build/onlinesourceedit.52eac35a.js"
       ]
     },
     "originsedit": {
       "js": [
-        "/build/originsedit.616bbd2a.js"
+        "/build/originsedit.aceefc57.js"
       ]
     },
     "pageedit": {
@@ -127,42 +127,42 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.55a77a8c.js"
+        "/build/personedit.7e219b0b.js"
       ]
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.e01b3d84.js"
+        "/build/personsearch.af93a73f.js"
       ]
     },
     "regionsedit": {
       "js": [
-        "/build/regionsedit.ef5f331a.js"
+        "/build/regionsedit.b07fce75.js"
       ]
     },
     "rolesedit": {
       "js": [
-        "/build/rolesedit.afed6b98.js"
+        "/build/rolesedit.c820b322.js"
       ]
     },
     "selfdesignationsedit": {
       "js": [
-        "/build/selfdesignationsedit.ea1eda06.js"
+        "/build/selfdesignationsedit.be3a7967.js"
       ]
     },
     "statusesedit": {
       "js": [
-        "/build/statusesedit.7338853e.js"
+        "/build/statusesedit.c975070b.js"
       ]
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.70d03f15.js"
+        "/build/typeedit.718b519f.js"
       ]
     },
     "typesearch": {
       "js": [
-        "/build/typesearch.ee59a075.js"
+        "/build/typesearch.00f7510f.js"
       ]
     },
     "usersedit": {

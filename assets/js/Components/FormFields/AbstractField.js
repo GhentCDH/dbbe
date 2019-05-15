@@ -55,12 +55,12 @@ export default {
             field.selectOptions.loading = false
             field.placeholder = 'Please select a ' + (field.dependencyName ? field.dependencyName : field.dependency) + ' first'
         },
-        enableField(field, model = null) {
+        enableField(field, model = null, search = false) {
             if (model == null) {
                 model = this.model
             }
             if (field.values.length === 0) {
-                return this.noValuesField(field, model)
+                return this.noValuesField(field, model, search)
             }
 
             // get everything after last '.'
@@ -165,14 +165,17 @@ export default {
 
             field.values = values
         },
-        noValuesField(field, model = null) {
+        noValuesField(field, model = null, search = false) {
             if (model == null) {
                 model = this.model
             }
 
-            // get everything after last '.'
-            let modelName = field.model.split('.').pop()
-            delete model[modelName]
+            // Delete value if not on the search page
+            if (!search) {
+                // get everything after last '.'
+                let modelName = field.model.split('.').pop()
+                delete model[modelName]
+            }
 
             field.disabled = true
             field.selectOptions.loading = false

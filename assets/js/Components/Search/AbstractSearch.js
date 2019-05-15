@@ -389,7 +389,7 @@ export default {
                         this.dependencyField(field)
                     }
                     else {
-                        this.enableField(field)
+                        this.enableField(field, null, true)
                     }
                 }
             }
