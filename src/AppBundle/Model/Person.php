@@ -312,21 +312,21 @@ class Person extends Entity implements SubjectInterface
         return $this;
     }
 
-    public function sortAttestedDatesAndIntervals(): Person
-    {
-        usort($this->attestedDatesAndIntervals, function ($a, $b) {
-//            return strcmp(strtolower($a->getName()), strtolower($b->getName()));
-        });
-
-        return $this;
-    }
-
     /**
      * @return array
      */
     public function getAttestedDatesAndIntervals(): array
     {
         return $this->attestedDatesAndIntervals;
+    }
+
+    public function sortAttestedDatesAndIntervals(): Person
+    {
+        usort($this->attestedDatesAndIntervals, function ($a, $b) {
+            return strcmp($a->getSortKey(), $b->getSortKey());
+        });
+
+        return $this;
     }
 
     /**

@@ -48,6 +48,11 @@ class FuzzyInterval
         return $this->start->isEmpty() && $this->end->isEmpty();
     }
 
+    public function getSortKey(): string
+    {
+        return $this->start->getFloor()->format('Ymd') . $this->start->getCeiling()->format('Ymd') . $this->end->getFloor()->format('Ymd') . $this->end->getCeiling()->format('Ymd');
+    }
+
     public function getJson(): array
     {
         return [

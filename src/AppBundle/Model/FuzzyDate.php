@@ -172,6 +172,11 @@ class FuzzyDate
         return $this;
     }
 
+    public function getSortKey(): string
+    {
+        return $this->floor->format('Ymd') . $this->ceiling->format('Ymd');
+    }
+
     public function getJson(): array
     {
         return [
