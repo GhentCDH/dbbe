@@ -175,7 +175,7 @@ Vue.component('autoDate', AutoDate);
 
 const $ = require('jquery');
 
-const YEAR_MIN = 1;
+const YEAR_MIN = -5000;
 const YEAR_MAX = (new Date()).getFullYear();
 
 export default {
