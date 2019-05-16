@@ -284,13 +284,23 @@
                 </header>
             </div>
             {% if app.environment != 'prod' %}
-            <div class="row">
-                <div class="col-xs-12">
-                    <h2 class="text-danger text-center">
-                        This is a test environment.
-                    </h2>
-                </div>
-            </div>
+                {%  if app.environment == 'staging' %}
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h2 class="text-danger text-center">
+                                This is a staging environment. Data modified here will be used in production.
+                            </h2>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h2 class="text-danger text-center">
+                                This is a test environment.
+                            </h2>
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 
