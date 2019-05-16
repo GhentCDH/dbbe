@@ -81,7 +81,13 @@ class ElasticVerseService extends ElasticBaseService
                     // Display top 5 verses for each group
                     ->setSize(5)
             );
-        $aggregation->setSize(self::MAX_SEARCH);
+        if ($init) {
+            // Display all groups
+            $aggregation->setSize(self::MAX_SEARCH);
+        } else {
+            // Display only first 10 groups
+            $aggregation->setSize(10);
+        }
 
         $query = (new Query())
             ->setQuery($queryQuery)
@@ -118,7 +124,13 @@ class ElasticVerseService extends ElasticBaseService
             ->setQuery($queryQuery)
             ->setHighlight(self::createHighlight($filterArray))
             ->setSize(25);
-        $query->setSize(self::MAX_SEARCH);
+        if ($init) {
+            // Display all verses
+            $query->setSize(self::MAX_SEARCH);
+        } else {
+            // Display only first 10 verses
+            $query->setSize(10);
+        }
 
         $noGroupResults = $this->type->search($query)->getResponse()->getData()['hits']['hits'];
 
