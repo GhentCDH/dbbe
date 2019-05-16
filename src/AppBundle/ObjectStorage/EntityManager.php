@@ -222,23 +222,30 @@ abstract class EntityManager extends ObjectManager
         $this->dbs->updatePublic($entity->getId(), $public);
     }
 
+    private function fixDBNegativeDate(string $date) {
+        if (substr($date, 0, 1) == '-') {
+            return substr($date, 1) . ' BC';
+        }
+        return $date;
+    }
+
     protected function getDBDate(stdClass $date) {
         return '('
-            . (empty($date->floor) ? '-infinity' : $date->floor)
+            . (empty($date->floor) ? '-infinity' : self::fixDBNegativeDate($date->floor))
             . ', '
-            . (empty($date->ceiling) ? 'infinity' : $date->ceiling)
+            . (empty($date->ceiling) ? 'infinity' : self::fixDBNegativeDate($date->ceiling))
             . ')';
     }
 
     protected  function getDBInterval(stdClass $date) {
         return '('
-            . (empty($date->start->floor) ? '-infinity' : $date->start->floor)
+            . (empty($date->start->floor) ? '-infinity' : self::fixDBNegativeDate($date->start->floor))
             . ', '
-            . (empty($date->start->ceiling) ? 'infinity' : $date->start->ceiling)
+            . (empty($date->start->ceiling) ? 'infinity' : self::fixDBNegativeDate($date->start->ceiling))
             . ', '
-            . (empty($date->end->floor) ? '-infinity' : $date->end->floor)
+            . (empty($date->end->floor) ? '-infinity' : self::fixDBNegativeDate($date->end->floor))
             . ', '
-            . (empty($date->end->ceiling) ? 'infinity' : $date->end->ceiling)
+            . (empty($date->end->ceiling) ? 'infinity' : self::fixDBNegativeDate($date->end->ceiling))
             . ')';
     }
 

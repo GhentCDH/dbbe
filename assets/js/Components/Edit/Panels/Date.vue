@@ -366,7 +366,8 @@ export default {
             return this.formatFuzzyDatePart(input.floor) + ' - ' + this.formatFuzzyDatePart(input.ceiling, true);
         },
         formatFuzzyDatePart(input, isCeiling = false) {
-            let yearLength = input.indexOf('-');
+            // If negative year: take second dash
+            let yearLength = input.replace(/[^-]/g, "").length === 2 ? input.indexOf('-') : input.indexOf('-', 1);
             return input == null ? (isCeiling ? 'infinity' : '-infinity') : (input.substr(yearLength + 4, 2) + '/' + input.substr(yearLength + 1, 2) + '/' + input.substr(0, yearLength));
         },
         formatFuzzyInterval(input) {
@@ -383,21 +384,30 @@ export default {
                 ceilingDayMonth: null,
             };
             if (input.floor != null) {
-                let yearLength = input.floor.indexOf('-');
+                // If negative year: take second dash
+                let yearLength = input.floor.replace(/[^-]/g, "").length === 2 ? input.floor.indexOf('-') : input.floor.indexOf('-', 1);
                 result.floorYear = parseInt(input.floor.substr(0, yearLength));
                 result.floorDayMonth = input.floor.substr(yearLength + 4, 2) + '/' + input.floor.substr(yearLength + 1, 2);
             }
             if (input.ceiling != null) {
-                let yearLength = input.ceiling.indexOf('-');
+                // If negative year: take second dash
+                let yearLength = input.ceiling.replace(/[^-]/g, "").length === 2 ? input.ceiling.indexOf('-') : input.ceiling.indexOf('-', 1);
                 result.ceilingYear = parseInt(input.ceiling.substr(0, yearLength));
                 result.ceilingDayMonth = input.ceiling.substr(yearLength + 4, 2) + '/' + input.ceiling.substr(yearLength + 1, 2);
             }
             return result;
         },
+        zeroPad(year) {
+            const yearString = year.toString();
+            if(yearString.indexOf('-') === 0) {
+                return '-' + yearString.substring(1).padStart(4, '0');
+            }
+            return yearString.padStart(4);
+        },
         getTableDate(input) {
             return {
-                floor: input.floorYear == null ? null : (input.floorYear + '-' + input.floorDayMonth.substr(3,2) + '-' + input.floorDayMonth.substr(0,2)),
-                ceiling: input.ceilingYear == null ? null :  (input.ceilingYear + '-' + input.ceilingDayMonth.substr(3,2) + '-' + input.ceilingDayMonth.substr(0,2)),
+                floor: input.floorYear == null ? null : (this.zeroPad(input.floorYear) + '-' + input.floorDayMonth.substr(3,2) + '-' + input.floorDayMonth.substr(0,2)),
+                ceiling: input.ceilingYear == null ? null :  (this.zeroPad(input.ceilingYear) + '-' + input.ceilingDayMonth.substr(3,2) + '-' + input.ceilingDayMonth.substr(0,2)),
             }
         },
         displayDates(model) {

@@ -34,13 +34,22 @@ class FuzzyDate
                 $floorString = $regMatch[1];
                 $ceilingString = $regMatch[2];
 
-                $datePattern = '/^\d{4}[-]\d{2}-\d{2}$/';
+                $datePattern = '/^["]?(\d{4}[-]\d{2}-\d{2})([ ]BC)?["]?$/';
 
-                if (preg_match($datePattern, $floorString)) {
+                $dateMatch = [];
+                preg_match($datePattern, $floorString, $dateMatch);
+                if (count($dateMatch) == 2) {
                     $this->floor = new DateTime($floorString);
+                } elseif (count($dateMatch) == 3) {
+                    $this->floor = new DateTime('-' . substr($floorString, 1, 10));
                 }
-                if (preg_match($datePattern, $ceilingString)) {
+
+                $dateMatch = [];
+                preg_match($datePattern, $ceilingString, $dateMatch);
+                if (count($dateMatch) == 2) {
                     $this->ceiling = new DateTime($ceilingString);
+                } elseif (count($dateMatch) == 3) {
+                    $this->ceiling = new DateTime('-' . substr($ceilingString, 1, 10));
                 }
             }
         }
@@ -95,13 +104,13 @@ class FuzzyDate
         if ($this->floor->format('m-d') == '01-01'
             && $this->ceiling->format('m-d') == '12-31'
         ) {
-            $floorYear = ltrim($this->floor->format('Y'), '0');
-            $ceilingYear = ltrim($this->ceiling->format('Y'), '0');
+            $floorYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->floor->format('Y'));
+            $ceilingYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->ceiling->format('Y'));
 
             if ($floorYear == $ceilingYear) {
                 return $floorYear;
             } else {
-                return $floorYear . '-' . $ceilingYear;
+                return $floorYear . ' - ' . $ceilingYear;
             }
         }
 
@@ -111,7 +120,7 @@ class FuzzyDate
         }
 
         // default: return all information
-        return $this->floor->format('d/m/Y') . '-' . $this->ceiling->format('d/m/Y');
+        return $this->floor->format('d/m/Y') . ' - ' . $this->ceiling->format('d/m/Y');
     }
 
     /**

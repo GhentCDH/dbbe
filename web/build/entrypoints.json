@@ -77,7 +77,7 @@
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.fe194b58.js"
+        "/build/manuscriptedit.3eba2aba.js"
       ]
     },
     "manuscriptsearch": {
@@ -97,7 +97,7 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.b43f9bd6.js"
+        "/build/occurrenceedit.c2f88093.js"
       ]
     },
     "occurrencesearch": {
@@ -127,7 +127,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.ed854db1.js"
+        "/build/personedit.b653bbe9.js"
       ]
     },
     "personsearch": {
