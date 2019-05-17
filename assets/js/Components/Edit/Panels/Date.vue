@@ -855,44 +855,55 @@ export default {
             this.errorArray = Array.from(errorSet);
         },
         splitDateOrInterval(input) {
+            let yearLength = {};
             if (!input.isInterval) {
+                for (let floorCeil of ['floor', 'ceiling']) {
+                    let date = input.date[floorCeil];
+                    yearLength[floorCeil] = date.replace(/[^-]/g, "").length === 2 ? date.indexOf('-') : date.indexOf('-', 1);
+                }
                 return {
                     floor: input.date.floor == null ? null : {
-                        year: input.date.floor.substr(0, 4),
-                        month: input.date.floor.substr(5, 2),
-                        day: input.date.floor.substr(8, 2),
+                        year: parseInt(input.date.floor.substr(0, yearLength.floor)),
+                        month: parseInt(input.date.floor.substr(yearLength.floor + 1, 2)),
+                        day: parseInt(input.date.floor.substr(yearLength.floor + 4, 2)),
                     },
                     ceiling: input.date.ceiling == null ? null : {
-                        year: input.date.ceiling.substr(0, 4),
-                        month: input.date.ceiling.substr(5, 2),
-                        day: input.date.ceiling.substr(8, 2),
+                        year: parseInt(input.date.ceiling.substr(0, yearLength.ceiling)),
+                        month: parseInt(input.date.ceiling.substr(yearLength.ceiling + 1, 2)),
+                        day: parseInt(input.date.ceiling.substr(yearLength.ceiling + 4, 2)),
                     },
                     type: input.type,
                 }
             } else {
+                for (let startEnd of ['start', 'end']) {
+                    for (let floorCeil of ['floor', 'ceiling']) {
+                        let date = input.interval[startEnd][floorCeil];
+                        yearLength[startEnd][floorCeil] = date.replace(/[^-]/g, "").length === 2 ? date.indexOf('-') : date.indexOf('-', 1);
+                    }
+                }
                 return {
                     start: {
                         floor: input.interval.start.floor == null ? null : {
-                            year: input.interval.start.floor.substr(0, 4),
-                            month: input.interval.start.floor.substr(5, 2),
-                            day: input.interval.start.floor.substr(8, 2),
+                            year: parseInt(input.interval.start.floor.substr(0, yearLength.start.floor)),
+                            month: parseInt(input.interval.start.floor.substr(yearLength.start.floor +1, 2)),
+                            day: parseInt(input.interval.start.floor.substr(yearLength.start.floor + 4, 2)),
                         },
                         ceiling: input.interval.start.ceiling == null ? null : {
-                            year: input.interval.start.ceiling.substr(0, 4),
-                            month: input.interval.start.ceiling.substr(5, 2),
-                            day: input.interval.start.ceiling.substr(8, 2),
+                            year: parseInt(input.interval.start.ceiling.substr(0, yearLength.start.ceiling)),
+                            month: parseInt(input.interval.start.ceiling.substr(yearLength.start.ceiling + 1, 2)),
+                            day: parseInt(input.interval.start.ceiling.substr(yearLength.start.ceiling + 4, 2)),
                         }
                     },
                     end: {
                         floor: input.interval.end.floor == null ? null : {
-                            year: input.interval.end.floor.substr(0, 4),
-                            month: input.interval.end.floor.substr(5, 2),
-                            day: input.interval.end.floor.substr(8, 2),
+                            year: parseInt(input.interval.end.floor.substr(0, yearLength.end.floor)),
+                            month: parseInt(input.interval.end.floor.substr(yearLength.end.floor + 1, 2)),
+                            day: parseInt(input.interval.end.floor.substr(yearLength.end.floor + 4, 2)),
                         },
                         ceiling: input.interval.end.ceiling == null ? null : {
-                            year: input.interval.end.ceiling.substr(0, 4),
-                            month: input.interval.end.ceiling.substr(5, 2),
-                            day: input.interval.end.ceiling.substr(8, 2),
+                            year: parseInt(input.interval.end.ceiling.substr(0, yearLength.end.ceiling)),
+                            month: parseInt(input.interval.end.ceiling.substr(yearLength.end.ceiling + 1, 2)),
+                            day: parseInt(input.interval.end.ceiling.substr(yearLength.end.ceiling + 4, 2)),
                         }
                     },
                     type: input.type,
