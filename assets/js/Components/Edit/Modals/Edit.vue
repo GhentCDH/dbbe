@@ -3,6 +3,7 @@
         :value="show"
         size="lg"
         auto-focus
+        :backdrop="false"
         @input="$emit('cancel')">
         <alerts
             :alerts="alerts"

@@ -243,6 +243,7 @@
             v-model="editBibModal"
             size="lg"
             auto-focus
+            :backdrop="false"
             :append-to-body="appendToBody"
         >
             <vue-form-generator

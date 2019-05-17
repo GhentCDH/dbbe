@@ -59,6 +59,7 @@
         <modal
             v-model="formModal"
             auto-focus
+            :backdrop="false"
         >
             <alerts
                 :alerts="editAlerts"

@@ -58,6 +58,7 @@
             v-model="editModal"
             size="lg"
             auto-focus
+            :backdrop="false"
         >
             <vue-form-generator
                 ref="editForm"

@@ -147,6 +147,7 @@
             v-model="editVerseModal"
             size="lg"
             auto-focus
+            :backdrop="false"
         >
             <alerts
                 :alerts="alerts"
