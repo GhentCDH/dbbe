@@ -838,7 +838,7 @@ class Person extends Entity implements SubjectInterface
     public function getShortDescription(): string
     {
         $nameArray = array_filter([
-            isset($this->firstName) ? mb_substr($this->firstName, 0, 1) . '.' : null,
+            !empty($this->firstName) ? mb_substr($this->firstName, 0, 1) . '.' : null,
             $this->lastName,
             $this->extra,
         ]);
