@@ -7,13 +7,17 @@ use Elastica\Query;
 use Elastica\Script;
 use Elastica\Type;
 
+use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
+
 /**
  * Setup and configure search for verses
  * Will not be used by anonymous people
  */
 class ElasticVerseService extends ElasticBaseService
 {
-    public function __construct(array $config, string $indexPrefix)
+    private $dbs;
+
+    public function __construct(array $config, string $indexPrefix, DatabaseServiceInterface $databaseService)
     {
         parent::__construct(
             $config,
@@ -21,6 +25,8 @@ class ElasticVerseService extends ElasticBaseService
             'verses',
             'verse'
         );
+
+        $this->dbs = $databaseService;
     }
 
     public function setupVerses(): void
@@ -158,25 +164,16 @@ class ElasticVerseService extends ElasticBaseService
     public function initVerseGroups(int $offset): array
     {
         // Get all verses
-        $query = (new Query())
-            ->setQuery((self::createQuery([]))
-                ->addMustNot(new Query\Exists('group_id')))
-            ->setSort(['id' => 'asc'])
-            ->setSize(10)
-            ->setFrom($offset * 10);
-        $verses = [];
-        foreach ($this->type->search($query)->getResponse()->getData()['hits']['hits'] as $row) {
-            $verses[] = $row['_source'];
-        }
+        $rawVerses = $this->dbs->getUngroupedVerses(10, $offset * 10);
 
         // Find matches
         $matchedIds = [];
         $groups = [];
-        foreach ($verses as $verse) {
-            if (in_array($verse['id'], $matchedIds)) {
+        foreach ($rawVerses as $rawVerse) {
+            if (in_array($rawVerse['verse_id'], $matchedIds)) {
                 continue;
             }
-            $matches = $this->searchVerse($verse['verse'], $verse['id'], true);
+            $matches = $this->searchVerse($rawVerse['verse'], $rawVerse['verse_id'], true);
             $group = [];
             foreach ($matches as $match) {
                 foreach ($match['group'] as $matchedVerse) {

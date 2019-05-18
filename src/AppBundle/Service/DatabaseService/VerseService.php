@@ -17,6 +17,26 @@ class VerseService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getUngroupedVerses(int $limit, int $offset): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem_verse.id as verse_id,
+                original_poem_verse.idgroup as group_id,
+                original_poem_verse.verse,
+                original_poem_verse.order
+            from data.original_poem_verse
+            where idgroup is null
+            order by id asc
+            limit ?
+            offset ?',
+            [
+                $limit,
+                $offset,
+            ]
+        )->fetchAll();
+    }
+
     public function getBasicInfoByIds(array $ids): array
     {
         return $this->conn->executeQuery(

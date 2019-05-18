@@ -402,5 +402,5 @@ services:
 
     verse_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticVerseService
-        arguments: ['%elastic_hosts%', '%elastic_index%']
+        arguments: ['%elastic_hosts%', '%elastic_index%', '@verse_service']
         public: true
