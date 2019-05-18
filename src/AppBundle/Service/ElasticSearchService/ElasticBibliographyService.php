@@ -33,11 +33,22 @@ class ElasticBibliographyService extends ElasticEntityService
         if ($index->exists()) {
             $index->delete();
         }
-        $index->create();
+        $index->create(Analysis::ANALYSIS);
 
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
+            'title' => [
+                'type' => 'text',
+                // Needed for sorting
+                'fields' => [
+                    'keyword' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'custom_greek',
+                        'ignore_above' => 256,
+                    ],
+                ],
+            ],
             'management' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
