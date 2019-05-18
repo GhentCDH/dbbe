@@ -35,7 +35,7 @@ class FuzzyInterval
         }
 
         // different start and end
-        return $this->start->__toString() . ' -> ' . $this->end->__toString();
+        return $this->start->__toString() . ' - ' . $this->end->__toString();
     }
 
     /**
