@@ -118,7 +118,7 @@
                             <td>
                                 {% for rolename, documentRole in documentRoles %}
                                     <h6>As {{ documentRole[0].getName() }}:</h6>
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': (documentType == 'bookChapter' ? 'book chapters' : documentType) ~ 's'} %}
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': (documentType == 'bookChapter' ? 'book chapter' : documentType) ~ 's'} %}
                                         {% block renderItem %}
                                             {% if documentType == 'occurrence' %}
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get', 'display': item.getDescription(), 'class': 'greek'} only %}
