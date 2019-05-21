@@ -876,6 +876,7 @@ export default {
                 }
             } else {
                 for (let startEnd of ['start', 'end']) {
+                    yearLength[startEnd] = {};
                     for (let floorCeil of ['floor', 'ceiling']) {
                         let date = input.interval[startEnd][floorCeil];
                         yearLength[startEnd][floorCeil] = date.replace(/[^-]/g, "").length === 2 ? date.indexOf('-') : date.indexOf('-', 1);
