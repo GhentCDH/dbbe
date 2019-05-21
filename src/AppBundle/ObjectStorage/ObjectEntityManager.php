@@ -61,7 +61,7 @@ abstract class ObjectEntityManager extends EntityManager
         if (!empty($sortFunction)) {
             usort($objects, function ($a, $b) use ($sortFunction) {
                 if ($sortFunction == 'getId') {
-                    return $a->{$sortFunction}() > $b->{$sortFunction}();
+                    return $a->getId() <=> $b->getId();
                 }
                 return strcmp($a->{$sortFunction}(), $b->{$sortFunction}());
             });
