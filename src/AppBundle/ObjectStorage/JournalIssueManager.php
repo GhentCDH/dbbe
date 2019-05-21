@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\JournalIssue;
+use AppBundle\Utils\GreekNormalizer;
 
 /**
  * ObjectManager for journal issues
@@ -75,7 +76,14 @@ class JournalIssueManager extends DocumentManager
 
     public function getAllJson(string $sortFunction = null): array
     {
-        return $this->getAllCombinedJson('short', $sortFunction);
+        $journalIssues = $this->getAllCombinedJson('short', $sortFunction);
+
+        // Resort by name (remove greek accents)
+        usort($journalIssues, function ($a, $b) {
+            return strcmp(GreekNormalizer::normalize($a['name']), GreekNormalizer::normalize($b['name']));
+        });
+
+        return $journalIssues;
     }
 
     /**
