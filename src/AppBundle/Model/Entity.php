@@ -256,7 +256,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this;
     }
 
-    public function addInverseIdentification(Entity $entity, string $type): Entity
+    public function addInverseIdentification($entity, string $type): Entity
     {
         if (!isset($this->inverseIdentifications[$type])) {
             $this->inverseIdentifications[$type] = [];

@@ -92,7 +92,8 @@ class EntityService extends DatabaseService
                     person_merge.type::text,
                     article_merge.type::text,
                     book_merge.type::text,
-                    book_chapter_merge.type::text
+                    book_chapter_merge.type::text,
+                    region_merge.type::text
                 ) as type
             from data.global_id
             left join (
@@ -137,6 +138,12 @@ class EntityService extends DatabaseService
                     \'book_chapter\' as type
                 from data.bookchapter
             ) book_chapter_merge on global_id.idsubject = book_chapter_merge.entity_id
+            left join (
+                select
+                    region.identity as entity_id,
+                    \'region\' as type
+                from data.region
+            ) region_merge on global_id.idsubject = region_merge.entity_id
             where global_id.idauthority in (?)',
             [
                 $ids,
