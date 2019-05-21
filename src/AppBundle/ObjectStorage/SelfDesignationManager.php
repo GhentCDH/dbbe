@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\SelfDesignation;
+use AppBundle\Utils\GreekNormalizer;
 
 /**
  * ObjectManager for self designations
@@ -58,7 +59,7 @@ class SelfDesignationManager extends ObjectManager
 
         // Sort by name
         usort($selfDesignations, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
+            return strcmp(GreekNormalizer::normalize($a->getName()), GreekNormalizer::normalize($b->getName()));
         });
 
         return $selfDesignations;
