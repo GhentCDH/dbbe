@@ -2,8 +2,6 @@
 
 namespace AppBundle\Service\ElasticSearchService;
 
-use Normalizer;
-
 use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Query;
