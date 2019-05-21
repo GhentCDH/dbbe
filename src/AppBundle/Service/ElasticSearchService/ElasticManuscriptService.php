@@ -166,9 +166,6 @@ class ElasticManuscriptService extends ElasticEntityService
             case 'person':
                 $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
-            case 'management':
-                $result['nested'][] = $value;
-                break;
             case 'city':
             case 'library':
             case 'collection':
@@ -180,6 +177,7 @@ class ElasticManuscriptService extends ElasticEntityService
             case 'content':
             case 'origin':
             case 'acknowledgement':
+            case 'management':
                 $result['nested'][] = $value;
                 break;
             case 'public':

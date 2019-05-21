@@ -123,6 +123,7 @@ class ElasticPersonService extends ElasticEntityService
             case 'role':
             case 'self_designation':
             case 'office':
+            case 'management':
                 $result['nested'][] = $value;
                 break;
             case 'origin':
