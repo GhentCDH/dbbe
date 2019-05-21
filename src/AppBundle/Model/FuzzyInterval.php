@@ -29,12 +29,6 @@ class FuzzyInterval
 
     public function __toString()
     {
-        // start and end are the same
-        if ($this->start->__toString() === $this->end->__toString()) {
-            return $this->start->__toString();
-        }
-
-        // different start and end
         return $this->start->__toString() . ' - ' . $this->end->__toString();
     }
 
