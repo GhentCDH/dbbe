@@ -8,6 +8,7 @@ use stdClass;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+use AppBundle\Model\IdJsonInterface;
 use AppBundle\Model\Verse;
 
 class VerseManager extends ObjectManager
@@ -287,6 +288,21 @@ class VerseManager extends ObjectManager
 
             throw $e;
         }
+    }
+
+    // overwrite updateModified: do not update entity table
+    protected function updateModified(IdJsonInterface $old = null, IdJsonInterface $new = null): void
+    {
+        if ($old == null && $new == null) {
+            throw new Exception('The old and new value cannot both be null.');
+        }
+        $this->dbs->createRevision(
+            $old == null ? get_class($new) : get_class($old),
+            $old == null ? $new->getId() : $old->getId(),
+            $this->ts->getToken()->getUser()->getId(),
+            $old == null ? null : json_encode($old->getJson()),
+            $new == null ? null : json_encode($new->getJson())
+        );
     }
 
     public function delete(int $id): void
