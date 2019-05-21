@@ -212,7 +212,9 @@ class VerseManager extends ObjectManager
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
-            if (!$isNew && isset($new)) {
+            if ($isNew) {
+                $this->updateElasticByIds([$id]);
+            } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
             throw $e;

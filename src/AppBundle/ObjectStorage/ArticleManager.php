@@ -256,7 +256,9 @@ class ArticleManager extends DocumentManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            if (!$isNew && isset($new)) {
+            if ($isNew) {
+                $this->updateElasticByIds([$id]);
+            } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
             throw $e;

@@ -365,7 +365,9 @@ class ManuscriptManager extends DocumentManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch on elasticsearch error
-            if (!$isNew && isset($new) && isset($old)) {
+            if ($isNew) {
+                $this->updateElasticByIds([$id]);
+            } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
 
                 // New manuscripts cannot have occurrence dependencies
