@@ -376,7 +376,8 @@ class BookManager extends DocumentManager
             }
             if (!empty($occurrences)) {
                 foreach ($occurrences as $occurrence) {
-                    $bibliographies = $occurrence->getBibliographies();
+                    $full = $this->container->get('occurrence_manager')->getFull($occurrence->getId());
+                    $bibliographies = $full->getBibliographies();
                     $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
                     $this->container->get('occurrence_manager')->update(
                         $occurrence->getId(),
@@ -386,7 +387,8 @@ class BookManager extends DocumentManager
             }
             if (!empty($types)) {
                 foreach ($types as $type) {
-                    $bibliographies = $type->getBibliographies();
+                    $full = $this->container->get('type_manager')->getFull($type->getId());
+                    $bibliographies = $full->getBibliographies();
                     $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
                     $this->container->get('type_manager')->update(
                         $type->getId(),
@@ -396,7 +398,8 @@ class BookManager extends DocumentManager
             }
             if (!empty($persons)) {
                 foreach ($persons as $person) {
-                    $bibliographies = $person->getBibliographies();
+                    $full = $this->container->get('person_manager')->getFull($type->getId());
+                    $bibliographies = $full->getBibliographies();
                     $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
                     $this->container->get('person_manager')->update(
                         $person->getId(),
