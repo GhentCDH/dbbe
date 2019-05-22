@@ -81,7 +81,7 @@ class Document extends Entity
         return $this->date;
     }
 
-    protected function setPersonRoles(array $personRoles): Document
+    public function setPersonRoles(array $personRoles): Document
     {
         $this->personRoles = $personRoles;
 
