@@ -9,6 +9,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+use AppBundle\Model\Entity;
 use AppBundle\Model\IdJsonInterface;
 use AppBundle\Service\DatabaseService\DatabaseServiceInterface;
 use AppBundle\Service\ElasticSearchService\ElasticSearchServiceInterface;
@@ -97,9 +98,12 @@ class ObjectManager
         if ($old == null && $new == null) {
             throw new Exception('The old and new value cannot both be null.');
         }
-        if ($old != null && $new != null) {
+
+        // Update modified timestamp of entities
+        if ($old != null && $old instanceof Entity && $new != null && $new instanceof Entity) {
             $this->dbs->updateModified($new->getId());
         }
+
         $this->dbs->createRevision(
             $old == null ? get_class($new) : get_class($old),
             $old == null ? $new->getId() : $old->getId(),
