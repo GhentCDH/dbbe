@@ -331,7 +331,7 @@ class BookService extends DocumentService
                 [$id]
             )->fetchColumn(0);
             if ($count > 0) {
-                throw new DependencyException('This book has dependencies.');
+                throw new DependencyException('This book has reference dependencies.');
             }
             // don't delete if this book is used in document_contains
             $count = $this->conn->executeQuery(
@@ -341,7 +341,17 @@ class BookService extends DocumentService
                 [$id]
             )->fetchColumn(0);
             if ($count > 0) {
-                throw new DependencyException('This book has dependencies.');
+                throw new DependencyException('This book has document_contains dependencies.');
+            }
+            // don't delete if this book is used in global_id
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.global_id
+                where global_id.idauthority = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This book has global_id dependencies.');
             }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');

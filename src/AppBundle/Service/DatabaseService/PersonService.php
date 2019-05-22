@@ -923,6 +923,16 @@ class PersonService extends EntityService
             if ($count > 0) {
                 throw new DependencyException('This person has factoid dependencies.');
             }
+            // don't delete if this person is used in global_id
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.global_id
+                where global_id.idauthority = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This person has global_id dependencies.');
+            }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(

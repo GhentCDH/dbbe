@@ -196,7 +196,17 @@ class OnlineSourceService extends EntityService
                 [$id]
             )->fetchColumn(0);
             if ($count > 0) {
-                throw new DependencyException('This online source has dependencies.');
+                throw new DependencyException('This online source has reference dependencies.');
+            }
+            // don't delete if this online source is used in global_id
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.global_id
+                where global_id.idauthority = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This online source has global_id dependencies.');
             }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');
