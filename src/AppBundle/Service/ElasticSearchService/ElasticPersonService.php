@@ -182,6 +182,13 @@ class ElasticPersonService extends ElasticEntityService
             case 'origin':
                 $result['object'][$key] = $value;
                 break;
+            case 'management':
+                if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                    $result['nested_toggle'][$key] = [$value, false];
+                } else {
+                    $result['nested_toggle'][$key] = [$value, true];
+                }
+                break;
             case 'name':
             case 'public_comment':
                 $result['text'][$key] = [
