@@ -872,11 +872,6 @@ class OccurrenceService extends PoemService
                     $id,
                 ]
             );
-            $this->conn->executeUpdate(
-                'DELETE from data.original_poem_verse
-                where original_poem_verse.idoriginal_poem = ?',
-                [$id]
-            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.document
                 where document.identity = ?',

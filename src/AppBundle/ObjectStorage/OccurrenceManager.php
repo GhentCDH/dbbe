@@ -2,14 +2,16 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Exception;
 use stdClass;
 
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Occurrence;
 use AppBundle\Model\Status;
 
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * ObjectManager for occurrences
@@ -933,5 +935,38 @@ class OccurrenceManager extends PoemManager
             $imageLink = $this->container->get('image_manager')->add($link);
             $this->dbs->addImage($occurrence->getId(), $imageLink->getId());
         }
+    }
+
+    public function delete(int $id): void
+    {
+        $this->dbs->beginTransaction();
+        try {
+            // Throws NotFoundException if not found
+            $old = $this->getFull($id);
+
+            foreach ($old->getVerses() as $verse) {
+                $this->container->get('verse_manager')->delete($verse->getId());
+            }
+
+            $this->dbs->delete($id);
+
+            $this->updateModified($old, null);
+
+            $this->cache->invalidateTags([$this->entityType . 's']);
+
+            // remove from elasticsearch
+            $this->updateElasticByIds([$id]);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (DependencyException $e) {
+            $this->dbs->rollBack();
+            throw new BadRequestHttpException($e->getMessage());
+        } catch (Exception $e) {
+            $this->dbs->rollBack();
+            throw $e;
+        }
+
+        return;
     }
 }

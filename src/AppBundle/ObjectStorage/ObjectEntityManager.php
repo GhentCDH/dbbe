@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Entity;
 
-abstract class ObjectEntityManager extends EntityManager
+abstract class  ObjectEntityManager extends EntityManager
 {
     use UpdateElasticByIdsTrait;
 
