@@ -478,6 +478,17 @@ class PersonController extends EditController
                             $filters[$key] = $params['filters'][$key];
                         }
                         break;
+                    case 'management_inverse':
+                        if (
+                            is_string($params['filters'][$key])
+                            && (
+                                $params['filters'][$key] == 'true'
+                                || $params['filters'][$key] == 'false'
+                            )
+                        ) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
                     case 'date':
                         if (is_array($params['filters'][$key])) {
                             $filters[$key] = $params['filters'][$key];
