@@ -117,7 +117,7 @@ class FuzzyDate
             if ($floorYear == $ceilingYear) {
                 return $floorYear;
             } else {
-                return $floorYear . ' - ' . $ceilingYear;
+                return $floorYear . '-' . $ceilingYear;
             }
         }
 
@@ -136,7 +136,7 @@ class FuzzyDate
         }
 
         // default: return all information
-        return $exactFloor . ' - ' . $exactCeiling;
+        return $exactFloor . '-' . $exactCeiling;
     }
 
     /**

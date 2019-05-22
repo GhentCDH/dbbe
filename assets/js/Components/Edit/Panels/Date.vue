@@ -363,7 +363,7 @@ export default {
             if (input == null) {
                 return '';
             }
-            return this.formatFuzzyDatePart(input.floor) + ' - ' + this.formatFuzzyDatePart(input.ceiling, true);
+            return this.formatFuzzyDatePart(input.floor) + '-' + this.formatFuzzyDatePart(input.ceiling, true);
         },
         formatFuzzyDatePart(input, isCeiling = false) {
             // If negative year: take second dash
@@ -374,7 +374,7 @@ export default {
             if (input == null) {
                 return '';
             }
-            return '[' + this.formatFuzzyDate(input.start) + ']' + ' -> ' + '[' + this.formatFuzzyDate(input.end) + ']';
+            return '[' + this.formatFuzzyDate(input.start) + ']' + ' - ' + '[' + this.formatFuzzyDate(input.end) + ']';
         },
         getFormDate(input) {
             let result = {
