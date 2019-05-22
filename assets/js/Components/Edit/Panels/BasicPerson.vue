@@ -103,6 +103,7 @@ export default {
                         '(Self) designation',
                         {
                             model: 'selfDesignations',
+                            styleClasses: 'greek',
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },

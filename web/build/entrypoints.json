@@ -127,7 +127,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.cf92f3dd.js"
+        "/build/personedit.2e419ed1.js"
       ]
     },
     "personsearch": {
@@ -147,7 +147,7 @@
     },
     "selfdesignationsedit": {
       "js": [
-        "/build/selfdesignationsedit.8e60c583.js"
+        "/build/selfdesignationsedit.da296e41.js"
       ]
     },
     "statusesedit": {

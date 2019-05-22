@@ -65,7 +65,13 @@ export default {
         return {
             schema: {
                 fields: {
-                    selfDesignation: this.createMultiSelect('(Self) designation', {model: 'selfDesignation'}),
+                    selfDesignation: this.createMultiSelect(
+                        '(Self) designation',
+                        {
+                            model: 'selfDesignation',
+                            styleClasses: 'greek',
+                        }
+                    ),
                 },
             },
             editSchema: {
