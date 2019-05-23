@@ -259,9 +259,9 @@ class ManuscriptManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->updatePublic($old, $data->public);
             }
-            if (property_exists($data, 'content')) {
+            if (property_exists($data, 'contents')) {
                 $changes['short'] = true;
-                $this->updateContent($old, $data->content);
+                $this->updateContents($old, $data->contents);
             }
             $roles = $this->container->get('role_manager')->getByType('manuscript');
             foreach ($roles as $role) {
@@ -385,7 +385,7 @@ class ManuscriptManager extends DocumentManager
         return $new;
     }
 
-    private function updateContent(Manuscript $manuscript, array $contents): void
+    private function updateContents(Manuscript $manuscript, array $contents): void
     {
         foreach ($contents as $content) {
             if (!is_object($content)
