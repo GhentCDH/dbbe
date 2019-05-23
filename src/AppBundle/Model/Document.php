@@ -133,7 +133,7 @@ class Document extends Entity
         return $result;
     }
 
-    protected function setContributorRoles(array $contributorRoles): Document
+    public function setContributorRoles(array $contributorRoles): Document
     {
         $this->contributorRoles = $contributorRoles;
 
