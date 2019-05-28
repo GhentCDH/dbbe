@@ -90,6 +90,7 @@ export default {
             rgkRegex: /^(I{1,3})[.]([\d]+)(?:, I{1,3}[.][\d]+)*$/,
             vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
             roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
+            greekRegex: /^([\u0370-\u03ff\u1f00-\u1fff ]*)$/,
             collectionArray: [],
         }
     },
@@ -324,6 +325,18 @@ export default {
                 if (first && second) {
                     return second[1] - first[1]
                 }
+            }
+            // Greek
+            let first = a.name.match(this.greekRegex);
+            let second = b.name.match(this.greekRegex);
+            if (first && second) {
+                if (this.removeGreekAccents(a.name) < this.removeGreekAccents(b.name)) {
+                    return -1
+                }
+                if (this.removeGreekAccents(a.name) > this.removeGreekAccents(b.name)) {
+                    return 1
+                }
+                return 0
             }
             // Default
             if (a.name < b.name) {
