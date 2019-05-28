@@ -53,11 +53,20 @@ export default {
                             customLabel: ({id, name}) => {
                                 return id + ' - ' + name
                             },
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
                         }
                     ),
                 }
             }
         }
+    },
+    methods: {
+        greekSearch(searchQuery) {
+            this.schema.fields.types.values = this.schema.fields.types.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
+        },
     },
 }
 </script>

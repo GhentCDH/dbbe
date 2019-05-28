@@ -112,6 +112,8 @@ export default {
                             customLabel: ({id, name}) => {
                                 return id + ' - ' + name
                             },
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
                         }
                     ),
                     public: {
@@ -124,6 +126,13 @@ export default {
                 }
             },
         }
+    },
+    methods: {
+        greekSearch(searchQuery) {
+            this.schema.fields.basedOn.values = this.schema.fields.basedOn.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
+        },
     },
 }
 </script>

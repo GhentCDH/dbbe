@@ -142,6 +142,8 @@ export default {
                             customLabel: ({id, name}) => {
                                 return id + ' - ' + name
                             },
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
                         }
                     ),
                     relationTypes: this.createMultiSelect(
@@ -236,7 +238,12 @@ export default {
                 result.push('<span class="greek">' + relatedType.type.id + ' - ' + relatedType.type.name + '</span>' + '<br />' + relatedType.relationTypes.map(relationType => relationType.name).join(', '))
             }
             return result
-        }
+        },
+        greekSearch(searchQuery) {
+            this.schema.fields.type.values = this.schema.fields.type.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
+        },
     }
 }
 </script>
