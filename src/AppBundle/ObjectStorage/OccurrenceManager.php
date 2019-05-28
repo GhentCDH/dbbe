@@ -299,6 +299,11 @@ class OccurrenceManager extends PoemManager
         try {
             $id = $this->dbs->insert($data->manuscript->id, $data->incipit);
 
+            // Reset new manuscript (personroles + number of occurrences)
+            $this->container->get('manuscript_manager')->updateElasticByIds([
+                $data->manuscript->id,
+            ]);
+
             unset($data->manuscript);
 
             $new = $this->update($id, $data, true);
