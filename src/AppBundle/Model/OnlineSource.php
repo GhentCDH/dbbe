@@ -96,11 +96,10 @@ class OnlineSource extends Entity
      */
     public function getJson(): array
     {
-        $result = [
-            'id' => $this->id,
-            'name' => $this->name,
-            'url' => $this->url,
-        ];
+        $result = parent::getJson();
+
+        $result['name'] = $this->name;
+        $result['url'] = $this->url;
 
         if (!empty($this->lastAccessed)) {
             $result['lastAccessed'] = $this->lastAccessed->format('d/m/Y');
