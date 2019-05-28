@@ -398,6 +398,7 @@ export default {
                 let field = this.schema.fields[fieldName];
                 if (field.type === 'multiselectClear') {
                     field.values = this.data.aggregation[fieldName] == null ? [] : this.data.aggregation[fieldName].sort(this.sortByName);
+                    field.originalValues = JSON.parse(JSON.stringify(field.values));
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         this.dependencyField(field)
                     }
@@ -591,6 +592,11 @@ export default {
         formatDate(input) {
             const date = new Date(input);
             return ('00' + date.getDate()).slice(-2) + '/' + ('00' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+        },
+        removeGreekAccents(input) {
+            let encoded = encodeURIComponent(input.normalize('NFD'));
+            let stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/, '');
+            return decodeURIComponent(stripped);
         },
     },
     requestFunction (data) {

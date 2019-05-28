@@ -52,8 +52,10 @@ export default {
                 if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
                     if (Array.isArray(this.values)) {
                         this.fields[this.keys[key].field].values = this.values;
+                        this.fields[this.keys[key].field].originalValues = JSON.parse(JSON.stringify(this.values));
                     } else {
                         this.fields[this.keys[key].field].values = this.values[key];
+                        this.fields[this.keys[key].field].originalValues = JSON.parse(JSON.stringify(this.values[key]));
                     }
                     this.enableField(this.fields[this.keys[key].field]);
                 }

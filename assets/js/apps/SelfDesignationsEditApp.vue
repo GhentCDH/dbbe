@@ -70,6 +70,10 @@ export default {
                         {
                             model: 'selfDesignation',
                             styleClasses: 'greek',
+                        },
+                        {
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
                         }
                     ),
                 },
@@ -98,6 +102,7 @@ export default {
                     name: null,
                 }
             },
+            originalValues: [],
         }
     },
     computed: {
@@ -113,6 +118,7 @@ export default {
     },
     mounted () {
         this.schema.fields.selfDesignation.values = this.values;
+        this.schema.fields.selfDesignation.originalValues = JSON.parse(JSON.stringify(this.values));
         this.enableField(this.schema.fields.selfDesignation)
     },
     methods: {
@@ -206,6 +212,11 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something went wrong while renewing the (self) designation data.', login: this.isLoginError(error)});
                     console.log(error)
                 })
+        },
+        greekSearch(searchQuery) {
+            this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
         },
     }
 }

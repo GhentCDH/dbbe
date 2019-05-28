@@ -101,7 +101,7 @@ export default {
         onSearchChange(searchQuery, id) {
             let onSearch = this.selectOptions.onSearch;
             if (typeof(onSearch) == 'function') {
-                onSearch(searchQuery, ionEscStopPreventd, this.options);
+                onSearch(searchQuery, id, this.options);
             }
         },
         onSelect(/*selectedOption, id*/) {

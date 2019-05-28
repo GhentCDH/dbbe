@@ -181,5 +181,10 @@ export default {
             field.selectOptions.loading = false
             field.placeholder = 'No ' + field.label.toLowerCase() + 's available'
         },
+        removeGreekAccents(input) {
+            let encoded = encodeURIComponent(input.normalize('NFD'));
+            let stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/, '');
+            return decodeURIComponent(stripped);
+        },
     }
 }

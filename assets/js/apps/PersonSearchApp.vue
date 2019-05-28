@@ -456,7 +456,16 @@ export default {
                     },
                     role: this.createMultiSelect('Role'),
                     office: this.createMultiSelect('Office'),
-                    self_designation: this.createMultiSelect('(Self) designation', {model: 'self_designation'}),
+                    self_designation: this.createMultiSelect(
+                        '(Self) designation',
+                        {
+                            model: 'self_designation'
+                        },
+                        {
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
+                        }
+                    ),
                     origin: this.createMultiSelect('Origination', {model: 'origin'}),
                     comment: {
                         type: 'input',
@@ -787,6 +796,11 @@ export default {
                 }
             }
             return result.join(' - ')
+        },
+        greekSearch(searchQuery) {
+            this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
         },
     }
 }
