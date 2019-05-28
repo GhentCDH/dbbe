@@ -8,11 +8,11 @@ class Origin extends Location
 
     public function getName(): string
     {
-        $names = [$this->regionWithParents->getHistoricalName()];
+        $names = [$this->regionWithParents->getInverseName()];
         if (isset($this->institution)) {
             $names[] = $this->institution->getName();
         }
-        return implode(' > ', $names);
+        return implode(' < ', array_reverse($names));
     }
 
     public function getShortJson(): array
