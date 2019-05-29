@@ -52,6 +52,7 @@ class JournalService extends DocumentService
             inner join data.document_contains on journal_issue.identity = document_contains.idcontainer
             inner join data.article on document_contains.idcontent = article.identity
             where journal.identity = ?
+            group by journal_issue_id, article_id
             order by journal_issue.year, journal_issue.volume, journal_issue.number',
             [$id]
         )->fetchAll();
