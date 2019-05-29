@@ -12,7 +12,8 @@ class RegionWithParents extends IdNameObjectWithParents
         foreach ($this->array as $content) {
             $names[] = $content->getHistoricalName();
         }
-        return implode(' > ', $names);
+        // do not display empty names
+        return implode(' > ', array_filter($names));
     }
 
     public function getInverseHistoricalName(): string
@@ -21,7 +22,8 @@ class RegionWithParents extends IdNameObjectWithParents
         foreach ($this->array as $content) {
             $names[] = $content->getHistoricalName();
         }
-        return implode(' < ', array_reverse($names));
+        // do not display empty names
+        return implode(' < ', array_reverse(array_filter($names)));
     }
 
     public function getIndividualHistoricalName(): string
