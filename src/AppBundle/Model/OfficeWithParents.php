@@ -15,7 +15,7 @@ class OfficeWithParents extends IdNameObjectWithParents
     {
         $names = [];
         foreach ($this->array as $office) {
-            $names[] = $office->getName() ? $office->getName() : 'of ' . $office->getRegionWithParents()->getInverseName();
+            $names[] = $office->getName() ? $office->getName() : 'of ' . $office->getRegionWithParents()->getInverseHistoricalName();
         }
         $name = implode(' > ', $names);
         return str_replace(' > of ', ' of ', $name);

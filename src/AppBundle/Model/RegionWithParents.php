@@ -15,6 +15,15 @@ class RegionWithParents extends IdNameObjectWithParents
         return implode(' > ', $names);
     }
 
+    public function getInverseHistoricalName(): string
+    {
+        $names = [];
+        foreach ($this->array as $content) {
+            $names[] = $content->getHistoricalName();
+        }
+        return implode(' < ', array_reverse($names));
+    }
+
     public function getIndividualHistoricalName(): string
     {
         return $this->getLastChild()->getHistoricalName();

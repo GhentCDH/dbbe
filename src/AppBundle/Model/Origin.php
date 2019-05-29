@@ -8,7 +8,7 @@ class Origin extends Location
 
     public function getName(): string
     {
-        $names = [$this->regionWithParents->getInverseName()];
+        $names = [$this->regionWithParents->getInverseHistoricalName()];
         if (isset($this->institution)) {
             $names[] = $this->institution->getName();
         }
