@@ -369,9 +369,11 @@ abstract class EntityManager extends ObjectManager
             }
             $changes[$level] = true;
             foreach ($identifiers as $identifier) {
-                if (property_exists($data->identification, $identifier->getSystemName())) {
+                if (property_exists($data->identification, $identifier->getSystemName())
+                    || array_key_exists($identifier->getSystemName(), $entity->getIdentifications())
+                ) {
                     $oldIdentifications = !isset($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()][1];
-                    $newIdentifications = $data->identification->{$identifier->getSystemName()};
+                    $newIdentifications = property_exists($data->identification, $identifier->getSystemName()) ? $data->identification->{$identifier->getSystemName()} : null;
 
                     if ($identifier->getVolumes() == 1) {
                         $this->updateIdentification(

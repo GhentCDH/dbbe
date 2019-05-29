@@ -368,7 +368,7 @@ class EntityService extends DatabaseService
         );
     }
 
-    public function delIdentification(int $entityId, int $identifierId, int $volume)
+    public function delIdentification(int $entityId, int $identifierId, int $volume = null)
     {
         // Postgresql array indices start with 1
         return $this->conn->executeUpdate(
@@ -379,7 +379,7 @@ class EntityService extends DatabaseService
             and identifier.ididentifier = ?',
             [
                 $entityId,
-                $volume,
+                $volume == null ? 1 : $volume,
                 $identifierId,
             ]
         );
