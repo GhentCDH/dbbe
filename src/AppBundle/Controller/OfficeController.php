@@ -81,7 +81,7 @@ class OfficeController extends BaseController
                 ]),
                 'data'=> json_encode([
                     'offices' => $this->get('office_manager')->getAllJson(),
-                    'regions' => $this->get('region_manager')->getAllShortJson(),
+                    'regions' => $this->get('region_manager')->getAllShortHistoricalJson(),
                 ]),
             ]
         );
