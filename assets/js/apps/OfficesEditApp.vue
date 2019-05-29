@@ -158,6 +158,11 @@ export default {
                 this.model.office.parent = this.values.filter((officeWithParents) => officeWithParents.id === this.model.office.parent.id)[0]
             }
         },
+        'submitModel.office.individualName'() {
+            if (this.submitModel.office.individualName === '' && this.originalSubmitModel.office.individualName == null) {
+                this.submitModel.office.individualName = null;
+            }
+        }
     },
     mounted () {
         this.schema.fields.office.values = this.values

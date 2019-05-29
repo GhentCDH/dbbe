@@ -93,7 +93,7 @@ export default {
         revalidate() {
             this.submitModel.revalidate = true
             this.$refs.edit.validate()
-            this.submitModel.revalidate = false
+            delete this.submitModel.revalidate
         },
     }
 }
