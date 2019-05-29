@@ -28,7 +28,7 @@ class OfficeWithParents extends IdNameObjectWithParents
             'name' => $this->getName(),
             'parent' => $this->getParent() ? $this->getParent()->getShortJson() : null,
             'individualName' => $this->getIndividualName(),
-            'individualRegionWithParents' => $this->getIndividualRegionWithParents() ? $this->getIndividualRegionWithParents()->getShortJson() : null,
+            'individualRegionWithParents' => $this->getIndividualRegionWithParents() ? $this->getIndividualRegionWithParents()->getShortHistoricalJson() : null,
         ];
     }
 }
