@@ -371,8 +371,8 @@ export default {
                 metres: {metres: null},
                 genres: {genres: null},
                 subjects: {
-                    persons: null,
-                    keywords: null,
+                    personSubjects: [],
+                    keywordSubjects: [],
                 },
                 keywords: {
                     keywords: null,
@@ -671,7 +671,7 @@ export default {
             case 'keywordSubjects':
                 this.reloadItems(
                     'keywordSubjects',
-                    ['subjectKeywords'],
+                    ['keywordSubjects'],
                     [this.subjects.keywordSubjects],
                     this.urls['keywords_subject_get']
                 );

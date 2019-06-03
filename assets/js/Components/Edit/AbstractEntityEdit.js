@@ -208,7 +208,7 @@ export default {
             );
         },
         reloadItems(type, keys, items, url, filters) {
-            // Be carefull to mutate the existing array and not create a new one
+            // Be careful to mutate the existing array and not create a new one
             for (let panel of this.panels) {
                 this.$refs[panel].disableFields(keys);
             }
@@ -229,9 +229,9 @@ export default {
                         while (data.length) {
                             items[i].push(data.shift());
                         }
-                        for (let panel of this.panels) {
-                            this.$refs[panel].enableFields(keys);
-                        }
+                    }
+                    for (let panel of this.panels) {
+                        this.$refs[panel].enableFields(keys);
                     }
                     let typeIndex = this.reloads.indexOf(type);
                     if (typeIndex > -1) {
