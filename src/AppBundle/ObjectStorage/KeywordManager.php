@@ -176,20 +176,20 @@ class KeywordManager extends ObjectManager
      */
     public function migratePerson(int $primaryId, int $secondaryId): Person
     {
-        $keywords = $this->get([$primaryId]);
-        if (count($keywords) != 1) {
-            throw new NotFoundHttpException('Keyword with id ' . $primaryId .' not found.');
-        }
-        // Will throw an exception if not found
-        $person = $this->container->get('person_manager')->getFull($secondaryId);
+        $this->dbs->beginTransaction();
+        try {
+            $keywords = $this->get([$primaryId]);
+            if (count($keywords) != 1) {
+                throw new NotFoundHttpException('Keyword with id ' . $primaryId .' not found.');
+            }
+            // Will throw an exception if not found
+            $person = $this->container->get('person_manager')->getFull($secondaryId);
 
-        $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($primaryId, 'getShort');
-        $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, 'getShort');
-        $poems = $occurrences + $types;
+            $occurrences = $this->container->get('occurrence_manager')->getKeywordDependencies($primaryId, 'getShort');
+            $types = $this->container->get('type_manager')->getKeywordDependencies($primaryId, 'getShort');
+            $poems = $occurrences + $types;
 
-        if (!empty($poems)) {
-            $this->dbs->beginTransaction();
-            try {
+            if (!empty($poems)) {
                 $esData = [];
                 $this->dbs->migrateSubjectFactoidToPerson($primaryId, $secondaryId);
                 foreach ($poems as $poem) {
@@ -210,7 +210,6 @@ class KeywordManager extends ObjectManager
                         'subject' => ArrayToJson::arrayToShortJson($new->getSubjects()),
                     ];
                 }
-                $this->delete($primaryId);
 
                 $this->container->get('occurrence_elastic_service')->updateMultiple(
                     array_filter(
@@ -230,21 +229,22 @@ class KeywordManager extends ObjectManager
                         ARRAY_FILTER_USE_KEY
                     )
                 );
-
-                // commit transaction
-                $this->dbs->commit();
-            } catch (\Exception $e) {
-                $this->dbs->rollBack();
-
-                if (!empty($occurrences)) {
-                    $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($poems));
-                }
-                if (!empty($types)) {
-                    $this->container->get('type_manager')->updateElasticByIds(array_keys($poems));
-                }
-
-                throw $e;
             }
+            $this->delete($primaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+
+            if (!empty($occurrences)) {
+                $this->container->get('occurrence_manager')->updateElasticByIds(array_keys($poems));
+            }
+            if (!empty($types)) {
+                $this->container->get('type_manager')->updateElasticByIds(array_keys($poems));
+            }
+
+            throw $e;
         }
 
         return $person;
