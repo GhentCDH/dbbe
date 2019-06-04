@@ -918,7 +918,10 @@ class OccurrenceManager extends PoemManager
 
 
         // Update url and public state if necessary
-        $oldImageLinks = $this->container->get('image_manager')->get($updateIds);
+        $oldImageLinks = [];
+        if (!empty($updateIds)) {
+            $oldImageLinks = $this->container->get('image_manager')->get($updateIds);
+        }
         foreach ($updateLinks as $link) {
             $data = [];
             if (property_exists($link, 'public') && $link->public !== $oldImageLinks[$link->id]->getPublic()) {
