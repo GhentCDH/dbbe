@@ -64,22 +64,37 @@ class FuzzyDate
             return '';
         }
 
+        $floorYear = '';
+        if (!empty($this->floor)) {
+            $floorYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->floor->format('Y'));
+            if (substr($floorYear, 0, 1 ) === '-') {
+                $floorYear = substr($floorYear, 1) . ' BC';
+            }
+        }
+        $ceilingYear = '';
+        if (!empty($this->ceiling)) {
+            $ceilingYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->ceiling->format('Y'));
+            if (substr($ceilingYear, 0, 1) === '-') {
+                $ceilingYear = substr($ceilingYear, 1) . ' BC';
+            }
+        }
+
         // unknown floor
         if (empty($this->floor)) {
             // year
             if ($this->ceiling->format('m-d') == '12-31') {
-                return 'before ' . $this->ceiling->format('Y');
+                return 'before ' . $ceilingYear;
             }
-            return 'before ' . $this->ceiling->format('d/m/Y');
+            return 'before ' . $this->ceiling->format('d/m/') . $ceilingYear;
         }
 
         // unknown ceiling
         if (empty($this->ceiling)) {
             // year
             if ($this->floor->format('m-d') == '01-01') {
-                return 'after ' . $this->floor->format('Y');
+                return 'after ' . $floorYear;
             }
-            return 'after ' . $this->floor->format('d/m/Y');
+            return 'after ' . $this->floor->format('d/m/') . $floorYear;
         }
 
         // exact century or centuries
@@ -104,16 +119,6 @@ class FuzzyDate
         if ($this->floor->format('m-d') == '01-01'
             && $this->ceiling->format('m-d') == '12-31'
         ) {
-            $floorYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->floor->format('Y'));
-            if (substr($floorYear, 0, 1 ) === '-') {
-                $floorYear = substr($floorYear, 1) . ' BC';
-            }
-            $ceilingYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->ceiling->format('Y'));
-            if (substr($ceilingYear, 0, 1 ) === '-') {
-                $ceilingYear = substr($ceilingYear, 1) . ' BC';
-            }
-
-
             if ($floorYear == $ceilingYear) {
                 return $floorYear;
             } else {
@@ -121,22 +126,13 @@ class FuzzyDate
             }
         }
 
-        $exactFloor = $this->floor->format('d/m/Y');
-        if (substr($exactFloor, 6, 1) === '-') {
-            $exactFloor = substr($exactFloor, 0, 6) . substr($exactFloor, 7) . ' BC';
-        }
-        $exactCeiling = $this->ceiling->format('d/m/Y');
-        if (substr($exactCeiling, 6, 1) === '-') {
-            $exactCeiling = substr($exactCeiling, 0, 6) . substr($exactCeiling, 7) . ' BC';
-        }
-
         // exact date
         if ($this->floor == $this->ceiling) {
-            return $exactFloor;
+            return $this->floor->format('d/m/') . $floorYear;
         }
 
         // default: return all information
-        return $exactFloor . '-' . $exactCeiling;
+        return $this->floor->format('d/m/') . $floorYear . '-' . $this->ceiling->format('d/m/') . $ceilingYear;
     }
 
     /**
