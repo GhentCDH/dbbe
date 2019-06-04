@@ -27,7 +27,6 @@ class Origin extends Location
     {
         // add all parent regions as well
         // use the ids of the regions / institution
-        $array = $this->regionWithParents->getArray();
         if (isset($this->institution)) {
             $result = $this->regionWithParents->getHistoricalElastic(false);
             $result[] = [
