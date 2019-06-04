@@ -91,7 +91,7 @@ services:
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
-        arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage', 'region']
         public: true
 
     bibliography_manager:
