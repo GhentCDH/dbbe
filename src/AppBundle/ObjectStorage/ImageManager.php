@@ -81,9 +81,8 @@ class ImageManager extends ObjectManager
                 $new = $this->get([$id])[$id];
 
                 $this->updateModified(null, $new);
-
-                $this->dbs->commit();
             }
+            $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
             throw $e;
@@ -125,9 +124,9 @@ class ImageManager extends ObjectManager
                 $new = $this->get([$id])[$id];
 
                 $this->updateModified(null, $new);
-
-                $this->dbs->commit();
             }
+
+            $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
             throw $e;
