@@ -255,7 +255,7 @@ class DocumentService extends EntityService
     {
         return $this->conn->executeUpdate(
             'DELETE
-            from data.document_genre
+            from data.document_acknowledgement
             where iddocument = ?
             and idacknowledgement in (?)',
             [
