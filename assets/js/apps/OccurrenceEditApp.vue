@@ -374,6 +374,8 @@ export default {
                     alternativeFoliumStartRecto:  null,
                     alternativeFoliumEnd:  null,
                     alternativeFoliumEndRecto:  null,
+                    alternativePageStart: null,
+                    alternativePageEnd: null,
                 },
                 types: {types: null},
                 personRoles: {},
@@ -520,6 +522,8 @@ export default {
                     alternativeFoliumStartRecto: this.occurrence.alternativeFoliumStartRecto,
                     alternativeFoliumEnd: this.occurrence.alternativeFoliumEnd,
                     alternativeFoliumEndRecto: this.occurrence.alternativeFoliumEndRecto,
+                    alternativePageStart: this.occurrence.alternativePageStart,
+                    alternativePageEnd: this.occurrence.alternativePageEnd,
                 }
 
                 // Types

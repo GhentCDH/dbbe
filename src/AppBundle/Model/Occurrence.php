@@ -70,6 +70,14 @@ class Occurrence extends Poem
      */
     protected $alternativeFoliumEndRecto;
     /**
+     * @var string
+     */
+    protected $alternativePageStart;
+    /**
+     * @var string
+     */
+    protected $alternativePageEnd;
+    /**
      * @var Manuscript
      */
     protected $manuscript;
@@ -263,6 +271,28 @@ class Occurrence extends Poem
     }
 
     /**
+     * @param  string|null $alternativePageStart
+     * @return Occurrence
+     */
+    public function setAlternativePageStart(string $alternativePageStart = null): Occurrence
+    {
+        $this->alternativePageStart = $alternativePageStart;
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $alternativePageEnd
+     * @return Occurrence
+     */
+    public function setAlternativePageEnd(string $alternativePageEnd = null): Occurrence
+    {
+        $this->alternativePageEnd = $alternativePageEnd;
+
+        return $this;
+    }
+
+    /**
      * @return string|null
      */
     public function getLocation(): ?string
@@ -310,6 +340,14 @@ class Occurrence extends Poem
                 $resultArray[] = '(alt.) f. '
                     . $this->alternativeFoliumStart
                     . self::formatRecto($this->alternativeFoliumStartRecto);
+            }
+        }
+        if (!empty($this->alternativePageStart)) {
+            if (!empty($this->alternativePageEnd) && $this->alternativePageStart !== $this->alternativePageEnd) {
+                $resultArray[] = '(alt.) p. ' . $this->alternativePageStart
+                    . '-' . $this->alternativePageEnd;
+            } else {
+                $resultArray[] = '(alt.) p. ' . $this->alternativePageStart;
             }
         }
 
@@ -577,6 +615,12 @@ class Occurrence extends Poem
         }
         if (isset($this->alternativeFoliumEndRecto)) {
             $result['alternativeFoliumEndRecto'] = $this->alternativeFoliumEndRecto;
+        }
+        if (!empty($this->alternativePageStart)) {
+            $result['alternativePageStart'] = $this->alternativePageStart;
+        }
+        if (!empty($this->alternativePageEnd)) {
+            $result['alternativePageEnd'] = $this->alternativePageEnd;
         }
         if (!empty($this->verses)) {
             $result['verses'] = ArrayToJson::arrayToJson($this->verses);

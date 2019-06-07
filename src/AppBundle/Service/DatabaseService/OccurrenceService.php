@@ -261,6 +261,8 @@ class OccurrenceService extends PoemService
                 document_contains.alternative_folium_start_recto,
                 document_contains.alternative_folium_end,
                 document_contains.alternative_folium_end_recto,
+                document_contains.alternative_page_start,
+                document_contains.alternative_page_end,
                 document_contains.idcontainer as manuscript_id
             from data.original_poem
             inner join data.document_contains on original_poem.identity = document_contains.idcontent
@@ -710,6 +712,42 @@ class OccurrenceService extends PoemService
             where document_contains.idcontent = ?',
             [
                 $alternativeFoliumEndRecto === null ? null : ($alternativeFoliumEndRecto ? 'TRUE': 'FALSE'),
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $alternativePageStart
+     * @return int
+     */
+    public function updateAlternativePageStart(int $id, string $alternativePageStart = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_page_start = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativePageStart,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int    $id
+     * @param  string $alternativePageEnd
+     * @return int
+     */
+    public function updateAlternativePageEnd(int $id, string $alternativePageEnd = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.document_contains
+            set alternative_page_end = ?
+            where document_contains.idcontent = ?',
+            [
+                $alternativePageEnd,
                 $id,
             ]
         );

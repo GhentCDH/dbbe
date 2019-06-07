@@ -74,7 +74,9 @@ class OccurrenceManager extends PoemManager
                     ->setAlternativeFoliumStart($rawLocation['alternative_folium_start'])
                     ->setAlternativeFoliumStartRecto($rawLocation['alternative_folium_start_recto'])
                     ->setAlternativeFoliumEnd($rawLocation['alternative_folium_end'])
-                    ->setAlternativeFoliumEndRecto($rawLocation['alternative_folium_end_recto']);
+                    ->setAlternativeFoliumEndRecto($rawLocation['alternative_folium_end_recto'])
+                    ->setAlternativePageStart($rawLocation['alternative_page_start'])
+                    ->setAlternativePageEnd($rawLocation['alternative_page_end']);
             }
 
             // Remove all ids that did not match above
@@ -496,6 +498,26 @@ class OccurrenceManager extends PoemManager
 
                 $changes['mini'] = true;
                 $this->dbs->updateAlternativeFoliumEndRecto($id, $data->alternativeFoliumEndRecto);
+            }
+            if (property_exists($data, 'alternativePageStart')) {
+                if (!is_string($data->alternativePageStart)
+                    && !is_null($data->alternativePageStart)
+                ) {
+                    throw new BadRequestHttpException('Incorrect alternativePageStart data.');
+                }
+
+                $changes['mini'] = true;
+                $this->dbs->updateAlternativePageStart($id, $data->alternativePageStart);
+            }
+            if (property_exists($data, 'alternativePageEnd')) {
+                if (!is_string($data->alternativePageEnd)
+                    && !is_null($data->alternativePageEnd)
+                ) {
+                    throw new BadRequestHttpException('Incorrect alternativePageEnd data.');
+                }
+
+                $changes['mini'] = true;
+                $this->dbs->updateAlternativePageEnd($id, $data->alternativePageEnd);
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!empty($data->numberOfVerses) && !is_numeric($data->numberOfVerses)) {
