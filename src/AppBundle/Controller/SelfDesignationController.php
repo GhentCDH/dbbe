@@ -46,6 +46,7 @@ class SelfDesignationController extends BaseController
                     'person_deps_by_self_designation' => $this->generateUrl('person_deps_by_self_designation', ['id' => 'self_designation_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'self_designation_post' => $this->generateUrl('self_designation_post'),
+                    'self_designation_merge' => $this->generateUrl('self_designation_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'self_designation_put' => $this->generateUrl('self_designation_put', ['id' => 'self_designation_id']),
                     'self_designation_delete' => $this->generateUrl('self_designation_delete', ['id' => 'self_designation_id']),
                     'login' => $this->generateUrl('saml_login'),
@@ -56,6 +57,19 @@ class SelfDesignationController extends BaseController
                 ),
             ]
         );
+    }
+
+    /**
+     * @Route("/self-designations/{primaryId}/{secondaryId}", name="self_designation_merge")
+     * @Method("PUT")
+     * @param  int    $primaryId   first self designation id (will stay)
+     * @param  int    $secondaryId second self designation id (will be deleted)
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function merge(int $primaryId, int $secondaryId, Request $request)
+    {
+        return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**

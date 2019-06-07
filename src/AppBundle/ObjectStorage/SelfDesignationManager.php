@@ -173,6 +173,76 @@ class SelfDesignationManager extends ObjectManager
     }
 
     /**
+     * Merge two self designations
+     * @param  int $primaryId
+     * @param  int $secondaryId
+     * @return SelfDesignation
+     */
+    public function merge(int $primaryId, int $secondaryId): SelfDesignation
+    {
+        if ($primaryId == $secondaryId) {
+            throw new BadRequestHttpException(
+                'Self designations with id ' . $primaryId .' and id ' . $secondaryId . ' are identical and cannot be merged.'
+            );
+        }
+        $selfDesignations = $this->get([$primaryId, $secondaryId]);
+        if (count($selfDesignations) != 2) {
+            throw new NotFoundHttpException('Self designation with id ' . $primaryId . 'or' . $secondaryId .' not found.');
+        }
+        $primary = $selfDesignations[$primaryId];
+
+        $persons = $this->container->get('person_manager')->getSelfDesignationDependencies($secondaryId, 'getMini');
+
+        $this->dbs->beginTransaction();
+        try {
+            if (!empty($persons)) {
+                foreach ($persons as $person) {
+                    $selfDesignations = $person->getSelfDesignations();
+
+                    $newIds = [];
+                    foreach ($selfDesignations as $selfDesignation) {
+                        $id = $selfDesignation->getId();
+                        if ($id == $secondaryId) {
+                            $id = $primaryId;
+                        }
+                        // prevent duplicate entries
+                        if (!in_array($id, $newIds)) {
+                            $newIds[] = $id;
+                        }
+                    }
+
+                    $this->container->get('person_manager')->update(
+                        $person->getId(),
+                        json_decode(
+                            json_encode(
+                                [
+                                    'selfDesignations' => array_map(
+                                        function ($id) {
+                                            return ['id' => $id];
+                                        },
+                                        $newIds
+                                    ),
+                                ]
+                            )
+                        )
+                    );
+                }
+            }
+
+            $this->delete($secondaryId);
+
+            // commit transaction
+            $this->dbs->commit();
+        } catch (\Exception $e) {
+            $this->dbs->rollBack();
+
+            throw $e;
+        }
+
+        return $primary;
+    }
+
+    /**
      * Delete a self designation
      * @param int $id
      * @throws BadRequestHttpException

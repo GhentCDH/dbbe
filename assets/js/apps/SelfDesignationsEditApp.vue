@@ -13,10 +13,12 @@
                     :conditions="{
                         add: true,
                         edit: model.selfDesignation,
+                        merge: model.selfDesignation,
                         del: model.selfDesignation,
                     }"
                     @add="edit(true)"
                     @edit="edit()"
+                    @merge="merge()"
                     @del="del()"
                 />
             </panel>
@@ -38,6 +40,36 @@
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
         />
+        <mergeModal
+            :show="mergeModal"
+            :schema="mergeSchema"
+            :merge-model="mergeModel"
+            :original-merge-model="originalMergeModel"
+            :alerts="mergeAlerts"
+            @cancel="cancelMerge()"
+            @reset="resetMerge()"
+            @confirm="submitMerge()"
+            @dismiss-alert="mergeAlerts.splice($event, 1)"
+        >
+            <table
+                v-if="mergeModel.primary && mergeModel.secondary"
+                slot="preview"
+                class="table table-striped table-hover"
+            >
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Title</td>
+                        <td>{{ mergeModel.primary.name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </mergeModal>
         <deleteModal
             :show="deleteModal"
             :del-dependencies="delDependencies"
@@ -92,6 +124,12 @@ export default {
                     },
                 },
             },
+            mergeSchema: {
+                fields: {
+                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                },
+            },
             model: {
                 selfDesignation: null,
             },
@@ -101,6 +139,11 @@ export default {
                     id: null,
                     name: null,
                 }
+            },
+            mergeModel: {
+                submitType: 'selfDesignations',
+                primary: null,
+                secondary: null,
             },
             originalValues: [],
         }
@@ -135,6 +178,16 @@ export default {
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
+        },
+        merge() {
+            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.selfDesignation));
+            this.mergeModel.secondary = null;
+            this.mergeSchema.fields.primary.values = this.values;
+            this.mergeSchema.fields.secondary.values = this.values;
+            this.enableField(this.mergeSchema.fields.primary);
+            this.enableField(this.mergeSchema.fields.secondary);
+            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
+            this.mergeModal = true
         },
         del() {
             this.submitModel.selfDesignation = this.model.selfDesignation;
@@ -179,6 +232,24 @@ export default {
                         console.log(error)
                     })
             }
+        },
+        submitMerge() {
+            this.mergeModal = false;
+            this.openRequests++;
+            axios.put(this.urls['self_designation_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
+                .then( (response) => {
+                    this.submitModel.selfDesignation = response.data;
+                    this.update();
+                    this.mergeAlerts = [];
+                    this.alerts.push({type: 'success', message: 'Merge successful.'});
+                    this.openRequests--
+                })
+                .catch( (error) => {
+                    this.openRequests--;
+                    this.mergeModal = true;
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the self designations.', login: this.isLoginError(error)});
+                    console.log(error)
+                })
         },
         submitDelete() {
             this.deleteModal = false;
