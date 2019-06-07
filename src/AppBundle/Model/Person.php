@@ -973,7 +973,7 @@ class Person extends Entity implements SubjectInterface
             $result['self_designation'] = ArrayToJson::arrayToShortJson($this->selfDesignations);
         }
         if (!empty($this->origin)) {
-            $result['origin'] = $this->origin->getShortJson();
+            $result['origin'] = $this->origin->getShortElastic();
         }
 
         return $result;
