@@ -75,13 +75,13 @@ class RegionWithParents extends IdNameObjectWithParents
         while (count($array) > 0) {
             $object = new RegionWithParents($array);
             // Do not add regions that don't have a historical name
-            if (empty($object->getHistoricalName())) {
+            if (empty($object->getInverseHistoricalName())) {
                 array_pop($array);
                 continue;
             }
             $entry = [
                 'id' => $object->getId(),
-                'name' => $object->getHistoricalName(),
+                'name' => $object->getInverseHistoricalName(),
             ];
             if ($display) {
                 $display = false;
