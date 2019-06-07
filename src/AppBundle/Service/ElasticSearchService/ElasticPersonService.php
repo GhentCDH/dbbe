@@ -46,6 +46,7 @@ class ElasticPersonService extends ElasticEntityService
                 'self_designation' => ['type' => 'nested'],
                 'office' => ['type' => 'nested'],
                 'management' => ['type' => 'nested'],
+                'origin' => ['type' => 'nested'],
             ]
         );
         $mapping->send();
@@ -123,11 +124,9 @@ class ElasticPersonService extends ElasticEntityService
             case 'role':
             case 'self_designation':
             case 'office':
+            case 'origin':
             case 'management':
                 $result['nested'][] = $value;
-                break;
-            case 'origin':
-                $result['object'][] = $value;
                 break;
             case 'public':
             case 'historical':
@@ -177,10 +176,8 @@ class ElasticPersonService extends ElasticEntityService
             case 'role':
             case 'self_designation':
             case 'office':
-                $result['nested'][$key] = $value;
-                break;
             case 'origin':
-                $result['object'][$key] = $value;
+                $result['nested'][$key] = $value;
                 break;
             case 'management':
                 if (isset($filters['management_inverse']) && $filters['management_inverse']) {
