@@ -228,10 +228,16 @@ class Book extends Document
             }
         }
         return
-            implode(', ', $authorNames)
-            . (!empty($authorNames) && !empty($editornames)) {
-                '; '
-            }
+            (
+                !empty($authorNames)
+                    ? implode(', ', $authorNames) . (count($authorNames) > 1 ? ' (auths.)' :  ' (auth.)')
+                    : ''
+            )
+            . (
+                (!empty($authorNames) && !empty($editornames))
+                    ? '; '
+                    : ', '
+            )
             . (
                 !empty($editornames)
                     ? implode(', ', $editornames) . (count($editornames) > 1 ? ' (eds.), ' :  ' (ed.), ')
