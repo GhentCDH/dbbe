@@ -480,6 +480,9 @@ export default {
                 headings: {
                     comment: 'Comment (matching lines only)',
                 },
+                columnsClasses: {
+                    name: 'no-wrap',
+                },
                 'filterable': false,
                 'orderBy': {
                     'column': 'name'
