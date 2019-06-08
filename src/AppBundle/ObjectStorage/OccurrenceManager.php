@@ -361,7 +361,7 @@ class OccurrenceManager extends PoemManager
                 }
 
                 $changes['short'] = true;
-                $this->dbs->upsertTitle($id, 'GR', $data->title);
+                $this->dbs->upsertDelTitle($id, 'GR', $data->title);
             }
             if (property_exists($data, 'manuscript')) {
                 // Manuscript is a required field

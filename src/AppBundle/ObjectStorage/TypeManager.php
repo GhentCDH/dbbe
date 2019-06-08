@@ -313,7 +313,7 @@ class TypeManager extends PoemManager
                 }
 
                 $changes['short'] = true;
-                $this->dbs->upsertTitle($id, 'GR', $data->title_GR);
+                $this->dbs->upsertDelTitle($id, 'GR', $data->title_GR);
             }
             if (property_exists($data, 'title_LA')) {
                 if (!is_string($data->title_LA)) {
@@ -321,7 +321,7 @@ class TypeManager extends PoemManager
                 }
 
                 $changes['short'] = true;
-                $this->dbs->upsertTitle($id, 'LA', $data->title_LA);
+                $this->dbs->upsertDelTitle($id, 'LA', $data->title_LA);
             }
             if (property_exists($data, 'numberOfVerses')) {
                 if (!empty($data->numberOfVerses) && !is_numeric($data->numberOfVerses)) {

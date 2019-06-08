@@ -122,8 +122,23 @@ class PoemService extends DocumentService
      * @param  string $title
      * @return int
      */
-    public function upsertTitle(int $id, string $langCode, string $title): int
+    public function upsertDelTitle(int $id, string $langCode, string $title): int
     {
+        if (empty($title)) {
+            return $this->conn->executeUpdate(
+                'DELETE FROM data.document_title
+                where iddocument = ?
+                and idlanguage = (
+                    select idlanguage
+                    from data.language
+                    where language.code = ?
+                )',
+                [
+                    $id,
+                    $langCode,
+                ]
+            );
+        }
         return $this->conn->executeUpdate(
             'INSERT INTO data.document_title (iddocument, idlanguage, title)
             values (
