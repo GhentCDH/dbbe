@@ -20,7 +20,7 @@
                     </button>
                 </div>
                 <div class="form-group">
-                    <a :href="urls['help']" class="action"><i class="fa fa-info-circle" /> More information about the text search options.</a>
+                    <a :href="urls['help']" class="action" target="_blank"><i class="fa fa-info-circle" /> More information about the text search options.</a>
                 </div>
                 <vue-form-generator
                     ref="form"

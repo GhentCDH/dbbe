@@ -102,7 +102,7 @@
     },
     "occurrencesearch": {
       "js": [
-        "/build/occurrencesearch.a2c37e72.js"
+        "/build/occurrencesearch.acfa8424.js"
       ]
     },
     "officesedit": {
@@ -162,7 +162,7 @@
     },
     "typesearch": {
       "js": [
-        "/build/typesearch.e869fb4a.js"
+        "/build/typesearch.d86beb15.js"
       ]
     },
     "usersedit": {
