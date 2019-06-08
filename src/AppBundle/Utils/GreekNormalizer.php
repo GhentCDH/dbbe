@@ -15,6 +15,6 @@ class GreekNormalizer
     {
         $encoded = urlencode(Normalizer::normalize($input, Normalizer::NFD));
         $stripped = preg_replace('/%C[^EF]%[0-9A-F]{2}/', '', $encoded);
-        return urldecode($stripped);
+        return mb_convert_case(urldecode($stripped), MB_CASE_LOWER);
     }
 }
