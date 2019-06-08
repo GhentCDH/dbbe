@@ -595,7 +595,7 @@ export default {
         },
         removeGreekAccents(input) {
             let encoded = encodeURIComponent(input.normalize('NFD'));
-            let stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/, '');
+            let stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
             return decodeURIComponent(stripped).toLocaleLowerCase();
         },
     },

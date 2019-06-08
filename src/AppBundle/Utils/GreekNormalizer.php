@@ -14,7 +14,7 @@ class GreekNormalizer
     public static function normalize($input)
     {
         $encoded = urlencode(Normalizer::normalize($input, Normalizer::NFD));
-        $stripped = preg_replace('/%C[^EF]%[0-9A-F]{2}/', '', $encoded);
+        $stripped = preg_replace('/%C[^EF]%[0-9A-F]{2}/gi', '', $encoded);
         return urldecode($stripped);
     }
 }
