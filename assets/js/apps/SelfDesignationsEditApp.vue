@@ -126,8 +126,30 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: this.createMultiSelect(
+                        'Primary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required,
+                            styleClasses: 'greek',
+                        },
+                        {
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
+                        }
+                    ),
+                    secondary: this.createMultiSelect(
+                        'Secondary',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required,
+                            styleClasses: 'greek',
+                        },
+                        {
+                            internalSearch: false,
+                            onSearch: this.greekSearch,
+                        }
+                    ),
                 },
             },
             model: {
