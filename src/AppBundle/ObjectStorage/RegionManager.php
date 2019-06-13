@@ -390,6 +390,10 @@ class RegionManager extends ObjectManager
             }
             if (!empty($manuscripts)) {
                 foreach ($manuscripts as $manuscript) {
+                    // Skip if the origin is an institution and not a region
+                    if ($manuscript->getOrigin()->getInstitution() != null) {
+                        continue;
+                    }
                     $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
                         json_decode(json_encode([
