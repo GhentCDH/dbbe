@@ -149,7 +149,7 @@ export default {
                             alternativePageEnd: {
                                 type: 'input',
                                 inputType: 'text',
-                                label: 'Alternative p   age end',
+                                label: 'Alternative page end',
                                 labelClasses: 'control-label',
                                 model: 'alternativePageEnd',
                                 validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
