@@ -129,25 +129,21 @@ export default {
                     primary: this.createMultiSelect(
                         'Primary',
                         {
-                            required: true,
-                            validator: VueFormGenerator.validators.required,
                             styleClasses: 'greek',
                         },
                         {
                             internalSearch: false,
-                            onSearch: this.greekSearch,
+                            onSearch: this.greekSearchPrimary,
                         }
                     ),
                     secondary: this.createMultiSelect(
                         'Secondary',
                         {
-                            required: true,
-                            validator: VueFormGenerator.validators.required,
                             styleClasses: 'greek',
                         },
                         {
                             internalSearch: false,
-                            onSearch: this.greekSearch,
+                            onSearch: this.greekSearchSecondary,
                         }
                     ),
                 },
@@ -308,6 +304,16 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
+        },
+        greekSearchPrimary(searchQuery) {
+            this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
+                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+            );
+        },
+        greekSearchSecondary(searchQuery) {
+            this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
                 option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
             );
         },
