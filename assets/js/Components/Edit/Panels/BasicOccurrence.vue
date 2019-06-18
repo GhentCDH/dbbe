@@ -126,7 +126,7 @@ export default {
                                 label: 'Alternative folium start',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumStart',
-                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateFoliumOrPages],
+                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
                             },
                             alternativeFoliumStartRecto: this.createRectoRadio('alternativeFoliumStartRecto', 'Alternative folium start recto'),
                             alternativeFoliumEnd: {
@@ -135,7 +135,7 @@ export default {
                                 label: 'Alternative folium end',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumEnd',
-                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateFoliumOrPages],
+                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
                             },
                             alternativeFoliumEndRecto: this.createRectoRadio('alternativeFoliumEndRecto', 'Alternative folium end recto'),
                             alternativePageStart: {
@@ -144,7 +144,7 @@ export default {
                                 label: 'Alternative page start',
                                 labelClasses: 'control-label',
                                 model: 'alternativePageStart',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
+                                validator: [VueFormGenerator.validators.string, this.validateAternativeFoliumOrPages],
                             },
                             alternativePageEnd: {
                                 type: 'input',
@@ -152,7 +152,7 @@ export default {
                                 label: 'Alternative page end',
                                 labelClasses: 'control-label',
                                 model: 'alternativePageEnd',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
+                                validator: [VueFormGenerator.validators.string, this.validateAternativeFoliumOrPages],
                             },
                         },
                     },
@@ -316,8 +316,17 @@ export default {
         },
         validateFoliumOrPages(value, field, model) {
             if (
-                (model.foliumStart != null || model.foliumEnd != null || model.alternativeFoliumStart || model.alternativeFoliumEnd)
-                && (model.pageStart != null || model.pageEnd != null || model.alternativePageStart || model.alternativePageEnd)
+                (model.foliumStart != null || model.foliumEnd != null)
+                && (model.pageStart != null || model.pageEnd != null)
+            ) {
+                return ['Folium and pages fields cannot be used simultaneously.'];
+            }
+            return [];
+        },
+        validateAternativeFoliumOrPages(value, field, model) {
+            if (
+                (model.alternativeFoliumStart || model.alternativeFoliumEnd)
+                && (model.alternativePageStart || model.alternativePageEnd)
             ) {
                 return ['Folium and pages fields cannot be used simultaneously.'];
             }
