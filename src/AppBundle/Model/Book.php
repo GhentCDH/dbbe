@@ -230,13 +230,12 @@ class Book extends Document
         return
             (
                 !empty($authorNames)
-                    ? implode(', ', $authorNames) . (count($authorNames) > 1 ? ' (auths.)' :  ' (auth.)')
+                    ? implode(', ', $authorNames) . (
+                        !empty($editornames)
+                            ? (count($authorNames) > 1 ? ' (auths.)' :  ' (auth.)') . '; '
+                            : ', '
+                    )
                     : ''
-            )
-            . (
-                (!empty($authorNames) && !empty($editornames))
-                    ? '; '
-                    : ', '
             )
             . (
                 !empty($editornames)
