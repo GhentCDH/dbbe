@@ -26,6 +26,7 @@ parameters:
     secretKey: ~
 
     image_directory: ~
+    page_image_directory: ~
 
     router.request_context.host: ~
     router.request_context.scheme: ~
