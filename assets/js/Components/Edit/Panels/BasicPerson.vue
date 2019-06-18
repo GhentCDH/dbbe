@@ -128,8 +128,9 @@ export default {
                         }
                     ),
                     origin: this.createMultiSelect(
-                        'Origin',
+                        'Provenance',
                         {
+                            model: 'origin',
                             originalDisabled: (model) => {
                                 return model && !model.historical;
                             },

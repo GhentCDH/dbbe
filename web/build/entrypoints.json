@@ -127,12 +127,12 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.47ec65f4.js"
+        "/build/personedit.9f8c271c.js"
       ]
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.9f5dc0b2.js"
+        "/build/personsearch.a0ae0a4e.js"
       ]
     },
     "regionsedit": {

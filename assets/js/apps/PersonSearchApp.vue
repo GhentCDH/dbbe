@@ -466,7 +466,7 @@ export default {
                             onSearch: this.greekSearch,
                         }
                     ),
-                    origin: this.createMultiSelect('Origination', {model: 'origin'}),
+                    origin: this.createMultiSelect('Provenance', {model: 'origin'}),
                     comment: {
                         type: 'input',
                         inputType: 'text',
