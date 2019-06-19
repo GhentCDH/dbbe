@@ -65,16 +65,22 @@ class FuzzyDate
         }
 
         $floorYear = '';
+        $negFloor = false;
         if (!empty($this->floor)) {
+            // Remove leading zeros
             $floorYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->floor->format('Y'));
             if (substr($floorYear, 0, 1 ) === '-') {
+                $negFloor = true;
                 $floorYear = substr($floorYear, 1) . ' BC';
             }
         }
         $ceilingYear = '';
+        $negCeiling = false;
         if (!empty($this->ceiling)) {
+            // Remove leading zeros
             $ceilingYear = preg_replace('/^([-])?0*(\d+)/', '$1$2', $this->ceiling->format('Y'));
             if (substr($ceilingYear, 0, 1) === '-') {
+                $negCeiling = true;
                 $ceilingYear = substr($ceilingYear, 1) . ' BC';
             }
         }
@@ -98,20 +104,38 @@ class FuzzyDate
         }
 
         // exact century or centuries
-        if ($this->floor->format('y-m-d') == '01-01-01'
+        if (($this->floor->format('y-m-d') == '01-01-01'
+            && !$negFloor
             && $this->ceiling->format('y-m-d') == '00-12-31'
+            && !$negCeiling)
+            || ($this->floor->format('y-m-d') == '00-01-01'
+            && $negFloor
+            && $this->ceiling->format('y-m-d') == '-1-12-31'
+            && $negCeiling)
+            || ($this->floor->format('y-m-d') == '00-01-01'
+            && $negFloor
+            && $this->ceiling->format('y-m-d') == '00-12-31'
+            && !$negCeiling)
         ) {
             $floorCentury = (int)($this->floor->format('Y') / 100);
             $ceilingCentury = (int)($this->ceiling->format('Y') / 100);
 
             $nf = new NumberFormatter('en_US', NumberFormatter::ORDINAL);
-            $ceilingCenturyF = $nf->format($ceilingCentury);
+
+            if ($negFloor && $negCeiling) {
+                if ($floorCentury == $ceilingCentury - 1) {
+                    return $nf->format((-1) * $floorCentury) . ' c. BC';
+                } else {
+                    return $nf->format((-1) * $floorCentury) . '-' . $nf->format((-1) * $ceilingCentury + 1)  . ' c. BC';
+                }
+            } elseif ($negFloor) {
+                return $nf->format((-1) * $floorCentury) . ' c. BC' . '-' . $nf->format($ceilingCentury) . ' c.';
+            }
 
             if ($floorCentury == $ceilingCentury - 1) {
-                return $ceilingCenturyF . ' c.';
+                return $nf->format($ceilingCentury) . ' c.';
             } else {
-                $floorCenturyF = $nf->format($floorCentury + 1);
-                return $floorCenturyF . '-' . $ceilingCenturyF . ' c.';
+                return $nf->format($floorCentury + 1) . '-' . $nf->format($ceilingCentury) . ' c.';
             }
         }
 
