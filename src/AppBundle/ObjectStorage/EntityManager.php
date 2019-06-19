@@ -373,7 +373,7 @@ abstract class EntityManager extends ObjectManager
                     || array_key_exists($identifier->getSystemName(), $entity->getIdentifications())
                 ) {
                     $oldIdentifications = !isset($entity->getIdentifications()[$identifier->getSystemName()]) ? [] : $entity->getIdentifications()[$identifier->getSystemName()][1];
-                    $newIdentifications = property_exists($data->identification, $identifier->getSystemName()) ? $data->identification->{$identifier->getSystemName()} : null;
+                    $newIdentifications = property_exists($data->identification, $identifier->getSystemName()) ? $data->identification->{$identifier->getSystemName()} : [];
 
                     if ($identifier->getVolumes() == 1) {
                         $this->updateIdentification(
