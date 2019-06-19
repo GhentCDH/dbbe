@@ -402,7 +402,7 @@ export default {
             if(yearString.indexOf('-') === 0) {
                 return '-' + yearString.substring(1).padStart(4, '0');
             }
-            return yearString.padStart(4);
+            return yearString.padStart(4, '0');
         },
         getTableDate(input) {
             return {
