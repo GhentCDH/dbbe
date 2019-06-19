@@ -498,7 +498,7 @@ class TypeService extends PoemService
                     ) or
                     (
                         factoid.subject_identity = ?
-                        and factoid_object_identity = ?
+                        and factoid.object_identity = ?
                         and factoid.idfactoid_type = coalesce(
                             (select idinverse from data.factoid_type where idfactoid_type = ?),
                             ?
