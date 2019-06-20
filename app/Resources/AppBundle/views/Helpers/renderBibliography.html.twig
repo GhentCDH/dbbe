@@ -27,7 +27,7 @@
         {% endif %}
     </a>
     {% for relUrl in item['relUrl'] %}
-        {% if relUrl is not null %}
+        {% if relUrl is not null and relUrl != '' %}
             <br />
             <a href="{{ relUrl }}" class="relUrl" target="_blank">
                 <i class="fa fa-external-link"></i>
