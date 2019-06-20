@@ -523,8 +523,8 @@ export default {
                     self.verse = JSON.parse(JSON.stringify(verse))
                     return resolve()
                 }
-                if (self.oldGroups[self.model.verses[index].groupId] != null) {
-                    verse.linkVerses = JSON.parse(JSON.stringify(self.oldGroups[self.verse.groupId]))
+                if (self.oldGroups[verse.groupId] != null) {
+                    verse.linkVerses = JSON.parse(JSON.stringify(self.oldGroups[verse.groupId]))
                     self.verse = JSON.parse(JSON.stringify(verse))
                     return resolve()
                 }
