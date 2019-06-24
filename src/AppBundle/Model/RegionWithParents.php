@@ -46,6 +46,12 @@ class RegionWithParents extends IdNameObjectWithParents
         return !empty($this->getName()) ? $this->getName() : $this->getHistoricalName();
     }
 
+    public function getPublic(): bool
+    {
+        // regions (also with parents) are allways public
+        return true;
+    }
+
     public function getJson(): array
     {
         return [
