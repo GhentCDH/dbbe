@@ -47,6 +47,9 @@ class BaseController extends Controller
         } else {
             // Let the 404 page handle the not found exception
             $object = $this->get(static::MANAGER)->getFull($id);
+            if (method_exists($object, 'getPublic') && !$object->getPublic()) {
+                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
+            }
             return $this->render(
                 static::TEMPLATE_FOLDER . 'detail.html.twig',
                 [$object::CACHENAME => $object]
