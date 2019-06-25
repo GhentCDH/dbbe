@@ -126,6 +126,10 @@ class Person extends Entity implements SubjectInterface
      * @var array
      */
     protected $documentRoles = [];
+    /**
+     * @var string
+     */
+    protected $fullDescription = null;
 
     /**
      * @param  string|null $firstName
@@ -804,18 +808,22 @@ class Person extends Entity implements SubjectInterface
      */
     public function getFullDescription(): string
     {
-        $description = $this->getNameAndDate();
-        foreach ($this->identifications as $identifications) {
-            if ($identifications[0]->getPrimary()) {
-                $description .=
-                    ' - ' .
-                    $identifications[0]->getName() .
-                    ': ' .
-                    implode(', ', $identifications[1]);
+        if ($this->fullDescription == null) {
+            $description = $this->getNameAndDate();
+            foreach ($this->identifications as $identifications) {
+                if ($identifications[0]->getPrimary()) {
+                    $description .=
+                        ' - ' .
+                        $identifications[0]->getName() .
+                        ': ' .
+                        implode(', ', $identifications[1]);
+                }
             }
+
+            $this->fullDescription = $description;
         }
 
-        return $description;
+        return $this->fullDescription;
     }
 
     /**
