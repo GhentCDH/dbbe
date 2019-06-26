@@ -114,7 +114,20 @@ class OccurrenceController extends EditController
     }
 
     /**
-     * @Route("/occ/{id}", name="occurrence_get_old")
+     * @Route("/occ/{id}", name="occurrence_get_old_perma")
+     * @Method("GET")
+     * @param  int    $id
+     * @param Request $request
+     */
+    public function getOldPerma(int $id, Request $request)
+    {
+        // Let the 404 page handle the not found exception
+        $newId = $this->get(static::MANAGER)->getNewId($id);
+        return $this->redirectToRoute('occurrence_get', ['id' => $newId], 301);
+    }
+
+    /**
+     * @Route("/occurrence/view/id/{id}", name="occurrence_get_old")
      * @Method("GET")
      * @param  int    $id
      * @param Request $request

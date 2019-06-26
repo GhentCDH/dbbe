@@ -129,6 +129,19 @@ class ManuscriptController extends BaseController
     }
 
     /**
+     * @Route("/manuscript/view/id/{id}", name="manuscript_get_old")
+     * @Method("GET")
+     * @param  int    $id
+     * @param Request $request
+     */
+    public function getOld(int $id, Request $request)
+    {
+        // Let the 404 page handle the not found exception
+        $newId = $this->get(static::MANAGER)->getNewId($id);
+        return $this->redirectToRoute('manuscript_get', ['id' => $newId], 301);
+    }
+
+    /**
      * Get all manuscripts that have a dependency on a region
      * (located_at / factoid)
      * @Route("/manuscripts/regions/{id}", name="manuscript_deps_by_region")

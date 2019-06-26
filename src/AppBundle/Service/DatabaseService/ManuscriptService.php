@@ -19,6 +19,17 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getNewId(int $oldId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscripts_to_manuscript.identity as new_id
+            from migration.manuscripts_to_manuscript
+            where manuscripts_to_manuscript.old_id = ?',
+            [$oldId]
+        )->fetchAll();
+    }
+
     public function getLastModified(): array
     {
         return $this->conn->executeQuery(

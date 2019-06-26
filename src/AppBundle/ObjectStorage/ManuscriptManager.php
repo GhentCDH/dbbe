@@ -171,6 +171,15 @@ class ManuscriptManager extends DocumentManager
         return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
+    public function getNewId(int $oldId): int
+    {
+        $rawId = $this->dbs->getNewId($oldId);
+        if (count($rawId) != 1) {
+            throw new NotFoundHttpException('The manuscript with legacy id "' . $oldId . '" does not exist.');
+        }
+        return $rawId[0]['new_id'];
+    }
+
     public function getRegionDependencies(int $regionId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByRegionId($regionId), $method);
