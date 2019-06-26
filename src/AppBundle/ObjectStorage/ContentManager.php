@@ -287,7 +287,7 @@ class ContentManager extends ObjectManager
                     $contentArray[] = ['id' => $primaryId];
                     $this->container->get('manuscript_manager')->update(
                         $manuscript->getId(),
-                        json_decode(json_encode(['content' => $contentArray]))
+                        json_decode(json_encode(['contents' => $contentArray]))
                     );
                 }
             }
