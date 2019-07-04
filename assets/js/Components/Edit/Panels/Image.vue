@@ -244,7 +244,8 @@ export default {
                         labelClasses: 'control-label',
                         model: 'url',
                         required: true,
-                        validator: VueFormGenerator.validators.url,
+                        validator: VueFormGenerator.validators.regexp,
+                        pattern: '^https?:\\/\\/(www\\.)?.*$',
                     },
                     public: {
                         type: 'checkbox',
