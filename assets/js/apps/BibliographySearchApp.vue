@@ -85,6 +85,61 @@
                     slot-scope="props">
                     {{ props.row.type.name }}
                 </template>
+                <template
+                    slot="author"
+                    slot-scope="props"
+                >
+                    <!-- view internal -->
+                    <template
+                        v-if="props.row.author && props.row.author.length > 0"
+                    >
+                        <ul
+                            v-if="props.row.author.length > 1"
+                        >
+                            <li
+                                v-for="(author, index) in props.row.author"
+                                :key="index"
+                            >
+                                <a
+                                    :href="urls['person_get'].replace('person_id', author.id)"
+                                    :class="{'bg-warning': !props.row.author_public || props.row.author_public.filter(auth => auth.id === author.id).length === 0}"
+                                >
+                                    {{ author.name }}
+                                </a>
+                            </li>
+                        </ul>
+                        <template v-else>
+                            <a
+                                :href="urls['person_get'].replace('person_id', props.row.author[0].id)"
+                                :class="{'bg-warning': !props.row.author_public || props.row.author_public.length === 0}"
+                            >
+                                {{ props.row.author[0].name }}
+                            </a>
+                        </template>
+                    </template>
+                    <!-- no view internal -->
+                    <template
+                        v-else-if="props.row.author_public && props.row.author_public.length > 0"
+                    >
+                        <ul
+                            v-if="props.row.author_public.length > 1"
+                        >
+                            <li
+                                v-for="(author, index) in props.row.author_public"
+                                :key="index"
+                            >
+                                <a :href="urls['person_get'].replace('person_id', author.id)">
+                                    {{ author.name }}
+                                </a>
+                            </li>
+                        </ul>
+                        <template v-else>
+                            <a :href="urls['person_get'].replace('person_id', props.row.author_public[0].id)">
+                                {{ props.row.author_public[0].name }}
+                            </a>
+                        </template>
+                    </template>
+                </template>
                 <a
                     slot="title"
                     slot-scope="props"
@@ -345,6 +400,10 @@ export default {
             tableOptions: {
                 headings: {
                     comment: 'Comment (matching lines only)',
+                    author: 'Author(s)',
+                },
+                columnsClasses: {
+                    author: 'no-wrap',
                 },
                 'filterable': false,
                 'orderBy': {
@@ -462,7 +521,7 @@ export default {
             }
         },
         tableColumns() {
-            let columns = ['type', 'title']
+            let columns = ['type', 'author', 'title']
             if (this.commentSearch) {
                 columns.unshift('comment')
             }

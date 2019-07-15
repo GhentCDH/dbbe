@@ -71,8 +71,12 @@ class ElasticBibliographyService extends ElasticEntityService
         foreach ($result['data'] as $key => $value) {
             unset($result['data'][$key]['management']);
             foreach ($this->getRoleSystemNames(true) as $role) {
-                unset($result['data'][$key][$role]);
-                unset($result['data'][$key][$role . '_public']);
+                if (!$viewInternal || $role !== 'author') {
+                    unset($result['data'][$key][$role]);
+                }
+                if ($role !== 'author') {
+                    unset($result['data'][$key][$role . '_public']);
+                }
             }
 
             // Keep comments if there was a search, then these will be an array
