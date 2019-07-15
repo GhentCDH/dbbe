@@ -86,8 +86,8 @@ class RoleService extends DatabaseService
                     '{' . implode(',', $usage) . '}',
                     $systemName,
                     $name,
-                    $contributorRole,
-                    $rank,
+                    $contributorRole ? 'TRUE': 'FALSE',
+                    $rank ? 'TRUE': 'FALSE',
                 ]
             );
             $id = $this->conn->executeQuery(

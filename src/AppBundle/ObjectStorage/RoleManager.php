@@ -151,8 +151,8 @@ class RoleManager extends ObjectManager
                     $data->usage,
                     $data->systemName,
                     $data->name,
-                    $data->contributorRole,
-                    $data->rank
+                    property_exists($data, 'contributorRole') ? $data->contributorRole : false,
+                    property_exists($data, 'rank') ? $data->rank : false
                 );
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
