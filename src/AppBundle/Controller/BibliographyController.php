@@ -228,6 +228,8 @@ class BibliographyController extends BaseController
             }
             if (($params['orderBy']) == 'title') {
                 $esParams['orderBy'] = ['title.keyword'];
+            } elseif (($params['orderBy']) == 'type') {
+                $esParams['orderBy'] = ['type.name.keyword'];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
