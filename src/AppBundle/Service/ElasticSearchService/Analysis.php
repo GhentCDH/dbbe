@@ -44,6 +44,17 @@ class Analysis
                         '+ =>',
                     ],
                 ],
+                'remove_quotes_filter' => [
+                    'type' => 'mapping',
+                    'mappings' => [
+                        '" =>',
+                        '“ =>',
+                        '” =>',
+                        '« =>',
+                        '» =>',
+                        '\' =>',
+                    ],
+                ],
             ],
             'analyzer' => [
                 'custom_greek_stemmer' => [
@@ -75,6 +86,9 @@ class Analysis
                     ],
                 ],
                 'custom_greek' => [
+                    'char_filter' => [
+                        'remove_quotes_filter'
+                    ],
                     'filter' => [
                         'icu_folding',
                         'lowercase',
