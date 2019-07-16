@@ -89,7 +89,7 @@ export default {
                     { name: 'colors', groups: [ 'colors' ] },
                 ],
                 removeButtons: 'Underline,Subscript,Superscript,Scayt,Strike,Styles,Outdent,Indent,Blockquote,About',
-                extraAllowedContent: 'iframe[*]',
+                extraAllowedContent: 'iframe[*]; h2[id]',
             },
             invalid: false,
             schema: {
