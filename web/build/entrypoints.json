@@ -12,7 +12,7 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.251393bf.js"
+        "/build/bibliographysearch.cd7c5620.js"
       ]
     },
     "bookedit": {
@@ -82,7 +82,7 @@
     },
     "manuscriptsearch": {
       "js": [
-        "/build/manuscriptsearch.58337d9c.js"
+        "/build/manuscriptsearch.49d8095a.js"
       ]
     },
     "articleedit": {
@@ -102,7 +102,7 @@
     },
     "occurrencesearch": {
       "js": [
-        "/build/occurrencesearch.acfa8424.js"
+        "/build/occurrencesearch.771e5b8a.js"
       ]
     },
     "officesedit": {
@@ -132,7 +132,7 @@
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.a0ae0a4e.js"
+        "/build/personsearch.3788858d.js"
       ]
     },
     "regionsedit": {
@@ -162,7 +162,7 @@
     },
     "typesearch": {
       "js": [
-        "/build/typesearch.d86beb15.js"
+        "/build/typesearch.e020de2c.js"
       ]
     },
     "usersedit": {

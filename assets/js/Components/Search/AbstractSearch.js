@@ -91,6 +91,7 @@ export default {
             vghRegex: /^([\d]+)[.]([A-Z])(?:, [\d]+[.][A-Z])*$/,
             roleCountRegex: /^(?:Patron|Related|Scribe)[ ][(](\d+)[)]$/,
             greekRegex: /^([\u0370-\u03ff\u1f00-\u1fff ]*)$/,
+            alphaNumRestRegex: /^([^\d]*)(\d+)(.*)$/,
             collectionArray: [],
         }
     },
@@ -336,6 +337,28 @@ export default {
                         return 1
                     }
                     return 0
+                }
+                // AlphaNumRest (a.o. shelf number) (e.g., Γ 5 (Eustratiades 245))
+                first = a.name.match(this.alphaNumRestRegex);
+                second = b.name.match(this.alphaNumRestRegex);
+                if (first && second) {
+                    if (first[1] < second[1]) {
+                        return -1
+                    }
+                    if (first[1] > second[1]) {
+                        return 1
+                    }
+                    if (first[2] !== second[2]) {
+                        return first[2] - second[2]
+                    }
+                    if (first[3] < second[3]) {
+                        return -1
+                    }
+                    if (first[3] > second[3]) {
+                        return 1
+                    }
+                    return 0
+                    // let the string compare below handle cases where the numeric part is equal, but the rest not
                 }
             }
             // Default
