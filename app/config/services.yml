@@ -201,7 +201,7 @@ services:
 
     translation_manager:
         class: AppBundle\ObjectStorage\TranslationManager
-        arguments: ['@translation_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        arguments: ['@translation_service', '@cache.app', '@service_container', null, '@security.token_storage', 'translation']
         public: true
 
     language_manager:

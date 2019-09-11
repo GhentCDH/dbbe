@@ -29,6 +29,19 @@ class TranslationService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByBookId(int $bookId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                translation.identity as translation_id
+            from data.translation
+            inner join data.reference on translation.identity = reference.idtarget
+            inner join data.book on reference.idsource = book.identity
+            where book.identity = ?',
+            [$bookId]
+        )->fetchAll();
+    }
+
     public function insert(int $documentId, int $languageId, string $text): int
     {
         $this->beginTransaction();

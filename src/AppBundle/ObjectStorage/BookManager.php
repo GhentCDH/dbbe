@@ -354,6 +354,7 @@ class BookManager extends DocumentManager
         $manuscripts = $this->container->get('manuscript_manager')->getBookDependencies($secondaryId, 'getMini');
         $occurrences = $this->container->get('occurrence_manager')->getBookDependencies($secondaryId, 'getMini');
         $types = $this->container->get('type_manager')->getBookDependencies($secondaryId, 'getMini');
+        $translations = $this->container->get('translation_manager')->getBookDependencies($secondaryId, 'getMini');
         $persons = $this->container->get('person_manager')->getBookDependencies($secondaryId, 'getMini');
         $bookChapters = $this->container->get('book_chapter_manager')->getBookDependencies($secondaryId, 'getMini');
 
@@ -392,6 +393,17 @@ class BookManager extends DocumentManager
                     $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
                     $this->container->get('type_manager')->update(
                         $type->getId(),
+                        json_decode(json_encode(['bibliography' => $update]))
+                    );
+                }
+            }
+            if (!empty($translations)) {
+                foreach ($translations as $translation) {
+                    $full = $this->container->get('translation_manager')->getFull($translation->getId());
+                    $bibliographies = $full->getBibliographies();
+                    $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
+                    $this->container->get('translation_manager')->update(
+                        $translation->getId(),
                         json_decode(json_encode(['bibliography' => $update]))
                     );
                 }
