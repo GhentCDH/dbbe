@@ -86,7 +86,7 @@ class DocumentService extends EntityService
     {
         return $this->conn->executeQuery(
             'SELECT
-                document_acknowledgement.iddocument as poem_id,
+                document_acknowledgement.iddocument as document_id,
                 document_acknowledgement.idacknowledgement as acknowledgement_id,
                 acknowledgement.acknowledgement as name
             from data.document_acknowledgement

@@ -100,16 +100,16 @@ abstract class DocumentManager extends ObjectEntityManager
         }
     }
 
-    protected function setAcknowledgements(array &$poems)
+    protected function setAcknowledgements(array &$documents)
     {
-        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($poems));
+        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($documents));
         $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
         foreach ($rawAcknowledgements as $rawAcknowledgement) {
-            $poems[$rawAcknowledgement['poem_id']]
+            $documents[$rawAcknowledgement['document_id']]
                 ->addAcknowledgement($acknowledgements[$rawAcknowledgement['acknowledgement_id']]);
         }
-        foreach (array_keys($poems) as $poemId) {
-            $poems[$poemId]->sortAcknowledgements();
+        foreach (array_keys($documents) as $documentId) {
+            $documents[$documentId]->sortAcknowledgements();
         }
     }
 
