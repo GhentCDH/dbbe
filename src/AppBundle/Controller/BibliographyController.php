@@ -230,6 +230,8 @@ class BibliographyController extends BaseController
                 $esParams['orderBy'] = ['title.keyword'];
             } elseif (($params['orderBy']) == 'type') {
                 $esParams['orderBy'] = ['type.name.keyword'];
+            } elseif (($params['orderBy']) == 'author') {
+                $esParams['orderBy'] = [$this->isGranted('ROLE_VIEW_INTERNAL') ? 'author_last_name.keyword' : 'author_last_name_public.keyword'];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }

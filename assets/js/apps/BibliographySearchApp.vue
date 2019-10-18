@@ -411,7 +411,7 @@ export default {
                 },
                 'perPage': 25,
                 'perPageValues': [25, 50, 100],
-                'sortable': ['type', 'title'],
+                'sortable': ['type', 'author', 'title'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
                 rowClassCallback: function(row) {

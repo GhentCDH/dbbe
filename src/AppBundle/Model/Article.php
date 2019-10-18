@@ -180,11 +180,19 @@ class Article extends Document
             'name' => 'Article',
         ];
         $result['title'] = $this->title;
-        foreach ($this->getPersonRoles() as $roleName => $personRole) {
+        $personRoles = $this->getPersonRoles();
+        foreach ($personRoles as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
         }
-        foreach ($this->getPublicPersonRoles() as $roleName => $personRole) {
+        if (isset($personRoles['author']) && count($personRoles['author'][1]) > 0) {
+            $result['author_last_name'] = reset($personRoles['author'][1])->getLastName();
+        }
+        $publicPersonRoles = $this->getPublicPersonRoles();
+        foreach ($publicPersonRoles as $roleName => $personRole) {
             $result[$roleName . '_public'] = ArrayToJson::arrayToShortJson($personRole[1]);
+        }
+        if (isset($publicPersonRoles['author']) && count($publicPersonRoles['author'][1]) > 0) {
+            $result['author_last_name_public'] = reset($publicPersonRoles['author'][1])->getLastName();
         }
 
         return $result;
