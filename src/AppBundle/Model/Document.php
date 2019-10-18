@@ -173,6 +173,25 @@ class Document extends Entity
         return $contributorRoles;
     }
 
+    /**
+     * Sort contributor roles by role name.
+     * Order: creator, transcriber, contributor.
+     */
+    public function sortContributorRoles(): void
+    {
+        $order = [
+            'creator' => 0,
+            'transcriber' => 1,
+            'contributor' => 2,
+        ];
+        uksort(
+            $this->contributorRoles,
+            function ($a, $b) use ($order) {
+                return $order[$a] - $order[$b];
+            }
+        );
+    }
+
     private function getContributorRolesJson(): array
     {
         $result = [];

@@ -98,6 +98,9 @@ abstract class DocumentManager extends ObjectEntityManager
                     );
             }
         }
+        foreach (array_keys($documents) as $documentId) {
+            $documents[$documentId]->sortContributorRoles();
+        }
     }
 
     protected function setAcknowledgements(array &$documents)
