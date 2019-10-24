@@ -24,6 +24,7 @@
                             class="spinner"
                         />
                         <a
+                            v-if="!erroredImages.includes(image.id)"
                             :href="urls['image_get'].replace('image_id', image.id)"
                             data-type="image"
                             data-gallery="gallery"
@@ -35,8 +36,16 @@
                                 :src="urls['image_get'].replace('image_id', image.id)"
                                 :alt="image.filename"
                                 @load="imageLoaded(image.id)"
+                                @error="imageErrored(image.id)"
                             >
                         </a>
+                        <span
+                            v-else
+                            class="text-danger"
+                        >
+                            <i class="fa fa-exclamation-circle"></i>
+                            {{ image.filename }}
+                        </span>
                         <a
                             v-if="loadedImages.includes(image.id)"
                             class="image-public"
@@ -223,6 +232,7 @@ export default {
         return {
             pageLoaded: false,
             loadedImages: [],
+            erroredImages: [],
             publicImageModal: false,
             updateLinkModal: false,
             delImageModal: false,
@@ -388,6 +398,10 @@ export default {
         },
         imageLoaded(id) {
             this.loadedImages.push(id);
+        },
+        imageErrored(id) {
+            this.loadedImages.push(id);
+            this.erroredImages.push(id);
         },
     }
 }
