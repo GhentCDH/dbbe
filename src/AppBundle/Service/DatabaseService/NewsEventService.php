@@ -128,6 +128,30 @@ SQL
     }
 
     /**
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getPublicDateSorted(): array
+    {
+        return $this->conn->executeQuery(
+            <<<'SQL'
+select
+    id,
+    title,
+    url,
+    date,
+    public,
+    "order",
+    abstract,
+    "text"
+from logic.news_event
+where public = 'TRUE'
+order by date desc
+SQL
+        )->fetchAll();
+    }
+
+    /**
      * @param int $userId
      * @param string $title
      * @param string $url

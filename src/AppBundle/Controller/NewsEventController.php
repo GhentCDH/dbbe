@@ -21,7 +21,11 @@ class NewsEventController extends Controller
      */
     public function getAll()
     {
-        $newsEvents = $this->get('news_event_service')->getDateSorted();
+        if ($this->isGranted('ROLE_EDITOR_VIEW')) {
+            $newsEvents = $this->get('news_event_service')->getDateSorted();
+        } else {
+            $newsEvents = $this->get('news_event_service')->getPublicDateSorted();
+        }
 
         // Categorize per year
         $yearArray = [];
