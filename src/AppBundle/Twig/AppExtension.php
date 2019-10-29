@@ -67,10 +67,10 @@ class AppExtension extends AbstractExtension
                 );
             }),
             new TwigFilter('month', function (string $string) {
-                return DateTime::createFromFormat('m', substr($string, 5, 2))->format('M');
+                return DateTime::createFromFormat('Y-m-d', $string)->format('M');
             }),
             new TwigFilter('day', function (string $string) {
-                return substr($string, 8, 2);
+                return DateTime::createFromFormat('Y-m-d', $string)->format('d');
             }),
         ];
     }
