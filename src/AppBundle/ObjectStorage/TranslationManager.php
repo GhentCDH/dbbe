@@ -255,7 +255,7 @@ class TranslationManager extends DocumentManager
                             }
                             break;
                         case 'onlineSources':
-                            if ($oldBibItem->getOnlineSourcce()->getId() !== $newBibItem->onlineSource->id
+                            if ($oldBibItem->getOnlineSource()->getId() !== $newBibItem->onlineSource->id
                                 || $oldBibItem->getRelUrl() !== $newBibItem->relUrl
                             ) {
                                 $updated = true;
