@@ -65,7 +65,7 @@ class FeedbackController extends Controller
         $this->get('feedback_service')->insertFeedback($content->url, $content->email, $content->message);
 
         // send email
-        $message = (new \Swift_Message('Feedback message from DBBE'))
+        $message = (new \Swift_Message('Your feedback message to DBBE'))
             ->setFrom('dbbe@ugent.be')
             ->setTo($content->email)
             ->setCC('dbbe@ugent.be')
