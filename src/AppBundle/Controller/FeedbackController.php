@@ -67,7 +67,8 @@ class FeedbackController extends Controller
         // send email
         $message = (new \Swift_Message('Feedback message from DBBE'))
             ->setFrom('dbbe@ugent.be')
-            ->setTo('dbbe@ugent.be')
+            ->setTo($content->email)
+            ->setCC('dbbe@ugent.be')
             ->setBody(
                 $this->renderView(
                     'AppBundle:Feedback:email.txt.twig',
