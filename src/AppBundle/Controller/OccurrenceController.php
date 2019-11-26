@@ -32,7 +32,7 @@ class OccurrenceController extends EditController
             return parent::getAllMicro($request);
         }
         // Redirect to search page if not a json request
-        return $this->redirectToRoute('occurrences_search_search', ['request' =>  $request], 301);
+        return $this->redirectToRoute('occurrences_search', ['request' =>  $request], 301);
     }
 
     /**
