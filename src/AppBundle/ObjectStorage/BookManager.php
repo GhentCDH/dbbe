@@ -236,14 +236,14 @@ class BookManager extends DocumentManager
                 $this->dbs->updateSeries($id, $data->series);
             }
             if (property_exists($data, 'volume')) {
-                if (!is_numeric($data->volume)) {
+                if (!empty($data->volume) && !is_numeric($data->volume)) {
                     throw new BadRequestHttpException('Incorrect volume data.');
                 }
                 $changes['full'] = true;
                 $this->dbs->updateVolume($id, $data->volume);
             }
             if (property_exists($data, 'totalVolumes')) {
-                if (!is_numeric($data->totalVolumes)) {
+                if (!empty($data->totalVolumes) && !is_numeric($data->totalVolumes)) {
                     throw new BadRequestHttpException('Incorrect totalVolumes data.');
                 }
                 $changes['full'] = true;

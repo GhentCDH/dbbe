@@ -284,7 +284,7 @@ class BookService extends DocumentService
      * @param  int $volume
      * @return int
      */
-    public function updateVolume(int $id, int $volume): int
+    public function updateVolume(int $id, int $volume = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -302,7 +302,7 @@ class BookService extends DocumentService
      * @param  int $totalVolumes
      * @return int
      */
-    public function updateTotalVolumes(int $id, int $totalVolumes): int
+    public function updateTotalVolumes(int $id, int $totalVolumes = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book

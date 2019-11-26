@@ -101,5 +101,31 @@ export default {
             },
         }
     },
+    watch: {
+        'model.year' () {
+            if (isNaN(this.model.year)) {
+                this.model.year = null;
+                this.$nextTick(function() {
+                    this.validate();
+                });
+            }
+        },
+        'model.volume' () {
+            if (isNaN(this.model.volume)) {
+                this.model.volume = null;
+                this.$nextTick(function() {
+                    this.validate();
+                });
+            }
+        },
+        'model.totalVolumes' () {
+            if (isNaN(this.model.totalVolumes)) {
+                this.model.totalVolumes = null;
+                this.$nextTick(function() {
+                    this.validate();
+                });
+            }
+        },
+    },
 }
 </script>
