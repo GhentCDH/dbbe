@@ -19,7 +19,8 @@ class IdentifierService extends DatabaseService
                 array_to_json(identifier.ids) as ids,
                 identifier.regex,
                 identifier.description,
-                identifier.extra
+                identifier.extra,
+                identifier.extra_required
             from data.identifier
             where identifier.ididentifier in (?)',
             [$ids],
@@ -40,7 +41,8 @@ class IdentifierService extends DatabaseService
                 array_to_json(identifier.ids) as ids,
                 identifier.regex,
                 identifier.description,
-                identifier.extra
+                identifier.extra,
+                identifier.extra_required
             from data.identifier
             where ? = ANY(identifier.type)
             order by identifier.order',

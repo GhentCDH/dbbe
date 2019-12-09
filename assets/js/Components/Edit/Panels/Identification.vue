@@ -140,6 +140,7 @@ export default {
                 identification: null,
                 volume: null,
                 extra: null,
+                extraRequired: null,
             },
             editSchema: {},
             identificationSchema: {
@@ -158,7 +159,7 @@ export default {
                 labelClasses: 'control-label',
                 model: 'extra',
                 validator: VueFormGenerator.validators.string,
-                required: true,
+                required: false,
             },
         };
     },
@@ -214,6 +215,9 @@ export default {
             }
 
             if (this.editModel.identifier.extra) {
+                if (this.editModel.identifier.extraRequired) {
+                    this.extraSchema.required = true;
+                }
                 this.editSchema.fields.extra = this.extraSchema;
             }
             else {
@@ -299,7 +303,7 @@ export default {
                             + ', '
                             + (identifier.volumes > 1 ? this.numberToRoman(identification.volume) + '.' : '')
                             + identification.identification
-                            + (identifier.extra ? ': "' + identification.extra + '"' : '')
+                            + ((identifier.extra && identification.extra) ? ': "' + identification.extra + '"' : '')
                         );
                     }
                 }

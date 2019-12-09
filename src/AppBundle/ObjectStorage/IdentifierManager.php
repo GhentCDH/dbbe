@@ -31,7 +31,8 @@ class IdentifierManager extends ObjectManager
                     json_decode($rawIdentifier['ids']),
                     $rawIdentifier['regex'],
                     $rawIdentifier['description'],
-                    $rawIdentifier['extra']
+                    $rawIdentifier['extra'],
+                    $rawIdentifier['extra_required']
                 );
             }
         }

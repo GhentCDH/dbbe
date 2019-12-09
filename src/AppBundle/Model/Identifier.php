@@ -14,6 +14,7 @@ class Identifier extends IdNameObject
     private $link;
     private $linkType;
     private $extra;
+    private $extraRequired;
 
     public function __construct(
         int $id,
@@ -25,7 +26,8 @@ class Identifier extends IdNameObject
         array $ids = null,
         string $regex = null,
         string $description = null,
-        bool $extra = null
+        bool $extra = null,
+        bool $extraRequired = null
     ) {
         parent::__construct($id, $name);
 
@@ -37,6 +39,7 @@ class Identifier extends IdNameObject
         $this->regex = $regex;
         $this->description = $description;
         $this->extra = $extra !== null ? $extra : null;
+        $this->extraRequired = $extraRequired !== null ? $extraRequired : null;
     }
 
     public function getSystemName(): string
@@ -84,6 +87,11 @@ class Identifier extends IdNameObject
         return $this->extra;
     }
 
+    public function getExtraRequired(): bool
+    {
+        return $this->extraRequired;
+    }
+
     public function getJson(): array
     {
         $result = [
@@ -91,6 +99,7 @@ class Identifier extends IdNameObject
             'systemName' => $this->systemName,
             'name' => $this->name,
             'extra' => $this->extra,
+            'extraRequired' => $this->extraRequired,
             'volumes' => $this->getVolumes(),
         ];
         if (isset($this->regex)) {

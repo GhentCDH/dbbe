@@ -354,11 +354,19 @@ abstract class EntityManager extends ObjectManager
                                     throw new BadRequestHttpException('Incorrect identification volume data.');
                                 }
                             }
+                            if ($identifier->getExtraRequired()) {
+                                if (
+                                    property_exists($identification, 'extra')
+                                    || empty($identification->extra)
+                                ) {
+                                    throw new BadRequestHttpException('Incorrect identification extra data.');
+                                }
+                            }
                             if ($identifier->getExtra()) {
                                 if (
-                                    !property_exists($identification, 'extra')
-                                    || empty($identification->extra)
-                                    || !is_string($identification->extra)
+                                    property_exists($identification, 'extra')
+                                    && !empty($identification->extra)
+                                    && !is_string($identification->extra)
                                 ) {
                                     throw new BadRequestHttpException('Incorrect identification extra data.');
                                 }
@@ -417,8 +425,7 @@ abstract class EntityManager extends ObjectManager
             $extraValue = null;
             if ($identifier->getExtra()) {
                 $extraValue = implode('|', array_map(function($identification) {return $identification->extra;}, $new));
-            }
-            // Insert
+            }// Insert
             if (empty($old)) {
                 $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $identificationValue, $extraValue, $volume);
             }
