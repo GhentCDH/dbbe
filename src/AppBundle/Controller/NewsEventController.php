@@ -138,6 +138,7 @@ class NewsEventController extends Controller
                 )
                 || (
                     property_exists($newsEvent, 'abstract')
+                    && !empty($newsEvent->abstract)
                     && !is_string($newsEvent->abstract)
                 )
                 // only url or full text can be used
