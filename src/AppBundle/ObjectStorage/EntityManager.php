@@ -356,10 +356,10 @@ abstract class EntityManager extends ObjectManager
                             }
                             if ($identifier->getExtraRequired()) {
                                 if (
-                                    property_exists($identification, 'extra')
+                                    !property_exists($identification, 'extra')
                                     || empty($identification->extra)
                                 ) {
-                                    throw new BadRequestHttpException('Incorrect identification extra data.');
+                                    throw new BadRequestHttpException('Identification extra is required.');
                                 }
                             }
                             if ($identifier->getExtra()) {
