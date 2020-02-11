@@ -269,4 +269,28 @@ abstract class DocumentManager extends ObjectEntityManager
             $this->dbs->addAcknowledgement($document->getId(), $addId);
         }
     }
+
+    public function updateElasticAcknowledgement(array $ids): void
+    {
+        if (!empty($ids)) {
+            $rawAcknowledgements = $this->dbs->getAcknowledgements($ids);
+            if (!empty($rawAcknowledgements)) {
+                $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
+                $data = [];
+
+                foreach ($rawAcknowledgements as $rawAcknowledgement) {
+                    if (!isset($data[$rawAcknowledgement['document_id']])) {
+                        $data[$rawAcknowledgement['document_id']] = [
+                            'id' => $rawAcknowledgement['document_id'],
+                            'acknowledgement' => [],
+                        ];
+                    }
+                    $data[$rawAcknowledgement['document_id']]['acknowledgement'][] =
+                        $acknowledgements[$rawAcknowledgement['acknowledgement_id']]->getShortJson();
+                }
+
+                $this->ess->updateMultiple($data);
+            }
+        }
+    }
 }

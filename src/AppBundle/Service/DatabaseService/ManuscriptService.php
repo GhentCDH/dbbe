@@ -284,6 +284,18 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByAcknowledgementId(int $acknowledgementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.document_acknowledgement on manuscript.identity = document_acknowledgement.iddocument
+            where document_acknowledgement.idacknowledgement = ?',
+            [$acknowledgementId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByOccurrenceId(int $occurrenceId): array
     {
         return $this->conn->executeQuery(

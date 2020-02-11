@@ -155,6 +155,11 @@ class AcknowledgementManager extends ObjectManager
 
             $this->cache->invalidateTags(['acknowledgements']);
 
+            // update Elastic manuscripts
+            $this->container->get('manuscript_manager')->updateElasticAcknowledgement(
+                $this->container->get('manuscript_manager')->getAcknowledgementDependencies($id, 'getId')
+            );
+
             // update Elastic occurrences
             $this->container->get('occurrence_manager')->updateElasticAcknowledgement(
                 $this->container->get('occurrence_manager')->getAcknowledgementDependencies($id, 'getId')

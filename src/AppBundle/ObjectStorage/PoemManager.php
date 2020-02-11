@@ -242,28 +242,4 @@ abstract class PoemManager extends DocumentManager
             }
         }
     }
-
-    public function updateElasticAcknowledgement(array $ids): void
-    {
-        if (!empty($ids)) {
-            $rawAcknowledgements = $this->dbs->getAcknowledgements($ids);
-            if (!empty($rawAcknowledgements)) {
-                $acknowledgements = $this->container->get('acknowledgement_manager')->getWithData($rawAcknowledgements);
-                $data = [];
-
-                foreach ($rawAcknowledgements as $rawAcknowledgement) {
-                    if (!isset($data[$rawAcknowledgement['poem_id']])) {
-                        $data[$rawAcknowledgement['poem_id']] = [
-                            'id' => $rawAcknowledgement['poem_id'],
-                            'acknowledgement' => [],
-                        ];
-                    }
-                    $data[$rawAcknowledgement['poem_id']]['acknowledgement'][] =
-                        $acknowledgements[$rawAcknowledgement['acknowledgement_id']]->getShortJson();
-                }
-
-                $this->ess->updateMultiple($data);
-            }
-        }
-    }
 }
