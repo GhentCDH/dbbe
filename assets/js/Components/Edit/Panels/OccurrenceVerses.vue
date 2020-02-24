@@ -449,6 +449,14 @@ export default {
         },
     },
     watch: {
+        'model.numberOfVerses'() {
+            if (isNaN(this.model.numberOfVerses)) {
+                this.model.numberOfVerses = null;
+                this.$nextTick(function() {
+                    this.validate();
+                });
+            }
+        },
         'verse.verse'(newValue, oldValue) {
             if (this.editVerseModal && this.search.search === oldValue) {
                 this.search.search = newValue
@@ -506,10 +514,6 @@ export default {
             }
         },
         validated(isValid, errors) {
-            if (isNaN(this.model.numberOfVerses)) {
-                this.model.numberOfVerses = null;
-            }
-
             this.isValid = isValid;
             this.calcChanges();
             this.$emit('validated', isValid, this.errors, this)
