@@ -117,7 +117,7 @@ export default {
             // console.log("onClose", value, id);
         },
         clearAll() {
-            this.value = null;
+            this.value = [];
         },
         onEscStopPrevent(/*event*/) {
             // console.log(event);
