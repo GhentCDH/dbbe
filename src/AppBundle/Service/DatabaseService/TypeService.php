@@ -768,6 +768,16 @@ class TypeService extends PoemService
                     $id,
                 ]
             );
+            // Delete related translations
+            $this->conn->executeUpdate(
+                'DELETE from data.document
+                using translation_of
+                where document.identity = translation_of.idtranslation
+                and translation_of.iddocument = ?',
+                [
+                    $id,
+                ]
+            );
             $delete = $this->conn->executeUpdate(
                 'DELETE from data.document
                 where document.identity = ?',
