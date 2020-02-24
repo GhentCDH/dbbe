@@ -458,9 +458,9 @@ class ManuscriptService extends DocumentService
             -- then folium start (sort as if it where numbers, but it is actually a text column),
             -- then folium start recto
             order by document_contains.order,
-                NULLIF(regexp_replace(document_contains.folium_start, \'\\D\', \'\', \'g\'), \'\')::int,
+                NULLIF(regexp_replace(coalesce(document_contains.folium_start, document_contains.page_start), \'\\D\', \'\', \'g\'), \'\')::int,
                 document_contains.folium_start_recto desc,
-                NULLIF(regexp_replace(document_contains.folium_end, \'\\D\', \'\', \'g\'), \'\')::int,
+                NULLIF(regexp_replace(coalesce(document_contains.folium_end, document_contains.page_end), \'\\D\', \'\', \'g\'), \'\')::int,
                 document_contains.folium_end_recto desc,
                 poem.incipit
             ',
