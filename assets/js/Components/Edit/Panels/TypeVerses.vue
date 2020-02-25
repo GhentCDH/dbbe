@@ -58,6 +58,16 @@ export default {
             },
         }
     },
+    watch: {
+        'model.numberOfVerses'() {
+            if (isNaN(this.model.numberOfVerses)) {
+                this.model.numberOfVerses = null;
+                this.$nextTick(function() {
+                    this.validate();
+                });
+            }
+        },
+    },
     methods: {
         calcChanges() {
             this.changes = []
@@ -85,10 +95,6 @@ export default {
             }
         },
         validated(isValid, errors) {
-            if (isNaN(this.model.numberOfVerses)) {
-                this.model.numberOfVerses = null;
-            }
-
             this.isValid = isValid;
             this.calcChanges();
             this.$emit('validated', isValid, this.errors, this)
