@@ -125,6 +125,7 @@
                 :schema="addTextSchema"
                 :model="textModel"
                 :options="formOptions"
+                @validated="addTextValidated"
             />
             <div slot="header">
                 <h4 class="modal-title">
@@ -135,7 +136,7 @@
                 <btn @click="addTextModal=false">Cancel</btn>
                 <btn
                     type="success"
-                    :disabled="!isValid"
+                    :disabled="!addTextIsValid"
                     @click="submitAddText()"
                 >
                     Add
@@ -347,7 +348,10 @@ export default {
                         styleClasses: 'greek',
                         model: 'verse',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: [
+                            VueFormGenerator.validators.string,
+                            VueFormGenerator.validators.required,
+                        ],
                     },
                 },
             },
@@ -366,6 +370,7 @@ export default {
             },
             linksModal: false,
             addTextModal: false,
+            addTextIsValid: false,
             textModel: {},
             editVerseModal: false,
             delVerseModal: false,
@@ -445,6 +450,9 @@ export default {
             return result
         },
         maxOrder: function() {
+            if (this.model.verses.length == 0) {
+                return 0;
+            }
             return Math.max.apply(Math, this.model.verses.map(function(v) { return v.order; }));
         },
     },
@@ -518,6 +526,9 @@ export default {
             this.calcChanges();
             this.$emit('validated', isValid, this.errors, this)
         },
+        addTextValidated(isValid, errors) {
+            this.addTextIsValid = isValid;
+        },
         setVerse(index) {
             let self = this
             return new Promise(function(resolve, reject) {
@@ -573,8 +584,8 @@ export default {
         },
         submitAddText() {
             this.$refs.addTextForm.validate()
-            this.isValid = (this.$refs.addTextForm.errors.length === 0)
-            if (this.isValid) {
+            this.addTextIsValid = (this.$refs.addTextForm.errors.length === 0)
+            if (this.addTextIsValid) {
                 for (let verse of this.textModel.text.split(/\r?\n/)) {
                     this.model.verses.push({
                         id: null,
