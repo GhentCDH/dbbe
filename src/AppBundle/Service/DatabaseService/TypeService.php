@@ -712,8 +712,7 @@ class TypeService extends PoemService
             from data.factoid_type
             where subject_identity = ?
             and factoid.idfactoid_type = factoid_type.idfactoid_type
-            and factoid_type.type =  \'based on\'
-            )',
+            and factoid_type.type =  \'based on\'',
             [
                 $basedOnId,
                 $id,
@@ -728,8 +727,7 @@ class TypeService extends PoemService
             using factoid_type
             where subject_identity = ?
             and factoid.idfactoid_type = factoid_type.idfactoid_type
-            and factoid_type.type =  \'based on\'
-            )',
+            and factoid_type.type =  \'based on\'',
             [
                 $id,
             ]
