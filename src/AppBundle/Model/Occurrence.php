@@ -527,15 +527,8 @@ class Occurrence extends Poem
     {
         $sortKey = '';
 
-        // manuscript name
-        $nameParts = [];
-        preg_match_all('/([^\d]+|[\d]+)/',$this->manuscript->getName(), $nameParts);
-        foreach ($nameParts[0] as $index => $namePart) {
-            if (is_numeric($namePart)) {
-                $nameParts[0][$index] = str_pad($namePart, 10, '0', STR_PAD_LEFT);
-            }
-        }
-        $sortKey .= ''.join($nameParts[0]);
+        // manuscript
+        $sortKey .= $this->manuscript->getSortKey();
 
         // folium
         if ($this->foliumStart != null) {

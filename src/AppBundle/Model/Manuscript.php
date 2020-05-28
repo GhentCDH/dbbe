@@ -331,6 +331,18 @@ class Manuscript extends Document
         return $this->illustrated;
     }
 
+    public function getSortKey(): string
+    {
+        $nameParts = [];
+        preg_match_all('/([^\d]+|[\d]+)/', $this->getName(), $nameParts);
+        foreach ($nameParts[0] as $index => $namePart) {
+            if (is_numeric($namePart)) {
+                $nameParts[0][$index] = str_pad($namePart, 10, '0', STR_PAD_LEFT);
+            }
+        }
+        return ''.join($nameParts[0]);
+    }
+
     public function getShortJson(): array
     {
         return [

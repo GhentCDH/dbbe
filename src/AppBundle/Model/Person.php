@@ -641,7 +641,7 @@ class Person extends Entity implements SubjectInterface
             usort(
                 $allManuscriptRoles[$role][1],
                 function ($a, $b) {
-                    return $a->getDescription() <=> $b->getDescription();
+                    return $a->getSortKey() <=> $b->getSortKey();
                 }
             );
         }
@@ -666,7 +666,7 @@ class Person extends Entity implements SubjectInterface
             usort(
                 $allManuscriptRoles[$role][1],
                 function ($a, $b) {
-                    return $a->getDescription() <=> $b->getDescription();
+                    return $a->getSortKey() <=> $b->getSortKey();
                 }
             );
         }
