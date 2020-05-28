@@ -164,6 +164,8 @@ class ImageManager extends ObjectManager
                     throw new BadRequestHttpException('Incorrect url data.');
                 }
                 $this->dbs->updateUrl($id, $data->url);
+                $this->dbs->mergeByUrl($data->url);
+
                 $correct = true;
             }
 

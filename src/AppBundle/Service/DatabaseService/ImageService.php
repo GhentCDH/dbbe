@@ -104,4 +104,35 @@ class ImageService extends DatabaseService
             ]
         );
     }
+
+    public function mergeByUrl(string $url)
+    {
+        $this->conn->executeUpdate(
+            'UPDATE data.document_image
+            set idimage = (
+                select min(image.idimage)
+                from data.image
+                where url = ?
+            )
+            where idimage in (
+                select image.idimage
+                from data.image
+                where url = ?
+            )',
+            [
+                $url,
+                $url,
+            ]
+        );
+
+        $this->conn->executeUpdate(
+            'DELETE
+            from data.image
+            where idimage not in (
+                select idimage from data.document_image
+            )'
+        );
+
+        return;
+    }
 }
