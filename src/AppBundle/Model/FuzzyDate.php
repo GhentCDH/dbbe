@@ -38,18 +38,19 @@ class FuzzyDate
 
                 $dateMatch = [];
                 preg_match($datePattern, $floorString, $dateMatch);
+
                 if (count($dateMatch) == 2) {
-                    $this->floor = new DateTime($floorString);
+                    $this->floor = new DateTime($dateMatch[1]);
                 } elseif (count($dateMatch) == 3) {
-                    $this->floor = new DateTime('-' . substr($floorString, 1, 10));
+                    $this->floor = new DateTime('-' . $dateMatch[1]);
                 }
 
                 $dateMatch = [];
                 preg_match($datePattern, $ceilingString, $dateMatch);
                 if (count($dateMatch) == 2) {
-                    $this->ceiling = new DateTime($ceilingString);
+                    $this->ceiling = new DateTime($dateMatch[1]);
                 } elseif (count($dateMatch) == 3) {
-                    $this->ceiling = new DateTime('-' . substr($ceilingString, 1, 10));
+                    $this->ceiling = new DateTime('-' . $dateMatch[1]);
                 }
             }
         }
@@ -232,8 +233,6 @@ class FuzzyDate
 
     public static function fromDB(stdClass $input): FuzzyDate
     {
-        return (new FuzzyDate())
-            ->setFloor(new DateTime($input->floor))
-            ->setCeiling(new DateTime($input->ceiling));
+        return new FuzzyDate('(' . $input->floor . ',' . $input->ceiling . ')');
     }
 }
