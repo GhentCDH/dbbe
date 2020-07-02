@@ -232,8 +232,6 @@ class FuzzyDate
 
     public static function fromDB(stdClass $input): FuzzyDate
     {
-        return (new FuzzyDate())
-            ->setFloor(new DateTime($input->floor))
-            ->setCeiling(new DateTime($input->ceiling));
+        return new FuzzyDate('("' . $input->floor . '","' . $input->ceiling . '")');
     }
 }
