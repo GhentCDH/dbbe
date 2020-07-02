@@ -64,8 +64,8 @@ class FuzzyInterval
     public static function fromDB(stdClass $input): FuzzyInterval
     {
         return new FuzzyInterval(
-            new FuzzyDate('("' . $input->start_floor . '","' . $input->start_ceiling . '")'),
-            new FuzzyDate('("' . $input->end_floor . '","' . $input->end_ceiling . '")')
+            new FuzzyDate('(' . $input->start_floor . ',' . $input->start_ceiling . ')'),
+            new FuzzyDate('(' . $input->end_floor . ',' . $input->end_ceiling . ')')
         );
     }
 }
