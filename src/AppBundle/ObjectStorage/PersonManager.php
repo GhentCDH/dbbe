@@ -65,14 +65,23 @@ class PersonManager extends ObjectEntityManager
             if (!empty($rawPerson['attested_dates'])) {
                 foreach (json_decode($rawPerson['attested_dates']) as $attestedDate) {
                     if ($attestedDate != null) {
-                        $person->addAttestedDateOrInterval(FuzzyDate::fromDB($attestedDate));
+                        $person->addAttestedDateOrInterval(
+                            new FuzzyDate(
+                                "(\"$attestedDate->floor\",\"$attestedDate->ceiling\")"
+                            )
+                        );
                     }
                 }
             }
             if (!empty($rawPerson['attested_intervals'])) {
                 foreach (json_decode($rawPerson['attested_intervals']) as $attestedInterval) {
                     if ($attestedInterval != null) {
-                        $person->addAttestedDateOrInterval(FuzzyInterval::fromDB($attestedInterval));
+                        $person->addAttestedDateOrInterval(
+                            new FuzzyInterval(
+                                new FuzzyDate("(\"$attestedInterval->start_floor\",\"$attestedInterval->start_ceiling\")"),
+                                new FuzzyDate("(\"$attestedInterval->end_floor\",\"$attestedInterval->end_ceiling\")")
+                            )
+                        );
                     }
                 }
             }
