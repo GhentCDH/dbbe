@@ -82,6 +82,38 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% for documentType in ['article', 'book', 'bookChapter'] %}
+                    {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
+                    {% if documentRoles is not empty %}
+                        <tr>
+                            <td>
+                                {% if documentType == 'article' %}
+                                    Article(s)
+                                {% elseif documentType == 'book' %}
+                                    Book(s)
+                                {% elseif documentType == 'bookChapter' %}
+                                    Book chapter(s)
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for rolename, documentRole in documentRoles %}
+                                    <h6>As {{ documentRole[0].getName() }}:</h6>
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': (documentType == 'bookChapter' ? 'book chapter' : documentType) ~ 's'} %}
+                                        {% block renderItem %}
+                                            {% if documentType == 'article' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'article_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'book' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'bookChapter' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_chapter_get', 'display': item.getDescription()} only %}
+                                            {% endif %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
                 {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
                 {% if manuscriptRoles is not empty %}
                     <tr>
@@ -98,7 +130,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['article', 'book', 'bookChapter', 'occurrence', 'type'] %}
+                {% for documentType in ['occurrence', 'type'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -107,12 +139,6 @@
                                     Occurrence(s)
                                 {% elseif documentType == 'type' %}
                                     Type(s)
-                                {% elseif documentType == 'article' %}
-                                    Article(s)
-                                {% elseif documentType == 'book' %}
-                                    Book(s)
-                                {% elseif documentType == 'bookChapter' %}
-                                    Book chapter(s)
                                 {% endif %}
                             </td>
                             <td>
@@ -132,12 +158,6 @@
                                                         <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                                     {% endblock %}
                                                 {% endembed %}
-                                            {% elseif documentType == 'article' %}
-                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'article_get', 'display': item.getDescription()} only %}
-                                            {% elseif documentType == 'book' %}
-                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_get', 'display': item.getDescription()} only %}
-                                            {% elseif documentType == 'bookChapter' %}
-                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_chapter_get', 'display': item.getDescription()} only %}
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}
