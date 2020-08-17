@@ -82,18 +82,6 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% if person.getBibliographies() is not empty %}
-                    <tr>
-                        <td>Bibliography</td>
-                        <td>
-                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getBibliographyDisplay(person.getBibliographies()), 'enableCollapse': 1, 'label': 'references'} only %}
-                                {% block renderItem %}
-                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
-                                {% endblock %}
-                            {% endembed %}
-                        </td>
-                    </tr>
-                {% endif %}
                 {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
                 {% if manuscriptRoles is not empty %}
                     <tr>
@@ -110,7 +98,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['occurrence', 'type', 'article', 'book', 'bookChapter'] %}
+                {% for documentType in ['article', 'book', 'bookChapter', 'occurrence', 'type'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -158,6 +146,18 @@
                         </tr>
                     {% endif %}
                 {% endfor %}
+                {% if person.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': person.getBibliographyDisplay(person.getBibliographies()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% block renderItem %}
+                                    {% include '@App/Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if person.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>
