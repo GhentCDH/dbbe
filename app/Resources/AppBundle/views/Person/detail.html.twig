@@ -121,9 +121,17 @@
                                     {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': (documentType == 'bookChapter' ? 'book chapter' : documentType) ~ 's'} %}
                                         {% block renderItem %}
                                             {% if documentType == 'occurrence' %}
-                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'occurrence_get', 'display': item.getDescription(), 'class': 'greek'} only %}
+                                                {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                                    {% block renderDetail %}
+                                                        <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                                    {% endblock %}
+                                                {% endembed %}
                                             {% elseif documentType == 'type' %}
-                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'type_get', 'display': item.getDescription(), 'class': 'greek'} only %}
+                                                {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                                    {% block renderDetail %}
+                                                        <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                                    {% endblock %}
+                                                {% endembed %}
                                             {% elseif documentType == 'article' %}
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'article_get', 'display': item.getDescription()} only %}
                                             {% elseif documentType == 'book' %}
