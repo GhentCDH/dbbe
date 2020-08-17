@@ -412,7 +412,8 @@ class PersonService extends EntityService
             inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.idperson in (?)',
+            where bibrole.idperson in (?)
+            and (role.is_contributor_role is null or role.is_contributor_role = false)',
             [
                 $ids,
                 $ids,
