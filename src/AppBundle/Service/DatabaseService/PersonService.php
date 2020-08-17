@@ -400,7 +400,6 @@ class PersonService extends EntityService
             inner join data.manuscript on bibrole.iddocument = manuscript.identity
             inner join data.role on bibrole.idrole = role.idrole
             where bibrole.idperson in (?)
-            and (role.is_contributor_role is null or role.is_contributor_role = false)
 
             union all
 
@@ -413,8 +412,7 @@ class PersonService extends EntityService
             inner join data.document_contains on bibrole.iddocument = document_contains.idcontent
             inner join data.manuscript on document_contains.idcontainer = manuscript.identity
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.idperson in (?)
-            and (role.is_contributor_role is null or role.is_contributor_role = false)',
+            where bibrole.idperson in (?)',
             [
                 $ids,
                 $ids,
@@ -436,8 +434,7 @@ class PersonService extends EntityService
             from data.bibrole
             inner join data.original_poem on bibrole.iddocument = original_poem.identity
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.idperson in (?)
-            and (role.is_contributor_role is null or role.is_contributor_role = false)',
+            where bibrole.idperson in (?)',
             [
                 $ids,
             ],
@@ -477,8 +474,7 @@ class PersonService extends EntityService
             from data.bibrole
             inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
             inner join data.role on bibrole.idrole = role.idrole
-            where bibrole.idperson in (?)
-            and (role.is_contributor_role is null or role.is_contributor_role = false)',
+            where bibrole.idperson in (?)',
             [
                 $ids,
             ],
