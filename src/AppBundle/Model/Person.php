@@ -540,6 +540,12 @@ class Person extends Entity implements SubjectInterface
                 }
             }
         }
+        uasort(
+            $manuscriptRoles,
+            function ($a, $b) {
+                return $a[0]->getOrder() <=> $b[0]->getOrder();
+            }
+        );
         return $manuscriptRoles;
     }
 
@@ -729,6 +735,12 @@ class Person extends Entity implements SubjectInterface
                     );
                 }
             }
+            uasort(
+                $this->documentRoles[$documentType],
+                function ($a, $b) {
+                    return $a[0]->getOrder() <=> $b[0]->getOrder();
+                }
+            );
             return $this->documentRoles[$documentType];
         }
         return [];

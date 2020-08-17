@@ -41,7 +41,8 @@ class DocumentService extends EntityService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.bibrole
             inner join data.role on bibrole.idrole = role.idrole
             where (role.is_contributor_role is null or role.is_contributor_role = false)
@@ -67,7 +68,8 @@ class DocumentService extends EntityService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.bibrole
             inner join data.role on bibrole.idrole = role.idrole
             where role.is_contributor_role = true

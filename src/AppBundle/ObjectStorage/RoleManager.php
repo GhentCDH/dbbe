@@ -32,7 +32,8 @@ class RoleManager extends ObjectManager
                     $rawRole['role_system_name'],
                     $rawRole['role_name'],
                     $rawRole['role_is_contributor_role'] ? true : false,
-                    $rawRole['role_has_rank'] ? true : false
+                    $rawRole['role_has_rank'] ? true : false,
+                    $rawRole['role_order']
                 );
             }
         }

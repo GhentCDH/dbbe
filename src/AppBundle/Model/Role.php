@@ -13,8 +13,9 @@ class Role extends IdNameObject
     private $systemName;
     private $contributorRole;
     private $rank;
+    private $order;
 
-    public function __construct(int $id, array $usage, string $systemName, string $name, bool $contributorRole, bool $rank)
+    public function __construct(int $id, array $usage, string $systemName, string $name, bool $contributorRole, bool $rank, int $order=null)
     {
         parent::__construct($id, $name);
 
@@ -22,6 +23,7 @@ class Role extends IdNameObject
         $this->systemName = $systemName;
         $this->contributorRole = $contributorRole;
         $this->rank = $rank;
+        $this->order = $order;
     }
 
     public function getUsage(): array
@@ -42,6 +44,11 @@ class Role extends IdNameObject
     public function getRank(): bool
     {
         return $this->rank;
+    }
+
+    public function getOrder(): int
+    {
+        return $this->order;
     }
 
     public function getJson(): array

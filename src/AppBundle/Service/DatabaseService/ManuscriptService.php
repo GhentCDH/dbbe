@@ -411,7 +411,8 @@ class ManuscriptService extends DocumentService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.manuscript
             inner join data.document_contains on manuscript.identity = document_contains.idcontainer
             inner join data.bibrole on document_contains.idcontent = bibrole.iddocument

@@ -19,7 +19,8 @@ class RoleService extends DatabaseService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.role
             where role.idrole in (?)',
             [$ids],
@@ -36,7 +37,8 @@ class RoleService extends DatabaseService
             role.system_name as role_system_name,
             role.name as role_name,
             role.is_contributor_role as role_is_contributor_role,
-            role.has_rank as role_has_rank
+            role.has_rank as role_has_rank,
+            role.order as role_order
             from data.role'
         )->fetchAll();
     }
@@ -50,7 +52,8 @@ class RoleService extends DatabaseService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.role
             where (is_contributor_role is null or is_contributor_role = false)
             and ? = ANY(role.type)',
@@ -67,7 +70,8 @@ class RoleService extends DatabaseService
                 role.system_name as role_system_name,
                 role.name as role_name,
                 role.is_contributor_role as role_is_contributor_role,
-                role.has_rank as role_has_rank
+                role.has_rank as role_has_rank,
+                role.order as role_order
             from data.role
             where is_contributor_role = true
             and ? = ANY(role.type)',

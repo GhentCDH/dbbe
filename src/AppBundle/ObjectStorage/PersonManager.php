@@ -226,6 +226,7 @@ class PersonManager extends ObjectEntityManager
             'role_name' => 'Subject',
             'role_is_contributor_role' => false,
             'role_has_rank' => false,
+            'role_order' => null,
         ]])[0];
 
         foreach ($rawOccurrences as $rawOccurrence) {
@@ -267,6 +268,7 @@ class PersonManager extends ObjectEntityManager
             'role_name' => 'Subject',
             'role_is_contributor_role' => false,
             'role_has_rank' => false,
+            'role_order' => null,
         ]])[0];
 
         foreach ($rawTypes as $rawType) {
