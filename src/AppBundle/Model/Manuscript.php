@@ -402,10 +402,24 @@ class Manuscript extends Document
         }
         if (!empty($this->contentsWithParents)) {
             $contents = [];
+            $personContents = [];
+            $personContentsPublic = [];
+            $personContentIds = [];
             foreach ($this->contentsWithParents as $contentWithParents) {
                 $contents = array_merge($contents, $contentWithParents->getShortElastic());
+                foreach ($contentWithParents->getArray() as $content) {
+                    if ($content->getPerson() != null && !in_array($content->getPerson()->getId(), $personContentIds)) {
+                        $personContentIds[] = $content->getPerson()->getId();
+                        $personContents[] = $content->getPerson()->getShortJson();
+                        if ($content->getPerson()->getPublic()) {
+                            $personContentsPublic[] = $content->getPerson()->getShortJson();
+                        }
+                    }
+                }
             }
             $result['content'] = $contents;
+            $result['person_content'] = $personContents;
+            $result['person_content_public'] = $personContentsPublic;
         }
         if (!empty($this->date) && !empty($this->date->getFloor())) {
             $result['date_floor_year'] = intval($this->date->getFloor()->format('Y'));

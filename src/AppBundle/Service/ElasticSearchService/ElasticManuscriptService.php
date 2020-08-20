@@ -5,17 +5,22 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Model\Role;
+
 class ElasticManuscriptService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
+        // Add person as content role to the manuscript search page
+        $roles = $container->get('role_manager')->getByType('manuscript');
+        $roles['person_content'] = new Role(1000, ['manuscript'], 'person_content', 'Content', false, false);
         parent::__construct(
             $config,
             $indexPrefix,
             'manuscripts',
             'manuscript',
             $container->get('identifier_manager')->getByType('manuscript'),
-            $container->get('role_manager')->getByType('manuscript')
+            $roles
         );
     }
 
