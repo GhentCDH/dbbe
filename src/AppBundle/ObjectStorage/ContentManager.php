@@ -259,6 +259,21 @@ class ContentManager extends ObjectManager
      */
     public function update(int $id, stdClass $data): ContentWithParents
     {
+        // Elastic update manuscript and occurrences that have this (manuscript) content
+        $manuscripts = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($id, 'getShort');
+        $occurrenceIds = [];
+        foreach ($manuscripts as $manuscript) {
+            $occurrenceIds = array_merge(
+                $occurrenceIds,
+                array_map(
+                    function ($occurrence) {
+                        return $occurrence->getId();
+                    },
+                    $manuscript->getOccurrences()
+                )
+            );
+        }
+
         $this->dbs->beginTransaction();
         try {
             $contentsWithParents = $this->getWithParents([$id]);
@@ -356,14 +371,21 @@ class ContentManager extends ObjectManager
 
             $this->cache->invalidateTags(['contents']);
 
-            // update Elastic manuscripts
-            $manuscriptIds = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($id, 'getId');
-            $this->container->get('manuscript_manager')->updateElasticByIds($manuscriptIds);
+            // update Elastic dependencies
+            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
+            $this->container->get('occurrence_manager')->updateElasticByIds($occurrenceIds);
 
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
+
+            // Reset Elastic dependencies
+            if (!empty($manuscripts)) {
+                $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
+                $this->container->get('occurrence_manager')->updateElasticByIds($occurrenceIds);
+            }
+
             throw $e;
         }
 
@@ -392,7 +414,20 @@ class ContentManager extends ObjectManager
         }
         $primary = $contentsWithParents[$primaryId];
 
-        $manuscripts = $this->container->get('manuscript_manager')->getContentDependencies($secondaryId, 'getShort');
+        $manuscripts = $this->container->get('manuscript_manager')->getContentDependenciesWithChildren($secondaryId, 'getShort');
+        // Elastic update occurrences that have this person as manuscript content
+        $occurrenceIds = [];
+        foreach ($manuscripts as $manuscript) {
+            $occurrenceIds = array_merge(
+                $occurrenceIds,
+                array_map(
+                    function ($occurrence) {
+                        return $occurrence->getId();
+                    },
+                    $manuscript->getOccurrences()
+                )
+            );
+        }
         $contents = $this->getContentDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
@@ -422,14 +457,19 @@ class ContentManager extends ObjectManager
             }
             $this->delete($secondaryId);
 
+            // update Elastic dependencies
+            $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
+            $this->container->get('occurrence_manager')->updateElasticByIds($occurrenceIds);
+
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // Reset elasticsearch
+            // Reset Elastic dependencies
             if (!empty($manuscripts)) {
                 $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($manuscripts));
+                $this->container->get('occurrence_manager')->updateElasticByIds($occurrenceIds);
             }
 
             throw $e;

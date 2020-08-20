@@ -544,6 +544,24 @@ class PersonManager extends ObjectEntityManager
      */
     public function update(int $id, stdClass $data, bool $isNew = false): Person
     {
+        // Invalidate cache
+        $contentIds = $this->container->get('content_manager')->getPersonDependencies($id);
+
+        // Elastic update manuscript and occurrences that have this person as (manuscript) content
+        $contentManuscripts = $this->container->get('manuscript_manager')->getPersonContentDependenciesWithChildren($id, 'getShort');
+        $contentManuscriptOccurrenceIds = [];
+        foreach ($contentManuscripts as $contentManuscript) {
+            $contentManuscriptOccurrenceIds = array_merge(
+                $contentManuscriptOccurrenceIds,
+                array_map(
+                    function ($occurrence) {
+                        return $occurrence->getId();
+                    },
+                    $contentManuscript->getOccurrences()
+                )
+            );
+        }
+
         $this->dbs->beginTransaction();
         try {
             // Throws NotFoundException if not found
@@ -678,6 +696,10 @@ class PersonManager extends ObjectEntityManager
 
             $this->cache->invalidateTags([$this->entityType . 's']);
 
+            if (!empty($contentIds)) {
+                $this->cache->invalidateTags(['contents']);
+            }
+
             // Reset elasticsearch
             $this->ess->add($new);
 
@@ -695,9 +717,9 @@ class PersonManager extends ObjectEntityManager
                         $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
                     );
                 }
-                $this->container->get('manuscript_manager')->updateElasticByIds(
-                    $this->container->get('manuscript_manager')->getPersonContentDependenciesWithChildren($id, 'getId')
-                );
+                // Update manuscript and occurrences that have this person as (manuscript) content
+                $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($contentManuscripts));
+                $this->container->get('occurrence_manager')->updateElasticByIds($contentManuscriptOccurrenceIds);
             }
 
             // commit transaction
@@ -726,6 +748,9 @@ class PersonManager extends ObjectEntityManager
                         $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
                     );
                 }
+                // Update manuscript and occurrences that have this person as (manuscript) content
+                $this->container->get('manuscript_manager')->updateElasticByIds(array_keys($contentManuscripts));
+                $this->container->get('occurrence_manager')->updateElasticByIds($contentManuscriptOccurrenceIds);
             }
             throw $e;
         }
