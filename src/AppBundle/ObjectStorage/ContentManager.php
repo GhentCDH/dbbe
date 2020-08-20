@@ -38,12 +38,19 @@ class ContentManager extends ObjectManager
      */
     public function getWithData(array $data): array
     {
+        $personIds = self::getUniqueIds($data, 'person_id');
+        $persons = [];
+        if (count($personIds) > 0) {
+            $persons = $this->container->get('person_manager')->getShort($personIds);
+        }
+
         $contents = [];
         foreach ($data as $rawContent) {
             if (isset($rawContent['content_id']) && !isset($contents[$rawContent['content_id']])) {
                 $contents[$rawContent['content_id']] = new Content(
                     $rawContent['content_id'],
-                    $rawContent['name']
+                    $rawContent['name'],
+                    $rawContent['person_id'] != null ? $persons[$rawContent['person_id']] : null
                 );
             }
         }
@@ -56,36 +63,67 @@ class ContentManager extends ObjectManager
      * @param  array $ids
      * @return array
      */
-    public function getWithParents(array $ids)
+    public function getWithParents(array $ids): array
     {
         $contentsWithParents = [];
         $rawContentsWithParents = $this->dbs->getContentsWithParentsByIds($ids);
 
+        $personIds = [];
         foreach ($rawContentsWithParents as $rawContentWithParents) {
-            $ids = json_decode($rawContentWithParents['ids']);
+            $personIds += array_filter(
+                array_map(
+                    function ($id) {
+                        return $id != null ? (int)$id : null;
+                    },
+                    json_decode($rawContentWithParents['person_ids'])
+                )
+            );
+        }
+        $persons = [];
+        if (count($personIds) > 0) {
+            $persons = $this->container->get('person_manager')->getShort($personIds);
+        }
+
+        foreach ($rawContentsWithParents as $rawContentWithParents) {
+            $ids = array_map(
+                function ($id) {
+                    return $id != null ? (int)$id : null;
+                },
+                json_decode($rawContentWithParents['ids'])
+            );
             $names = json_decode($rawContentWithParents['names']);
+            $personIds = array_map(
+                function ($id) {
+                    return $id != null ? (int)$id : null;
+                },
+                json_decode($rawContentWithParents['person_ids'])
+            );
 
-            $rawContents = [];
+            $contents = [];
             foreach (array_keys($ids) as $key) {
-                $rawContents[] = [
-                    'content_id' => (int)$ids[$key],
-                    'name' => $names[$key],
-                ];
+                $contents[] = new Content(
+                    $ids[$key],
+                    $names[$key],
+                    $personIds[$key] != null ? $persons[$personIds[$key]] : null
+                );
             }
 
-            $contents = $this->getWithData($rawContents);
-
-            $orderedContents = [];
-            foreach ($ids as $id) {
-                $orderedContents[] = $contents[(int)$id];
-            }
-
-            $contentWithParents = new ContentWithParents($orderedContents);
+            $contentWithParents = new ContentWithParents($contents);
 
             $contentsWithParents[$contentWithParents->getId()] = $contentWithParents;
         }
 
         return $contentsWithParents;
+    }
+
+    /**
+     * Get contents with parents with all information
+     * @param  array $ids
+     * @return array
+     */
+    public function getMini(array $ids): array
+    {
+        return $this->getWithParents($ids);
     }
 
     public function getAll(): array
@@ -96,7 +134,7 @@ class ContentManager extends ObjectManager
 
         // Sort by name
         usort($contentsWithParents, function ($a, $b) {
-            return strcmp($a->getName(), $b->getName());
+            return strcmp($a->getDisplayName(), $b->getDisplayName());
         });
 
         return $contentsWithParents;
@@ -137,6 +175,16 @@ class ContentManager extends ObjectManager
     }
 
     /**
+     * Get all contents that are dependent on a person
+     * @param  int   $contentId
+     * @return array
+     */
+    public function getPersonDependencies(int $personId, string $method = 'getId'): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByPersonId($personId), $method);
+    }
+
+    /**
      * Add a new content
      * @param  stdClass $data
      * @return ContentWithParents
@@ -145,8 +193,27 @@ class ContentManager extends ObjectManager
     {
         $this->dbs->beginTransaction();
         try {
-            if (property_exists($data, 'individualName')
-                && is_string($data->individualName)
+            if (
+                (
+                    (
+                        property_exists($data, 'individualName')
+                        && is_string($data->individualName)
+                        && (
+                            !property_exists($data, 'individualPerson')
+                            || $data->parent == null
+                        )
+                    )
+                    || (
+                        property_exists($data, 'individualPerson')
+                        && $data->individualPerson != null
+                        && property_exists($data->individualPerson, 'id')
+                        && is_numeric($data->individualPerson->id)
+                        && (
+                            !property_exists($data, 'individualName')
+                            || $data->individualName == null
+                        )
+                    )
+                )
                 && (
                     !property_exists($data, 'parent')
                     || (
@@ -157,7 +224,8 @@ class ContentManager extends ObjectManager
             ) {
                 $id = $this->dbs->insert(
                     (property_exists($data, 'parent') && $data->parent != null) ? $data->parent->id : null,
-                    $data->individualName
+                    (property_exists($data, 'individualName') && $data->individualName != null) ? $data->individualName : null,
+                    (property_exists($data, 'individualPerson') && $data->individualPerson != null) ? $data->individualPerson->id : null
                 );
             } else {
                 throw new BadRequestHttpException('Incorrect data.');
@@ -197,6 +265,42 @@ class ContentManager extends ObjectManager
             }
             $old = $contentsWithParents[$id];
 
+            // only one of individualName, individualPerson can be defined
+            if (
+                (
+                    property_exists($data, 'individualName')
+                    && $data->individualName != null
+                    && (
+                        (
+                            $old->getIndividualPerson() != null
+                            && (!property_exists($data, 'individualPerson') || $data->individualPerson != null)
+                        )
+                        || (
+                            $old->getIndividualPerson() == null
+                            && property_exists($data, 'individualPerson')
+                            && $data->individualPerson != null
+                        )
+                    )
+                )
+                || (
+                    property_exists($data, 'individualPerson')
+                    && $data->individualPerson != null
+                    && (
+                        (
+                            $old->getIndividualName() != null
+                            && (!property_exists($data, 'individualName') || $data->individualName != null)
+                        )
+                        || (
+                            $old->getIndividualName() == null
+                            && property_exists($data, 'individualName')
+                            && $data->individualName != null
+                        )
+                    )
+                )
+            ) {
+                throw new BadRequestHttpException('Incorrect data.');
+            }
+
             // update content data
             $correct = false;
             if (property_exists($data, 'parent')
@@ -218,10 +322,24 @@ class ContentManager extends ObjectManager
                 $this->dbs->updateParent($id, $data->parent->id);
             }
             if (property_exists($data, 'individualName')
-                && is_string($data->individualName)
+                && (is_string($data->individualName) || $data->individualName == null)
             ) {
                 $correct = true;
                 $this->dbs->updateName($id, $data->individualName);
+            }
+            if (property_exists($data, 'individualPerson')
+                && $data->individualPerson == null
+            ) {
+                $correct = true;
+                $this->dbs->updatePerson($id, null);
+            }
+            if (property_exists($data, 'individualPerson')
+                && $data->individualPerson != null
+                && property_exists($data->individualPerson, 'id')
+                && is_numeric($data->individualPerson->id)
+            ) {
+                $correct = true;
+                $this->dbs->updatePerson($id, $data->individualPerson->id);
             }
 
             if (!$correct) {

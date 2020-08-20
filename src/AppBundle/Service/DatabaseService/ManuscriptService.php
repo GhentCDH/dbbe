@@ -249,6 +249,46 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    /**
+     * Get all manuscripts that are dependent on a specific person as content or one of its children
+     * @param  int   $contentId
+     * @return array
+     */
+    public function getDepIdsByPersonContentIdWithChildren(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.document_genre on manuscript.identity = document_genre.iddocument
+            where idgenre in (
+                WITH RECURSIVE rec (id, idparent, idperson) AS (
+                    SELECT
+                        g.idgenre,
+                        g.idparentgenre,
+                        g.idperson
+                    FROM data.genre g
+
+                    UNION ALL
+
+                    SELECT
+                        rec.id,
+                        g.idparentgenre,
+                        g.idperson
+                    FROM rec
+                    INNER JOIN data.genre g
+                    ON g.idgenre = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idperson = ?
+            )',
+            [
+                $personId,
+            ]
+        )->fetchAll();
+    }
+
     public function getDepIdsByStatusId(int $statusId): array
     {
         return $this->conn->executeQuery(

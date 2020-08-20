@@ -629,6 +629,11 @@ export default {
                     url: this.urls['book_chapter_get'],
                     urlIdentifier: 'book_chapter_id',
                 },
+                'Contents': {
+                    depUrl: this.urls['content_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['contents_edit'],
+                    urlIdentifier: 'content_id',
+                },
             }
         },
         tableColumns() {

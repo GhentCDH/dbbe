@@ -127,6 +127,10 @@ class Person extends Entity implements SubjectInterface
      */
     protected $documentRoles = [];
     /**
+     * Array containing all manuscripts that have this person as content (or any of the parents of content)
+     */
+    protected $manuscriptContents = [];
+    /**
      * @var string
      */
     protected $fullDescription = null;
@@ -764,6 +768,51 @@ class Person extends Entity implements SubjectInterface
             }
         }
         return $documentRolesForType;
+    }
+
+    /**
+     * @param array $manuscriptContents
+     * @return Person
+     */
+    public function setManuscriptContents(array $manuscriptContents): Person
+    {
+        $this->manuscriptContents = $manuscriptContents;
+
+        return $this;
+    }
+
+    /**
+     * @param Manuscript $manuscript
+     * @return Person
+     */
+    public function addManuscriptContent(Manuscript $manuscript): Person
+    {
+        $this->manuscriptContents[$manuscript->getId()] = $manuscript;
+
+        return $this;
+    }
+
+    public function getManuscriptContents(): array
+    {
+        $manuscripts = $this->manuscriptContents;
+        usort(
+            $manuscripts,
+            function ($a, $b) {
+                return $a->getSortKey() <=> $b->getSortKey();
+            }
+        );
+        return $manuscripts;
+    }
+
+    public function getPublicManuscriptContents(): array
+    {
+        $manuscripts = $this->getManuscriptContents();
+        foreach ($manuscripts as $manuscriptId => $manuscript) {
+            if (!$manuscript->getPublic()) {
+                unset($manuscripts[$manuscriptId]);
+            }
+        }
+        return $manuscripts;
     }
 
     /**

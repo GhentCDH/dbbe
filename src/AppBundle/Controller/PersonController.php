@@ -80,6 +80,8 @@ class PersonController extends EditController
                     'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
                     'book_chapter_deps_by_person' => $this->generateUrl('book_chapter_deps_by_person', ['id' => 'person_id']),
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => 'book_chapter_id']),
+                    'content_deps_by_person' => $this->generateUrl('content_deps_by_person', ['id' => 'person_id']),
+                    'contents_edit' => $this->generateUrl('contents_edit', ['id' => 'content_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'person_edit' => $this->generateUrl('person_edit', ['id' => 'person_id']),
                     'person_merge' => $this->generateUrl('person_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),

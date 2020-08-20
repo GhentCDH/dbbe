@@ -170,7 +170,7 @@ class PersonManager extends ObjectEntityManager
         $person = $persons[$id];
 
         // Manuscript roles
-        $rawManuscripts = $this->dbs->getManuscripts([$id]);
+        $rawManuscripts = $this->dbs->getManuscriptsAsRoles([$id]);
         $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
         $occurrenceIds = self::getUniqueIds($rawManuscripts, 'occurrence_id');
         $roleIds = self::getUniqueIds($rawManuscripts, 'role_id');
@@ -329,6 +329,14 @@ class PersonManager extends ObjectEntityManager
                     $roles[$raw['role_id']],
                     $bookChapters[$raw['book_chapter_id']]
                 );
+        }
+
+        // Manuscript contents
+        $rawManuscripts = $this->dbs->getManuscriptsAsContents($id);
+        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
+        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+        foreach ($rawManuscripts as $rawManuscript) {
+            $person->addManuscriptContent($manuscripts[$rawManuscript['manuscript_id']]);
         }
 
         return $person;
@@ -687,6 +695,9 @@ class PersonManager extends ObjectEntityManager
                         $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
                     );
                 }
+                $this->container->get('manuscript_manager')->updateElasticByIds(
+                    $this->container->get('manuscript_manager')->getPersonContentDependenciesWithChildren($id, 'getId')
+                );
             }
 
             // commit transaction
@@ -794,6 +805,8 @@ class PersonManager extends ObjectEntityManager
         if (!empty($articles) || (!empty($books) || !empty($bookChapters)) && !$primary->getModern()) {
             $updates['modern'] = true;
         }
+
+        $contentIds = $this->container->get('content_manager')->getPersonDependencies($secondaryId);
 
         $this->dbs->beginTransaction();
         try {
@@ -959,6 +972,15 @@ class PersonManager extends ObjectEntityManager
                             json_decode(json_encode($update))
                         );
                     }
+                }
+            }
+
+            if (!empty($contentIds)) {
+                foreach ($contentIds as $contentId) {
+                    $this->container->get('content_manager')->update(
+                        $contentId,
+                        json_decode(json_encode(['individualPerson' => ['id' => $primaryId]]))
+                    );
                 }
             }
 

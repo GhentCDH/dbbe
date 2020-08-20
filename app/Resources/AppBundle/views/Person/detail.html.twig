@@ -115,18 +115,29 @@
                     {% endif %}
                 {% endfor %}
                 {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
-                {% if manuscriptRoles is not empty %}
+                {% set manuscriptContents = is_granted('ROLE_VIEW_INTERNAL') ? person.getManuscriptContents() : person.getPublicManuscriptContents() %}
+                {% if manuscriptRoles is not empty or manuscriptContents is not empty %}
                     <tr>
                         <td>Manuscript(s)</td>
                         <td>
-                            {% for rolename, manuscriptRole in manuscriptRoles %}
-                                <h6>As {{ manuscriptRole[0].getName() }}:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptRole[1], 'enableCollapse': 1, 'label': 'manuscripts'} only %}
+                            {% if manuscriptRoles is not empty %}
+                                {% for rolename, manuscriptRole in manuscriptRoles %}
+                                    <h6>As {{ manuscriptRole[0].getName() }}:</h6>
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptRole[1], 'enableCollapse': 1, 'label': 'manuscripts'} only %}
+                                        {% block renderItem %}
+                                            {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if manuscriptContents is not empty %}
+                                <h6>As content:</h6>
+                                {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptContents, 'enableCollapse': 1, 'label': 'manuscripts'} only %}
                                     {% block renderItem %}
                                         {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
                                     {% endblock %}
                                 {% endembed %}
-                            {% endfor %}
+                            {% endif %}
                         </td>
                     </tr>
                 {% endif %}

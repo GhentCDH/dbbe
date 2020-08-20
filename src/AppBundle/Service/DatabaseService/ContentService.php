@@ -11,7 +11,7 @@ use AppBundle\Exceptions\DependencyException;
 class ContentService extends DatabaseService
 {
     /**
-     * Get all office ids
+     * Get all content ids
      * @return array
      */
     public function getIds(): array
@@ -56,7 +56,7 @@ class ContentService extends DatabaseService
     }
 
     /**
-     * Get all ids of contents that are dependent on a specific content
+     * Get all ids of contents that are directly dependent on a specific content
      * @param  int   $contentId
      * @return array
      */
@@ -72,6 +72,22 @@ class ContentService extends DatabaseService
     }
 
     /**
+     * Get all ids of contents that are directly dependent on a specific person
+     * @param  int   $personId
+     * @return array
+     */
+    public function getDepIdsByPersonId(int $personId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                genre.idgenre as content_id
+            from data.genre
+            where genre.idperson = ?',
+            [$personId]
+        )->fetchAll();
+    }
+
+    /**
      * @param  array $ids
      * @return array
      */
@@ -80,7 +96,8 @@ class ContentService extends DatabaseService
         return $this->conn->executeQuery(
             'SELECT
                 genre.identity as content_id,
-                genre.name
+                genre.name,
+                genre.idperson as person_id
             from data.genre
             where genre.identity in (?)',
             [$ids],
@@ -95,10 +112,11 @@ class ContentService extends DatabaseService
     public function getContentsWithParentsByIds(array $ids): array
     {
         return $this->conn->executeQuery(
-            'WITH RECURSIVE rec (id, ids, names, depth) AS (
+            'WITH RECURSIVE rec (id, ids, person_ids, names, depth) AS (
             	SELECT
             		g.idgenre,
                     ARRAY[g.idgenre],
+                    ARRAY[g.idperson],
                     ARRAY[g.genre],
             		1
             	FROM data.genre g
@@ -109,6 +127,7 @@ class ContentService extends DatabaseService
             	SELECT
             		g.idgenre,
                     array_append(rec.ids, g.idgenre),
+                    array_append(rec.person_ids, g.idperson),
                     array_append(rec.names, g.genre),
             		rec.depth + 1
 
@@ -118,6 +137,7 @@ class ContentService extends DatabaseService
             )
             SELECT
                 array_to_json(ids) as ids,
+                array_to_json(person_ids) as person_ids,
                 array_to_json(names) as names
             FROM rec
             INNER JOIN (
@@ -137,18 +157,19 @@ class ContentService extends DatabaseService
      * @param  string   $name
      * @return int
      */
-    public function insert(int $parentId = null, string $name): int
+    public function insert(int $parentId = null, string $name = null, int $personId): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_entity_presence
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.genre (idparentgenre, genre, is_content)
-                values (?, ?, TRUE)',
+                'INSERT INTO data.genre (idparentgenre, genre, is_content, idperson)
+                values (?, ?, TRUE, ?)',
                 [
                     $parentId,
-                    $name
+                    $name,
+                    $personId,
                 ]
             );
             $id = $this->conn->executeQuery(
@@ -189,7 +210,7 @@ class ContentService extends DatabaseService
      * @param  string $name
      * @return int
      */
-    public function updateName(int $id, string $name): int
+    public function updateName(int $id, string $name = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.genre
@@ -197,6 +218,24 @@ class ContentService extends DatabaseService
             where genre.idgenre = ?',
             [
                 $name,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $personId
+     * @return int
+     */
+    public function updatePerson(int $id, int $personId = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.genre
+            set idperson = ?
+            where genre.idgenre = ?',
+            [
+                $personId,
                 $id,
             ]
         );

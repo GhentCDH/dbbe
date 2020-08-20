@@ -19,7 +19,16 @@
                         <td>
                             {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
                                 {% block renderItem %}
-                                    {{ item.getName() }}
+                                    {% for content in item.getArray() %}
+                                        {% if content.getPerson() != null %}
+                                            <a href="{{ path('person_get', {'id': content.getPerson().getId()}) }}">{{ content.getPerson().getDescription() }}</a>
+                                        {% else %}
+                                            {{ content.getName() }}
+                                        {% endif %}
+                                        {% if not loop.last %}
+                                            >
+                                        {% endif %}
+                                    {% endfor %}
                                 {% endblock %}
                             {% endembed %}
                         </td>

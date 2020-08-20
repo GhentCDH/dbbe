@@ -210,6 +210,11 @@ class ManuscriptManager extends DocumentManager
         return $this->getDependencies($this->dbs->getDepIdsByContentIdWithChildren($contentId), $method);
     }
 
+    public function getPersonContentDependenciesWithChildren(int $personId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByPersonContentIdWithChildren($personId), $method);
+    }
+
     public function getOccurrenceDependencies(int $occurrenceId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByOccurrenceId($occurrenceId), $method);

@@ -102,7 +102,7 @@ class BaseController extends Controller
     /**
      * @param  int     $id
      * @param  Request $request
-     * @param  string  $method The method to be invoked on the manager to retrieve the objects
+     * @param  string  $method The method to be invoked on the manager to retrieve the dependencies
      * @return JsonResponse
      */
     public function getDependencies(int $id, Request $request, string $method)

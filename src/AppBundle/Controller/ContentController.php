@@ -67,8 +67,22 @@ class ContentController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'contents' => json_encode($this->get('content_manager')->getAllJson()),
+                'persons' => json_encode($this->get('person_manager')->getAllHistoricalShortJson()),
             ]
         );
+    }
+
+    /**
+     * Get all contents that have a dependency on a person
+     * @Route("/contents/persons/{id}", name="content_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByPerson(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
 
     /**

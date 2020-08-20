@@ -388,7 +388,7 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
-    public function getManuscripts(array $ids): array
+    public function getManuscriptsAsRoles(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT -- bibrole of manuscript
@@ -558,6 +558,41 @@ class PersonService extends EntityService
             ],
             [
                 Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getManuscriptsAsContents(int $id): array
+    {
+        // Get all manuscript ids with this person as content (or any of the children of this content)
+        return $this->conn->executeQuery(
+            'SELECT manuscript.identity as manuscript_id
+            FROM data.manuscript
+            INNER JOIN data.document_genre ON manuscript.identity = document_genre.iddocument
+            WHERE idgenre IN (
+                WITH RECURSIVE rec (id, idparent, idperson) AS (
+                    SELECT
+                        g.idgenre,
+                        g.idparentgenre,
+                        g.idperson
+                    FROM data.genre g
+                
+                    UNION ALL
+                
+                    SELECT
+                        rec.id,
+                        g.idparentgenre,
+                        g.idperson
+                    FROM rec
+                    INNER JOIN data.genre g
+                    ON g.idgenre = rec.idparent
+                )
+                SELECT id
+                FROM rec
+                WHERE rec.idperson = ?
+            )',
+            [
+                $id,
             ]
         )->fetchAll();
     }
@@ -929,6 +964,16 @@ class PersonService extends EntityService
             )->fetchColumn(0);
             if ($count > 0) {
                 throw new DependencyException('This person has global_id dependencies.');
+            }
+            // don't delete if this person is used in content
+            $count = $this->conn->executeQuery(
+                'SELECT count(*)
+                from data.genre
+                where genre.idperson = ?',
+                [$id]
+            )->fetchColumn(0);
+            if ($count > 0) {
+                throw new DependencyException('This person has content dependencies.');
             }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');

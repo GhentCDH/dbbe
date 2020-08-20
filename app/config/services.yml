@@ -71,7 +71,7 @@ services:
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
-        arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage']
+        arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage', 'content']
         public: true
 
     metre_manager:

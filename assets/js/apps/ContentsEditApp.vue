@@ -27,6 +27,7 @@
             </div>
         </article>
         <editModal
+            ref="editModal"
             :show="editModal"
             :schema="editContentSchema"
             :submit-model="submitModel"
@@ -86,8 +87,15 @@ export default {
         AbstractField,
         AbstractListEdit,
     ],
+    props: {
+        initPersons: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         return {
+            persons: JSON.parse(this.initPersons),
             contentSchema: {
                 fields: {
                     content: this.createMultiSelect('Content'),
@@ -102,9 +110,9 @@ export default {
                         label: 'Content name',
                         labelClasses: 'control-label',
                         model: 'content.individualName',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: [VueFormGenerator.validators.string, this.validateIndividualNameOrPerson],
                     },
+                    individualPerson: this.createMultiSelect('Person', {model: 'content.individualPerson', validator: this.validateIndividualNameOrPerson}),
                 },
             },
             mergeContentSchema: {
@@ -122,6 +130,7 @@ export default {
                     id: null,
                     parent: null,
                     name: null,
+                    individualPerson: null,
                 }
             },
             mergeModel: {
@@ -152,10 +161,48 @@ export default {
                 this.model.content.parent = this.values.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
             }
         },
+        // reset parent to null if nothing is selected
+        'submitModel.content.parent'() {
+            if (Array.isArray(this.submitModel.content.parent) && this.submitModel.content.parent.length == 0) {
+                this.submitModel.content.parent = null
+            }
+        },
+        // reset parent to null if nothing is entered
+        'submitModel.content.individualName'() {
+            this.$refs.editModal.revalidate()
+            if (this.submitModel.content.individualName == '') {
+                this.submitModel.content.individualName = null
+            }
+        },
+        // reset individualPerson to null if nothing is selected
+        'submitModel.content.individualPerson'() {
+            this.$refs.editModal.revalidate()
+            if (Array.isArray(this.submitModel.content.individualPerson) && this.submitModel.content.individualPerson.length == 0) {
+                this.submitModel.content.individualPerson = null
+            }
+        },
     },
     mounted () {
         this.contentSchema.fields.content.values = this.values
         this.enableField(this.contentSchema.fields.content)
+        if (window.location.href.split('?').length === 2) {
+            const paramsString = window.location.href.split('?')[1]
+            const params = paramsString.split('&')
+            for (const param of params) {
+                const split = param.split('=')
+                if (
+                    split.length === 2 &&
+                    split[0] === 'id' &&
+                    /^\d+$/.test(split[1])
+                ) {
+                    const id = parseInt(split[1])
+                    const filteredValues = this.values.filter(content => content.id === id)
+                    if (filteredValues.length === 1) {
+                        this.model.content = filteredValues[0]
+                    }
+                }
+            }
+        }
     },
     methods: {
         editContent(add = false) {
@@ -166,6 +213,7 @@ export default {
                     name: null,
                     parent: this.model.content,
                     individualName: null,
+                    individualPerson: null,
                 }
             }
             else {
@@ -174,6 +222,8 @@ export default {
             this.editContentSchema.fields.parent.values = this.values
                 .filter((content) => !this.isOrIsChild(content, this.model.content)) // Remove values that create cycles
             this.enableField(this.editContentSchema.fields.parent)
+            this.editContentSchema.fields.individualPerson.values = this.persons
+            this.enableField(this.editContentSchema.fields.individualPerson)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -200,6 +250,9 @@ export default {
                         id: this.submitModel.content.parent.id,
                     },
                     individualName: this.submitModel.content.individualName,
+                    individualPerson: this.submitModel.content.individualPerson == null ? null : {
+                        id: this.submitModel.content.individualPerson.id,
+                    }
                 })
                     .then( (response) => {
                         this.submitModel.content = response.data
@@ -230,14 +283,15 @@ export default {
                 if (this.submitModel.content.individualName !== this.originalSubmitModel.content.individualName) {
                     data.individualName = this.submitModel.content.individualName
                 }
-                if (this.submitModel.content.individualHistoricalName !== this.originalSubmitModel.content.individualHistoricalName) {
-                    data.individualHistoricalName = this.submitModel.content.individualHistoricalName
-                }
-                if (this.submitModel.content.pleiades !== this.originalSubmitModel.content.pleiades) {
-                    data.pleiades = this.submitModel.content.pleiades
-                }
-                if (this.submitModel.content.isCity !== this.originalSubmitModel.content.isCity) {
-                    data.isCity = this.submitModel.content.isCity
+                if (JSON.stringify(this.submitModel.content.individualPerson) !== JSON.stringify(this.originalSubmitModel.content.individualPerson)) {
+                    if (this.submitModel.content.individualPerson == null) {
+                        data.individualPerson = null
+                    }
+                    else {
+                        data.individualPerson = {
+                            id: this.submitModel.content.individualPerson.id
+                        }
+                    }
                 }
                 axios.put(this.urls['content_put'].replace('content_id', this.submitModel.content.id), data)
                     .then( (response) => {
@@ -305,6 +359,20 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: this.isLoginError(error)})
                     console.log(error)
                 })
+        },
+        validateIndividualNameOrPerson() {
+            if (
+                (
+                    this.submitModel.content.individualName == null
+                    && this.submitModel.content.individualPerson == null
+                ) || (
+                    this.submitModel.content.individualName != null
+                    && this.submitModel.content.individualPerson != null
+                )
+            ) {
+                return ['Please provide a content name or select a person (but not both).']
+            }
+            return []
         },
     }
 }
