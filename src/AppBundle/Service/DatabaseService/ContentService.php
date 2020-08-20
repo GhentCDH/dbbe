@@ -157,7 +157,7 @@ class ContentService extends DatabaseService
      * @param  string   $name
      * @return int
      */
-    public function insert(int $parentId = null, string $name = null, int $personId): int
+    public function insert(int $parentId = null, string $name = null, int $personId = null): int
     {
         $this->beginTransaction();
         try {

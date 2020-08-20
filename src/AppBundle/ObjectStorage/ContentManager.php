@@ -70,12 +70,15 @@ class ContentManager extends ObjectManager
 
         $personIds = [];
         foreach ($rawContentsWithParents as $rawContentWithParents) {
-            $personIds += array_filter(
-                array_map(
-                    function ($id) {
-                        return $id != null ? (int)$id : null;
-                    },
-                    json_decode($rawContentWithParents['person_ids'])
+            $personIds = array_merge(
+                $personIds,
+                array_filter(
+                    array_map(
+                        function ($id) {
+                            return $id != null ? (int)$id : null;
+                        },
+                        json_decode($rawContentWithParents['person_ids'])
+                    )
                 )
             );
         }
