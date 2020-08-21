@@ -26,6 +26,16 @@ class Role extends IdNameObject
         $this->order = $order;
     }
 
+    public static function getContentRole(string $systemName = null): Role
+    {
+        return new Role(1000, ['manuscript'], $systemName ?? 'content', 'Content', false, false);
+    }
+
+    public static function getSubjectRole(string $systemName = null): Role
+    {
+        return new Role(1001, ['occurrence', 'type'], $systemName ?? 'subject', 'Subject', false, false);
+    }
+
     public function getUsage(): array
     {
         return $this->usage;

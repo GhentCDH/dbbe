@@ -13,7 +13,7 @@ class ElasticManuscriptService extends ElasticEntityService
     {
         // Add person as content role to the manuscript search page
         $roles = $container->get('role_manager')->getByType('manuscript');
-        $roles['person_content'] = new Role(1000, ['manuscript'], 'person_content', 'Content', false, false);
+        $roles['person_content'] = Role::getContentRole('person_content');
         parent::__construct(
             $config,
             $indexPrefix,
