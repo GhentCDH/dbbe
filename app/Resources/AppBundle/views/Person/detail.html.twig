@@ -115,8 +115,7 @@
                     {% endif %}
                 {% endfor %}
                 {% set manuscriptRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getFixedRelatedManuscriptRoles() : person.getFixedRelatedPublicManuscriptRoles() %}
-                {% set manuscriptContents = is_granted('ROLE_VIEW_INTERNAL') ? person.getManuscriptContents() : person.getPublicManuscriptContents() %}
-                {% if manuscriptRoles is not empty or manuscriptContents is not empty %}
+                {% if manuscriptRoles is not empty %}
                     <tr>
                         <td>Manuscript(s)</td>
                         <td>
@@ -129,14 +128,6 @@
                                         {% endblock %}
                                     {% endembed %}
                                 {% endfor %}
-                            {% endif %}
-                            {% if manuscriptContents is not empty %}
-                                <h6>As content:</h6>
-                                {% embed '@App/Helpers/renderList.html.twig' with {'list': manuscriptContents, 'enableCollapse': 1, 'label': 'manuscripts'} only %}
-                                    {% block renderItem %}
-                                        {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
-                                    {% endblock %}
-                                {% endembed %}
                             {% endif %}
                         </td>
                     </tr>

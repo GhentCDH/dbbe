@@ -18,6 +18,7 @@ use AppBundle\Model\FuzzyDate;
 use AppBundle\Model\Origin;
 use AppBundle\Model\Person;
 use AppBundle\Model\Poem;
+use AppBundle\Model\Role;
 
 /**
  * ObjectManager for persons
@@ -125,6 +126,28 @@ class PersonManager extends ObjectEntityManager
             }
         }
 
+        // Pseudo roles
+        $contentRole = Role::getContentRole();
+        $subjectRole = Role::getSubjectRole();
+
+        // Manuscript contents
+        $rawManuscripts = $this->dbs->getManuscriptsAsContents($ids);
+        foreach ($rawManuscripts as $rawManuscript) {
+            $persons[$rawManuscript['person_id']]->addRole($contentRole);
+        }
+
+        // Occurrence subjects
+        $rawOccurrences = $this->dbs->getOccurrencesAsSubjects($ids);
+        foreach ($rawOccurrences as $rawOccurrence) {
+            $persons[$rawOccurrence['person_id']]->addRole($subjectRole);
+        }
+
+        // Type subjects
+        $rawTypes = $this->dbs->getTypesAsSubjects($ids);
+        foreach ($rawTypes as $rawType) {
+            $persons[$rawType['person_id']]->addRole($subjectRole);
+        }
+
         // offices
         $rawOffices = $this->dbs->getOffices($ids);
 
@@ -213,31 +236,6 @@ class PersonManager extends ObjectEntityManager
                 );
         }
 
-        // occurrence subjects
-        // Add 'subject' as pseudo role
-        $rawOccurrences = $this->dbs->getOccurrencesAsSubjects([$id]);
-        $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
-
-        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
-        $role = $this->container->get('role_manager')->getWithData([[
-            'role_id' => 0,
-            'role_usage' => json_encode(['occurrence']),
-            'role_system_name' => 'subject',
-            'role_name' => 'Subject',
-            'role_is_contributor_role' => false,
-            'role_has_rank' => false,
-            'role_order' => null,
-        ]])[0];
-
-        foreach ($rawOccurrences as $rawOccurrence) {
-            $person
-                ->addDocumentRole(
-                    'occurrence',
-                    $role,
-                    $occurrences[$rawOccurrence['occurrence_id']]
-                );
-        }
-
         // Type roles
         $rawTypes = $this->dbs->getTypesAsRoles([$id]);
         $typeIds = self::getUniqueIds($rawTypes, 'type_id');
@@ -255,27 +253,47 @@ class PersonManager extends ObjectEntityManager
                 );
         }
 
+        // Pseudo roles
+        $contentRole = Role::getContentRole();
+        $subjectRole = Role::getSubjectRole();
+
+        // Manuscript contents
+        $rawManuscripts = $this->dbs->getManuscriptsAsContents([$id]);
+        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
+        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
+        foreach ($rawManuscripts as $rawManuscript) {
+            $person->addManuscriptRole(
+                $contentRole,
+                $manuscripts[$rawManuscript['manuscript_id']]
+            );
+        }
+
+        // occurrence subjects
+        $rawOccurrences = $this->dbs->getOccurrencesAsSubjects([$id]);
+        $occurrenceIds = self::getUniqueIds($rawOccurrences, 'occurrence_id');
+
+        $occurrences = $this->container->get('occurrence_manager')->getMini($occurrenceIds);
+
+        foreach ($rawOccurrences as $rawOccurrence) {
+            $person
+                ->addDocumentRole(
+                    'occurrence',
+                    $subjectRole,
+                    $occurrences[$rawOccurrence['occurrence_id']]
+                );
+        }
+
         // type subjects
-        // Add 'subject' as pseudo role
         $rawTypes = $this->dbs->getTypesAsSubjects([$id]);
         $typeIds = self::getUniqueIds($rawTypes, 'type_id');
 
         $types = $this->container->get('type_manager')->getMini($typeIds);
-        $role = $this->container->get('role_manager')->getWithData([[
-            'role_id' => 0,
-            'role_usage' => json_encode(['type']),
-            'role_system_name' => 'subject',
-            'role_name' => 'Subject',
-            'role_is_contributor_role' => false,
-            'role_has_rank' => false,
-            'role_order' => null,
-        ]])[0];
 
         foreach ($rawTypes as $rawType) {
             $person
                 ->addDocumentRole(
                     'type',
-                    $role,
+                    $subjectRole,
                     $types[$rawType['type_id']]
                 );
         }
@@ -329,14 +347,6 @@ class PersonManager extends ObjectEntityManager
                     $roles[$raw['role_id']],
                     $bookChapters[$raw['book_chapter_id']]
                 );
-        }
-
-        // Manuscript contents
-        $rawManuscripts = $this->dbs->getManuscriptsAsContents($id);
-        $manuscriptIds = self::getUniqueIds($rawManuscripts, 'manuscript_id');
-        $manuscripts = $this->container->get('manuscript_manager')->getMini($manuscriptIds);
-        foreach ($rawManuscripts as $rawManuscript) {
-            $person->addManuscriptContent($manuscripts[$rawManuscript['manuscript_id']]);
         }
 
         return $person;

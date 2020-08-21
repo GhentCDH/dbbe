@@ -562,37 +562,38 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
-    public function getManuscriptsAsContents(int $id): array
+    public function getManuscriptsAsContents(array $ids): array
     {
-        // Get all manuscript ids with this person as content (or any of the children of this content)
+        // Get all manuscript ids with a person as content (or any of the children of this content)
         return $this->conn->executeQuery(
-            'SELECT manuscript.identity as manuscript_id
+            'WITH RECURSIVE rec (id, idparent, idperson) AS (
+                SELECT
+                g.idgenre,
+                g.idparentgenre,
+                g.idperson
+                FROM data.genre g
+
+                UNION ALL
+
+                SELECT
+                rec.id,
+                g.idparentgenre,
+                g.idperson
+                FROM rec
+                INNER JOIN data.genre g
+                ON g.idgenre = rec.idparent
+            )
+            SELECT manuscript.identity as manuscript_id,
+            rec.idperson as person_id
             FROM data.manuscript
             INNER JOIN data.document_genre ON manuscript.identity = document_genre.iddocument
-            WHERE idgenre IN (
-                WITH RECURSIVE rec (id, idparent, idperson) AS (
-                    SELECT
-                        g.idgenre,
-                        g.idparentgenre,
-                        g.idperson
-                    FROM data.genre g
-                
-                    UNION ALL
-                
-                    SELECT
-                        rec.id,
-                        g.idparentgenre,
-                        g.idperson
-                    FROM rec
-                    INNER JOIN data.genre g
-                    ON g.idgenre = rec.idparent
-                )
-                SELECT id
-                FROM rec
-                WHERE rec.idperson = ?
-            )',
+            INNER JOIN rec on document_genre.idgenre = rec.id
+            WHERE rec.idperson IN (?)',
             [
-                $id,
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
             ]
         )->fetchAll();
     }
