@@ -2,6 +2,7 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Model\Person;
 use AppBundle\Utils\ArrayToJson;
 
 /**
@@ -239,6 +240,18 @@ class Poem extends Document
         }
         if (!empty($this->subjects)) {
             $result['subject'] = ArrayToJson::arrayToShortJson($this->subjects);
+            $personSubjects = [];
+            $personSubjectsPublic = [];
+            foreach ($this->subjects as $subject) {
+                if ($subject instanceof Person) {
+                    $personSubjects[] = $subject->getShortJson();
+                    if ($subject->getPublic()) {
+                        $personSubjectsPublic[] = $subject->getShortJson();
+                    }
+                }
+            }
+            $result['person_subject'] = $personSubjects;
+            $result['person_subject_public'] = $personSubjectsPublic;
         }
         foreach ($this->getPersonRoles() as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);

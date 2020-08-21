@@ -5,17 +5,22 @@ namespace AppBundle\Service\ElasticSearchService;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use AppBundle\Model\Role;
+
 class ElasticOccurrenceService extends ElasticEntityService
 {
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
+        // Add person as subject role to the occurrence search page
+        $roles = $container->get('role_manager')->getByType('occurrence');
+        $roles['person_subject'] = new Role(1000, ['occurrence'], 'person_subject', 'Subject', false, false);
         parent::__construct(
             $config,
             $indexPrefix,
             'occurrences',
             'occurrence',
             $container->get('identifier_manager')->getByType('occurrence'),
-            $container->get('role_manager')->getByType('occurrence')
+            $roles
         );
     }
 
