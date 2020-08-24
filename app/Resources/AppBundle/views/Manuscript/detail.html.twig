@@ -23,7 +23,9 @@
                                         {% if content.getPerson() != null %}
                                             <a href="{{ path('person_get', {'id': content.getPerson().getId()}) }}">{{ content.getPerson().getDescription() }}</a>
                                         {% else %}
-                                            {{ content.getName() }}
+                                            <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[content]'|url_encode ~ '=' ~ content.getId() }}" title="Search for all manuscripts with this content">
+                                                {{ content.getName() }}
+                                            </a>
                                         {% endif %}
                                         {% if not loop.last %}
                                             >
