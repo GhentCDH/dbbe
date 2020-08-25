@@ -203,7 +203,7 @@ class ContentManager extends ObjectManager
                         && is_string($data->individualName)
                         && (
                             !property_exists($data, 'individualPerson')
-                            || $data->parent == null
+                            || $data->individualPerson == null
                         )
                     )
                     || (
