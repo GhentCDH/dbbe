@@ -1,5 +1,10 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
             ref="form"
             :schema="schema"
@@ -25,18 +30,49 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    bookClusters: {field: 'bookCluster', init: false},
+                    bookSeriess: {field: 'bookSeries', init: false},
+                };
+            },
+        },
+        values: {
+            type: Object,
+            default: () => {return {}}
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
+                    bookCluster: this.createMultiSelect('Book cluster', {model: 'bookCluster', validator: this.validateClusterOrTitle}),
+                    volume: {
+                        type: 'input',
+                        inputType: 'text',
+                        label: 'Book cluster volume',
+                        labelClasses: 'control-label',
+                        model: 'volume',
+                        validator: VueFormGenerator.validators.string,
+                    },
+                    totalVolumes: {
+                        type: 'input',
+                        inputType: 'number',
+                        label: 'Book cluster total Volumes',
+                        labelClasses: 'control-label',
+                        model: 'totalVolumes',
+                        validator: VueFormGenerator.validators.number,
+                    },
                     title: {
                         type: 'input',
                         inputType: 'text',
                         label: 'Title',
                         labelClasses: 'control-label',
                         model: 'title',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: this.validateClusterOrTitle,
                     },
                     year: {
                         type: 'input',
@@ -73,29 +109,14 @@ export default {
                         model: 'publisher',
                         validator: VueFormGenerator.validators.string,
                     },
-                    series: {
+                    bookSeries: this.createMultiSelect('Book series', {model: 'bookSeries'}),
+                    seriesVolume: {
                         type: 'input',
                         inputType: 'text',
-                        label: 'Series',
+                        label: 'Series volume',
                         labelClasses: 'control-label',
-                        model: 'series',
+                        model: 'seriesVolume',
                         validator: VueFormGenerator.validators.string,
-                    },
-                    volume: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Volume',
-                        labelClasses: 'control-label',
-                        model: 'volume',
-                        validator: VueFormGenerator.validators.number,
-                    },
-                    totalVolumes: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Total Volumes',
-                        labelClasses: 'control-label',
-                        model: 'totalVolumes',
-                        validator: VueFormGenerator.validators.number,
                     },
                 }
             },
@@ -110,14 +131,6 @@ export default {
                 });
             }
         },
-        'model.volume' () {
-            if (isNaN(this.model.volume)) {
-                this.model.volume = null;
-                this.$nextTick(function() {
-                    this.validate();
-                });
-            }
-        },
         'model.totalVolumes' () {
             if (isNaN(this.model.totalVolumes)) {
                 this.model.totalVolumes = null;
@@ -125,6 +138,35 @@ export default {
                     this.validate();
                 });
             }
+        },
+        // reset book cluster to null if nothing is selected
+        'model.bookCluster' () {
+            if (Array.isArray(this.model.bookCluster) && this.model.bookCluster.length == 0) {
+                this.model.bookCluster = null
+            }
+            this.validate()
+        },
+        // reset title to null if nothing is entered
+        'model.title' () {
+            if (this.model.title === '') {
+                this.model.title = null
+            }
+            this.validate()
+        },
+        // reset book cluster to null if nothing is selected
+        'model.bookSeries' () {
+            if (Array.isArray(this.model.bookSeries) && this.model.bookSeries.length == 0) {
+                this.model.bookSeries = null
+            }
+            this.validate()
+        },
+    },
+    methods: {
+        validateClusterOrTitle() {
+            if (this.model.bookCluster == null && this.model.title == null) {
+                return ['Please provide at least a cluster or a title.']
+            }
+            return []
         },
     },
 }

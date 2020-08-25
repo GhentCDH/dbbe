@@ -32,12 +32,16 @@ class BookManager extends DocumentManager
         if (!empty($ids)) {
             $rawBooks = $this->dbs->getMiniInfoByIds($ids);
 
+            $bookClusterIds = self::getUniqueIds($rawBooks, 'book_cluster_id');
+            $bookClusters = $this->container->get('book_cluster_manager')->getMini($bookClusterIds);
+
             foreach ($rawBooks as $rawBook) {
                 $book = new Book(
                     $rawBook['book_id'],
                     $rawBook['year'],
-                    $rawBook['title'],
                     $rawBook['city'],
+                    $rawBook['title'],
+                    $rawBook['book_cluster_id'] != null ? $bookClusters[$rawBook['book_cluster_id']] : null,
                     $rawBook['editor'],
                     $rawBook['volume']
                 );
@@ -93,11 +97,18 @@ class BookManager extends DocumentManager
 
         // Publisher, series, volume, total_volumes
         $rawBooks = $this->dbs->getFullInfoByIds([$id]);
+
         if (count($rawBooks) == 1) {
             $book
                 ->setPublisher($rawBooks[0]['publisher'])
-                ->setSeries($rawBooks[0]['series'])
+                ->setSeriesVolume($rawBooks[0]['series_volume'])
                 ->setTotalVolumes($rawBooks[0]['total_volumes']);
+
+            $BookSeriesIds = self::getUniqueIds($rawBooks, 'book_series_id');
+            $BookSeriess = $this->container->get('book_series_manager')->getMini($BookSeriesIds);
+            if ($rawBooks[0]['book_series_id'] != null) {
+                $book->setSeries($BookSeriess[$rawBooks[0]['book_series_id']]);
+            }
         }
 
         // Chapters
@@ -122,6 +133,26 @@ class BookManager extends DocumentManager
     }
 
     /**
+     * Get all books that are dependent on a book cluster
+     * @param  int $bookClusterId
+     * @return array
+     */
+    public function getBookClusterDependencies(int $bookClusterId): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookClusterId($bookClusterId), 'getMini');
+    }
+
+    /**
+     * Get all books that are dependent on a book series
+     * @param  int $bookSeriesId
+     * @return array
+     */
+    public function getBookSeriesDependencies(int $bookSeriesId): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookSeriesId($bookSeriesId), 'getMini');
+    }
+
+    /**
      * Get all books that are dependent on specific references
      * @param  array $referenceIds
      * @return array
@@ -138,9 +169,21 @@ class BookManager extends DocumentManager
      */
     public function add(stdClass $data): Book
     {
-        if (!property_exists($data, 'title')
-            || !is_string($data->title)
-            || empty($data->title)
+        if (
+            (
+                (
+                    !property_exists($data, 'title')
+                    || !is_string($data->title)
+                    || empty($data->title)
+                )
+                && (
+                    !property_exists($data, 'bookCluster')
+                    || !is_object($data->bookCluster)
+                    || !property_exists($data->bookCluster, 'id')
+                    || !is_numeric($data->bookCluster->id)
+                    || empty($data->bookCluster->id)
+                )
+            )
             || !property_exists($data, 'year')
             || !is_numeric($data->year)
             || empty($data->year)
@@ -152,8 +195,9 @@ class BookManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title, $data->year, $data->city);
+            $id = $this->dbs->insert($data->bookCluster->id, $data->title, $data->year, $data->city);
 
+            unset($data->bookCluster);
             unset($data->title);
             unset($data->year);
             unset($data->city);
@@ -197,15 +241,58 @@ class BookManager extends DocumentManager
                     $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
                 }
             }
+            if (property_exists($data, 'bookCluster')) {
+                if (!empty($data->bookCluster)
+                    && (
+                        !is_object($data->bookCluster)
+                        || !property_exists($data->bookCluster, 'id')
+                        || !is_numeric($data->bookCluster->id)
+                        || empty($data->bookCluster->id)
+                    )
+                ) {
+                    throw new BadRequestHttpException('Incorrect book cluster data.');
+                }
+                if (empty($data->bookCluster)
+                    && (
+                        (
+                            !property_exists($data, 'title')
+                            && $old->getTitle() == null
+                        )
+                        || (
+                            property_exists($data, 'title')
+                            && empty($data->title)
+                        )
+                    )
+                ) {
+                    throw new BadRequestHttpException('Book cluster or title is required.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateBookCluster($id, empty($data->bookCluster) ? null : $data->bookCluster->id);
+            }
             if (property_exists($data, 'title')) {
-                // Title is a required field
-                if (!is_string($data->title) || empty($data->title)) {
+                if (!empty($data->title)
+                    && !is_string($data->title)
+                ) {
                     throw new BadRequestHttpException('Incorrect title data.');
+                }
+                if (empty($data->title)
+                    && (
+                        (
+                            !property_exists($data, 'bookCluster')
+                            && $old->getBookCluster == null
+                        )
+                        || (
+                            property_exists($data, 'bookCluster')
+                            && empty($data->bookCluster)
+                        )
+                    )
+                ) {
+                    throw new BadRequestHttpException('Book cluster or title is required.');
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            // Title is a required field
+            // Year is a required field
             if (property_exists($data, 'year')) {
                 if (!is_numeric($data->year) || empty($data->year)) {
                     throw new BadRequestHttpException('Incorrect year data.');
@@ -228,15 +315,30 @@ class BookManager extends DocumentManager
                 $changes['full'] = true;
                 $this->dbs->updatePublisher($id, $data->publisher);
             }
-            if (property_exists($data, 'series')) {
-                if (!is_string($data->series)) {
+            if (property_exists($data, 'bookSeries')) {
+                if (
+                    (
+                        !is_object($data->bookSeries)
+                        || !property_exists($data->bookSeries, 'id')
+                        || !is_numeric($data->bookSeries->id)
+                        || empty($data->bookSeries->id)
+                    )
+                    && !(empty($data->bookSeries))
+                ) {
                     throw new BadRequestHttpException('Incorrect series data.');
                 }
                 $changes['full'] = true;
-                $this->dbs->updateSeries($id, $data->series);
+                $this->dbs->updateSeries($id, empty($data->bookSeries) ? null : $data->bookSeries->id);
+            }
+            if (property_exists($data, 'seriesVolume')) {
+                if (!empty($data->seriesVolume) && !is_string($data->seriesVolume)) {
+                    throw new BadRequestHttpException('Incorrect series volume data.');
+                }
+                $changes['full'] = true;
+                $this->dbs->updateSeriesVolume($id, $data->seriesVolume);
             }
             if (property_exists($data, 'volume')) {
-                if (!empty($data->volume) && !is_numeric($data->volume)) {
+                if (!empty($data->volume) && !is_string($data->volume)) {
                     throw new BadRequestHttpException('Incorrect volume data.');
                 }
                 $changes['full'] = true;
@@ -323,6 +425,15 @@ class BookManager extends DocumentManager
                 }
             }
         }
+        if (empty($primary->getCluster()) && !empty($secondary->getCluster())) {
+            $updates['bookCluster'] = $secondary->getCluster()->getShortJson();
+        }
+        if (empty($primary->getVolume()) && !empty($secondary->getVolume())) {
+            $updates['volume'] = $secondary->getVolume();
+        }
+        if (empty($primary->getTotalVolumes()) && !empty($secondary->getTotalVolumes())) {
+            $updates['totalVolumes'] = $secondary->getTotalVolumes();
+        }
         if (empty($primary->getTitle()) && !empty($secondary->getTitle())) {
             $updates['title'] = $secondary->getTitle();
         }
@@ -336,13 +447,10 @@ class BookManager extends DocumentManager
             $updates['publisher'] = $secondary->getPublisher();
         }
         if (empty($primary->getSeries()) && !empty($secondary->getSeries())) {
-            $updates['series'] = $secondary->getSeries();
+            $updates['bookSeries'] = $secondary->getSeries()->getShortJson();
         }
-        if (empty($primary->getVolume()) && !empty($secondary->getVolume())) {
-            $updates['volume'] = $secondary->getVolume();
-        }
-        if (empty($primary->getTotalVolumes()) && !empty($secondary->getTotalVolumes())) {
-            $updates['totalVolumes'] = $secondary->getTotalVolumes();
+        if (empty($primary->getSeriesVolume()) && !empty($secondary->getSeriesVolume())) {
+            $updates['seriesVolume'] = $secondary->getSeriesVolume();
         }
         if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
             $updates['publicComment'] = $secondary->getPublicComment();

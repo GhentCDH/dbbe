@@ -3,7 +3,11 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 class="h1">
-            <small>Book</small><br />{{ book.getTitle() }}
+            <small>Book</small><br />
+            {{ book.getBigTitle() }}
+            {% if book.getSmallTitle() is not empty %}
+                <br /><small class="text-primary">{{ book.getSmallTitle() }}</small>
+            {% endif %}
             {% if is_granted('ROLE_EDITOR_VIEW') %}
                 <a href="{{ path('book_edit', {'id': book.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
@@ -33,12 +37,6 @@
                         <td>{{ book.getPublisher() }}</td>
                     </tr>
                 {% endif %}
-                {% if book.getSeries() is not empty %}
-                    <tr>
-                        <td>Series</td>
-                        <td>{{ book.getSeries() }}</td>
-                    </tr>
-                {% endif %}
                 {% if book.getVolume() is not empty %}
                     <tr>
                         <td>Volume</td>
@@ -49,6 +47,12 @@
                     <tr>
                         <td>Total volumes</td>
                         <td>{{ book.getTotalVolumes() }}</td>
+                    </tr>
+                {% endif %}
+                {% if book.getCluster() is not empty %}
+                    <tr>
+                        <td>Other volumes</td>
+                        <td><a href="{{ path('book_cluster_get', {'id': book.getCluster().getId()}) }}">{{ book.getCluster().getTitle() }}</a></td>
                     </tr>
                 {% endif %}
                 {% if book.getIdentifications() is not empty and book.getIdentifications()['vassis'] is defined %}
@@ -73,6 +77,18 @@
                                 {% endblock %}
                             {% endembed %}
                         </td>
+                    </tr>
+                {% endif %}
+                {% if book.getSeries() is not empty %}
+                    <tr>
+                        <td>Series</td>
+                        <td><a href="{{ path('book_series_get', {'id': book.getSeries().getId()}) }}">{{ book.getSeries().getTitle() }}</a></td>
+                    </tr>
+                {% endif %}
+                {% if book.getSeriesVolume() is not empty %}
+                    <tr>
+                        <td>Series volume</td>
+                        <td>{{ book.getSeriesVolume() }}</td>
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? book.getInverseReferences() : book.getPublicInverseReferences()} only %}

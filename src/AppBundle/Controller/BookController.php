@@ -55,6 +55,32 @@ class BookController extends EditController
     }
 
     /**
+     * Get all books that have a dependency on a book cluster
+     * @Route("/books/book_clusters/{id}", name="book_deps_by_book_cluster")
+     * @Method("GET")
+     * @param  int    $id book cluster id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByBookCluster(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookClusterDependencies');
+    }
+
+    /**
+     * Get all books that have a dependency on a book series
+     * @Route("/books/book_seriess/{id}", name="book_deps_by_book_series")
+     * @Method("GET")
+     * @param  int    $id book series id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByBookSeries(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBookSeriesDependencies');
+    }
+
+    /**
      * Get all books that have a dependency on a person
      * (bibrole)
      * @Route("/books/persons/{id}", name="book_deps_by_person")
@@ -175,6 +201,10 @@ class BookController extends EditController
                     'book_put' => $this->generateUrl('book_put', ['id' => $id == null ? 'book_id' : $id]),
                     'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
                     'persons_search' => $this->generateUrl('persons_search'),
+                    'book_clusters_get' => $this->generateUrl('book_clusters_get'),
+                    'book_clusters_edit' => $this->generateUrl('book_clusters_edit'),
+                    'book_seriess_get' => $this->generateUrl('book_seriess_get'),
+                    'book_seriess_edit' => $this->generateUrl('book_seriess_edit'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     'login' => $this->generateUrl('saml_login'),

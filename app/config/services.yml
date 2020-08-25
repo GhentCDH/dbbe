@@ -114,6 +114,16 @@ services:
         arguments: ['@book_chapter_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_chapter']
         public: true
 
+    book_cluster_manager:
+        class: AppBundle\ObjectStorage\BookClusterManager
+        arguments: ['@book_cluster_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_cluster']
+        public: true
+
+    book_series_manager:
+        class: AppBundle\ObjectStorage\BookSeriesManager
+        arguments: ['@book_series_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_series']
+        public: true
+
     journal_manager:
         class: AppBundle\ObjectStorage\JournalManager
         arguments: ['@journal_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'journal']
@@ -264,6 +274,14 @@ services:
 
     book_chapter_service:
         class: AppBundle\Service\DatabaseService\BookChapterService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    book_cluster_service:
+        class: AppBundle\Service\DatabaseService\BookClusterService
+        arguments: ['@doctrine.orm.entity_manager']
+
+    book_series_service:
+        class: AppBundle\Service\DatabaseService\BookSeriesService
         arguments: ['@doctrine.orm.entity_manager']
 
     journal_service:

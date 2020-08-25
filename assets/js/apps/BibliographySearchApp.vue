@@ -263,6 +263,18 @@
                 </thead>
                 <tbody v-if="mergeModel.submitType === 'book'">
                     <tr>
+                        <td>Book cluster</td>
+                        <td>{{ (mergeModel.primaryFull.bookCluster != null ? mergeModel.primaryFull.bookCluster.title : null) || (mergeModel.secondaryFull.bookCluster != null ? mergeModel.secondaryFull.bookCluster.title : null) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Volume</td>
+                        <td>{{ mergeModel.primaryFull.volume || mergeModel.secondaryFull.volume }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Volumes</td>
+                        <td>{{ mergeModel.primaryFull.totalVolumes || mergeModel.secondaryFull.totalVolumes }}</td>
+                    </tr>
+                    <tr>
                         <td>Title</td>
                         <td>{{ mergeModel.primaryFull.title || mergeModel.secondaryFull.title }}</td>
                     </tr>
@@ -283,16 +295,12 @@
                         <td>{{ mergeModel.primaryFull.publisher || mergeModel.secondaryFull.publisher }}</td>
                     </tr>
                     <tr>
-                        <td>Series</td>
-                        <td>{{ mergeModel.primaryFull.series || mergeModel.secondaryFull.series }}</td>
+                        <td>Book series</td>
+                        <td>{{ (mergeModel.primaryFull.bookSeries != null ? mergeModel.primaryFull.bookSeries.title : null) || (mergeModel.secondaryFull.bookSeries != null ? mergeModel.secondaryFull.bookSeries.title : null) }}</td>
                     </tr>
                     <tr>
-                        <td>Volume</td>
-                        <td>{{ mergeModel.primaryFull.volume || mergeModel.secondaryFull.volume }}</td>
-                    </tr>
-                    <tr>
-                        <td>Total Volumes</td>
-                        <td>{{ mergeModel.primaryFull.totalVolumes || mergeModel.secondaryFull.totalVolumes }}</td>
+                        <td>Series volume</td>
+                        <td>{{ mergeModel.primaryFull.seriesVolume || mergeModel.secondaryFull.seriesVolume }}</td>
                     </tr>
                     <tr
                         v-for="identifier in identifiers"
@@ -467,6 +475,8 @@ export default {
                 2: 'book_chapter',
                 3: 'online_source',
                 4: 'journal',
+                5: 'book_cluster',
+                6: 'book_series',
             }
         }
 

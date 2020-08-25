@@ -8,18 +8,18 @@ use AppBundle\Exceptions\DependencyException;
 
 use Doctrine\DBAL\Connection;
 
-class JournalService extends DocumentService
+class BookSeriesService extends DocumentService
 {
     /**
-     * Get all journal ids
+     * Get all book series ids
      * @return array
      */
     public function getIds(): array
     {
         return $this->conn->query(
             'SELECT
-                journal.identity as journal_id
-            from data.journal'
+                book_series.identity as book_series_id
+            from data.book_series'
         )->fetchAll();
     }
 
@@ -27,33 +27,28 @@ class JournalService extends DocumentService
      * @param  array $ids
      * @return array
      */
-    public function getJournalsByIds(array $ids): array
+    public function getBookSeriessByIds(array $ids): array
     {
         return $this->conn->executeQuery(
             'SELECT
-                journal.identity as journal_id,
+                book_series.identity as book_series_id,
                 document_title.title
-            from data.journal
-            inner join data.document_title on journal.identity = document_title.iddocument
-            where journal.identity in (?)',
+            from data.book_series
+            inner join data.document_title on book_series.identity = document_title.iddocument
+            where book_series.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
-    public function getIssuesArticles(int $id): array
+    public function getBooks(int $id): array
     {
         return $this->conn->executeQuery(
             'select 
-                journal_issue.identity as journal_issue_id,
-                article.identity as article_id
-            from data.journal
-            inner join data.journal_issue on journal.identity = journal_issue.idjournal
-            inner join data.document_contains on journal_issue.identity = document_contains.idcontainer
-            inner join data.article on document_contains.idcontent = article.identity
-            where journal.identity = ?
-            group by journal_issue_id, article_id
-            order by journal_issue.year, journal_issue.volume, journal_issue.number',
+                book.identity as book_id
+            from data.book_series
+            inner join data.book on book_series.identity = book.idseries
+            where book_series.identity = ?',
             [$id]
         )->fetchAll();
     }
@@ -66,18 +61,18 @@ class JournalService extends DocumentService
     {
         $this->beginTransaction();
         try {
-            // Set search_path for trigger ensure_journal_has_document
+            // Set search_path for trigger ensure_book_series_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.journal DEFAULT VALUES'
+                'INSERT INTO data.book_series DEFAULT VALUES'
             );
             $id = $this->conn->executeQuery(
                 'SELECT
-                    journal.identity as journal_id
-                from data.journal
+                    book_series.identity as book_series_id
+                from data.book_series
                 order by identity desc
                 limit 1'
-            )->fetch()['journal_id'];
+            )->fetch()['book_series_id'];
             $this->conn->executeQuery(
                 'INSERT INTO data.document_title (iddocument, idlanguage, title)
                 values (?, (select idlanguage from data.language where name = \'Unknown\'), ?)',
@@ -100,21 +95,21 @@ class JournalService extends DocumentService
      */
     public function delete(int $id): int
     {
-        // don't delete if this journal is used in a journal issue
+        // don't delete if this book_series is used in a book
         $count = $this->conn->executeQuery(
             'SELECT count(*)
-            from data.journal_issue
-            where journal_issue.idjournal = ?',
+            from data.book
+            where book.idseries = ?',
             [$id]
         )->fetchColumn(0);
         if ($count > 0) {
-            throw new DependencyException('This journal has dependencies.');
+            throw new DependencyException('This book series has dependencies.');
         }
         // Set search_path for triggers
         $this->conn->exec('SET SEARCH_PATH TO data');
         return $this->conn->executeUpdate(
-            'DELETE from data.journal
-            where journal.identity = ?',
+            'DELETE from data.book_series
+            where book_series.identity = ?',
             [
                 $id,
             ]

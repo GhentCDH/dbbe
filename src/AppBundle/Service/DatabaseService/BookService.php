@@ -7,6 +7,7 @@ use Exception;
 use AppBundle\Exceptions\DependencyException;
 
 use Doctrine\DBAL\Connection;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class BookService extends DocumentService
 {
@@ -31,6 +32,38 @@ class BookService extends DocumentService
             from data.entity
             inner join data.book on entity.identity = book.identity'
         )->fetch();
+    }
+
+    /**
+     * Get all ids of books that are dependent on a book cluster
+     * @param  int   $bookClusterId
+     * @return array
+     */
+    public function getDepIdsByBookClusterId(int $bookClusterId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book.identity as book_id
+            from data.book
+            where book.idcluster = ?',
+            [$bookClusterId]
+        )->fetchAll();
+    }
+
+    /**
+     * Get all ids of books that are dependent on a book series
+     * @param  int   $bookSeriesId
+     * @return array
+     */
+    public function getDepIdsByBookSeriesId(int $bookSeriesId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book.identity as book_id
+            from data.book
+            where book.idseries = ?',
+            [$bookSeriesId]
+        )->fetchAll();
     }
 
     /**
@@ -101,13 +134,14 @@ class BookService extends DocumentService
         return $this->conn->executeQuery(
             'SELECT
                 book.identity as book_id,
+                book.idcluster as book_cluster_id,
                 document_title.title,
                 book.year,
                 book.city,
                 book.editor,
                 book.volume
             from data.book
-            inner join data.document_title on book.identity = document_title.iddocument
+            left join data.document_title on book.identity = document_title.iddocument
             where book.identity in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
@@ -124,7 +158,8 @@ class BookService extends DocumentService
             'SELECT
                 book.identity as book_id,
                 book.publisher,
-                book.series,
+                book.idseries as book_series_id,
+                book.series_volume,
                 book.total_volumes
             from data.book
             where book.identity in (?)',
@@ -147,21 +182,23 @@ class BookService extends DocumentService
     }
 
     /**
-     * @param  string $title
-     * @param  int    $year
-     * @param  string $city
+     * @param  int|null    $bookClusterId
+     * @param  string|null $title
+     * @param  int         $year
+     * @param  string      $city
      * @return int
      */
-    public function insert(string $title, int $year, string $city): int
+    public function insert(int $bookClusterId = null, string $title = null, int $year, string $city): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_book_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.book (year, city)
-                values (?, ?)',
+                'INSERT INTO data.book (idcluster, year, city)
+                values (?, ?, ?)',
                 [
+                    $bookClusterId,
                     $year,
                     $city,
                 ]
@@ -173,20 +210,73 @@ class BookService extends DocumentService
                 order by identity desc
                 limit 1'
             )->fetch()['book_id'];
-            $this->conn->executeQuery(
-                'INSERT INTO data.document_title (iddocument, idlanguage, title)
-                values (?, (select idlanguage from data.language where name = \'Unknown\'), ?)',
-                [
-                    $id,
-                    $title,
-                ]
-            );
+            if ($title != null) {
+                $this->conn->executeQuery(
+                    'INSERT INTO data.document_title (iddocument, idlanguage, title)
+                    values (?, (select idlanguage from data.language where name = \'Unknown\'), ?)',
+                    [
+                        $id,
+                        $title,
+                    ]
+                );
+            }
             $this->commit();
         } catch (Exception $e) {
             $this->rollBack();
             throw $e;
         }
         return $id;
+    }
+
+    /**
+     * @param  int      $id
+     * @param  int|null $bookClusterId
+     * @return int
+     */
+    public function updateBookCluster(int $id, int $bookClusterId = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.book
+            set idcluster = ?
+            where book.identity = ?',
+            [
+                $bookClusterId,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int         $id
+     * @param  string|null $title
+     * @return int
+     */
+    public function updateTitle(int $id, string $title = null): int
+    {
+        if (empty($title)) {
+            return $this->conn->executeUpdate(
+                'DELETE FROM data.document_title
+                where document_title.iddocument = ?',
+                [
+                    $id
+                ]
+            );
+        }
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.document_title (iddocument, idlanguage, title)
+            values (
+                ?,
+                (select idlanguage from data.language where name = \'Unknown\'),
+                ?
+            )
+            -- primary key constraint on iddocument, idlanguage
+            on conflict (iddocument, idlanguage) do update
+            set title = excluded.title',
+            [
+                $id,
+                $title,
+            ]
+        );
     }
 
     /**
@@ -262,29 +352,47 @@ class BookService extends DocumentService
     }
 
     /**
-     * @param  int    $id
-     * @param  string $series
+     * @param  int      $id
+     * @param  int|null $seriesId
      * @return int
      */
-    public function updateSeries(int $id, string $series): int
+    public function updateSeries(int $id, int $seriesId = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
-            set series = ?
+            set idseries = ?
             where book.identity = ?',
             [
-                $series,
+                $seriesId,
                 $id,
             ]
         );
     }
 
     /**
-     * @param  int $id
-     * @param  int $volume
+     * @param  int         $id
+     * @param  string|null $seriesVolume
      * @return int
      */
-    public function updateVolume(int $id, int $volume = null): int
+    public function updateSeriesVolume(int $id, string $seriesVolume = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.book
+            set series_volume = ?
+            where book.identity = ?',
+            [
+                $seriesVolume,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int         $id
+     * @param  string|null $volume
+     * @return int
+     */
+    public function updateVolume(int $id, string $volume = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book

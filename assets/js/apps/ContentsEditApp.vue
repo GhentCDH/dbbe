@@ -81,6 +81,7 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import qs from "qs";
 
 export default {
     mixins: [
@@ -170,7 +171,7 @@ export default {
         // reset parent to null if nothing is entered
         'submitModel.content.individualName'() {
             this.$refs.editModal.revalidate()
-            if (this.submitModel.content.individualName == '') {
+            if (this.submitModel.content.individualName === '') {
                 this.submitModel.content.individualName = null
             }
         },
@@ -184,25 +185,15 @@ export default {
     },
     mounted () {
         this.contentSchema.fields.content.values = this.values
-        this.enableField(this.contentSchema.fields.content)
-        if (window.location.href.split('?').length === 2) {
-            const paramsString = window.location.href.split('?')[1]
-            const params = paramsString.split('&')
-            for (const param of params) {
-                const split = param.split('=')
-                if (
-                    split.length === 2 &&
-                    split[0] === 'id' &&
-                    /^\d+$/.test(split[1])
-                ) {
-                    const id = parseInt(split[1])
-                    const filteredValues = this.values.filter(content => content.id === id)
-                    if (filteredValues.length === 1) {
-                        this.model.content = filteredValues[0]
-                    }
-                }
+        const params = qs.parse(window.location.href.split('?', 2)[1]);
+        if (!isNaN(params['id'])) {
+            const filteredValues = this.values.filter(v => v.id === parseInt(params['id']));
+            if (filteredValues.length === 1) {
+                this.model.content = JSON.parse(JSON.stringify(filteredValues[0]));
             }
         }
+        window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
+        this.enableField(this.contentSchema.fields.content)
     },
     methods: {
         editContent(add = false) {

@@ -2,10 +2,11 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Service\DatabaseService\BookService;
 use URLify;
 
 use AppBundle\Utils\ArrayToJson;
-use AppBundle\Utils\RomanFormatter;
+use AppBundle\Utils\VolumeSortKey;
 
 /**
  */
@@ -15,6 +16,11 @@ class Book extends Document
      * @var string
      */
     const CACHENAME = 'book';
+
+    /**
+     * @var BookCluster
+     */
+    protected $bookCluster;
 
     /**
      * @var int
@@ -37,11 +43,15 @@ class Book extends Document
      */
     protected $publisher;
     /**
-     * @var string
+     * @var BookSeries
      */
     protected $series;
     /**
-     * @var int
+     * @var string
+     */
+    protected $seriesVolume;
+    /**
+     * @var string
      */
     protected $volume;
     /**
@@ -54,24 +64,28 @@ class Book extends Document
     protected $chapters = [];
 
     /**
-     * @param int         $id
-     * @param int         $year
-     * @param string      $title
-     * @param string      $city
-     * @param string|null $editor
+     * @param int              $id
+     * @param int              $year
+     * @param string           $city
+     * @param string|null      $title
+     * @param BookCluster|null $bookCluster
+     * @param string|null      $editor
+     * @param string|null      $volume
      */
     public function __construct(
         int $id,
         int $year,
-        string $title,
         string $city,
+        string $title = null,
+        BookCluster $bookCluster = null,
         string $editor = null,
-        int $volume = null
+        string $volume = null
     ) {
         $this->id = $id;
         $this->year = $year;
-        $this->title = $title;
         $this->city = $city;
+        $this->title = $title;
+        $this->bookCluster = $bookCluster;
         $this->editor = $editor;
         $this->volume = $volume;
 
@@ -90,11 +104,41 @@ class Book extends Document
     }
 
     /**
-     * @return string
+     * @return BookCluster|null
      */
-    public function getTitle(): string
+    public function getCluster(): ?BookCluster
+    {
+        return $this->bookCluster;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTitle(): ?string
     {
         return $this->title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBigTitle(): string
+    {
+        if ($this->bookCluster != null) {
+            return $this->bookCluster->getTitle();
+        }
+        return $this->title;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSmallTitle(): ?string
+    {
+        if ($this->bookCluster != null && $this->title != null) {
+            return $this->title;
+        }
+        return null;
     }
 
     /**
@@ -133,10 +177,10 @@ class Book extends Document
     }
 
     /**
-     * @param string|null $series
+     * @param BookSeries|null $series
      * @return Book
      */
-    public function setSeries(string $series = null): Book
+    public function setSeries(BookSeries $series = null): Book
     {
         $this->series = $series;
 
@@ -144,17 +188,36 @@ class Book extends Document
     }
 
     /**
-     * @return string|null
+     * @return BookSeries|null
      */
-    public function getSeries(): ?string
+    public function getSeries(): ?BookSeries
     {
         return $this->series;
     }
 
     /**
-     * @return int|null
+     * @param string|null $seriesVolume
+     * @return $this
      */
-    public function getVolume(): ?int
+    public function setSeriesVolume(string $seriesVolume = null): Book
+    {
+        $this->seriesVolume = $seriesVolume;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSeriesVolume(): ?string
+    {
+        return $this->seriesVolume;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getVolume(): ?string
     {
         return $this->volume;
     }
@@ -213,6 +276,17 @@ class Book extends Document
     /**
      * @return string
      */
+    public function getFullTitleAndVolume(): string
+    {
+        return (!empty($this->bookCluster) ? $this->bookCluster->getTitle() : '')
+            . ((!empty($this->bookCluster) && !empty($this->title)) ? '. ' : '')
+            . $this->title
+            . (!empty($this->volume) ? ' (vol. ' . $this->volume . ')' : '');
+    }
+
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         $authorNames = [];
@@ -243,8 +317,7 @@ class Book extends Document
                     : ''
             )
             . ' ' . $this->year
-            . ', ' . $this->title
-            . (!empty($this->volume) ? ' ' . RomanFormatter::numberToRoman($this->volume) : '')
+            . ', ' . $this->getFullTitleAndVolume()
             . ', ' . $this->city;
     }
 
@@ -275,6 +348,13 @@ class Book extends Document
             $sortKey .= '9999';
         }
 
+        $volume = $this->getVolume();
+        if (!empty($volume)) {
+            $sortKey .= VolumeSortKey::sortKey($volume);
+        } else {
+            $sortKey .= '99999999';
+        }
+
         return $sortKey;
     }
 
@@ -296,6 +376,15 @@ class Book extends Document
     {
         $result = parent::getJson();
 
+        if (!empty($this->bookCluster)) {
+            $result['bookCluster'] = $this->bookCluster->getShortJson();
+        }
+        if (!empty($this->volume)) {
+            $result['volume'] = $this->volume;
+        }
+        if (!empty($this->totalVolumes)) {
+            $result['totalVolumes'] = $this->totalVolumes;
+        }
         if (!empty($this->title)) {
             $result['title'] = $this->title;
         }
@@ -312,13 +401,10 @@ class Book extends Document
             $result['publisher'] = $this->publisher;
         }
         if (!empty($this->series)) {
-            $result['series'] = $this->series;
+            $result['bookSeries'] = $this->series->getShortJson();
         }
-        if (!empty($this->volume)) {
-            $result['volume'] = $this->volume;
-        }
-        if (!empty($this->totalVolumes)) {
-            $result['totalVolumes'] = $this->totalVolumes;
+        if (!empty($this->seriesVolume)) {
+            $result['seriesVolume'] = $this->seriesVolume;
         }
 
         return $result;
@@ -336,7 +422,7 @@ class Book extends Document
             'name' => 'Book',
         ];
 
-        $result['title'] = $this->title . (!empty($this->volume) ? ' ' . RomanFormatter::numberToRoman($this->volume) : '');
+        $result['title'] = $this->getFullTitleAndVolume();
         $personRoles = $this->getPersonRoles();
         foreach ($personRoles as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);

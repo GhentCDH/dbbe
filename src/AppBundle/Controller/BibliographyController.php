@@ -62,6 +62,8 @@ class BibliographyController extends BaseController
                     'book_edit' => $this->generateUrl('book_edit', ['id' => 'book_id']),
                     'book_merge' => $this->generateUrl('book_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'book_delete' => $this->generateUrl('book_delete', ['id' => 'book_id']),
+                    'book_cluster_get' => $this->generateUrl('book_cluster_get', ['id' => 'book_cluster_id']),
+                    'book_clusters_edit' => $this->generateUrl('book_clusters_edit', ['id' => 'book_cluster_id']),
                     'book_chapter_get' => $this->generateUrl('book_chapter_get', ['id' => 'book_chapter_id']),
                     'book_chapter_edit' => $this->generateUrl('book_chapter_edit', ['id' => 'book_chapter_id']),
                     'book_chapter_delete' => $this->generateUrl('book_chapter_delete', ['id' => 'book_chapter_id']),

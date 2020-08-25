@@ -29,8 +29,12 @@
                 id="basic"
                 ref="basic"
                 header="Basic Information"
+                :links="[{title: 'Book clusters', reload: 'bookClusters', edit: urls['book_clusters_edit']}, {title: 'Book series', reload: 'bookSeriess', edit: urls['book_seriess_edit']}]"
                 :model="model.basic"
+                :values="clustersAndSeries"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <identificationPanel
@@ -182,17 +186,20 @@ export default {
             roles: JSON.parse(this.initRoles),
             book: null,
             modernPersons: null,
+            clustersAndSeries: null,
             model: {
                 personRoles: {},
                 basic: {
+                    bookCluster: null,
+                    volume: null,
+                    totalVolumes: null,
                     title: null,
                     year: null,
                     city: null,
                     editor: null,
                     publisher: null,
-                    series: null,
-                    volume: null,
-                    totalVolumes: null,
+                    bookSeries: null,
+                    seriesVolume: null,
                 },
                 identification: {},
                 managements: {managements: null},
@@ -219,11 +226,17 @@ export default {
         this.book = this.data.book;
 
         this.modernPersons = [];
+        this.clustersAndSeries = {
+            bookClusters: [],
+            bookSeriess: [],
+        };
         this.managements = this.data.managements;
     },
     methods: {
         loadAsync() {
             this.reload('modernPersons');
+            this.reload('bookClusters');
+            this.reload('bookSeriess');
         },
         setData() {
             if (this.book != null) {
@@ -234,14 +247,16 @@ export default {
 
                 // Basic info
                 this.model.basic = {
+                    bookCluster: this.book.bookCluster,
+                    volume: this.book.volume,
+                    totalVolumes: this.book.totalVolumes,
                     title: this.book.title,
                     year: this.book.year,
                     city: this.book.city,
                     editor: this.book.editor,
                     publisher: this.book.publisher,
-                    series: this.book.series,
-                    volume: this.book.volume,
-                    totalVolumes: this.book.totalVolumes,
+                    bookSeries: this.book.bookSeries,
+                    seriesVolume: this.book.seriesVolume,
                 }
 
                 // Identification
@@ -295,7 +310,14 @@ export default {
             }
         },
         reload(type) {
-            this.reloadSimpleItems(type);
+            switch (type) {
+                case 'bookClusters':
+                case 'bookSeriess':
+                    this.reloadNestedItems(type, this.clustersAndSeries);
+                    break;
+                default:
+                    this.reloadSimpleItems(type);
+            }
         },
     }
 }

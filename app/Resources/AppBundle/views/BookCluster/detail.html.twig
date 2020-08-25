@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            <small>Book</small><br />{{ book_cluster.getTitle() }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('book_clusters_edit', {'id': book_cluster.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <ul>
+            {% for book in books %}
+                <li><a href="{{ path('book_get', {'id': book.getId()}) }}">{{ book.getDescription() }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

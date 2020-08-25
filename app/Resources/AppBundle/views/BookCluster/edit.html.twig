@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="col-xs-12">
+        <h2 class="h1">
+            Edit Book clusters
+        </h2>
+    </div>
+    <div id="book-clusters-edit-app">
+        <book-clusters-edit-app
+            init-urls="{{ urls }}"
+            init-data="{{ book_clusters }}"
+        />
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/bookclustersedit.js") }}"></script>
+{% endblock %}
