@@ -21,6 +21,8 @@ Encore
     .addEntry('bibliographysearch', './assets/js/main/bibliographysearch.js')
     .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('bookchapteredit', './assets/js/main/bookchapteredit.js')
+    .addEntry('bookclustersedit', './assets/js/main/bookclustersedit.js')
+    .addEntry('bookseriessedit', './assets/js/main/bookseriessedit.js')
     .addEntry('contentsedit', './assets/js/main/contentsedit.js')
     .addEntry('feedback', './assets/js/main/feedback.js')
     .addEntry('genresedit', './assets/js/main/genresedit.js')

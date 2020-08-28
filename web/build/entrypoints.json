@@ -12,12 +12,12 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.d580a8a7.js"
+        "/build/bibliographysearch.6d1b4b1c.js"
       ]
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.484ceeed.js"
+        "/build/bookedit.a0570d3f.js"
       ]
     },
     "bookchapteredit": {
@@ -25,9 +25,19 @@
         "/build/bookchapteredit.c56f7afb.js"
       ]
     },
+    "bookclustersedit": {
+      "js": [
+        "/build/bookclustersedit.d564635d.js"
+      ]
+    },
+    "bookseriessedit": {
+      "js": [
+        "/build/bookseriessedit.a407cb62.js"
+      ]
+    },
     "contentsedit": {
       "js": [
-        "/build/contentsedit.9849a6c3.js"
+        "/build/contentsedit.8acccecd.js"
       ]
     },
     "feedback": {
@@ -172,7 +182,7 @@
     },
     "screen": {
       "css": [
-        "/build/screen.d9a16afd.css"
+        "/build/screen.26f2d468.css"
       ]
     }
   }
