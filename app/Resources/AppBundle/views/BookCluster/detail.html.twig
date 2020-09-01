@@ -9,7 +9,7 @@
             {% endif %}
         </h2>
         <ul>
-            {% for book in books %}
+            {% for book in book_cluster.getBooks() %}
                 <li><a href="{{ path('book_get', {'id': book.getId()}) }}">{{ book.getDescription() }}</a></li>
             {% endfor %}
         </ul>

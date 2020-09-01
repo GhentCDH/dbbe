@@ -41,6 +41,14 @@ class BookClusterManager extends DocumentManager
     public function getShort(array $ids): array
     {
         $bookClusters = $this->getMini($ids);
+
+        $rawBooks = $this->dbs->getBooks($ids);
+        $bookIds = self::getUniqueIds($rawBooks, 'book_id');
+        $books = $this->container->get('book_manager')->getMini($bookIds);
+        foreach ($rawBooks as $rawBook) {
+            $bookClusters[$rawBook['book_cluster_id']]->addBook($books[$rawBook['book_id']]);
+        }
+
         $this->setManagements($bookClusters);
 
         return $bookClusters;
@@ -84,27 +92,6 @@ class BookClusterManager extends DocumentManager
     public function getAllJson(string $sortFunction = null): array
     {
         return parent::getAllJson($sortFunction == null ? 'getTitle' : $sortFunction);
-    }
-
-    /**
-     * Get a list with all related books
-     * @param int $id
-     * @return array (ordered by volume)
-     */
-    public function getBooks(int $id) {
-        $raws = $this->dbs->getBooks($id);
-
-        $bookIds = self::getUniqueIds($raws, 'book_id');
-        $books = $this->container->get('book_manager')->getMini($bookIds);
-
-        usort(
-            $books,
-            function ($a, $b) {
-                return strcmp(VolumeSortKey::sortKey($a->getVolume()), VolumeSortKey::sortKey($b->getVolume()));
-            }
-        );
-
-        return $books;
     }
 
     /**

@@ -41,15 +41,17 @@ class BookClusterService extends DocumentService
         )->fetchAll();
     }
 
-    public function getBooks(int $id): array
+    public function getBooks(array $ids): array
     {
         return $this->conn->executeQuery(
             'select 
+                book_cluster.identity as book_cluster_id,
                 book.identity as book_id
             from data.book_cluster
             inner join data.book on book_cluster.identity = book.idcluster
-            where book_cluster.identity = ?',
-            [$id]
+            where book_cluster.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 
