@@ -17,6 +17,7 @@ class Article extends Document
 
     use StartEndPagesTrait;
     use RawPagesTrait;
+    use UrlsTrait;
 
     /**
      * @var string

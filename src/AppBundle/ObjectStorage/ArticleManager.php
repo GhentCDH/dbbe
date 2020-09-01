@@ -87,6 +87,8 @@ class ArticleManager extends DocumentManager
 
         $this->setInverseBibliographies($articles);
 
+        $this->setUrls($articles);
+
         return $articles[$id];
     }
 
@@ -218,6 +220,7 @@ class ArticleManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateEndPage($id, $data->endPage);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full', 'article');
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');

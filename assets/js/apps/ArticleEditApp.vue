@@ -37,6 +37,14 @@
                 @reload="reload"
             />
 
+            <urlPanel
+                id="urls"
+                ref="urls"
+                header="Urls"
+                :model="model.urls"
+                @validated="validated"
+            />
+
             <identificationPanel
                 v-if="identifiers.length > 0"
                 id="identification"
@@ -121,6 +129,12 @@
                             :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
                         >Basic information</a>
                     </li>
+                    <li>
+                        <a
+                            href="#urls"
+                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
+                        >Urls</a>
+                    </li>
                     <li v-if="identifiers.length > 0">
                         <a
                             href="#identification"
@@ -171,7 +185,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicArticle|Identification|GeneralBibItem|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicArticle|Url|Identification|GeneralBibItem|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -197,12 +211,14 @@ export default {
                     endPage: null,
                     rawPages: null,
                 },
+                urls: {urls: []},
                 identification: {},
                 managements: {managements: null},
             },
             panels: [
                 'persons',
                 'basic',
+                'urls',
                 'general',
                 'managements',
             ],
@@ -250,6 +266,9 @@ export default {
                     endPage: this.article.endPage,
                     rawPages: this.article.rawPages,
                 }
+
+                // Urls
+                this.model.urls = {urls: this.article.urls}
 
                 // Identification
                 this.model.identification = {}

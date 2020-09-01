@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\Url;
 use DateTime;
 use Elastica\Processor\Date;
 use Exception;
@@ -220,19 +221,30 @@ abstract class EntityManager extends ObjectManager
         }
     }
 
+    protected function setUrls(array &$entities): void
+    {
+        $rawUrls = $this->dbs->getUrls(array_keys($entities));
+        foreach ($rawUrls as $rawUrl) {
+            $entities[$rawUrl['entity_id']]
+                ->addUrl(new Url($rawUrl['url_id'], $rawUrl['url'], $rawUrl['title']));
+        }
+    }
+
     protected function updatePublic(Entity $entity, bool $public): void
     {
         $this->dbs->updatePublic($entity->getId(), $public);
     }
 
-    private function fixDBNegativeDate(string $date) {
+    private function fixDBNegativeDate(string $date)
+    {
         if (substr($date, 0, 1) == '-') {
             return substr($date, 1) . ' BC';
         }
         return $date;
     }
 
-    protected function getDBDate(stdClass $date) {
+    protected function getDBDate(stdClass $date)
+    {
         return '('
             . (empty($date->floor) ? '-infinity' : self::fixDBNegativeDate($date->floor))
             . ', '
@@ -240,7 +252,8 @@ abstract class EntityManager extends ObjectManager
             . ')';
     }
 
-    protected  function getDBInterval(stdClass $date) {
+    protected function getDBInterval(stdClass $date)
+    {
         return '('
             . (empty($date->start->floor) ? '-infinity' : self::fixDBNegativeDate($date->start->floor))
             . ', '
@@ -306,13 +319,120 @@ abstract class EntityManager extends ObjectManager
         }
     }
 
-    private function validateDate($input, $index) {
+    private function validateDate($input, $index)
+    {
         if (is_string($input)) {
             try {
                 new DateTime($input);
             } catch (Exception $e) {
                 throw new BadRequestHttpException('Invalid date or interval date in dates data (' . $index . ').');
             }
+        }
+    }
+
+    protected function updateUrlswrapper(
+        Entity $entity,
+        stdClass $data,
+        array &$changes,
+        string $level,
+        string $entityType
+    ): void {
+        if (property_exists($data, 'urls')) {
+            if (!is_array($data->urls)) {
+                throw new BadRequestHttpException('Incorrect urls data.');
+            }
+            foreach ($data->urls as $url) {
+                if (!is_object($url)
+                    || !property_exists($url, 'url')
+                    || !is_string($url->url)
+                    || (
+                        property_exists($url, 'title')
+                        && !is_string($url->title)
+                    )
+                    || (
+                        property_exists($url, 'id')
+                        && !is_numeric($url->id)
+                        && $url->id != null
+                    )
+                ) {
+                    throw new BadRequestHttpException('Incorrect urls data.');
+                }
+            }
+        }
+        $changes[$level] = true;
+        $oldUrls = $entity->getUrls() ?? [];
+        $addUrls = [];
+        $updateUrls = [];
+        $keepUrlIds = [];
+        $delUrlIds = [];
+        foreach ($data->urls as $newIndex => $newUrl) {
+            if (property_exists($newUrl, 'id') && $newUrl->id != null) {
+                $found = false;
+                foreach ($oldUrls as $oldIndex => $oldUrl) {
+                    if ($oldUrl->getId() === $newUrl->id) {
+                        $found = true;
+                        if ($oldIndex === $newIndex
+                            && $oldUrl->getUrl() == $newUrl->url
+                            && (
+                                (
+                                    $oldUrl->getTitle() == null
+                                    && (!property_exists($newUrl, 'title')) || $newUrl->title == null
+                                )
+                                || (
+                                    property_exists($newUrl, 'title')
+                                    && $oldUrl->getTitle() == $newUrl->title
+                                )
+                            )
+                        ) {
+                            $keepUrlIds[] = $newUrl->id;
+                        } else {
+                            $updateUrls[] = [$newUrl, $newIndex + 1];
+                        }
+                        break;
+                    }
+                }
+                if (!$found) {
+                    throw new BadRequestHttpException('Incorrect urls data.');
+                }
+            } else {
+                $addUrls[] = [$newUrl, $newIndex + 1];
+            }
+        }
+        foreach ($oldUrls as $oldUrl) {
+            $oldId = $oldUrl->getId();
+            $found = false;
+            foreach ($keepUrlIds as $keepUrlId) {
+                if ($keepUrlId === $oldId) {
+                    $found = true;
+                }
+            }
+            foreach ($updateUrls as $updateUrl) {
+                if ($updateUrl[0]->id === $oldId) {
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $delUrlIds[] = $oldId;
+            }
+        }
+        foreach ($updateUrls as $updateUrl) {
+            $this->dbs->updateEntityUrl(
+                $updateUrl[0]->id,
+                $updateUrl[0]->url,
+                $updateUrl[1],
+                property_exists($updateUrl[0], 'title') ? $updateUrl[0]->title : null
+            );
+        }
+        foreach ($addUrls as $addUrl) {
+            $this->dbs->addEntityUrl(
+                $entity->getId(),
+                $addUrl[0]->url,
+                $addUrl[1],
+                property_exists($addUrl[0], 'title') ? $addUrl[0]->title : null
+            );
+        }
+        if (count($delUrlIds) > 0) {
+            $this->dbs->delEntityUrls($delUrlIds);
         }
     }
 

@@ -237,6 +237,65 @@ class EntityService extends DatabaseService
         )->fetchAll();
     }
 
+    public function getUrls(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                entity_url.identity as entity_id,
+                entity_url.idurl as url_id,
+                entity_url.url,
+                entity_url.title
+            from data.entity_url
+            where entity_url.identity in (?)
+            order by entity_url.order',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function addEntityUrl(int $entityId, string $url, int $order, string $title = null)
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.entity_url (identity, url, title, "order")
+            values (?, ?, ?, ?)',
+            [
+                $entityId,
+                $url,
+                $title,
+                $order,
+            ]
+        );
+    }
+
+    public function updateEntityUrl(int $urlId, string $url, int $order, string $title = null)
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.entity_url
+            set url = ?, title = ?, "order" = ?
+            where entity_url.idurl = ?',
+            [
+                $url,
+                $title,
+                $order,
+                $urlId,
+            ]
+        );
+    }
+
+    public function delEntityUrls(array $ids)
+    {
+        return $this->conn->executeUpdate(
+            'DELETE FROM data.entity_url
+            where entity_url.idurl in (?)',
+            [
+                $ids
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
     public function updatePublic(int $entityId, bool $public): int
     {
         return $this->conn->executeUpdate(

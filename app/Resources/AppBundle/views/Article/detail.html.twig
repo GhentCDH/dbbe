@@ -36,6 +36,18 @@
                         <td>{{ pages }}</td>
                     </tr>
                 {% endif %}
+                {% if article.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': article.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if article.getIdentifications() is not empty and article.getIdentifications()['vassis'] is defined %}
                     <tr>
                         <td><a href="{{ path('person_get', {'id': article.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>

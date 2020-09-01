@@ -375,6 +375,9 @@ class Entity implements IdJsonInterface, IdElasticInterface
             'id' => $this->id,
         ];
 
+        if (!empty($this->urls)) {
+            $result['urls'] = ArrayToJson::arrayToShortJson($this->urls);
+        }
         if (isset($this->publicComment)) {
             $result['publicComment'] = $this->publicComment;
         }
