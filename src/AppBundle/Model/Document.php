@@ -57,6 +57,11 @@ class Document extends Entity
         return $this->title;
     }
 
+    public function getTitleSortKey(): ?string
+    {
+        return $this->title;
+    }
+
     public function setPrevId(int $prevId): Document
     {
         $this->prevId = $prevId;
@@ -247,6 +252,8 @@ class Document extends Entity
     public function getElastic(): array
     {
         $result = parent::getElastic();
+
+        $result['title_sort_key'] = $this->getTitleSortKey();
 
         foreach ($this->getContributorRoles() as $roleName => $contributorRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($contributorRole[1]);

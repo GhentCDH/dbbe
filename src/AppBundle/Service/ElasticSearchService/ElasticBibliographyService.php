@@ -38,7 +38,8 @@ class ElasticBibliographyService extends ElasticEntityService
         $mapping = new Type\Mapping;
         $mapping->setType($this->type);
         $properties = [
-            'title' => [
+            // Needed for sorting (book: cluster - volume number - volume title)
+            'title_sort_key' => [
                 'type' => 'text',
                 // Needed for sorting
                 'fields' => [

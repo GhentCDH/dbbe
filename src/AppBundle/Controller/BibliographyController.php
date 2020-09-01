@@ -231,7 +231,7 @@ class BibliographyController extends BaseController
                 $esParams['ascending'] = $defaults['ascending'];
             }
             if (($params['orderBy']) == 'title') {
-                $esParams['orderBy'] = ['title.keyword'];
+                $esParams['orderBy'] = ['title_sort_key.keyword'];
             } elseif (($params['orderBy']) == 'type') {
                 $esParams['orderBy'] = ['type.name.keyword'];
             } elseif (($params['orderBy']) == 'author') {

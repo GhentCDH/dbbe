@@ -144,6 +144,17 @@ class Book extends Document
     /**
      * @return string
      */
+    public function getTitleSortKey(): string
+    {
+        if ($this->bookCluster == null) {
+            return $this->title;
+        }
+        return $this->bookCluster->getTitle() . VolumeSortKey::sortKey($this->volume) . $this->title;
+    }
+
+    /**
+     * @return string
+     */
     public function getCity(): string
     {
         return $this->city;
