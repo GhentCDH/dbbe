@@ -64,12 +64,16 @@ class BookCluster extends Document
     public function getAuthors(): array
     {
         $authors = [];
+        $authorIds = [];
 
         foreach ($this->books as $book) {
             $personRoles = $book->getPersonRoles();
             if (isset($personRoles['author']) && count($personRoles['author'][1]) > 0) {
                 foreach ($personRoles['author'][1] as $author) {
-                    $authors[] = $author;
+                    if (!in_array($author->getId(), $authorIds)) {
+                        $authors[] = $author;
+                        $authorIds[] = $author->getId();
+                    }
                 }
             }
         }
@@ -80,6 +84,7 @@ class BookCluster extends Document
     public function getPublicAuthors(): array
     {
         $authors = [];
+        $authorIds = [];
 
         foreach ($this->books as $book) {
             if (!$book->getPublic()) {
@@ -88,10 +93,11 @@ class BookCluster extends Document
             $personRoles = $book->getPersonRoles();
             if (isset($personRoles['author']) && count($personRoles['author'][1]) > 0) {
                 foreach ($personRoles['author'][1] as $author) {
-                    if (!$author->getPublic()) {
+                    if (!$author->getPublic() || in_array($author->getId(), $authorIds)) {
                         continue;
                     }
                     $authors[] = $author;
+                    $authorIds[] = $author->getId();
                 }
             }
         }
