@@ -78,7 +78,7 @@ class BookChapter extends Document
                     ? implode(', ', $editornames) . (count($editornames) > 1 ? ' (eds.), ' :  ' (ed.), ')
                     : ''
             )
-            . $this->book->getTitle()
+            . $this->book->getFullTitleAndVolume()
             . ', ' . $this->book->getCity()
             . $this->formatStartEndPages(', ');
     }
