@@ -191,7 +191,14 @@ export default {
                 }
 
                 // Urls
-                this.model.urls = {urls: this.onlineSource.urls}
+                this.model.urls = {
+                    urls: this.onlineSource.urls.map(
+                        function(url, index) {
+                            url.tgIndex = index + 1
+                            return url
+                        }
+                    )
+                }
 
                 // General
                 this.model.general = {

@@ -276,7 +276,14 @@ export default {
                 }
 
                 // Urls
-                this.model.urls = {urls: this.book.urls}
+                this.model.urls = {
+                    urls: this.book.urls.map(
+                        function(url, index) {
+                            url.tgIndex = index + 1
+                            return url
+                        }
+                    )
+                }
 
                 // Identification
                 this.model.identification = {}

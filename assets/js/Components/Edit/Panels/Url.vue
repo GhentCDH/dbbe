@@ -7,8 +7,8 @@
         >
             <transition-group name="draggable">
                 <div
-                    v-for="(url, index) in model.urls"
-                    :key="index"
+                    v-for="url in model.urls"
+                    :key="url.tgIndex"
                     class="panel panel-default draggable-item"
                 >
                     <div class="panel-body row">
@@ -164,6 +164,7 @@ export default {
             this.editModel.url = null
             this.editModel.title = null
             this.editModel.index = null
+            this.editModel.tgIndex = this.maxTgIndex + 1
 
             this.editModal = true
         },
@@ -172,6 +173,7 @@ export default {
             this.editModel.url = this.model.urls[index].url
             this.editModel.title = this.model.urls[index].title
             this.editModel.index = index
+            this.editModel.tgIndex = this.model.urls[index].tgIndex
 
             this.editModal = true
         },
@@ -187,6 +189,7 @@ export default {
                     id: this.editModel.id,
                     url: this.editModel.url,
                     title: this.editModel.title,
+                    tgIndex: this.editModel.tgIndex,
                 }
 
                 if (this.editModel.index != null) {
@@ -246,7 +249,13 @@ export default {
         onOrderChange() {
             this.calcChanges()
             this.$emit('validated')
-        }
+        },
+        maxTgIndex: function() {
+            if (this.model.urls.length == 0) {
+                return 0;
+            }
+            return Math.max.apply(Math, this.model.urls.map(u => u.tgIndex));
+        },
     }
 }
 </script>
