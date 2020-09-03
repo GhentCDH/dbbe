@@ -52,7 +52,7 @@
                 {% if book.getCluster() is not empty %}
                     <tr>
                         <td>Other volumes</td>
-                        <td><a href="{{ path('book_cluster_get', {'id': book.getCluster().getId()}) }}">{{ book.getCluster().getTitle() }}</a></td>
+                        <td>See <a href="{{ path('book_cluster_get', {'id': book.getCluster().getId()}) }}">{{ book.getCluster().getTitle() }}</a></td>
                     </tr>
                 {% endif %}
                 {% if book.getIdentifications() is not empty and book.getIdentifications()['vassis'] is defined %}
