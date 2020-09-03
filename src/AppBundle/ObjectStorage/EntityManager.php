@@ -348,91 +348,92 @@ abstract class EntityManager extends ObjectManager
                     || (
                         property_exists($url, 'title')
                         && !is_string($url->title)
+                        && !empty($url->title)
                     )
                     || (
                         property_exists($url, 'id')
                         && !is_numeric($url->id)
-                        && $url->id != null
+                        && !empty($url->id)
                     )
                 ) {
                     throw new BadRequestHttpException('Incorrect urls data.');
                 }
             }
-        }
-        $changes[$level] = true;
-        $oldUrls = $entity->getUrls() ?? [];
-        $addUrls = [];
-        $updateUrls = [];
-        $keepUrlIds = [];
-        $delUrlIds = [];
-        foreach ($data->urls as $newIndex => $newUrl) {
-            if (property_exists($newUrl, 'id') && $newUrl->id != null) {
-                $found = false;
-                foreach ($oldUrls as $oldIndex => $oldUrl) {
-                    if ($oldUrl->getId() === $newUrl->id) {
-                        $found = true;
-                        if ($oldIndex === $newIndex
-                            && $oldUrl->getUrl() == $newUrl->url
-                            && (
-                                (
-                                    $oldUrl->getTitle() == null
-                                    && (!property_exists($newUrl, 'title')) || $newUrl->title == null
+            $changes[$level] = true;
+            $oldUrls = $entity->getUrls() ?? [];
+            $addUrls = [];
+            $updateUrls = [];
+            $keepUrlIds = [];
+            $delUrlIds = [];
+            foreach ($data->urls as $newIndex => $newUrl) {
+                if (property_exists($newUrl, 'id') && $newUrl->id != null) {
+                    $found = false;
+                    foreach ($oldUrls as $oldIndex => $oldUrl) {
+                        if ($oldUrl->getId() === $newUrl->id) {
+                            $found = true;
+                            if ($oldIndex === $newIndex
+                                && $oldUrl->getUrl() == $newUrl->url
+                                && (
+                                    (
+                                        $oldUrl->getTitle() == null
+                                        && (!property_exists($newUrl, 'title')) || $newUrl->title == null
+                                    )
+                                    || (
+                                        property_exists($newUrl, 'title')
+                                        && $oldUrl->getTitle() == $newUrl->title
+                                    )
                                 )
-                                || (
-                                    property_exists($newUrl, 'title')
-                                    && $oldUrl->getTitle() == $newUrl->title
-                                )
-                            )
-                        ) {
-                            $keepUrlIds[] = $newUrl->id;
-                        } else {
-                            $updateUrls[] = [$newUrl, $newIndex + 1];
+                            ) {
+                                $keepUrlIds[] = $newUrl->id;
+                            } else {
+                                $updateUrls[] = [$newUrl, $newIndex + 1];
+                            }
+                            break;
                         }
-                        break;
+                    }
+                    if (!$found) {
+                        throw new BadRequestHttpException('Incorrect urls data.');
+                    }
+                } else {
+                    $addUrls[] = [$newUrl, $newIndex + 1];
+                }
+            }
+            foreach ($oldUrls as $oldUrl) {
+                $oldId = $oldUrl->getId();
+                $found = false;
+                foreach ($keepUrlIds as $keepUrlId) {
+                    if ($keepUrlId === $oldId) {
+                        $found = true;
+                    }
+                }
+                foreach ($updateUrls as $updateUrl) {
+                    if ($updateUrl[0]->id === $oldId) {
+                        $found = true;
                     }
                 }
                 if (!$found) {
-                    throw new BadRequestHttpException('Incorrect urls data.');
-                }
-            } else {
-                $addUrls[] = [$newUrl, $newIndex + 1];
-            }
-        }
-        foreach ($oldUrls as $oldUrl) {
-            $oldId = $oldUrl->getId();
-            $found = false;
-            foreach ($keepUrlIds as $keepUrlId) {
-                if ($keepUrlId === $oldId) {
-                    $found = true;
+                    $delUrlIds[] = $oldId;
                 }
             }
             foreach ($updateUrls as $updateUrl) {
-                if ($updateUrl[0]->id === $oldId) {
-                    $found = true;
-                }
+                $this->dbs->updateEntityUrl(
+                    $updateUrl[0]->id,
+                    $updateUrl[0]->url,
+                    $updateUrl[1],
+                    property_exists($updateUrl[0], 'title') ? $updateUrl[0]->title : null
+                );
             }
-            if (!$found) {
-                $delUrlIds[] = $oldId;
+            foreach ($addUrls as $addUrl) {
+                $this->dbs->addEntityUrl(
+                    $entity->getId(),
+                    $addUrl[0]->url,
+                    $addUrl[1],
+                    property_exists($addUrl[0], 'title') ? $addUrl[0]->title : null
+                );
             }
-        }
-        foreach ($updateUrls as $updateUrl) {
-            $this->dbs->updateEntityUrl(
-                $updateUrl[0]->id,
-                $updateUrl[0]->url,
-                $updateUrl[1],
-                property_exists($updateUrl[0], 'title') ? $updateUrl[0]->title : null
-            );
-        }
-        foreach ($addUrls as $addUrl) {
-            $this->dbs->addEntityUrl(
-                $entity->getId(),
-                $addUrl[0]->url,
-                $addUrl[1],
-                property_exists($addUrl[0], 'title') ? $addUrl[0]->title : null
-            );
-        }
-        if (count($delUrlIds) > 0) {
-            $this->dbs->delEntityUrls($delUrlIds);
+            if (count($delUrlIds) > 0) {
+                $this->dbs->delEntityUrls($delUrlIds);
+            }
         }
     }
 
