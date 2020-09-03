@@ -20,6 +20,18 @@
                         <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
                     </tr>
                 {% endif %}
+                {% if online_source.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': online_source.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? online_source.getInverseReferences() : online_source.getPublicInverseReferences()} only %}
                 {% if online_source.getPublicComment() is not empty %}
                     <tr>

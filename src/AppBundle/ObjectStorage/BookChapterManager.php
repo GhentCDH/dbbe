@@ -87,6 +87,8 @@ class BookChapterManager extends DocumentManager
 
         $this->setInverseBibliographies($bookChapters);
 
+        $this->setUrls($bookChapters);
+
         return $bookChapters[$id];
     }
 
@@ -207,6 +209,7 @@ class BookChapterManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateEndPage($id, $data->endPage);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');

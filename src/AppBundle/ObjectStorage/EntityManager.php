@@ -334,8 +334,7 @@ abstract class EntityManager extends ObjectManager
         Entity $entity,
         stdClass $data,
         array &$changes,
-        string $level,
-        string $entityType
+        string $level
     ): void {
         if (property_exists($data, 'urls')) {
             if (!is_array($data->urls)) {

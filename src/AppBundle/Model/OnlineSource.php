@@ -13,6 +13,8 @@ class OnlineSource extends Entity
      */
     const CACHENAME = 'online_source';
 
+    use UrlsTrait;
+
     /**
      * @var string
      */

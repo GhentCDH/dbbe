@@ -19,6 +19,14 @@
                 @validated="validated"
             />
 
+            <urlPanel
+                id="urls"
+                ref="urls"
+                header="Urls"
+                :model="model.urls"
+                @validated="validated"
+            />
+
             <generalBibItemPanel
                 id="general"
                 ref="general"
@@ -89,6 +97,12 @@
                     </li>
                     <li>
                         <a
+                            href="#urls"
+                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
+                        >Urls</a>
+                    </li>
+                    <li>
+                        <a
                             href="#general"
                             :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
                         >General</a>
@@ -131,7 +145,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|GeneralBibItem|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|Url|GeneralBibItem|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -150,10 +164,12 @@ export default {
                     name: null,
                     lastAccessed: null,
                 },
+                urls: {urls: []},
                 managements: {managements: null},
             },
             panels: [
                 'basic',
+                'urls',
                 'general',
                 'managements',
             ],
@@ -173,6 +189,9 @@ export default {
                     name: this.onlineSource.name,
                     lastAccessed: this.onlineSource.lastAccessed,
                 }
+
+                // Urls
+                this.model.urls = {urls: this.onlineSource.urls}
 
                 // General
                 this.model.general = {

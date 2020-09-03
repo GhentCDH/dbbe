@@ -76,6 +76,8 @@ class OnlineSourceManager extends ObjectEntityManager
 
         $this->setInverseBibliographies($onlineSources);
 
+        $this->setUrls($onlineSources);
+
         return $onlineSources[$id];
     }
 
@@ -191,6 +193,7 @@ class OnlineSourceManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->dbs->updateLastAccessed($id, $data->lastAccessed);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');

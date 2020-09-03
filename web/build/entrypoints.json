@@ -17,12 +17,12 @@
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.a0570d3f.js"
+        "/build/bookedit.637ff9d2.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.c56f7afb.js"
+        "/build/bookchapteredit.e3c5b2b6.js"
       ]
     },
     "bookclustersedit": {
@@ -122,7 +122,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.85b0118f.js"
+        "/build/onlinesourceedit.bbea04d7.js"
       ]
     },
     "originsedit": {

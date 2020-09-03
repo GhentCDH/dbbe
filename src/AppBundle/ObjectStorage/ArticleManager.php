@@ -220,7 +220,7 @@ class ArticleManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateEndPage($id, $data->endPage);
             }
-            $this->updateUrlswrapper($old, $data, $changes, 'full', 'article');
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');

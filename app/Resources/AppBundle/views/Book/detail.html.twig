@@ -55,6 +55,18 @@
                         <td>See <a href="{{ path('book_cluster_get', {'id': book.getCluster().getId()}) }}">{{ book.getCluster().getTitle() }}</a></td>
                     </tr>
                 {% endif %}
+                {% if book.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': book.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if book.getIdentifications() is not empty and book.getIdentifications()['vassis'] is defined %}
                     <tr>
                         <td><a href="{{ path('person_get', {'id': book.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>

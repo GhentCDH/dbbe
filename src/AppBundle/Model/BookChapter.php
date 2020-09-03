@@ -17,6 +17,7 @@ class BookChapter extends Document
 
     use StartEndPagesTrait;
     use RawPagesTrait;
+    use UrlsTrait;
 
     /**
      * @var Book

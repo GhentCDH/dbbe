@@ -17,6 +17,8 @@ class Book extends Document
      */
     const CACHENAME = 'book';
 
+    use UrlsTrait;
+
     /**
      * @var BookCluster
      */

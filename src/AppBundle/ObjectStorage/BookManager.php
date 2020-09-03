@@ -93,6 +93,8 @@ class BookManager extends DocumentManager
 
         $this->setInverseBibliographies($books);
 
+        $this->setUrls($books);
+
         $book = $books[$id];
 
         // Publisher, series, volume, total_volumes
@@ -351,6 +353,7 @@ class BookManager extends DocumentManager
                 $changes['full'] = true;
                 $this->dbs->updateTotalVolumes($id, $data->totalVolumes);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
             if (property_exists($data, 'publicComment')) {
                 if (!is_string($data->publicComment)) {
                     throw new BadRequestHttpException('Incorrect public comment data.');
