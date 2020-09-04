@@ -164,7 +164,7 @@ export default {
             this.editModel.url = null
             this.editModel.title = null
             this.editModel.index = null
-            this.editModel.tgIndex = this.maxTgIndex + 1
+            this.editModel.tgIndex = this.maxTgIndex() + 1
 
             this.editModal = true
         },
