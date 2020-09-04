@@ -192,7 +192,7 @@ export default {
 
                 // Urls
                 this.model.urls = {
-                    urls: this.onlineSource.urls.map(
+                    urls: this.onlineSource.urls == null ? null : this.onlineSource.urls.map(
                         function(url, index) {
                             url.tgIndex = index + 1
                             return url

@@ -277,7 +277,7 @@ export default {
 
                 // Urls
                 this.model.urls = {
-                    urls: this.book.urls.map(
+                    urls: this.book.urls == null ? null : this.book.urls.map(
                         function(url, index) {
                             url.tgIndex = index + 1
                             return url

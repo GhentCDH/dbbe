@@ -269,7 +269,7 @@ export default {
 
                 // Urls
                 this.model.urls = {
-                    urls: this.article.urls.map(
+                    urls: this.article.urls == null ? null : this.article.urls.map(
                         function(url, index) {
                             url.tgIndex = index + 1
                             return url
