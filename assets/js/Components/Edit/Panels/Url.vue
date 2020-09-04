@@ -210,7 +210,6 @@ export default {
                 this.calcChanges();
                 this.$emit('validated', 0, null, this);
                 if (this.asSlot) {
-                    console.log(this.$parent)
                     this.$parent.$parent.slotUpdated()
                 }
                 this.editModal = false

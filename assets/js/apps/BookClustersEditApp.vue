@@ -232,6 +232,12 @@ export default {
         },
         del() {
             this.submitModel.bookCluster = JSON.parse(JSON.stringify(this.model.bookCluster));
+            this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
+                function(url, index) {
+                    url.tgIndex = index + 1
+                    return url
+                }
+            )
             this.deleteDependencies()
         },
         submitEdit() {
@@ -240,7 +246,7 @@ export default {
 
             let data = {};
             for (let key of Object.keys(this.submitModel.bookCluster)) {
-                if (this.submitModel.bookCluster.id == null || this.submitModel.bookCluster[key] !== this.originalSubmitModel.bookCluster[key]) {
+                if ((key === 'id' && this.submitModel.bookCluster.id == null) || this.submitModel.bookCluster[key] !== this.originalSubmitModel.bookCluster[key]) {
                     data[key] = this.submitModel.bookCluster[key]
                 }
             }
@@ -319,7 +325,10 @@ export default {
             this.openRequests++;
             axios.delete(this.urls['book_cluster_delete'].replace('book_cluster_id', this.submitModel.bookCluster.id))
                 .then( (response) => {
-                    this.submitModel.bookCluster = null;
+                    this.submitModel.bookCluster = {
+                        name: null,
+                        urls: null,
+                    };
                     this.update();
                     this.deleteAlerts = [];
                     this.alerts.push({type: 'success', message: 'Deletion successful.'});

@@ -7,7 +7,7 @@
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.801939f7.js"
+        "/build/articleedit.e9908fb2.js"
       ]
     },
     "bibliographysearch": {
@@ -17,17 +17,17 @@
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.e713eeaf.js"
+        "/build/bookedit.602261d9.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.4da73e62.js"
+        "/build/bookchapteredit.061ed33b.js"
       ]
     },
     "bookclustersedit": {
       "js": [
-        "/build/bookclustersedit.9d129248.js"
+        "/build/bookclustersedit.2d9b64b1.js"
       ]
     },
     "bookseriessedit": {
@@ -122,7 +122,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.86392fd0.js"
+        "/build/onlinesourceedit.1252d742.js"
       ]
     },
     "originsedit": {
