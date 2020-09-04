@@ -14,6 +14,9 @@
             :options="formOptions"
             @validated="editFormValidated"
             ref="edit" />
+        <slot
+            name="extra"
+        />
         <div slot="header">
             <h4
                 v-if="submitModel[submitModel.submitType] && submitModel[submitModel.submitType].id"
@@ -82,11 +85,15 @@ export default {
         }
     },
     methods: {
+        slotUpdated() {
+            this.$refs.edit.validate()
+        },
         editFormValidated(isValid, errors) {
             this.invalidEditForm = !isValid
         },
         confirm() {
-            if (this.$refs.edit.validate()) {
+            this.$refs.edit.validate()
+            if (this.$refs.edit.errors.length === 0) {
                 this.$emit('confirm')
             }
         },

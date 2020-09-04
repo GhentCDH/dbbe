@@ -2,6 +2,8 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\Url;
+use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
@@ -10,7 +12,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\BookCluster;
-use AppBundle\Utils\VolumeSortKey;
 
 /**
  * ObjectManager for book clusters
@@ -57,9 +58,15 @@ class BookClusterManager extends DocumentManager
     public function getFull(int $id): BookCluster
     {
         $bookClusters = $this->getShort([$id]);
+
         if (count($bookClusters) == 0) {
             throw new NotFoundHttpException('Book cluster with id ' . $id .' not found.');
         }
+
+        $this->setCreatedAndModifiedDates($bookClusters);
+
+        $this->setUrls($bookClusters);
+
         return $bookClusters[$id];
     }
 
@@ -91,7 +98,28 @@ class BookClusterManager extends DocumentManager
      */
     public function getAllJson(string $sortFunction = null): array
     {
-        return parent::getAllJson($sortFunction == null ? 'getTitle' : $sortFunction);
+        $rawBookClusters = $this->dbs->getAll();
+        $bookClusters = [];
+
+        foreach ($rawBookClusters as $rawBookCluster) {
+            $bookCluster = new BookCluster($rawBookCluster['book_cluster_id'], $rawBookCluster['title']);
+            $urlIds = json_decode($rawBookCluster['url_ids']);
+            $urlUrls = json_decode($rawBookCluster['url_urls']);
+            $urlTitles = json_decode($rawBookCluster['url_titles']);
+            if (count($urlIds) == 1 && $urlIds[0] == null) {
+                continue;
+            }
+            for ($i = 0; $i < count($urlIds); $i++) {
+                $bookCluster->addUrl(new Url($urlIds[$i], $urlUrls[$i], $urlTitles[$i]));
+            }
+            $bookClusters[] = $bookCluster;
+        }
+
+        usort($bookClusters, function ($a, $b) use ($sortFunction) {
+            return $a->{$sortFunction}() <=> $b->{$sortFunction}();
+        });
+
+        return ArrayToJson::arrayToJson($bookClusters);
     }
 
     /**
@@ -112,14 +140,9 @@ class BookClusterManager extends DocumentManager
         try {
             $id = $this->dbs->insert($data->name);
 
-            $new = $this->getFull($id);
+            unset($data->name);
 
-            $this->updateModified(null, $new);
-
-            $this->cache->invalidateTags(['book_clusters']);
-
-            // (re-)index in elastic search
-            $this->ess->add($new);
+            $new = $this->update($id, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -135,25 +158,31 @@ class BookClusterManager extends DocumentManager
      * Update an existing book cluster
      * @param  int      $id
      * @param  stdClass $data
+     * @param  bool     $isNew Indicate whether this is a new book cluster
      * @return BookCluster
      */
-    public function update(int $id, stdClass $data): BookCluster
+    public function update(int $id, stdClass $data, bool $isNew = false): BookCluster
     {
         // Throws NotFoundException if not found
         $old = $this->getFull($id);
 
         $this->dbs->beginTransaction();
         try {
-            $correct = false;
+            $changes = [
+                'mini' => $isNew,
+                'full' => $isNew,
+            ];
             if (property_exists($data, 'name')
                 && is_string($data->name)
                 && !empty($data->name)
             ) {
-                $correct = true;
+                $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->name);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
 
-            if (!$correct) {
+            // Throw error if none of above matched
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 

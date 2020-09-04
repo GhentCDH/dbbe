@@ -39,7 +39,16 @@
             @reset="resetEdit()"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
-        />
+        >
+            <urlPanel
+                id="urls"
+                ref="urls"
+                header="Urls"
+                slot="extra"
+                :model="submitModel.bookCluster"
+                :as-slot="true"
+            />
+        </editModal>
         <mergeModal
             :show="mergeModal"
             :schema="mergeSchema"
@@ -67,6 +76,23 @@
                         <td>Title</td>
                         <td>{{ mergeModel.primary.name }}</td>
                     </tr>
+                    <tr>
+                        <td>Urls</td>
+                        <td>
+                            <div
+                                v-if="mergeModel.primary.urls && mergeModel.primary.urls.length"
+                                v-for="(url, index) in mergeModel.primary.urls"
+                                :key="index"
+                                class="panel"
+                            >
+                                <div class="panel-body">
+                                    <strong>Url</strong> {{ url.url }}
+                                    <br />
+                                    <strong>Title</strong> {{ url.title }}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </mergeModal>
@@ -90,6 +116,10 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import Url from '../Components/Edit/Panels/Url'
+import Vue from "vue";
+
+Vue.component('UrlPanel', Url)
 
 export default {
     mixins: [
@@ -127,7 +157,10 @@ export default {
             },
             submitModel: {
                 submitType: 'bookCluster',
-                bookCluster: null,
+                bookCluster: {
+                    name: null,
+                    urls: null,
+                },
             },
             mergeModel: {
                 submitType: 'bookClusters',
@@ -164,15 +197,25 @@ export default {
             // TODO: check if title already exists
             this.submitModel = {
                 submitType: 'bookCluster',
-                bookCluster: null,
+                bookCluster: {
+                    name: null,
+                    urls: null,
+                },
             };
             if (add) {
                 this.submitModel.bookCluster =  {
                     name: null,
+                    urls: null,
                 }
             }
             else {
-                this.submitModel.bookCluster = this.model.bookCluster
+                this.submitModel.bookCluster = JSON.parse(JSON.stringify(this.model.bookCluster))
+                this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
+                    function(url, index) {
+                        url.tgIndex = index + 1
+                        return url
+                    }
+                )
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
@@ -206,6 +249,12 @@ export default {
                 axios.post(this.urls['book_cluster_post'], data)
                     .then( (response) => {
                         this.submitModel.bookCluster = response.data;
+                        this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Addition successful.'});
@@ -222,6 +271,12 @@ export default {
                 axios.put(this.urls['book_cluster_put'].replace('book_cluster_id', this.submitModel.bookCluster.id), data)
                     .then( (response) => {
                         this.submitModel.bookCluster = response.data;
+                        this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Update successful.'});
@@ -241,6 +296,12 @@ export default {
             axios.put(this.urls['book_cluster_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
                 .then( (response) => {
                     this.submitModel.bookCluster = response.data;
+                    this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
+                        function(url, index) {
+                            url.tgIndex = index + 1
+                            return url
+                        }
+                    )
                     this.update();
                     this.mergeAlerts = [];
                     this.alerts.push({type: 'success', message: 'Merge successful.'});

@@ -31,7 +31,7 @@ class BookClusterController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMiniShortJson()
+            $this->get(static::MANAGER)->getAllJson('getTitle')
         );
     }
 
@@ -57,7 +57,7 @@ class BookClusterController extends BaseController
                     'book_cluster_delete' => $this->generateUrl('book_cluster_delete', ['id' => 'book_cluster_id']),
                     'login' => $this->generateUrl('saml_login'),
                 ]),
-                'book_clusters' => json_encode($this->get(self::MANAGER)->getAllMiniShortJson()),
+                'book_clusters' => json_encode($this->get(self::MANAGER)->getAllJson('getTitle')),
             ]
         );
     }

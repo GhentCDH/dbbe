@@ -43,7 +43,7 @@
             </transition-group>
         </draggable>
         <btn @click="add()"><i class="fa fa-plus" />&nbsp;Add a url</btn>
-        <modal
+        <modal append-to-body
             v-model="editModal"
             size="lg"
             auto-focus
@@ -78,7 +78,7 @@
                 </btn>
             </div>
         </modal>
-        <modal
+        <modal append-to-body
             v-model="delModal"
             title="Delete url"
             auto-focus
@@ -111,6 +111,12 @@ export default {
     mixins: [
         AbstractPanelForm,
     ],
+    props: {
+        asSlot: {
+            type: Boolean,
+            default: false,
+        },
+    },
     computed: {
         fields() {
             return {
@@ -203,6 +209,10 @@ export default {
                 }
                 this.calcChanges();
                 this.$emit('validated', 0, null, this);
+                if (this.asSlot) {
+                    console.log(this.$parent)
+                    this.$parent.$parent.slotUpdated()
+                }
                 this.editModal = false
             }
         },
@@ -213,6 +223,9 @@ export default {
             }
             this.calcChanges();
             this.$emit('validated', 0, null, this);
+            if (this.asSlot) {
+                this.$parent.$parent.slotUpdated()
+            }
             this.delModal = false;
         },
         validate() {
@@ -249,9 +262,12 @@ export default {
         onOrderChange() {
             this.calcChanges()
             this.$emit('validated')
+            if (this.asSlot) {
+                this.$parent.$parent.slotUpdated()
+            }
         },
         maxTgIndex: function() {
-            if (this.model.urls.length == 0) {
+            if (this.model.urls == null || this.model.urls.length == 0) {
                 return 0;
             }
             return Math.max.apply(Math, this.model.urls.map(u => u.tgIndex));

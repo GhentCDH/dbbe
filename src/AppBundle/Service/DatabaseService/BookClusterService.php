@@ -41,6 +41,22 @@ class BookClusterService extends DocumentService
         )->fetchAll();
     }
 
+    public function getAll(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+            book_cluster.identity as book_cluster_id,
+            document_title.title,
+            array_to_json(array_agg(entity_url.idurl)) as url_ids,
+            array_to_json(array_agg(entity_url.url)) as url_urls,
+            array_to_json(array_agg(entity_url.title)) as url_titles
+            from data.book_cluster
+            inner join data.document_title on book_cluster.identity = document_title.iddocument
+            left join data.entity_url on book_cluster.identity = entity_url.identity
+            group by book_cluster.identity, document_title.title'
+        )->fetchAll();
+    }
+
     public function getBooks(array $ids): array
     {
         return $this->conn->executeQuery(
