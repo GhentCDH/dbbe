@@ -7,7 +7,7 @@
         >
             <transition-group name="draggable">
                 <div
-                    v-for="url in model.urls"
+                    v-for="(url, index) in model.urls"
                     :key="url.tgIndex"
                     class="panel panel-default draggable-item"
                 >

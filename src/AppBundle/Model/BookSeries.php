@@ -2,11 +2,22 @@
 
 namespace AppBundle\Model;
 
+use AppBundle\Utils\VolumeSortKey;
+
 class BookSeries extends Document
 {
     const CACHENAME = 'book_series';
 
+    use UrlsTrait;
+
+    /**
+     * @var string
+     */
     protected $title;
+    /**
+     * @var array
+     */
+    protected $books = [];
 
     public function __construct(
         int $id,
@@ -21,6 +32,34 @@ class BookSeries extends Document
     public function getTitle(): string
     {
         return $this->title;
+    }
+
+    public function setBooks(array $books): BookSeries
+    {
+        $this->books = $books;
+
+        return $this;
+    }
+
+    public function addBook(Book $book): BookSeries
+    {
+        $this->books[] = $book;
+
+        return $this;
+    }
+
+    public function getBooks(): array
+    {
+        $books = $this->books;
+
+        usort(
+            $books,
+            function ($a, $b) {
+                return strcmp(VolumeSortKey::sortKey($a->getSeriesVolume()), VolumeSortKey::sortKey($b->getSeriesVolume()));
+            }
+        );
+
+        return $books;
     }
 
     public function getShortJson(): array

@@ -117,11 +117,11 @@ import VueFormGenerator from 'vue-form-generator'
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
 import Url from '../Components/Edit/Panels/Url'
-import Vue from "vue";
-
-Vue.component('UrlPanel', Url)
 
 export default {
+    components: {
+        UrlPanel: Url
+    },
     mixins: [
         AbstractField,
         AbstractListEdit,
@@ -203,7 +203,7 @@ export default {
                 },
             };
             if (add) {
-                this.submitModel.bookCluster =  {
+                this.submitModel.bookCluster = {
                     name: null,
                     urls: null,
                 }

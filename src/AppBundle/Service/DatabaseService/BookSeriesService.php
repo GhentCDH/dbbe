@@ -41,15 +41,33 @@ class BookSeriesService extends DocumentService
         )->fetchAll();
     }
 
-    public function getBooks(int $id): array
+    public function getAll(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+            book_series.identity as book_series_id,
+            document_title.title,
+            array_to_json(array_agg(entity_url.idurl)) as url_ids,
+            array_to_json(array_agg(entity_url.url)) as url_urls,
+            array_to_json(array_agg(entity_url.title)) as url_titles
+            from data.book_series
+            inner join data.document_title on book_series.identity = document_title.iddocument
+            left join data.entity_url on book_series.identity = entity_url.identity
+            group by book_series.identity, document_title.title'
+        )->fetchAll();
+    }
+
+    public function getBooks(array $ids): array
     {
         return $this->conn->executeQuery(
             'select 
+                book_series.identity as book_series_id,
                 book.identity as book_id
             from data.book_series
             inner join data.book on book_series.identity = book.idseries
-            where book_series.identity = ?',
-            [$id]
+            where book_series.identity in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
     }
 

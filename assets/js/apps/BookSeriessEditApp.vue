@@ -39,7 +39,16 @@
             @reset="resetEdit()"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
-        />
+        >
+            <urlPanel
+                id="urls"
+                ref="urls"
+                header="Urls"
+                slot="extra"
+                :model="submitModel.bookSeries"
+                :as-slot="true"
+            />
+        </editModal>
         <mergeModal
             :show="mergeModal"
             :schema="mergeSchema"
@@ -57,16 +66,33 @@
                 class="table table-striped table-hover"
             >
                 <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Value</th>
-                    </tr>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Title</td>
-                        <td>{{ mergeModel.primary.name }}</td>
-                    </tr>
+                <tr>
+                    <td>Title</td>
+                    <td>{{ mergeModel.primary.name }}</td>
+                </tr>
+                <tr>
+                    <td>Urls</td>
+                    <td>
+                        <div
+                            v-if="mergeModel.primary.urls && mergeModel.primary.urls.length"
+                            v-for="(url, index) in mergeModel.primary.urls"
+                            :key="index"
+                            class="panel"
+                        >
+                            <div class="panel-body">
+                                <strong>Url</strong> {{ url.url }}
+                                <br />
+                                <strong>Title</strong> {{ url.title }}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </mergeModal>
@@ -90,8 +116,12 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import Url from '../Components/Edit/Panels/Url'
 
 export default {
+    components: {
+        UrlPanel: Url
+    },
     mixins: [
         AbstractField,
         AbstractListEdit,
@@ -127,7 +157,10 @@ export default {
             },
             submitModel: {
                 submitType: 'bookSeries',
-                bookSeries: null,
+                bookSeries: {
+                    name: null,
+                    urls: null,
+                },
             },
             mergeModel: {
                 submitType: 'bookSeries',
@@ -164,15 +197,25 @@ export default {
             // TODO: check if title already exists
             this.submitModel = {
                 submitType: 'bookSeries',
-                bookSeries: null,
+                bookSeries: {
+                    name: null,
+                    urls: null,
+                },
             };
             if (add) {
-                this.submitModel.bookSeries =  {
+                this.submitModel.bookSeries = {
                     name: null,
+                    urls: null,
                 }
             }
             else {
                 this.submitModel.bookSeries = this.model.bookSeries
+                this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
+                    function(url, index) {
+                        url.tgIndex = index + 1
+                        return url
+                    }
+                )
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
@@ -189,6 +232,12 @@ export default {
         },
         del() {
             this.submitModel.bookSeries = JSON.parse(JSON.stringify(this.model.bookSeries));
+            this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
+                function(url, index) {
+                    url.tgIndex = index + 1
+                    return url
+                }
+            )
             this.deleteDependencies()
         },
         submitEdit() {
@@ -206,6 +255,12 @@ export default {
                 axios.post(this.urls['book_series_post'], data)
                     .then( (response) => {
                         this.submitModel.bookSeries = response.data;
+                        this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Addition successful.'});
@@ -222,6 +277,12 @@ export default {
                 axios.put(this.urls['book_series_put'].replace('book_series_id', this.submitModel.bookSeries.id), data)
                     .then( (response) => {
                         this.submitModel.bookSeries = response.data;
+                        this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Update successful.'});
@@ -241,6 +302,12 @@ export default {
             axios.put(this.urls['book_series_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
                 .then( (response) => {
                     this.submitModel.bookSeries = response.data;
+                    this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
+                        function(url, index) {
+                            url.tgIndex = index + 1
+                            return url
+                        }
+                    )
                     this.update();
                     this.mergeAlerts = [];
                     this.alerts.push({type: 'success', message: 'Merge successful.'});

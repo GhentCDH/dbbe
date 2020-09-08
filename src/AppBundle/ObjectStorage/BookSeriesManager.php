@@ -2,6 +2,9 @@
 
 namespace AppBundle\ObjectStorage;
 
+use AppBundle\Model\BookCluster;
+use AppBundle\Model\Url;
+use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
@@ -52,6 +55,17 @@ class BookSeriesManager extends DocumentManager
         if (count($bookSeriess) == 0) {
             throw new NotFoundHttpException('Book series with id ' . $id .' not found.');
         }
+        $rawBooks = $this->dbs->getBooks([$id]);
+        $bookIds = self::getUniqueIds($rawBooks, 'book_id');
+        $books = $this->container->get('book_manager')->getMini($bookIds);
+        foreach ($rawBooks as $rawBook) {
+            $bookSeriess[$rawBook['book_series_id']]->addBook($books[$rawBook['book_id']]);
+        }
+
+        $this->setCreatedAndModifiedDates($bookSeriess);
+
+        $this->setUrls($bookSeriess);
+
         return $bookSeriess[$id];
     }
 
@@ -83,28 +97,27 @@ class BookSeriesManager extends DocumentManager
      */
     public function getAllJson(string $sortFunction = null): array
     {
-        return parent::getAllJson($sortFunction == null ? 'getTitle' : $sortFunction);
-    }
+        $rawBookSeriess = $this->dbs->getAll();
+        $bookSeriess = [];
 
-    /**
-     * Get a list with all related books
-     * @param int $id
-     * @return array (ordered by volume)
-     */
-    public function getBooks(int $id) {
-        $raws = $this->dbs->getBooks($id);
-
-        $bookIds = self::getUniqueIds($raws, 'book_id');
-        $books = $this->container->get('book_manager')->getMini($bookIds);
-
-        usort(
-            $books,
-            function ($a, $b) {
-                return strcmp(VolumeSortKey::sortKey($a->getVolume()), VolumeSortKey::sortKey($b->getVolume()));
+        foreach ($rawBookSeriess as $rawBookSeries) {
+            $bookSeries = new BookCluster($rawBookSeries['book_cluster_id'], $rawBookSeries['title']);
+            $urlIds = json_decode($rawBookSeries['url_ids']);
+            $urlUrls = json_decode($rawBookSeries['url_urls']);
+            $urlTitles = json_decode($rawBookSeries['url_titles']);
+            if (!(count($urlIds) == 1 && $urlIds[0] == null)) {
+                for ($i = 0; $i < count($urlIds); $i++) {
+                    $bookSeries->addUrl(new Url($urlIds[$i], $urlUrls[$i], $urlTitles[$i]));
+                }
             }
-        );
+            $bookSeriess[] = $bookSeries;
+        }
 
-        return $books;
+        usort($bookSeriess, function ($a, $b) use ($sortFunction) {
+            return $a->{$sortFunction}() <=> $b->{$sortFunction}();
+        });
+
+        return ArrayToJson::arrayToJson($bookSeriess);
     }
 
     /**
@@ -125,14 +138,9 @@ class BookSeriesManager extends DocumentManager
         try {
             $id = $this->dbs->insert($data->name);
 
-            $new = $this->getFull($id);
+            unset($data->name);
 
-            $this->updateModified(null, $new);
-
-            $this->cache->invalidateTags(['book_seriess']);
-
-            // (re-)index in elastic search
-            $this->ess->add($new);
+            $new = $this->update($id, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -148,25 +156,31 @@ class BookSeriesManager extends DocumentManager
      * Update an existing book series
      * @param  int      $id
      * @param  stdClass $data
+     * @param  bool     $isNew Indicate whether this is a new book cluster
      * @return BookSeries
      */
-    public function update(int $id, stdClass $data): BookSeries
+    public function update(int $id, stdClass $data, bool $isNew = false): BookSeries
     {
         // Throws NotFoundException if not found
         $old = $this->getFull($id);
 
         $this->dbs->beginTransaction();
         try {
-            $correct = false;
+            $changes = [
+                'mini' => $isNew,
+                'full' => $isNew,
+            ];
             if (property_exists($data, 'name')
                 && is_string($data->name)
                 && !empty($data->name)
             ) {
-                $correct = true;
+                $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->name);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
 
-            if (!$correct) {
+            // Throw error if none of above matched
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 

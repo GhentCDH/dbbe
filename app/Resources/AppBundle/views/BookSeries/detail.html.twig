@@ -8,11 +8,23 @@
                 <a href="{{ path('book_seriess_edit', {'id': book_series.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
         </h2>
-        <ul>
-            {% for book in books %}
-                <li><a href="{{ path('book_get', {'id': book.getId()}) }}">{{ book.getDescription() }}</a></li>
-            {% endfor %}
-        </ul>
+        {% embed '@App/Helpers/renderList.html.twig' with {'list': book_series.getBooks()} only %}
+            {% block renderItem %}
+                <a href="{{ path('book_get', {'id': item.getId()}) }}">{{ item.getDescription() }}</a>
+            {% endblock %}
+        {% endembed %}
+        {% if book_series.getUrls() is not empty %}
+            <h3>External links</h3>
+            {% embed '@App/Helpers/renderList.html.twig' with {'list': book_series.getUrls()} only %}
+                {% block renderItem %}
+                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ book_series.getModified()|date('Y-m-d') }}.</em>
+        </div>
 
         <div id="feedback-app">
             <feedback-app

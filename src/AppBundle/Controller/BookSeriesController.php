@@ -88,7 +88,6 @@ class BookSeriesController extends BaseController
                 static::TEMPLATE_FOLDER . 'detail.html.twig',
                 [
                     $object::CACHENAME => $object,
-                    'books' => $this->get(static::MANAGER)->getBooks($id),
                 ]
             );
         }
