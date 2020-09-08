@@ -106,11 +106,10 @@ class BookClusterManager extends DocumentManager
             $urlIds = json_decode($rawBookCluster['url_ids']);
             $urlUrls = json_decode($rawBookCluster['url_urls']);
             $urlTitles = json_decode($rawBookCluster['url_titles']);
-            if (count($urlIds) == 1 && $urlIds[0] == null) {
-                continue;
-            }
-            for ($i = 0; $i < count($urlIds); $i++) {
-                $bookCluster->addUrl(new Url($urlIds[$i], $urlUrls[$i], $urlTitles[$i]));
+            if (!(count($urlIds) == 1 && $urlIds[0] == null)) {
+                for ($i = 0; $i < count($urlIds); $i++) {
+                    $bookCluster->addUrl(new Url($urlIds[$i], $urlUrls[$i], $urlTitles[$i]));
+                }
             }
             $bookClusters[] = $bookCluster;
         }
