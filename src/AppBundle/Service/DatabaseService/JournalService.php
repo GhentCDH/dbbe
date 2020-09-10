@@ -41,6 +41,22 @@ class JournalService extends DocumentService
         )->fetchAll();
     }
 
+    public function getAll(): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+            journal.identity as journal_id,
+            document_title.title,
+            array_to_json(array_agg(entity_url.idurl)) as url_ids,
+            array_to_json(array_agg(entity_url.url)) as url_urls,
+            array_to_json(array_agg(entity_url.title)) as url_titles
+            from data.journal
+            inner join data.document_title on journal.identity = document_title.iddocument
+            left join data.entity_url on journal.identity = entity_url.identity
+            group by journal.identity, document_title.title'
+        )->fetchAll();
+    }
+
     public function getIssuesArticles(int $id): array
     {
         return $this->conn->executeQuery(

@@ -22,6 +22,14 @@
             {% endfor %}
             </ul>
         {% endfor %}
+        {% if journal.getUrls() is not empty %}
+            <h3>External links</h3>
+            {% embed '@App/Helpers/renderList.html.twig' with {'list': journal.getUrls()} only %}
+                {% block renderItem %}
+                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
 
         <div id="feedback-app">
             <feedback-app

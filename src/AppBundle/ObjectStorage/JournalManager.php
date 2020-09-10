@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\Journal;
+use AppBundle\Model\Url;
+use AppBundle\Utils\ArrayToJson;
 use AppBundle\Utils\GreekNormalizer;
 
 /**
@@ -52,6 +54,9 @@ class JournalManager extends DocumentManager
         if (count($journals) == 0) {
             throw new NotFoundHttpException('Journal with id ' . $id .' not found.');
         }
+
+        $this->setUrls($journals);
+
         return $journals[$id];
     }
 
@@ -90,7 +95,29 @@ class JournalManager extends DocumentManager
      */
     public function getAllJson(string $sortFunction = null): array
     {
-        return parent::getAllJson($sortFunction == null ? 'getTitle' : $sortFunction);
+        $rawJournals = $this->dbs->getAll();
+        $journals = [];
+
+        foreach ($rawJournals as $rawJournal) {
+            $journal = new Journal($rawJournal['journal_id'], $rawJournal['title']);
+            $urlIds = json_decode($rawJournal['url_ids']);
+            $urlUrls = json_decode($rawJournal['url_urls']);
+            $urlTitles = json_decode($rawJournal['url_titles']);
+            if (!(count($urlIds) == 1 && $urlIds[0] == null)) {
+                for ($i = 0; $i < count($urlIds); $i++) {
+                    $journal->addUrl(new Url($urlIds[$i], $urlUrls[$i], $urlTitles[$i]));
+                }
+            }
+            $journals[] = $journal;
+        }
+
+        $sortFunction = $sortFunction ?? 'getTitle';
+
+        usort($journals, function ($a, $b) use ($sortFunction) {
+            return $a->{$sortFunction}() <=> $b->{$sortFunction}();
+        });
+
+        return ArrayToJson::arrayToJson($journals);
     }
 
     /**
@@ -135,14 +162,9 @@ class JournalManager extends DocumentManager
         try {
             $id = $this->dbs->insert($data->name);
 
-            $new = $this->getFull($id);
+            unset($data->name);
 
-            $this->updateModified(null, $new);
-
-            $this->cache->invalidateTags(['journals']);
-
-            // (re-)index in elastic search
-            $this->ess->add($new);
+            $new = $this->update($id, $data, true);
 
             // commit transaction
             $this->dbs->commit();
@@ -158,16 +180,20 @@ class JournalManager extends DocumentManager
      * Update an existing journal
      * @param  int      $id
      * @param  stdClass $data
+     * @param  bool     $isNew Indicate whether this is a new book cluster
      * @return Journal
      */
-    public function update(int $id, stdClass $data): Journal
+    public function update(int $id, stdClass $data, bool $isNew = false): Journal
     {
         // Throws NotFoundException if not found
         $old = $this->getFull($id);
 
         $this->dbs->beginTransaction();
         try {
-            $correct = false;
+            $changes = [
+                'mini' => $isNew,
+                'full' => $isNew,
+            ];
             if (property_exists($data, 'name')
                 && is_string($data->name)
                 && !empty($data->name)
@@ -175,8 +201,10 @@ class JournalManager extends DocumentManager
                 $correct = true;
                 $this->dbs->updateTitle($id, $data->name);
             }
+            $this->updateUrlswrapper($old, $data, $changes, 'full');
 
-            if (!$correct) {
+            // Throw error if none of above matched
+            if (!in_array(true, $changes)) {
                 throw new BadRequestHttpException('Incorrect data.');
             }
 

@@ -6,6 +6,8 @@ class Journal extends Document
 {
     const CACHENAME = 'journal';
 
+    use UrlsTrait;
+
     protected $title;
 
     public function __construct(

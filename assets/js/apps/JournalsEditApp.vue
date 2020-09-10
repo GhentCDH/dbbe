@@ -39,7 +39,16 @@
             @reset="resetEdit()"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
-        />
+        >
+            <urlPanel
+                id="urls"
+                ref="urls"
+                header="Urls"
+                slot="extra"
+                :model="submitModel.journal"
+                :as-slot="true"
+            />
+        </editModal>
         <mergeModal
             :show="mergeModal"
             :schema="mergeSchema"
@@ -63,10 +72,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Title</td>
-                        <td>{{ mergeModel.primary.name }}</td>
-                    </tr>
+                <tr>
+                    <td>Title</td>
+                    <td>{{ mergeModel.primary.name }}</td>
+                </tr>
+                <tr>
+                    <td>Urls</td>
+                    <td>
+                        <div
+                            v-if="mergeModel.primary.urls && mergeModel.primary.urls.length"
+                            v-for="(url, index) in mergeModel.primary.urls"
+                            :key="index"
+                            class="panel"
+                        >
+                            <div class="panel-body">
+                                <strong>Url</strong> {{ url.url }}
+                                <br />
+                                <strong>Title</strong> {{ url.title }}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </mergeModal>
@@ -90,8 +116,12 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import Url from '../Components/Edit/Panels/Url'
 
 export default {
+    components: {
+        UrlPanel: Url
+    },
     mixins: [
         AbstractField,
         AbstractListEdit,
@@ -127,7 +157,10 @@ export default {
             },
             submitModel: {
                 submitType: 'journal',
-                journal: null,
+                journal: {
+                    name: null,
+                    urls: null,
+                },
             },
             mergeModel: {
                 submitType: 'journals',
@@ -162,15 +195,25 @@ export default {
             // TODO: check if title already exists
             this.submitModel = {
                 submitType: 'journal',
-                journal: null,
+                journal: {
+                    name: null,
+                    urls: null,
+                },
             };
             if (add) {
                 this.submitModel.journal =  {
                     name: null,
+                    urls: null,
                 }
             }
             else {
                 this.submitModel.journal = this.model.journal
+                this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
+                    function(url, index) {
+                        url.tgIndex = index + 1
+                        return url
+                    }
+                )
             }
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
@@ -187,6 +230,12 @@ export default {
         },
         del() {
             this.submitModel.journal = JSON.parse(JSON.stringify(this.model.journal));
+            this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
+                function(url, index) {
+                    url.tgIndex = index + 1
+                    return url
+                }
+            )
             this.deleteDependencies()
         },
         submitEdit() {
@@ -204,6 +253,12 @@ export default {
                 axios.post(this.urls['journal_post'], data)
                     .then( (response) => {
                         this.submitModel.journal = response.data;
+                        this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Addition successful.'});
@@ -220,6 +275,12 @@ export default {
                 axios.put(this.urls['journal_put'].replace('journal_id', this.submitModel.journal.id), data)
                     .then( (response) => {
                         this.submitModel.journal = response.data;
+                        this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
+                            function(url, index) {
+                                url.tgIndex = index + 1
+                                return url
+                            }
+                        )
                         this.update();
                         this.editAlerts = [];
                         this.alerts.push({type: 'success', message: 'Update successful.'});
@@ -239,6 +300,12 @@ export default {
             axios.put(this.urls['journal_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
                 .then( (response) => {
                     this.submitModel.journal = response.data;
+                    this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
+                        function(url, index) {
+                            url.tgIndex = index + 1
+                            return url
+                        }
+                    )
                     this.update();
                     this.mergeAlerts = [];
                     this.alerts.push({type: 'success', message: 'Merge successful.'});
