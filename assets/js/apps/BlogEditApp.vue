@@ -11,7 +11,7 @@
                 {{ item.message }}
             </alert>
 
-            <basicOnlineSourcePanel
+            <basicBlogPanel
                 id="basic"
                 ref="basic"
                 header="Basic Information"
@@ -118,7 +118,7 @@
             </nav>
         </aside>
         <resetModal
-            title="online source"
+            title="blog"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()"
@@ -129,7 +129,7 @@
             @confirm="invalidModal=false"
         />
         <saveModal
-            title="online source"
+            title="blog"
             :show="saveModal"
             :diff="diff"
             :alerts="saveAlerts"
@@ -145,7 +145,7 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicOnlineSource|Url|GeneralBibItem|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBlog|Url|GeneralBibItem|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
@@ -161,7 +161,7 @@ export default {
             model: {
                 basic: {
                     url: null,
-                    name: null,
+                    title: null,
                     lastAccessed: null,
                 },
                 urls: {urls: []},
@@ -186,7 +186,7 @@ export default {
                 // Basic info
                 this.model.basic = {
                     url: this.blog.url,
-                    name: this.blog.name,
+                    title: this.blog.title,
                     lastAccessed: this.blog.lastAccessed,
                 }
 
@@ -225,7 +225,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the blog data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -239,7 +239,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the blog data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
                         this.openRequests--
                     })
             }

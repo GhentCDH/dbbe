@@ -32,7 +32,7 @@ class BlogManager extends ObjectEntityManager
                 $blogs[$rawBlog['blog_id']] = new Blog(
                     $rawBlog['blog_id'],
                     $rawBlog['url'],
-                    $rawBlog['name'],
+                    $rawBlog['title'],
                     $rawBlog['last_accessed'] != null ? new DateTime($rawBlog['last_accessed']): null
                 );
             }
@@ -110,9 +110,9 @@ class BlogManager extends ObjectEntityManager
         if (!property_exists($data, 'url')
             || !is_string($data->url)
             || empty($data->url)
-            || !property_exists($data, 'name')
-            || !is_string($data->name)
-            || empty($data->name)
+            || !property_exists($data, 'title')
+            || !is_string($data->title)
+            || empty($data->title)
             || !property_exists($data, 'lastAccessed')
             || !is_string($data->lastAccessed)
             || empty($data->lastAccessed)
@@ -121,10 +121,10 @@ class BlogManager extends ObjectEntityManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->url, $data->name, $data->lastAccessed);
+            $id = $this->dbs->insert($data->url, $data->title, $data->lastAccessed);
 
             unset($data->url);
-            unset($data->name);
+            unset($data->title);
             unset($data->lastAccessed);
 
             $new = $this->update($id, $data, true);
@@ -166,13 +166,13 @@ class BlogManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->dbs->updateUrl($id, $data->url);
             }
-            if (property_exists($data, 'name')) {
-                // Name is a required field
-                if (!is_string($data->name) || empty($data->name)) {
-                    throw new BadRequestHttpException('Incorrect name data.');
+            if (property_exists($data, 'title')) {
+                // title is a required field
+                if (!is_string($data->title) || empty($data->title)) {
+                    throw new BadRequestHttpException('Incorrect title data.');
                 }
                 $changes['mini'] = true;
-                $this->dbs->updateName($id, $data->name);
+                $this->dbs->updateTitle($id, $data->title);
             }
             if (property_exists($data, 'lastAccessed')) {
                 // Last accessed is a required field

@@ -20,10 +20,6 @@ class Blog extends Document
      */
     protected $url;
     /**
-     * @var string
-     */
-    protected $name;
-    /**
      * @var DateTime
      */
     protected $lastAccessed;
@@ -31,18 +27,18 @@ class Blog extends Document
     /**
      * @param int      $id
      * @param string   $url
-     * @param string   $name
+     * @param string   $title
      * @param DateTime $lastAccessed
      */
     public function __construct(
         int $id,
         string $url,
-        string $name,
+        string $title,
         DateTime $lastAccessed = null
     ) {
         $this->id = $id;
         $this->url = $url;
-        $this->name = $name;
+        $this->title = $title;
         $this->lastAccessed = $lastAccessed;
 
         // All blogs are public
@@ -58,14 +54,6 @@ class Blog extends Document
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
      * @return DateTime
      */
     public function getLastAccessed(): ?DateTime
@@ -78,7 +66,7 @@ class Blog extends Document
      */
     public function getDescription(): string
     {
-        return $this->name
+        return $this->title
             . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')' : '')
             . '.';
     }
@@ -90,7 +78,7 @@ class Blog extends Document
      */
     public function getSortKey(): string
     {
-        return 'z' . $this->name;
+        return 'z' . $this->title;
     }
 
     /**
@@ -100,7 +88,7 @@ class Blog extends Document
     {
         $result = parent::getJson();
 
-        $result['name'] = $this->name;
+        $result['title'] = $this->title;
         $result['url'] = $this->url;
 
         if (!empty($this->lastAccessed)) {
@@ -117,7 +105,7 @@ class Blog extends Document
     {
         return [
             'id' => $this->id,
-            'name' => $this->getDescription(),
+            'title' => $this->getDescription(),
             'url' =>$this->url,
         ];
     }
@@ -133,7 +121,7 @@ class Blog extends Document
             'id' => 7,
             'name' => 'Blog',
         ];
-        $result['title'] = $this->name;
+        $result['title'] = $this->title;
 
         return $result;
     }

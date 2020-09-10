@@ -44,7 +44,7 @@ class BlogService extends EntityService
                 blog.identity as blog_id,
                 blog.url,
                 blog.last_accessed,
-                document_title.title as name
+                document_title.title
             from data.blog
             inner join data.document_title on blog.identity = document_title.iddocument
             where blog.identity in (?)',
@@ -85,11 +85,11 @@ class BlogService extends EntityService
 
     /**
      * @param  string $url
-     * @param  string $name
+     * @param  string $title
      * @param  string $lastAccessed
      * @return int
      */
-    public function insert(string $url, string $name, string $lastAccessed): int
+    public function insert(string $url, string $title, string $lastAccessed): int
     {
         $this->beginTransaction();
         try {
@@ -114,7 +114,7 @@ class BlogService extends EntityService
                 values (?, (select idlanguage from data.language where name = \'Unknown\'), ?)',
                 [
                     $id,
-                    $name,
+                    $title,
                 ]
             );
             $this->commit();
@@ -138,24 +138,6 @@ class BlogService extends EntityService
             where blog.identity = ?',
             [
                 $url,
-                $id,
-            ]
-        );
-    }
-
-    /**
-     * @param  int    $id
-     * @param  string $name
-     * @return int
-     */
-    public function updateName(int $id, string $name): int
-    {
-        return $this->conn->executeUpdate(
-            'UPDATE data.document_title
-            set title = ?
-            where document_title.iddocument = ?',
-            [
-                $name,
                 $id,
             ]
         );
