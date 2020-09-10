@@ -45,7 +45,7 @@ class Blog extends Entity
         $this->name = $name;
         $this->lastAccessed = $lastAccessed;
 
-        // All online sources are public
+        // All blogs are public
         $this->public = true;
     }
 
@@ -130,8 +130,8 @@ class Blog extends Entity
         $result = parent::getElastic();
 
         $result['type'] = [
-            'id' => 3,
-            'name' => 'Online Source',
+            'id' => 7,
+            'name' => 'Blog',
         ];
         $result['title'] = $this->name;
 

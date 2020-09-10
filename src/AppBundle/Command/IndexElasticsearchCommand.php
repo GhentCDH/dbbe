@@ -64,8 +64,18 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             $bibliographyElasticService = $this->getContainer()->get('bibliography_elastic_service');
             $bibliographyElasticService->setup();
 
-            foreach (['article', 'book', 'book_chapter', 'online_source', 'book_cluster', 'book_series'] as $type) {
-                $items = $this->getContainer()->get($type . '_manager')->getAllShort();
+            $bibTypes = [
+                'article',
+                'book',
+                'book_chapter',
+                'online_source',
+                'book_cluster',
+                'book_series',
+                'blog',
+            ];
+
+            foreach ($bibTypes as $bibType) {
+                $items = $this->getContainer()->get($bibType . '_manager')->getAllShort();
                 $bibliographyElasticService->addMultiple($items);
             }
 

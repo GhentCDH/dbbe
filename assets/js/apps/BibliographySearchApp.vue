@@ -477,6 +477,7 @@ export default {
                 4: 'journal',
                 5: 'book_cluster',
                 6: 'book_series',
+                7: 'blog',
             }
         }
 
@@ -507,27 +508,38 @@ export default {
     },
     computed: {
         depUrls: function () {
-            return {
-                'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                    url: this.urls['manuscript_get'],
-                    urlIdentifier: 'manuscript_id',
-                },
-                'Occurrences': {
-                    depUrl: this.urls['occurrence_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                    url: this.urls['occurrence_get'],
-                    urlIdentifier: 'occurrence_id',
-                },
-                'Types': {
-                    depUrl: this.urls['type_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                    url: this.urls['type_get'],
-                    urlIdentifier: 'type_id',
-                },
-                'Persons': {
-                    depUrl: this.urls['person_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                    url: this.urls['person_get'],
-                    urlIdentifier: 'person_id',
-                },
+            if (['article', 'book', 'book_chapter', 'online_source'].includes(this.submitModel.submitType)) {
+                return {
+                    'Manuscripts': {
+                        depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                        url: this.urls['manuscript_get'],
+                        urlIdentifier: 'manuscript_id',
+                    },
+                    'Occurrences': {
+                        depUrl: this.urls['occurrence_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                        url: this.urls['occurrence_get'],
+                        urlIdentifier: 'occurrence_id',
+                    },
+                    'Types': {
+                        depUrl: this.urls['type_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                        url: this.urls['type_get'],
+                        urlIdentifier: 'type_id',
+                    },
+                    'Persons': {
+                        depUrl: this.urls['person_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
+                        url: this.urls['person_get'],
+                        urlIdentifier: 'person_id',
+                    },
+                }
+            }
+            if (this.submitModel.submitType === 'blog') {
+                return {
+                    // 'Blog posts': {
+                    //     depUrl: this.urls['blog_post_deps_by_blog'].replace('blog_id', this.submitModel.blog.id),
+                    //     url: this.urls['blog_post_get'],
+                    //     urlIdentifier: 'blog_post_id',
+                    // },
+                }
             }
         },
         tableColumns() {
