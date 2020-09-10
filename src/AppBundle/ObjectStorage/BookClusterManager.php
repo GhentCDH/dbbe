@@ -2,8 +2,6 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\Url;
-use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
@@ -12,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\BookCluster;
+use AppBundle\Model\Url;
+use AppBundle\Utils\ArrayToJson;
 
 /**
  * ObjectManager for book clusters

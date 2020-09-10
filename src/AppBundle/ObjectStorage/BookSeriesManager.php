@@ -2,9 +2,6 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\BookCluster;
-use AppBundle\Model\Url;
-use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
@@ -13,7 +10,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Exceptions\DependencyException;
 use AppBundle\Model\BookSeries;
-use AppBundle\Utils\VolumeSortKey;
+use AppBundle\Model\Url;
+use AppBundle\Utils\ArrayToJson;
 
 /**
  * ObjectManager for book seriess
@@ -99,7 +97,7 @@ class BookSeriesManager extends DocumentManager
         $bookSeriess = [];
 
         foreach ($rawBookSeriess as $rawBookSeries) {
-            $bookSeries = new BookCluster($rawBookSeries['book_series_id'], $rawBookSeries['title']);
+            $bookSeries = new BookSeries($rawBookSeries['book_series_id'], $rawBookSeries['title']);
             $urlIds = json_decode($rawBookSeries['url_ids']);
             $urlUrls = json_decode($rawBookSeries['url_urls']);
             $urlTitles = json_decode($rawBookSeries['url_titles']);
