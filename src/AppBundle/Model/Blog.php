@@ -6,7 +6,7 @@ use DateTime;
 
 /**
  */
-class Blog extends Entity
+class Blog extends Document
 {
     /**
      * @var string
