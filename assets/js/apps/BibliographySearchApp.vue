@@ -478,6 +478,7 @@ export default {
                 5: 'book_cluster',
                 6: 'book_series',
                 7: 'blog',
+                8: 'blog_post',
             }
         }
 
@@ -508,7 +509,7 @@ export default {
     },
     computed: {
         depUrls: function () {
-            if (['article', 'book', 'book_chapter', 'online_source'].includes(this.submitModel.submitType)) {
+            if (['article', 'book', 'book_chapter', 'online_source', 'blog_post'].includes(this.submitModel.submitType)) {
                 return {
                     'Manuscripts': {
                         depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
