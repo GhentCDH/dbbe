@@ -244,7 +244,7 @@ export default {
 
             let data = {};
             for (let key of Object.keys(this.submitModel.journal)) {
-                if (this.submitModel.journal.id == null || this.submitModel.journal[key] !== this.originalSubmitModel.journal[key]) {
+                if ((key === 'id' && this.submitModel.journal.id == null) || this.submitModel.journal[key] !== this.originalSubmitModel.journal[key]) {
                     data[key] = this.submitModel.journal[key]
                 }
             }

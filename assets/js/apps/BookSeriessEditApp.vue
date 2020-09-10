@@ -246,7 +246,7 @@ export default {
 
             let data = {};
             for (let key of Object.keys(this.submitModel.bookSeries)) {
-                if (this.submitModel.bookSeries.id == null || this.submitModel.bookSeries[key] !== this.originalSubmitModel.bookSeries[key]) {
+                if ((key === 'id' && this.submitModel.bookSeries.id == null) || this.submitModel.bookSeries[key] !== this.originalSubmitModel.bookSeries[key]) {
                     data[key] = this.submitModel.bookSeries[key]
                 }
             }

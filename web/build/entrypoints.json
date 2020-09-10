@@ -32,7 +32,7 @@
     },
     "bookseriessedit": {
       "js": [
-        "/build/bookseriessedit.d127d2b3.js"
+        "/build/bookseriessedit.c455bec8.js"
       ]
     },
     "contentsedit": {
@@ -52,7 +52,7 @@
     },
     "journalsedit": {
       "js": [
-        "/build/journalsedit.71b8705c.js"
+        "/build/journalsedit.d32dc1be.js"
       ]
     },
     "journalissuesedit": {
