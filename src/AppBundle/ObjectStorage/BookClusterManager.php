@@ -63,8 +63,6 @@ class BookClusterManager extends DocumentManager
             throw new NotFoundHttpException('Book cluster with id ' . $id .' not found.');
         }
 
-        $this->setCreatedAndModifiedDates($bookClusters);
-
         $this->setUrls($bookClusters);
 
         return $bookClusters[$id];

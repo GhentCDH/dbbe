@@ -62,8 +62,6 @@ class BookSeriesManager extends DocumentManager
             $bookSeriess[$rawBook['book_series_id']]->addBook($books[$rawBook['book_id']]);
         }
 
-        $this->setCreatedAndModifiedDates($bookSeriess);
-
         $this->setUrls($bookSeriess);
 
         return $bookSeriess[$id];
