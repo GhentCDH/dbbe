@@ -15,6 +15,11 @@
         "/build/bibliographysearch.8915d7b2.js"
       ]
     },
+    "blogedit": {
+      "js": [
+        "/build/blogedit.484a3103.js"
+      ]
+    },
     "bookedit": {
       "js": [
         "/build/bookedit.65656e41.js"
