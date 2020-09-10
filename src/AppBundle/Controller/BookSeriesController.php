@@ -57,7 +57,7 @@ class BookSeriesController extends BaseController
                     'book_series_delete' => $this->generateUrl('book_series_delete', ['id' => 'book_series_id']),
                     'login' => $this->generateUrl('saml_login'),
                 ]),
-                'book_seriess' => json_encode($this->get(self::MANAGER)->getAllMiniShortJson()),
+                'book_seriess' => json_encode($this->get(self::MANAGER)->getAllJson()),
             ]
         );
     }

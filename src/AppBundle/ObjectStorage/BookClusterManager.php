@@ -112,6 +112,8 @@ class BookClusterManager extends DocumentManager
             $bookClusters[] = $bookCluster;
         }
 
+        $sortFunction = $sortFunction ?? 'getTitle';
+
         usort($bookClusters, function ($a, $b) use ($sortFunction) {
             return $a->{$sortFunction}() <=> $b->{$sortFunction}();
         });

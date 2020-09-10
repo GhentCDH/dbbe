@@ -99,7 +99,7 @@ class BookSeriesManager extends DocumentManager
         $bookSeriess = [];
 
         foreach ($rawBookSeriess as $rawBookSeries) {
-            $bookSeries = new BookCluster($rawBookSeries['book_cluster_id'], $rawBookSeries['title']);
+            $bookSeries = new BookCluster($rawBookSeries['book_series_id'], $rawBookSeries['title']);
             $urlIds = json_decode($rawBookSeries['url_ids']);
             $urlUrls = json_decode($rawBookSeries['url_urls']);
             $urlTitles = json_decode($rawBookSeries['url_titles']);
@@ -110,6 +110,8 @@ class BookSeriesManager extends DocumentManager
             }
             $bookSeriess[] = $bookSeries;
         }
+
+        $sortFunction = $sortFunction ?? 'getTitle';
 
         usort($bookSeriess, function ($a, $b) use ($sortFunction) {
             return $a->{$sortFunction}() <=> $b->{$sortFunction}();
@@ -187,7 +189,7 @@ class BookSeriesManager extends DocumentManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['book_seriess', 'books']);
+            $this->cache->invalidateTags(['book_seriess']);
 
             // (re-)index in elastic search
             $this->ess->add($new);
