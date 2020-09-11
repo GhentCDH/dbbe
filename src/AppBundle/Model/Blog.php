@@ -28,7 +28,7 @@ class Blog extends Document
      * @param int      $id
      * @param string   $url
      * @param string   $title
-     * @param DateTime $lastAccessed
+     * @param DateTime|null $lastAccessed
      */
     public function __construct(
         int $id,
