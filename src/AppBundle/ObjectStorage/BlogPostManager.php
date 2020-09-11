@@ -175,6 +175,13 @@ class BlogPostManager extends DocumentManager
             $changes = [
                 'mini' => $isNew,
             ];
+            $roles = $this->container->get('role_manager')->getByType('blogPost');
+            foreach ($roles as $role) {
+                if (property_exists($data, $role->getSystemName())) {
+                    $changes['mini'] = true;
+                    $this->updatePersonRole($old, $role, $data->{$role->getSystemName()});
+                }
+            }
             if (property_exists($data, 'blog')) {
                 // Blog is a required field
                 if (!is_object($data->blog)

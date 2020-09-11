@@ -10,6 +10,11 @@
         </h2>
         <table class="table table-hover table-bordered">
             <tbody>
+                {%
+                    include '@App/Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? blog_post.getPersonRoles() : blog_post.getPublicPersonRoles()}
+                    only
+                %}
                 {% set blog = blog_post.getBlog() %}
                 <tr>
                     <td>Blog</td>
