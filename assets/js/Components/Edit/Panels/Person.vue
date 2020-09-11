@@ -135,6 +135,7 @@ export default {
                     [role.systemName]: this.createMultiSelect(
                         role.name,
                         {
+                            required: role.required,
                             model: role.systemName,
                         },
                         {

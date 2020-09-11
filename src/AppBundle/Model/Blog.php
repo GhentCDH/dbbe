@@ -105,8 +105,7 @@ class Blog extends Document
     {
         return [
             'id' => $this->id,
-            'title' => $this->getDescription(),
-            'url' =>$this->url,
+            'name' => $this->getDescription(),
         ];
     }
 

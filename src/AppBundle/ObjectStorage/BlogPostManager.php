@@ -9,76 +9,82 @@ use stdClass;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use AppBundle\Model\Blog;
+use AppBundle\Model\BlogPost;
 
 /**
- * ObjectManager for blogs
- * Servicename: blog_manager
+ * ObjectManager for blog posts
+ * Servicename: blog_post_manager
  */
-class BlogManager extends DocumentManager
+class BlogPostManager extends DocumentManager
 {
     /**
-     * Get blogs with enough information to get an id and a description
+     * Get blog posts with enough information to get an id and a description
      * @param  array $ids
      * @return array
      */
     public function getMini(array $ids): array
     {
-        $blogs = [];
+        $blogPosts = [];
         if (!empty($ids)) {
-            $rawBlogs = $this->dbs->getMiniInfoByIds($ids);
+            $rawBlogPosts = $this->dbs->getMiniInfoByIds($ids);
 
-            foreach ($rawBlogs as $rawBlog) {
-                $blogs[$rawBlog['blog_id']] = new Blog(
-                    $rawBlog['blog_id'],
-                    $rawBlog['url'],
-                    $rawBlog['title'],
-                    $rawBlog['last_accessed'] != null ? new DateTime($rawBlog['last_accessed']): null
+            $blogIds = self::getUniqueIds($rawBlogPosts, 'blog_id');
+            $blogs = $this->container->get('blog_manager')->getMini($blogIds);
+
+            foreach ($rawBlogPosts as $rawBlogPost) {
+                $blogPosts[$rawBlogPost['blog_post_id']] = new BlogPost(
+                    $rawBlogPost['blog_post_id'],
+                    $blogs[$rawBlogPost['blog_id']],
+                    $rawBlogPost['url'],
+                    $rawBlogPost['title'],
+                    $rawBlogPost['post_date'] != null ? new DateTime($rawBlogPost['post_date']): null
                 );
             }
+
+            $this->setPersonRoles($blogPosts);
         }
 
-        return $blogs;
+        return $blogPosts;
     }
 
     /**
-     * Get blogs with enough information to index in ElasticSearch
+     * Get blog posts with enough information to index in ElasticSearch
      * @param  array $ids
      * @return array
      */
     public function getShort(array $ids): array
     {
-        $blogs = $this->getMini($ids);
+        $blogPosts = $this->getMini($ids);
 
-        $this->setComments($blogs);
+        $this->setComments($blogPosts);
 
-        $this->setManagements($blogs);
+        $this->setManagements($blogPosts);
 
-        return $blogs;
+        return $blogPosts;
     }
 
     /**
-     * Get a single blog with all information
+     * Get a single blog post with all information
      * @param  int        $id
-     * @return Blog
+     * @return BlogPost
      */
-    public function getFull(int $id): Blog
+    public function getFull(int $id): BlogPost
     {
         // Get basic information
-        $blogs = $this->getShort([$id]);
-        if (count($blogs) == 0) {
-            throw new NotFoundHttpException('Blog with id ' . $id .' not found.');
+        $blogPosts = $this->getShort([$id]);
+        if (count($blogPosts) == 0) {
+            throw new NotFoundHttpException('Blog post with id ' . $id .' not found.');
         }
 
-        $this->setCreatedAndModifiedDates($blogs);
+        $this->setCreatedAndModifiedDates($blogPosts);
 
-        $this->setInverseIdentifications($blogs);
+        $this->setInverseIdentifications($blogPosts);
 
-        $this->setInverseBibliographies($blogs);
+        $this->setInverseBibliographies($blogPosts);
 
-        $this->setUrls($blogs);
+        $this->setUrls($blogPosts);
 
-        return $blogs[$id];
+        return $blogPosts[$id];
     }
 
     /**
@@ -91,33 +97,52 @@ class BlogManager extends DocumentManager
     }
 
     /**
-     * Add a new blog
-     * @param  stdClass $data
-     * @return Blog
+     * Get all blog posts that are dependent on specific references
+     * @param  array $referenceIds
+     * @return array
      */
-    public function add(stdClass $data): Blog
+    public function getReferenceDependencies(array $referenceIds): array
     {
-        if (!property_exists($data, 'url')
+        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
+    }
+
+    /**
+     * Add a new blog post
+     * @param  stdClass $data
+     * @return BlogPost
+     */
+    public function add(stdClass $data): BlogPost
+    {
+        if (!property_exists($data, 'author')
+            || !is_array($data->author)
+            || empty($data->author)
+            || !property_exists($data, 'blog')
+            || !is_object($data->blog)
+            || !property_exists($data->blog, 'id')
+            || !is_numeric($data->blog->id)
+            || empty($data->blog->id)
+            || !property_exists($data, 'url')
             || !is_string($data->url)
             || empty($data->url)
             || !property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
             || (
-                property_exists($data, 'lastAccessed')
-                && !is_string($data->lastAccessed)
-                && !empty($data->lastAccessed)
+                property_exists($data, 'postDate')
+                && !is_string($data->postDate)
+                && !empty($data->postDate)
             )
         ) {
-            throw new BadRequestHttpException('Incorrect data to add a new blog');
+            throw new BadRequestHttpException('Incorrect data to add a new blog post');
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->url, $data->title, property_exists($data, 'lastAccessed') ? $data->lastAccessed : null);
+            $id = $this->dbs->insert($data->blog->id, $data->url, $data->title, property_exists($data, 'postDate') ? $data->postDate : null);
 
+            unset($data->blog);
             unset($data->url);
-            unset($data->title);
-            unset($data->lastAccessed);
+            unset($data->name);
+            unset($data->postDate);
 
             $new = $this->update($id, $data, true);
 
@@ -132,24 +157,36 @@ class BlogManager extends DocumentManager
     }
 
     /**
-     * Update new or existing blog
+     * Update new or existing blog post
      * @param  int      $id
      * @param  stdClass $data
-     * @param  bool     $isNew Indicate whether this is a new blog
-     * @return Blog
+     * @param  bool     $isNew Indicate whether this is a new blog post
+     * @return BlogPost
      */
-    public function update(int $id, stdClass $data, bool $isNew = false): Blog
+    public function update(int $id, stdClass $data, bool $isNew = false): BlogPost
     {
         $this->dbs->beginTransaction();
         try {
             $old = $this->getFull($id);
             if ($old == null) {
-                throw new NotFoundHttpException('Blog with id ' . $id .' not found.');
+                throw new NotFoundHttpException('Blog post with id ' . $id .' not found.');
             }
 
             $changes = [
                 'mini' => $isNew,
             ];
+            if (property_exists($data, 'blog')) {
+                // Blog is a required field
+                if (!is_object($data->blog)
+                    || !property_exists($data->blog, 'id')
+                    || !is_numeric($data->blog->id)
+                    || empty($data->blog->id)
+                ) {
+                    throw new BadRequestHttpException('Incorrect blog data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateBlog($id, $data->blog->id);
+            }
             if (property_exists($data, 'url')) {
                 // Url is a required field
                 if (!is_string($data->url) || empty($data->url)) {
@@ -159,20 +196,20 @@ class BlogManager extends DocumentManager
                 $this->dbs->updateUrl($id, $data->url);
             }
             if (property_exists($data, 'title')) {
-                // title is a required field
+                // Title is a required field
                 if (!is_string($data->title) || empty($data->title)) {
                     throw new BadRequestHttpException('Incorrect title data.');
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            if (property_exists($data, 'lastAccessed')) {
-                // Last accessed is not a required field
-                if (!is_string($data->lastAccessed) && !empty($data->lastAccessed)) {
-                    throw new BadRequestHttpException('Incorrect lastAccessed data.');
+            if (property_exists($data, 'postDate')) {
+                // Post date is not a required field
+                if (!is_string($data->postDate) && !empty($data->postDate)) {
+                    throw new BadRequestHttpException('Incorrect postDate data.');
                 }
                 $changes['mini'] = true;
-                $this->dbs->updateLastAccessed($id, $data->lastAccessed);
+                $this->dbs->updatePostDate($id, $data->postDate);
             }
             $this->updateUrlswrapper($old, $data, $changes, 'full');
             if (property_exists($data, 'publicComment')) {

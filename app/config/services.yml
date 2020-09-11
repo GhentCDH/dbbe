@@ -144,6 +144,11 @@ services:
         arguments: [ '@blog_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog' ]
         public: true
 
+    blog_post_manager:
+        class: AppBundle\ObjectStorage\BlogPostManager
+        arguments: [ '@blog_post_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog_post' ]
+        public: true
+
     reference_type_manager:
         class: AppBundle\ObjectStorage\ReferenceTypeManager
         arguments: ['@reference_type_service', '@cache.app', '@service_container', null, null]
@@ -303,6 +308,10 @@ services:
 
     blog_service:
         class: AppBundle\Service\DatabaseService\BlogService
+        arguments: [ '@doctrine.orm.entity_manager' ]
+
+    blog_post_service:
+        class: AppBundle\Service\DatabaseService\BlogPostService
         arguments: [ '@doctrine.orm.entity_manager' ]
 
     reference_type_service:

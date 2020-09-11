@@ -25,10 +25,23 @@ export default {
         AbstractField,
         AbstractPanelForm,
     ],
+    props: {
+        keys: {
+            type: Object,
+            default: () => {
+                return {
+                    blogs: {field: 'blog', init: false},
+                };
+            },
+        },
+    },
     data() {
         return {
             schema: {
                 fields: {
+                    blog: this.createMultiSelect(
+                        'Blog'
+                    ),
                     url: {
                         type: 'input',
                         inputType: 'text',
@@ -36,7 +49,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'url',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: VueFormGenerator.validators.url,
                     },
                     title: {
                         type: 'input',
@@ -47,12 +60,12 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
-                    lastAccessed: {
+                    postDate: {
                         type: 'input',
                         inputType: 'text',
-                        label: 'Last accessed',
+                        label: 'Post date',
                         labelClasses: 'control-label',
-                        model: 'lastAccessed',
+                        model: 'postDate',
                         validator: VueFormGenerator.validators.regexp,
                         pattern: '^\\d{2}[/]\\d{2}[/]\\d{4}$',
                         help: 'Please use the format "DD/MM/YYYY", e.g. 24/03/2018.',
@@ -76,7 +89,7 @@ export default {
                         'new': this.model[key],
                         'value': this.model[key],
                     }
-                    if (key === 'lastAccessed') {
+                    if (key === 'postDate') {
                         if (this.model[key] == null || this.model[key] === '') {
                             change['value'] = null
                         } else {

@@ -32,7 +32,7 @@ export default {
                     url: {
                         type: 'input',
                         inputType: 'text',
-                        label: 'Url',
+                        label: 'Main url',
                         labelClasses: 'control-label',
                         model: 'url',
                         required: true,

@@ -20,6 +20,7 @@ Encore
     .addEntry('articleedit', './assets/js/main/articleedit.js')
     .addEntry('bibliographysearch', './assets/js/main/bibliographysearch.js')
     .addEntry('blogedit', './assets/js/main/blogedit.js')
+    .addEntry('blogpostedit', './assets/js/main/blogpostedit.js')
     .addEntry('bookedit', './assets/js/main/bookedit.js')
     .addEntry('bookchapteredit', './assets/js/main/bookchapteredit.js')
     .addEntry('bookclustersedit', './assets/js/main/bookclustersedit.js')

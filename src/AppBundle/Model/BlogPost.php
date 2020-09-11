@@ -18,6 +18,10 @@ class BlogPost extends Document
     use UrlsTrait;
 
     /**
+     * @var Blog
+     */
+    protected $blog;
+    /**
      * @var string
      */
     protected $url;
@@ -27,24 +31,35 @@ class BlogPost extends Document
     protected $postDate;
 
     /**
-     * @param int      $id
-     * @param string   $url
-     * @param string   $title
-     * @param DateTime $postDate
+     * @param int $id
+     * @param Blog $blog
+     * @param string $url
+     * @param string $title
+     * @param DateTime|null $postDate
      */
     public function __construct(
         int $id,
+        Blog $blog,
         string $url,
         string $title,
-        DateTime $postDate
+        DateTime $postDate = null
     ) {
         $this->id = $id;
+        $this->blog = $blog;
         $this->url = $url;
         $this->title = $title;
         $this->postDate = $postDate;
 
         // All blog posts are public
         $this->public = true;
+    }
+
+    /**
+     * @return Blog
+     */
+    public function getBlog(): Blog
+    {
+        return $this->blog;
     }
 
     /**
@@ -68,7 +83,9 @@ class BlogPost extends Document
      */
     public function getDescription(): string
     {
-        return $this->title. ' (posted on: ' . $this->postDate->format('Y-m-d') . ').';
+        return $this->title
+            . (!empty($this->postDate) ? ' (posted on: ' . $this->postDate->format('Y-m-d') . ')' : '')
+            . '.';
     }
 
     /**
@@ -88,9 +105,13 @@ class BlogPost extends Document
     {
         $result = parent::getJson();
 
-        $result['title'] = $this->title;
+        $result['blog'] = $this->blog->getShortJson();
         $result['url'] = $this->url;
-        $result['postDate'] = $this->postDate;
+        $result['title'] = $this->title;
+
+        if (!empty($this->postDate)) {
+            $result['postDate'] = $this->postDate->format('d/m/Y');
+        }
 
         return $result;
     }
