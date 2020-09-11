@@ -113,15 +113,17 @@ class BlogManager extends ObjectEntityManager
             || !property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
-            || !property_exists($data, 'lastAccessed')
-            || !is_string($data->lastAccessed)
-            || empty($data->lastAccessed)
+            || (
+                property_exists($data, 'lastAccessed')
+                && !is_string($data->lastAccessed)
+                && !empty($data->lastAccessed)
+            )
         ) {
             throw new BadRequestHttpException('Incorrect data to add a new blog');
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->url, $data->title, $data->lastAccessed);
+            $id = $this->dbs->insert($data->url, $data->title, property_exists($data, 'lastAccessed') ? $data->lastAccessed : null);
 
             unset($data->url);
             unset($data->title);
@@ -175,8 +177,8 @@ class BlogManager extends ObjectEntityManager
                 $this->dbs->updateTitle($id, $data->title);
             }
             if (property_exists($data, 'lastAccessed')) {
-                // Last accessed is a required field
-                if (!is_string($data->lastAccessed) || empty($data->lastAccessed)) {
+                // Last accessed is not a required field
+                if (!is_string($data->lastAccessed) && !empty($data->lastAccessed)) {
                     throw new BadRequestHttpException('Incorrect lastAccessed data.');
                 }
                 $changes['mini'] = true;

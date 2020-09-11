@@ -53,7 +53,6 @@ export default {
                         label: 'Last accessed',
                         labelClasses: 'control-label',
                         model: 'lastAccessed',
-                        required: true,
                         validator: VueFormGenerator.validators.regexp,
                         pattern: '^\\d{2}[/]\\d{2}[/]\\d{4}$',
                         help: 'Please use the format "DD/MM/YYYY", e.g. 24/03/2018.',
@@ -78,7 +77,11 @@ export default {
                         'value': this.model[key],
                     }
                     if (key === 'lastAccessed') {
-                        change['value'] = this.model[key].substr(6,4) + '-' + this.model[key].substr(3,2) + '-' + this.model[key].substr(0,2)
+                        if (this.model[key] == null || this.model[key] === '') {
+                            change['value'] = null
+                        } else {
+                            change['value'] = this.model[key].substr(6, 4) + '-' + this.model[key].substr(3, 2) + '-' + this.model[key].substr(0, 2)
+                        }
                     }
                     this.changes.push(change)
                 }

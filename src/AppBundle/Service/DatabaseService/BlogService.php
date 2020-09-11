@@ -86,10 +86,10 @@ class BlogService extends EntityService
     /**
      * @param  string $url
      * @param  string $title
-     * @param  string $lastAccessed
+     * @param  string|null $lastAccessed
      * @return int
      */
-    public function insert(string $url, string $title, string $lastAccessed): int
+    public function insert(string $url, string $title, string $lastAccessed = null): int
     {
         $this->beginTransaction();
         try {
@@ -145,10 +145,10 @@ class BlogService extends EntityService
 
     /**
      * @param  int    $id
-     * @param  string $lastAccessed
+     * @param  string|null $lastAccessed
      * @return int
      */
-    public function updateLastAccessed(int $id, string $lastAccessed): int
+    public function updateLastAccessed(int $id, string $lastAccessed = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.blog
