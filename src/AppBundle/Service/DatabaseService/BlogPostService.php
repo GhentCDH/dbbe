@@ -106,11 +106,11 @@ class BlogPostService extends DocumentService
      * @param int $blogId
      * @param string $url
      * @param string $title
-     * @param string $postDate
+     * @param string|null $postDate
      * @return int
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function insert(int $blogId, string $url, string $title, string $postDate): int
+    public function insert(int $blogId, string $url, string $title, string $postDate=null): int
     {
         $this->beginTransaction();
         try {
