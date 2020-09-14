@@ -270,6 +270,19 @@ class OccurrenceController extends EditController
     }
 
     /**
+     * Get all occurrences that have a dependency on a blog post
+     * (reference)
+     * @Route("/occurrences/blogposts/{id}", name="occurrence_deps_by_blog_post")
+     * @Method("GET")
+     * @param  int    $id blog post id
+     * @param Request $request
+     */
+    public function getDepsByBlogPost(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBlogPostDependencies');
+    }
+
+    /**
     * Get all occurrences that have a dependency on a book
     * (reference)
     * @Route("/occurrences/books/{id}", name="occurrence_deps_by_book")
@@ -306,19 +319,6 @@ class OccurrenceController extends EditController
     public function getDepsByOnlineSource(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
-    }
-
-    /**
-     * Get all occurrences that have a dependency on a blog post
-     * (reference)
-     * @Route("/occurrences/blogposts/{id}", name="occurrence_deps_by_blog_post")
-     * @Method("GET")
-     * @param  int    $id blog post id
-     * @param Request $request
-     */
-    public function getDepsByBlogPost(int $id, Request $request)
-    {
-        return $this->getDependencies($id, $request, 'getBlogPostDependencies');
     }
 
     /**
@@ -462,11 +462,11 @@ class OccurrenceController extends EditController
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'image_get' => $this->generateUrl('image_get', ['id' => 'image_id']),
                     'image_post' => $this->generateUrl('image_post'),
-                    'books_get' => $this->generateUrl('books_get'),
                     'articles_get' => $this->generateUrl('articles_get'),
+                    'blog_posts_get' => $this->generateUrl('blog_posts_get'),
+                    'books_get' => $this->generateUrl('books_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
-                    'blog_posts_get' => $this->generateUrl('blog_posts_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),

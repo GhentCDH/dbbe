@@ -246,6 +246,19 @@ class ManuscriptController extends BaseController
     }
 
     /**
+     * Get all manuscripts that have a dependency on a blog post
+     * (reference)
+     * @Route("/manuscripts/blogposts/{id}", name="manuscript_deps_by_blog_post")
+     * @Method("GET")
+     * @param  int    $id blog post id
+     * @param Request $request
+     */
+    public function getDepsByBlogPost(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBlogPostDependencies');
+    }
+
+    /**
     * Get all manuscripts that have a dependency on a book
     * (reference)
     * @Route("/manuscripts/books/{id}", name="manuscript_deps_by_book")
@@ -444,8 +457,9 @@ class ManuscriptController extends BaseController
                     'historical_persons_get' => $this->generateUrl('persons_get', ['type' => 'historical']),
                     'origins_get' => $this->generateUrl('origins_get', ['type' => 'manuscript']),
                     'origins_edit' => $this->generateUrl('origins_edit'),
-                    'books_get' => $this->generateUrl('books_get'),
                     'articles_get' => $this->generateUrl('articles_get'),
+                    'blog_posts_get' => $this->generateUrl('blog_posts_get'),
+                    'books_get' => $this->generateUrl('books_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),

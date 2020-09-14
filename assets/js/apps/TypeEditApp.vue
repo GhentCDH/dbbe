@@ -111,7 +111,7 @@
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']}]"
                 :model="model.bibliography"
                 :reference-type="true"
                 :values="bibliographies"
@@ -379,8 +379,9 @@ export default {
                 },
                 identification: {},
                 bibliography: {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
                 },
@@ -445,16 +446,18 @@ export default {
         };
         this.keywords = this.data.typeKeywords;
         this.bibliographies = {
-            books: [],
             articles: [],
+            blogPosts: [],
+            books: [],
             bookChapters: [],
             onlineSources: [],
             referenceTypes: this.data.referenceTypes,
         };
         this.translations = {
             languages: this.data.languages,
-            books: [],
             articles: [],
+            blogPosts: [],
+            books: [],
             bookChapters: [],
             onlineSources: [],
         };
@@ -475,6 +478,7 @@ export default {
             this.reload('articles');
             this.reload('bookChapters');
             this.reload('onlineSources');
+            this.reload('blogPosts');
             this.reload('occurrences');
         },
         setData() {
@@ -531,19 +535,23 @@ export default {
 
                 // Bibliography
                 this.model.bibliography = {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
                 }
                 if (this.type.bibliography != null) {
                     for (let bib of this.type.bibliography) {
                         switch (bib['type']) {
-                        case 'book':
-                            this.model.bibliography.books.push(bib)
-                            break
                         case 'article':
                             this.model.bibliography.articles.push(bib)
+                            break
+                        case 'blogPost':
+                            this.model.bibliography.blogPosts.push(bib)
+                            break
+                        case 'book':
+                            this.model.bibliography.books.push(bib)
                             break
                         case 'bookChapter':
                             this.model.bibliography.bookChapters.push(bib)
@@ -566,8 +574,9 @@ export default {
                         text: translation.text,
                         language: translation.language,
                         bibliography: {
-                            books: [],
                             articles: [],
+                            blogPosts: [],
+                            books: [],
                             bookChapters: [],
                             onlineSources: [],
                         }
@@ -575,11 +584,14 @@ export default {
                     if (translation.bibliography != null) {
                         for (let bib of translation.bibliography) {
                             switch (bib['type']) {
-                            case 'book':
-                                modelTranslation.bibliography.books.push(bib)
-                                break
                             case 'article':
                                 modelTranslation.bibliography.articles.push(bib)
+                                break
+                            case 'blogPost':
+                                modelTranslation.bibliography.blogPosts.push(bib)
+                                break
+                            case 'book':
+                                modelTranslation.bibliography.books.push(bib)
                                 break
                             case 'bookChapter':
                                 modelTranslation.bibliography.bookChapters.push(bib)
@@ -684,8 +696,9 @@ export default {
                     this.urls['keywords_type_get']
                 );
                 break;
-            case 'books':
             case 'articles':
+            case 'blogPosts':
+            case 'books':
             case 'bookChapters':
             case 'onlineSources':
                 this.reloadNestedItems(type, [this.bibliographies, this.translations]);

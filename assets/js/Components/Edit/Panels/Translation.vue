@@ -71,7 +71,7 @@
                 id="translationBibliography"
                 ref="translationBibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']}]"
                 :model="editModel.bibliography"
                 :values="values"
                 :reloads="reloads"
@@ -154,8 +154,9 @@ export default {
             editModal: false,
             editModel: {
                 bibliography: {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
                 },
@@ -188,8 +189,9 @@ export default {
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 this.enableField(this.schema.fields.language);
-            } else if (enableKeys.includes('books')
-                || enableKeys.includes('articles')
+            } else if (enableKeys.includes('articles')
+                || enableKeys.includes('blogPosts')
+                || enableKeys.includes('books')
                 || enableKeys.includes('bookChapters')
                 || enableKeys.includes('onlineSources')
             ) {
@@ -197,8 +199,9 @@ export default {
             }
         },
         disableFields(disableKeys) {
-            if (disableKeys.includes('books')
-                || disableKeys.includes('articles')
+            if (disableKeys.includes('articles')
+                || disableKeys.includes('blogPosts')
+                || disableKeys.includes('books')
                 || disableKeys.includes('bookChapters')
                 || disableKeys.includes('onlineSources')
             ) {
@@ -225,8 +228,9 @@ export default {
         add() {
             this.editModel = {
                 bibliography: {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
                 },
@@ -286,16 +290,22 @@ export default {
         },
         displayBibliography(bibliography) {
             let result = []
-            for (let bib of bibliography['books']) {
-                result.push(
-                    bib.book.name
-                        + this.formatPages(bib.startPage, bib.endPage, ': ')
-                        + '.'
-                )
-            }
             for (let bib of bibliography['articles']) {
                 result.push(
                     bib.article.name
+                    + this.formatPages(bib.startPage, bib.endPage, ': ')
+                    + '.'
+                )
+            }
+            for (let bib of bibliography['blogPosts']) {
+                result.push(
+                    bib.blogPost.name
+                    + '.'
+                )
+            }
+            for (let bib of bibliography['books']) {
+                result.push(
+                    bib.book.name
                         + this.formatPages(bib.startPage, bib.endPage, ': ')
                         + '.'
                 )

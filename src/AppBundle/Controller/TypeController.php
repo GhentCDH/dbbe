@@ -256,6 +256,19 @@ class TypeController extends EditController
     }
 
     /**
+     * Get all types that have a dependency on a blog post
+     * (reference)
+     * @Route("/types/blogposts/{id}", name="type_deps_by_blog_post")
+     * @Method("GET")
+     * @param  int    $id blog post id
+     * @param Request $request
+     */
+    public function getDepsByBlogPost(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBlogPostDependencies');
+    }
+
+    /**
     * Get all types that have a dependency on a book
     * (reference)
     * @Route("/types/books/{id}", name="type_deps_by_book")
@@ -408,8 +421,9 @@ class TypeController extends EditController
                     'keywords_subject_edit' => $this->generateUrl('subjects_edit'),
                     'keywords_type_get' => $this->generateUrl('tags_get'),
                     'keywords_type_edit' => $this->generateUrl('tags_edit'),
-                    'books_get' => $this->generateUrl('books_get'),
                     'articles_get' => $this->generateUrl('articles_get'),
+                    'blog_posts_get' => $this->generateUrl('blog_posts_get'),
+                    'books_get' => $this->generateUrl('books_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),

@@ -374,6 +374,19 @@ class ManuscriptService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByBlogPostId(int $blogPostId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                manuscript.identity as manuscript_id
+            from data.manuscript
+            inner join data.reference on manuscript.identity = reference.idtarget
+            inner join data.blog_post on reference.idsource = blog_post.identity
+            where blog_post.identity = ?',
+            [$blogPostId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByBookId(int $bookId): array
     {
         return $this->conn->executeQuery(

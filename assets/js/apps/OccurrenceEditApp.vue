@@ -393,11 +393,11 @@ export default {
                     imageLinks: [],
                 },
                 bibliography: {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
-                    blogPosts: [],
                 },
                 general: {
                     palaeographicalInfo: null,
@@ -574,29 +574,29 @@ export default {
 
                 // Bibliography
                 this.model.bibliography = {
-                    books: [],
                     articles: [],
+                    blogPosts: [],
+                    books: [],
                     bookChapters: [],
                     onlineSources: [],
-                    blogPosts: [],
                 }
                 if (this.occurrence.bibliography != null) {
                     for (let bib of this.occurrence.bibliography) {
                         switch (bib['type']) {
-                        case 'book':
-                            this.model.bibliography.books.push(bib)
-                            break
                         case 'article':
                             this.model.bibliography.articles.push(bib)
+                            break
+                        case 'blogPost':
+                            this.model.bibliography.blogPosts.push(bib)
+                            break
+                        case 'book':
+                            this.model.bibliography.books.push(bib)
                             break
                         case 'bookChapter':
                             this.model.bibliography.bookChapters.push(bib)
                             break
                         case 'onlineSource':
                             this.model.bibliography.onlineSources.push(bib)
-                            break
-                        case 'blogPost':
-                            this.model.bibliography.blogPosts.push(bib)
                             break
                         }
                     }
@@ -683,11 +683,11 @@ export default {
                     this.urls['keywords_subject_get']
                 );
                 break;
-            case 'books':
             case 'articles':
+            case 'blogPosts':
+            case 'books':
             case 'bookChapters':
             case 'onlineSources':
-            case 'blogPosts':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
             case 'acknowledgements':
