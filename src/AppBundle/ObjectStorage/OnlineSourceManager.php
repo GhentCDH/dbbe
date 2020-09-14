@@ -102,16 +102,6 @@ class OnlineSourceManager extends ObjectEntityManager
     }
 
     /**
-     * Get all online sources that are dependent on specific references
-     * @param  array $referenceIds
-     * @return array
-     */
-    public function getReferenceDependencies(array $referenceIds): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
-    }
-
-    /**
      * Add a new online source
      * @param  stdClass $data
      * @return OnlineSource

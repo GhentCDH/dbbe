@@ -56,6 +56,23 @@ class BlogPostService extends DocumentService
     }
 
     /**
+     * Get all ids of blog posts that are dependent on a specific blog
+     * @param  int   $blogId
+     * @return array
+     */
+    public function getDepIdsByBlogId(int $blogId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                blog_post.identity as blog_post_id
+            from data.blog_post
+            inner join data.document_contains on blog_post.identity = document_contains.idcontent
+            where document_contains.idcontainer = ?',
+            [$blogId]
+        )->fetchAll();
+    }
+
+    /**
      * Get all ids of blog posts that are dependent on specific references
      * @param  array $referenceIds
      * @return array

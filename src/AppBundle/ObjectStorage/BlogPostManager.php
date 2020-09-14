@@ -96,14 +96,9 @@ class BlogPostManager extends DocumentManager
         return parent::getAllMiniShortJson($sortFunction == null ? 'getDescription' : $sortFunction);
     }
 
-    /**
-     * Get all blog posts that are dependent on specific references
-     * @param  array $referenceIds
-     * @return array
-     */
-    public function getReferenceDependencies(array $referenceIds): array
+    public function getBlogDependencies(int $blogId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByBlogId($blogId), $method);
     }
 
     /**

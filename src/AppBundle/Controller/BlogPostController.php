@@ -54,15 +54,16 @@ class BlogPostController extends EditController
     }
 
     /**
-     * Get all blog posts that have a dependency on an instutution
-     * @Route("/blogposts/institutions/{id}", name="blog_post_deps_by_institution")
+     * Get all blog posts that have a dependency on a blog
+     * (document_contains)
+     * @Route("/blogposts/blogs/{id}", name="blog_post_deps_by_blog")
      * @Method("GET")
-     * @param  int    $id institution id
+     * @param  int    $id blog id
      * @param Request $request
      */
-    public function getDepsByInstitution(int $id, Request $request)
+    public function getDepsByBlog(int $id, Request $request)
     {
-        return $this->getDependencies($id, $request, 'getInstitutionDependencies');
+        return $this->getDependencies($id, $request, 'getBlogDependencies');
     }
 
     /**

@@ -78,6 +78,11 @@ abstract class EntityManager extends ObjectManager
         return $this->getDependencies($this->dbs->getDepIdsByArticleId($articleId), $method);
     }
 
+    public function getBlogPostDependencies(int $blogPostId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBlogPostId($blogPostId), $method);
+    }
+
     public function getBookDependencies(int $bookId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByBookId($bookId), $method);
@@ -93,14 +98,14 @@ abstract class EntityManager extends ObjectManager
         return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $method);
     }
 
-    public function getBlogPostDependencies(int $blogPostId, string $method): array
-    {
-        return $this->getDependencies($this->dbs->getDepIdsByBlogPostId($blogPostId), $method);
-    }
-
     public function getManagementDependencies(int $managementId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByManagementId($managementId), $method);
+    }
+
+    public function getReferenceDependencies(array $referenceIds): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByReferenceIds($referenceIds), 'getMini');
     }
 
     protected function setPublics(array &$entities): void

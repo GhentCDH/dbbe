@@ -58,6 +58,8 @@ class BibliographyController extends BaseController
                     'person_deps_by_book' => $this->generateUrl('person_deps_by_book', ['id' => 'book_id']),
                     'person_deps_by_book_chapter' => $this->generateUrl('person_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'person_deps_by_online_source' => $this->generateUrl('person_deps_by_online_source', ['id' => 'online_source_id']),
+                    'blog_post_deps_by_blog' => $this->generateUrl('blog_post_deps_by_blog', ['id' => 'blog_id']),
+                    'book_chapter_deps_by_book' => $this->generateUrl('book_chapter_deps_by_book', ['id' => 'book_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
                     'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
                     'article_edit' => $this->generateUrl('article_edit', ['id' => 'article_id']),

@@ -511,7 +511,7 @@ export default {
     computed: {
         depUrls: function () {
             if (['article', 'book', 'book_chapter', 'online_source', 'blog_post'].includes(this.submitModel.submitType)) {
-                return {
+                const depUrls = {
                     'Manuscripts': {
                         depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
                         url: this.urls['manuscript_get'],
@@ -533,14 +533,26 @@ export default {
                         urlIdentifier: 'person_id',
                     },
                 }
+
+                if (this.submitModel.submitType === 'book') {
+                    return {
+                        'Book chapters': {
+                            depUrl: this.urls['book_chapter_deps_by_book'].replace('book_id', this.submitModel.book.id),
+                            url: this.urls['book_chapter_get'],
+                            urlIdentifier: 'book_chapter_id',
+                        },
+                    }
+                }
+
+                return depUrls
             }
             if (this.submitModel.submitType === 'blog') {
                 return {
-                    // 'Blog posts': {
-                    //     depUrl: this.urls['blog_post_deps_by_blog'].replace('blog_id', this.submitModel.blog.id),
-                    //     url: this.urls['blog_post_get'],
-                    //     urlIdentifier: 'blog_post_id',
-                    // },
+                    'Blog posts': {
+                        depUrl: this.urls['blog_post_deps_by_blog'].replace('blog_id', this.submitModel.blog.id),
+                        url: this.urls['blog_post_get'],
+                        urlIdentifier: 'blog_post_id',
+                    },
                 }
             }
         },
