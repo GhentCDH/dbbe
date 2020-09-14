@@ -114,7 +114,7 @@ class BookManager extends DocumentManager
         }
 
         // Chapters
-        $rawChapters = $this->dbs->getchapters([$id]);
+        $rawChapters = $this->dbs->getChapters([$id]);
         $bookChapterIds = self::getUniqueIds($rawChapters, 'book_chapter_id');
         $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
         foreach ($rawChapters as $rawChapter) {

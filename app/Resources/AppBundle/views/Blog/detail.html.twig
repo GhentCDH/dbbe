@@ -33,6 +33,20 @@
                     </tr>
                 {% endif %}
                 {% include '@App/Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? blog.getInverseReferences() : blog.getPublicInverseReferences()} only %}
+                {% if blog.getPosts() is not empty %}
+                    <tr>
+                        <td>Posts</td>
+                        <td>
+                            {% embed '@App/Helpers/renderList.html.twig' with {'list': blog.getPosts()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('blog_post_get', {'id': item.getId()}) }}">
+                                        {{ item.getDescription() }}
+                                    </a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if blog.getPublicComment() is not empty %}
                     <tr>
                         <td>Comment</td>

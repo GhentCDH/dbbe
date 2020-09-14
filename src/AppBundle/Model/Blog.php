@@ -23,6 +23,10 @@ class Blog extends Document
      * @var DateTime
      */
     protected $lastAccessed;
+    /**
+     * @var array
+     */
+    protected $posts = [];
 
     /**
      * @param int      $id
@@ -59,6 +63,18 @@ class Blog extends Document
     public function getLastAccessed(): ?DateTime
     {
         return $this->lastAccessed;
+    }
+
+    public function addPost(BlogPost $blogPost): Blog
+    {
+        $this->posts[$blogPost->getId()] = $blogPost;
+
+        return $this;
+    }
+
+    public function getPosts(): array
+    {
+        return $this->posts;
     }
 
     /**

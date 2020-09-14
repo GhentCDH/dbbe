@@ -65,6 +65,19 @@ class BlogService extends DocumentService
         )->fetchAll();
     }
 
+    public function getPosts(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                document_contains.idcontainer as blog_id,
+                document_contains.idcontent as blog_post_id
+                from data.document_contains
+                where document_contains.idcontainer in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     /**
      * @param  string $url
      * @param  string $title

@@ -78,7 +78,17 @@ class BlogManager extends DocumentManager
 
         $this->setUrls($blogs);
 
-        return $blogs[$id];
+        $blog = $blogs[$id];
+
+        // Posts
+        $rawPosts = $this->dbs->getPosts([$id]);
+        $blogPostIds = self::getUniqueIds($rawPosts, 'blog_post_id');
+        $blogPosts = $this->container->get('blog_post_manager')->getMini($blogPostIds);
+        foreach ($rawPosts as $rawPost) {
+            $blog->addPost($blogPosts[$rawPost['blog_post_id']]);
+        }
+
+        return $blog;
     }
 
     /**
