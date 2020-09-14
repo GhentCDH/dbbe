@@ -95,7 +95,7 @@ abstract class EntityManager extends ObjectManager
 
     public function getBlogPostDependencies(int $blogPostId, string $method): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($blogPostId), $method);
+        return $this->getDependencies($this->dbs->getDepIdsByBlogPostId($blogPostId), $method);
     }
 
     public function getManagementDependencies(int $managementId, string $method): array

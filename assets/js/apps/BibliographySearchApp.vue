@@ -464,6 +464,7 @@ export default {
             submitModel: {
                 submitType: null,
                 article: {},
+                blog_post: {},
                 book: {},
                 book_chapter: {},
                 online_source: {},
