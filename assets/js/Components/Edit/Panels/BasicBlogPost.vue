@@ -40,7 +40,11 @@ export default {
             schema: {
                 fields: {
                     blog: this.createMultiSelect(
-                        'Blog'
+                        'Blog',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        },
                     ),
                     url: {
                         type: 'input',
