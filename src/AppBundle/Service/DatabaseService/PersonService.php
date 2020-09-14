@@ -186,8 +186,8 @@ class PersonService extends EntityService
                 person.identity as person_id
             from data.person
             inner join data.bibrole on person.identity = bibrole.idperson
-            inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
-            where reconstructed_poem.identity = ?',
+            inner join data.original_poem on bibrole.iddocument = original_poem.identity
+            where original_poem.identity = ?',
             [$occurrenceId]
         )->fetchAll();
     }
@@ -199,8 +199,8 @@ class PersonService extends EntityService
                 person.identity as person_id
             from data.person
             inner join data.bibrole on person.identity = bibrole.idperson
-            inner join data.original_poem on bibrole.iddocument = original_poem.identity
-            where original_poem.identity = ?',
+            inner join data.reconstructed_poem on bibrole.iddocument = reconstructed_poem.identity
+            where reconstructed_poem.identity = ?',
             [$typeId]
         )->fetchAll();
     }
