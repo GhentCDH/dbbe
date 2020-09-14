@@ -1,13 +1,20 @@
-{% if item['type'] == 'book' %}
-    <a href="{{ path('book_get', {'id': item['book'].getId()}) }}">
-        {{ item['book'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
+{% if item['type'] == 'article' %}
+    <a href="{{ path('article_get', {'id': item['article'].getId()}) }}">
+        {{ item['article'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
-{% elseif item['type'] == 'article' %}
-    <a href="{{ path('article_get', {'id': item['article'].getId()}) }}">
-        {{ item['article'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
+{% elseif item['type'] == 'blogPost' %}
+    <a href="{{ path('blog_post_get', {'id': item['blogPost'].getId()}) }}">
+        {{ item['blogPost'].getDescription() }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}
+            ({{ sourceStatus.getName() }})
+        {% endif %}
+    </a>
+{% elseif item['type'] == 'book' %}
+    <a href="{{ path('book_get', {'id': item['book'].getId()}) }}">
+        {{ item['book'].getDescription ~ ': ' ~ item['pages']|join(', ') }}
         {% if sourceStatus is defined and sourceStatus is not empty %}
             ({{ sourceStatus.getName() }})
         {% endif %}

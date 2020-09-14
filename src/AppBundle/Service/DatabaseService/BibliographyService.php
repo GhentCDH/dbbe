@@ -22,8 +22,9 @@ class BibliographyService extends DatabaseService
                 reference.source_remark,
                 reference.image,
 	            coalesce(
-                    book_merge.type::text,
                     article_merge.type::text,
+                    blog_post_merge.type::text,
+                    book_merge.type::text,
                     book_chapter_merge.type::text,
                     online_source_merge.type::text
                 ) as bib_type
@@ -34,6 +35,12 @@ class BibliographyService extends DatabaseService
                     \'article\' as type
                 from data.article
             ) article_merge on reference.idsource = article_merge.biblio_id
+            left join (
+                select
+                    blog_post.identity as biblio_id,
+                    \'blog_post\' as type
+                from data.blog_post
+            ) blog_post_merge on reference.idsource = blog_post_merge.biblio_id
             left join (
                 select
                     book.identity as biblio_id,

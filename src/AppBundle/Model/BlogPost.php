@@ -124,7 +124,6 @@ class BlogPost extends Document
         return [
             'id' => $this->id,
             'name' => $this->getDescription(),
-            'url' =>$this->url,
         ];
     }
 

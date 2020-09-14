@@ -466,6 +466,17 @@ class Entity implements IdJsonInterface, IdElasticInterface
                 } else {
                     $result[$id]['pages'][] = $bibliography->formatPages();
                 }
+            } elseif ($bibliography->getType() === 'blogPost') {
+                $id = $bibliography->getBlogPost()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'blogPost',
+                        'blogPost' => $bibliography->getBlogPost(),
+                        'sortKey' => $bibliography->getBlogPost()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['pages'][] = $bibliography->formatPages();
+                }
             } elseif ($bibliography->getType() === 'book') {
                 $id = $bibliography->getBook()->getId();
                 if (!isset($result[$id])) {

@@ -22,7 +22,7 @@
     },
     "blogpostedit": {
       "js": [
-        "/build/blogpostedit.28ccd702.js"
+        "/build/blogpostedit.7c8eb582.js"
       ]
     },
     "bookedit": {
@@ -97,7 +97,7 @@
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.8211a6df.js"
+        "/build/manuscriptedit.8e2a47dd.js"
       ]
     },
     "manuscriptsearch": {
@@ -117,7 +117,7 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.a221a376.js"
+        "/build/occurrenceedit.1eedcf98.js"
       ]
     },
     "occurrencesearch": {
@@ -147,7 +147,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.f58fce69.js"
+        "/build/personedit.333125a7.js"
       ]
     },
     "personsearch": {
@@ -177,7 +177,7 @@
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.630b6298.js"
+        "/build/typeedit.b8d42bed.js"
       ]
     },
     "typesearch": {

@@ -4,6 +4,7 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Bibliography;
 use AppBundle\Model\ArticleBibliography;
+use AppBundle\Model\BlogPostBibliography;
 use AppBundle\Model\BookBibliography;
 use AppBundle\Model\BookChapterBibliography;
 use AppBundle\Model\OnlineSourceBibliography;
@@ -16,12 +17,14 @@ class BibliographyManager extends ObjectManager
         $rawBibliographies = $this->dbs->getBibliographiesByIds($ids);
 
         $articleIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'article');
+        $blogPostIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'blog_post');
         $bookIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book');
         $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book_chapter');
         $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'online_source');
         $referenceTypeIds = self::getUniqueIds($rawBibliographies, 'reference_type_id');
 
         $articles = $this->container->get('article_manager')->getMini($articleIds);
+        $blogPosts = $this->container->get('blog_post_manager')->getMini($blogPostIds);
         $books = $this->container->get('book_manager')->getMini($bookIds);
         $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
         $onlineSources = $this->container->get('online_source_manager')->getMini($onlineSourceIds);
@@ -36,6 +39,11 @@ class BibliographyManager extends ObjectManager
                             ->setStartPage($rawBibliography['page_start'])
                             ->setEndPage($rawBibliography['page_end'])
                             ->setRawPages($rawBibliography['raw_pages']);
+                    break;
+                case 'blog_post':
+                    $bibliographies[$rawBibliography['reference_id']] =
+                        (new BlogPostBibliography($rawBibliography['reference_id']))
+                            ->setBlogPost($blogPosts[$rawBibliography['source_id']]);
                     break;
                 case 'book':
                     $bibliographies[$rawBibliography['reference_id']] =

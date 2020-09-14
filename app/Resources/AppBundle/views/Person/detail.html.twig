@@ -82,7 +82,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['article', 'book', 'bookChapter'] %}
+                {% for documentType in ['article', 'book', 'bookChapter', 'blogPost'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -93,6 +93,8 @@
                                     Book(s)
                                 {% elseif documentType == 'bookChapter' %}
                                     Book chapter(s)
+                                {% elseif documentType == 'blogPosts' %}
+                                    Book post(s)
                                 {% endif %}
                             </td>
                             <td>
@@ -106,6 +108,8 @@
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_get', 'display': item.getDescription()} only %}
                                             {% elseif documentType == 'bookChapter' %}
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_chapter_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'blogPost' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'blog_post_get', 'display': item.getDescription()} only %}
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}
@@ -146,7 +150,7 @@
                             <td>
                                 {% for rolename, documentRole in documentRoles %}
                                     <h6>As {{ documentRole[0].getName() }}:</h6>
-                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': (documentType == 'bookChapter' ? 'book chapter' : documentType) ~ 's'} %}
+                                    {% embed '@App/Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': documentType|breakAtCapitals ~ 's'} %}
                                         {% block renderItem %}
                                             {% if documentType == 'occurrence' %}
                                                 {% embed '@App/Helpers/renderPublic.html.twig' with {'item': item} only %}

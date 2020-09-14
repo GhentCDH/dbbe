@@ -72,6 +72,9 @@ class AppExtension extends AbstractExtension
             new TwigFilter('day', function (string $string) {
                 return DateTime::createFromFormat('Y-m-d', $string)->format('d');
             }),
+            new TwigFilter('breakAtCapitals', function (string $string) {
+                return preg_replace('([A-Z])', strtolower(" $0"), $string);
+            }),
         ];
     }
 }

@@ -182,7 +182,7 @@
             </table>
             <btn @click="newBib('bookChapter')"><i class="fa fa-plus" />&nbsp;Add a book chapter reference</btn>
         </div>
-        <div>
+        <div class="pbottom-large">
             <h3>Online sources</h3>
             <table
                 v-if="model.onlineSources.length > 0"
@@ -239,6 +239,59 @@
             </table>
             <btn @click="newBib('onlineSource')"><i class="fa fa-plus" />&nbsp;Add an online source</btn>
         </div>
+        <div class="pbottom-large">
+            <h3>Blog posts</h3>
+            <table
+                v-if="model.blogPosts.length > 0"
+                class="table table-striped table-bordered table-hover"
+            >
+                <thead>
+                <tr>
+                    <th>Blog posts</th>
+                    <th v-if="referenceType">Type</th>
+                    <th v-if="image">Plate</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr
+                    v-for="(item, index) in model.blogPosts"
+                    :key="index"
+                >
+                    <td>{{ item.blogPost.name }}</td>
+                    <td v-if="referenceType">
+                        <template v-if="item.referenceType != null">
+                            {{ item.referenceType.name }}
+                        </template>
+                    </td>
+                    <td v-if="image">
+                        <template v-if="item.image != null">
+                            {{ item.image }}
+                        </template>
+                    </td>
+                    <td>
+                        <a
+                            href="#"
+                            title="Edit"
+                            class="action"
+                            @click.prevent="updateBib(item, index)"
+                        >
+                            <i class="fa fa-pencil-square-o" />
+                        </a>
+                        <a
+                            href="#"
+                            title="Delete"
+                            class="action"
+                            @click.prevent="delBib(item, index)"
+                        >
+                            <i class="fa fa-trash-o" />
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('blogPost')"><i class="fa fa-plus" />&nbsp;Add a blog post reference</btn>
+        </div>
         <modal
             v-model="editBibModal"
             size="lg"
@@ -274,6 +327,14 @@
                 v-if="editBib.type === 'onlineSource'"
                 ref="editBibForm"
                 :schema="editOnlineSourceBibSchema"
+                :model="editBib"
+                :options="formOptions"
+                @validated="validated"
+            />
+            <vue-form-generator
+                v-if="editBib.type === 'blogPost'"
+                ref="editBibForm"
+                :schema="editBlogPostBibSchema"
                 :model="editBib"
                 :options="formOptions"
                 @validated="validated"
@@ -366,6 +427,7 @@ export default {
                     articles: {field: 'article', init: false},
                     bookChapters: {field: 'bookChapter', init: false},
                     onlineSources: {field: 'onlineSource', init: false},
+                    blogPosts: {field: 'blogPost', init: false},
                 };
             },
         },
@@ -432,6 +494,17 @@ export default {
                     }
                 }
             },
+            editBlogPostBibSchema: {
+                fields: {
+                    blogPost: this.createMultiSelect(
+                        'Blog Post',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
+                }
+            },
             editBibModal: false,
             delBibModal: false,
             bibIndex: null,
@@ -482,6 +555,7 @@ export default {
             data.editArticleBibSchema.fields['referenceType'] = referenceTypeField
             data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
             data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
+            data.editBlogPostBibSchema.fields['referenceType'] = referenceTypeField
         }
         if (this.image) {
             let imageField = {
@@ -496,6 +570,7 @@ export default {
             data.editArticleBibSchema.fields['image'] = imageField
             data.editBookChapterBibSchema.fields['image'] = imageField
             data.editOnlineSourceBibSchema.fields['image'] = imageField
+            data.editBlogPostBibSchema.fields['image'] = imageField
         }
         return data
     },
@@ -513,6 +588,7 @@ export default {
                     this.enableField(this.editArticleBibSchema.fields.referenceType);
                     this.enableField(this.editBookChapterBibSchema.fields.referenceType);
                     this.enableField(this.editOnlineSourceBibSchema.fields.referenceType);
+                    this.enableField(this.editBlogPostBibSchema.fields.referenceType);
                 }
             } else {
                 if (enableKeys.includes('books')) {
@@ -527,6 +603,9 @@ export default {
                 } else if (enableKeys.includes('onlineSources')) {
                     this.editOnlineSourceBibSchema.fields.onlineSource.values = this.values.onlineSources;
                     this.enableField(this.editOnlineSourceBibSchema.fields.onlineSource);
+                } else if (enableKeys.includes('blogPosts')) {
+                    this.editBlogPostBibSchema.fields.blogPost.values = this.values.blogPosts;
+                    this.enableField(this.editBlogPostBibSchema.fields.blogPost);
                 }
             }
         },
@@ -539,6 +618,8 @@ export default {
                 this.disableField(this.editBookChapterBibSchema.fields.bookChapter);
             } else if (disableKeys.includes('onlineSources')) {
                 this.disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
+            } else if (disableKeys.includes('blogPosts')) {
+                this.disableField(this.editBlogPostBibSchema.fields.blogPost);
             }
         },
         validate() {},
@@ -573,12 +654,12 @@ export default {
             this.editBib = {
                 type: type
             }
-            if (type === 'onlineSource') {
-                this.editBib.relUrl = ''
-            }
-            else {
+            if (['article', 'book', 'bookChapter'].includes(type)) {
                 this.editBib.startPage = ''
                 this.editBib.endPage = ''
+            }
+            else if (['onlineSource'].includes(type)) {
+                this.editBib.relUrl = ''
             }
             this.editBibModal = true
         },
@@ -649,6 +730,14 @@ export default {
                         + (bib.relUrl == null ? '' : '\n(Relative url: ' + bib.relUrl + ')')
                         + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
                         + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
+                )
+            }
+            for (let bib of bibliography['blogPosts']) {
+                result.push(
+                    bib.blogPost.name
+                    + '.'
+                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
                 )
             }
             return result

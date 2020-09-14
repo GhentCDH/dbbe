@@ -121,7 +121,7 @@
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']}]"
                 :model="model.bibliography"
                 :reference-type="true"
                 :image="true"
@@ -397,6 +397,7 @@ export default {
                     articles: [],
                     bookChapters: [],
                     onlineSources: [],
+                    blogPosts: [],
                 },
                 general: {
                     palaeographicalInfo: null,
@@ -459,6 +460,7 @@ export default {
             articles: [],
             bookChapters: [],
             onlineSources: [],
+            blogPosts: [],
             referenceTypes: this.data.referenceTypes,
         };
         this.generals = {
@@ -495,6 +497,7 @@ export default {
             this.reload('articles');
             this.reload('bookChapters');
             this.reload('onlineSources');
+            this.reload('blogPosts');
         },
         setData() {
             if (this.occurrence != null) {
@@ -575,6 +578,7 @@ export default {
                     articles: [],
                     bookChapters: [],
                     onlineSources: [],
+                    blogPosts: [],
                 }
                 if (this.occurrence.bibliography != null) {
                     for (let bib of this.occurrence.bibliography) {
@@ -590,6 +594,9 @@ export default {
                             break
                         case 'onlineSource':
                             this.model.bibliography.onlineSources.push(bib)
+                            break
+                        case 'blogPost':
+                            this.model.bibliography.blogPosts.push(bib)
                             break
                         }
                     }
@@ -680,6 +687,7 @@ export default {
             case 'articles':
             case 'bookChapters':
             case 'onlineSources':
+            case 'blogPosts':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
             case 'acknowledgements':

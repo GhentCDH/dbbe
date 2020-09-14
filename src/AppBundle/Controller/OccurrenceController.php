@@ -309,6 +309,19 @@ class OccurrenceController extends EditController
     }
 
     /**
+     * Get all occurrences that have a dependency on a blog post
+     * (reference)
+     * @Route("/occurrences/blogposts/{id}", name="occurrence_deps_by_blog_post")
+     * @Method("GET")
+     * @param  int    $id blog post id
+     * @param Request $request
+     */
+    public function getDepsByBlogPost(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBlogPostDependencies');
+    }
+
+    /**
      * Get all occurrences that have a dependency on a management collection
      * (reference)
      * @Route("/occurrences/managements/{id}", name="occurrence_deps_by_management")
@@ -453,6 +466,7 @@ class OccurrenceController extends EditController
                     'articles_get' => $this->generateUrl('articles_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'blog_posts_get' => $this->generateUrl('blog_posts_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),

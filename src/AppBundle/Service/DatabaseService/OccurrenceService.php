@@ -218,6 +218,19 @@ class OccurrenceService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByBlogPostId(int $blogPostId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                original_poem.identity as occurrence_id
+            from data.original_poem
+            inner join data.reference on original_poem.identity = reference.idtarget
+            inner join data.blog_post on reference.idsource = blog_post.identity
+            where blog_post.identity = ?',
+            [$blogPostId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByManagementId(int $managementId): array
     {
         return $this->conn->executeQuery(

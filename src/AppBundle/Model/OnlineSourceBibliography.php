@@ -38,8 +38,7 @@ class OnlineSourceBibliography extends Bibliography
 
     public function getDescription(): string
     {
-        return
-            $this->onlineSource->getDescription();
+        return $this->onlineSource->getDescription();
     }
 
     public function getShortJson(): array

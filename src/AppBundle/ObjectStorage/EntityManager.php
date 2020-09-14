@@ -93,6 +93,11 @@ abstract class EntityManager extends ObjectManager
         return $this->getDependencies($this->dbs->getDepIdsByOnlineSourceId($onlineSourceId), $method);
     }
 
+    public function getBlogPostDependencies(int $blogPostId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBookChapterId($blogPostId), $method);
+    }
+
     public function getManagementDependencies(int $managementId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByManagementId($managementId), $method);
@@ -583,7 +588,7 @@ abstract class EntityManager extends ObjectManager
         bool $referenceTypeRequired = false
     ): void {
         // Verify input
-        foreach (['book', 'article', 'bookChapter', 'onlineSource'] as $bibType) {
+        foreach (['book', 'article', 'bookChapter', 'onlineSource', 'blogPost'] as $bibType) {
             $plurBibType = $bibType . 's';
             if (!property_exists($bibliography, $plurBibType) || !is_array($bibliography->$plurBibType)) {
                 throw new BadRequestHttpException('Incorrect bibliography data.');
@@ -612,7 +617,7 @@ abstract class EntityManager extends ObjectManager
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
-                } else {
+                } elseif (in_array($bibType, ['onlineSource'])) {
                     if (!property_exists($bib, 'relUrl') || !(empty($bib->relUrl) ||is_string($bib->relUrl))
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
@@ -626,7 +631,7 @@ abstract class EntityManager extends ObjectManager
         $newBibIds = [];
         $this->dbs->beginTransaction();
         try {
-            foreach (['article', 'book', 'bookChapter', 'onlineSource'] as $bibType) {
+            foreach (['article', 'book', 'bookChapter', 'onlineSource', 'blogPost'] as $bibType) {
                 $plurBibType = $bibType . 's';
                 foreach ($bibliography->$plurBibType as $bib) {
                     if (!property_exists($bib, 'id')) {
@@ -642,14 +647,24 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
-                        } else {
-                            // onlineSource
+                        } elseif (in_array($bibType, ['onlineSource'])) {
                             $newBib = $this->container->get('bibliography_manager')->add(
                                 $entity->getId(),
                                 $bib->{$bibType}->id,
                                 null,
                                 null,
                                 self::certainString($bib, 'relUrl'),
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'image') ? $bib->image : null
+                            );
+                            $newBibIds[] = $newBib->getId();
+                        } elseif (in_array($bibType, ['blogPost'])) {
+                            $newBib = $this->container->get('bibliography_manager')->add(
+                                $entity->getId(),
+                                $bib->{$bibType}->id,
+                                null,
+                                null,
+                                null,
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
@@ -669,8 +684,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') && $bib->referenceType != null ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                        } else {
-                            // onlineSource
+                        } elseif (in_array($bibType, ['onlineSource'])) {
                             $this->container->get('bibliography_manager')->update(
                                 $bib->id,
                                 $bib->{$bibType}->id,
@@ -678,6 +692,17 @@ abstract class EntityManager extends ObjectManager
                                 null,
                                 null,
                                 self::certainString($bib, 'relUrl'),
+                                property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
+                                property_exists($bib, 'image') ? $bib->image : null
+                            );
+                        } elseif (in_array($bibType, ['blogPost'])) {
+                            $this->container->get('bibliography_manager')->update(
+                                $bib->id,
+                                $bib->{$bibType}->id,
+                                null,
+                                null,
+                                null,
+                                null,
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );

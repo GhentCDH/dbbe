@@ -227,7 +227,7 @@ export default {
             if (this.blogPost != null) {
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.bookChapter.personRoles == null ? [] : this.bookChapter.personRoles[role.systemName];
+                    this.model.personRoles[role.systemName] = this.blogPost.personRoles == null ? [] : this.blogPost.personRoles[role.systemName];
                 }
 
                 // Basic info
