@@ -2,18 +2,19 @@
 
 namespace AppBundle\ObjectStorage;
 
-use AppBundle\Model\ArticleBibliography;
-use AppBundle\Model\BookBibliography;
-use AppBundle\Model\BookChapterBibliography;
-use AppBundle\Model\OnlineSourceBibliography;
-use AppBundle\Utils\ArrayToJson;
 use stdClass;
 use Exception;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\Model\ArticleBibliography;
+use AppBundle\Model\BlogPostBibliography;
 use AppBundle\Model\Book;
+use AppBundle\Model\BookBibliography;
+use AppBundle\Model\BookChapterBibliography;
+use AppBundle\Model\OnlineSourceBibliography;
+use AppBundle\Utils\ArrayToJson;
 
 /**
  * ObjectManager for books
@@ -561,13 +562,33 @@ class BookManager extends DocumentManager
     private static function getBiblioMergeUpdate(array $bibliographies, int $primaryId, int $secondaryId): array
     {
         $update = [
-            'books' => [],
             'articles' => [],
+            'blogPosts' => [],
+            'books' => [],
             'bookChapters' => [],
             'onlineSources' => [],
         ];
         foreach ($bibliographies as $bibliography) {
-            if ($bibliography instanceof BookBibliography) {
+            if ($bibliography instanceof ArticleBibliography) {
+                $update['articles'][] = [
+                    'type' => 'article',
+                    'id' => $bibliography->getId(),
+                    'article' => ['id' => $bibliography->getArticle()->getId()],
+                    'startPage' => $bibliography->getStartPage(),
+                    'endPage' => $bibliography->getEndPage(),
+                    'rawPages' => $bibliography->getRawPages(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            } elseif ($bibliography instanceof BlogPostBibliography) {
+                $update['blogPosts'][] = [
+                    'type' => 'blogPost',
+                    'id' => $bibliography->getId(),
+                    'blogPost' => ['id' => $bibliography->getBlogPost()->getId()],
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            } elseif ($bibliography instanceof BookBibliography) {
                 $bookId = $bibliography->getBook()->getId();
                 if ($bookId == $secondaryId) {
                     $bookId = $primaryId;
@@ -576,17 +597,6 @@ class BookManager extends DocumentManager
                     'type' => 'book',
                     'id' => $bibliography->getId(),
                     'book' => ['id' => $bookId],
-                    'startPage' => $bibliography->getStartPage(),
-                    'endPage' => $bibliography->getEndPage(),
-                    'rawPages' => $bibliography->getRawPages(),
-                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
-                    'image' => $bibliography->getImage() ?? null,
-                ];
-            } elseif ($bibliography instanceof ArticleBibliography) {
-                $update['articles'][] = [
-                    'type' => 'article',
-                    'id' => $bibliography->getId(),
-                    'article' => ['id' => $bibliography->getArticle()->getId()],
                     'startPage' => $bibliography->getStartPage(),
                     'endPage' => $bibliography->getEndPage(),
                     'rawPages' => $bibliography->getRawPages(),
