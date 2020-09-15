@@ -2,7 +2,6 @@
 
 namespace AppBundle\Model;
 
-use AppBundle\Service\DatabaseService\BookService;
 use URLify;
 
 use AppBundle\Utils\ArrayToJson;
@@ -28,10 +27,6 @@ class Book extends Document
      * @var int
      */
     protected $year;
-    /**
-     * @var string
-     */
-    protected $title;
     /**
      * @var string
      */
@@ -111,14 +106,6 @@ class Book extends Document
     public function getCluster(): ?BookCluster
     {
         return $this->bookCluster;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getTitle(): ?string
-    {
-        return $this->title;
     }
 
     /**

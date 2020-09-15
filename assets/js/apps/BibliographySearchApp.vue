@@ -480,6 +480,7 @@ export default {
                 6: 'book_series',
                 7: 'blog',
                 8: 'blog_post',
+                9: 'phd',
             }
         }
 

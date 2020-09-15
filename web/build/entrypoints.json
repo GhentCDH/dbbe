@@ -12,7 +12,7 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.dc69b5a6.js"
+        "/build/bibliographysearch.78a53fda.js"
       ]
     },
     "blogedit": {
@@ -153,6 +153,11 @@
     "personsearch": {
       "js": [
         "/build/personsearch.866e5c4d.js"
+      ]
+    },
+    "phdedit": {
+      "js": [
+        "/build/phdedit.12922c0a.js"
       ]
     },
     "regionsedit": {

@@ -14,6 +14,7 @@ use AppBundle\Model\Book;
 use AppBundle\Model\BookBibliography;
 use AppBundle\Model\BookChapterBibliography;
 use AppBundle\Model\OnlineSourceBibliography;
+use AppBundle\Model\PhdBibliography;
 use AppBundle\Utils\ArrayToJson;
 
 /**
@@ -620,6 +621,14 @@ class BookManager extends DocumentManager
                     'id' => $bibliography->getId(),
                     'onlineSource' => ['id' => $bibliography->getOnlineSource()->getId()],
                     'relUrl' => $bibliography->getRelUrl(),
+                    'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
+                    'image' => $bibliography->getImage() ?? null,
+                ];
+            } elseif ($bibliography instanceof PhdBibliography) {
+                $update['phds'][] = [
+                    'type' => 'phd',
+                    'id' => $bibliography->getId(),
+                    'phd' => ['id' => $bibliography->getPhd()->getId()],
                     'referenceType' => $bibliography->getReferenceType() ? ['id' => $bibliography->getReferenceType()->getId()] : null,
                     'image' => $bibliography->getImage() ?? null,
                 ];

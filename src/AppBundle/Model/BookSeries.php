@@ -11,10 +11,6 @@ class BookSeries extends Document
     use UrlsTrait;
 
     /**
-     * @var string
-     */
-    protected $title;
-    /**
      * @var array
      */
     protected $books = [];
@@ -27,11 +23,6 @@ class BookSeries extends Document
         $this->title = $title;
 
         $this->public = true;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
     }
 
     public function setBooks(array $books): BookSeries

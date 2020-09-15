@@ -104,6 +104,16 @@ services:
         arguments: ['@article_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'article']
         public: true
 
+    blog_manager:
+        class: AppBundle\ObjectStorage\BlogManager
+        arguments: [ '@blog_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog' ]
+        public: true
+
+    blog_post_manager:
+        class: AppBundle\ObjectStorage\BlogPostManager
+        arguments: [ '@blog_post_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog_post' ]
+        public: true
+
     book_manager:
         class: AppBundle\ObjectStorage\BookManager
         arguments: ['@book_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book']
@@ -139,14 +149,9 @@ services:
         arguments: ['@online_source_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'online_source']
         public: true
 
-    blog_manager:
-        class: AppBundle\ObjectStorage\BlogManager
-        arguments: [ '@blog_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog' ]
-        public: true
-
-    blog_post_manager:
-        class: AppBundle\ObjectStorage\BlogPostManager
-        arguments: [ '@blog_post_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog_post' ]
+    phd_manager:
+        class: AppBundle\ObjectStorage\PhdManager
+        arguments: [ '@phd_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'phd' ]
         public: true
 
     reference_type_manager:
@@ -278,6 +283,14 @@ services:
         class: AppBundle\Service\DatabaseService\ArticleService
         arguments: ['@doctrine.orm.entity_manager']
 
+    blog_service:
+        class: AppBundle\Service\DatabaseService\BlogService
+        arguments: [ '@doctrine.orm.entity_manager' ]
+
+    blog_post_service:
+        class: AppBundle\Service\DatabaseService\BlogPostService
+        arguments: [ '@doctrine.orm.entity_manager' ]
+
     book_service:
         class: AppBundle\Service\DatabaseService\BookService
         arguments: ['@doctrine.orm.entity_manager']
@@ -306,12 +319,8 @@ services:
         class: AppBundle\Service\DatabaseService\OnlineSourceService
         arguments: ['@doctrine.orm.entity_manager']
 
-    blog_service:
-        class: AppBundle\Service\DatabaseService\BlogService
-        arguments: [ '@doctrine.orm.entity_manager' ]
-
-    blog_post_service:
-        class: AppBundle\Service\DatabaseService\BlogPostService
+    phd_service:
+        class: AppBundle\Service\DatabaseService\PhdService
         arguments: [ '@doctrine.orm.entity_manager' ]
 
     reference_type_service:

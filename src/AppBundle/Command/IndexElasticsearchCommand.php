@@ -73,6 +73,7 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
                 'book_series',
                 'blog',
                 'blog_post',
+                'phd',
             ];
 
             foreach ($bibTypes as $bibType) {

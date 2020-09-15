@@ -5,40 +5,60 @@ namespace AppBundle\Model;
 use URLify;
 
 use AppBundle\Utils\ArrayToJson;
+use AppBundle\Utils\VolumeSortKey;
 
 /**
  */
-class Article extends Document
+class Phd extends Document
 {
     /**
      * @var string
      */
-    const CACHENAME = 'article';
+    const CACHENAME = 'phd';
 
-    use StartEndPagesTrait;
-    use RawPagesTrait;
     use UrlsTrait;
 
     /**
-     * @var JournalIssue
+     * @var int
      */
-    protected $journalIssue;
+    protected $year;
+    /**
+     * @var string
+     */
+    protected $city;
+    /**
+     * @var string
+     */
+    protected $institution;
+    /**
+     * @var string
+     */
+    protected $volume;
 
     /**
-     * @param int     $id
-     * @param string  $title
-     * @param JournalIssue $journalIssue
+     * @param int          $id
+     * @param int          $year
+     * @param string       $city
+     * @param string       $title
+     * @param string|null  $institution
+     * @param string|null  $volume
      */
     public function __construct(
         int $id,
+        int $year,
+        string $city,
         string $title,
-        JournalIssue $journalIssue
+        string $institution = null,
+        string $volume = null
     ) {
         $this->id = $id;
+        $this->year = $year;
+        $this->city = $city;
         $this->title = $title;
-        $this->journalIssue = $journalIssue;
+        $this->institution = $institution;
+        $this->volume = $volume;
 
-        // All articles are public
+        // All phds are public
         $this->public = true;
 
         return $this;
@@ -47,17 +67,42 @@ class Article extends Document
     /**
      * @return int
      */
-    public function getId(): int
+    public function getYear(): int
     {
-        return $this->id;
+        return $this->year;
     }
 
     /**
-     * @return JournalIssue
+     * @return string
      */
-    public function getJournalIssue(): JournalIssue
+    public function getCity(): string
     {
-        return $this->journalIssue;
+        return $this->city;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInstitution(): ?string
+    {
+        return $this->institution;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getVolume(): ?string
+    {
+        return $this->volume;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFullTitleAndVolume(): string
+    {
+        return $this->title
+            . (!empty($this->volume) ? ' (vol. ' . $this->volume . ')' : '');
     }
 
     /**
@@ -73,20 +118,9 @@ class Article extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->journalIssue->getYear()
-            . ', ' . $this->title
-            . ', ' . $this->journalIssue->getJournal()->getTitle()
-            . (
-                !empty($this->journalIssue->getVolume())
-                    ? ', ' . $this->journalIssue->getVolume()
-                    : ''
-            )
-            . (
-                !empty($this->journalIssue->getNumber())
-                    ? '(' . $this->journalIssue->getNumber() . ')'
-                    : ''
-            )
-            . $this->formatStartEndPages(', ', $this->rawPages);
+            . ' ' . $this->year
+            . ', ' . $this->getFullTitleAndVolume()
+            . ', ' . $this->city;
     }
 
     /**
@@ -98,22 +132,25 @@ class Article extends Document
     {
         $sortKey = 'a';
 
-        if (!empty($this->personRoles['author'])) {
-            $lastName = reset($this->personRoles['author'][1])->getLastName();
-            if (!empty($lastName)) {
-                $sortKey .= URLify::filter($lastName);
-            } else {
-                $sortKey .= 'zzz';
-            }
+        $lastName = reset($this->personRoles['author'][1])->getLastName();
+        if (!empty($lastName)) {
+            $sortKey .= URLify::filter($lastName);
         } else {
             $sortKey .= 'zzz';
         }
 
-        $year = $this->journalIssue->getYear();
+        $year = $this->getYear();
         if (!empty($year)) {
             $sortKey .= $year;
         } else {
             $sortKey .= '9999';
+        }
+
+        $volume = $this->getVolume();
+        if (!empty($volume)) {
+            $sortKey .= VolumeSortKey::sortKey($volume);
+        } else {
+            $sortKey .= '99999999';
         }
 
         return $sortKey;
@@ -136,22 +173,20 @@ class Article extends Document
     public function getJson(): array
     {
         $result = parent::getJson();
-
+        if (!empty($this->year)) {
+            $result['year'] = $this->year;
+        }
+        if (!empty($this->city)) {
+            $result['city'] = $this->city;
+        }
         if (!empty($this->title)) {
             $result['title'] = $this->title;
         }
-        if (!empty($this->journalIssue)) {
-            $result['journal'] = $this->journalIssue->getJournal()->getShortJson();
-            $result['journalIssue'] = $this->journalIssue->getShortJson();
+        if (!empty($this->institution)) {
+            $result['volume'] = $this->institution;
         }
-        if (!empty($this->getStartPage())) {
-            $result['startPage'] = (int)$this->getStartPage();
-        }
-        if (!empty($this->getEndPage())) {
-            $result['endPage'] = (int)$this->getEndPage();
-        }
-        if (!empty($this->getRawPages())) {
-            $result['rawPages'] = $this->getRawPages();
+        if (!empty($this->volume)) {
+            $result['volume'] = $this->volume;
         }
 
         return $result;
@@ -165,10 +200,11 @@ class Article extends Document
         $result = parent::getElastic();
 
         $result['type'] = [
-            'id' => 0,
-            'name' => 'Article',
+            'id' => 9,
+            'name' => 'Phd thesis',
         ];
-        $result['title'] = $this->title;
+
+        $result['title'] = $this->getFullTitleAndVolume();
         $personRoles = $this->getPersonRoles();
         foreach ($personRoles as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);

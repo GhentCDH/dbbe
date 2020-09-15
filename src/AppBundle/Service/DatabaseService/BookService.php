@@ -84,7 +84,7 @@ class BookService extends DocumentService
     }
 
     /**
-     * Get all ids of books that aredependent on specific references
+     * Get all ids of books that are dependent on specific references
      * @param  array $referenceIds
      * @return array
      */
