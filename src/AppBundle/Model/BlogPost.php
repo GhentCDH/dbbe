@@ -83,7 +83,15 @@ class BlogPost extends Document
      */
     public function getDescription(): string
     {
-        return $this->title
+        $authorNames = [];
+        if (isset($this->personRoles['author'])) {
+            foreach ($this->personRoles['author'][1] as $author) {
+                $authorNames[] = $author->getShortDescription();
+            }
+        }
+        return
+            implode(', ', $authorNames)
+            . ', ' . $this->title
             . (!empty($this->postDate) ? ' (posted on: ' . $this->postDate->format('Y-m-d') . ')' : '')
             . '.';
     }
