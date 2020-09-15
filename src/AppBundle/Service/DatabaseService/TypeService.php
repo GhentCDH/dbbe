@@ -187,8 +187,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.article on reference.idsource = article.identity
+            where article.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.article on reference.idsource = article.identity
             where article.identity = ?',
-            [$articleId]
+            [$articleId, $articleId]
         )->fetchAll();
     }
 
@@ -200,8 +208,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.blog_post on reference.idsource = blog_post.identity
+            where blog_post.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.blog_post on reference.idsource = blog_post.identity
             where blog_post.identity = ?',
-            [$blogPostId]
+            [$blogPostId, $blogPostId]
         )->fetchAll();
     }
 
@@ -213,8 +229,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.book on reference.idsource = book.identity
+            where book.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.book on reference.idsource = book.identity
             where book.identity = ?',
-            [$bookId]
+            [$bookId, $bookId]
         )->fetchAll();
     }
 
@@ -226,8 +250,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.bookchapter on reference.idsource = bookchapter.identity
+            where bookchapter.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.bookchapter on reference.idsource = bookchapter.identity
             where bookchapter.identity = ?',
-            [$bookChapterId]
+            [$bookChapterId, $bookChapterId]
         )->fetchAll();
     }
 
@@ -239,8 +271,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.online_source on reference.idsource = online_source.identity
+            where online_source.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.online_source on reference.idsource = online_source.identity
             where online_source.identity = ?',
-            [$onlineSourceId]
+            [$onlineSourceId, $onlineSourceId]
         )->fetchAll();
     }
 
@@ -252,8 +292,16 @@ class TypeService extends PoemService
             from data.reconstructed_poem
             inner join data.reference on reconstructed_poem.identity = reference.idtarget
             inner join data.phd on reference.idsource = phd.identity
+            where phd.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.phd on reference.idsource = phd.identity
             where phd.identity = ?',
-            [$phdId]
+            [$phdId, $phdId]
         )->fetchAll();
     }
 
