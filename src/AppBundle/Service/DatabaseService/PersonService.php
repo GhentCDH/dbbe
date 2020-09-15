@@ -270,6 +270,19 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getDepIdsByPhdId(int $phdId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person.identity as person_id
+            from data.person
+            inner join data.reference on person.identity = reference.idtarget
+            inner join data.phd on reference.idsource = phd.identity
+            where phd.identity = ?',
+            [$phdId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByManagementId(int $managementId): array
     {
         return $this->conn->executeQuery(

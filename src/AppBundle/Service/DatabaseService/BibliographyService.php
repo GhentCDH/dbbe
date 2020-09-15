@@ -26,7 +26,8 @@ class BibliographyService extends DatabaseService
                     blog_post_merge.type::text,
                     book_merge.type::text,
                     book_chapter_merge.type::text,
-                    online_source_merge.type::text
+                    online_source_merge.type::text,
+                    phd_merge.type::text
                 ) as bib_type
             from data.reference
             left join (
@@ -59,6 +60,12 @@ class BibliographyService extends DatabaseService
                     \'online_source\' as type
                 from data.online_source
             ) online_source_merge on reference.idsource = online_source_merge.biblio_id
+            left join (
+                select
+                    phd.identity as biblio_id,
+                    \'phd\' as type
+                from data.phd
+            ) phd_merge on reference.idsource = phd_merge.biblio_id
             where reference.idreference in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]

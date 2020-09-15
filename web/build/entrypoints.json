@@ -97,7 +97,7 @@
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.ae8c78ca.js"
+        "/build/manuscriptedit.5aac1c3d.js"
       ]
     },
     "manuscriptsearch": {
@@ -117,7 +117,7 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.5b0a388c.js"
+        "/build/occurrenceedit.7b4e63d7.js"
       ]
     },
     "occurrencesearch": {
@@ -147,7 +147,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.76371ac7.js"
+        "/build/personedit.2da8e6e6.js"
       ]
     },
     "personsearch": {
@@ -182,7 +182,7 @@
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.8a725edd.js"
+        "/build/typeedit.91165fd0.js"
       ]
     },
     "typesearch": {

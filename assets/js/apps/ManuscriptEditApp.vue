@@ -87,7 +87,7 @@
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'Phd theses', reload: 'phds', edit: urls['bibliographies_search']}]"
                 :model="model.bibliography"
                 :values="bibliographies"
                 :reloads="reloads"
@@ -318,6 +318,7 @@ export default {
                     books: [],
                     bookChapters: [],
                     onlineSources: [],
+                    phds: [],
                 },
                 general: {
                     acknowledgements: null,
@@ -367,6 +368,7 @@ export default {
             books: [],
             bookChapters: [],
             onlineSources: [],
+            phds: [],
         };
         this.generals = {
             acknowledgements: this.data.acknowledgements,
@@ -384,6 +386,7 @@ export default {
             this.reload('bookChapters');
             this.reload('onlineSources');
             this.reload('blogPosts');
+            this.reload('phds');
         },
         setData() {
             if (this.manuscript != null) {
@@ -422,6 +425,7 @@ export default {
                     books: [],
                     bookChapters: [],
                     onlineSources: [],
+                    phds: [],
                 }
                 if (this.manuscript.bibliography != null) {
                     for (let bib of this.manuscript.bibliography) {
@@ -440,6 +444,9 @@ export default {
                             break
                         case 'onlineSource':
                             this.model.bibliography.onlineSources.push(bib)
+                            break
+                        case 'phd':
+                            this.model.bibliography.phds.push(bib)
                             break
                         }
                     }
@@ -516,6 +523,7 @@ export default {
             case 'books':
             case 'bookChapters':
             case 'onlineSources':
+            case 'phds':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
             case 'acknowledgements':

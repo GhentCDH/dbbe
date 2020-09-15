@@ -8,6 +8,7 @@ use AppBundle\Model\BlogPostBibliography;
 use AppBundle\Model\BookBibliography;
 use AppBundle\Model\BookChapterBibliography;
 use AppBundle\Model\OnlineSourceBibliography;
+use AppBundle\Model\PhdBibliography;
 
 class BibliographyManager extends ObjectManager
 {
@@ -21,6 +22,7 @@ class BibliographyManager extends ObjectManager
         $bookIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book');
         $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book_chapter');
         $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'online_source');
+        $phdIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'phd');
         $referenceTypeIds = self::getUniqueIds($rawBibliographies, 'reference_type_id');
 
         $articles = $this->container->get('article_manager')->getMini($articleIds);
@@ -28,6 +30,7 @@ class BibliographyManager extends ObjectManager
         $books = $this->container->get('book_manager')->getMini($bookIds);
         $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
         $onlineSources = $this->container->get('online_source_manager')->getMini($onlineSourceIds);
+        $phds = $this->container->get('phd_manager')->getMini($phdIds);
         $referenceTypes = $this->container->get('reference_type_manager')->get($referenceTypeIds);
 
         foreach ($rawBibliographies as $rawBibliography) {
@@ -66,6 +69,14 @@ class BibliographyManager extends ObjectManager
                         (new OnlineSourceBibliography($rawBibliography['reference_id']))
                             ->setOnlineSource($onlineSources[$rawBibliography['source_id']])
                             ->setRelUrl($rawBibliography['rel_url']);
+                    break;
+                case 'phd':
+                    $bibliographies[$rawBibliography['reference_id']] =
+                        (new PhdBibliography($rawBibliography['reference_id']))
+                            ->setPhd($phds[$rawBibliography['source_id']])
+                            ->setStartPage($rawBibliography['page_start'])
+                            ->setEndPage($rawBibliography['page_end'])
+                            ->setRawPages($rawBibliography['raw_pages']);
                     break;
             }
             if (!empty($rawBibliography['reference_type_id'])) {

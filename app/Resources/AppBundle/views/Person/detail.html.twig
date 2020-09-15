@@ -82,7 +82,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['article', 'book', 'bookChapter', 'blogPost'] %}
+                {% for documentType in ['article', 'book', 'bookChapter', 'blogPost', 'phd'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -95,6 +95,8 @@
                                     Book chapter(s)
                                 {% elseif documentType == 'blogPosts' %}
                                     Book post(s)
+                                {% elseif documentType == 'phd' %}
+                                    PhD thesi(/e)s
                                 {% endif %}
                             </td>
                             <td>
@@ -110,6 +112,8 @@
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'book_chapter_get', 'display': item.getDescription()} only %}
                                             {% elseif documentType == 'blogPost' %}
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'blog_post_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'phd' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'phd_get', 'display': item.getDescription()} only %}
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}

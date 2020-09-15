@@ -71,7 +71,7 @@
                 id="translationBibliography"
                 ref="translationBibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'Phds', reload: 'phds', edit: urls['bibliographies_search']}]"
                 :model="editModel.bibliography"
                 :values="values"
                 :reloads="reloads"
@@ -159,6 +159,7 @@ export default {
                     books: [],
                     bookChapters: [],
                     onlineSources: [],
+                    phds: [],
                 },
             },
             delModal: false,
@@ -194,6 +195,7 @@ export default {
                 || enableKeys.includes('books')
                 || enableKeys.includes('bookChapters')
                 || enableKeys.includes('onlineSources')
+                || enableKeys.includes('phds')
             ) {
                 this.$refs.translationBibliography.enableFields(enableKeys);
             }
@@ -204,6 +206,7 @@ export default {
                 || disableKeys.includes('books')
                 || disableKeys.includes('bookChapters')
                 || disableKeys.includes('onlineSources')
+                || disableKeys.includes('phds')
             ) {
                 this.$refs.translationBibliography.disableFields(disableKeys);
             }
@@ -233,6 +236,7 @@ export default {
                     books: [],
                     bookChapters: [],
                     onlineSources: [],
+                    phds: [],
                 },
             }
             this.editModal = true
@@ -322,6 +326,13 @@ export default {
                     bib.onlineSource.url
                         + (bib.relUrl == null ? '' : bib.relUrl)
                         + '.'
+                )
+            }
+            for (let bib of bibliography['phds']) {
+                result.push(
+                    bib.phd.name
+                    + this.formatPages(bib.startPage, bib.endPage, ': ')
+                    + '.'
                 )
             }
             return result

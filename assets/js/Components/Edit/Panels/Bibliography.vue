@@ -292,6 +292,65 @@
             </table>
             <btn @click="newBib('blogPost')"><i class="fa fa-plus" />&nbsp;Add a blog post reference</btn>
         </div>
+        <div class="pbottom-large">
+            <h3>PhD theses</h3>
+            <table
+                v-if="model.phds.length > 0"
+                class="table table-striped table-bordered table-hover"
+            >
+                <thead>
+                <tr>
+                    <th>PhD theses</th>
+                    <th>Start page</th>
+                    <th>End page</th>
+                    <th>Raw pages</th>
+                    <th v-if="referenceType">Type</th>
+                    <th v-if="image">Plate</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr
+                    v-for="(item, index) in model.phds"
+                    :key="index"
+                >
+                    <td>{{ item.phd.name }}</td>
+                    <td>{{ item.startPage }}</td>
+                    <td>{{ item.endPage }}</td>
+                    <td>{{ item.rawPages }}</td>
+                    <td v-if="referenceType">
+                        <template v-if="item.referenceType != null">
+                            {{ item.referenceType.name }}
+                        </template>
+                    </td>
+                    <td v-if="image">
+                        <template v-if="item.image != null">
+                            {{ item.image }}
+                        </template>
+                    </td>
+                    <td>
+                        <a
+                            href="#"
+                            title="Edit"
+                            class="action"
+                            @click.prevent="updateBib(item, index)"
+                        >
+                            <i class="fa fa-pencil-square-o" />
+                        </a>
+                        <a
+                            href="#"
+                            title="Delete"
+                            class="action"
+                            @click.prevent="delBib(item, index)"
+                        >
+                            <i class="fa fa-trash-o" />
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('phd')"><i class="fa fa-plus" />&nbsp;Add a PhD thesis reference</btn>
+        </div>
         <modal
             v-model="editBibModal"
             size="lg"
@@ -335,6 +394,14 @@
                 v-if="editBib.type === 'blogPost'"
                 ref="editBibForm"
                 :schema="editBlogPostBibSchema"
+                :model="editBib"
+                :options="formOptions"
+                @validated="validated"
+            />
+            <vue-form-generator
+                v-if="editBib.type === 'phd'"
+                ref="editBibForm"
+                :schema="editPhdBibSchema"
                 :model="editBib"
                 :options="formOptions"
                 @validated="validated"
@@ -428,6 +495,7 @@ export default {
                     bookChapters: {field: 'bookChapter', init: false},
                     onlineSources: {field: 'onlineSource', init: false},
                     blogPosts: {field: 'blogPost', init: false},
+                    phds: {field: 'phd', init: false},
                 };
             },
         },
@@ -505,6 +573,17 @@ export default {
                     ),
                 }
             },
+            editPhdBibSchema: {
+                fields: {
+                    phd: this.createMultiSelect(
+                        'Phd',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
+                }
+            },
             editBibModal: false,
             delBibModal: false,
             bibIndex: null,
@@ -521,6 +600,7 @@ export default {
         data.editBookBibSchema.fields['startPage'] = startPageField
         data.editArticleBibSchema.fields['startPage'] = startPageField
         data.editBookChapterBibSchema.fields['startPage'] = startPageField
+        data.editPhdBibSchema.fields['startPage'] = startPageField
         let endPageField = {
             type: 'input',
             inputType: 'text',
@@ -532,6 +612,7 @@ export default {
         data.editBookBibSchema.fields['endPage'] = endPageField
         data.editArticleBibSchema.fields['endPage'] = endPageField
         data.editBookChapterBibSchema.fields['endPage'] = endPageField
+        data.editPhdBibSchema.fields['endPage'] = endPageField
         let rawPagesField = {
             type: 'input',
             inputType: 'text',
@@ -544,6 +625,7 @@ export default {
         data.editBookBibSchema.fields['rawPages'] = rawPagesField
         data.editArticleBibSchema.fields['rawPages'] = rawPagesField
         data.editBookChapterBibSchema.fields['rawPages'] = rawPagesField
+        data.editPhdBibSchema.fields['rawPages'] = rawPagesField
         if (this.referenceType) {
             let referenceTypeField = this.createMultiSelect('Type', {
                 model: 'referenceType',
@@ -556,6 +638,7 @@ export default {
             data.editBookChapterBibSchema.fields['referenceType'] = referenceTypeField
             data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
             data.editBlogPostBibSchema.fields['referenceType'] = referenceTypeField
+            data.editPhdBibSchema.fields['referenceType'] = referenceTypeField
         }
         if (this.image) {
             let imageField = {
@@ -571,6 +654,7 @@ export default {
             data.editBookChapterBibSchema.fields['image'] = imageField
             data.editOnlineSourceBibSchema.fields['image'] = imageField
             data.editBlogPostBibSchema.fields['image'] = imageField
+            data.editPhdBibSchema.fields['image'] = imageField
         }
         return data
     },
@@ -589,6 +673,7 @@ export default {
                     this.enableField(this.editBookChapterBibSchema.fields.referenceType);
                     this.enableField(this.editOnlineSourceBibSchema.fields.referenceType);
                     this.enableField(this.editBlogPostBibSchema.fields.referenceType);
+                    this.enableField(this.editPhdBibSchema.fields.referenceType);
                 }
             } else {
                 if (enableKeys.includes('books')) {
@@ -606,6 +691,9 @@ export default {
                 } else if (enableKeys.includes('blogPosts')) {
                     this.editBlogPostBibSchema.fields.blogPost.values = this.values.blogPosts;
                     this.enableField(this.editBlogPostBibSchema.fields.blogPost);
+                } else if (enableKeys.includes('phds')) {
+                    this.editPhdBibSchema.fields.phd.values = this.values.phds;
+                    this.enableField(this.editPhdBibSchema.fields.phd);
                 }
             }
         },
@@ -620,6 +708,8 @@ export default {
                 this.disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
             } else if (disableKeys.includes('blogPosts')) {
                 this.disableField(this.editBlogPostBibSchema.fields.blogPost);
+            } else if (disableKeys.includes('phds')) {
+                this.disableField(this.editPhdBibSchema.fields.phd);
             }
         },
         validate() {},
@@ -654,7 +744,7 @@ export default {
             this.editBib = {
                 type: type
             }
-            if (['article', 'book', 'bookChapter'].includes(type)) {
+            if (['article', 'book', 'bookChapter', 'phd'].includes(type)) {
                 this.editBib.startPage = ''
                 this.editBib.endPage = ''
             }
@@ -735,6 +825,15 @@ export default {
             for (let bib of bibliography['blogPosts']) {
                 result.push(
                     bib.blogPost.name
+                    + '.'
+                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
+                )
+            }
+            for (let bib of bibliography['phds']) {
+                result.push(
+                    bib.phd.name
+                    + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                     + '.'
                     + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
                     + (bib.image ? '\n(Image: ' + bib.image + ')' : '')

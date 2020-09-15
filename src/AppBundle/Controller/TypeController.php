@@ -308,6 +308,19 @@ class TypeController extends EditController
     }
 
     /**
+     * Get all types that have a dependency on a PhD thesis
+     * (reference)
+     * @Route("/types/phd_theses/{id}", name="type_deps_by_phd")
+     * @Method("GET")
+     * @param  int    $id phd id
+     * @param Request $request
+     */
+    public function getDepsByPhd(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getPhdDependencies');
+    }
+
+    /**
      * Get all types that have a dependency on a management collection
      * (reference)
      * @Route("/types/managements/{id}", name="type_deps_by_management")
@@ -426,6 +439,7 @@ class TypeController extends EditController
                     'books_get' => $this->generateUrl('books_get'),
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
+                    'phds_get' => $this->generateUrl('phds_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),

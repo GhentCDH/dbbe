@@ -42,4 +42,11 @@
             </a>
         {% endif %}
     {% endfor %}
+{% elseif item['type'] == 'phd' %}
+    <a href="{{ path('phd_get', {'id': item['phd'].getId()}) }}">
+        {{ item['phd'].getDescription() ~ ': ' ~ item['pages']|join(', ') }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}
+            ({{ sourceStatus.getName() }})
+        {% endif %}
+    </a>
 {% endif %}
