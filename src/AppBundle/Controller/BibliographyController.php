@@ -40,24 +40,28 @@ class BibliographyController extends BaseController
                     'manuscript_deps_by_book' => $this->generateUrl('manuscript_deps_by_book', ['id' => 'book_id']),
                     'manuscript_deps_by_book_chapter' => $this->generateUrl('manuscript_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'manuscript_deps_by_online_source' => $this->generateUrl('manuscript_deps_by_online_source', ['id' => 'online_source_id']),
+                    'manuscript_deps_by_phd' => $this->generateUrl('manuscript_deps_by_phd', ['id' => 'phd_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'occurrence_deps_by_article' => $this->generateUrl('occurrence_deps_by_article', ['id' => 'article_id']),
                     'occurrence_deps_by_blog_post' => $this->generateUrl('occurrence_deps_by_blog_post', ['id' => 'blog_post_id']),
                     'occurrence_deps_by_book' => $this->generateUrl('occurrence_deps_by_book', ['id' => 'book_id']),
                     'occurrence_deps_by_book_chapter' => $this->generateUrl('occurrence_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'occurrence_deps_by_online_source' => $this->generateUrl('occurrence_deps_by_online_source', ['id' => 'online_source_id']),
+                    'occurrence_deps_by_phd' => $this->generateUrl('occurrence_deps_by_phd', ['id' => 'phd_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'type_deps_by_article' => $this->generateUrl('type_deps_by_article', ['id' => 'article_id']),
                     'type_deps_by_blog_post' => $this->generateUrl('type_deps_by_blog_post', ['id' => 'blog_post_id']),
                     'type_deps_by_book' => $this->generateUrl('type_deps_by_book', ['id' => 'book_id']),
                     'type_deps_by_book_chapter' => $this->generateUrl('type_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'type_deps_by_online_source' => $this->generateUrl('type_deps_by_online_source', ['id' => 'online_source_id']),
+                    'type_deps_by_phd' => $this->generateUrl('type_deps_by_phd', ['id' => 'phd_id']),
                     'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                     'person_deps_by_article' => $this->generateUrl('person_deps_by_article', ['id' => 'article_id']),
                     'person_deps_by_blog_post' => $this->generateUrl('person_deps_by_blog_post', ['id' => 'blog_post_id']),
                     'person_deps_by_book' => $this->generateUrl('person_deps_by_book', ['id' => 'book_id']),
                     'person_deps_by_book_chapter' => $this->generateUrl('person_deps_by_book_chapter', ['id' => 'book_chapter_id']),
                     'person_deps_by_online_source' => $this->generateUrl('person_deps_by_online_source', ['id' => 'online_source_id']),
+                    'person_deps_by_phd' => $this->generateUrl('person_deps_by_phd', ['id' => 'phd_id']),
                     'blog_post_deps_by_blog' => $this->generateUrl('blog_post_deps_by_blog', ['id' => 'blog_id']),
                     'book_chapter_deps_by_book' => $this->generateUrl('book_chapter_deps_by_book', ['id' => 'book_id']),
                     'person_get' => $this->generateUrl('person_get', ['id' => 'person_id']),
@@ -78,6 +82,9 @@ class BibliographyController extends BaseController
                     'online_source_get' => $this->generateUrl('online_source_get', ['id' => 'online_source_id']),
                     'online_source_edit' => $this->generateUrl('online_source_edit', ['id' => 'online_source_id']),
                     'online_source_delete' => $this->generateUrl('online_source_delete', ['id' => 'online_source_id']),
+                    'phd_get' => $this->generateUrl('phd_get', ['id' => 'phd_id']),
+                    'phd_edit' => $this->generateUrl('phd_edit', ['id' => 'phd_id']),
+                    'phd_delete' => $this->generateUrl('phd_delete', ['id' => 'phd_id']),
                     'blog_get' => $this->generateUrl('blog_get', ['id' => 'blog_id']),
                     'blog_edit' => $this->generateUrl('blog_edit', ['id' => 'blog_id']),
                     'blog_delete' => $this->generateUrl('blog_delete', ['id' => 'blog_id']),
@@ -152,6 +159,21 @@ class BibliographyController extends BaseController
             $this
                 ->get('journal_manager')
                 ->addManagements($content);
+            $this
+                ->get('book_cluster_manager')
+                ->addManagements($content);
+            $this
+                ->get('book_series_manager')
+                ->addManagements($content);
+            $this
+                ->get('blog_manager')
+                ->addManagements($content);
+            $this
+                ->get('blog_post_manager')
+                ->addManagements($content);
+            $this
+                ->get('phd_manager')
+                ->addManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -196,6 +218,21 @@ class BibliographyController extends BaseController
                 ->removeManagements($content);
             $this
                 ->get('journal_manager')
+                ->removeManagements($content);
+            $this
+                ->get('book_cluster_manager')
+                ->removeManagements($content);
+            $this
+                ->get('book_series_manager')
+                ->removeManagements($content);
+            $this
+                ->get('blog_manager')
+                ->removeManagements($content);
+            $this
+                ->get('blog_post_manager')
+                ->removeManagements($content);
+            $this
+                ->get('phd_manager')
                 ->removeManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(

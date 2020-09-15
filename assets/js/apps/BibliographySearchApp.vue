@@ -468,6 +468,7 @@ export default {
                 book: {},
                 book_chapter: {},
                 online_source: {},
+                phd: {},
             },
             defaultOrdering: 'title',
             types: {
@@ -511,7 +512,7 @@ export default {
     },
     computed: {
         depUrls: function () {
-            if (['article', 'book', 'book_chapter', 'online_source', 'blog_post'].includes(this.submitModel.submitType)) {
+            if (['article', 'book', 'book_chapter', 'online_source', 'blog_post', 'phd'].includes(this.submitModel.submitType)) {
                 const depUrls = {
                     'Manuscripts': {
                         depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
