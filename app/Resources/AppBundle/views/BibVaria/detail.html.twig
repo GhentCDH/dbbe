@@ -3,7 +3,7 @@
 {% block content %}
     <article class="col-xs-9">
         <h2 class="h1">
-            <small>Bib Varia</small><br />{{ bib_varia.getTitle() }}
+            {{ bib_varia.getTitle() }}
             {% if is_granted('ROLE_EDITOR_VIEW') %}
                 <a href="{{ path('bib_varia_edit', {'id': bib_varia.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
