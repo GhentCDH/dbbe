@@ -187,6 +187,7 @@ export default {
             model: {
                 personRoles: {},
                 basic: {
+                    blog: null,
                     url: null,
                     title: null,
                     postDate: null,
@@ -232,6 +233,7 @@ export default {
 
                 // Basic info
                 this.model.basic = {
+                    blog: this.blogPost.blog,
                     url: this.blogPost.url,
                     title: this.blogPost.title,
                     postDate: this.blogPost.postDate,
