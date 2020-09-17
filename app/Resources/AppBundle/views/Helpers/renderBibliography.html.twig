@@ -49,4 +49,11 @@
             ({{ sourceStatus.getName() }})
         {% endif %}
     </a>
+{% elseif item['type'] == 'bibVaria' %}
+    <a href="{{ path('bib_varia_get', {'id': item['bibVaria'].getId()}) }}">
+        {{ item['bibVaria'].getDescription() ~ ': ' ~ item['pages']|join(', ') }}
+        {% if sourceStatus is defined and sourceStatus is not empty %}
+            ({{ sourceStatus.getName() }})
+        {% endif %}
+    </a>
 {% endif %}

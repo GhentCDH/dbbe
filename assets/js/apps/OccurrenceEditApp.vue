@@ -121,7 +121,7 @@
                 id="bibliography"
                 ref="bibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'PhD theses', reload: 'phds', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'PhD theses', reload: 'phds', edit: urls['bibliographies_search']},{title: 'Bib varia', reload: 'bibVarias', edit: urls['bibliographies_search']}]"
                 :model="model.bibliography"
                 :reference-type="true"
                 :image="true"
@@ -399,6 +399,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                     phds: [],
+                    bibVarias: [],
                 },
                 general: {
                     palaeographicalInfo: null,
@@ -463,6 +464,7 @@ export default {
             onlineSources: [],
             blogPosts: [],
             phds: [],
+            bibVarias: [],
             referenceTypes: this.data.referenceTypes,
         };
         this.generals = {
@@ -501,6 +503,7 @@ export default {
             this.reload('onlineSources');
             this.reload('blogPosts');
             this.reload('phds');
+            this.reload('bibVarias');
         },
         setData() {
             if (this.occurrence != null) {
@@ -583,6 +586,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                     phds: [],
+                    bibVarias: [],
                 }
                 if (this.occurrence.bibliography != null) {
                     for (let bib of this.occurrence.bibliography) {
@@ -604,6 +608,9 @@ export default {
                             break
                         case 'phd':
                             this.model.bibliography.phds.push(bib)
+                            break
+                        case 'bibVaria':
+                            this.model.bibliography.bibVarias.push(bib)
                             break
                         }
                     }
@@ -696,6 +703,7 @@ export default {
             case 'bookChapters':
             case 'onlineSources':
             case 'phds':
+            case 'bibVarias':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
             case 'acknowledgements':

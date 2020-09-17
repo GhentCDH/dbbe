@@ -525,6 +525,18 @@ class Entity implements IdJsonInterface, IdElasticInterface
                 } else {
                     $result[$id]['relUrl'][] = $bibliography->getRelUrl();
                 }
+            } elseif ($bibliography->getType() === 'bibVaria') {
+                $id = $bibliography->getBibVaria()->getId();
+                if (!isset($result[$id])) {
+                    $result[$id] = [
+                        'type' => 'bibVaria',
+                        'bibVaria' => $bibliography->getBibVaria(),
+                        'pages' => [$bibliography->formatPages()],
+                        'sortKey' => $bibliography->getBibVaria()->getSortKey(),
+                    ];
+                } else {
+                    $result[$id]['relUrl'][] = $bibliography->getRelUrl();
+                }
             }
 
             // Add image references

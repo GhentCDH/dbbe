@@ -19,7 +19,7 @@ class BibVariaController extends EditController
     const TEMPLATE_FOLDER = 'AppBundle:BibVaria:';
 
     /**
-     * @Route("/bib_varia", name="bib_varia_get")
+     * @Route("/bib_varia", name="bib_varias_get")
      * @Method("GET")
      * @param Request $request
      */

@@ -335,6 +335,19 @@ class OccurrenceController extends EditController
     }
 
     /**
+     * Get all occurrences that have a dependency on a bib varia
+     * (reference)
+     * @Route("/occurrences/bib_varia/{id}", name="occurrence_deps_by_bib_varia")
+     * @Method("GET")
+     * @param  int    $id bib varia id
+     * @param Request $request
+     */
+    public function getDepsByBibVaria(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getBibVariaDependencies');
+    }
+
+    /**
      * Get all occurrences that have a dependency on a management collection
      * (reference)
      * @Route("/occurrences/managements/{id}", name="occurrence_deps_by_management")
@@ -481,6 +494,7 @@ class OccurrenceController extends EditController
                     'book_chapters_get' => $this->generateUrl('book_chapters_get'),
                     'online_sources_get' => $this->generateUrl('online_sources_get'),
                     'phds_get' => $this->generateUrl('phds_get'),
+                    'bib_varias_get' => $this->generateUrl('bib_varias_get'),
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
                     'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),

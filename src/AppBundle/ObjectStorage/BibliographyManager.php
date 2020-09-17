@@ -4,6 +4,7 @@ namespace AppBundle\ObjectStorage;
 
 use AppBundle\Model\Bibliography;
 use AppBundle\Model\ArticleBibliography;
+use AppBundle\Model\BibVariaBibliography;
 use AppBundle\Model\BlogPostBibliography;
 use AppBundle\Model\BookBibliography;
 use AppBundle\Model\BookChapterBibliography;
@@ -23,6 +24,7 @@ class BibliographyManager extends ObjectManager
         $bookChapterIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'book_chapter');
         $onlineSourceIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'online_source');
         $phdIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'phd');
+        $bibVariaIds = self::getUniqueIds($rawBibliographies, 'source_id', 'bib_type', 'bib_varia');
         $referenceTypeIds = self::getUniqueIds($rawBibliographies, 'reference_type_id');
 
         $articles = $this->container->get('article_manager')->getMini($articleIds);
@@ -31,6 +33,7 @@ class BibliographyManager extends ObjectManager
         $bookChapters = $this->container->get('book_chapter_manager')->getMini($bookChapterIds);
         $onlineSources = $this->container->get('online_source_manager')->getMini($onlineSourceIds);
         $phds = $this->container->get('phd_manager')->getMini($phdIds);
+        $bibVarias = $this->container->get('bib_varia_manager')->getMini($bibVariaIds);
         $referenceTypes = $this->container->get('reference_type_manager')->get($referenceTypeIds);
 
         foreach ($rawBibliographies as $rawBibliography) {
@@ -74,6 +77,14 @@ class BibliographyManager extends ObjectManager
                     $bibliographies[$rawBibliography['reference_id']] =
                         (new PhdBibliography($rawBibliography['reference_id']))
                             ->setPhd($phds[$rawBibliography['source_id']])
+                            ->setStartPage($rawBibliography['page_start'])
+                            ->setEndPage($rawBibliography['page_end'])
+                            ->setRawPages($rawBibliography['raw_pages']);
+                    break;
+                case 'bib_varia':
+                    $bibliographies[$rawBibliography['reference_id']] =
+                        (new BibVariaBibliography($rawBibliography['reference_id']))
+                            ->setBibVaria($bibVarias[$rawBibliography['source_id']])
                             ->setStartPage($rawBibliography['page_start'])
                             ->setEndPage($rawBibliography['page_end'])
                             ->setRawPages($rawBibliography['raw_pages']);

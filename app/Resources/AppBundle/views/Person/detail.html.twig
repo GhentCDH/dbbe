@@ -82,7 +82,7 @@
                         </td>
                     </tr>
                 {% endif %}
-                {% for documentType in ['article', 'book', 'bookChapter', 'blogPost', 'phd'] %}
+                {% for documentType in ['article', 'book', 'bookChapter', 'blogPost', 'phd', 'bibVaria'] %}
                     {% set documentRoles = is_granted('ROLE_VIEW_INTERNAL') ? person.getDocumentRoles(documentType) : person.getPublicDocumentRoles(documentType) %}
                     {% if documentRoles is not empty %}
                         <tr>
@@ -97,6 +97,10 @@
                                     Book post(s)
                                 {% elseif documentType == 'phd' %}
                                     PhD thesi(/e)s
+                                {% elseif documentType == 'phd' %}
+                                    PhD thesi(/e)s
+                                {% elseif documentType == 'bibVaria' %}
+                                    Varia bibliography items
                                 {% endif %}
                             </td>
                             <td>
@@ -114,6 +118,8 @@
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'blog_post_get', 'display': item.getDescription()} only %}
                                             {% elseif documentType == 'phd' %}
                                                 {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'phd_get', 'display': item.getDescription()} only %}
+                                            {% elseif documentType == 'bibVaria' %}
+                                                {% include '@App/Helpers/renderPublic.html.twig' with {'item': item, 'path': 'bib_varia_get', 'display': item.getDescription()} only %}
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}

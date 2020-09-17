@@ -305,6 +305,27 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getDepIdsByBibVariaId(int $phdId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.reference on reconstructed_poem.identity = reference.idtarget
+            inner join data.bib_varia on reference.idsource = bib_varia.identity
+            where bib_varia.identity = ?
+            UNION
+            SELECT
+                reconstructed_poem.identity as type_id
+            from data.reconstructed_poem
+            inner join data.translation_of on reconstructed_poem.identity = translation_of.iddocument
+            inner join data.reference on translation_of.idtranslation = reference.idtarget
+            inner join data.bib_varia on reference.idsource = bib_varia.identity
+            where bib_varia.identity = ?',
+            [$phdId, $phdId]
+        )->fetchAll();
+    }
+
     public function getDepIdsByManagementId(int $managementId): array
     {
         return $this->conn->executeQuery(

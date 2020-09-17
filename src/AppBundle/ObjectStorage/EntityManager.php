@@ -103,6 +103,11 @@ abstract class EntityManager extends ObjectManager
         return $this->getDependencies($this->dbs->getDepIdsByPhdId($phdId), $method);
     }
 
+    public function getBibVariaDependencies(int $bibVariaId, string $method): array
+    {
+        return $this->getDependencies($this->dbs->getDepIdsByBibVariaId($bibVariaId), $method);
+    }
+
     public function getManagementDependencies(int $managementId, string $method): array
     {
         return $this->getDependencies($this->dbs->getDepIdsByManagementId($managementId), $method);
@@ -165,7 +170,7 @@ abstract class EntityManager extends ObjectManager
         $rawInverseIdentifications = $this->dbs->getInverseIdentifications(array_keys($entities));
         if (!empty($rawInverseIdentifications)) {
             $inverseIdentifications = [];
-            foreach (['manuscript', 'occurrence', 'type', 'person', 'book', 'article', 'book_chapter', 'blog_post', 'phd'] as $type) {
+            foreach (['manuscript', 'occurrence', 'type', 'person', 'book', 'article', 'book_chapter', 'blog_post', 'phd', 'bib_varia'] as $type) {
                 $ids = self::getUniqueIds($rawInverseIdentifications, 'entity_id', 'type', $type);
                 $inverseIdentifications += $this->container->get($type . '_manager')->getMini($ids);
             }
@@ -598,7 +603,7 @@ abstract class EntityManager extends ObjectManager
         bool $referenceTypeRequired = false
     ): void {
         // Verify input
-        foreach (['book', 'article', 'bookChapter', 'onlineSource', 'blogPost', 'phd'] as $bibType) {
+        foreach (['book', 'article', 'bookChapter', 'onlineSource', 'blogPost', 'phd', 'bibVaria'] as $bibType) {
             $plurBibType = $bibType . 's';
             if (!property_exists($bibliography, $plurBibType) || !is_array($bibliography->$plurBibType)) {
                 throw new BadRequestHttpException('Incorrect bibliography data.');
@@ -618,9 +623,9 @@ abstract class EntityManager extends ObjectManager
                     )
                     || (property_exists($bib, 'image') && !(is_string($bib->image)||is_null($bib->image)))
                 ) {
-                    throw new BadRequestHttpException('Incorrect bibliography data.');
+                    throw new BadRequestHttpException('Incorrect bibliography data.' . json_encode($bib));
                 }
-                if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd'])) {
+                if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd', 'bibVaria'])) {
                     if (!property_exists($bib, 'startPage') || !(empty($bib->startPage) || is_string($bib->startPage))
                         || !property_exists($bib, 'endPage')  || !(empty($bib->endPage) || is_string($bib->endPage))
                         || (property_exists($bib, 'rawPages') && !(empty($bib->rawPages) || is_string($bib->rawPages)))
@@ -641,12 +646,12 @@ abstract class EntityManager extends ObjectManager
         $newBibIds = [];
         $this->dbs->beginTransaction();
         try {
-            foreach (['article', 'book', 'bookChapter', 'onlineSource', 'blogPost', 'phd'] as $bibType) {
+            foreach (['article', 'book', 'bookChapter', 'onlineSource', 'blogPost', 'phd', 'bibVaria'] as $bibType) {
                 $plurBibType = $bibType . 's';
                 foreach ($bibliography->$plurBibType as $bib) {
                     if (!property_exists($bib, 'id')) {
                         // Add new
-                        if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd'])) {
+                        if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd', 'bibVaria'])) {
                             $newBib = $this->container->get('bibliography_manager')->add(
                                 $entity->getId(),
                                 $bib->{$bibType}->id,
@@ -683,7 +688,7 @@ abstract class EntityManager extends ObjectManager
                     } elseif (in_array($bib->id, $oldBibIds)) {
                         $newBibIds[] = $bib->id;
                         // Update
-                        if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd'])) {
+                        if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd', 'bibVaria'])) {
                             $this->container->get('bibliography_manager')->update(
                                 $bib->id,
                                 $bib->{$bibType}->id,

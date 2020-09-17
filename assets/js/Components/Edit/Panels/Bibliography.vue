@@ -351,6 +351,65 @@
             </table>
             <btn @click="newBib('phd')"><i class="fa fa-plus" />&nbsp;Add a PhD thesis reference</btn>
         </div>
+        <div class="pbottom-large">
+            <h3>Varia bibliography items</h3>
+            <table
+                v-if="model.bibVarias.length > 0"
+                class="table table-striped table-bordered table-hover"
+            >
+                <thead>
+                <tr>
+                    <th>Bib varia</th>
+                    <th>Start page</th>
+                    <th>End page</th>
+                    <th>Raw pages</th>
+                    <th v-if="referenceType">Type</th>
+                    <th v-if="image">Plate</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr
+                    v-for="(item, index) in model.bibVarias"
+                    :key="index"
+                >
+                    <td>{{ item.bibVaria.name }}</td>
+                    <td>{{ item.startPage }}</td>
+                    <td>{{ item.endPage }}</td>
+                    <td>{{ item.rawPages }}</td>
+                    <td v-if="referenceType">
+                        <template v-if="item.referenceType != null">
+                            {{ item.referenceType.name }}
+                        </template>
+                    </td>
+                    <td v-if="image">
+                        <template v-if="item.image != null">
+                            {{ item.image }}
+                        </template>
+                    </td>
+                    <td>
+                        <a
+                            href="#"
+                            title="Edit"
+                            class="action"
+                            @click.prevent="updateBib(item, index)"
+                        >
+                            <i class="fa fa-pencil-square-o" />
+                        </a>
+                        <a
+                            href="#"
+                            title="Delete"
+                            class="action"
+                            @click.prevent="delBib(item, index)"
+                        >
+                            <i class="fa fa-trash-o" />
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <btn @click="newBib('bibVaria')"><i class="fa fa-plus" />&nbsp;Add a bib varia reference</btn>
+        </div>
         <modal
             v-model="editBibModal"
             size="lg"
@@ -402,6 +461,14 @@
                 v-if="editBib.type === 'phd'"
                 ref="editBibForm"
                 :schema="editPhdBibSchema"
+                :model="editBib"
+                :options="formOptions"
+                @validated="validated"
+            />
+            <vue-form-generator
+                v-if="editBib.type === 'bibVaria'"
+                ref="editBibForm"
+                :schema="editBibVariaBibSchema"
                 :model="editBib"
                 :options="formOptions"
                 @validated="validated"
@@ -496,6 +563,7 @@ export default {
                     onlineSources: {field: 'onlineSource', init: false},
                     blogPosts: {field: 'blogPost', init: false},
                     phds: {field: 'phd', init: false},
+                    bibVarias: {field: 'bibVaria', init: false},
                 };
             },
         },
@@ -584,6 +652,17 @@ export default {
                     ),
                 }
             },
+            editBibVariaBibSchema: {
+                fields: {
+                    bibVaria: this.createMultiSelect(
+                        'BibVaria',
+                        {
+                            required: true,
+                            validator: VueFormGenerator.validators.required
+                        }
+                    ),
+                }
+            },
             editBibModal: false,
             delBibModal: false,
             bibIndex: null,
@@ -601,6 +680,7 @@ export default {
         data.editArticleBibSchema.fields['startPage'] = startPageField
         data.editBookChapterBibSchema.fields['startPage'] = startPageField
         data.editPhdBibSchema.fields['startPage'] = startPageField
+        data.editBibVariaBibSchema.fields['startPage'] = startPageField
         let endPageField = {
             type: 'input',
             inputType: 'text',
@@ -613,6 +693,7 @@ export default {
         data.editArticleBibSchema.fields['endPage'] = endPageField
         data.editBookChapterBibSchema.fields['endPage'] = endPageField
         data.editPhdBibSchema.fields['endPage'] = endPageField
+        data.editBibVariaBibSchema.fields['endPage'] = endPageField
         let rawPagesField = {
             type: 'input',
             inputType: 'text',
@@ -626,6 +707,7 @@ export default {
         data.editArticleBibSchema.fields['rawPages'] = rawPagesField
         data.editBookChapterBibSchema.fields['rawPages'] = rawPagesField
         data.editPhdBibSchema.fields['rawPages'] = rawPagesField
+        data.editBibVariaBibSchema.fields['rawPages'] = rawPagesField
         if (this.referenceType) {
             let referenceTypeField = this.createMultiSelect('Type', {
                 model: 'referenceType',
@@ -639,6 +721,7 @@ export default {
             data.editOnlineSourceBibSchema.fields['referenceType'] = referenceTypeField
             data.editBlogPostBibSchema.fields['referenceType'] = referenceTypeField
             data.editPhdBibSchema.fields['referenceType'] = referenceTypeField
+            data.editBibVariaBibSchema.fields['referenceType'] = referenceTypeField
         }
         if (this.image) {
             let imageField = {
@@ -655,6 +738,7 @@ export default {
             data.editOnlineSourceBibSchema.fields['image'] = imageField
             data.editBlogPostBibSchema.fields['image'] = imageField
             data.editPhdBibSchema.fields['image'] = imageField
+            data.editBibVariaBibSchema.fields['image'] = imageField
         }
         return data
     },
@@ -674,6 +758,7 @@ export default {
                     this.enableField(this.editOnlineSourceBibSchema.fields.referenceType);
                     this.enableField(this.editBlogPostBibSchema.fields.referenceType);
                     this.enableField(this.editPhdBibSchema.fields.referenceType);
+                    this.enableField(this.editBibVariaBibSchema.fields.referenceType);
                 }
             } else {
                 if (enableKeys.includes('books')) {
@@ -694,6 +779,9 @@ export default {
                 } else if (enableKeys.includes('phds')) {
                     this.editPhdBibSchema.fields.phd.values = this.values.phds;
                     this.enableField(this.editPhdBibSchema.fields.phd);
+                } else if (enableKeys.includes('bibVarias')) {
+                    this.editBibVariaBibSchema.fields.bibVaria.values = this.values.bibVarias;
+                    this.enableField(this.editBibVariaBibSchema.fields.bibVaria);
                 }
             }
         },
@@ -710,6 +798,8 @@ export default {
                 this.disableField(this.editBlogPostBibSchema.fields.blogPost);
             } else if (disableKeys.includes('phds')) {
                 this.disableField(this.editPhdBibSchema.fields.phd);
+            } else if (disableKeys.includes('bibVarias')) {
+                this.disableField(this.editBibVariaBibSchema.fields.bibVaria);
             }
         },
         validate() {},
@@ -744,7 +834,7 @@ export default {
             this.editBib = {
                 type: type
             }
-            if (['article', 'book', 'bookChapter', 'phd'].includes(type)) {
+            if (['article', 'book', 'bookChapter', 'phd', 'bibVaria'].includes(type)) {
                 this.editBib.startPage = ''
                 this.editBib.endPage = ''
             }
@@ -833,6 +923,15 @@ export default {
             for (let bib of bibliography['phds']) {
                 result.push(
                     bib.phd.name
+                    + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
+                    + '.'
+                    + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')
+                    + (bib.image ? '\n(Image: ' + bib.image + ')' : '')
+                )
+            }
+            for (let bib of bibliography['bibVarias']) {
+                result.push(
+                    bib.bibVaria.name
                     + this.formatPages(bib.startPage, bib.endPage, bib.rawPages, ': ')
                     + '.'
                     + (bib.referenceType ? '\n(Type: ' + bib.referenceType.name + ')' : '')

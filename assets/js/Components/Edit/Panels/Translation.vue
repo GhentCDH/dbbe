@@ -71,7 +71,7 @@
                 id="translationBibliography"
                 ref="translationBibliography"
                 header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'Phds', reload: 'phds', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'Phds', reload: 'phds', edit: urls['bibliographies_search']},{title: 'Bib varia', reload: 'bibVarias', edit: urls['bibliographies_search']}]"
                 :model="editModel.bibliography"
                 :values="values"
                 :reloads="reloads"
@@ -160,6 +160,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                     phds: [],
+                    bibVarias: [],
                 },
             },
             delModal: false,
@@ -196,6 +197,7 @@ export default {
                 || enableKeys.includes('bookChapters')
                 || enableKeys.includes('onlineSources')
                 || enableKeys.includes('phds')
+                || enableKeys.includes('bibVarias')
             ) {
                 this.$refs.translationBibliography.enableFields(enableKeys);
             }
@@ -207,6 +209,7 @@ export default {
                 || disableKeys.includes('bookChapters')
                 || disableKeys.includes('onlineSources')
                 || disableKeys.includes('phds')
+                || disableKeys.includes('bibVarias')
             ) {
                 this.$refs.translationBibliography.disableFields(disableKeys);
             }
@@ -237,6 +240,7 @@ export default {
                     bookChapters: [],
                     onlineSources: [],
                     phds: [],
+                    bibVarias: [],
                 },
             }
             this.editModal = true
@@ -331,6 +335,13 @@ export default {
             for (let bib of bibliography['phds']) {
                 result.push(
                     bib.phd.name
+                    + this.formatPages(bib.startPage, bib.endPage, ': ')
+                    + '.'
+                )
+            }
+            for (let bib of bibliography['bibVarias']) {
+                result.push(
+                    bib.bibVaria.name
                     + this.formatPages(bib.startPage, bib.endPage, ': ')
                     + '.'
                 )
