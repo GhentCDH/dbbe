@@ -38,7 +38,7 @@ class BookChapter extends Document
         $this->title = $title;
         $this->book = $book;
 
-        // All books are public
+        // All book chapters are public
         $this->public = true;
 
         return $this;

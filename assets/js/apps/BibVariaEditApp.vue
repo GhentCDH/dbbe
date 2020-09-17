@@ -25,7 +25,7 @@
                 @reload="reload"
             />
 
-            <basicPhdPanel
+            <basicBibVariaPanel
                 id="basic"
                 ref="basic"
                 header="Basic Information"
@@ -80,7 +80,7 @@
                 Reset
             </btn>
             <btn
-                v-if="phd"
+                v-if="bibVaria"
                 type="success"
                 :disabled="(diff.length === 0)"
                 @click="saveButton()"
@@ -154,7 +154,7 @@
             </nav>
         </aside>
         <resetModal
-            title="PhD thesis"
+            title="bib varia"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()"
@@ -165,7 +165,7 @@
             @confirm="invalidModal=false"
         />
         <saveModal
-            title="PhD thesis"
+            title="bib varia"
             :show="saveModal"
             :diff="diff"
             :alerts="saveAlerts"
@@ -181,10 +181,10 @@ import Vue from 'vue'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicPhd|Url|Identification|GeneralBibItem|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBibVaria|Url|Identification|GeneralBibItem|Management)[.]vue$/);
 
 for(let key of panelComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
+    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '');
     Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
 }
 
@@ -194,9 +194,8 @@ export default {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
-            phd: null,
+            bibVaria: null,
             modernPersons: null,
-            clustersAndSeries: null,
             model: {
                 personRoles: {},
                 basic: {
@@ -204,7 +203,6 @@ export default {
                     year: null,
                     city: null,
                     institution: null,
-                    volume: null,
                 },
                 urls: {urls: []},
                 identification: {},
@@ -217,9 +215,9 @@ export default {
                 'general',
                 'managements',
             ],
-        }
+        };
         for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
+            data.model.identification[identifier.systemName] = null;
         }
         if (data.identifiers.length > 0) {
             data.panels.push('identification')
@@ -230,7 +228,7 @@ export default {
         return data
     },
     created () {
-        this.phd = this.data.phd;
+        this.bibVaria = this.data.bibVaria;
 
         this.modernPersons = [];
         this.managements = this.data.managements;
@@ -240,24 +238,23 @@ export default {
             this.reload('modernPersons');
         },
         setData() {
-            if (this.phd != null) {
+            if (this.bibVaria != null) {
                 // PersonRoles
                 for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.phd.personRoles == null ? [] : this.phd.personRoles[role.systemName];
+                    this.model.personRoles[role.systemName] = this.bibVaria.personRoles == null ? [] : this.bibVaria.personRoles[role.systemName];
                 }
 
                 // Basic info
                 this.model.basic = {
-                    title: this.phd.title,
-                    year: this.phd.year,
-                    city: this.phd.city,
-                    institution: this.phd.institution,
-                    volume: this.phd.volume,
-                }
+                    title: this.bibVaria.title,
+                    year: this.bibVaria.year,
+                    city: this.bibVaria.city,
+                    institution: this.bibVaria.institution,
+                };
 
                 // Urls
                 this.model.urls = {
-                    urls: this.phd.urls == null ? null : this.phd.urls.map(
+                    urls: this.bibVaria.urls == null ? null : this.bibVaria.urls.map(
                         function(url, index) {
                             url.tgIndex = index + 1
                             return url
@@ -266,51 +263,51 @@ export default {
                 }
 
                 // Identification
-                this.model.identification = {}
+                this.model.identification = {};
                 for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.phd.identifications == null ? [] : this.phd.identifications[identifier.systemName];
+                    this.model.identification[identifier.systemName] = this.bibVaria.identifications == null ? [] : this.bibVaria.identifications[identifier.systemName];
                 }
 
                 // General
                 this.model.general = {
-                    publicComment: this.phd.publicComment,
-                    privateComment: this.phd.privateComment,
-                }
+                    publicComment: this.bibVaria.publicComment,
+                    privateComment: this.bibVaria.privateComment,
+                };
 
                 // Management
                 this.model.managements = {
-                    managements: this.phd.managements,
+                    managements: this.bibVaria.managements,
                 }
             }
         },
         save() {
-            this.openRequests++
-            this.saveModal = false
-            if (this.phd == null) {
-                axios.post(this.urls['phd_post'], this.toSave())
+            this.openRequests++;
+            this.saveModal = false;
+            if (this.bibVaria == null) {
+                axios.post(this.urls['bib_varia_post'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
-                        window.location = this.urls['phd_get'].replace('phd_id', response.data.id)
+                        window.location = this.urls['bib_varia_get'].replace('bib_varia_id', response.data.id)
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the bib varia data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }
             else {
-                axios.put(this.urls['phd_put'], this.toSave())
+                axios.put(this.urls['bib_varia_put'], this.toSave())
                     .then( (response) => {
-                        window.onbeforeunload = function () {}
+                        window.onbeforeunload = function () {};
                         // redirect to the detail page
-                        window.location = this.urls['phd_get']
+                        window.location = this.urls['bib_varia_get']
                     })
                     .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        console.log(error);
+                        this.saveModal = true;
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the bib varia data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)});
                         this.openRequests--
                     })
             }

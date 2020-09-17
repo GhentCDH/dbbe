@@ -85,6 +85,9 @@ class BibliographyController extends BaseController
                     'phd_get' => $this->generateUrl('phd_get', ['id' => 'phd_id']),
                     'phd_edit' => $this->generateUrl('phd_edit', ['id' => 'phd_id']),
                     'phd_delete' => $this->generateUrl('phd_delete', ['id' => 'phd_id']),
+                    'bib_varia_get' => $this->generateUrl('bib_varia_get', ['id' => 'bib_varia_id']),
+                    'bib_varia_edit' => $this->generateUrl('bib_varia_edit', ['id' => 'bib_varia_id']),
+                    'bib_varia_delete' => $this->generateUrl('bib_varia_delete', ['id' => 'bib_varia_id']),
                     'blog_get' => $this->generateUrl('blog_get', ['id' => 'blog_id']),
                     'blog_edit' => $this->generateUrl('blog_edit', ['id' => 'blog_id']),
                     'blog_delete' => $this->generateUrl('blog_delete', ['id' => 'blog_id']),
@@ -174,6 +177,9 @@ class BibliographyController extends BaseController
             $this
                 ->get('phd_manager')
                 ->addManagements($content);
+            $this
+                ->get('bib_varia_manager')
+                ->addManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -233,6 +239,9 @@ class BibliographyController extends BaseController
                 ->removeManagements($content);
             $this
                 ->get('phd_manager')
+                ->removeManagements($content);
+            $this
+                ->get('bib_varia_manager')
                 ->removeManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(

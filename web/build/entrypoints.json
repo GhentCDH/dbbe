@@ -12,7 +12,12 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.e70f4dc1.js"
+        "/build/bibliographysearch.e9cf6e75.js"
+      ]
+    },
+    "bibvariaedit": {
+      "js": [
+        "/build/bibvariaedit.730ab49e.js"
       ]
     },
     "blogedit": {
@@ -157,7 +162,7 @@
     },
     "phdedit": {
       "js": [
-        "/build/phdedit.12922c0a.js"
+        "/build/phdedit.695574db.js"
       ]
     },
     "regionsedit": {

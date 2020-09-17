@@ -1,7 +1,8 @@
 {
   "build/acknowledgementsedit.js": "/build/acknowledgementsedit.e26de8fc.js",
   "build/articleedit.js": "/build/articleedit.f1af0046.js",
-  "build/bibliographysearch.js": "/build/bibliographysearch.e70f4dc1.js",
+  "build/bibliographysearch.js": "/build/bibliographysearch.e9cf6e75.js",
+  "build/bibvariaedit.js": "/build/bibvariaedit.730ab49e.js",
   "build/blogedit.js": "/build/blogedit.5ceb2af8.js",
   "build/blogpostedit.js": "/build/blogpostedit.35a1a79e.js",
   "build/bookchapteredit.js": "/build/bookchapteredit.790d7d09.js",
@@ -30,7 +31,7 @@
   "build/pageedit.js": "/build/pageedit.212482c6.js",
   "build/personedit.js": "/build/personedit.2da8e6e6.js",
   "build/personsearch.js": "/build/personsearch.866e5c4d.js",
-  "build/phdedit.js": "/build/phdedit.12922c0a.js",
+  "build/phdedit.js": "/build/phdedit.695574db.js",
   "build/regionsedit.js": "/build/regionsedit.0fea68ab.js",
   "build/rolesedit.js": "/build/rolesedit.ea2e3c00.js",
   "build/screen.css": "/build/screen.26f2d468.css",

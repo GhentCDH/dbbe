@@ -154,6 +154,11 @@ services:
         arguments: [ '@phd_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'phd' ]
         public: true
 
+    bib_varia_manager:
+        class: AppBundle\ObjectStorage\BibVariaManager
+        arguments: [ '@bib_varia_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'bib_varia' ]
+        public: true
+
     reference_type_manager:
         class: AppBundle\ObjectStorage\ReferenceTypeManager
         arguments: ['@reference_type_service', '@cache.app', '@service_container', null, null]
@@ -321,6 +326,10 @@ services:
 
     phd_service:
         class: AppBundle\Service\DatabaseService\PhdService
+        arguments: [ '@doctrine.orm.entity_manager' ]
+
+    bib_varia_service:
+        class: AppBundle\Service\DatabaseService\BibVariaService
         arguments: [ '@doctrine.orm.entity_manager' ]
 
     reference_type_service:

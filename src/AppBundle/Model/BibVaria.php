@@ -5,77 +5,56 @@ namespace AppBundle\Model;
 use URLify;
 
 use AppBundle\Utils\ArrayToJson;
-use AppBundle\Utils\VolumeSortKey;
 
 /**
  */
-class Phd extends Document
+class BibVaria extends Document
 {
     /**
      * @var string
      */
-    const CACHENAME = 'phd';
+    const CACHENAME = 'bib_varia';
 
     use UrlsTrait;
 
     /**
-     * @var int
-     */
-    protected $year;
-    /**
-     * @var string
-     */
-    protected $city;
-    /**
-     * @var string
-     */
-    protected $institution;
-    /**
-     * @var string
-     */
-    protected $volume;
-
-    /**
-     * @param int          $id
-     * @param int          $year
-     * @param string       $city
-     * @param string       $title
-     * @param string|null  $institution
-     * @param string|null  $volume
+     * @param int $id
+     * @param string $title
+     * @param int|null $year
+     * @param string|null $city
+     * @param string|null $institution
      */
     public function __construct(
         int $id,
-        int $year,
-        string $city,
         string $title,
-        string $institution = null,
-        string $volume = null
+        int $year = null,
+        string $city = null,
+        string $institution = null
     ) {
         $this->id = $id;
+        $this->title = $title;
         $this->year = $year;
         $this->city = $city;
-        $this->title = $title;
         $this->institution = $institution;
-        $this->volume = $volume;
 
-        // All phds are public
+        // All bib varias are public
         $this->public = true;
 
         return $this;
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getYear(): int
+    public function getYear(): ?int
     {
         return $this->year;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCity(): string
+    public function getCity(): ?string
     {
         return $this->city;
     }
@@ -86,23 +65,6 @@ class Phd extends Document
     public function getInstitution(): ?string
     {
         return $this->institution;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getVolume(): ?string
-    {
-        return $this->volume;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFullTitleAndVolume(): string
-    {
-        return $this->title
-            . (!empty($this->volume) ? ' (vol. ' . $this->volume . ')' : '');
     }
 
     /**
@@ -118,8 +80,8 @@ class Phd extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->year
-            . ', ' . $this->getFullTitleAndVolume()
+            . (!empty($this->getYear()) ? ' ' . $this->getYear() : '')
+            . ', ' . $this->getTitle()
             . (!empty($this->getCity()) ? ', ' . $this->getCity() : '');
     }
 
@@ -132,25 +94,21 @@ class Phd extends Document
     {
         $sortKey = 'a';
 
-        $lastName = reset($this->personRoles['author'][1])->getLastName();
-        if (!empty($lastName)) {
-            $sortKey .= URLify::filter($lastName);
+        if (!empty($this->personRoles['author'])) {
+            $lastName = reset($this->personRoles['author'][1])->getLastName();
+            if (!empty($lastName)) {
+                $sortKey .= URLify::filter($lastName);
+            } else {
+                $sortKey .= 'zzz';
+            }
         } else {
             $sortKey .= 'zzz';
         }
 
-        $year = $this->getYear();
-        if (!empty($year)) {
-            $sortKey .= $year;
+        if (!empty($this->year)) {
+            $sortKey .= $this->year;
         } else {
             $sortKey .= '9999';
-        }
-
-        $volume = $this->getVolume();
-        if (!empty($volume)) {
-            $sortKey .= VolumeSortKey::sortKey($volume);
-        } else {
-            $sortKey .= '99999999';
         }
 
         return $sortKey;
@@ -184,10 +142,7 @@ class Phd extends Document
             $result['title'] = $this->title;
         }
         if (!empty($this->institution)) {
-            $result['volume'] = $this->institution;
-        }
-        if (!empty($this->volume)) {
-            $result['volume'] = $this->volume;
+            $result['institution'] = $this->institution;
         }
 
         return $result;
@@ -201,11 +156,11 @@ class Phd extends Document
         $result = parent::getElastic();
 
         $result['type'] = [
-            'id' => 9,
-            'name' => 'Phd thesis',
+            'id' => 10,
+            'name' => 'Varia',
         ];
 
-        $result['title'] = $this->getFullTitleAndVolume();
+        $result['title'] = $this->title;
         $personRoles = $this->getPersonRoles();
         foreach ($personRoles as $roleName => $personRole) {
             $result[$roleName] = ArrayToJson::arrayToShortJson($personRole[1]);
