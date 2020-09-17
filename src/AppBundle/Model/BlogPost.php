@@ -3,6 +3,7 @@
 namespace AppBundle\Model;
 
 use DateTime;
+use URLify;
 
 use AppBundle\Utils\ArrayToJson;
 
@@ -103,7 +104,22 @@ class BlogPost extends Document
      */
     public function getSortKey(): string
     {
-        return 'z' . $this->title;
+        $sortKey = 'a';
+
+        if (!empty($this->personRoles['author'])) {
+            $lastName = reset($this->personRoles['author'][1])->getLastName();
+            if (!empty($lastName)) {
+                $sortKey .= URLify::filter($lastName);
+            } else {
+                $sortKey .= 'zzz';
+            }
+        } else {
+            $sortKey .= 'zzz';
+        }
+
+        $sortKey .= 'title';
+
+        return $sortKey;
     }
 
     /**
