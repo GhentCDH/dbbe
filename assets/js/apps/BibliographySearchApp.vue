@@ -483,7 +483,7 @@ export default {
                 7: 'blog',
                 8: 'blog_post',
                 9: 'phd',
-                10: 'varia',
+                10: 'bib_varia',
             }
         }
 
