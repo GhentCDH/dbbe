@@ -19,7 +19,7 @@
             </a>
         </h2>
         {% for year, array in data %}
-            <h2>{{ year }}</h2>
+            <h2 id="{{ year }}">{{ year }}</h2>
             <div class="content-text pbottom-large">
                 {%  for newsEvent in array %}
                     {% if newsEvent.public %}
