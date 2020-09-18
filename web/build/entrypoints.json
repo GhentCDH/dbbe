@@ -22,12 +22,12 @@
     },
     "blogedit": {
       "js": [
-        "/build/blogedit.5ceb2af8.js"
+        "/build/blogedit.116badb3.js"
       ]
     },
     "blogpostedit": {
       "js": [
-        "/build/blogpostedit.35a1a79e.js"
+        "/build/blogpostedit.27246223.js"
       ]
     },
     "bookedit": {
@@ -137,7 +137,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.6bc2b5a9.js"
+        "/build/onlinesourceedit.992abe74.js"
       ]
     },
     "originsedit": {

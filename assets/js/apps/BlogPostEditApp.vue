@@ -40,7 +40,7 @@
             <urlPanel
                 id="urls"
                 ref="urls"
-                header="Urls"
+                header="Alternative urls"
                 :model="model.urls"
                 @validated="validated"
             />
