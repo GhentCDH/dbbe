@@ -601,6 +601,63 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getBlogPosts(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as blog_post_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.blog_post on bibrole.iddocument = blog_post.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getPhds(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as phd_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.phd on bibrole.iddocument = phd.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
+    public function getBibVarias(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                bibrole.idperson as person_id,
+                bibrole.iddocument as bib_varia_id,
+                bibrole.idrole as role_id
+            from data.bibrole
+            inner join data.bib_varia on bibrole.iddocument = bib_varia.identity
+            where bibrole.idperson in (?)',
+            [
+                $ids,
+            ],
+            [
+                Connection::PARAM_INT_ARRAY,
+            ]
+        )->fetchAll();
+    }
+
     public function getManuscriptsAsContents(array $ids): array
     {
         // Get all manuscript ids with a person as content (or any of the children of this content)

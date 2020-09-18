@@ -349,6 +349,57 @@ class PersonManager extends ObjectEntityManager
                 );
         }
 
+        // Blog post roles
+        $raws = $this->dbs->getBlogPosts([$id]);
+        $ids = self::getUniqueIds($raws, 'blog_post_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $blogPosts = $this->container->get('blog_post_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'blogPost',
+                    $roles[$raw['role_id']],
+                    $blogPosts[$raw['blog_post_id']]
+                );
+        }
+
+        // PhD thesis roles
+        $raws = $this->dbs->getPhds([$id]);
+        $ids = self::getUniqueIds($raws, 'phd_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $phds = $this->container->get('phd_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'phd',
+                    $roles[$raw['role_id']],
+                    $phds[$raw['phd_id']]
+                );
+        }
+
+        // Bib varia roles
+        $raws = $this->dbs->getBibvarias([$id]);
+        $ids = self::getUniqueIds($raws, 'bib_varia_id');
+        $roleIds = self::getUniqueIds($raws, 'role_id');
+
+        $bibVarias = $this->container->get('bib_varia_manager')->getMini($ids);
+        $roles = $this->container->get('role_manager')->get($roleIds);
+
+        foreach ($raws as $raw) {
+            $person
+                ->addDocumentRole(
+                    'bibVaria',
+                    $roles[$raw['role_id']],
+                    $bibVarias[$raw['bib_varia_id']]
+                );
+        }
+
         return $person;
     }
 
