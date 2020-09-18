@@ -22,7 +22,7 @@
             <urlPanel
                 id="urls"
                 ref="urls"
-                header="Alternative urls"
+                header="Additional urls"
                 :model="model.urls"
                 @validated="validated"
             />
