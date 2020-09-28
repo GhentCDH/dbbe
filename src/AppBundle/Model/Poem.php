@@ -203,7 +203,7 @@ class Poem extends Document
         if (!empty($this->title)) {
             $result['title'] = $this->title;
         }
-        if (!empty($this->numberOfVerses)) {
+        if (isset($this->numberOfVerses)) {
             $result['numberOfVerses'] = $this->numberOfVerses;
         }
         if (!empty($this->metres)) {
