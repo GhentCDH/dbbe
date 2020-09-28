@@ -2,29 +2,42 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Model\Status;
-
+use AppBundle\Service\ElasticSearchService\ElasticTypeService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class TypeController extends EditController
+use AppBundle\Model\Status;
+use AppBundle\ObjectStorage\AcknowledgementManager;
+use AppBundle\ObjectStorage\GenreManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\KeywordManager;
+use AppBundle\ObjectStorage\LanguageManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\MetreManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\ReferenceTypeManager;
+use AppBundle\ObjectStorage\RoleManager;
+use AppBundle\ObjectStorage\StatusManager;
+use AppBundle\ObjectStorage\TypeManager;
+use AppBundle\ObjectStorage\TypeRelationTypeManager;
+
+class TypeController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'type_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Type:';
+    public function __construct(TypeManager $typeManager)
+    {
+        $this->manager = $typeManager;
+        $this->templateFolder = '@App/Type/';
+    }
 
     /**
      * @Route("/types", name="types_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -39,11 +52,19 @@ class TypeController extends EditController
      * @Route("/types/search", name="types_search")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticTypeService $elasticTypeService
+     * @param IdentifierManager $identifierManager
+     * @param ManagementManager $managementManager
+     * @return Response
      */
-    public function search(Request $request)
-    {
+    public function search(
+        Request $request,
+        ElasticTypeService $elasticTypeService,
+        IdentifierManager $identifierManager,
+        ManagementManager $managementManager
+    ) {
         return $this->render(
-            self::TEMPLATE_FOLDER . 'overview.html.twig',
+            $this->templateFolder . 'overview.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
@@ -60,16 +81,16 @@ class TypeController extends EditController
                     'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
                 ]),
                 'data' => json_encode(
-                    $this->get('type_elastic_service')->searchAndAggregate(
+                    $elasticTypeService->searchAndAggregate(
                         $this->sanitize($request->query->all()),
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getPrimaryByTypeJson('type')
+                    $identifierManager->getPrimaryByTypeJson('type')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -80,10 +101,15 @@ class TypeController extends EditController
      * @Route("/types/search_api", name="types_search_api")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticTypeService $elasticTypeService
+     * @return JsonResponse
      */
-    public function searchAPI(Request $request)
-    {
-        $result = $this->get('type_elastic_service')->searchAndAggregate(
+    public function searchAPI(
+        Request $request,
+        ElasticTypeService $elasticTypeService
+    ) {
+        $this->throwErrorIfNotJson($request);
+        $result = $elasticTypeService->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
@@ -94,18 +120,49 @@ class TypeController extends EditController
     /**
      * @Route("/types/add", name="type_add")
      * @Method("GET")
-     * @param Request $request
+     * @param TypeRelationTypeManager $typeRelationTypeManager
+     * @param PersonManager $personManager
+     * @param MetreManager $metreManager
+     * @param GenreManager $genreManager
+     * @param KeywordManager $keywordManager
+     * @param ReferenceTypeManager $referenceTypeManager
+     * @param LanguageManager $languageManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        TypeRelationTypeManager $typeRelationTypeManager,
+        PersonManager $personManager,
+        MetreManager $metreManager,
+        GenreManager $genreManager,
+        KeywordManager $keywordManager,
+        ReferenceTypeManager $referenceTypeManager,
+        LanguageManager $languageManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/types/{id}", name="type_get")
      * @Method("GET")
-     * @param  int    $id
+     * @param int $id
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -115,26 +172,26 @@ class TypeController extends EditController
     /**
      * @Route("/typ/{id}", name="type_get_old_perma")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
      */
-    public function getOldPerma(int $id, Request $request)
+    public function getOldPerma(int $id)
     {
         // Let the 404 page handle the not found exception
-        $newId = $this->get(static::MANAGER)->getNewId($id);
+        $newId = $this->manager->getNewId($id);
         return $this->redirectToRoute('type_get', ['id' => $newId], 301);
     }
 
     /**
      * @Route("/type/view/id/{id}", name="type_get_old")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
      */
-    public function getOld(int $id, Request $request)
+    public function getOld(int $id)
     {
         // Let the 404 page handle the not found exception
-        $newId = $this->get(static::MANAGER)->getNewId($id);
+        $newId = $this->manager->getNewId($id);
         return $this->redirectToRoute('type_get', ['id' => $newId], 301);
     }
 
@@ -143,8 +200,9 @@ class TypeController extends EditController
      * (document_status)
      * @Route("/types/statuses/{id}", name="type_deps_by_status")
      * @Method("GET")
-     * @param  int    $id status id
+     * @param int $id status id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByStatus(int $id, Request $request)
     {
@@ -156,8 +214,9 @@ class TypeController extends EditController
      * (bibrole / factoid)
      * @Route("/types/persons/{id}", name="type_deps_by_person")
      * @Method("GET")
-     * @param  int    $id person id
+     * @param int $id person id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPerson(int $id, Request $request)
     {
@@ -169,8 +228,9 @@ class TypeController extends EditController
      * (poem_metre)
      * @Route("/types/metres/{id}", name="type_deps_by_metre")
      * @Method("GET")
-     * @param  int    $id metre id
+     * @param int $id metre id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByMetre(int $id, Request $request)
     {
@@ -182,8 +242,9 @@ class TypeController extends EditController
      * (document_genre)
      * @Route("/types/genres/{id}", name="type_deps_by_genre")
      * @Method("GET")
-     * @param  int    $id genre id
+     * @param int $id genre id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByGenre(int $id, Request $request)
     {
@@ -195,8 +256,9 @@ class TypeController extends EditController
      * (factoid / document_keyword)
      * @Route("/types/keywords/{id}", name="type_deps_by_keyword")
      * @Method("GET")
-     * @param  int    $id keyword id
+     * @param int $id keyword id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByKeyword(int $id, Request $request)
     {
@@ -208,8 +270,9 @@ class TypeController extends EditController
      * (document_acknowledgement)
      * @Route("/types/acknowledgements/{id}", name="type_deps_by_acknowledgement")
      * @Method("GET")
-     * @param  int    $id acknowledgement id
+     * @param int $id acknowledgement id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByAcknowledgement(int $id, Request $request)
     {
@@ -221,8 +284,9 @@ class TypeController extends EditController
      * (factoid: based on)
      * @Route("/types/occurrences/{id}", name="type_deps_by_occurrence")
      * @Method("GET")
-     * @param  int    $id occurrence id
+     * @param int $id occurrence id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOccurrence(int $id, Request $request)
     {
@@ -234,8 +298,9 @@ class TypeController extends EditController
      * (bibrole)
      * @Route("/types/roles/{id}", name="type_deps_by_role")
      * @Method("GET")
-     * @param  int    $id role id
+     * @param int $id role id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRole(int $id, Request $request)
     {
@@ -247,8 +312,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/articles/{id}", name="type_deps_by_article")
      * @Method("GET")
-     * @param  int    $id article id
+     * @param int $id article id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByArticle(int $id, Request $request)
     {
@@ -260,8 +326,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/blogposts/{id}", name="type_deps_by_blog_post")
      * @Method("GET")
-     * @param  int    $id blog post id
+     * @param int $id blog post id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBlogPost(int $id, Request $request)
     {
@@ -269,13 +336,14 @@ class TypeController extends EditController
     }
 
     /**
-    * Get all types that have a dependency on a book
-    * (reference)
-    * @Route("/types/books/{id}", name="type_deps_by_book")
-    * @Method("GET")
-    * @param  int    $id book id
-    * @param Request $request
-    */
+     * Get all types that have a dependency on a book
+     * (reference)
+     * @Route("/types/books/{id}", name="type_deps_by_book")
+     * @Method("GET")
+     * @param int $id book id
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getDepsByBook(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
@@ -286,8 +354,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/bookchapters/{id}", name="type_deps_by_book_chapter")
      * @Method("GET")
-     * @param  int    $id book chapter id
+     * @param int $id book chapter id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBookChapter(int $id, Request $request)
     {
@@ -299,8 +368,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/onlinesources/{id}", name="type_deps_by_online_source")
      * @Method("GET")
-     * @param  int    $id online source id
+     * @param int $id online source id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOnlineSource(int $id, Request $request)
     {
@@ -312,8 +382,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/phd_theses/{id}", name="type_deps_by_phd")
      * @Method("GET")
-     * @param  int    $id phd id
+     * @param int $id phd id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPhd(int $id, Request $request)
     {
@@ -325,8 +396,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/bib_varia/{id}", name="type_deps_by_bib_varia")
      * @Method("GET")
-     * @param  int    $id bib varia id
+     * @param int $id bib varia id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBibVaria(int $id, Request $request)
     {
@@ -338,8 +410,9 @@ class TypeController extends EditController
      * (reference)
      * @Route("/types/managements/{id}", name="type_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -418,16 +491,40 @@ class TypeController extends EditController
     /**
      * @Route("/types/{id}/edit", name="type_edit")
      * @Method("GET")
-     * @param  int|null $id
-     * @param Request $request
+     * @param TypeRelationTypeManager $typeRelationTypeManager
+     * @param PersonManager $personManager
+     * @param MetreManager $metreManager
+     * @param GenreManager $genreManager
+     * @param KeywordManager $keywordManager
+     * @param ReferenceTypeManager $referenceTypeManager
+     * @param LanguageManager $languageManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
      * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        TypeRelationTypeManager $typeRelationTypeManager,
+        PersonManager $personManager,
+        MetreManager $metreManager,
+        GenreManager $genreManager,
+        KeywordManager $keywordManager,
+        ReferenceTypeManager $referenceTypeManager,
+        LanguageManager $languageManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
@@ -469,28 +566,28 @@ class TypeController extends EditController
                 'data' => json_encode([
                     'type' => empty($id)
                         ? null
-                        : $this->get('type_manager')->getFull($id)->getJson(),
-                    'typeRelationTypes' => $this->get('type_relation_type_manager')->getAllShortJson(),
-                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
-                    'metres' => $this->get('metre_manager')->getAllShortJson(),
-                    'genres' => $this->get('genre_manager')->getAllShortJson(),
-                    'subjectKeywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
-                    'typeKeywords' => $this->get('keyword_manager')->getByTypeShortJson('type'),
-                    'referenceTypes' => $this->get('reference_type_manager')->getAllShortJson(),
-                    'languages' => $this->get('language_manager')->getAllShortJson(),
-                    'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
-                    'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_TEXT),
-                    'criticalStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::TYPE_CRITICAL),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'typeRelationTypes' => $typeRelationTypeManager->getAllShortJson(),
+                    'dbbePersons' => $personManager->getAllDBBEShortJson(),
+                    'metres' => $metreManager->getAllShortJson(),
+                    'genres' => $genreManager->getAllShortJson(),
+                    'subjectKeywords' => $keywordManager->getByTypeShortJson('subject'),
+                    'typeKeywords' => $keywordManager->getByTypeShortJson('type'),
+                    'referenceTypes' => $referenceTypeManager->getAllShortJson(),
+                    'languages' => $languageManager->getAllShortJson(),
+                    'acknowledgements' => $acknowledgementManager->getAllShortJson(),
+                    'textStatuses' => $statusManager->getByTypeShortJson(Status::TYPE_TEXT),
+                    'criticalStatuses' => $statusManager->getByTypeShortJson(Status::TYPE_CRITICAL),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('type')
+                    $identifierManager->getByTypeJson('type')
                 ),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getByTypeJson('type')
+                    $roleManager->getByTypeJson('type')
                 ),
                 'contributorRoles' => json_encode(
-                    $this->get('role_manager')->getContributorByTypeJson('type')
+                    $roleManager->getContributorByTypeJson('type')
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -571,7 +668,9 @@ class TypeController extends EditController
 
         if (!empty($filters)) {
             // sanitize text_stem
-            if (!(isset($filters['text_stem']) && in_array($filters['text_stem'], ['original', 'stemmer']))) {
+            if (!(isset($filters['text_stem'])
+                && in_array($filters['text_stem'], ['original', 'stemmer']))
+            ) {
                 $filters['text_stem'] = 'original';
             }
             // sanitize text_fields
@@ -579,7 +678,9 @@ class TypeController extends EditController
                 $filters['text_fields'] = 'text';
             }
             // sanitize text_combination
-            if (!(isset($filters['text_combination']) && in_array($filters['text_combination'], ['any', 'all', 'phrase']))) {
+            if (!(isset($filters['text_combination'])
+                && in_array($filters['text_combination'], ['any', 'all', 'phrase']))
+            ) {
                 $filters['text_combination'] = 'all';
             }
 

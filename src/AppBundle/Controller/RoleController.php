@@ -2,17 +2,24 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\ObjectStorage\RoleManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class RoleController extends Controller
+class RoleController extends AbstractController
 {
+    public function __construct(RoleManager $roleManager)
+    {
+        $this->manager = $roleManager;
+        $this->templateFolder = '@App/Person/';
+    }
+
     /**
      * @Route("/roles", name="roles_get")
      * @Method("GET")
@@ -24,7 +31,7 @@ class RoleController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
-                $this->get('role_manager')->getAllRolesJson()
+                $this->manager->getAllRolesJson()
             );
         }
         throw new BadRequestHttpException('Only JSON requests allowed.');
@@ -40,7 +47,7 @@ class RoleController extends Controller
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         return $this->render(
-            'AppBundle:Role:edit.html.twig',
+            '@App/Role/edit.html.twig',
             [
                 'urls' => json_encode([
                     'roles_get' => $this->generateUrl('roles_get'),
@@ -62,7 +69,7 @@ class RoleController extends Controller
                     'login' => $this->generateUrl('saml_login'),
                 ]),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getAllRolesJson()
+                    $this->manager->getAllRolesJson()
                 ),
             ]
         );
@@ -79,9 +86,7 @@ class RoleController extends Controller
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
-            $role = $this
-                ->get('role_manager')
-                ->add(json_decode($request->getContent()));
+            $role = $this->manager->add(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -104,9 +109,7 @@ class RoleController extends Controller
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
-            $role = $this
-                ->get('role_manager')
-                ->update($id, json_decode($request->getContent()));
+            $role = $this->manager->update($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -133,9 +136,7 @@ class RoleController extends Controller
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         try {
-            $this
-                ->get('role_manager')
-                ->delete($id);
+            $this->manager->delete($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

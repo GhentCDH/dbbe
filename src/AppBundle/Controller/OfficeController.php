@@ -7,21 +7,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
+use AppBundle\ObjectStorage\OfficeManager;
+use AppBundle\ObjectStorage\RegionManager;
+use Symfony\Component\HttpFoundation\Response;
+
 class OfficeController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'office_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Office:';
+    public function __construct(OfficeManager $officeManager)
+    {
+        $this->manager = $officeManager;
+        $this->templateFolder = '@App/Office/';
+    }
 
     /**
      * @Route("/offices", name="offices_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -33,8 +35,9 @@ class OfficeController extends BaseController
      * (occupation ->idparentoccupation)
      * @Route("/offices/offices/{id}", name="office_deps_by_office")
      * @Method("GET")
-     * @param int     $id      office id
+     * @param int $id office id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOffice(int $id, Request $request)
     {
@@ -46,8 +49,9 @@ class OfficeController extends BaseController
      * (occupation -> idregion)
      * @Route("/offices/regions/{id}", name="office_deps_by_region")
      * @Method("GET")
-     * @param int    $id      region id
+     * @param int $id region id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRegion(int $id, Request $request)
     {
@@ -57,14 +61,16 @@ class OfficeController extends BaseController
     /**
      * @Route("/offices/edit", name="offices_edit")
      * @Method("GET")
-     * @param Request $request
+     * @param RegionManager $regionManager
+     * @return Response
      */
-    public function edit(Request $request)
-    {
+    public function edit(
+        RegionManager $regionManager
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -80,8 +86,8 @@ class OfficeController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([
-                    'offices' => $this->get('office_manager')->getAllJson(),
-                    'regions' => $this->get('region_manager')->getAllShortHistoricalJson(),
+                    'offices' => $this->manager->getAllJson(),
+                    'regions' => $regionManager->getAllShortHistoricalJson(),
                 ]),
             ]
         );

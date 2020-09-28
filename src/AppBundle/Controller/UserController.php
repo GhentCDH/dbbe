@@ -8,7 +8,7 @@ use GuzzleHttp;
 use Ramsey\Uuid\Uuid;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -19,7 +19,7 @@ use AppBundle\Exceptions\HttpException;
 use AppBundle\Exceptions\UserAlreadyExistsException;
 use AppBundle\Utils\ArrayToJson;
 
-class UserController extends Controller
+class UserController extends AbstractController
 {
     const ALLOWED_ROLES = [
         'ROLE_USER',
@@ -35,6 +35,7 @@ class UserController extends Controller
      * @Route("/users", name="users_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getUsers(Request $request)
     {
@@ -82,16 +83,13 @@ class UserController extends Controller
     /**
      * @Route("/users/edit", name="users_edit")
      * @Method("GET")
-     * @param Request $request
      */
-    public function editUsers(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $this->get('logger')->debug('Edit users.');
-
         return $this->render(
-            'AppBundle:User:edit.html.twig',
+            '@App/User/edit.html.twig',
             [
                 'urls' => json_encode([
                     'users_get' => $this->generateUrl('users_get'),
@@ -106,15 +104,14 @@ class UserController extends Controller
     /**
      * @Route("/users", name="user_post")
      * @Method("POST")
-     * @param  Request $request
+     * @param Request $request
      * @return JsonResponse
+     * @throws HttpException|GuzzleHttp\Exception\GuzzleException
      */
-    public function createUser(Request $request)
+    public function post(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $this->throwErrorIfNotJson($request);
-
-        $this->get('logger')->debug('Create user.');
 
         $input = json_decode($request->getContent(), true);
 
@@ -127,8 +124,7 @@ class UserController extends Controller
             throw new BadRequestHttpException('Invalid username.');
         }
 
-        if (!isset($input['roles'])
-            || !is_array($input['roles'])
+        if (!isset($input['roles']) || !is_array($input['roles'])
         ) {
             throw new BadRequestHttpException('Invalid roles.');
         }
@@ -139,8 +135,6 @@ class UserController extends Controller
             }
         }
 
-        $this->get('logger')->debug('Create user correct input.');
-
         $em = $this->getDoctrine()->getManager();
         $repo = $em->getRepository('AppBundle:User');
 
@@ -148,8 +142,6 @@ class UserController extends Controller
         if ($user != null) {
             throw new BadRequestHttpException('There already is a user with the requested username.');
         }
-
-        $this->get('logger')->debug('Create user no existing user found.');
 
         $user = new User();
         $user->setUsername($input['username']);
@@ -162,15 +154,12 @@ class UserController extends Controller
 
         // non-ugent user
         if ($match === 0) {
-            $this->get('logger')->debug('Create user non ugent user.');
-
             try {
                 // create welkom account
                 $this->createWelkomAccount($input['username']);
                 // send invite mail
                 $this->sendWelkomMail($input['username']);
-            }
-            catch (UserAlreadyExistsException $e) {
+            } catch (UserAlreadyExistsException $e) {
                 // If the user already exists, no e-mail will be sent.
             }
         }
@@ -188,15 +177,14 @@ class UserController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateUser(int $id, Request $request)
+    public function update(int $id, Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $this->throwErrorIfNotJson($request);
 
         $input = json_decode($request->getContent(), true);
 
-        if (!isset($input['roles'])
-            || !is_array($input['roles'])
+        if (!isset($input['roles']) || !is_array($input['roles'])
         ) {
             throw new BadRequestHttpException('Invalid roles.');
         }
@@ -228,13 +216,19 @@ class UserController extends Controller
      * Throws a BadRequestHttpException if the accept header is not set to application/json
      * @param Request $request
      */
-    private function throwErrorIfNotJson($request): void
+    private function throwErrorIfNotJson(Request $request): void
     {
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
     }
 
+    /**
+     * @param string $username
+     * @throws GuzzleHttp\Exception\GuzzleException
+     * @throws HttpException
+     * @throws UserAlreadyExistsException
+     */
     private function createWelkomAccount(string $username): void
     {
         $client = new GuzzleHttp\Client();
@@ -261,6 +255,11 @@ class UserController extends Controller
                 throw new UserAlreadyExistsException('User already exist');
             }
             throw $e;
+        } catch (GuzzleHttp\Exception\GuzzleException $e) {
+            if (json_decode($e->getResponse()->getBody()->getContents(), true)['message'] === 'Unkown exception') {
+                throw new UserAlreadyExistsException('Unkown exception');
+            }
+            throw $e;
         }
 
         if ($response->getStatusCode() !== 200) {
@@ -268,6 +267,11 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @param string $username
+     * @throws GuzzleHttp\Exception\GuzzleException
+     * @throws HttpException
+     */
     private function sendWelkomMail(string $username): void
     {
         $client = new GuzzleHttp\Client();

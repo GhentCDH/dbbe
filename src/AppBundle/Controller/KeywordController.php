@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use Exception;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -9,21 +11,22 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\ObjectStorage\KeywordManager;
+use AppBundle\ObjectStorage\PersonManager;
+
 class KeywordController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'keyword_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Keyword:';
+    public function __construct(KeywordManager $keywordManager)
+    {
+        $this->manager = $keywordManager;
+        $this->templateFolder = '@App/Keyword/';
+    }
 
     /**
      * @Route("/keywords", name="subjects_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAllSubjects(Request $request)
     {
@@ -31,7 +34,7 @@ class KeywordController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(self::MANAGER)->getByTypeJson('subject')
+            $this->manager->getByTypeJson('subject')
         );
     }
 
@@ -39,6 +42,7 @@ class KeywordController extends BaseController
      * @Route("/tags", name="tags_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAllTags(Request $request)
     {
@@ -46,21 +50,22 @@ class KeywordController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(self::MANAGER)->getByTypeJson('type')
+            $this->manager->getByTypeJson('type')
         );
     }
 
     /**
      * @Route("/keywords/edit", name="subjects_edit")
      * @Method("GET")
-     * @param Request $request
+     * @param PersonManager $personManager
+     * @return Response
      */
-    public function subjectEdit(Request $request)
+    public function subjectEdit(PersonManager $personManager)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -76,8 +81,8 @@ class KeywordController extends BaseController
                     'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('subject')),
-                'persons' => json_encode($this->get('person_manager')->getAllHistoricalShortJson()),
+                'keywords' => json_encode($this->manager->getByTypeJson('subject')),
+                'persons' => json_encode($personManager->getAllHistoricalShortJson()),
                 'isSubject' => json_encode(true),
             ]
         );
@@ -86,14 +91,14 @@ class KeywordController extends BaseController
     /**
      * @Route("/tags/edit", name="tags_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function tagEdit(Request $request)
+    public function tagEdit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -108,7 +113,7 @@ class KeywordController extends BaseController
                     'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'keywords' => json_encode($this->get(self::MANAGER)->getByTypeJson('type')),
+                'keywords' => json_encode($this->manager->getByTypeJson('type')),
                 'persons' => json_encode([]),
                 'isSubject' => json_encode(false),
             ]
@@ -141,10 +146,11 @@ class KeywordController extends BaseController
     /**
      * @Route("/keywords/{primaryId}/persons/{secondaryId}", name="keyword_migrate_person")
      * @Method("PUT")
-     * @param  int    $primaryId   keyword id (will be deleted)
-     * @param  int    $secondaryId person id (will stay)
+     * @param int $primaryId keyword id (will be deleted)
+     * @param int $secondaryId person id (will stay)
      * @param Request $request
      * @return JsonResponse
+     * @throws Exception
      */
     public function migrate(int $primaryId, int $secondaryId, Request $request)
     {
@@ -152,9 +158,7 @@ class KeywordController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         try {
-            $object = $this
-                ->get(static::MANAGER)
-                ->migratePerson($primaryId, $secondaryId);
+            $this->manager->migratePerson($primaryId, $secondaryId);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

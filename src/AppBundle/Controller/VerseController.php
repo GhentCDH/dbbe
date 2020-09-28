@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use Exception;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,25 +11,27 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\ObjectStorage\VerseManager;
+use AppBundle\Service\ElasticSearchService\ElasticVerseService;
+
 use AppBundle\Utils\ArrayToJson;
 
 class VerseController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'verse_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Verse:';
+    public function __construct(VerseManager $verseManager)
+    {
+        $this->manager = $verseManager;
+        $this->templateFolder = '@App/Verse/';
+    }
 
     /**
      * @Route("/verses/search", name="verse_search")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticVerseService $elasticVerseService
+     * @return JsonResponse
      */
-    public function getVerseSearch(Request $request)
+    public function getVerseSearch(Request $request, ElasticVerseService $elasticVerseService)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
         $this->throwErrorIfNotJson($request);
@@ -45,7 +49,7 @@ class VerseController extends BaseController
             );
         }
 
-        $results = $this->get('verse_elastic_service')->searchVerse(
+        $results = $elasticVerseService->searchVerse(
             $request->query->get('verse'),
             $request->query->get('id')
         );
@@ -56,15 +60,16 @@ class VerseController extends BaseController
     /**
      * @Route("/verse_variants/{groupId}", name="verse_variant_get")
      * @Method("GET")
-     * @param int     $groupId
+     * @param int $groupId
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getVerseVariant(int $groupId, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $group = $this->get(static::MANAGER)->getByGroup($groupId);
+                $group = $this->manager->getByGroup($groupId);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -74,10 +79,10 @@ class VerseController extends BaseController
             return new JsonResponse(ArrayToJson::arrayToJson($group));
         } else {
             // Let the 404 page handle the not found exception
-            $group = $this->get(static::MANAGER)->getByGroup($groupId);
+            $group = $this->manager->getByGroup($groupId);
 
             return $this->render(
-                static::TEMPLATE_FOLDER . 'variant.html.twig',
+                $this->templateFolder . 'variant.html.twig',
                 ['group' => $group]
             );
         }
@@ -87,17 +92,21 @@ class VerseController extends BaseController
      * @Route("/verses/init", name="get_verse_init")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticVerseService $elasticVerseService
+     * @return Response
      */
-    public function getVerseInit(Request $request)
-    {
+    public function getVerseInit(
+        Request $request,
+        ElasticVerseService $elasticVerseService
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
 
         $page = (int)$request->get('page');
 
-        $groups = $this->get('verse_elastic_service')->initVerseGroups($page);
+        $groups = $elasticVerseService->initVerseGroups($page);
 
         return $this->render(
-            static::TEMPLATE_FOLDER . 'init.html.twig',
+            $this->templateFolder . 'init.html.twig',
             [
                 'groups' => $groups,
                 'page' => $page,
@@ -109,6 +118,8 @@ class VerseController extends BaseController
      * @Route("/verses/init", name="post_verse_init")
      * @Method("POST")
      * @param Request $request
+     * @return Response
+     * @throws Exception
      */
     public function postVerseInit(Request $request)
     {
@@ -133,17 +144,15 @@ class VerseController extends BaseController
         $first = array_shift($verses);
         $updateData = json_decode(json_encode(['linkVerses' => $verses]));
 
-        $new = $this->get('verse_manager')->update($first['id'], $updateData);
+        $new = $this->manager->update($first['id'], $updateData);
 
         return $this->render(
-            static::TEMPLATE_FOLDER . 'init_confirm.html.twig',
+            $this->templateFolder . 'init_confirm.html.twig',
             [
                 'number' => $number,
                 'groupId' => $new->getGroupId(),
                 'page' => $page,
             ]
         );
-
-        return $this->redirectToRoute('get_verse_init', ['page' => $page]);
     }
 }

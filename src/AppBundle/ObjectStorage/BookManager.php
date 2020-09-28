@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Psr\Cache\InvalidArgumentException;
 use stdClass;
 use Exception;
 
@@ -158,21 +159,27 @@ class BookManager extends DocumentManager
 
     /**
      * Add a new book
-     * @param  stdClass $data
+     * @param stdClass $data
      * @return Book
+     * @throws Exception|InvalidArgumentException
      */
     public function add(stdClass $data): Book
     {
-        if (
-            (
-                (
-                    !property_exists($data, 'title')
-                    || !is_string($data->title)
+        if ((
+                (!property_exists($data, 'title') || empty($data->title))
+                && (!property_exists($data, 'bookCluster') || empty($data->bookCluster))
+            )
+            || (
+                property_exists($data, 'title')
+                && (
+                    !is_string($data->title)
                     || empty($data->title)
                 )
+            )
+            || (
+                property_exists($data, 'bookCluster')
                 && (
-                    !property_exists($data, 'bookCluster')
-                    || !is_object($data->bookCluster)
+                    !is_object($data->bookCluster)
                     || !property_exists($data->bookCluster, 'id')
                     || !is_numeric($data->bookCluster->id)
                     || empty($data->bookCluster->id)
@@ -189,7 +196,12 @@ class BookManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->bookCluster->id, $data->title, $data->year, $data->city);
+            $id = $this->dbs->insert(
+                property_exists($data, 'bookCluster') ? $data->bookCluster->id: null,
+                property_exists($data, 'title') ? $data->title : null,
+                $data->year,
+                $data->city
+            );
 
             unset($data->bookCluster);
             unset($data->title);
@@ -210,10 +222,11 @@ class BookManager extends DocumentManager
 
     /**
      * Update new or existing book
-     * @param  int      $id
-     * @param  stdClass $data
-     * @param  bool     $isNew Indicate whether this is a new book
+     * @param int $id
+     * @param stdClass $data
+     * @param bool $isNew Indicate whether this is a new book
      * @return Book
+     * @throws InvalidArgumentException
      */
     public function update(int $id, stdClass $data, bool $isNew = false): Book
     {
@@ -310,8 +323,7 @@ class BookManager extends DocumentManager
                 $this->dbs->updatePublisher($id, $data->publisher);
             }
             if (property_exists($data, 'bookSeries')) {
-                if (
-                    (
+                if ((
                         !is_object($data->bookSeries)
                         || !property_exists($data->bookSeries, 'id')
                         || !is_numeric($data->bookSeries->id)
@@ -397,9 +409,10 @@ class BookManager extends DocumentManager
 
     /**
      * Merge two books
-     * @param  int $primaryId
-     * @param  int $secondaryId
+     * @param int $primaryId
+     * @param int $secondaryId
      * @return Book
+     * @throws InvalidArgumentException
      */
     public function merge(int $primaryId, int $secondaryId): Book
     {
@@ -416,7 +429,9 @@ class BookManager extends DocumentManager
             $roles = $this->container->get('role_manager')->getByType('book');
             foreach ($roles as $role) {
                 if (!empty($secondary->getPersonRoles()[$role->getSystemName()])) {
-                    $updates[$role->getSystemName()] = ArrayToJson::arrayToShortJson($secondary->getPersonRoles()[$role->getSystemName()][1]);
+                    $updates[$role->getSystemName()] = ArrayToJson::arrayToShortJson(
+                        $secondary->getPersonRoles()[$role->getSystemName()][1]
+                    );
                 }
             }
         }
@@ -513,7 +528,7 @@ class BookManager extends DocumentManager
             }
             if (!empty($persons)) {
                 foreach ($persons as $person) {
-                    $full = $this->container->get('person_manager')->getFull($type->getId());
+                    $full = $this->container->get('person_manager')->getFull($person->getId());
                     $bibliographies = $full->getBibliographies();
                     $update = $this->getBiblioMergeUpdate($bibliographies, $primaryId, $secondaryId);
                     $this->container->get('person_manager')->update(

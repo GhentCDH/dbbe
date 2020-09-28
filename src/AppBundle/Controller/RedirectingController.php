@@ -2,16 +2,18 @@
 
 namespace AppBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class RedirectingController extends Controller
+class RedirectingController extends AbstractController
 {
     /**
      * @Route("/{url}", name="remove_trailing_slash",
      *     requirements={"url" = ".*\/$"})
      * @param Request $request
+     * @return RedirectResponse
      */
     public function removeTrailingSlash(Request $request)
     {

@@ -2,6 +2,7 @@
 
 namespace AppBundle\ObjectStorage;
 
+use Psr\Cache\InvalidArgumentException;
 use stdClass;
 use Exception;
 
@@ -99,8 +100,9 @@ class BibVariaManager extends DocumentManager
 
     /**
      * Add a new bib varia
-     * @param  stdClass $data
+     * @param stdClass $data
      * @return BibVaria
+     * @throws Exception|InvalidArgumentException
      */
     public function add(stdClass $data): BibVaria
     {
@@ -122,7 +124,11 @@ class BibVariaManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title, $data->year, $data->city);
+            $id = $this->dbs->insert(
+                $data->title,
+                property_exists($data, 'year') ? $data->year : null,
+                property_exists($data, 'city') ? $data->city : null
+            );
 
             unset($data->title);
             unset($data->year);
@@ -142,10 +148,11 @@ class BibVariaManager extends DocumentManager
 
     /**
      * Update new or existing bib varia
-     * @param  int      $id
-     * @param  stdClass $data
-     * @param  bool     $isNew Indicate whether this is a new bib varia
+     * @param int $id
+     * @param stdClass $data
+     * @param bool $isNew Indicate whether this is a new bib varia
      * @return BibVaria
+     * @throws InvalidArgumentException
      */
     public function update(int $id, stdClass $data, bool $isNew = false): BibVaria
     {

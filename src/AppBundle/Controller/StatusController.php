@@ -4,17 +4,22 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+use AppBundle\ObjectStorage\StatusManager;
 
 use AppBundle\Model\Status;
 
-class StatusController extends Controller
+class StatusController extends BaseController
 {
+    public function __construct(StatusManager $statusManager)
+    {
+        $this->manager = $statusManager;
+    }
+
     /**
      * @Route("/statuses", name="statuses_get")
      * @Method("GET")
@@ -26,34 +31,34 @@ class StatusController extends Controller
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             if (!empty($request->query->get('type'))) {
-                switch($request->query->get('type')) {
-                case 'occurrence':
-                    return new JsonResponse(
-                        array_merge(
-                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_TEXT),
-                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_RECORD),
-                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_DIVIDED),
-                            $this->get('status_manager')->getByTypeJson(Status::OCCURRENCE_SOURCE)
-                        )
-                    );
-                    break;
-                case 'manuscript':
-                    return new JsonResponse(
-                        $this->get('status_manager')->getByTypeJson(Status::MANUSCRIPT)
-                    );
-                    break;
-                case 'type':
-                    return new JsonResponse(
-                        array_merge(
-                            $this->get('status_manager')->getByTypeJson(Status::TYPE_CRITICAL),
-                            $this->get('status_manager')->getByTypeJson(Status::TYPE_TEXT)
-                        )
-                    );
-                    break;
+                switch ($request->query->get('type')) {
+                    case 'occurrence':
+                        return new JsonResponse(
+                            array_merge(
+                                $this->manager->getByTypeJson(Status::OCCURRENCE_TEXT),
+                                $this->manager->getByTypeJson(Status::OCCURRENCE_RECORD),
+                                $this->manager->getByTypeJson(Status::OCCURRENCE_DIVIDED),
+                                $this->manager->getByTypeJson(Status::OCCURRENCE_SOURCE)
+                            )
+                        );
+                        break;
+                    case 'manuscript':
+                        return new JsonResponse(
+                            $this->manager->getByTypeJson(Status::MANUSCRIPT)
+                        );
+                        break;
+                    case 'type':
+                        return new JsonResponse(
+                            array_merge(
+                                $this->manager->getByTypeJson(Status::TYPE_CRITICAL),
+                                $this->manager->getByTypeJson(Status::TYPE_TEXT)
+                            )
+                        );
+                        break;
                 }
             } else {
                 return new JsonResponse(
-                    $this->get('status_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 );
             }
         }
@@ -63,14 +68,14 @@ class StatusController extends Controller
     /**
      * @Route("/statuses/edit", name="statuses_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function editStatuses(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Status:edit.html.twig',
+            '@App/Status/edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
@@ -87,7 +92,7 @@ class StatusController extends Controller
                     'login' => $this->generateUrl('saml_login'),
                 ]),
                 'statuses' => json_encode(
-                    $this->get('status_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -100,22 +105,15 @@ class StatusController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function postStatus(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $response = parent::post($request);
 
-        try {
-            $status = $this
-                ->get('status_manager')
-                ->addStatus(json_decode($request->getContent()));
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
+            $this->addFlash('success', 'Status added successfully.');
         }
 
-        return new JsonResponse($status->getJson());
+        return $response;
     }
 
     /**
@@ -125,55 +123,20 @@ class StatusController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function putStatus(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $status = $this
-                ->get('status_manager')
-                ->updateStatus($id, json_decode($request->getContent()));
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse($status->getJson());
+        return parent::put($id, $request);
     }
 
     /**
      * @Route("/statuses/{id}", name="status_delete")
      * @Method("DELETE")
-     * @param  int    $id status id
+     * @param int $id status id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteStatus(int $id)
+    public function deleteStatus(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $this
-                ->get('status_manager')
-                ->delStatus($id);
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return parent::delete($id, $request);
     }
 }

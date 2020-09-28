@@ -7,23 +7,22 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use AppBundle\ObjectStorage\BookClusterManager;
 
 class BookClusterController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'book_cluster_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:BookCluster:';
+    public function __construct(BookClusterManager $bookClusterManager)
+    {
+        $this->manager = $bookClusterManager;
+        $this->templateFolder = '@App/BookCluster/';
+    }
 
     /**
      * @Route("/book_clusters", name="book_clusters_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,23 +30,24 @@ class BookClusterController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllJson('getTitle')
+            $this->manager->getAllJson('getTitle')
         );
     }
 
     /**
      * @Route("/book_clusters/edit", name="book_clusters_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER  . 'edit.html.twig',
+            $this->templateFolder  . 'edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'book_clusters_get' => $this->generateUrl('book_clusters_get'),
                     'book_deps_by_book_cluster' => $this->generateUrl('book_deps_by_book_cluster', ['id' => 'book_cluster_id']),
                     'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
@@ -56,8 +56,9 @@ class BookClusterController extends BaseController
                     'book_cluster_put' => $this->generateUrl('book_cluster_put', ['id' => 'book_cluster_id']),
                     'book_cluster_delete' => $this->generateUrl('book_cluster_delete', ['id' => 'book_cluster_id']),
                     'login' => $this->generateUrl('saml_login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
-                'book_clusters' => json_encode($this->get(self::MANAGER)->getAllJson('getTitle')),
+                'book_clusters' => json_encode($this->manager->getAllJson('getTitle')),
             ]
         );
     }
@@ -65,32 +66,13 @@ class BookClusterController extends BaseController
     /**
      * @Route("/book_clusters/{id}", name="book_cluster_get")
      * @Method("GET")
-     * @param int     $id
+     * @param int $id
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-            try {
-                $object = $this->get(static::MANAGER)->getFull($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-            return new JsonResponse($object->getJson());
-        } else {
-            // Let the 404 page handle the not found exception
-            $object = $this->get(static::MANAGER)->getFull($id);
-            return $this->render(
-                static::TEMPLATE_FOLDER . 'detail.html.twig',
-                [
-                    $object::CACHENAME => $object,
-                ]
-            );
-        }
+        return parent::getSingle($id, $request);
     }
 
     /**

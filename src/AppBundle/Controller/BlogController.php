@@ -4,24 +4,29 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-class BlogController extends EditController
+use AppBundle\ObjectStorage\BlogManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\RoleManager;
+
+class BlogController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'blog_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Blog:';
+    public function __construct(BlogManager $blogManager)
+    {
+        $this->manager = $blogManager;
+        $this->templateFolder = '@App/Blog/';
+    }
 
     /**
      * @Route("/blogs", name="blogs_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -35,18 +40,30 @@ class BlogController extends EditController
     /**
      * @Route("/blogs/add", name="blog_add")
      * @Method("GET")
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/blogs/{id}", name="blog_get")
      * @Method("GET")
-      * @param int     $id
-      * @param Request $request
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -58,8 +75,9 @@ class BlogController extends EditController
      * (reference)
      * @Route("/blogs/managements/{id}", name="blog_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -116,15 +134,22 @@ class BlogController extends EditController
     /**
      * @Route("/blogs/{id}/edit", name="blog_edit")
      * @Method("GET")
-     * @param  int|null $id
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
+     * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'id' => $id,
                 'urls' => json_encode([
@@ -140,14 +165,14 @@ class BlogController extends EditController
                 'data' => json_encode([
                     'blog' => empty($id)
                         ? null
-                        : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('blog')
+                    $identifierManager->getByTypeJson('blog')
                 ),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getByTypeJson('blog')
+                    $roleManager->getByTypeJson('blog')
                 ),
             ]
         );

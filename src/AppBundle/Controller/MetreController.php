@@ -6,22 +6,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\MetreManager;
 
 class MetreController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'metre_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Metre:';
+    public function __construct(MetreManager $metreManager)
+    {
+        $this->manager = $metreManager;
+        $this->templateFolder = '@App/Metre/';
+    }
 
     /**
      * @Route("/metres", name="metres_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,14 +32,14 @@ class MetreController extends BaseController
     /**
      * @Route("/metres/edit", name="metres_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Metre:edit.html.twig',
+            '@App/Metre/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -54,7 +55,7 @@ class MetreController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'metres' => json_encode(
-                    $this->get('metre_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 ),
             ]
         );

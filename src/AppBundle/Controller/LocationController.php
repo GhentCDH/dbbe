@@ -4,19 +4,27 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class LocationController extends Controller
+use AppBundle\ObjectStorage\LocationManager;
+
+class LocationController extends BaseController
 {
+    public function __construct(LocationManager $locationManager)
+    {
+        $this->manager = $locationManager;
+    }
+
     /**
      * @Route("/locations", name="locations_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
-    public function getLocations(Request $request)
+    public function getAll(Request $request)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
@@ -25,11 +33,11 @@ class LocationController extends Controller
                 && $request->query->get('type') == 'manuscript'
             ) {
                 return new JsonResponse(
-                    $this->get('location_manager')->getByTypeJson('manuscript')
+                    $this->manager->getByTypeJson('manuscript')
                 );
             } else {
                 return new JsonResponse(
-                    $this->get('location_manager')->getByTypeJson('location')
+                    $this->manager->getByTypeJson('location')
                 );
             }
         }
@@ -39,16 +47,17 @@ class LocationController extends Controller
     /**
      * @Route("/locations/edit", name="locations_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function editLocations(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Location:edit.html.twig',
+            '@App/Location/edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'locations_get' => $this->generateUrl('locations_get'),
                     'manuscript_deps_by_institution' => $this->generateUrl('manuscript_deps_by_institution', ['id' => 'institution_id']),
                     'manuscript_deps_by_collection' => $this->generateUrl('manuscript_deps_by_collection', ['id' => 'collection_id']),
@@ -64,9 +73,10 @@ class LocationController extends Controller
                     'collection_put' => $this->generateUrl('collection_put', ['id' => 'collection_id']),
                     'collection_delete' => $this->generateUrl('collection_delete', ['id' => 'collection_id']),
                     'login' => $this->generateUrl('saml_login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'locations' => json_encode(
-                    $this->get('location_manager')->getByTypeJson('location')
+                    $this->manager->getByTypeJson('location')
                 ),
             ]
         );

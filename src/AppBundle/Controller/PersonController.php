@@ -5,25 +5,31 @@ namespace AppBundle\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class PersonController extends EditController
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\OfficeManager;
+use AppBundle\ObjectStorage\OriginManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\SelfDesignationManager;
+use AppBundle\Service\ElasticSearchService\ElasticPersonService;
+
+class PersonController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'person_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Person:';
+    public function __construct(PersonManager $personManager)
+    {
+        $this->manager = $personManager;
+        $this->templateFolder = '@App/Person/';
+    }
 
     /**
      * @Route("/persons", name="persons_get")
      * @Method("GET")
      * @param Request $request
-     * @return JsonResponse
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -31,22 +37,22 @@ class PersonController extends EditController
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             if ($request->query->get('type') === 'historical') {
                 return new JsonResponse(
-                    $this->get(static::MANAGER)->getAllHistoricalShortJson()
+                    $this->manager->getAllHistoricalShortJson()
                 );
             }
             if ($request->query->get('type') === 'dbbe') {
                 return new JsonResponse(
-                    $this->get(static::MANAGER)->getAllDBBEShortJson()
+                    $this->manager->getAllDBBEShortJson()
                 );
             }
             if ($request->query->get('type') === 'modern') {
                 return new JsonResponse(
-                    $this->get(static::MANAGER)->getAllModernShortJson()
+                    $this->manager->getAllModernShortJson()
                 );
             }
 
             return new JsonResponse(
-                $this->get(static::MANAGER)->getAllMiniShortJson()
+                $this->manager->getAllMiniShortJson()
             );
         }
 
@@ -58,12 +64,19 @@ class PersonController extends EditController
      * @Route("/persons/search", name="persons_search")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticPersonService $elasticPersonService
+     * @param IdentifierManager $identifierManager
+     * @param ManagementManager $managementManager
      * @return Response
      */
-    public function search(Request $request)
-    {
+    public function search(
+        Request $request,
+        ElasticPersonService $elasticPersonService,
+        IdentifierManager $identifierManager,
+        ManagementManager $managementManager
+    ) {
         return $this->render(
-            'AppBundle:Person:overview.html.twig',
+            '@App/Person/overview.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -99,16 +112,16 @@ class PersonController extends EditController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode(
-                    $this->get('person_elastic_service')->searchAndAggregate(
-                        $this->sanitize($request->query->all()),
+                    $elasticPersonService->searchAndAggregate(
+                        $this->sanitize($request->query->all(), $identifierManager),
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getPrimaryByTypeJson('person')
+                    $identifierManager->getPrimaryByTypeJson('person')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
                 ),
             ]
         );
@@ -118,12 +131,17 @@ class PersonController extends EditController
      * @Route("/persons/search_api", name="persons_search_api")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticPersonService $elasticPersonService
+     * @param IdentifierManager $identifierManager
      * @return JsonResponse
      */
-    public function searchAPI(Request $request)
-    {
-        $result = $this->get('person_elastic_service')->searchAndAggregate(
-            $this->sanitize($request->query->all()),
+    public function searchAPI(
+        Request $request,
+        ElasticPersonService $elasticPersonService,
+        IdentifierManager $identifierManager
+    ) {
+        $result = $elasticPersonService->searchAndAggregate(
+            $this->sanitize($request->query->all(), $identifierManager),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
 
@@ -133,12 +151,26 @@ class PersonController extends EditController
     /**
      * @Route("/persons/add", name="person_add")
      * @Method("GET")
-     * @param Request $request
+     * @param OfficeManager $officeManager
+     * @param OriginManager $originManager
+     * @param SelfDesignationManager $selfDesignationManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
      * @return Response
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        OfficeManager $officeManager,
+        OriginManager $originManager,
+        SelfDesignationManager $selfDesignationManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
@@ -200,8 +232,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/articles/{id}", name="person_deps_by_article")
      * @Method("GET")
-     * @param  int    $id article id
+     * @param int $id article id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByArticle(int $id, Request $request)
     {
@@ -213,8 +246,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/blogposts/{id}", name="person_deps_by_blog_post")
      * @Method("GET")
-     * @param  int    $id blog post id
+     * @param int $id blog post id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBlogPost(int $id, Request $request)
     {
@@ -222,13 +256,14 @@ class PersonController extends EditController
     }
 
     /**
-    * Get all persons that have a dependency on a book
-    * (reference)
-    * @Route("/persons/books/{id}", name="person_deps_by_book")
-    * @Method("GET")
-    * @param  int    $id book id
-    * @param Request $request
-    */
+     * Get all persons that have a dependency on a book
+     * (reference)
+     * @Route("/persons/books/{id}", name="person_deps_by_book")
+     * @Method("GET")
+     * @param int $id book id
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getDepsByBook(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
@@ -239,8 +274,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/bookchapters/{id}", name="person_deps_by_book_chapter")
      * @Method("GET")
-     * @param  int    $id book chapter id
+     * @param int $id book chapter id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBookChapter(int $id, Request $request)
     {
@@ -252,8 +288,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/onlinesources/{id}", name="person_deps_by_online_source")
      * @Method("GET")
-     * @param  int    $id online source id
+     * @param int $id online source id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOnlineSource(int $id, Request $request)
     {
@@ -265,8 +302,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/phd_theses/{id}", name="person_deps_by_phd")
      * @Method("GET")
-     * @param  int    $id phd id
+     * @param int $id phd id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPhd(int $id, Request $request)
     {
@@ -278,8 +316,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/bib_varia/{id}", name="person_deps_by_bib_varia")
      * @Method("GET")
-     * @param  int    $id bib varia id
+     * @param int $id bib varia id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBibVaria(int $id, Request $request)
     {
@@ -291,8 +330,9 @@ class PersonController extends EditController
      * (reference)
      * @Route("/persons/managements/{id}", name="person_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -384,16 +424,26 @@ class PersonController extends EditController
     /**
      * @Route("/persons/{id}/edit", name="person_edit")
      * @Method("GET")
-     * @param  int|null $id person id
-     * @param Request $request
+     * @param OfficeManager $officeManager
+     * @param OriginManager $originManager
+     * @param SelfDesignationManager $selfDesignationManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param int|null $id person id
      * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        OfficeManager $officeManager,
+        OriginManager $originManager,
+        SelfDesignationManager $selfDesignationManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Person:edit.html.twig',
+            '@App/Person/edit.html.twig',
             [
                 'id' => $id,
                 'urls' => json_encode([
@@ -422,14 +472,14 @@ class PersonController extends EditController
                     'person' =>
                         empty($id)
                         ? null
-                        : $this->get('person_manager')->getFull($id)->getJson(),
-                    'offices' => $this->get('office_manager')->getAllJson(),
-                    'origins' => $this->get('origin_manager')->getByTypeShortJson('person'),
-                    'selfDesignations' => $this->get('self_designation_manager')->getAllJson(),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'offices' => $officeManager->getAllJson(),
+                    'origins' => $originManager->getByTypeShortJson('person'),
+                    'selfDesignations' => $selfDesignationManager->getAllJson(),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('person')
+                    $identifierManager->getByTypeJson('person')
                 ),
                 'roles' => json_encode([]),
             ]
@@ -438,11 +488,14 @@ class PersonController extends EditController
 
     /**
      * Sanitize data from request string
-     * @param  array $params
+     * @param array $params
+     * @param IdentifierManager $identifierManager
      * @return array
      */
-    private function sanitize(array $params): array
-    {
+    private function sanitize(
+        array $params,
+        IdentifierManager $identifierManager
+    ): array {
         $defaults = [
             'limit' => 25,
             'page' => 1,
@@ -505,7 +558,7 @@ class PersonController extends EditController
         $filters = [];
 
         if (isset($params['filters']) && is_array($params['filters'])) {
-            $identifiers = array_keys($this->get('identifier_manager')->getPrimaryByType('person'));
+            $identifiers = array_keys($identifierManager->getPrimaryByType('person'));
 
             foreach (array_keys($params['filters']) as $key) {
                 switch ($key) {
@@ -529,8 +582,7 @@ class PersonController extends EditController
                         }
                         break;
                     case 'management_inverse':
-                        if (
-                            is_string($params['filters'][$key])
+                        if (is_string($params['filters'][$key])
                             && (
                                 $params['filters'][$key] == 'true'
                                 || $params['filters'][$key] == 'false'
@@ -579,7 +631,9 @@ class PersonController extends EditController
         }
 
         // sanitize date search type
-        if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))) {
+        if (!(isset($filters['date_search_type'])
+            && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))
+        ) {
             $filters['date_search_type'] = 'exact';
         }
 

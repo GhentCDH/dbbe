@@ -2,29 +2,40 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Model\Status;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class OccurrenceController extends EditController
+use AppBundle\Model\Status;
+use AppBundle\ObjectStorage\AcknowledgementManager;
+use AppBundle\ObjectStorage\GenreManager;
+use AppBundle\ObjectStorage\KeywordManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\MetreManager;
+use AppBundle\ObjectStorage\OccurrenceManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\ReferenceTypeManager;
+use AppBundle\ObjectStorage\RoleManager;
+use AppBundle\ObjectStorage\StatusManager;
+use AppBundle\Service\ElasticSearchService\ElasticOccurrenceService;
+
+class OccurrenceController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'occurrence_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Occurrence:';
+    public function __construct(OccurrenceManager $occurrenceManager)
+    {
+        $this->manager = $occurrenceManager;
+        $this->templateFolder = '@App/Occurrence/';
+    }
 
     /**
      * @Route("/occurrences", name="occurrences_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -39,9 +50,17 @@ class OccurrenceController extends EditController
      * @Route("/occurrences/search", name="occurrences_search")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticOccurrenceService $elasticOccurrenceService
+     * @param IdentifierManager $identifierManager
+     * @param ManagementManager $managementManager
+     * @return Response
      */
-    public function search(Request $request)
-    {
+    public function search(
+        Request $request,
+        ElasticOccurrenceService $elasticOccurrenceService,
+        IdentifierManager $identifierManager,
+        ManagementManager $managementManager
+    ) {
         $data = [
             // @codingStandardsIgnoreStart Generic.Files.LineLength
             'urls' => json_encode([
@@ -58,21 +77,21 @@ class OccurrenceController extends EditController
                 'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
             ]),
             'data' => json_encode(
-                $this->get('occurrence_elastic_service')->searchAndAggregate(
+                $elasticOccurrenceService->searchAndAggregate(
                     $this->sanitize($request->query->all()),
                     $this->isGranted('ROLE_VIEW_INTERNAL')
                 )
             ),
             'identifiers' => json_encode(
-                $this->get('identifier_manager')->getPrimaryByTypeJson('occurrence')
+                $identifierManager->getPrimaryByTypeJson('occurrence')
             ),
             'managements' => json_encode(
-                $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
             ),
             // @codingStandardsIgnoreEnd
         ];
         return $this->render(
-            'AppBundle:Occurrence:overview.html.twig',
+            '@App/Occurrence/overview.html.twig',
             $data
         );
     }
@@ -81,10 +100,15 @@ class OccurrenceController extends EditController
      * @Route("/occurrences/search_api", name="occurrences_search_api")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticOccurrenceService $elasticOccurrenceService
+     * @return JsonResponse
      */
-    public function searchAPI(Request $request)
-    {
-        $result = $this->get('occurrence_elastic_service')->searchAndAggregate(
+    public function searchAPI(
+        Request $request,
+        ElasticOccurrenceService $elasticOccurrenceService
+    ) {
+        $this->throwErrorIfNotJson($request);
+        $result = $elasticOccurrenceService->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
@@ -96,17 +120,45 @@ class OccurrenceController extends EditController
      * @Route("/occurrences/add", name="occurrence_add")
      * @Method("GET")
      * @param Request $request
+     * @param PersonManager $personManager
+     * @param MetreManager $metreManager
+     * @param GenreManager $genreManager
+     * @param KeywordManager $keywordManager
+     * @param ReferenceTypeManager $referenceTypeManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        Request $request,
+        PersonManager $personManager,
+        MetreManager $metreManager,
+        GenreManager $genreManager,
+        KeywordManager $keywordManager,
+        ReferenceTypeManager $referenceTypeManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/occurrences/{id}", name="occurrence_get")
      * @Method("GET")
-     * @param  int    $id
+     * @param int $id
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -116,26 +168,26 @@ class OccurrenceController extends EditController
     /**
      * @Route("/occ/{id}", name="occurrence_get_old_perma")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
      */
-    public function getOldPerma(int $id, Request $request)
+    public function getOldPerma(int $id)
     {
         // Let the 404 page handle the not found exception
-        $newId = $this->get(static::MANAGER)->getNewId($id);
+        $newId = $this->manager->getNewId($id);
         return $this->redirectToRoute('occurrence_get', ['id' => $newId], 301);
     }
 
     /**
      * @Route("/occurrence/view/id/{id}", name="occurrence_get_old")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
      */
-    public function getOld(int $id, Request $request)
+    public function getOld(int $id)
     {
         // Let the 404 page handle the not found exception
-        $newId = $this->get(static::MANAGER)->getNewId($id);
+        $newId = $this->manager->getNewId($id);
         return $this->redirectToRoute('occurrence_get', ['id' => $newId], 301);
     }
 
@@ -144,8 +196,9 @@ class OccurrenceController extends EditController
      * (document_contains)
      * @Route("/occurrences/manuscripts/{id}", name="occurrence_deps_by_manuscript")
      * @Method("GET")
-     * @param  int    $id manuscript id
+     * @param int $id manuscript id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManuscript(int $id, Request $request)
     {
@@ -157,8 +210,9 @@ class OccurrenceController extends EditController
      * (document_status)
      * @Route("/occurrences/statuses/{id}", name="occurrence_deps_by_status")
      * @Method("GET")
-     * @param  int    $id status id
+     * @param int $id status id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByStatus(int $id, Request $request)
     {
@@ -170,8 +224,9 @@ class OccurrenceController extends EditController
      * (bibrole / factoid)
      * @Route("/occurrences/persons/{id}", name="occurrence_deps_by_person")
      * @Method("GET")
-     * @param  int    $id person id
+     * @param int $id person id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPerson(int $id, Request $request)
     {
@@ -183,8 +238,9 @@ class OccurrenceController extends EditController
      * (poem_metre)
      * @Route("/occurrences/metres/{id}", name="occurrence_deps_by_metre")
      * @Method("GET")
-     * @param  int    $id metre id
+     * @param int $id metre id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByMetre(int $id, Request $request)
     {
@@ -196,8 +252,9 @@ class OccurrenceController extends EditController
      * (document_genre)
      * @Route("/occurrences/genres/{id}", name="occurrence_deps_by_genre")
      * @Method("GET")
-     * @param  int    $id genre id
+     * @param int $id genre id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByGenre(int $id, Request $request)
     {
@@ -209,8 +266,9 @@ class OccurrenceController extends EditController
      * (factoid)
      * @Route("/occurrences/keywords/{id}", name="occurrence_deps_by_keyword")
      * @Method("GET")
-     * @param  int    $id keyword id
+     * @param int $id keyword id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByKeyword(int $id, Request $request)
     {
@@ -222,8 +280,9 @@ class OccurrenceController extends EditController
      * (document_acknowledgement)
      * @Route("/occurrences/acknowledgements/{id}", name="occurrence_deps_by_acknowledgement")
      * @Method("GET")
-     * @param  int    $id acknowledgement id
+     * @param int $id acknowledgement id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByAcknowledgement(int $id, Request $request)
     {
@@ -235,8 +294,9 @@ class OccurrenceController extends EditController
      * (factoid: reconstruction of)
      * @Route("/occurrences/types/{id}", name="occurrence_deps_by_type")
      * @Method("GET")
-     * @param  int    $id type id
+     * @param int $id type id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOccurrence(int $id, Request $request)
     {
@@ -248,8 +308,9 @@ class OccurrenceController extends EditController
      * (bibrole)
      * @Route("/occurrences/roles/{id}", name="occurrence_deps_by_role")
      * @Method("GET")
-     * @param  int    $id role id
+     * @param int $id role id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRole(int $id, Request $request)
     {
@@ -261,8 +322,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/articles/{id}", name="occurrence_deps_by_article")
      * @Method("GET")
-     * @param  int    $id article id
+     * @param int $id article id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByArticle(int $id, Request $request)
     {
@@ -274,8 +336,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/blogposts/{id}", name="occurrence_deps_by_blog_post")
      * @Method("GET")
-     * @param  int    $id blog post id
+     * @param int $id blog post id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBlogPost(int $id, Request $request)
     {
@@ -283,13 +346,14 @@ class OccurrenceController extends EditController
     }
 
     /**
-    * Get all occurrences that have a dependency on a book
-    * (reference)
-    * @Route("/occurrences/books/{id}", name="occurrence_deps_by_book")
-    * @Method("GET")
-    * @param  int    $id book id
-    * @param Request $request
-    */
+     * Get all occurrences that have a dependency on a book
+     * (reference)
+     * @Route("/occurrences/books/{id}", name="occurrence_deps_by_book")
+     * @Method("GET")
+     * @param int $id book id
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getDepsByBook(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
@@ -300,8 +364,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/bookchapters/{id}", name="occurrence_deps_by_book_chapter")
      * @Method("GET")
-     * @param  int    $id book chapter id
+     * @param int $id book chapter id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBookChapter(int $id, Request $request)
     {
@@ -313,8 +378,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/onlinesources/{id}", name="occurrence_deps_by_online_source")
      * @Method("GET")
-     * @param  int    $id online source id
+     * @param int $id online source id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOnlineSource(int $id, Request $request)
     {
@@ -326,8 +392,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/phd_theses/{id}", name="occurrence_deps_by_phd")
      * @Method("GET")
-     * @param  int    $id phd id
+     * @param int $id phd id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPhd(int $id, Request $request)
     {
@@ -339,8 +406,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/bib_varia/{id}", name="occurrence_deps_by_bib_varia")
      * @Method("GET")
-     * @param  int    $id bib varia id
+     * @param int $id bib varia id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBibVaria(int $id, Request $request)
     {
@@ -352,8 +420,9 @@ class OccurrenceController extends EditController
      * (reference)
      * @Route("/occurrences/managements/{id}", name="occurrence_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -432,18 +501,40 @@ class OccurrenceController extends EditController
     /**
      * @Route("/occurrences/{id}/edit", name="occurrence_edit")
      * @Method("GET")
-     * @param  int|null $id
      * @param Request $request
+     * @param PersonManager $personManager
+     * @param MetreManager $metreManager
+     * @param GenreManager $genreManager
+     * @param KeywordManager $keywordManager
+     * @param ReferenceTypeManager $referenceTypeManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
      * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        Request $request,
+        PersonManager $personManager,
+        MetreManager $metreManager,
+        GenreManager $genreManager,
+        KeywordManager $keywordManager,
+        ReferenceTypeManager $referenceTypeManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         $occurrenceJson = null;
         $clone = false;
         if (!empty($id)) {
-            $occurrenceJson = $this->get('occurrence_manager')->getFull($id)->getJson();
+            $occurrenceJson = $this->manager->getFull($id)->getJson();
             if (!empty($request->query->get('clone')) && $request->query->get('clone') === '1') {
                 $clone = true;
                 $id = null;
@@ -462,7 +553,7 @@ class OccurrenceController extends EditController
         }
 
         return $this->render(
-            'AppBundle:Occurrence:edit.html.twig',
+            '@App/Occurrence/edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
@@ -508,26 +599,26 @@ class OccurrenceController extends EditController
                 'data' => json_encode([
                     'clone' => $clone,
                     'occurrence' => $occurrenceJson,
-                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
-                    'metres' => $this->get('metre_manager')->getAllShortJson(),
-                    'genres' => $this->get('genre_manager')->getAllShortJson(),
-                    'keywords' => $this->get('keyword_manager')->getByTypeShortJson('subject'),
-                    'referenceTypes' => $this->get('reference_type_manager')->getAllShortJson(),
-                    'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
-                    'textStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_TEXT),
-                    'recordStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_RECORD),
-                    'dividedStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_DIVIDED),
-                    'sourceStatuses' => $this->get('status_manager')->getByTypeShortJson(Status::OCCURRENCE_SOURCE),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                    'dbbePersons' => $personManager->getAllDBBEShortJson(),
+                    'metres' => $metreManager->getAllShortJson(),
+                    'genres' => $genreManager->getAllShortJson(),
+                    'keywords' => $keywordManager->getByTypeShortJson('subject'),
+                    'referenceTypes' => $referenceTypeManager->getAllShortJson(),
+                    'acknowledgements' => $acknowledgementManager->getAllShortJson(),
+                    'textStatuses' => $statusManager->getByTypeShortJson(Status::OCCURRENCE_TEXT),
+                    'recordStatuses' => $statusManager->getByTypeShortJson(Status::OCCURRENCE_RECORD),
+                    'dividedStatuses' => $statusManager->getByTypeShortJson(Status::OCCURRENCE_DIVIDED),
+                    'sourceStatuses' => $statusManager->getByTypeShortJson(Status::OCCURRENCE_SOURCE),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('occurrence')
+                    $identifierManager->getByTypeJson('occurrence')
                 ),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getByTypeJson('occurrence')
+                    $roleManager->getByTypeJson('occurrence')
                 ),
                 'contributorRoles' => json_encode(
-                    $this->get('role_manager')->getContributorByTypeJson('occurrence')
+                    $roleManager->getContributorByTypeJson('occurrence')
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -624,12 +715,16 @@ class OccurrenceController extends EditController
                 $filters['text_fields'] = 'text';
             }
             // sanitize text_combination
-            if (!(isset($filters['text_combination']) && in_array($filters['text_combination'], ['any', 'all', 'phrase']))) {
+            if (!(isset($filters['text_combination'])
+                && in_array($filters['text_combination'], ['any', 'all', 'phrase']))
+            ) {
                 $filters['text_combination'] = 'all';
             }
 
             // sanitize date search type
-            if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))) {
+            if (!(isset($filters['date_search_type'])
+                && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))
+            ) {
                 $filters['date_search_type'] = 'exact';
             }
 

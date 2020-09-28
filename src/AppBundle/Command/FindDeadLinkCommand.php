@@ -2,15 +2,40 @@
 
 namespace AppBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class FindDeadLinkCommand extends ContainerAwareCommand
+use AppBundle\Service\DatabaseService\DeadLinkService;
+
+class FindDeadLinkCommand extends Command
 {
+    protected $di = [];
+
+    /**
+     * FindDeadLinkCommand constructor.
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param DeadLinkService $deadLinkService
+     * @param ParameterBagInterface $params
+     */
+    public function __construct(
+        UrlGeneratorInterface $urlGenerator,
+        DeadLinkService $deadLinkService,
+        ParameterBagInterface $params
+    ) {
+        $this->di = [
+            'UrlGenerator' => $urlGenerator,
+            'DeadLinkService' => $deadLinkService,
+            'Params' => $params,
+        ];
+
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this
@@ -20,8 +45,15 @@ class FindDeadLinkCommand extends ContainerAwareCommand
             ->addOption('type', 't', InputOption::VALUE_OPTIONAL, 'Which dead links should be found?');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|void
+     */
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ) {
         $curl = curl_init();
         // Only get headers
         curl_setopt($curl, CURLOPT_NOBODY, true);
@@ -30,22 +62,20 @@ class FindDeadLinkCommand extends ContainerAwareCommand
         // Return value instead of outputting it directly
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
 
-        $router = $this->getContainer()->get('router');
-
         $type = $input->getOption('type');
 
         // Find dead links in occurrence images
         if ($type == null || $type == 'occurrence_images') {
             $fileSystem = new Filesystem();
-            $imageDirectory = $this->getContainer()->getParameter('kernel.project_dir') . '/'
-                . $this->getContainer()->getParameter('image_directory') . '/';
-            $occurrenceImages = $this->getContainer()->get('dead_link_service')->getOccurrenceImages();
+            $imageDirectory = $this->di['Params']->get('kernel.project_dir') . '/'
+                . $this->di['Params']->get('image_directory') . '/';
+            $occurrenceImages = $this->di['DeadLinkService']->getOccurrenceImages();
 
             foreach ($occurrenceImages as $occurrenceImage) {
                 if (!$fileSystem->exists($imageDirectory . $occurrenceImage['filename'])) {
-                    $output->writeln('* Image: ' . $router->generate('image_get', ['id' => $occurrenceImage['image_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('* Image: ' . $this->di['UrlGenerator']->generate('image_get', ['id' => $occurrenceImage['image_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                     foreach (json_decode($occurrenceImage['occurrence_ids']) as $occurrenceId) {
-                        $output->writeln('  * Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
+                        $output->writeln('  * Occurrence: ' . $this->di['UrlGenerator']->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
             }
@@ -53,7 +83,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
         // Find dead links in occurrence imagelinks
         if ($type == null || $type == 'occurrence_imagelinks') {
-            $occurrenceImageLinks = $this->getContainer()->get('dead_link_service')->getOccurrenceImageLinks();
+            $occurrenceImageLinks = $this->di['DeadLinkService']->getOccurrenceImageLinks();
 
             foreach ($occurrenceImageLinks as $occurrenceImageLink) {
                 curl_setopt ($curl, CURLOPT_URL, $occurrenceImageLink['url']);
@@ -77,7 +107,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 if ($info['http_code'] !== 200) {
                     $output->writeln('* Image link (' . $info['http_code'] . '): ' . $occurrenceImageLink['url']);
                     foreach (json_decode($occurrenceImageLink['occurrence_ids']) as $occurrenceId) {
-                        $output->writeln('  * Occurrence: ' . $router->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
+                        $output->writeln('  * Occurrence: ' . $this->di['UrlGenerator']->generate('occurrence_get', ['id' => $occurrenceId], UrlGeneratorInterface::ABSOLUTE_URL));
                     }
                 }
 
@@ -88,7 +118,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
         // Find dead links in online sources
         if ($type == null || $type == 'online_sources') {
-            $onlineSources = $this->getContainer()->get('dead_link_service')->getOnlineSources();
+            $onlineSources = $this->di['DeadLinkService']->getOnlineSources();
 
             foreach ($onlineSources as $onlineSource) {
                 curl_setopt ($curl, CURLOPT_URL, $onlineSource['url']);
@@ -96,7 +126,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
                     $output->writeln('* Online source (' . $info['http_code'] . '): ' . $onlineSource['url']);
-                    $output->writeln('  * Online source: ' . $router->generate('online_source_get', ['id' => $onlineSource['online_source_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('  * Online source: ' . $this->di['UrlGenerator']->generate('online_source_get', ['id' => $onlineSource['online_source_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }
@@ -104,7 +134,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
         // Find dead links in online sources relative links
         if ($type == null || $type == 'online_source_relative_links') {
-            $onlineSourceRelativeLinks = $this->getContainer()->get('dead_link_service')->getOnlineSourceRelativeLinks();
+            $onlineSourceRelativeLinks = $this->di['DeadLinkService']->getOnlineSourceRelativeLinks();
 
             foreach ($onlineSourceRelativeLinks as $onlineSourceRelativeLink) {
                 curl_setopt ($curl, CURLOPT_URL, $onlineSourceRelativeLink['url']);
@@ -112,7 +142,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
                     $output->writeln('* Online source relative link (' . $info['http_code'] . '): ' . $onlineSourceRelativeLink['url']);
-                    $output->writeln('  * ' . ucfirst($onlineSourceRelativeLink['type']) . ': ' . $router->generate($onlineSourceRelativeLink['type'] . '_get', ['id' => $onlineSourceRelativeLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('  * ' . ucfirst($onlineSourceRelativeLink['type']) . ': ' . $this->di['UrlGenerator']->generate($onlineSourceRelativeLink['type'] . '_get', ['id' => $onlineSourceRelativeLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }
@@ -120,7 +150,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
 
         // Find dead links in identifier links
         if ($type == null || $type == 'identifier_links') {
-            $identifierLinks = $this->getContainer()->get('dead_link_service')->getIdentifierLinks();
+            $identifierLinks = $this->di['DeadLinkService']->get('dead_link_service')->getIdentifierLinks();
 
             foreach ($identifierLinks as $identifierLink) {
                 $suffix = '';
@@ -132,7 +162,7 @@ class FindDeadLinkCommand extends ContainerAwareCommand
                 $info = curl_getinfo($curl);
                 if ($info['http_code'] !== 200) {
                     $output->writeln('* Identifier link (' . $info['http_code'] . '): ' . $identifierLink['link'] . $identifierLink['identification'] . $suffix);
-                    $output->writeln('  * ' . ucfirst($identifierLink['type']) . ': ' . $router->generate($identifierLink['type'] . '_get', ['id' => $identifierLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
+                    $output->writeln('  * ' . ucfirst($identifierLink['type']) . ': ' . $this->di['UrlGenerator']->generate($identifierLink['type'] . '_get', ['id' => $identifierLink['entity_id']], UrlGeneratorInterface::ABSOLUTE_URL));
                 }
 
             }

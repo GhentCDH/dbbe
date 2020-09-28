@@ -6,22 +6,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\AcknowledgementManager;
 
 class AcknowledgementController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'acknowledgement_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Acknowledgement:';
+    public function __construct(AcknowledgementManager $acknowledgementManager)
+    {
+        $this->manager = $acknowledgementManager;
+        $this->templateFolder = '@App/Acknowledgement/';
+    }
 
     /**
      * @Route("/acknowledgements", name="acknowledgements_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,14 +32,14 @@ class AcknowledgementController extends BaseController
     /**
      * @Route("/acknowledgements/edit", name="acknowledgements_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Acknowledgement:edit.html.twig',
+            '@App/Acknowledgement/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -54,7 +55,7 @@ class AcknowledgementController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'acknowledgements' => json_encode(
-                    $this->get('acknowledgement_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 ),
             ]
         );

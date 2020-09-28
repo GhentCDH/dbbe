@@ -52,7 +52,7 @@ class InstitutionManager extends ObjectManager
         return $this->get($institutionIds);
     }
 
-    public function addInstitution(stdClass $data, bool $library = false, bool $monastery = false): Institution
+    public function add(stdClass $data, bool $library = false, bool $monastery = false): Institution
     {
         $this->dbs->beginTransaction();
         try {
@@ -84,7 +84,7 @@ class InstitutionManager extends ObjectManager
         return $newInstitution;
     }
 
-    public function updateInstitution(int $institutionId, stdClass $data): Institution
+    public function update(int $institutionId, stdClass $data): Institution
     {
         $this->dbs->beginTransaction();
         try {
@@ -135,7 +135,7 @@ class InstitutionManager extends ObjectManager
         return $newInstitution;
     }
 
-    public function delInstitution(int $institutionId): void
+    public function delete(int $institutionId): void
     {
         $this->dbs->beginTransaction();
         try {

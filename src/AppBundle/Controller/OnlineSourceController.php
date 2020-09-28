@@ -4,24 +4,29 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-class OnlineSourceController extends EditController
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\OnlineSourceManager;
+use AppBundle\ObjectStorage\RoleManager;
+
+class OnlineSourceController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'online_source_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:OnlineSource:';
+    public function __construct(OnlineSourceManager $onlineSourceManager)
+    {
+        $this->manager = $onlineSourceManager;
+        $this->templateFolder = '@App/OnlineSource/';
+    }
 
     /**
      * @Route("/onlinesources", name="online_sources_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -35,18 +40,30 @@ class OnlineSourceController extends EditController
     /**
      * @Route("/onlinesources/add", name="online_source_add")
      * @Method("GET")
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/onlinesources/{id}", name="online_source_get")
      * @Method("GET")
-      * @param int     $id
-      * @param Request $request
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -57,8 +74,9 @@ class OnlineSourceController extends EditController
      * Get all online sources that have a dependency on an instutution
      * @Route("/onlinesources/institutions/{id}", name="online_source_deps_by_institution")
      * @Method("GET")
-     * @param  int    $id institution id
+     * @param int $id institution id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByInstitution(int $id, Request $request)
     {
@@ -70,8 +88,9 @@ class OnlineSourceController extends EditController
      * (reference)
      * @Route("/onlinesources/managements/{id}", name="online_source_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -128,15 +147,22 @@ class OnlineSourceController extends EditController
     /**
      * @Route("/onlinesources/{id}/edit", name="online_source_edit")
      * @Method("GET")
-     * @param  int|null $id
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
+     * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'id' => $id,
                 'urls' => json_encode([
@@ -152,14 +178,14 @@ class OnlineSourceController extends EditController
                 'data' => json_encode([
                     'onlineSource' => empty($id)
                         ? null
-                        : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('onlineSource')
+                    $identifierManager->getByTypeJson('onlineSource')
                 ),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getByTypeJson('onlineSource')
+                    $roleManager->getByTypeJson('onlineSource')
                 ),
             ]
         );

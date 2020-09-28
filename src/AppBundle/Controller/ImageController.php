@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+use Exception;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -11,22 +13,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\ObjectStorage\ImageManager;
+
 class ImageController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'image_manager';
+    public function __construct(ImageManager $imageManager)
+    {
+        $this->manager = $imageManager;
+    }
 
     /**
      * @Route("/images/{id}", name="image_get")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return BinaryFileResponse
      */
-    public function getImage(int $id, Request $request)
+    public function getImage(int $id)
     {
-        $images = $this->get('image_manager')->get([$id]);
+        $images = $this->manager->get([$id]);
         if (count($images) != 1) {
             throw $this->createNotFoundException('Image with id "' . $id . '" not found');
         }
@@ -50,6 +54,8 @@ class ImageController extends BaseController
      * @Route("/images", name="image_post")
      * @Method("POST")
      * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
      */
     public function post(Request $request)
     {
@@ -58,7 +64,7 @@ class ImageController extends BaseController
 
         $file = $request->files->get('file');
         try {
-            $image = $this->get('image_manager')->getImageByFile($file);
+            $image = $this->manager->getImageByFile($file);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

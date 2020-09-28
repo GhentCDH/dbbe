@@ -7,23 +7,22 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use AppBundle\ObjectStorage\BookSeriesManager;
 
 class BookSeriesController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'book_series_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:BookSeries:';
+    public function __construct(BookSeriesManager $bookSeriesManager)
+    {
+        $this->manager = $bookSeriesManager;
+        $this->templateFolder = '@App/BookSeries/';
+    }
 
     /**
      * @Route("/book_seriess", name="book_seriess_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,23 +30,23 @@ class BookSeriesController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMiniShortJson()
+            $this->manager->getAllMiniShortJson()
         );
     }
 
     /**
      * @Route("/book_seriess/edit", name="book_seriess_edit")
      * @Method("GET")
-     * @param Request $request
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER  . 'edit.html.twig',
+            $this->templateFolder  . 'edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'book_seriess_get' => $this->generateUrl('book_seriess_get'),
                     'book_deps_by_book_series' => $this->generateUrl('book_deps_by_book_series', ['id' => 'book_series_id']),
                     'book_get' => $this->generateUrl('book_get', ['id' => 'book_id']),
@@ -56,8 +55,9 @@ class BookSeriesController extends BaseController
                     'book_series_put' => $this->generateUrl('book_series_put', ['id' => 'book_series_id']),
                     'book_series_delete' => $this->generateUrl('book_series_delete', ['id' => 'book_series_id']),
                     'login' => $this->generateUrl('saml_login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
-                'book_seriess' => json_encode($this->get(self::MANAGER)->getAllJson()),
+                'book_seriess' => json_encode($this->manager->getAllJson()),
             ]
         );
     }
@@ -65,32 +65,13 @@ class BookSeriesController extends BaseController
     /**
      * @Route("/book_series/{id}", name="book_series_get")
      * @Method("GET")
-     * @param int     $id
+     * @param int $id
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-            try {
-                $object = $this->get(static::MANAGER)->getFull($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-            return new JsonResponse($object->getJson());
-        } else {
-            // Let the 404 page handle the not found exception
-            $object = $this->get(static::MANAGER)->getFull($id);
-            return $this->render(
-                static::TEMPLATE_FOLDER . 'detail.html.twig',
-                [
-                    $object::CACHENAME => $object,
-                ]
-            );
-        }
+        return parent::getSingle($id, $request);
     }
 
     /**

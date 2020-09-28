@@ -4,37 +4,33 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class CollectionController extends Controller
+use AppBundle\ObjectStorage\CollectionManager;
+
+class CollectionController extends BaseController
 {
+    public function __construct(CollectionManager $collectionManager)
+    {
+        $this->manager = $collectionManager;
+    }
+
     /**
      * @Route("/collections", name="collection_post")
      * @Method("POST")
      * @param Request $request
      * @return JsonResponse
      */
-    public function postCollection(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $response = parent::post($request);
 
-        try {
-            $collection = $this
-                ->get('collection_manager')
-                ->addCollection(json_decode($request->getContent()));
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
+            $this->addFlash('success', 'Collection added successfully.');
         }
 
-        return new JsonResponse($collection->getJson());
+        return $response;
     }
 
     /**
@@ -44,55 +40,26 @@ class CollectionController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function putCollection(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $response = parent::put($id, $request);
 
-        try {
-            $collection = $this
-                ->get('collection_manager')
-                ->updateCollection($id, json_decode($request->getContent()));
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
+            $this->addFlash('success', 'Collection successfully saved.');
         }
 
-        return new JsonResponse($collection->getJson());
+        return $response;
     }
 
     /**
      * @Route("/collections/{id}", name="collection_delete")
      * @Method("DELETE")
-     * @param  int    $id collection id
+     * @param int $id collection id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteCollection(int $id)
+    public function delete(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-
-        try {
-            $this
-                ->get('collection_manager')
-                ->delCollection($id);
-        } catch (NotFoundHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                Response::HTTP_NOT_FOUND
-            );
-        } catch (BadRequestHttpException $e) {
-            return new JsonResponse(
-                ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return parent::delete($id, $request);
     }
 }

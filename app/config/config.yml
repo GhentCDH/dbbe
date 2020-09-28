@@ -19,8 +19,6 @@ framework:
     csrf_protection: ~
     validation: { enable_annotations: true }
     #serializer: { enable_annotations: true }
-    templating:
-        engines: ['twig']
     default_locale: '%locale%'
     trusted_hosts: ~
     session:
@@ -43,6 +41,7 @@ twig:
     form_themes: ['bootstrap_3_layout.html.twig']
     globals:
         siteKey: '%siteKey%'
+    exception_controller: null
 
 # Doctrine Configuration
 doctrine:

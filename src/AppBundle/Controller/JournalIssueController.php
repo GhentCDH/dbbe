@@ -6,22 +6,24 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\JournalIssueManager;
+use AppBundle\ObjectStorage\JournalManager;
 
 class JournalIssueController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'journal_issue_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:JournalIssue:';
+    public function __construct(JournalIssueManager $journalIssueManager)
+    {
+        $this->manager = $journalIssueManager;
+        $this->templateFolder = '@App/JournalIssue/';
+    }
 
     /**
      * @Route("/journal_issues", name="journal_issues_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -48,16 +50,18 @@ class JournalIssueController extends BaseController
     /**
      * @Route("/journal_issues/edit", name="journal_issues_edit")
      * @Method("GET")
-     * @param Request $request
+     * @param JournalManager $journalManager
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit(JournalManager $journalManager)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'journal_issues_get' => $this->generateUrl('journal_issues_get'),
                     'article_deps_by_journal_issue' => $this->generateUrl('article_deps_by_journal_issue', ['id' => 'journal_issue_id']),
                     'article_get' => $this->generateUrl('article_get', ['id' => 'article_id']),
@@ -65,10 +69,11 @@ class JournalIssueController extends BaseController
                     'journal_issue_put' => $this->generateUrl('journal_issue_put', ['id' => 'journal_issue_id']),
                     'journal_issue_delete' => $this->generateUrl('journal_issue_delete', ['id' => 'journal_issue_id']),
                     'login' => $this->generateUrl('saml_login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([
-                    'journalIssues' => $this->get(self::MANAGER)->getAllJson(),
-                    'journals' => $this->get('journal_manager')->getAllMiniShortJson(),
+                    'journalIssues' => $this->manager->getAllJson(),
+                    'journals' => $journalManager->getAllMiniShortJson(),
                 ]),
             ]
         );

@@ -6,22 +6,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\SelfDesignationManager;
 
 class SelfDesignationController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'self_designation_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:SelfDesignation:';
+    public function __construct(SelfDesignationManager $selfDesignationManager)
+    {
+        $this->manager = $selfDesignationManager;
+        $this->templateFolder = '@App/SelfDesignation/';
+    }
 
     /**
      * @Route("/self-designations", name="self_designations_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,14 +32,14 @@ class SelfDesignationController extends BaseController
     /**
      * @Route("/self-designations/edit", name="self_designations_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:SelfDesignation:edit.html.twig',
+            '@App/SelfDesignation/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -53,7 +54,7 @@ class SelfDesignationController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'selfDesignations' => json_encode(
-                    $this->get('self_designation_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 ),
             ]
         );

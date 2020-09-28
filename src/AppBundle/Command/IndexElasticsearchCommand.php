@@ -2,13 +2,115 @@
 
 namespace AppBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class IndexElasticsearchCommand extends ContainerAwareCommand
+use AppBundle\ObjectStorage\ArticleManager;
+use AppBundle\ObjectStorage\BibVariaManager;
+use AppBundle\ObjectStorage\BlogManager;
+use AppBundle\ObjectStorage\BlogPostManager;
+use AppBundle\ObjectStorage\BookChapterManager;
+use AppBundle\ObjectStorage\BookClusterManager;
+use AppBundle\ObjectStorage\BookManager;
+use AppBundle\ObjectStorage\BookSeriesManager;
+use AppBundle\ObjectStorage\JournalManager;
+use AppBundle\ObjectStorage\ManuscriptManager;
+use AppBundle\ObjectStorage\OccurrenceManager;
+use AppBundle\ObjectStorage\OnlineSourceManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\PhdManager;
+use AppBundle\ObjectStorage\TypeManager;
+use AppBundle\ObjectStorage\VerseManager;
+use AppBundle\Service\ElasticSearchService\ElasticBibliographyService;
+use AppBundle\Service\ElasticSearchService\ElasticManuscriptService;
+use AppBundle\Service\ElasticSearchService\ElasticOccurrenceService;
+use AppBundle\Service\ElasticSearchService\ElasticPersonService;
+use AppBundle\Service\ElasticSearchService\ElasticTypeService;
+use AppBundle\Service\ElasticSearchService\ElasticVerseService;
+
+class IndexElasticsearchCommand extends Command
 {
+    protected $di = [];
+
+    /**
+     * IndexElasticsearchCommand constructor.
+     * @param ManuscriptManager $manuscriptManager
+     * @param ElasticManuscriptService $elasticManuscriptService
+     * @param OccurrenceManager $occurrenceManager
+     * @param ElasticOccurrenceService $elasticOccurrenceService
+     * @param TypeManager $typeManager
+     * @param ElasticTypeService $elasticTypeService
+     * @param PersonManager $personManager
+     * @param ElasticPersonService $elasticPersonService
+     * @param ElasticBibliographyService $elasticBibliographyService
+     * @param ArticleManager $articleManager
+     * @param BookManager $bookManager
+     * @param BookChapterManager $bookChapterManager
+     * @param OnlineSourceManager $onlineSourceManager
+     * @param BookClusterManager $bookClusterManager
+     * @param BookSeriesManager $bookSeriesManager
+     * @param BlogManager $blogManager
+     * @param BlogPostManager $blogPostManager
+     * @param PhdManager $phdManager
+     * @param BibVariaManager $bibVariaManager
+     * @param JournalManager $journalManager
+     * @param VerseManager $verseManager
+     * @param ElasticVerseService $elasticVerseService
+     */
+    public function __construct(
+        ManuscriptManager $manuscriptManager,
+        ElasticManuscriptService $elasticManuscriptService,
+        OccurrenceManager $occurrenceManager,
+        ElasticOccurrenceService $elasticOccurrenceService,
+        TypeManager $typeManager,
+        ElasticTypeService $elasticTypeService,
+        PersonManager $personManager,
+        ElasticPersonService $elasticPersonService,
+        ElasticBibliographyService $elasticBibliographyService,
+        ArticleManager $articleManager,
+        BookManager $bookManager,
+        BookChapterManager $bookChapterManager,
+        OnlineSourceManager $onlineSourceManager,
+        BookClusterManager $bookClusterManager,
+        BookSeriesManager $bookSeriesManager,
+        BlogManager $blogManager,
+        BlogPostManager $blogPostManager,
+        PhdManager $phdManager,
+        BibVariaManager $bibVariaManager,
+        JournalManager $journalManager,
+        VerseManager $verseManager,
+        ElasticVerseService $elasticVerseService
+    ) {
+        $this->di = [
+            'ManuscriptManager' => $manuscriptManager,
+            'ElasticManuscriptService' => $elasticManuscriptService,
+            'OccurrenceManager' => $occurrenceManager,
+            'ElasticOccurrenceService' => $elasticOccurrenceService,
+            'TypeManager' => $typeManager,
+            'ElasticTypeService' => $elasticTypeService,
+            'PersonManager' => $personManager,
+            'ElasticPersonService' => $elasticPersonService,
+            'ElasticBibliographyService' => $elasticBibliographyService,
+            'ArticleManager' => $articleManager,
+            'BookManager' => $bookManager,
+            'BookChapterManager' => $bookChapterManager,
+            'OnlineSourceManager' => $onlineSourceManager,
+            'BookClusterManager' => $bookClusterManager,
+            'BookSeriesManager' => $bookSeriesManager,
+            'BlogManager' => $blogManager,
+            'BlogPostManager' => $blogPostManager,
+            'PhdManager' => $phdManager,
+            'BibVariaManager' => $bibVariaManager,
+            'JournalManager' => $journalManager,
+            'VerseManager' => $verseManager,
+            'ElasticVerseService' => $elasticVerseService,
+        ];
+
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this
@@ -18,81 +120,82 @@ class IndexElasticsearchCommand extends ContainerAwareCommand
             ->addOption('index', 'i', InputOption::VALUE_OPTIONAL, 'Which index should be reindexed?');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|void
+     */
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ) {
         $index = $input->getOption('index');
 
         // Index all types
         // (Re)index manuscripts
         if ($index == null || $index == 'manuscript') {
-            $manuscripts = $this->getContainer()->get('manuscript_manager')->getAllShort();
+            $manuscripts = $this->di['ManuscriptManager']->getAllShort();
 
-            $manuscriptElasticService = $this->getContainer()->get('manuscript_elastic_service');
-            $manuscriptElasticService->setup();
-            $manuscriptElasticService->addMultiple($manuscripts);
+            $this->di['ElasticManuscriptService']->setup();
+            $this->di['ElasticManuscriptService']->addMultiple($manuscripts);
         }
 
         // (Re)index occurrences
         if ($index == null || $index == 'occurrence') {
-            $occurrences = $this->getContainer()->get('occurrence_manager')->getAllShort();
+            $occurrences = $this->di['OccurrenceManager']->getAllShort();
 
-            $occurrenceElasticService = $this->getContainer()->get('occurrence_elastic_service');
-            $occurrenceElasticService->setup();
-            $occurrenceElasticService->addMultiple($occurrences);
+            $this->di['ElasticOccurrenceService']->setup();
+            $this->di['ElasticOccurrenceService']->addMultiple($occurrences);
         }
 
         // (Re)index types
         if ($index == null || $index == 'type') {
-            $occurrences = $this->getContainer()->get('type_manager')->getAllShort();
+            $occurrences = $this->di['TypeManager']->getAllShort();
 
-            $occurrenceElasticService = $this->getContainer()->get('type_elastic_service');
-            $occurrenceElasticService->setup();
-            $occurrenceElasticService->addMultiple($occurrences);
+            $this->di['ElasticTypeService']->setup();
+            $this->di['ElasticTypeService']->addMultiple($occurrences);
         }
 
         // (Re)index persons
         if ($index == null || $index == 'person') {
-            $persons = $this->getContainer()->get('person_manager')->getAllShort();
+            $persons = $this->di['PersonManager']->getAllShort();
 
-            $personElasticService = $this->getContainer()->get('person_elastic_service');
-            $personElasticService->setup();
-            $personElasticService->addMultiple($persons);
+            $this->di['ElasticPersonService']->setup();
+            $this->di['ElasticPersonService']->addMultiple($persons);
         }
 
         // (Re)index bibliography items
         if ($index == null || $index == 'bibliography') {
-            $bibliographyElasticService = $this->getContainer()->get('bibliography_elastic_service');
-            $bibliographyElasticService->setup();
+            $this->di['ElasticBibliographyService']->setup();
 
             $bibTypes = [
-                'article',
-                'book',
-                'book_chapter',
-                'online_source',
-                'book_cluster',
-                'book_series',
-                'blog',
-                'blog_post',
-                'phd',
-                'bib_varia',
+                'Article',
+                'Book',
+                'BookChapter',
+                'OnlineSource',
+                'BookCluster',
+                'BookSeries',
+                'Blog',
+                'BlogPost',
+                'Phd',
+                'BibVaria',
             ];
 
             foreach ($bibTypes as $bibType) {
-                $items = $this->getContainer()->get($bibType . '_manager')->getAllShort();
-                $bibliographyElasticService->addMultiple($items);
+                $items = $this->di[$bibType . 'Manager']->getAllShort();
+                $this->di['ElasticBibliographyService']->addMultiple($items);
             }
 
-            $items = $this->getContainer()->get('journal_manager')->getAll();
-            $bibliographyElasticService->addMultiple($items);
+            $items = $this->di['JournalManager']->getAll();
+            $this->di['ElasticBibliographyService']->addMultiple($items);
         }
 
         // (Re)index verses
         if ($index == null || $index == 'verse') {
-            $verses = $this->getContainer()->get('verse_manager')->getAllShort();
+            $verses = $this->di['VerseManager']->getAllShort();
 
-            $verseElasticService = $this->getContainer()->get('verse_elastic_service');
-            $verseElasticService->setupVerses();
-            $verseElasticService->addMultiple($verses);
+            $this->di['ElasticVerseService']->setupVerses();
+            $this->di['ElasticVerseService']->addMultiple($verses);
         }
     }
 }

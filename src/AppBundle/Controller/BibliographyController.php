@@ -2,13 +2,29 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\ObjectStorage\ArticleManager;
+use AppBundle\ObjectStorage\BibVariaManager;
+use AppBundle\ObjectStorage\BlogManager;
+use AppBundle\ObjectStorage\BlogPostManager;
+use AppBundle\ObjectStorage\BookChapterManager;
+use AppBundle\ObjectStorage\BookClusterManager;
+use AppBundle\ObjectStorage\BookManager;
+use AppBundle\ObjectStorage\BookSeriesManager;
+use AppBundle\ObjectStorage\JournalManager;
+use AppBundle\ObjectStorage\OnlineSourceManager;
+use AppBundle\ObjectStorage\PhdManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\Service\ElasticSearchService\ElasticBibliographyService;
 
 class BibliographyController extends BaseController
 {
@@ -16,6 +32,7 @@ class BibliographyController extends BaseController
      * @Route("/bibliographies", name="bibliographies_base")
      * @Method("GET")
      * @param Request $request
+     * @return RedirectResponse
      */
     public function base(Request $request)
     {
@@ -23,14 +40,22 @@ class BibliographyController extends BaseController
     }
 
     /**
-    * @Route("/bibliographies/search", name="bibliographies_search")
-    * @Method("GET")
-    * @param Request $request
-    */
-    public function searchBibliographies(Request $request)
-    {
+     * @Route("/bibliographies/search", name="bibliographies_search")
+     * @Method("GET")
+     * @param Request $request
+     * @param ElasticBibliographyService $elasticBibliographyService
+     * @param IdentifierManager $identifierManager
+     * @param ManagementManager $managementManager
+     * @return Response
+     */
+    public function search(
+        Request $request,
+        ElasticBibliographyService $elasticBibliographyService,
+        IdentifierManager $identifierManager,
+        ManagementManager $managementManager
+    ) {
         return $this->render(
-            'AppBundle:Bibliography:overview.html.twig',
+            '@App/Bibliography/overview.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
@@ -108,14 +133,14 @@ class BibliographyController extends BaseController
                     'managements_remove' => $this->generateUrl('bibliographies_managements_remove'),
                 ]),
                 'data' => json_encode(
-                    $this->get('bibliography_elastic_service')->searchAndAggregate(
+                    $elasticBibliographyService->searchAndAggregate(
                         $this->sanitize($request->query->all()),
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
-                'identifiers' => json_encode($this->get('identifier_manager')->getPrimaryByTypeJson('book')),
+                'identifiers' => json_encode($identifierManager->getPrimaryByTypeJson('book')),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -126,10 +151,15 @@ class BibliographyController extends BaseController
      * @Route("/bibliographies/search_api", name="bibliographies_search_api")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticBibliographyService $elasticBibliographyService
+     * @return JsonResponse
      */
-    public function searchBibliographiesAPI(Request $request)
-    {
-        $result = $this->get('bibliography_elastic_service')->searchAndAggregate(
+    public function searchAPI(
+        Request $request,
+        ElasticBibliographyService $elasticBibliographyService
+    ) {
+        $this->throwErrorIfNotJson($request);
+        $result = $elasticBibliographyService->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
@@ -141,49 +171,51 @@ class BibliographyController extends BaseController
      * @Route("/bibliographies/managements/add", name="bibliographies_managements_add")
      * @Method("PUT")
      * @param Request $request
+     * @param ArticleManager $articleManager
+     * @param BookManager $bookManager
+     * @param BookChapterManager $bookChapterManager
+     * @param OnlineSourceManager $onlineSourceManager
+     * @param JournalManager $journalManager
+     * @param BookClusterManager $bookClusterManager
+     * @param BookSeriesManager $bookSeriesManager
+     * @param BlogManager $blogManager
+     * @param BlogPostManager $blogPostManager
+     * @param PhdManager $phdManager
+     * @param BibVariaManager $bibVariaManager
      * @return JsonResponse
+     * @throws \Exception
      */
-    public function addManagements(Request $request)
-    {
+    public function addBibliographyManagements(
+        Request $request,
+        ArticleManager $articleManager,
+        BookManager $bookManager,
+        BookChapterManager $bookChapterManager,
+        OnlineSourceManager $onlineSourceManager,
+        JournalManager $journalManager,
+        BookClusterManager $bookClusterManager,
+        BookSeriesManager $bookSeriesManager,
+        BlogManager $blogManager,
+        BlogPostManager $blogPostManager,
+        PhdManager $phdManager,
+        BibVariaManager $bibVariaManager
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent());
 
         try {
-            $this
-                ->get('article_manager')
-                ->addManagements($content);
-            $this
-                ->get('book_manager')
-                ->addManagements($content);
-            $this
-                ->get('book_chapter_manager')
-                ->addManagements($content);
-            $this
-                ->get('online_source_manager')
-                ->addManagements($content);
-            $this
-                ->get('journal_manager')
-                ->addManagements($content);
-            $this
-                ->get('book_cluster_manager')
-                ->addManagements($content);
-            $this
-                ->get('book_series_manager')
-                ->addManagements($content);
-            $this
-                ->get('blog_manager')
-                ->addManagements($content);
-            $this
-                ->get('blog_post_manager')
-                ->addManagements($content);
-            $this
-                ->get('phd_manager')
-                ->addManagements($content);
-            $this
-                ->get('bib_varia_manager')
-                ->addManagements($content);
+            $articleManager->addManagements($content);
+            $bookManager->addManagements($content);
+            $bookChapterManager->addManagements($content);
+            $onlineSourceManager->addManagements($content);
+            $journalManager->addManagements($content);
+            $bookClusterManager->addManagements($content);
+            $bookSeriesManager->addManagements($content);
+            $blogManager->addManagements($content);
+            $blogPostManager->addManagements($content);
+            $phdManager->addManagements($content);
+            $bibVariaManager->addManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -204,49 +236,51 @@ class BibliographyController extends BaseController
      * @Route("/bibliographies/managements/remove", name="bibliographies_managements_remove")
      * @Method("PUT")
      * @param Request $request
+     * @param ArticleManager $articleManager
+     * @param BookManager $bookManager
+     * @param BookChapterManager $bookChapterManager
+     * @param OnlineSourceManager $onlineSourceManager
+     * @param JournalManager $journalManager
+     * @param BookClusterManager $bookClusterManager
+     * @param BookSeriesManager $bookSeriesManager
+     * @param BlogManager $blogManager
+     * @param BlogPostManager $blogPostManager
+     * @param PhdManager $phdManager
+     * @param BibVariaManager $bibVariaManager
      * @return JsonResponse
+     * @throws \Exception
      */
-    public function removeManagements(Request $request)
-    {
+    public function removeBibliographyManagements(
+        Request $request,
+        ArticleManager $articleManager,
+        BookManager $bookManager,
+        BookChapterManager $bookChapterManager,
+        OnlineSourceManager $onlineSourceManager,
+        JournalManager $journalManager,
+        BookClusterManager $bookClusterManager,
+        BookSeriesManager $bookSeriesManager,
+        BlogManager $blogManager,
+        BlogPostManager $blogPostManager,
+        PhdManager $phdManager,
+        BibVariaManager $bibVariaManager
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR');
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent());
 
         try {
-            $this
-                ->get('article_manager')
-                ->removeManagements($content);
-            $this
-                ->get('book_manager')
-                ->removeManagements($content);
-            $this
-                ->get('book_chapter_manager')
-                ->removeManagements($content);
-            $this
-                ->get('online_source_manager')
-                ->removeManagements($content);
-            $this
-                ->get('journal_manager')
-                ->removeManagements($content);
-            $this
-                ->get('book_cluster_manager')
-                ->removeManagements($content);
-            $this
-                ->get('book_series_manager')
-                ->removeManagements($content);
-            $this
-                ->get('blog_manager')
-                ->removeManagements($content);
-            $this
-                ->get('blog_post_manager')
-                ->removeManagements($content);
-            $this
-                ->get('phd_manager')
-                ->removeManagements($content);
-            $this
-                ->get('bib_varia_manager')
-                ->removeManagements($content);
+            $articleManager->removeManagements($content);
+            $bookManager->removeManagements($content);
+            $bookChapterManager->removeManagements($content);
+            $onlineSourceManager->removeManagements($content);
+            $journalManager->removeManagements($content);
+            $bookClusterManager->removeManagements($content);
+            $bookSeriesManager->removeManagements($content);
+            $blogManager->removeManagements($content);
+            $blogPostManager->removeManagements($content);
+            $phdManager->removeManagements($content);
+            $bibVariaManager->removeManagements($content);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -297,12 +331,14 @@ class BibliographyController extends BaseController
             } elseif (($params['orderBy']) == 'type') {
                 $esParams['orderBy'] = ['type.name.keyword'];
             } elseif (($params['orderBy']) == 'author') {
-                $esParams['orderBy'] = [$this->isGranted('ROLE_VIEW_INTERNAL') ? 'author_last_name.keyword' : 'author_last_name_public.keyword'];
+                $esParams['orderBy'] = [
+                    $this->isGranted('ROLE_VIEW_INTERNAL') ? 'author_last_name.keyword' : 'author_last_name_public.keyword'
+                ];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
         // Don't set default order if there is a text field filter
-        } else if (!(isset($params['filters']['title']) || isset($params['filters']['comment']))) {
+        } elseif (!(isset($params['filters']['title']) || isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
 

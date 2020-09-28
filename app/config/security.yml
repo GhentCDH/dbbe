@@ -25,7 +25,6 @@ security:
                 login_path: /saml/login
             logout:
                 path: /saml/logout
-            logout_on_user_change: true
             remember_me:
                 secret:   '%secret%'
                 lifetime: 604800 # 1 week in seconds

@@ -6,22 +6,24 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\ContentManager;
+use AppBundle\ObjectStorage\PersonManager;
 
 class ContentController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'content_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Content:';
+    public function __construct(ContentManager $contentManager)
+    {
+        $this->manager = $contentManager;
+        $this->templateFolder = '@App/Content/';
+    }
 
     /**
      * @Route("/contents", name="contents_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -35,6 +37,7 @@ class ContentController extends BaseController
      * @Method("GET")
      * @param int $id The content id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByContent(int $id, Request $request)
     {
@@ -44,14 +47,15 @@ class ContentController extends BaseController
     /**
      * @Route("/contents/edit", name="contents_edit")
      * @Method("GET")
-     * @param Request $request
+     * @param PersonManager $personManager
+     * @return Response
      */
-    public function editContents(Request $request)
+    public function edit(PersonManager $personManager)
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Content:edit.html.twig',
+            '@App/Content/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -66,8 +70,8 @@ class ContentController extends BaseController
                     'login' => $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
-                'contents' => json_encode($this->get('content_manager')->getAllJson()),
-                'persons' => json_encode($this->get('person_manager')->getAllHistoricalShortJson()),
+                'contents' => json_encode($this->manager->getAllJson()),
+                'persons' => json_encode($personManager->getAllHistoricalShortJson()),
             ]
         );
     }

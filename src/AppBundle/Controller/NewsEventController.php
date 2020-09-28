@@ -4,27 +4,30 @@ namespace AppBundle\Controller;
 
 use DateTime;
 
+use Doctrine\DBAL\DBALException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class NewsEventController extends Controller
-{
+use AppBundle\Service\DatabaseService\NewsEventService;
 
+class NewsEventController extends AbstractController
+{
     /**
      * @Route("/news-events", name="news_events_get", methods={"GET"})
+     * @param NewsEventService $newsEventService
      * @return Response
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
-    public function getAll()
+    public function getAll(NewsEventService $newsEventService)
     {
         if ($this->isGranted('ROLE_EDITOR_VIEW')) {
-            $newsEvents = $this->get('news_event_service')->getDateSorted();
+            $newsEvents = $newsEventService->getDateSorted();
         } else {
-            $newsEvents = $this->get('news_event_service')->getPublicDateSorted();
+            $newsEvents = $newsEventService->getPublicDateSorted();
         }
 
         // Categorize per year
@@ -38,7 +41,7 @@ class NewsEventController extends Controller
         }
 
         return $this->render(
-            'AppBundle:NewsEvent:overview.html.twig',
+            '@App/NewsEvent/overview.html.twig',
             [
                 'data' => $yearArray,
             ]
@@ -47,17 +50,18 @@ class NewsEventController extends Controller
 
     /**
      * @Route("/news-events/edit", name="news_events_edit", methods={"GET"})
+     * @param NewsEventService $newsEventService
      * @return Response
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
-    public function edit()
+    public function edit(NewsEventService $newsEventService)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $newsEvents = $this->get('news_event_service')->getAll();
+        $newsEvents = $newsEventService->getAll();
 
         return $this->render(
-            'AppBundle:NewsEvent:edit.html.twig',
+            '@App/NewsEvent/edit.html.twig',
             [
                 'urls' => json_encode([
                     'news_events_get' => $this->generateUrl('news_events_get'),
@@ -72,18 +76,20 @@ class NewsEventController extends Controller
     /**
      * @Route("/news-events/{id}", name="news_event_get", methods={"GET"})
      * @param int $id
+     * @param NewsEventService $newsEventService
      * @return Response
+     * @throws DBALException
      */
-    public function getSingle(int $id)
+    public function getSingle(int $id, NewsEventService $newsEventService)
     {
-        $newsEvent = $this->get('news_event_service')->getSingle($id);
+        $newsEvent = $newsEventService->getSingle($id);
 
         if (!$newsEvent) {
             $this->createNotFoundException('The news item or event with id "' . $id . '" could not be found.');
         }
 
         return $this->render(
-            'AppBundle:NewsEvent:detail.html.twig',
+            '@App/NewsEvent/detail.html.twig',
             [
                 'newsEvent' => $newsEvent,
             ]
@@ -92,11 +98,12 @@ class NewsEventController extends Controller
 
     /**
      * @Route("/news-events", name="news_events_put", methods={"PUT"})
-     * @param  Request $request
+     * @param Request $request
+     * @param NewsEventService $newsEventService
      * @return JsonResponse
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
-    public function put(Request $request)
+    public function put(Request $request, NewsEventService $newsEventService)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
@@ -104,7 +111,7 @@ class NewsEventController extends Controller
         }
 
         $data = json_decode($request->getContent());
-        $oldItems = $this->get('news_event_service')->getAll();
+        $oldItems = $newsEventService->getAll();
         $oldItemIndices = [];
 
         // Sanitation
@@ -215,7 +222,7 @@ class NewsEventController extends Controller
                     || $oldItem['public'] != $item->public
                     || $oldItem['order'] != $order
                 ) {
-                    $this->get('news_event_service')->update(
+                    $newsEventService->update(
                         $item->id,
                         $this->get('security.token_storage')->getToken()->getUser()->getId(),
                         $item->title,
@@ -228,7 +235,7 @@ class NewsEventController extends Controller
                     );
                 }
             } else {
-                $this->get('news_event_service')->insert(
+                $newsEventService->insert(
                     $this->get('security.token_storage')->getToken()->getUser()->getId(),
                     $item->title,
                     $item->url,
@@ -243,13 +250,13 @@ class NewsEventController extends Controller
 
         foreach ($oldItems as $oldItem) {
             if (!in_array($oldItem['id'], $ids)) {
-                $this->get('news_event_service')->delete($oldItem['id']);
+                $newsEventService->delete($oldItem['id']);
             }
         }
 
         return new JsonResponse(
             json_encode(
-                $this->get('news_event_service')->getAll()
+                $newsEventService->getAll()
             )
         );
     }

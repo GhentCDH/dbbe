@@ -2,16 +2,21 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\ObjectStorage\OriginManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class OriginController extends Controller
+class OriginController extends BaseController
 {
+    public function __construct(OriginManager $originManager)
+    {
+        $this->manager = $originManager;
+    }
+
     /**
      * @Route("/origins", name="origins_get")
      * @Method("GET")
@@ -25,18 +30,18 @@ class OriginController extends Controller
             if ($request->query->get('type') == 'person') {
                 // person edit page
                 return new JsonResponse(
-                    $this->get('origin_manager')->getByTypeShortJson('person')
+                    $this->manager->getByTypeShortJson('person')
                 );
             } elseif ($request->query->get('type') == 'manuscript') {
                 // manuscript edit page
                 return new JsonResponse(
-                    $this->get('origin_manager')->getByTypeShortJson('manuscript')
+                    $this->manager->getByTypeShortJson('manuscript')
                 );
             } else {
                 // origins edit page
                 return new JsonResponse(
                     // origins for manuscript is a superset of origins for persons
-                    $this->get('origin_manager')->getByTypeJson('manuscript')
+                    $this->manager->getByTypeJson('manuscript')
                 );
             }
         }
@@ -46,14 +51,13 @@ class OriginController extends Controller
     /**
      * @Route("/origins/edit", name="origins_edit")
      * @Method("GET")
-     * @param Request $request
      */
-    public function editOrigins(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Origin:edit.html.twig',
+            '@App/Origin/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -70,7 +74,7 @@ class OriginController extends Controller
                 ]),
                 'origins' => json_encode(
                     // origins for manuscript is a superset of origins for persons
-                    $this->get('origin_manager')->getByTypeJson('manuscript')
+                    $this->manager->getByTypeJson('manuscript')
                 ),
             ]
         );

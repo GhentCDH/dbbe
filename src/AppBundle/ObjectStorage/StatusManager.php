@@ -82,7 +82,7 @@ class StatusManager extends ObjectManager
         );
     }
 
-    public function addStatus(stdClass $data): Status
+    public function add(stdClass $data): Status
     {
         $this->dbs->beginTransaction();
         try {
@@ -125,7 +125,7 @@ class StatusManager extends ObjectManager
         return $newStatus;
     }
 
-    public function updateStatus(int $statusId, stdClass $data): Status
+    public function update(int $statusId, stdClass $data): Status
     {
         $this->dbs->beginTransaction();
         try {
@@ -165,7 +165,7 @@ class StatusManager extends ObjectManager
         return $newStatus;
     }
 
-    public function delStatus(int $statusId): void
+    public function delete(int $statusId): void
     {
         $this->dbs->beginTransaction();
         try {

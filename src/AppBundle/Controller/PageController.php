@@ -2,9 +2,10 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Service\DatabaseService\PageService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,22 +14,23 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class PageController extends Controller
+class PageController extends AbstractController
 {
     /**
      * @Route("/pages/{slug}", name="page_get")
      * @Method("GET")
-     * @param  string  $slug
-     * @param  Request $request
+     * @param string $slug
+     * @param PageService $pageService
+     * @return Response
      */
-    public function getPage(Request $request, string $slug)
+    public function getPage(string $slug, PageService $pageService)
     {
-        $page = $this->get('page_service')->getBySlug($slug);
+        $page = $pageService->getBySlug($slug);
         if (empty($page)) {
             throw $this->createNotFoundException('The requested page does not exist');
         }
         return $this->render(
-            'AppBundle:Page:detail.html.twig',
+            '@App/Page/detail.html.twig',
             $page
         );
     }
@@ -36,16 +38,18 @@ class PageController extends Controller
     /**
      * @Route("/pages/{slug}", name="page_put")
      * @Method("PUT")
-     * @param  string  $slug
-     * @param  Request $request
+     * @param Request $request
+     * @param string $slug
+     * @param PageService $pageService
+     * @return JsonResponse
      */
-    public function put(Request $request, string $slug)
+    public function put(Request $request, string $slug, PageService $pageService)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
-        $page = $this->get('page_service')->getBySlug($slug);
+        $page = $pageService->getBySlug($slug);
         if (empty($page)) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'This page does not exists']],
@@ -66,7 +70,7 @@ class PageController extends Controller
                 Response::HTTP_BAD_REQUEST
             );
         }
-        $this->get('page_service')->update(
+        $pageService->update(
             $this->get('security.token_storage')->getToken()->getUser()->getId(),
             $slug,
             $data->title,
@@ -75,7 +79,7 @@ class PageController extends Controller
         );
         return new JsonResponse(
             json_encode(
-                $this->get('page_service')->getBySlug($slug)
+                $pageService->getBySlug($slug)
             )
         );
     }
@@ -83,18 +87,19 @@ class PageController extends Controller
     /**
      * @Route("/pages/{slug}/edit", name="page_edit")
      * @Method("GET")
-     * @param  string  $slug
-     * @param  Request $request
+     * @param string $slug
+     * @param PageService $pageService
+     * @return Response
      */
-    public function edit(Request $request, string $slug)
+    public function edit(string $slug, PageService $pageService)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        $page = $this->get('page_service')->getBySlug($slug);
+        $page = $pageService->getBySlug($slug);
         if (empty($page)) {
             throw $this->createNotFoundException('The requested page does not exist');
         }
         return $this->render(
-            'AppBundle:Page:edit.html.twig',
+            '@App/Page/edit.html.twig',
             [
                 'slug' => $slug,
                 'urls' => json_encode([
@@ -111,10 +116,10 @@ class PageController extends Controller
     /**
      * @Route("/pages/images/{name}", name="page_image_get")
      * @Method("GET")
-     * @param  string  $name
-     * @param  Request $request
+     * @param string $name
+     * @return BinaryFileResponse
      */
-    public function getImage(Request $request, string $name)
+    public function getImage(string $name)
     {
         try {
             return new BinaryFileResponse(

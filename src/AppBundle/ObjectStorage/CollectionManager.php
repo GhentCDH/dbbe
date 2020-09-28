@@ -45,7 +45,7 @@ class CollectionManager extends ObjectManager
         return $collections;
     }
 
-    public function addCollection(stdClass $data): Collection
+    public function add(stdClass $data): Collection
     {
         $this->dbs->beginTransaction();
         try {
@@ -82,7 +82,7 @@ class CollectionManager extends ObjectManager
         return $new;
     }
 
-    public function updateCollection(int $id, stdClass $data): Collection
+    public function update(int $id, stdClass $data): Collection
     {
         $this->dbs->beginTransaction();
         try {
@@ -129,7 +129,7 @@ class CollectionManager extends ObjectManager
         return $new;
     }
 
-    public function delCollection(int $collectionId): void
+    public function delete(int $collectionId): void
     {
         $this->dbs->beginTransaction();
         try {

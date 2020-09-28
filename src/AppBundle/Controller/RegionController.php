@@ -6,22 +6,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\RegionManager;
 
 class RegionController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'region_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Region:';
+    public function __construct(RegionManager $regionManager)
+    {
+        $this->manager = $regionManager;
+        $this->templateFolder = '@App/Region/';
+    }
 
     /**
      * @Route("/regions", name="regions_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -44,14 +45,14 @@ class RegionController extends BaseController
     /**
      * @Route("/regions/edit", name="regions_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function editRegions(Request $request)
+    public function editRegions()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Region:edit.html.twig',
+            '@App/Region/edit.html.twig',
             [
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
@@ -71,7 +72,7 @@ class RegionController extends BaseController
                     // @codingStandardsIgnoreEnd
                 ]),
                 'regions' => json_encode(
-                    $this->get('region_manager')->getAllJson()
+                    $this->manager->getAllJson()
                 ),
             ]
         );

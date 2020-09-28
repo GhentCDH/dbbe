@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,21 +11,20 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use AppBundle\Utils\ArrayToJson;
 
-class BaseController extends Controller
+class BaseController extends AbstractController
 {
     /**
      * The name of the manager that can be used to manage relevant objects.
      *
      * @var string
      */
-    const MANAGER = 'abstract';
-
+    protected $manager;
     /**
      * The folder where relevant templates are located.
      *
      * @var string
      */
-    const TEMPLATE_FOLDER = 'abstract';
+    protected $templateFolder;
 
     /**
      * @param int     $id
@@ -36,7 +35,7 @@ class BaseController extends Controller
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $object = $this->get(static::MANAGER)->getFull($id);
+                $object = $this->manager->getFull($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -46,12 +45,12 @@ class BaseController extends Controller
             return new JsonResponse($object->getJson());
         } else {
             // Let the 404 page handle the not found exception
-            $object = $this->get(static::MANAGER)->getFull($id);
+            $object = $this->manager->getFull($id);
             if (method_exists($object, 'getPublic') && !$object->getPublic()) {
                 $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
             }
             return $this->render(
-                static::TEMPLATE_FOLDER . 'detail.html.twig',
+                $this->templateFolder . 'detail.html.twig',
                 [$object::CACHENAME => $object]
             );
         }
@@ -67,7 +66,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllJson()
+            $this->manager->getAllJson()
         );
     }
 
@@ -81,7 +80,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMicroShortJson()
+            $this->manager->getAllMicroShortJson()
         );
     }
 
@@ -95,7 +94,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMiniShortJson()
+            $this->manager->getAllMiniShortJson()
         );
     }
 
@@ -110,9 +109,7 @@ class BaseController extends Controller
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
         $this->throwErrorIfNotJson($request);
 
-        $objects = $this
-            ->get(static::MANAGER)
-            ->{$method}($id, 'getMini');
+        $objects = $this->manager->{$method}($id, 'getMini');
         return new JsonResponse(ArrayToJson::arrayToShortJson($objects));
     }
 
@@ -126,9 +123,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $object = $this
-                ->get(static::MANAGER)
-                ->add(json_decode($request->getContent()));
+            $object = $this->manager->add(json_decode($request->getContent()));
         } catch (BadRequestHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
@@ -151,9 +146,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $object = $this
-                ->get(static::MANAGER)
-                ->merge($primaryId, $secondaryId);
+            $object = $this->manager->merge($primaryId, $secondaryId);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -174,9 +167,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $object = $this
-                ->get(static::MANAGER)
-                ->update($id, json_decode($request->getContent()));
+            $object = $this->manager->update($id, json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -202,9 +193,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $this
-                ->get(static::MANAGER)
-                ->addManagements(json_decode($request->getContent()));
+            $this->manager->addManagements(json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -231,9 +220,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $this
-                ->get(static::MANAGER)
-                ->removeManagements(json_decode($request->getContent()));
+            $this->manager->removeManagements(json_decode($request->getContent()));
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -260,9 +247,7 @@ class BaseController extends Controller
         $this->throwErrorIfNotJson($request);
 
         try {
-            $this
-                ->get(static::MANAGER)
-                ->delete($id);
+            $this->manager->delete($id);
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(
                 ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],

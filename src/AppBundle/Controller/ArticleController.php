@@ -4,24 +4,30 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-class ArticleController extends EditController
+use AppBundle\ObjectStorage\ArticleManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\RoleManager;
+
+class ArticleController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'article_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Article:';
+    public function __construct(ArticleManager $articleManager)
+    {
+        $this->manager = $articleManager;
+        $this->templateFolder = '@App/Article/';
+    }
 
     /**
      * @Route("/articles", name="articles_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -35,18 +41,32 @@ class ArticleController extends EditController
     /**
      * @Route("/articles/add", name="article_add")
      * @Method("GET")
-     * @param Request $request
+     * @param PersonManager $personManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        PersonManager $personManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/articles/{id}", name="article_get")
      * @Method("GET")
-      * @param int     $id
-      * @param Request $request
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -86,8 +106,9 @@ class ArticleController extends EditController
      * (bibrole)
      * @Route("/articles/roles/{id}", name="article_deps_by_role")
      * @Method("GET")
-     * @param  int    $id role id
+     * @param int $id role id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRole(int $id, Request $request)
     {
@@ -99,8 +120,9 @@ class ArticleController extends EditController
      * (reference)
      * @Route("/articles/managements/{id}", name="article_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -157,15 +179,24 @@ class ArticleController extends EditController
     /**
      * @Route("/articles/{id}/edit", name="article_edit")
      * @Method("GET")
-     * @param  int|null $id
-     * @param Request $request
+     * @param PersonManager $personManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
+     * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        PersonManager $personManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 'id' => $id,
                 'urls' => json_encode([
@@ -185,12 +216,12 @@ class ArticleController extends EditController
                 'data' => json_encode([
                     'article' => empty($id)
                         ? null
-                        : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'modernPersons' => $this->get('person_manager')->getAllModernShortJson(),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'modernPersons' => $personManager->getAllModernShortJson(),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
-                'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('article')),
-                'roles' => json_encode($this->get('role_manager')->getByTypeJson('article')),
+                'identifiers' => json_encode($identifierManager->getByTypeJson('article')),
+                'roles' => json_encode($roleManager->getByTypeJson('article')),
             ]
         );
     }

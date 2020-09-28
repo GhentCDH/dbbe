@@ -9,21 +9,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use AppBundle\ObjectStorage\JournalManager;
+
 class JournalController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'journal_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Journal:';
+    public function __construct(JournalManager $journalManager)
+    {
+        $this->manager = $journalManager;
+        $this->templateFolder = '@App/Journal/';
+    }
 
     /**
      * @Route("/journals", name="journals_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,23 +31,23 @@ class JournalController extends BaseController
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
-            $this->get(static::MANAGER)->getAllMiniShortJson()
+            $this->manager->getAllMiniShortJson()
         );
     }
 
     /**
      * @Route("/journals/edit", name="journals_edit")
      * @Method("GET")
-     * @param Request $request
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER  . 'edit.html.twig',
+            $this->templateFolder  . 'edit.html.twig',
             [
                 'urls' => json_encode([
+                    // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'journals_get' => $this->generateUrl('journals_get'),
                     'journal_issue_deps_by_journal' => $this->generateUrl('journal_issue_deps_by_journal', ['id' => 'journal_id']),
                     'journal_post' => $this->generateUrl('journal_post'),
@@ -55,8 +55,9 @@ class JournalController extends BaseController
                     'journal_put' => $this->generateUrl('journal_put', ['id' => 'journal_id']),
                     'journal_delete' => $this->generateUrl('journal_delete', ['id' => 'journal_id']),
                     'login' => $this->generateUrl('saml_login'),
+                    // @codingStandardsIgnoreEnd
                 ]),
-                'journals' => json_encode($this->get(self::MANAGER)->getAllJson()),
+                'journals' => json_encode($this->manager->getAllJson()),
             ]
         );
     }
@@ -64,15 +65,16 @@ class JournalController extends BaseController
     /**
      * @Route("/journals/{id}", name="journal_get")
      * @Method("GET")
-     * @param int     $id
+     * @param int $id
      * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
             try {
-                $object = $this->get(static::MANAGER)->getFull($id);
+                $object = $this->manager->getFull($id);
             } catch (NotFoundHttpException $e) {
                 return new JsonResponse(
                     ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
@@ -82,12 +84,12 @@ class JournalController extends BaseController
             return new JsonResponse($object->getJson());
         } else {
             // Let the 404 page handle the not found exception
-            $object = $this->get(static::MANAGER)->getFull($id);
+            $object = $this->manager->getFull($id);
             return $this->render(
-                static::TEMPLATE_FOLDER . 'detail.html.twig',
+                $this->templateFolder . 'detail.html.twig',
                 [
                     $object::CACHENAME => $object,
-                    'issuesArticles' => $this->get(static::MANAGER)->getIssuesArticles($id),
+                    'issuesArticles' => $this->manager->getIssuesArticles($id),
                 ]
             );
         }

@@ -2,25 +2,38 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Model\Status;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+use AppBundle\Model\Status;
+use AppBundle\ObjectStorage\AcknowledgementManager;
+use AppBundle\ObjectStorage\ContentManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\ManuscriptManager;
+use AppBundle\ObjectStorage\OriginManager;
+use AppBundle\ObjectStorage\PersonManager;
+use AppBundle\ObjectStorage\RoleManager;
+use AppBundle\ObjectStorage\StatusManager;
+use AppBundle\Service\ElasticSearchService\ElasticManuscriptService;
 
 class ManuscriptController extends BaseController
 {
-    const MANAGER = 'manuscript_manager';
-    const TEMPLATE_FOLDER = 'AppBundle:Manuscript:';
+    public function __construct(ManuscriptManager $manuscriptManager)
+    {
+        $this->manager = $manuscriptManager;
+        $this->templateFolder = '@App/Manuscript/';
+    }
 
     /**
      * @Route("/manuscripts", name="manuscripts_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -35,11 +48,20 @@ class ManuscriptController extends BaseController
      * @Route("/manuscripts/search", name="manuscripts_search")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticManuscriptService $elasticManuscriptService
+     * @param IdentifierManager $identifierManager
+     * @param ManagementManager $managementManager
+     * @return Response
      */
-    public function searchManuscripts(Request $request)
-    {
+    public function search(
+        Request $request,
+        ElasticManuscriptService $elasticManuscriptService,
+        IdentifierManager $identifierManager,
+        ManagementManager $managementManager
+    ) {
         return $this->render(
-            'AppBundle:Manuscript:overview.html.twig',
+            '@App/Manuscript/overview.html.twig',
+            // @codingStandardsIgnoreStart Generic.Files.LineLength
             [
                 'urls' => json_encode([
                     'manuscripts_search_api' => $this->generateUrl('manuscripts_search_api'),
@@ -53,18 +75,19 @@ class ManuscriptController extends BaseController
                     'managements_remove' => $this->generateUrl('manuscripts_managements_remove'),
                 ]),
                 'data' => json_encode(
-                    $this->get('manuscript_elastic_service')->searchAndAggregate(
+                    $elasticManuscriptService->searchAndAggregate(
                         $this->sanitize($request->query->all()),
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getPrimaryByTypeJson('manuscript')
+                    $identifierManager->getPrimaryByTypeJson('manuscript')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $this->get('management_manager')->getAllShortJson() : []
+                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
                 ),
             ]
+            // @codingStandardsIgnoreEnd
         );
     }
 
@@ -72,11 +95,15 @@ class ManuscriptController extends BaseController
      * @Route("/manuscripts/search_api", name="manuscripts_search_api")
      * @Method("GET")
      * @param Request $request
+     * @param ElasticManuscriptService $elasticManuscriptService
+     * @return JsonResponse
      */
-    public function searchManuscriptsAPI(Request $request)
-    {
+    public function searchAPI(
+        Request $request,
+        ElasticManuscriptService $elasticManuscriptService
+    ) {
         $this->throwErrorIfNotJson($request);
-        $result = $this->get('manuscript_elastic_service')->searchAndAggregate(
+        $result = $elasticManuscriptService->searchAndAggregate(
             $this->sanitize($request->query->all()),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
@@ -87,57 +114,56 @@ class ManuscriptController extends BaseController
     /**
      * @Route("/manuscripts/add", name="manuscript_add")
      * @Method("GET")
-     * @param Request $request
+     * @param ContentManager $contentManager
+     * @param PersonManager $personManager
+     * @param OriginManager $originManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function addManuscript(Request $request)
-    {
+    public function add(
+        ContentManager $contentManager,
+        PersonManager $personManager,
+        OriginManager $originManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
-        return $this->editManuscript(null, $request);
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/manuscripts/{id}", name="manuscript_get")
      * @Method("GET")
-     * @param  int    $id manuscript id
+     * @param int $id manuscript id
      * @param Request $request
+     * @return JsonResponse|Response
      */
-    public function getManuscript(int $id, Request $request)
+    public function getSingle(int $id, Request $request)
     {
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
-            try {
-                $manuscript = $this->get('manuscript_manager')->getFull($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-            return new JsonResponse($manuscript->getJson());
-        } else {
-            // Let the 404 page handle the not found exception
-            $manuscript = $this->get('manuscript_manager')->getFull($id);
-            if (!$manuscript->getPublic()) {
-                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
-            }
-            return $this->render(
-                'AppBundle:Manuscript:detail.html.twig',
-                ['manuscript' => $manuscript]
-            );
-        }
+        return parent::getSingle($id, $request);
     }
 
     /**
      * @Route("/manuscript/view/id/{id}", name="manuscript_get_old")
      * @Method("GET")
-     * @param  int    $id
-     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
      */
-    public function getOld(int $id, Request $request)
+    public function getOld(int $id)
     {
         // Let the 404 page handle the not found exception
-        $newId = $this->get(static::MANAGER)->getNewId($id);
+        $newId = $this->manager->getNewId($id);
         return $this->redirectToRoute('manuscript_get', ['id' => $newId], 301);
     }
 
@@ -146,8 +172,9 @@ class ManuscriptController extends BaseController
      * (located_at / factoid)
      * @Route("/manuscripts/regions/{id}", name="manuscript_deps_by_region")
      * @Method("GET")
-     * @param  int    $id region id
+     * @param int $id region id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRegion(int $id, Request $request)
     {
@@ -159,8 +186,9 @@ class ManuscriptController extends BaseController
      * (located_at / factoid)
      * @Route("/manuscripts/institutions/{id}", name="manuscript_deps_by_institution")
      * @Method("GET")
-     * @param  int    $id institution id
+     * @param int $id institution id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByInstitution(int $id, Request $request)
     {
@@ -172,8 +200,9 @@ class ManuscriptController extends BaseController
      * (located_at / factoid)
      * @Route("/manuscripts/collections/{id}", name="manuscript_deps_by_collection")
      * @Method("GET")
-     * @param  int    $id collection id
+     * @param int $id collection id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByCollection(int $id, Request $request)
     {
@@ -185,8 +214,9 @@ class ManuscriptController extends BaseController
      * (document_genre)
      * @Route("/manuscripts/contents/{id}", name="manuscript_deps_by_content")
      * @Method("GET")
-     * @param  int    $id content id
+     * @param int $id content id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByContent(int $id, Request $request)
     {
@@ -198,8 +228,9 @@ class ManuscriptController extends BaseController
      * (document_status)
      * @Route("/manuscripts/statuses/{id}", name="manuscript_deps_by_status")
      * @Method("GET")
-     * @param  int    $id status id
+     * @param int $id status id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByStatus(int $id, Request $request)
     {
@@ -211,8 +242,9 @@ class ManuscriptController extends BaseController
      * (bibrole, factoid)
      * @Route("/manuscripts/persons/{id}", name="manuscript_deps_by_person")
      * @Method("GET")
-     * @param  int    $id person id
+     * @param int $id person id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPerson(int $id, Request $request)
     {
@@ -224,8 +256,9 @@ class ManuscriptController extends BaseController
      * (bibrole)
      * @Route("/manuscripts/roles/{id}", name="manuscript_deps_by_role")
      * @Method("GET")
-     * @param  int    $id role id
+     * @param int $id role id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRole(int $id, Request $request)
     {
@@ -237,8 +270,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/articles/{id}", name="manuscript_deps_by_article")
      * @Method("GET")
-     * @param  int    $id article id
+     * @param int $id article id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByArticle(int $id, Request $request)
     {
@@ -250,8 +284,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/blogposts/{id}", name="manuscript_deps_by_blog_post")
      * @Method("GET")
-     * @param  int    $id blog post id
+     * @param int $id blog post id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBlogPost(int $id, Request $request)
     {
@@ -259,13 +294,14 @@ class ManuscriptController extends BaseController
     }
 
     /**
-    * Get all manuscripts that have a dependency on a book
-    * (reference)
-    * @Route("/manuscripts/books/{id}", name="manuscript_deps_by_book")
-    * @Method("GET")
-    * @param  int    $id book id
-    * @param Request $request
-    */
+     * Get all manuscripts that have a dependency on a book
+     * (reference)
+     * @Route("/manuscripts/books/{id}", name="manuscript_deps_by_book")
+     * @Method("GET")
+     * @param int $id book id
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getDepsByBook(int $id, Request $request)
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
@@ -276,8 +312,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/bookchapters/{id}", name="manuscript_deps_by_book_chapter")
      * @Method("GET")
-     * @param  int    $id book chapter id
+     * @param int $id book chapter id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBookChapter(int $id, Request $request)
     {
@@ -289,8 +326,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/onlinesources/{id}", name="manuscript_deps_by_online_source")
      * @Method("GET")
-     * @param  int    $id online source id
+     * @param int $id online source id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByOnlineSource(int $id, Request $request)
     {
@@ -302,8 +340,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/phd_theses/{id}", name="manuscript_deps_by_phd")
      * @Method("GET")
-     * @param  int    $id phd id
+     * @param int $id phd id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByPhd(int $id, Request $request)
     {
@@ -315,8 +354,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/bib_varia/{id}", name="manuscript_deps_by_bib_varia")
      * @Method("GET")
-     * @param  int    $id bib varia id
+     * @param int $id bib varia id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBibVaria(int $id, Request $request)
     {
@@ -328,8 +368,9 @@ class ManuscriptController extends BaseController
      * (reference)
      * @Route("/manuscripts/managements/{id}", name="manuscript_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -342,27 +383,15 @@ class ManuscriptController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    public function postManuscript(Request $request)
+    public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $manuscript = $this
-                    ->get('manuscript_manager')
-                    ->add(json_decode($request->getContent()));
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::post($request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Manuscript added successfully.');
-
-            return new JsonResponse($manuscript->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -372,32 +401,15 @@ class ManuscriptController extends BaseController
      * @param Request $request
      * @return JsonResponse
      */
-    public function putManuscript(int $id, Request $request)
+    public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $manuscript = $this
-                    ->get('manuscript_manager')
-                    ->update($id, json_decode($request->getContent()));
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+        $response = parent::put($id, $request);
 
+        if (!property_exists(json_decode($response->getcontent()), 'error')) {
             $this->addFlash('success', 'Manuscript data successfully saved.');
-
-            return new JsonResponse($manuscript->getJson());
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
         }
+
+        return $response;
     }
 
     /**
@@ -431,43 +443,38 @@ class ManuscriptController extends BaseController
      */
     public function deleteManuscript(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
-        if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            try {
-                $this
-                    ->get('manuscript_manager')
-                    ->delete($id);
-            } catch (NotFoundHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_NOT_FOUND, 'message' => $e->getMessage()]],
-                    Response::HTTP_NOT_FOUND
-                );
-            } catch (BadRequestHttpException $e) {
-                return new JsonResponse(
-                    ['error' => ['code' => Response::HTTP_BAD_REQUEST, 'message' => $e->getMessage()]],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
-
-            return new Response(null, 204);
-        } else {
-            throw new BadRequestHttpException('Only JSON requests allowed.');
-        }
+        return parent::delete($id, $request);
     }
 
     /**
      * @Route("/manuscripts/{id}/edit", name="manuscript_edit")
      * @Method("GET")
-     * @param  int|null $id manuscript id
-     * @param Request $request
+     * @param ContentManager $contentManager
+     * @param PersonManager $personManager
+     * @param OriginManager $originManager
+     * @param AcknowledgementManager $acknowledgementManager
+     * @param StatusManager $statusManager
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id manuscript id
      * @return Response
      */
-    public function editManuscript(int $id = null, Request $request)
-    {
+    public function edit(
+        ContentManager $contentManager,
+        PersonManager $personManager,
+        OriginManager $originManager,
+        AcknowledgementManager $acknowledgementManager,
+        StatusManager $statusManager,
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            'AppBundle:Manuscript:edit.html.twig',
+            '@App/Manuscript/edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
@@ -503,22 +510,22 @@ class ManuscriptController extends BaseController
                 'data' => json_encode([
                     'manuscript' => empty($id)
                         ? null
-                        : $this->get('manuscript_manager')->getFull($id)->getJson(),
-                    'contents' => $this->get('content_manager')->getAllShortJson(),
-                    'dbbePersons' => $this->get('person_manager')->getAllDBBEShortJson(),
-                    'origins' => $this->get('origin_manager')->getByTypeShortJson('manuscript'),
-                    'acknowledgements' => $this->get('acknowledgement_manager')->getAllShortJson(),
-                    'statuses' => $this->get('status_manager')->getByTypeShortJson(Status::MANUSCRIPT),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'contents' => $contentManager->getAllShortJson(),
+                    'dbbePersons' => $personManager->getAllDBBEShortJson(),
+                    'origins' => $originManager->getByTypeShortJson('manuscript'),
+                    'acknowledgements' => $acknowledgementManager->getAllShortJson(),
+                    'statuses' => $statusManager->getByTypeShortJson(Status::MANUSCRIPT),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
                 'identifiers' => json_encode(
-                    $this->get('identifier_manager')->getByTypeJson('manuscript')
+                    $identifierManager->getByTypeJson('manuscript')
                 ),
                 'roles' => json_encode(
-                    $this->get('role_manager')->getByTypeJson('manuscript')
+                    $roleManager->getByTypeJson('manuscript')
                 ),
                 'contributorRoles' => json_encode(
-                    $this->get('role_manager')->getContributorByTypeJson('manuscript')
+                    $roleManager->getContributorByTypeJson('manuscript')
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -574,7 +581,7 @@ class ManuscriptController extends BaseController
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
         // Don't set default order if there is a text field filter
-        } else if (!(isset($params['filters']['comment']))) {
+        } elseif (!(isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
 
@@ -599,7 +606,9 @@ class ManuscriptController extends BaseController
 
         if (!empty($filters)) {
             // sanitize date search type
-            if (!(isset($filters['date_search_type']) && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))) {
+            if (!(isset($filters['date_search_type'])
+                && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))
+            ) {
                 $filters['date_search_type'] = 'exact';
             }
 

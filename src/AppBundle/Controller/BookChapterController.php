@@ -4,24 +4,29 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-class BookChapterController extends EditController
+use AppBundle\ObjectStorage\BookChapterManager;
+use AppBundle\ObjectStorage\IdentifierManager;
+use AppBundle\ObjectStorage\ManagementManager;
+use AppBundle\ObjectStorage\RoleManager;
+
+class BookChapterController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'book_chapter_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:BookChapter:';
+    public function __construct(BookChapterManager $bookChapterManager)
+    {
+        $this->manager = $bookChapterManager;
+        $this->templateFolder = '@App/BookChapter/';
+    }
 
     /**
      * @Route("/bookchapters", name="book_chapters_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function getAll(Request $request)
     {
@@ -35,18 +40,30 @@ class BookChapterController extends EditController
     /**
      * @Route("/bookchapters/add", name="book_chapter_add")
      * @Method("GET")
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @return mixed
      */
-    public function add(Request $request)
-    {
-        return parent::add($request);
+    public function add(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager
+    ) {
+        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+
+        $args = func_get_args();
+        $args[] = null;
+
+        return call_user_func_array([$this, 'edit'], $args);
     }
 
     /**
      * @Route("/bookchapters/{id}", name="book_chapter_get")
      * @Method("GET")
-      * @param int     $id
-      * @param Request $request
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse|Response
      */
     public function getSingle(int $id, Request $request)
     {
@@ -58,8 +75,9 @@ class BookChapterController extends EditController
      * (document_contains)
      * @Route("/bookchapters/books/{id}", name="book_chapter_deps_by_book")
      * @Method("GET")
-     * @param  int    $id book id
+     * @param int $id book id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByBook(int $id, Request $request)
     {
@@ -85,8 +103,9 @@ class BookChapterController extends EditController
      * (bibrole)
      * @Route("/bookchapters/roles/{id}", name="book_chapter_deps_by_role")
      * @Method("GET")
-     * @param  int    $id role id
+     * @param int $id role id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByRole(int $id, Request $request)
     {
@@ -98,8 +117,9 @@ class BookChapterController extends EditController
      * (reference)
      * @Route("/bookchapters/managements/{id}", name="book_chapter_deps_by_management")
      * @Method("GET")
-     * @param  int    $id management id
+     * @param int $id management id
      * @param Request $request
+     * @return JsonResponse
      */
     public function getDepsByManagement(int $id, Request $request)
     {
@@ -156,15 +176,22 @@ class BookChapterController extends EditController
     /**
      * @Route("/bookchapters/{id}/edit", name="book_chapter_edit")
      * @Method("GET")
-     * @param  int|null $id
-     * @param Request $request
+     * @param ManagementManager $managementManager
+     * @param IdentifierManager $identifierManager
+     * @param RoleManager $roleManager
+     * @param int|null $id
+     * @return Response
      */
-    public function edit(int $id = null, Request $request)
-    {
+    public function edit(
+        ManagementManager $managementManager,
+        IdentifierManager $identifierManager,
+        RoleManager $roleManager,
+        int $id = null
+    ) {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER . 'edit.html.twig',
+            $this->templateFolder . 'edit.html.twig',
             [
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'id' => $id,
@@ -183,11 +210,11 @@ class BookChapterController extends EditController
                 'data' => json_encode([
                     'bookChapter' => empty($id)
                         ? null
-                        : $this->get(self::MANAGER)->getFull($id)->getJson(),
-                    'managements' => $this->get('management_manager')->getAllShortJson(),
+                        : $this->manager->getFull($id)->getJson(),
+                    'managements' => $managementManager->getAllShortJson(),
                 ]),
-                'identifiers' => json_encode($this->get('identifier_manager')->getByTypeJson('bookChapter')),
-                'roles' => json_encode($this->get('role_manager')->getByTypeJson('bookChapter')),
+                'identifiers' => json_encode($identifierManager->getByTypeJson('bookChapter')),
+                'roles' => json_encode($roleManager->getByTypeJson('bookChapter')),
                 // @codingStandardsIgnoreEnd
             ]
         );

@@ -6,21 +6,23 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+use AppBundle\ObjectStorage\ManagementManager;
 
 class ManagementController extends BaseController
 {
-    /**
-     * @var string
-     */
-    const MANAGER = 'management_manager';
-    /**
-     * @var string
-     */
-    const TEMPLATE_FOLDER = 'AppBundle:Management:';
+    public function __construct(ManagementManager $managementManager)
+    {
+        $this->manager = $managementManager;
+        $this->templateFolder = '@App/Management/';
+    }
+
     /**
      * @Route("/managements", name="managements_get")
      * @Method("GET")
      * @param Request $request
+     * @return JsonResponse
      */
     public function getAll(Request $request)
     {
@@ -31,14 +33,14 @@ class ManagementController extends BaseController
     /**
      * @Route("/managements/edit", name="managements_edit")
      * @Method("GET")
-     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request)
+    public function edit()
     {
         $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
 
         return $this->render(
-            self::TEMPLATE_FOLDER  . 'edit.html.twig',
+            $this->templateFolder  . 'edit.html.twig',
             [
                 'urls' => json_encode([
                     'managements_get' => $this->generateUrl('managements_get'),
@@ -47,7 +49,7 @@ class ManagementController extends BaseController
                     'management_delete' => $this->generateUrl('management_delete', ['id' => 'management_id']),
                     'login' => $this->generateUrl('saml_login'),
                 ]),
-                'managements' => json_encode($this->get(self::MANAGER)->getAllJson()),
+                'managements' => json_encode($this->manager->getAllJson()),
             ]
         );
     }

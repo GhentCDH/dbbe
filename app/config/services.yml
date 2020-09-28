@@ -48,201 +48,241 @@ services:
         class: AppBundle\ObjectStorage\ManuscriptManager
         arguments: ['@manuscript_service', '@cache.app', '@service_container', '@manuscript_elastic_service', '@security.token_storage', 'manuscript']
         public: true
+    AppBundle\ObjectStorage\ManuscriptManager: '@manuscript_manager'
 
     occurrence_manager:
         class: AppBundle\ObjectStorage\OccurrenceManager
         arguments: ['@occurrence_service', '@cache.app', '@service_container', '@occurrence_elastic_service', '@security.token_storage', 'occurrence']
         public: true
+    AppBundle\ObjectStorage\OccurrenceManager: '@occurrence_manager'
 
     person_manager:
         class: AppBundle\ObjectStorage\PersonManager
         arguments: ['@person_service', '@cache.app', '@service_container', '@person_elastic_service', '@security.token_storage', 'person']
         public: true
+    AppBundle\ObjectStorage\PersonManager: '@person_manager'
 
     located_at_manager:
         class: AppBundle\ObjectStorage\LocatedAtManager
         arguments: ['@located_at_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\LocatedAtManager: '@located_at_manager'
 
     location_manager:
         class: AppBundle\ObjectStorage\LocationManager
         arguments: ['@location_service', '@cache.app', '@service_container', null, null]
         public: true
+    AppBundle\ObjectStorage\LocationManager: '@location_manager'
 
     content_manager:
         class: AppBundle\ObjectStorage\ContentManager
         arguments: ['@content_service', '@cache.app', '@service_container', null, '@security.token_storage', 'content']
         public: true
+    AppBundle\ObjectStorage\ContentManager: '@content_manager'
 
     metre_manager:
         class: AppBundle\ObjectStorage\MetreManager
         arguments: ['@metre_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\MetreManager: '@metre_manager'
 
     genre_manager:
         class: AppBundle\ObjectStorage\GenreManager
         arguments: ['@genre_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\GenreManager: '@genre_manager'
 
     acknowledgement_manager:
         class: AppBundle\ObjectStorage\AcknowledgementManager
         arguments: ['@acknowledgement_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\AcknowledgementManager: '@acknowledgement_manager'
 
     region_manager:
         class: AppBundle\ObjectStorage\RegionManager
         arguments: ['@region_service', '@cache.app', '@service_container', null, '@security.token_storage', 'region']
         public: true
+    AppBundle\ObjectStorage\RegionManager: '@region_manager'
 
     bibliography_manager:
         class: AppBundle\ObjectStorage\BibliographyManager
         arguments: ['@bibliography_service', '@cache.app', '@service_container', null, null]
         public: true
+    AppBundle\ObjectStorage\BibliographyManager: '@bibliography_manager'
 
     article_manager:
         class: AppBundle\ObjectStorage\ArticleManager
         arguments: ['@article_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'article']
         public: true
+    AppBundle\ObjectStorage\ArticleManager: '@article_manager'
 
     blog_manager:
         class: AppBundle\ObjectStorage\BlogManager
         arguments: [ '@blog_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog' ]
         public: true
+    AppBundle\ObjectStorage\BlogManager: '@blog_manager'
 
     blog_post_manager:
         class: AppBundle\ObjectStorage\BlogPostManager
         arguments: [ '@blog_post_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'blog_post' ]
         public: true
+    AppBundle\ObjectStorage\BlogPostManager: '@blog_post_manager'
 
     book_manager:
         class: AppBundle\ObjectStorage\BookManager
         arguments: ['@book_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book']
         public: true
+    AppBundle\ObjectStorage\BookManager: '@book_manager'
 
     book_chapter_manager:
         class: AppBundle\ObjectStorage\BookChapterManager
         arguments: ['@book_chapter_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_chapter']
         public: true
+    AppBundle\ObjectStorage\BookChapterManager: '@book_chapter_manager'
 
     book_cluster_manager:
         class: AppBundle\ObjectStorage\BookClusterManager
         arguments: ['@book_cluster_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_cluster']
         public: true
+    AppBundle\ObjectStorage\BookClusterManager: '@book_cluster_manager'
 
     book_series_manager:
         class: AppBundle\ObjectStorage\BookSeriesManager
         arguments: ['@book_series_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'book_series']
         public: true
+    AppBundle\ObjectStorage\BookSeriesManager: '@book_series_manager'
 
     journal_manager:
         class: AppBundle\ObjectStorage\JournalManager
         arguments: ['@journal_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'journal']
         public: true
+    AppBundle\ObjectStorage\JournalManager: '@journal_manager'
 
     journal_issue_manager:
         class: AppBundle\ObjectStorage\JournalIssueManager
         arguments: ['@journal_issue_service', '@cache.app', '@service_container', null, '@security.token_storage', 'journal_issue']
         public: true
+    AppBundle\ObjectStorage\JournalIssueManager: '@journal_issue_manager'
 
     online_source_manager:
         class: AppBundle\ObjectStorage\OnlineSourceManager
         arguments: ['@online_source_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'online_source']
         public: true
+    AppBundle\ObjectStorage\OnlineSourceManager: '@online_source_manager'
 
     phd_manager:
         class: AppBundle\ObjectStorage\PhdManager
         arguments: [ '@phd_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'phd' ]
         public: true
+    AppBundle\ObjectStorage\PhdManager: '@phd_manager'
 
     bib_varia_manager:
         class: AppBundle\ObjectStorage\BibVariaManager
         arguments: [ '@bib_varia_service', '@cache.app', '@service_container', '@bibliography_elastic_service', '@security.token_storage', 'bib_varia' ]
         public: true
+    AppBundle\ObjectStorage\BibVariaManager: '@bib_varia_manager'
 
     reference_type_manager:
         class: AppBundle\ObjectStorage\ReferenceTypeManager
         arguments: ['@reference_type_service', '@cache.app', '@service_container', null, null]
         public: true
+    AppBundle\ObjectStorage\ReferenceTypeManager: '@reference_type_manager'
 
     type_relation_type_manager:
         class: AppBundle\ObjectStorage\TypeRelationTypeManager
         arguments: ['@type_relation_type_service', '@cache.app', '@service_container', null, null]
         public: true
+    AppBundle\ObjectStorage\TypeRelationTypeManager: '@type_relation_type_manager'
 
     institution_manager:
         class: AppBundle\ObjectStorage\InstitutionManager
         arguments: ['@institution_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\InstitutionManager: '@institution_manager'
 
     collection_manager:
         class: AppBundle\ObjectStorage\CollectionManager
         arguments: ['@collection_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\CollectionManager: '@collection_manager'
 
     type_manager:
         class: AppBundle\ObjectStorage\TypeManager
         arguments: ['@type_service', '@cache.app', '@service_container', '@type_elastic_service', '@security.token_storage', 'type']
         public: true
+    AppBundle\ObjectStorage\TypeManager: '@type_manager'
 
     origin_manager:
         class: AppBundle\ObjectStorage\OriginManager
         arguments: ['@origin_service', '@cache.app', '@service_container', null, null]
         public: true
+    AppBundle\ObjectStorage\OriginManager: '@origin_manager'
 
     keyword_manager:
         class: AppBundle\ObjectStorage\KeywordManager
         arguments: ['@keyword_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\KeywordManager: '@keyword_manager'
 
     status_manager:
         class: AppBundle\ObjectStorage\StatusManager
         arguments: ['@status_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\StatusManager: '@status_manager'
 
     role_manager:
         class: AppBundle\ObjectStorage\RoleManager
         arguments: ['@role_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\RoleManager: '@role_manager'
 
     management_manager:
         class: AppBundle\ObjectStorage\ManagementManager
         arguments: ['@management_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\ManagementManager: '@management_manager'
 
     office_manager:
         class: AppBundle\ObjectStorage\OfficeManager
         arguments: ['@office_service', '@cache.app', '@service_container', null, '@security.token_storage', 'office']
         public: true
+    AppBundle\ObjectStorage\OfficeManager: '@office_manager'
 
     identifier_manager:
         class: AppBundle\ObjectStorage\IdentifierManager
         arguments: ['@identifier_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\IdentifierManager: '@identifier_manager'
 
     image_manager:
         class: AppBundle\ObjectStorage\ImageManager
         arguments: ['@image_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\ImageManager: '@image_manager'
 
     verse_manager:
         class: AppBundle\ObjectStorage\VerseManager
         arguments: ['@verse_service', '@cache.app', '@service_container', '@verse_elastic_service', '@security.token_storage', 'verse']
         public: true
+    AppBundle\ObjectStorage\VerseManager: '@verse_manager'
 
     translation_manager:
         class: AppBundle\ObjectStorage\TranslationManager
         arguments: ['@translation_service', '@cache.app', '@service_container', null, '@security.token_storage', 'translation']
         public: true
+    AppBundle\ObjectStorage\TranslationManager: '@translation_manager'
 
     language_manager:
         class: AppBundle\ObjectStorage\LanguageManager
         arguments: ['@language_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\LanguageManager: '@language_manager'
 
     self_designation_manager:
         class: AppBundle\ObjectStorage\SelfDesignationManager
         arguments: ['@self_designation_service', '@cache.app', '@service_container', null, '@security.token_storage']
         public: true
+    AppBundle\ObjectStorage\SelfDesignationManager: '@self_designation_manager'
 
     manuscript_service:
         class: AppBundle\Service\DatabaseService\ManuscriptService
@@ -408,53 +448,64 @@ services:
         class: AppBundle\Service\DatabaseService\FeedbackService
         arguments: ['@doctrine.orm.entity_manager']
         public: true
+    AppBundle\Service\DatabaseService\FeedbackService: '@feedback_service'
 
     page_service:
         class: AppBundle\Service\DatabaseService\PageService
         arguments: ['@doctrine.orm.entity_manager']
         public: true
+    AppBundle\Service\DatabaseService\PageService: '@page_service'
 
     news_event_service:
         class: AppBundle\Service\DatabaseService\NewsEventService
         arguments: ['@doctrine.orm.entity_manager']
         public: true
+    AppBundle\Service\DatabaseService\NewsEventService: '@news_event_service'
 
     dead_link_service:
         class: AppBundle\Service\DatabaseService\DeadLinkService
         arguments: ['@doctrine.orm.entity_manager']
         public: true
+    AppBundle\Service\DatabaseService\DeadLinkService: '@dead_link_service'
 
     julie_service:
         class: AppBundle\Service\DatabaseService\JulieService
         arguments: ['@doctrine.orm.entity_manager']
         public: true
+    AppBundle\Service\DatabaseService\JulieService: '@julie_service'
 
     manuscript_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticManuscriptService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticManuscriptService: '@manuscript_elastic_service'
 
     occurrence_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticOccurrenceService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticOccurrenceService: '@occurrence_elastic_service'
 
     type_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticTypeService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticTypeService: '@type_elastic_service'
 
     person_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticPersonService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticPersonService: '@person_elastic_service'
 
     bibliography_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticBibliographyService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@service_container']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticBibliographyService: '@bibliography_elastic_service'
 
     verse_elastic_service:
         class: AppBundle\Service\ElasticSearchService\ElasticVerseService
         arguments: ['%elastic_hosts%', '%elastic_index%', '@verse_service']
         public: true
+    AppBundle\Service\ElasticSearchService\ElasticVerseService: '@verse_elastic_service'

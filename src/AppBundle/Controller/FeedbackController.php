@@ -2,23 +2,26 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Service\DatabaseService\FeedbackService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Validator\Constraints\Email as EmailConstaint;
 use Symfony\Component\HttpFoundation\Request;
 use Unirest\Request as RestRequest;
 
-class FeedbackController extends Controller
+class FeedbackController extends AbstractController
 {
     /**
      * @Route("/feedback", name="feedback")
      * @param Request $request
+     * @param FeedbackService $feedbackService
+     * @return JsonResponse
      * @Method("POST")
      */
-    public function postFeedback(Request $request)
+    public function postFeedback(Request $request, FeedbackService $feedbackService)
     {
         // sanitize input
         $content = json_decode($request->getContent());
@@ -62,7 +65,7 @@ class FeedbackController extends Controller
         }
 
         // save message in database
-        $this->get('feedback_service')->insertFeedback($content->url, $content->email, $content->message);
+        $feedbackService->insertFeedback($content->url, $content->email, $content->message);
 
         // send email
         $message = (new \Swift_Message('Your feedback message to DBBE'))
@@ -71,7 +74,7 @@ class FeedbackController extends Controller
             ->setCC('dbbe@ugent.be')
             ->setBody(
                 $this->renderView(
-                    'AppBundle:Feedback:email.txt.twig',
+                    '@App/Feedback/email.txt.twig',
                     [
                         'url' => $content->url,
                         'email' => $content->email,
