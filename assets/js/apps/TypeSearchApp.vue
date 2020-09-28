@@ -369,8 +369,11 @@ export default {
             data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
         }
 
+        data.schema.fields['id'] = this.createMultiSelect('DBBE ID', {model: 'id'});
+        data.schema.fields['prev_id'] = this.createMultiSelect('Former DBBE ID', {model: 'prev_id'});
+
         data.schema.fields['dbbe'] = this.createMultiSelect(
-            'Text source DBBE',
+            'Text source DBBE?',
             {
                 model: 'dbbe',
             },
@@ -381,8 +384,6 @@ export default {
             }
         );
         data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgements', {model: 'acknowledgement'});
-        data.schema.fields['id'] = this.createMultiSelect('DBBE ID', {model: 'id'});
-        data.schema.fields['prev_id'] = this.createMultiSelect('Former DBBE ID', {model: 'prev_id'});
         if (this.isViewInternal) {
             data.schema.fields['text_status'] = this.createMultiSelect(
                 'Text Status',
