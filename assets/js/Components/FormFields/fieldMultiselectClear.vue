@@ -117,7 +117,11 @@ export default {
             // console.log("onClose", value, id);
         },
         clearAll() {
-            this.value = [];
+            if (this.selectOptions.multiple) {
+                this.value = [];
+            } else {
+                this.value = null;
+            }
         },
         onEscStopPrevent(/*event*/) {
             // console.log(event);

@@ -139,24 +139,10 @@ export default {
                 });
             }
         },
-        // reset book cluster to null if nothing is selected
-        'model.bookCluster' () {
-            if (Array.isArray(this.model.bookCluster) && this.model.bookCluster.length == 0) {
-                this.model.bookCluster = null
-            }
-            this.validate()
-        },
         // reset title to null if nothing is entered
         'model.title' () {
             if (this.model.title === '') {
                 this.model.title = null
-            }
-            this.validate()
-        },
-        // reset book cluster to null if nothing is selected
-        'model.bookSeries' () {
-            if (Array.isArray(this.model.bookSeries) && this.model.bookSeries.length == 0) {
-                this.model.bookSeries = null
             }
             this.validate()
         },

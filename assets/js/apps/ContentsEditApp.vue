@@ -162,24 +162,11 @@ export default {
                 this.model.content.parent = this.values.filter((contentWithParents) => contentWithParents.id === this.model.content.parent.id)[0]
             }
         },
-        // reset parent to null if nothing is selected
-        'submitModel.content.parent'() {
-            if (Array.isArray(this.submitModel.content.parent) && this.submitModel.content.parent.length == 0) {
-                this.submitModel.content.parent = null
-            }
-        },
         // reset parent to null if nothing is entered
         'submitModel.content.individualName'() {
             this.$refs.editModal.revalidate()
             if (this.submitModel.content.individualName === '') {
                 this.submitModel.content.individualName = null
-            }
-        },
-        // reset individualPerson to null if nothing is selected
-        'submitModel.content.individualPerson'() {
-            this.$refs.editModal.revalidate()
-            if (Array.isArray(this.submitModel.content.individualPerson) && this.submitModel.content.individualPerson.length == 0) {
-                this.submitModel.content.individualPerson = null
             }
         },
     },
