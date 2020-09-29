@@ -53,7 +53,7 @@
             </div>
         {% endfor %}
         {% if page > 0 %}
-            <a href="{{ path('get_verse_init', {'page': page - 1}) }}">Previous page</a> 
+            <a href="{{ path('get_verse_init', {'page': page - 1}) }}">Previous page</a>
         {% endif %}
         <a href="{{ path('get_verse_init', {'page': page + 1}) }}">Next page</a>
     </article>
