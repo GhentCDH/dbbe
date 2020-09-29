@@ -15,6 +15,7 @@ class Identifier extends IdNameObject
     private $linkType;
     private $extra;
     private $extraRequired;
+    private $clusterId;
 
     public function __construct(
         int $id,
@@ -27,7 +28,8 @@ class Identifier extends IdNameObject
         string $regex = null,
         string $description = null,
         bool $extra = null,
-        bool $extraRequired = null
+        bool $extraRequired = null,
+        int $clusterId = null
     ) {
         parent::__construct($id, $name);
 
@@ -40,6 +42,7 @@ class Identifier extends IdNameObject
         $this->description = $description;
         $this->extra = $extra !== null ? $extra : null;
         $this->extraRequired = $extraRequired !== null ? $extraRequired : null;
+        $this->clusterId = $clusterId;
     }
 
     public function getSystemName(): string
@@ -90,6 +93,11 @@ class Identifier extends IdNameObject
     public function getExtraRequired(): bool
     {
         return $this->extraRequired;
+    }
+
+    public function getClusterId(): ?int
+    {
+        return $this->clusterId;
     }
 
     public function getJson(): array

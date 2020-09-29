@@ -32,7 +32,8 @@ class IdentifierManager extends ObjectManager
                     $rawIdentifier['regex'],
                     $rawIdentifier['description'],
                     $rawIdentifier['extra'],
-                    $rawIdentifier['extra_required']
+                    $rawIdentifier['extra_required'],
+                    $rawIdentifier['cluster_id']
                 );
             }
         }

@@ -20,8 +20,10 @@ class IdentifierService extends DatabaseService
                 identifier.regex,
                 identifier.description,
                 identifier.extra,
-                identifier.extra_required
+                identifier.extra_required,
+                book.idcluster as cluster_id
             from data.identifier
+            left join data.book on identifier.ids[1] = book.identity
             where identifier.ididentifier in (?)',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
@@ -42,8 +44,10 @@ class IdentifierService extends DatabaseService
                 identifier.regex,
                 identifier.description,
                 identifier.extra,
-                identifier.extra_required
+                identifier.extra_required,
+                book.idcluster as cluster_id
             from data.identifier
+            left join data.book on identifier.ids[1] = book.identity
             where ? = ANY(identifier.type)
             order by identifier.order',
             [$type]

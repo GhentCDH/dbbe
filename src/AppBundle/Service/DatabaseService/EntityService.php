@@ -63,13 +63,15 @@ class EntityService extends DatabaseService
                 identifier.description,
                 identifier.extra,
                 identifier.extra_required,
+                book.idcluster as cluster_id,
                 array_to_json(array_agg(global_id.identifier ORDER BY array_position(identifier.ids, global_id.idauthority))) as identifications,
                 array_to_json(array_agg(global_id.volume ORDER BY array_position(identifier.ids, global_id.idauthority))) as identification_volumes,
                 array_to_json(array_agg(global_id.extra ORDER BY array_position(identifier.ids, global_id.idauthority))) as identification_extras
             from data.global_id
             inner join data.identifier on global_id.idauthority = ANY(identifier.ids)
+            left join data.book on identifier.ids[1] = book.identity
             where global_id.idsubject in (?)
-            group by global_id.idsubject, identifier.ididentifier
+            group by global_id.idsubject, identifier.ididentifier, book.idcluster
             order by identifier.order',
             [
                 $ids,

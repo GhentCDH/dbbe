@@ -7,6 +7,9 @@
 {% elseif item.getIdentifier().getLinkType() == 'book' %}
     {% if item.getIdentifier().getVolumes() == 1 %}
         <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[0]}) }}">{{ item.getIdentifier().getName() }}</a>, {{ item }}
+    {% elseif item.getIdentifier().getClusterId() is not null %}
+        <a href="{{ path('book_cluster_get', {'id': item.getIdentifier().getClusterId()}) }}">{{ item.getIdentifier().getName() }}</a>,
+        <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[item.getVolume() - 1]}) }}">{{ item.getRomanVolume() }}</a>.{{ item.getIdentification() }}
     {% else %}
         {{ item.getIdentifier().getName() }}, <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[item.getVolume() - 1]}) }}">{{ item.getRomanVolume() }}</a>.{{ item.getIdentification() }}
     {% endif %}
