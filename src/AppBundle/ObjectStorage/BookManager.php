@@ -141,9 +141,9 @@ class BookManager extends DocumentManager
      * @param  int $bookClusterId
      * @return array
      */
-    public function getBookClusterDependencies(int $bookClusterId): array
+    public function getBookClusterDependencies(int $bookClusterId, string $method = 'getMini'): array
     {
-        return $this->getDependencies($this->dbs->getDepIdsByBookClusterId($bookClusterId), 'getMini');
+        return $this->getDependencies($this->dbs->getDepIdsByBookClusterId($bookClusterId), $method);
     }
 
     /**

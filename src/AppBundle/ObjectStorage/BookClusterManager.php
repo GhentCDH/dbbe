@@ -195,6 +195,13 @@ class BookClusterManager extends DocumentManager
             // (re-)index in elastic search
             $this->ess->add($new);
 
+            // update Elastic dependencies (books)
+            if ($changes['mini']) {
+                $this->container->get('book_manager')->updateElasticByIds(
+                    $this->container->get('book_manager')->getBookClusterDependencies($id, 'getId')
+                );
+            }
+
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
