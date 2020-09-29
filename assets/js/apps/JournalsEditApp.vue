@@ -207,7 +207,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.journal = this.model.journal
+                this.submitModel.journal = JSON.parse(JSON.stringify(this.model.journal))
                 this.submitModel.journal.urls = this.submitModel.journal.urls == null ? null : this.submitModel.journal.urls.map(
                     function(url, index) {
                         url.tgIndex = index + 1

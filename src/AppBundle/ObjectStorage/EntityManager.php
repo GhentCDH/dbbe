@@ -357,6 +357,9 @@ abstract class EntityManager extends ObjectManager
         string $level
     ): void {
         if (property_exists($data, 'urls')) {
+            if ($data->urls == null) {
+                $data->urls = [];
+            }
             if (!is_array($data->urls)) {
                 throw new BadRequestHttpException('Incorrect urls data.');
             }

@@ -209,7 +209,7 @@ export default {
                 }
             }
             else {
-                this.submitModel.bookSeries = this.model.bookSeries
+                this.submitModel.bookSeries = JSON.parse(JSON.stringify(this.model.bookSeries))
                 this.submitModel.bookSeries.urls = this.submitModel.bookSeries.urls == null ? null : this.submitModel.bookSeries.urls.map(
                     function(url, index) {
                         url.tgIndex = index + 1
