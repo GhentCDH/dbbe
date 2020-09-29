@@ -634,6 +634,21 @@ export default {
                     url: this.urls['contents_edit'],
                     urlIdentifier: 'content_id',
                 },
+                'Blog posts': {
+                    depUrl: this.urls['blog_post_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['blog_post_get'],
+                    urlIdentifier: 'blog_post_id',
+                },
+                'PhD theses': {
+                    depUrl: this.urls['phd_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['phd_get'],
+                    urlIdentifier: 'phd_id',
+                },
+                'Bib varia': {
+                    depUrl: this.urls['bib_varia_deps_by_person'].replace('person_id', this.submitModel.person.id),
+                    url: this.urls['bib_varia_get'],
+                    urlIdentifier: 'bib_varia_id',
+                },
             }
         },
         tableColumns() {

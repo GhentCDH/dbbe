@@ -67,6 +67,20 @@ class BlogPostController extends EditController
     }
 
     /**
+     * Get all blog posts that have a dependency on a person
+     * (bibrole)
+     * @Route("/blogposts/persons/{id}", name="blog_post_deps_by_person")
+     * @Method("GET")
+     * @param  int    $id person id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDepsByPerson(int $id, Request $request)
+    {
+        return $this->getDependencies($id, $request, 'getPersonDependencies');
+    }
+
+    /**
      * Get all blog posts that have a dependency on a management collection
      * (reference)
      * @Route("/blogposts/managements/{id}", name="blog_post_deps_by_management")
