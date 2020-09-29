@@ -773,6 +773,9 @@ class PersonManager extends ObjectEntityManager
                         'article',
                         'book',
                         'book_chapter',
+                        'blog_post',
+                        'phd',
+                        'bib_varia',
                     ] as $entity) {
                     $this->container->get($entity .'_manager')->updateElasticByIds(
                         $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
@@ -804,6 +807,9 @@ class PersonManager extends ObjectEntityManager
                         'article',
                         'book',
                         'book_chapter',
+                        'blog_post',
+                        'phd',
+                        'bib_varia',
                     ] as $entity) {
                     $this->container->get($entity .'_manager')->updateElasticByIds(
                         $this->container->get($entity .'_manager')->getPersonDependencies($id, 'getId')
