@@ -7,7 +7,7 @@
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.f2ae039e.js"
+        "/build/articleedit.45bbdd80.js"
       ]
     },
     "bibliographysearch": {
@@ -17,27 +17,27 @@
     },
     "bibvariaedit": {
       "js": [
-        "/build/bibvariaedit.341fba61.js"
+        "/build/bibvariaedit.b8346078.js"
       ]
     },
     "blogedit": {
       "js": [
-        "/build/blogedit.a191b17d.js"
+        "/build/blogedit.c831470f.js"
       ]
     },
     "blogpostedit": {
       "js": [
-        "/build/blogpostedit.b549ff7a.js"
+        "/build/blogpostedit.89a80b92.js"
       ]
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.001df47f.js"
+        "/build/bookedit.f55ec57b.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.cbef07b4.js"
+        "/build/bookchapteredit.3463e78a.js"
       ]
     },
     "bookclustersedit": {
@@ -102,7 +102,7 @@
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.6836969f.js"
+        "/build/manuscriptedit.3e3e9111.js"
       ]
     },
     "manuscriptsearch": {
@@ -122,7 +122,7 @@
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.17721694.js"
+        "/build/occurrenceedit.0df2279c.js"
       ]
     },
     "occurrencesearch": {
@@ -137,7 +137,7 @@
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.71195da2.js"
+        "/build/onlinesourceedit.1194de2f.js"
       ]
     },
     "originsedit": {
@@ -152,7 +152,7 @@
     },
     "personedit": {
       "js": [
-        "/build/personedit.31372906.js"
+        "/build/personedit.5841e882.js"
       ]
     },
     "personsearch": {
@@ -162,7 +162,7 @@
     },
     "phdedit": {
       "js": [
-        "/build/phdedit.4c25e36f.js"
+        "/build/phdedit.898ee6c8.js"
       ]
     },
     "regionsedit": {
@@ -177,7 +177,7 @@
     },
     "selfdesignationsedit": {
       "js": [
-        "/build/selfdesignationsedit.476d8dae.js"
+        "/build/selfdesignationsedit.3276954c.js"
       ]
     },
     "statusesedit": {
@@ -187,7 +187,7 @@
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.3183dbad.js"
+        "/build/typeedit.227926f0.js"
       ]
     },
     "typesearch": {

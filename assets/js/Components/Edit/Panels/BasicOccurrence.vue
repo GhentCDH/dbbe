@@ -53,6 +53,11 @@ export default {
                                 {
                                     required: true,
                                     validator: VueFormGenerator.validators.required,
+                                },
+                                {
+                                    customLabel: ({id, name}) => {
+                                        return `${id} - ${name}`
+                                    },
                                 }
                             ),
                         },

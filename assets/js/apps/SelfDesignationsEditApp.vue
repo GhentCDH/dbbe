@@ -104,6 +104,9 @@ export default {
                             styleClasses: 'greek',
                         },
                         {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                             internalSearch: false,
                             onSearch: this.greekSearch,
                         }
@@ -132,6 +135,9 @@ export default {
                             styleClasses: 'greek',
                         },
                         {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                             internalSearch: false,
                             onSearch: this.greekSearchPrimary,
                         }
@@ -142,6 +148,9 @@ export default {
                             styleClasses: 'greek',
                         },
                         {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                             internalSearch: false,
                             onSearch: this.greekSearchSecondary,
                         }
@@ -304,17 +313,17 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
             );
         },
         greekSearchPrimary(searchQuery) {
             this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
             );
         },
         greekSearchSecondary(searchQuery) {
             this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
             );
         },
     }

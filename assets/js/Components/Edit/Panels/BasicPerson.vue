@@ -111,6 +111,9 @@ export default {
                         {
                             multiple: true,
                             closeOnSelect: false,
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                             internalSearch: false,
                             onSearch: this.greekSearch,
                         }
@@ -199,7 +202,7 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignations.values = this.schema.fields.selfDesignations.originalValues.filter(
-                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
             );
         },
     },

@@ -577,6 +577,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }
@@ -588,6 +593,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }
@@ -599,6 +609,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }
@@ -610,6 +625,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                     sourceLink: {
@@ -637,6 +657,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }
@@ -648,6 +673,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }
@@ -659,6 +689,11 @@ export default {
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
+                        },
+                        {
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                 }

@@ -60,6 +60,9 @@ export default {
                         {
                             multiple: true,
                             closeOnSelect: false,
+                            customLabel: ({id, name}) => {
+                                return `${id} - ${name}`
+                            },
                         }
                     ),
                     keywordSubjects: this.createMultiSelect(
