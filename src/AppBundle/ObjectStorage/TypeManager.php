@@ -445,7 +445,7 @@ class TypeManager extends PoemManager
                 $this->updateStatus($old, $data->textStatus, Status::TYPE_TEXT);
             }
             if (property_exists($data, 'basedOn')) {
-                if (!is_object($data->basedOn)) {
+                if (!(is_object($data->basedOn) || empty($data->basedOn))) {
                     throw new BadRequestHttpException('Incorrect based on data.');
                 }
                 $changes['full'] = true;

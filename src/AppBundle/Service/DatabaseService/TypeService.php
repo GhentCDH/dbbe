@@ -819,7 +819,7 @@ class TypeService extends PoemService
     {
         return $this->conn->executeUpdate(
             'DELETE from data.factoid
-            using factoid_type
+            using data.factoid_type
             where subject_identity = ?
             and factoid.idfactoid_type = factoid_type.idfactoid_type
             and factoid_type.type =  \'based on\'',
