@@ -12,7 +12,7 @@ class ElasticTypeService extends ElasticEntityService
     public function __construct(array $config, string $indexPrefix, ContainerInterface $container)
     {
         // Add person as subject role to the type search page
-        $roles = $container->get('role_manager')->getByType('occurrence');
+        $roles = $container->get('role_manager')->getByType('type');
         $roles['person_subject'] = Role::getSubjectRole('person_subject');
         parent::__construct(
             $config,
