@@ -16,13 +16,24 @@ use AppBundle\Service\DatabaseService\FeedbackService;
 class FeedbackController extends AbstractController
 {
     /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    public function __construct(ValidatorInterface $validator, \Swift_Mailer $mailer)
+    {
+        $this->validator = $validator;
+        $this->mailer = $mailer;
+    }
+
+    /**
      * @Route("/feedback", name="feedback")
      * @param Request $request
      * @param FeedbackService $feedbackService
      * @return JsonResponse
      * @Method("POST")
      */
-    public function postFeedback(Request $request, FeedbackService $feedbackService, ValidatorInterface $validator)
+    public function postFeedback(Request $request, FeedbackService $feedbackService)
     {
         // sanitize input
         $content = json_decode($request->getContent());
@@ -36,7 +47,7 @@ class FeedbackController extends AbstractController
             || empty($content->email)
             || strlen($content->email) < 1
             || strlen($content->email) > 3999
-            || count($validator->validate($content->email, new EmailConstraint())) > 0
+            || count($this->validator->validate($content->email, new EmailConstraint())) > 0
             || !property_exists($content, 'message')
             || !is_string($content->message)
             || empty($content->message)
@@ -84,7 +95,7 @@ class FeedbackController extends AbstractController
                 ),
                 'text/plain'
             );
-        $this->get('mailer')->send($message);
+        $this->mailer->send($message);
 
         // send success response
         return new JsonResponse(['success']);
