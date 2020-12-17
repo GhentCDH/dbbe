@@ -2,15 +2,16 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\DatabaseService\FeedbackService;
-use Symfony\Component\HttpFoundation\JsonResponse;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Constraints\Email as EmailConstaint;
+use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Unirest\Request as RestRequest;
+
+use AppBundle\Service\DatabaseService\FeedbackService;
 
 class FeedbackController extends AbstractController
 {
@@ -21,7 +22,7 @@ class FeedbackController extends AbstractController
      * @return JsonResponse
      * @Method("POST")
      */
-    public function postFeedback(Request $request, FeedbackService $feedbackService)
+    public function postFeedback(Request $request, FeedbackService $feedbackService, ValidatorInterface $validator)
     {
         // sanitize input
         $content = json_decode($request->getContent());
@@ -35,7 +36,7 @@ class FeedbackController extends AbstractController
             || empty($content->email)
             || strlen($content->email) < 1
             || strlen($content->email) > 3999
-            || !empty($this->get('validator')->validate($content->email, new EmailConstaint())->count() != 0)
+            || count($validator->validate($content->email, new EmailConstraint())) > 0
             || !property_exists($content, 'message')
             || !is_string($content->message)
             || empty($content->message)
