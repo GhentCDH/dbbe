@@ -68,23 +68,25 @@ class ObjectManager
 
     protected function wrapArrayCache(string $cacheKey, array $tags, callable $function): array
     {
-        $cache = $this->getArrayCache($cacheKey);
-        if (!is_null($cache)) {
-            return $cache;
-        }
+        // https://github.ugent.be/GhentCDH/dbbe2/issues/379
+//        $cache = $this->getArrayCache($cacheKey);
+//        if (!is_null($cache)) {
+//            return $cache;
+//        }
         $result = $function();
-        $this->setArrayCache($result, $cacheKey, $tags);
+//        $this->setArrayCache($result, $cacheKey, $tags);
         return $result;
     }
 
     protected function wrapArrayTypeCache(string $cacheKey, string $type, array $tags, callable $function): array
     {
-        $cache = $this->getArrayCache($cacheKey . '.' . $type);
-        if (!is_null($cache)) {
-            return $cache;
-        }
+        // https://github.ugent.be/GhentCDH/dbbe2/issues/379
+//        $cache = $this->getArrayCache($cacheKey . '.' . $type);
+//        if (!is_null($cache)) {
+//            return $cache;
+//        }
         $result = $function($type);
-        $this->setArrayCache($result, $cacheKey . '.' . $type, $tags);
+//        $this->setArrayCache($result, $cacheKey . '.' . $type, $tags);
         return $result;
     }
 
