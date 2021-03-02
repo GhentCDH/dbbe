@@ -221,6 +221,7 @@ class NewsEventController extends AbstractController
                     || $oldItem['date'] != $item->date
                     || $oldItem['public'] != $item->public
                     || $oldItem['order'] != $order
+                    || $oldItem['text'] != $item->text
                 ) {
                     $newsEventService->update(
                         $item->id,
