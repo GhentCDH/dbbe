@@ -245,7 +245,7 @@ class UserController extends AbstractController
                         [
                             'genUid' => $username,
                             'accountUUID' => Uuid::uuid4()->toString(),
-                            'userClass' => 'casonly',
+                            'userClass' => 'dbbe',
                         ]
                     ),
                 ]
