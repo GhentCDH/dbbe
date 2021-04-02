@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use AppBundle\Entity\User;
 use AppBundle\Exceptions\HttpException;
@@ -288,7 +289,7 @@ class UserController extends AbstractController
                         'username' => $username,
                         'language' => 'en',
                         'personalizedEmailTemplate' => 'dbbe',
-                        'returnUrl' => $this->generateUrl('saml_login'),
+                        'returnUrl' => $this->generateUrl('saml_login', [], UrlGeneratorInterface::ABSOLUTE_URL),
                     ]
                 ),
             ]
