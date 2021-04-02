@@ -288,6 +288,7 @@ class UserController extends AbstractController
                         'username' => $username,
                         'language' => 'en',
                         'personalizedEmailTemplate' => 'dbbe',
+                        'returnUrl' => $this->generateUrl('saml_login'),
                     ]
                 ),
             ]
