@@ -198,7 +198,7 @@ class JournalManager extends DocumentManager
                 && is_string($data->name)
                 && !empty($data->name)
             ) {
-                $correct = true;
+                $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->name);
             }
             $this->updateUrlswrapper($old, $data, $changes, 'full');
