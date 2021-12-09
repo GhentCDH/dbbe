@@ -523,7 +523,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
                         'sortKey' => $bibliography->getPhd()->getSortKey(),
                     ];
                 } else {
-                    $result[$id]['relUrl'][] = $bibliography->getRelUrl();
+                    $result[$id]['pages'][] = $bibliography->formatPages();
                 }
             } elseif ($bibliography->getType() === 'bibVaria') {
                 $id = $bibliography->getBibVaria()->getId();
