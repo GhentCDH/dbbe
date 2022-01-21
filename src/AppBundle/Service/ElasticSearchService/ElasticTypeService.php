@@ -121,7 +121,11 @@ class ElasticTypeService extends ElasticEntityService
             if ($viewInternal) {
                 unset($result['data'][$key]['number_of_occurrences_public']);
             } else {
-                $result['data'][$key]['number_of_occurrences'] = $result['data'][$key]['number_of_occurrences_public'];
+                if (array_key_exists('number_of_occurrences_public', $result['data'][$key])) {
+                    $result['data'][$key]['number_of_occurrences'] = $result['data'][$key]['number_of_occurrences_public'];
+                } else {
+                    $result['data'][$key]['number_of_occurrences'] = 0;
+                }
                 unset($result['data'][$key]['number_of_occurrences_public']);
             }
 
