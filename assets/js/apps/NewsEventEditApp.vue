@@ -71,7 +71,7 @@
                 </transition-group>
             </draggable>
             <btn
-                :disabled="JSON.stringify(data) === JSON.stringify(originalData)"
+                :disabled="JSON.stringify(data) === JSON.stringify(originalData) || saveDisabled"
                 @click="save()"
             >
                 Save changes
@@ -117,7 +117,7 @@
                 <btn @click="editModal=false">Cancel</btn>
                 <btn
                     type="success"
-                    :disabled="invalid"
+                    :disabled="invalid || submitDisabled"
                     @click="submit()"
                 >
                     {{ editModel.index != null ? 'Update' : 'Add' }}
@@ -130,6 +130,7 @@
                 <btn @click="delModal=false">Cancel</btn>
                 <btn
                     type="danger"
+                    :disabled="submitDelDisabled"
                     @click="submitDel()"
                 >
                     Delete
@@ -257,6 +258,9 @@ export default {
             editModel: {},
             originalEditModel: {},
             delModal: false,
+            submitDisabled: false,
+            submitDelDisabled: false,
+            saveDisabled: false,
         }
     },
     computed: {
@@ -319,6 +323,10 @@ export default {
             this.delModal = true
         },
         submit() {
+            this.submitDisabled = true
+            setTimeout(() => {
+                this.submitDisabled = false
+            }, 1000)
             this.$refs.form.validate();
             if (this.invalid) {
                 return
@@ -335,10 +343,18 @@ export default {
             this.onChange();
         },
         submitDel() {
+            this.submitDelDisabled = true
+            setTimeout(() => {
+                this.submitDelDisabled = false
+            }, 1000)
             this.data.splice(this.editModel.index, 1);
             this.delModal = false
         },
         save() {
+            this.saveDisabled = true
+            setTimeout(() => {
+                this.saveDisabled = false
+            }, 1000)
             this.openRequests++;
             axios.put(this.urls['news_events_put'], this.data)
                 .then( () => {

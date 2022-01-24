@@ -39,11 +39,17 @@
             </h4>
         </div>
         <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
+            <btn
+                :disabled="cancelDisabled"
+                @click="cancelClick()"
+            >
+                Cancel
+            </btn>
             <btn
                 type="danger"
-                :disabled="Object.keys(delDependencies).length !== 0"
-                @click="$emit('confirm')">
+                :disabled="Object.keys(delDependencies).length !== 0 || confirmDisabled"
+                @click="confirmClick()"
+            >
                 Delete
             </btn>
         </div>
@@ -71,6 +77,28 @@ export default {
         alerts: {
             type: Array,
             default: () => {return []}
+        },
+    },
+    data () {
+        return {
+            cancelDisabled: false,
+            confirmDisabled: false,
+        }
+    },
+    methods: {
+        cancelClick() {
+            this.cancelDisabled = true
+            setTimeout(() => {
+                this.cancelDisabled = false
+            }, 1000)
+            this.$emit('cancel')
+        },
+        confirmClick() {
+            this.confirmDisabled = true
+            setTimeout(() => {
+                this.confirmDisabled = false
+            }, 1000)
+            this.$emit('confirm')
         },
     },
 }

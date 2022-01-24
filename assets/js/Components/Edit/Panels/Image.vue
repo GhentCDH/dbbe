@@ -134,6 +134,7 @@
             <div slot="footer">
                 <btn @click="publicImageModal=false">Cancel</btn>
                 <btn
+                    :disabled="submitToggleImagePublicDisabled"
                     type="alert"
                     @click="submitToggleImagePublic()"
                 >
@@ -163,6 +164,7 @@
             <div slot="footer">
                 <btn @click="updateLinkModal=false">Cancel</btn>
                 <btn
+                    :disabled="submitUpdateLinkDisabled"
                     type="alert"
                     @click="submitUpdateLink()"
                 >
@@ -179,6 +181,7 @@
             <div slot="footer">
                 <btn @click="delImageModal=false">Cancel</btn>
                 <btn
+                    :disabled="submitDeleteImageDisabled"
                     type="danger"
                     @click="submitDeleteImage()"
                 >
@@ -195,6 +198,7 @@
             <div slot="footer">
                 <btn @click="delLinkModal=false">Cancel</btn>
                 <btn
+                    :disabled="submitDeleteLinkDisabled"
                     type="danger"
                     @click="submitDeleteLink()"
                 >
@@ -266,6 +270,10 @@ export default {
                     },
                 },
             },
+            submitToggleImagePublicDisabled: false,
+            submitUpdateLinkDisabled: false,
+            submitDeleteImageDisabled: false,
+            submitDeleteLinkDisabled: false,
         }
     },
     mounted() {
@@ -335,12 +343,20 @@ export default {
             this.isValid = isValid
         },
         submitToggleImagePublic() {
+            this.submitToggleImagePublicDisabled = true
+            setTimeout(() => {
+                this.submitToggleImagePublicDisabled = false
+            }, 1000)
             this.model.images[this.imageIndex].public = !this.model.images[this.imageIndex].public
             this.calcChanges()
             this.$emit('validated', 0, null, this)
             this.publicImageModal = false
         },
         submitUpdateLink() {
+            this.submitUpdateLinkDisabled = true
+            setTimeout(() => {
+                this.submitUpdateLinkDisabled = false
+            }, 1000)
             this.$refs.editForm.validate()
             if (this.$refs.editForm.errors.length == 0) {
                 if (this.linkIndex > -1) {
@@ -357,12 +373,20 @@ export default {
             }
         },
         submitDeleteImage() {
+            this.submitDeleteImageDisabled = true
+            setTimeout(() => {
+                this.submitDeleteImageDisabled = false
+            }, 1000)
             this.model.images.splice(this.imageIndex, 1)
             this.calcChanges()
             this.$emit('validated', 0, null, this)
             this.delImageModal = false
         },
         submitDeleteLink() {
+            this.submitDeleteLinkDisabled = true
+            setTimeout(() => {
+                this.submitDeleteLinkDisabled = false
+            }, 1000)
             this.model.imageLinks.splice(this.linkIndex, 1)
             this.calcChanges()
             this.$emit('validated', 0, null, this)

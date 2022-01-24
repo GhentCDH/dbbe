@@ -53,11 +53,15 @@
             </tbody>
         </table>
         <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
             <btn
+                :disabled="cancelDisabled"
+                @click="cancelClick()"
+            >Cancel</btn>
+            <btn
+                :disabled="confirmDisabled"
                 type="success"
                 data-action="auto-focus"
-                @click="$emit('confirm')"
+                @click="confirmClick()"
             >
                 Save
             </btn>
@@ -84,7 +88,27 @@ export default {
             default: () => {return []}
         },
     },
+    data () {
+        return {
+            cancelDisabled: false,
+            confirmDisabled: false,
+        }
+    },
     methods: {
+        cancelClick() {
+            this.cancelDisabled = true
+            setTimeout(() => {
+                this.cancelDisabled = false
+            }, 1000)
+            this.$emit('cancel')
+        },
+        confirmClick() {
+            this.confirmDisabled = true
+            setTimeout(() => {
+                this.confirmDisabled = false
+            }, 1000)
+            this.$emit('confirm')
+        },
         getDisplay(item) {
             if (item == null) {
                 return null
