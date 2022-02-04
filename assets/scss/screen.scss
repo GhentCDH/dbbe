@@ -1,3 +1,6 @@
+// overrides
+$fa-font-path: "~/assets/websites/static/fonts/font-awesome/" !default;
+$icon-font-path: "~/assets/websites/static/fonts/bootstrap/" !default;
 // settings and bootstrap
 @import '../websites/sass/settings';
 @import '../websites/sass/bootstrap-custom';
@@ -17,7 +20,8 @@
 @import '../websites/sass/partials/bootstrap-select';
 @import '../websites/sass/partials/bootstrap-checkbox';
 // @import '../websites/sass/partials/datepicker';
-@import '../websites/sass/partials/fonts';
+// Override font urls
+@import 'partials/fonts';
 @import '../websites/sass/partials/footer';
 @import '../websites/sass/partials/form';
 @import '../websites/sass/partials/table';

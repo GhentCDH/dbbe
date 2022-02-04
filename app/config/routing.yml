@@ -1,6 +1,0 @@
-app:
-    resource: '@AppBundle/Controller/'
-    type: annotation
-
-hslavich_saml_sp:
-    resource: "@HslavichOneloginSamlBundle/Resources/config/routing.yml"

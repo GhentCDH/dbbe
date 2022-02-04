@@ -2,7 +2,7 @@
   .banner-img {
     background-color: $brand-primary;
     @media(min-width: $screen-sm-min) {
-      background: $brand-primary url('images/banner.jpg') no-repeat center;
+      background: $brand-primary url('~/assets/images/banner.jpg') no-repeat center;
     }
   }
 

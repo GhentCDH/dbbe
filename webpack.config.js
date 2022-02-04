@@ -1,18 +1,29 @@
-var Encore = require('@symfony/webpack-encore');
-var WebpackShellPlugin = require('webpack-shell-plugin');
+const Encore = require('@symfony/webpack-encore');
+const WebpackShellPluginNext = require('webpack-shell-plugin-next');
+
+// Manually configure the runtime environment if not already configured yet by the "encore" command.
+// It's useful when you use tools that rely on webpack.config.js file.
+if (!Encore.isRuntimeEnvironmentConfigured()) {
+    Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
+}
 
 Encore
-    // the project directory where all compiled assets will be stored
-    .setOutputPath('web/build/')
-
-    // enable asset versioning, so browser caches don't need to be cleared
-    .enableVersioning()
-
-    // the public path used by the web server to access the previous directory
+    // directory where compiled assets will be stored
+    .setOutputPath('public/build/')
+    // public path used by the web server to access the output path
     .setPublicPath('/build')
+    // only needed for CDN's or sub-directory deploy
+    //.setManifestKeyPrefix('build/')
+
+    /*
+     * ENTRY CONFIG
+     *
+     * Each entry will result in one JavaScript file (e.g. app.js)
+     * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+     */
 
     // allow pug templates in vue components
-    .enableVueLoader()
+    .enableVueLoader(() => {}, { runtimeCompilerBuild: true })
 
     // Add javascripts
     .autoProvidejQuery()
@@ -57,45 +68,49 @@ Encore
     .addEntry('typesearch', './assets/js/main/typesearch.js')
     .addEntry('usersedit', './assets/js/main/usersedit.js')
 
-    // allow sass/scss files to be processed
-    .enableSassLoader()
-
-    // Add stylesheets
-    .addStyleEntry('screen', './assets/scss/screen.scss')
-
-    // provide source maps for dev environment
-    .enableSourceMaps(!Encore.isProduction())
+    /*
+     * FEATURE CONFIG
+     *
+     * Enable & configure other features below. For a full
+     * list of features, see:
+     * https://symfony.com/doc/current/frontend.html#adding-more-features
+     */
+    .cleanupOutputBeforeBuild()
 
     // don't load chunks of code
     .disableSingleRuntimeChunk()
-
-    // empty the outputPath dir before each build
-    .cleanupOutputBeforeBuild()
 
     // enable pug templates in vue
     .addLoader({
         test: /\.pug$/,
         loader: 'pug-plain-loader'
     })
+
+    .enableBuildNotifications()
+    // .enableSourceMaps(!Encore.isProduction())
+    // enables hashed filenames (e.g. app.abc123.css)
+    .enableVersioning(Encore.isProduction())
+
+    // allow sass/scss files to be processed
+    .enableSassLoader()
+
+    // Add stylesheets
+    .addStyleEntry('screen', './assets/scss/screen.scss')
+
+    // enable polling and check for changes every 250ms
+    // polling is useful when running Encore inside a Virtual Machine
+    .configureWatchOptions(function(watchOptions) {
+        watchOptions.poll = 250;
+    })
+
+    .addPlugin(new WebpackShellPluginNext({
+        onBuildEnd: {
+            scripts: [
+                './create_symlinks.sh',
+                './copy_libraries.sh',
+            ]
+        }
+    }))
 ;
 
-// further config tweaking
-const config = Encore.getWebpackConfig();
-
-// Create symlinks using shell plugin
-config.plugins.push(new WebpackShellPlugin({
-    onBuildEnd: [
-        './create_symlinks.sh',
-        './copy_libraries.sh',
-    ]
-}));
-
-// Make sure watch works
-// https://github.com/symfony/webpack-encore/issues/191
-// Use polling instead of inotify
-config.watchOptions = {
-    poll: true,
-};
-
-// Export the final configuration
-module.exports = config;
+module.exports = Encore.getWebpackConfig();

@@ -1,0 +1,31 @@
+# To get started with security, check out the documentation:
+# https://symfony.com/doc/current/security.html
+security:
+
+    # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
+    providers:
+        user_provider:
+            id: App\Security\UserProvider
+
+    firewalls:
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|js)/
+            security: false
+
+        main:
+            pattern: ^/
+            anonymous: true
+            provider: user_provider
+            guard:
+                authenticators:
+                    - App\Security\DevLoginFormAuthenticator
+            logout:
+                path: app_logout
+
+    role_hierarchy:
+        ROLE_VIEW_INTERNAL: ROLE_USER
+        ROLE_EDITOR_VIEW:   ROLE_VIEW_INTERNAL
+        ROLE_EDITOR:        ROLE_EDITOR_VIEW
+        ROLE_ADMIN:         [ROLE_EDITOR, ROLE_JULIE]
+        ROLE_SUPER_ADMIN:   [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]

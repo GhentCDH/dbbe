@@ -1,0 +1,31 @@
+{% if inverseReferences is not empty %}
+    {% for type, entitiesWithReferenceTypes in inverseReferences %}
+        <tr>
+            <td>
+                {% if type == 'translation' %}
+                    Translation(s) of type(s)
+                {% elseif type == 'book_chapter' %}
+                    Book chapter(s)
+                {% else %}
+                    {{ type|capitalize }}(s)
+                {% endif %}
+            </td>
+            <td>
+                {% if type == 'region' %}
+                    {% embed 'Helpers/renderList.html.twig' with {'list': entitiesWithReferenceTypes, 'enableCollapse': 1, 'label': type ~ 's'} only %}
+                        {% block renderItem %}
+                            {{ item[0].getNameHistoricalName() }} ({{ item[1]|join(', ') }})
+                        {% endblock %}
+                    {% endembed %}
+                {% else %}
+                    {% embed 'Helpers/renderList.html.twig' with {'list': entitiesWithReferenceTypes, 'enableCollapse': 1, 'label': type ~ 's'} only %}
+                        {% block renderItem %}
+                            {% include 'Helpers/renderPublic.html.twig' with {'item': item[0], 'path': constant('CACHENAME', item[0]) ~ '_get','display': '[' ~ item[0].getId() ~ '] ' ~ item[0].getDescription() } only %}
+                            ({{ item[1]|join(', ') }})
+                        {% endblock %}
+                    {% endembed %}
+                {% endif %}
+            </td>
+        <tr>
+    {% endfor %}
+{% endif %}

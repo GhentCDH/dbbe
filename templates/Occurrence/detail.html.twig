@@ -1,0 +1,373 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1{% if not occurrence.getPublic() %} text-danger{% endif %}">
+            Occurrence {{ occurrence.getId() }}
+            {% if occurrence.getPrevId() is not empty %}<br /><small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
+            {% if not occurrence.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('occurrence_edit', {'id': occurrence.getId(), 'clone': 1}) }}" class="action action-margin-left pull-right" title="Duplicate"><i class="fa fa-files-o"></i></a>
+                <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <div class="row pbottom-default">
+            {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
+            <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %} greek">
+                {% if (occurrence.getTitle() or occurrence.getVerses()) %}
+                     {% include 'Helpers/renderTitleVerses.html.twig' with {'title': occurrence.getTitle(), 'verses': occurrence.getVerses()} only %}
+                {% endif %}
+            </div>
+            {% if occurrence.getTextStatus() == 'Text partially unknown' %}
+                <div class="padding-default col-md-12 bg-warning">
+                    This is a partially unknown text. The numbers on the left are there for reference purposes only and do not necessarily correspond with the actual verse number.
+                </div>
+            {% endif %}
+            {% if images is not empty %}
+                <div class="col-md-4">
+                    <div class="row">
+                        {% for image in images %}
+                            <div class="{{ images|length == 1 ? 'col-xs-12' : 'col-md-6' }}">
+                                <div class="{{ 'thumbnail hidden' ~ (image.getPublic() ? '' : ' bg-warning') }}">
+                                    <a href="{{ path('image_get', {'id': image.getId()}) }}" data-type="image" data-gallery="gallery" data-toggle="lightbox" data-title="{{ image.getFileName() }}">
+                                        <img src="{{ path('image_get', {'id': image.getId()}) }}" alt="{{ image.getFileName() }}">
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% set types = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getTypes() : occurrence.getTypes()|public %}
+                {% if types is not empty %}
+                    <tr>
+                        <td>Type(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': types, 'enableCollapse': 1, 'label': 'types'} only %}
+                                {% block renderItem %}
+                                    {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item.getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item.getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else %}
+                                        ({{ item.getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getTextSources() is not empty %}
+                    <tr>
+                        <td>Text source</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getTextSources()} %}
+                                {% block renderItem %}
+                                    {% if item.getType() == 'onlineSource' and item.getOnlineSource().getName() == 'DBBE' %}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all occurrences with text source {{ item.getOnlineSource().getName() }}">
+                                        {{ item.getOnlineSource().getName() }}
+                                        {% if occurrence.getSourceStatus() is not empty %}({{ occurrence.getSourceStatus().getName() }}){% endif %}
+                                        </a>
+                                    {% else %}
+                                        {% include 'Helpers/renderBibliography.html.twig' with {'item': occurrence.getBibliographyDisplay([item])[0], 'sourceStatus': occurrence.getSourceStatus() } only %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getTextStatus() is not empty %}
+                    <tr>
+                        <td>Text status</td>
+                        <td>{{ occurrence.getTextStatus() }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getDate() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ occurrence.getDate() }}</td>
+                    </tr>
+                {% endif %}
+                {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
+                {% if manuscript is not empty %}
+                    <tr>
+                        <td>Manuscript</td>
+                        <td>
+                            {% include 'Helpers/renderPublic.html.twig' with {'item': manuscript, 'path': 'manuscript_get','display': manuscript.getName() ~ (manuscript.getDate() ? ' [' ~ manuscript.getDate() ~ ']' : '')} only %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getLocation() is not empty %}
+                    <tr>
+                        <td>Place in Manuscript</td>
+                        <td>{{ occurrence.getLocation() }}</td>
+                    </tr>
+                {% endif %}
+                {%
+                    include 'Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getPersonRoles() : occurrence.getPublicPersonRoles()}
+                    only
+                %}
+                {% if occurrence.getPalaeographicalInfo() is not empty %}
+                    <tr>
+                        <td>Palaeographical information</td>
+                        <td>{{ occurrence.getPalaeographicalInfo()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getContextualInfo() is not empty %}
+                    <tr>
+                        <td>Contextual information</td>
+                        <td>{{ occurrence.getContextualInfo()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getMetres() is not empty %}
+                    <tr>
+                        <td>Metre(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getMetres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this metre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getGenres() is not empty %}
+                    <tr>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this genre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getSubjects() : occurrence.getSubjects()|public %}
+                {% if subjects is not empty %}
+                    <tr>
+                        <td>Subject(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': subjects} only %}
+                                {% block renderItem %}
+                                    {% if item is person %}
+                                        {% include 'Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
+                                    {% else %}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[subject]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this subject">{{ item.getName() }}</a>
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ occurrence.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% set imageLinks = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImageLinks() : occurrence.getImageLinks()|public %}
+                {% if imageLinks is not empty %}
+                    <tr>
+                        <td>Image source(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': imageLinks} only %}
+                                {% block renderItem %}
+                                    {% if not item.getPublic() %}
+                                        {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                                            {% if item.getUrl() matches '/^http/' %}
+                                                <a href="{{ item.getUrl() }}" target="_blank">
+                                                    <span class="bg-warning">{{ item.getUrl() }}</span>
+                                                </a>
+                                            {% else %}
+                                                <span class="bg-warning">{{ item.getUrl() }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% if item.getUrl() matches '/^http/' %}
+                                            <a href="{{ item.getUrl() }}" target="_blank">{{ item.getUrl() }}</a>
+                                        {% else %}
+                                            {{ item.getUrl() }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getPrimarySources() is not empty or occurrence.getSecondarySources() is not empty or occurrence.getOtherSources() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% if occurrence.getPrimarySources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Primary</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getPrimarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                            {% if occurrence.getSecondarySources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Secondary</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getSecondarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                            {% if occurrence.getOtherSources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Bibliography category to be determined</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getBibliographyDisplay(occurrence.getOtherSources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getNumberOfVerses() is not empty %}
+                    <tr>
+                        <td>Number of verses</td>
+                        <td>{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}</td>
+                    </tr>
+                {% endif %}
+                {% set relOccurrences = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getRelatedOccurrences() : occurrence.getPublicRelatedOccurrences() %}
+                {% if relOccurrences is not empty %}
+                    <tr>
+                        <td>Related occurrence(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': relOccurrences, 'enableCollapse': 1, 'label': 'occurrences'}%}
+                                {% block renderItem %}
+                                    {% embed 'Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item[0].getManuscript() is not empty %}
+                                        {% if item[0].getManuscript().getPublic() %}
+                                            <br />
+                                            <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                        {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                            <br />
+                                            <span class="bg-warning">
+                                                <a href="{{ path('manuscript_get', {'id': item[0].getManuscript().getId()}) }}">{{ item[0].getManuscript().getName() }} ({{ item[0].getLocation()}})</a>
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                    <br />
+                                    {% if item[0].getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item[0].getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else  %}
+                                        ({{ item[0].getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                    {% if item[1] %}
+                                        ({{ item[1] }}{% if occurrence.getNumberOfVerses() is not empty %}/{{ occurrence.getNumberOfVerses() == 0 ? '?' : occurrence.getNumberOfVerses() }}{% endif %})
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if occurrence.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ occurrence.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if occurrence.getRecordStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Record Status</td>
+                            <td>{{ occurrence.getRecordStatus() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if occurrence.getDividedStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Verses correctly divided</td>
+                            <td>{{ occurrence.getDividedStatus() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if occurrence.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('occurrences_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all occurrences with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ occurrence.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
+                {% endif %}
+                {% if occurrence.getAcknowledgements() is not empty or occurrence.getContributorRoles() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if occurrence.getAcknowledgements() is not empty and occurrence.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
+                            {%
+                                include 'Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getContributorRoles() : occurrence.getPublicContributorRoles() }
+                                only
+                            %}
+                        </td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Permalink</td>
+                    <td><a href="{{ path('occurrence_get', {'id': occurrence.getId()}) }}">{{ absolute_url(path('occurrence_get', {'id': occurrence.getId()})) }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ occurrence.getModified()|date('Y-m-d') }}.</em>
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key="{{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

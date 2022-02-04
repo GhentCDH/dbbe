@@ -1,0 +1,296 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.env: '%env(APP_ENV)%'
+    app.secretKey: '%env(SECRETKEY)%'
+    app.saml_create: '%env(SAML_CREATE)%'
+    app.saml_mail: '%env(SAML_MAIL)%'
+    app.saml_username: '%env(SAML_USERNAME)%'
+    app.saml_password: '%env(SAML_PASSWORD)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\ObjectStorage\AcknowledgementManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\AcknowledgementService'
+
+    App\ObjectStorage\ArticleManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ArticleService'
+            $entityType: 'article'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BibliographyManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BibliographyService'
+
+    App\ObjectStorage\BibVariaManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BibVariaService'
+            $entityType: 'bib_varia'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BlogManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BlogService'
+            $entityType: 'blog'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BlogPostManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BlogPostService'
+            $entityType: 'blog_post'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BookChapterManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BookChapterService'
+            $entityType: 'book_chapter'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BookClusterManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BookClusterService'
+            $entityType: 'book_cluster'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BookManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BookService'
+            $entityType: 'book'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\BookSeriesManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\BookSeriesService'
+            $entityType: 'book_series'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\CollectionManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\CollectionService'
+
+    App\ObjectStorage\ContentManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ContentService'
+            $entityType: 'content'
+
+    App\ObjectStorage\GenreManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\GenreService'
+
+    App\ObjectStorage\IdentifierManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\IdentifierService'
+
+    App\ObjectStorage\ImageManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ImageService'
+
+    App\ObjectStorage\InstitutionManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\InstitutionService'
+
+    App\ObjectStorage\JournalIssueManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\JournalIssueService'
+            $entityType: 'journal_issue'
+
+    App\ObjectStorage\JournalManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\JournalService'
+            $entityType: 'journal'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\KeywordManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\KeywordService'
+
+    App\ObjectStorage\LanguageManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\LanguageService'
+
+    App\ObjectStorage\LocatedAtManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\LocatedAtService'
+
+    App\ObjectStorage\LocationManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\LocationService'
+
+    App\ObjectStorage\ManagementManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ManagementService'
+
+    App\ObjectStorage\ManuscriptManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ManuscriptService'
+            $entityType: 'manuscript'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticManuscriptService'
+
+    App\ObjectStorage\MetreManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\MetreService'
+
+    App\ObjectStorage\OccurrenceManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\OccurrenceService'
+            $entityType: 'occurrence'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticOccurrenceService'
+
+    App\ObjectStorage\OfficeManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\OfficeService'
+
+    App\ObjectStorage\OnlineSourceManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\OnlineSourceService'
+            $entityType: 'online_source'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\OriginManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\OriginService'
+
+    App\ObjectStorage\PersonManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\PersonService'
+            $entityType: 'person'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticPersonService'
+
+    App\ObjectStorage\PhdManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\PhdService'
+            $entityType: 'phd'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticBibliographyService'
+
+    App\ObjectStorage\ReferenceTypeManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\ReferenceTypeService'
+
+    App\ObjectStorage\RegionManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\RegionService'
+            $entityType: 'region'
+
+    App\ObjectStorage\RoleManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\RoleService'
+
+    App\ObjectStorage\SelfDesignationManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\SelfDesignationService'
+
+    App\ObjectStorage\StatusManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\StatusService'
+
+    App\ObjectStorage\TranslationManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\TranslationService'
+
+    App\ObjectStorage\TypeManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\TypeService'
+            $entityType: 'type'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticTypeService'
+
+    App\ObjectStorage\VerseManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\VerseService'
+            $elasticSearchService: '@App\ElasticSearchService\ElasticVerseService'
+
+    App\ObjectStorage\TypeRelationTypeManager:
+        public: true
+        arguments:
+            $databaseService: '@App\DatabaseService\TypeRelationTypeService'
+
+    App\ElasticSearchService\ElasticBibliographyService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+
+    App\ElasticSearchService\ElasticManuscriptService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+
+    App\ElasticSearchService\ElasticOccurrenceService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+
+    App\ElasticSearchService\ElasticPersonService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+
+    App\ElasticSearchService\ElasticTypeService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+
+    App\ElasticSearchService\ElasticVerseService:
+        arguments:
+            $config: '%env(json:ELASTIC_HOSTS)%'
+            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+            $databaseService: '@App\DatabaseService\VerseService'

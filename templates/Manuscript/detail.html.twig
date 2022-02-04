@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1{% if not manuscript.getPublic() %} text-danger{% endif %}">
+            <small>Manuscript</small><br />{{ manuscript.getName() }}
+            {% if not manuscript.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('manuscript_edit', {'id': manuscript.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% if manuscript.getContentsWithParents() is not empty %}
+                    <tr>
+                        <td>Content</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
+                                {% block renderItem %}
+                                    {% for content in item.getArray() %}
+                                        <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[content]'|url_encode ~ '=' ~ content.getId() }}" title="Search for all manuscripts with this content">
+                                            {{ content.getPerson() != null ? content.getPerson().getName() : content.getName() }}
+                                        </a>
+                                        &nbsp;
+                                        {% if content.getPerson() != null %}
+                                            <a href="{{ path('person_get', {'id': content.getPerson().getId()}) }}">(person page)</a>
+                                        {% endif %}
+                                        {% if not loop.last %}
+                                            >
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {%
+                    include 'Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getFixedRelatedPersonRoles() : manuscript.getFixedRelatedPublicPersonRoles()}
+                    only
+                %}
+                {% if manuscript.getDate() is not empty %}
+                    <tr>
+                        <td>Date</td>
+                        <td>{{ manuscript.getDate() }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getOrigin() is not empty %}
+                    <tr>
+                        <td>Origin</td>
+                        <td>{{ manuscript.getOrigin().getName() }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getBibliographyDisplay(manuscript.getBibliographies()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                {% block renderItem %}
+                                    {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getIdentifications() is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getFlatIdentifications()} only %}
+                                {% block renderItem %}
+                                    {% include 'Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ manuscript.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getOccurrences() : manuscript.getOccurrences()|public %}
+                {% if occurrences is not empty %}
+                    <tr>
+                        <td>Occurrences</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrences, 'enableCollapse': 1, 'label': 'occurrences'} only %}
+                                {% block renderItem %}
+                                    {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span> ({{ item.getLocation() }})</a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if manuscript.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ manuscript.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if manuscript.getStatus() is not empty %}
+                        <tr class="warning">
+                            <td>Status</td>
+                            <td>{{ manuscript.getStatus() }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if manuscript.getIllustrated() is defined %}
+                        <tr class="warning">
+                            <td>Illustrated</td>
+                            <td>{{ manuscript.getIllustrated() ? 'Yes': 'No' }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if manuscript.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all manuscripts with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ manuscript.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
+                {% endif %}
+                {% if manuscript.getAcknowledgements() is not empty or manuscript.getContributorRoles() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if manuscript.getAcknowledgements() is not empty and manuscript.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
+                            {%
+                                include 'Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? manuscript.getContributorRoles() : manuscript.getPublicContributorRoles() }
+                                only
+                            %}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ manuscript.getModified()|date('Y-m-d') }}.</em>
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

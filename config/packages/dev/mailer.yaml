@@ -1,0 +1,7 @@
+framework:
+    mailer:
+        envelope:
+            sender: 'pieterjan.depotter@ugent.be'
+            recipients: ['pieterjan.depotter@ugent.be']
+        headers:
+            Cc: 'pieterjan.depotter@ugent.be'

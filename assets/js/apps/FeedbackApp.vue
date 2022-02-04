@@ -24,7 +24,7 @@
                     <recaptcha
                         ref="recaptcha"
                         :site-key="siteKey"
-                        @verify="validated" />
+                        @verify="onVerify" />
                     <btn
                         :disabled="invalid"
                         @click="submit()">
@@ -78,6 +78,7 @@ export default {
                 email: null,
                 message: null,
             },
+            recaptchaResponse: null,
             schema: {
                 fields: {
                     email: {
@@ -107,6 +108,10 @@ export default {
         }
     },
     methods: {
+        onVerify(recaptchaResponse) {
+            this.recaptchaResponse = recaptchaResponse
+            this.$refs.form.validate()
+        },
         submit() {
             if (this.$refs.form.errors.length !== 0) {
                 return
@@ -115,7 +120,7 @@ export default {
             axios.post(this.feedbackUrl, {
                 email: this.model.email,
                 message: this.model.message,
-                recaptcha: grecaptcha.getResponse(),
+                recaptcha: this.recaptchaResponse,
                 url: window.location.href,
             })
                 .then( (response) => {
@@ -133,7 +138,12 @@ export default {
             }
         },
         validated (isValid, errors) {
-            this.invalid = !(isValid && grecaptcha.getResponse() != null && grecaptcha.getResponse() !== '')
+            this.invalid = (
+                !isValid
+                || this.model.email == null
+                || this.model.message == null
+                || this.recaptchaResponse == null
+            )
         },
     },
 }

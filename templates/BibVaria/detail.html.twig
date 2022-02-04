@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            {{ bib_varia.getTitle() }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('bib_varia_edit', {'id': bib_varia.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {%
+                    include 'Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? bib_varia.getPersonRoles() : bib_varia.getPublicPersonRoles()}
+                    only
+                %}
+                {% if bib_varia.getYear() is not empty %}
+                    <tr>
+                        <td>Year</td>
+                        <td>{{ bib_varia.getYear() }}</td>
+                    </tr>
+                {% endif %}
+                {% if bib_varia.getCity() is not empty %}
+                    <tr>
+                        <td>City</td>
+                        <td>{{ bib_varia.getCity() }}</td>
+                    </tr>
+                {% endif %}
+                {% if bib_varia.getInstitution() is not empty %}
+                    <tr>
+                        <td>Institution</td>
+                        <td>{{ bib_varia.getInstitution() }}</td>
+                    </tr>
+                {% endif %}
+                {% if bib_varia.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': bib_varia.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if bib_varia.getIdentifications() is not empty and bib_varia.getIdentifications()['vassis'] is defined %}
+                    <tr>
+                        <td><a href="{{ path('person_get', {'id': bib_varia.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': bib_varia.getIdentifications()['vassis'][1]} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if bib_varia.getFlatIdentifications()|notVassis is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': bib_varia.getFlatIdentifications()|notVassis} only %}
+                                {% block renderItem %}
+                                    {% include 'Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% include 'Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? bib_varia.getInverseReferences() : bib_varia.getPublicInverseReferences()} only %}
+                {% if bib_varia.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ bib_varia.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if bib_varia.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ bib_varia.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if bib_varia.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': bib_varia.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('bibliographies_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all bibliography items with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ bib_varia.getModified()|date('Y-m-d') }}.</em>
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

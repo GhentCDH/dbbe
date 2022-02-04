@@ -313,7 +313,7 @@
                     </div>
                 </header>
             </div>
-            {% if app.environment != 'prod' and app.environment != 'stage' %}
+            {% if app.environment != 'prod' %}
                 <div class="row">
                     <div class="col-xs-12">
                         <h2 class="text-danger text-center">
@@ -321,6 +321,9 @@
                         </h2>
                     </div>
                 </div>
+            {% endif %}
+            {% if is_granted('IS_IMPERSONATOR') %}
+                <a href="{{ impersonation_exit_path(path('homepage') ) }}">Exit impersonation</a>
             {% endif %}
         </div>
 

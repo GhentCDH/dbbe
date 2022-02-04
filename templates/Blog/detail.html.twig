@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            <small>Blog</small><br />{{ blog.getTitle() }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('blog_edit', {'id': blog.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                <tr>
+                    <td>Url</td>
+                    <td><a href="{{ blog.getUrl() }}" target="_blank">{{ blog.getUrl() }}</a></td>
+                </tr>
+                {% if blog.getLastAccessed() is not empty %}
+                    <tr>
+                        <td>Last accessed</td>
+                        <td>{{ blog.getLastAccessed().format('d/m/Y') }}</td>
+                    </tr>
+                {% endif %}
+                {% if blog.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': blog.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% include 'Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? blog.getInverseReferences() : blog.getPublicInverseReferences()} only %}
+                {% if blog.getPosts() is not empty %}
+                    <tr>
+                        <td>Posts</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': blog.getPosts()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('blog_post_get', {'id': item.getId()}) }}">
+                                        {{ item.getDescription() }}
+                                    </a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if blog.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ blog.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if blog.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ blog.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if blog.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': blog.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('bibliographies_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all bibliography items with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ blog.getModified()|date('Y-m-d') }}.</em>
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

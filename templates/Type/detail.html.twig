@@ -1,0 +1,361 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1{% if not type.getPublic() %} text-danger{% endif %}">
+            Type {{ type.getId() }}
+            {% if type.getPrevId() is not empty %}<br /><small>(formerly typ/{{ type.getPrevId() }})</small>{% endif %}
+            {% if not type.getPublic() %}
+                - Not Public
+            {% endif %}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('type_edit', {'id': type.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <div class="greek pbottom-default">
+            {% if (type.getVerses()) %}
+                {# don't display type titles here, these are displayed in the table below #}
+                {% include 'Helpers/renderTitleVersesAsText.html.twig' with {'title': null, 'verses': type.getVerses()} only %}
+            {% endif %}
+        </div>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {% if type.getTitles() is not empty %}
+                    <tr>
+                        <td>Title(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getTitles()}%}
+                                {% block renderItem %}
+                                    {% if key == 'GR' %}
+                                        <span class="greek">{{ item }}</span>
+                                    {% else %}
+                                        {{ item }}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getTextSources() is not empty %}
+                    <tr>
+                        <td>Text source</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getTextSources()} %}
+                                {% block renderItem %}
+                                    {% if item.getType() == 'onlineSource' and item.getOnlineSource().getName() == 'DBBE' %}
+                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[dbbe]'|url_encode ~ '=1' }}" title="Search for all types with text source {{ item.getOnlineSource().getName() }}">
+                                            {{ item.getOnlineSource().getName() }}
+                                        </a>
+                                        {% if type.getBasedOn() is not empty %}
+                                            (based on occurrence
+                                            <a class="greek" href="{{ path('occurrence_get', {'id': type.getBasedOn().getId()}) }}">{{ type.getBasedOn().getDescription() }}</a>)
+                                        {% endif %}
+                                    {% else %}
+                                        {% include 'Helpers/renderBibliography.html.twig' with {'item': type.getBibliographyDisplay([item])[0]} only %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getTextStatus() is not empty %}
+                    <tr>
+                        <td>Text status</td>
+                        <td>{{ type.getTextStatus() }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getCriticalStatus() is not empty %}
+                    <tr>
+                        <td>Editorial status</td>
+                        <td>{{ type.getCriticalStatus() }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getGenres() is not empty %}
+                    <tr>
+                        <td>Genre(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getGenres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this genre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {%
+                    include 'Helpers/renderPersonRoles.html.twig'
+                    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? type.getPersonRoles() : type.getPublicPersonRoles()}
+                    only
+                %}
+                {% if type.getMetres() is not empty %}
+                    <tr>
+                        <td>Metre(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getMetres()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this metre">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set subjects = is_granted('ROLE_VIEW_INTERNAL') ? type.getSubjects() : type.getSubjects()|public %}
+                {% if subjects is not empty %}
+                    <tr>
+                        <td>Subject(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': subjects} only %}
+                                {% block renderItem %}
+                                    {% if item is person %}
+                                        {% include 'Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
+                                    {% else %}
+                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[subject]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this subject">{{ item.getName() }}</a>
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getKeywords() is not empty %}
+                    <tr>
+                        <td>Tag(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getKeywords()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[tag]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this tag">{{ item.getName() }}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getCriticalApparatus() is not empty %}
+                    <tr>
+                        <td>Critical Notes</td>
+                        <td>{{ type.getCriticalApparatus()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% set translations = is_granted('ROLE_VIEW_INTERNAL') ? type.getTranslations() : type.getPublicTranslations() %}
+                {% if translations is not empty %}
+                    <tr>
+                        <td>Translation(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': translations} only %}
+                                {% block renderItem %}
+                                    {% if item.getLanguage() == 'Unknown' %}
+                                        <span class="bg-warning">
+                                    {%  endif %}
+                                    {{ item.getText()|replace({'|':'\n'})|nl2br }}
+                                    <br />
+                                    Language: {{ item.getLanguage() }}
+                                    <br />
+                                    {% embed 'Helpers/renderList.html.twig' with {'list':  item.getBibliographyDisplay(item.getBibliographies())} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item.getLanguage() == 'Unknown' %}
+                                        </span>
+                                    {%  endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ type.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getBibliographies() is not empty %}
+                    <tr>
+                        <td>Bibliography</td>
+                        <td>
+                            {% if type.getPrimarySources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Primary</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getPrimarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                            {% if type.getSecondarySources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Secondary</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getSecondarySources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                            {% if type.getOtherSources() is not empty %}
+                                <div class="pbottom-default">
+                                    <p><em>Bibliography category to be determined</em></p>
+                                    {% embed 'Helpers/renderList.html.twig' with {'list':  type.getBibliographyDisplay(type.getOtherSources()), 'enableCollapse': 1, 'label': 'references'} only %}
+                                        {% block renderItem %}
+                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                        {% endblock %}
+                                    {% endembed %}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getNumberOfVerses() is not empty %}
+                    <tr>
+                        <td>Number of verses</td>
+                        <td>{{ type.getNumberOfVerses() == 0 ? '?' : type.getNumberOfVerses() }}</td>
+                    </tr>
+                {% endif %}
+                {% set occurrences = is_granted('ROLE_VIEW_INTERNAL') ? type.getOccurrences() : type.getOccurrences()|public %}
+                {% if occurrences is not empty %}
+                    <tr>
+                        <td>Occurrence(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': occurrences, 'enableCollapse': 1, 'label': 'occurrences'}%}
+                                {% block renderItem %}
+                                    {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item.getManuscript().getPublic() %}
+                                        <br />
+                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                    {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
+                                        <br />
+                                        <span class="bg-warning">
+                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                        </span>
+                                    {% endif %}
+                                    <br />
+                                    {% if item.getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item.getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else  %}
+                                        ({{ item.getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% set relTypes = is_granted('ROLE_VIEW_INTERNAL') ? type.getRelatedTypes() : type.getPublicRelatedTypes() %}
+                {% if relTypes is not empty %}
+                    <tr>
+                        <td>Related type(s)</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': relTypes, 'enableCollapse': 1, 'label': 'types'} only %}
+                                {% block renderItem %}
+                                    {% embed 'Helpers/renderPublic.html.twig' with {'item': item[0]} only %}
+                                        {% block renderDetail %}
+                                            <a href="{{ path('type_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                        {% endblock %}
+                                    {% endembed %}
+                                    {% if item[0].getNumberOfVerses() == 0 %}
+                                        (? verses)
+                                    {% elseif item[0].getNumberOfVerses() == 1 %}
+                                        (1 verse)
+                                    {% else %}
+                                        ({{ item[0].getNumberOfVerses() }} verses)
+                                    {% endif %}
+                                    {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                                        ({{ item[1]|name|join(', ')|replace({'Unknown': '<span class="bg-warning">Unknown<span>'})|raw }})
+                                    {%  else  %}
+                                        {% set displayRelationTypes = item[1]|noUnknown %}
+                                        {% if displayRelationTypes is not empty %}
+                                            ({{ item[1]|noUnknown|name|join(', ') }})
+                                        {% endif %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if type.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ type.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if type.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': type.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr class="danger">
+                        <td>Publication state</td>
+                        <td>{{ type.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
+                {% endif %}
+                {% if type.getAcknowledgements() is not empty or type.getContributorRoles() is not empty %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if type.getAcknowledgements() is not empty and type.getContributorRoles() is not empty %}
+                                <br /><br />
+                            {% endif %}
+                            {%
+                                include 'Helpers/renderContributorRoles.html.twig'
+                                with {'contributorRoles': is_granted('ROLE_VIEW_INTERNAL') ? type.getContributorRoles() : type.getPublicContributorRoles() }
+                                only
+                            %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if type.getIdentifications() is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': type.getFlatIdentifications()} only %}
+                                {% block renderItem %}
+                                    {% include 'Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Permalink</td>
+                    <td><a href="{{ path('type_get', {'id': type.getId()}) }}">{{ absolute_url(path('type_get', {'id': type.getId()})) }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ type.getModified()|date('Y-m-d') }}.</em>
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                feedback-url="{{ path('feedback') }}"
+                site-key=" {{ siteKey }}" />
+        </div>
+
+    </article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

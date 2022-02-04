@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <article class="col-xs-9">
+        <h2 class="h1">
+            <small>Book Chapter</small><br />{{ book_chapter.getTitle() }}
+            {% if is_granted('ROLE_EDITOR_VIEW') %}
+                <a href="{{ path('book_chapter_edit', {'id': book_chapter.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+            {% endif %}
+        </h2>
+        <table class="table table-hover table-bordered">
+            <tbody>
+                {%
+                    include 'Helpers/renderPersonRoles.html.twig'
+    with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? book_chapter.getPersonRoles() : book_chapter.getPublicPersonRoles()}
+    only
+    %}
+{% if book_chapter.getBook() is not empty %}
+<tr>
+    <td>Book</td>
+    <td><a href="{{ path('book_get', {'id': book_chapter.getBook().getId()}) }}">{{ book_chapter.getBook().getDescription() }}</a>
+</tr>
+{% endif %}
+                {% set pages = book_chapter.formatStartEndPages('', book_chapter.getRawPages()) %}
+                {% if pages is not empty %}
+                    <tr>
+                        <td>Pages</td>
+                        <td>{{ pages }}</td>
+                    </tr>
+                {% endif %}
+                {% if book_chapter.getUrls() is not empty %}
+                    <tr>
+                        <td>External links</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': book_chapter.getUrls()} only %}
+                                {% block renderItem %}
+                                    <a href="{{ item.getUrl() }}" target="_blank">{% if item.getTitle() is not empty %}{{ item.getTitle() }}{% else %}{{ item.getUrl() }}{% endif %}</a>
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if book_chapter.getIdentifications() is not empty and book_chapter.getIdentifications()['vassis'] is defined %}
+                    <tr>
+                        <td><a href="{{ path('person_get', {'id': book_chapter.getIdentifications()['vassis'][0].getIds()[0]}) }}">Vassis</a> abbreviation</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': book_chapter.getIdentifications()['vassis'][1]} only %}
+                                {% block renderItem %}
+                                    {{ item }}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if book_chapter.getFlatIdentifications()|notVassis is not empty %}
+                    <tr>
+                        <td>Identification</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': book_chapter.getFlatIdentifications()|notVassis} only %}
+                                {% block renderItem %}
+                                    {% include 'Helpers/renderIdentification.html.twig' with {'item': item} only %}
+                                {% endblock %}
+                            {% endembed %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% include 'Helpers/renderInverseReferences.html.twig' with {'inverseReferences': is_granted('ROLE_VIEW_INTERNAL') ? book_chapter.getInverseReferences() : book_chapter.getPublicInverseReferences()} only %}
+                {% if book_chapter.getPublicComment() is not empty %}
+                    <tr>
+                        <td>Comment</td>
+                        <td>{{ book_chapter.getPublicComment()|nl2br }}</td>
+                    </tr>
+                {% endif %}
+                {% if is_granted('ROLE_VIEW_INTERNAL') %}
+                    {% if book_chapter.getPrivateComment() is not empty %}
+                        <tr class="warning">
+                            <td>Internal comment</td>
+                            <td>{{ book_chapter.getPrivateComment()|nl2br }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if book_chapter.getManagements() is not empty %}
+                        <tr class="warning">
+                            <td>Management collection(s)</td>
+                            <td>
+                                {% embed 'Helpers/renderList.html.twig' with {'list': book_chapter.getManagements()} only %}
+                                    {% block renderItem %}
+                                        <a href="{{ path('bibliographies_search') ~ '?' ~ 'filters[management]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all bibliography items with this management collection">
+                                            {{ item.getName() }}
+                                        </a>
+                                    {% endblock %}
+                                {% endembed %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+</tbody>
+</table>
+
+<div class="pbottom-default text-right">
+    <em>Last modified: {{ book_chapter.getModified()|date('Y-m-d') }}.</em>
+</div>
+
+<div id="feedback-app">
+    <feedback-app
+            feedback-url="{{ path('feedback') }}"
+            site-key=" {{ siteKey }}" />
+</div>
+</article>
+{% endblock %}
+
+{% block javascript %}
+    <script src='https://www.google.com/recaptcha/api.js?render=explicit'></script>
+    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+    <script type="text/javascript" src="{{ asset("build/feedback.js") }}"></script>
+{% endblock %}

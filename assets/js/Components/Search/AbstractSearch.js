@@ -219,7 +219,7 @@ export default {
                     }
                 }
                 else {
-                    this.lastOrder = JSON.parse(JSON.stringify(this.$refs.resultTable.orderBy));
+                    this.lastOrder = JSON.parse(JSON.stringify(this.$refs.resultTable.options.orderBy));
                     this.$refs.resultTable.setOrder(null)
                 }
             }
@@ -375,6 +375,7 @@ export default {
             this.onValidated(true)
         },
         onData(data) {
+            console.log('onData')
             this.data = data;
 
             // Check whether column 'title/text' should be displayed
@@ -386,6 +387,7 @@ export default {
                     || item.hasOwnProperty('title_GR')
                     || item.hasOwnProperty('title_LA')
                 ) {
+                    console.log('textsearch')
                     this.textSearch = true;
                     break;
                 }
@@ -629,24 +631,25 @@ export default {
         if (!data.hasOwnProperty('orderBy')) {
             delete data['ascending']
         }
+        const searchApp = this.$parent.$parent
         // Add filter values if necessary
-        data['filters'] = this.$parent.constructFilterValues();
+        data['filters'] = searchApp.constructFilterValues();
         if (data['filters'] == null || data['filters'] === '') {
             delete data['filters']
         }
-        this.$parent.openRequests++;
-        if (!this.$parent.initialized) {
+        searchApp.openRequests++;
+        if (!searchApp.initialized) {
             return new Promise((resolve) => {
-                this.$emit('data', this.$parent.data);
+                searchApp.onData(searchApp.data);
                 resolve({
                     data : {
-                        data: this.$parent.data.data,
-                        count: this.$parent.data.count
+                        data: searchApp.data.data,
+                        count: searchApp.data.count
                     }
                 })
             })
         }
-        if (!this.$parent.actualRequest) {
+        if (!searchApp.actualRequest) {
             return new Promise((resolve) => {
                 resolve({
                     data : {
@@ -656,24 +659,24 @@ export default {
                 })
             })
         }
-        if (this.$parent.historyRequest) {
-            if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
-                this.$parent.tableCancel('Operation canceled by newer request')
+        if (searchApp.historyRequest) {
+            if (searchApp.openRequests > 1 && searchApp.tableCancel != null) {
+                searchApp.tableCancel('Operation canceled by newer request')
             }
             let url = this.url;
-            if (this.$parent.historyRequest !== 'init') {
-                url += '?' + this.$parent.historyRequest
+            if (searchApp.historyRequest !== 'init') {
+                url += '?' + searchApp.historyRequest
             }
             return axios.get(url, {
-                cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+                cancelToken: new axios.CancelToken((c) => {searchApp.tableCancel = c})
             })
                 .then( (response) => {
-                    this.$emit('data', response.data);
+                    searchApp.onData(response.data);
                     return response
                 })
                 .catch(function (error) {
-                    this.$parent.historyRequest = false;
-                    this.$parent.openRequests--;
+                    searchApp.historyRequest = false;
+                    searchApp.openRequests--;
                     if (axios.isCancel(error)) {
                         // Return the current data if the request is cancelled
                         return {
@@ -686,23 +689,23 @@ export default {
                     this.dispatch('error', error)
                 }.bind(this))
         }
-        if (!this.$parent.noHistory) {
-            this.$parent.pushHistory(data)
+        if (!searchApp.noHistory) {
+            searchApp.pushHistory(data)
         } else {
-            this.$parent.noHistory = false;
+            searchApp.noHistory = false;
         }
 
-        if (this.$parent.openRequests > 1 && this.$parent.tableCancel != null) {
-            this.$parent.tableCancel('Operation canceled by newer request')
+        if (searchApp.openRequests > 1 && searchApp.tableCancel != null) {
+            searchApp.tableCancel('Operation canceled by newer request')
         }
         return axios.get(this.url, {
             params: data,
             paramsSerializer: qs.stringify,
-            cancelToken: new axios.CancelToken((c) => {this.$parent.tableCancel = c})
+            cancelToken: new axios.CancelToken((c) => {searchApp.tableCancel = c})
         })
             .then( (response) => {
-                this.$parent.alerts = [];
-                this.$emit('data', response.data);
+                searchApp.alerts = [];
+                searchApp.onData(response.data);
                 return response
             })
             .catch(function (error) {
@@ -715,7 +718,7 @@ export default {
                         }
                     }
                 }
-                this.$parent.alerts.push({
+                searchApp.alerts.push({
                     type: 'error',
                     message: 'Something went wrong while processing your request. Please verify your input is valid.'
                 });
