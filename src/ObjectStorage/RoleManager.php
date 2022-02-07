@@ -10,6 +10,10 @@ use App\Utils\ArrayToJson;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use App\ElasticSearchService\ElasticBibliographyService;
+use App\ElasticSearchService\ElasticManuscriptService;
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticTypeService;
 use App\Exceptions\DependencyException;
 use App\Model\Role;
 
@@ -286,12 +290,12 @@ class RoleManager extends ObjectManager
     private function updateRoleMapping(): void
     {
         foreach ([
-            'manuscript',
-            'occurrence',
-            'type',
-            'bibliography',
-        ] as $type) {
-            $this->container->get($type . '_elastic_service')->updateRoleMapping();
+            ElasticBibliographyService::class,
+            ElasticManuscriptService::class,
+            ElasticOccurrenceService::class,
+            ElasticTypeService::class,
+        ] as $service) {
+            $this->container->get($service)->updateRoleMapping();
         }
     }
 }

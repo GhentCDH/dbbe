@@ -8,6 +8,8 @@ use Exception;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticTypeService;
 use App\Exceptions\DependencyException;
 use App\Model\Keyword;
 use App\Model\Person;
@@ -210,7 +212,7 @@ class KeywordManager extends ObjectManager
                     ];
                 }
 
-                $this->container->get('occurrence_elastic_service')->updateMultiple(
+                $this->container->get(ElasticOccurrenceService::class)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($occurrences) {
@@ -219,7 +221,7 @@ class KeywordManager extends ObjectManager
                         ARRAY_FILTER_USE_KEY
                     )
                 );
-                $this->container->get('type_elastic_service')->updateMultiple(
+                $this->container->get(ElasticTypeService::class)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($types) {

@@ -13,6 +13,8 @@ use App\Utils\ArrayToJson;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticTypeService;
 use App\Exceptions\DependencyException;
 use App\Model\FuzzyDate;
 use App\Model\Origin;
@@ -991,7 +993,7 @@ class PersonManager extends ObjectEntityManager
                         $esData['subject'] = ArrayToJson::arrayToShortJson($new->subjects);
                     }
                 }
-                $this->container->get('occurrence_elastic_service')->updateMultiple(
+                $this->container->get(ElasticOccurrenceService)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($occurrences) {
@@ -1000,7 +1002,7 @@ class PersonManager extends ObjectEntityManager
                         ARRAY_FILTER_USE_KEY
                     )
                 );
-                $this->container->get('type_elastic_service')->updateMultiple(
+                $this->container->get(ElasticTypeService)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($types) {

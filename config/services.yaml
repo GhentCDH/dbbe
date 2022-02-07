@@ -265,31 +265,37 @@ services:
             $databaseService: '@App\DatabaseService\TypeRelationTypeService'
 
     App\ElasticSearchService\ElasticBibliographyService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
 
     App\ElasticSearchService\ElasticManuscriptService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
 
     App\ElasticSearchService\ElasticOccurrenceService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
 
     App\ElasticSearchService\ElasticPersonService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
 
     App\ElasticSearchService\ElasticTypeService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
 
     App\ElasticSearchService\ElasticVerseService:
+        public: true
         arguments:
             $config: '%env(json:ELASTIC_HOSTS)%'
             $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
