@@ -97,7 +97,7 @@ class ElasticVerseService extends ElasticBaseService
             ->setSize(0)
             ->addAggregation($aggregation);
 
-        $groupResults = $this->type->search($query)->getAggregation('verses_grouped')['buckets'];
+        $groupResults = $this->index->search($query)->getAggregation('verses_grouped')['buckets'];
         foreach ($groupResults as $result) {
             $cleanResult = [
                 '_score' => $result['top_score']['value'],
@@ -134,7 +134,7 @@ class ElasticVerseService extends ElasticBaseService
             $query->setSize(10);
         }
 
-        $noGroupResults = $this->type->search($query)->getResponse()->getData()['hits']['hits'];
+        $noGroupResults = $this->index->search($query)->getResponse()->getData()['hits']['hits'];
 
         foreach ($noGroupResults as $result) {
             $result['_source']['_score'] = $result['_score'];
