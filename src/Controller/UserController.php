@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use DateTime;
 
-use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Uuid;
 use Unirest\Request as RestRequest;
 
 use App\Entity\User;
@@ -236,7 +236,7 @@ class UserController extends AbstractController
                 'body' => json_encode(
                     [
                         'genUid' => $username,
-                        'accountUUID' => Uuid::uuid4()->toString(),
+                        'accountUUID' => Uuid::v4()->toRfc4122(),
                         'userClass' => 'dbbe',
                     ]
                 ),
@@ -262,7 +262,7 @@ class UserController extends AbstractController
         //             'body' => json_encode(
         //                 [
         //                     'genUid' => $username,
-        //                     'accountUUID' => Uuid::uuid4()->toString(),
+        //                     'accountUUID' => Uuid::v4()->toRfc4122(),
         //                     'userClass' => 'dbbe',
         //                 ]
         //             ),
