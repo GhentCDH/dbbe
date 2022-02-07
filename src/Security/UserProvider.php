@@ -23,15 +23,22 @@ class UserProvider implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        $user = $this->userRepository->loadUserByUsername($username);
+        return $this->loadUserByIdentifier($username);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function loadUserByIdentifier($identifier)
+    {
+        $user = $this->userRepository->loadUserByUsername($identifier);
 
         if (!$user) {
-            return (new User())->setUsername(strtolower($username));
+            return (new User())->setUsername(strtolower($identifier));
         }
 
         return $user;
     }
-
     /**
      * {@inheritdoc}
      */
