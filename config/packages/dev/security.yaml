@@ -1,6 +1,7 @@
 # To get started with security, check out the documentation:
 # https://symfony.com/doc/current/security.html
 security:
+    enable_authenticator_manager: true
 
     # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
@@ -14,14 +15,16 @@ security:
             security: false
 
         main:
-            pattern: ^/
-            anonymous: true
+            lazy: true
             provider: user_provider
             guard:
                 authenticators:
                     - App\Security\DevLoginFormAuthenticator
             logout:
                 path: app_logout
+
+    access_control:
+        - { path: ^, roles: PUBLIC_ACCESS }
 
     role_hierarchy:
         ROLE_VIEW_INTERNAL: ROLE_USER
