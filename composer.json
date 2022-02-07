@@ -42,6 +42,9 @@
             "symfony/runtime": true
         },
         "optimize-autoloader": true,
+        "platform": {
+            "php": "7.4.27"
+        },
         "preferred-install": {
             "*": "dist"
         },
