@@ -240,40 +240,6 @@ class UserController extends AbstractController
         if ($response->code !== 200) {
             throw new HttpException('Unexpected response code: ' . $response->code);
         }
-
-        // try {
-        //     $response = $client->request(
-        //         'POST',
-        //         $this->getParameter('app.saml_create'),
-        //         [
-        //             'auth' => [
-        //                 $this->getParameter('saml_username'),
-        //                 $this->getParameter('saml_password'),
-        //             ],
-        //             'body' => json_encode(
-        //                 [
-        //                     'genUid' => $username,
-        //                     'accountUUID' => Uuid::v4()->toRfc4122(),
-        //                     'userClass' => 'dbbe',
-        //                 ]
-        //             ),
-        //         ]
-        //     );
-        // } catch (GuzzleHttp\Exception\ClientException $e) {
-        //     if (json_decode($e->getResponse()->getBody()->getContents(), true)['message'] === 'User already exist') {
-        //         throw new UserAlreadyExistsException('User already exist');
-        //     }
-        //     throw $e;
-        // } catch (GuzzleHttp\Exception\GuzzleException $e) {
-        //     if (json_decode($e->getResponse()->getBody()->getContents(), true)['message'] === 'Unkown exception') {
-        //         throw new UserAlreadyExistsException('Unkown exception');
-        //     }
-        //     throw $e;
-        // }
-
-        // if ($response->getStatusCode() !== 200) {
-        //     throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
-        // }
     }
 
     /**
