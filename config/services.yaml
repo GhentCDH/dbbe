@@ -10,6 +10,8 @@ parameters:
     app.saml_mail: '%env(SAML_MAIL)%'
     app.saml_username: '%env(SAML_USERNAME)%'
     app.saml_password: '%env(SAML_PASSWORD)%'
+    app.page_image_directory: 'page-images'
+    app.image_directory: 'images'
 
 services:
     # default configuration for services in *this* file

@@ -120,7 +120,7 @@ class PageController extends AbstractController
         try {
             return new BinaryFileResponse(
                 $this->getParameter('kernel.project_dir') . '/'
-                . $this->getParameter('page_image_directory') . '/'
+                . $this->getParameter('app.page_image_directory') . '/'
                 . $name
             );
         } catch (FileNotFoundException $e) {
@@ -142,7 +142,7 @@ class PageController extends AbstractController
         $file = $request->files->get('file');
         $filename = $file->getClientOriginalName();
         $imageDirectory = $this->getParameter('kernel.project_dir') . '/'
-            . $this->getParameter('page_image_directory') . '/';
+            . $this->getParameter('app.page_image_directory') . '/';
 
         // Upload file if no file with this name exists
         $fileSystem = new Filesystem();

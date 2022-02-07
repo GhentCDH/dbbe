@@ -58,7 +58,7 @@ class ImageManager extends ObjectManager
     {
         $filename = $file->getClientOriginalName();
         $imageDirectory = $this->container->getParameter('kernel.project_dir') . '/'
-            . $this->container->getParameter('image_directory') . '/';
+            . $this->container->getParameter('app.image_directory') . '/';
 
         // Make sure file exists
         $fileSystem = new Filesystem();
