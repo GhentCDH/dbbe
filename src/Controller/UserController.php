@@ -227,11 +227,11 @@ class UserController extends AbstractController
     private function createWelkomAccount(string $username): void
     {
         $response = RestRequest::post(
-            $this->getParameter('saml_create'),
+            $this->getParameter('app.saml_create'),
             [
                 'auth' => [
-                    $this->getParameter('saml_username'),
-                    $this->getParameter('saml_password'),
+                    $this->getParameter('app.saml_username'),
+                    $this->getParameter('app.saml_password'),
                 ],
                 'body' => json_encode(
                     [
@@ -253,7 +253,7 @@ class UserController extends AbstractController
         // try {
         //     $response = $client->request(
         //         'POST',
-        //         $this->getParameter('saml_create'),
+        //         $this->getParameter('app.saml_create'),
         //         [
         //             'auth' => [
         //                 $this->getParameter('saml_username'),
@@ -292,11 +292,11 @@ class UserController extends AbstractController
     private function sendWelkomMail(string $username): void
     {
         $response = RestRequest::post(
-            $this->getParameter('saml_mail'),
+            $this->getParameter('app.saml_mail'),
             [
                 'auth' => [
-                    $this->getParameter('saml_username'),
-                    $this->getParameter('saml_password'),
+                    $this->getParameter('app.saml_username'),
+                    $this->getParameter('app.saml_password'),
                 ],
                 'body' => json_encode(
                     [
