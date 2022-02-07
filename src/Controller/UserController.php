@@ -232,14 +232,12 @@ class UserController extends AbstractController
                 'auth' => [
                     $this->getParameter('app.saml_username'),
                     $this->getParameter('app.saml_password'),
-                ],
-                'body' => json_encode(
-                    [
-                        'genUid' => $username,
-                        'accountUUID' => Uuid::v4()->toRfc4122(),
-                        'userClass' => 'dbbe',
-                    ]
-                ),
+                ]
+            ],
+            [
+                'genUid' => $username,
+                'accountUUID' => Uuid::v4()->toRfc4122(),
+                'userClass' => 'dbbe',
             ]
         );
 
@@ -298,14 +296,12 @@ class UserController extends AbstractController
                     $this->getParameter('app.saml_username'),
                     $this->getParameter('app.saml_password'),
                 ],
-                'body' => json_encode(
-                    [
-                        'username' => $username,
-                        'language' => 'en',
-                        'personalizedEmailTemplate' => 'dbbe',
-                        'returnUrl' => $this->generateUrl('saml_login', [], UrlGeneratorInterface::ABSOLUTE_URL),
-                    ]
-                ),
+            ],
+            [
+                'username' => $username,
+                'language' => 'en',
+                'personalizedEmailTemplate' => 'dbbe',
+                'returnUrl' => $this->generateUrl('saml_login', [], UrlGeneratorInterface::ABSOLUTE_URL),
             ]
         );
 
