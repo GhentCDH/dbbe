@@ -59,10 +59,7 @@ class FeedbackController extends AbstractController
             ]
         );
 
-        if (!property_exists($response, 'body')
-            || !property_exists($response->body, 'success')
-            || !$response->body->success
-        ) {
+        if ($response->code !== 200) {
             return new JsonResponse(['error' => ['code' => 400, 'message' => 'Invalid captcha']], 400);
         }
 
