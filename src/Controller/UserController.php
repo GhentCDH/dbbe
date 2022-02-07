@@ -230,11 +230,11 @@ class UserController extends AbstractController
         $response = RestRequest::post(
             $this->getParameter('app.saml_create'),
             null,
-            [
+            RestRequest\Body::json([
                 'genUid' => $username,
                 'accountUUID' => Uuid::v4()->toRfc4122(),
                 'userClass' => 'dbbe',
-            ]
+            ])
         );
 
         if (!property_exists($response, 'body')
@@ -290,12 +290,12 @@ class UserController extends AbstractController
         $response = RestRequest::post(
             $this->getParameter('app.saml_mail'),
             null,
-            [
+            RestRequest\Body::json([
                 'username' => $username,
                 'language' => 'en',
                 'personalizedEmailTemplate' => 'dbbe',
                 'returnUrl' => $this->generateUrl('saml_login', [], UrlGeneratorInterface::ABSOLUTE_URL),
-            ]
+            ])
         );
 
         if (!property_exists($response, 'body')
