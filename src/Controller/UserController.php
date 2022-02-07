@@ -241,7 +241,8 @@ class UserController extends AbstractController
             || !property_exists($response->body, 'success')
             || !$response->body->success
         ) {
-            throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
+            var_dump($response);
+            throw new HttpException('Unexpected response code: ' . $response->code);
         }
 
         // try {
@@ -301,7 +302,8 @@ class UserController extends AbstractController
             || !property_exists($response->body, 'success')
             || !$response->body->success
         ) {
-            throw new HttpException('Unexpected response code: ' . $response->getStatusCode());
+            var_dump($response);
+            throw new HttpException('Unexpected response code: ' . $response->code);
         }
     }
 }
