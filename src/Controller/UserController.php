@@ -226,14 +226,10 @@ class UserController extends AbstractController
      */
     private function createWelkomAccount(string $username): void
     {
+        RestRequest::auth($this->getParameter('app.saml_username'), $this->getParameter('app.saml_password'));
         $response = RestRequest::post(
             $this->getParameter('app.saml_create'),
-            [
-                'auth' => [
-                    $this->getParameter('app.saml_username'),
-                    $this->getParameter('app.saml_password'),
-                ]
-            ],
+            null,
             [
                 'genUid' => $username,
                 'accountUUID' => Uuid::v4()->toRfc4122(),
@@ -289,14 +285,10 @@ class UserController extends AbstractController
      */
     private function sendWelkomMail(string $username): void
     {
+        RestRequest::auth($this->getParameter('app.saml_username'), $this->getParameter('app.saml_password'));
         $response = RestRequest::post(
             $this->getParameter('app.saml_mail'),
-            [
-                'auth' => [
-                    $this->getParameter('app.saml_username'),
-                    $this->getParameter('app.saml_password'),
-                ],
-            ],
+            null,
             [
                 'username' => $username,
                 'language' => 'en',
