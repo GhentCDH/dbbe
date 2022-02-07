@@ -1,3 +1,3 @@
 [submodule "assets/websites"]
 	path = assets/websites
-	url = git@github.ugent.be:lw/huisstijl2016.git
+	url = https://github.ugent.be/lw/huisstijl2016.git
