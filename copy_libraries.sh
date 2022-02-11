@@ -1,10 +1,9 @@
 #!/bin/bash
 
-mkdir ./public/build/ckeditor
-mkdir ./public/build/ckeditor/lang
+mkdir -p ./public/build/ckeditor/lang
 cp ./node_modules/ckeditor/lang/en.js ./public/build/ckeditor/lang
 cp -R ./node_modules/ckeditor/plugins ./public/build/ckeditor
-mkdir ./public/build/ckeditor/skins
+mkdir -p ./public/build/ckeditor/skins
 cp -R ./node_modules/ckeditor/skins/moono-lisa ./public/build/ckeditor/skins
 cp ./node_modules/ckeditor/ckeditor.js ./public/build/ckeditor
 cp ./node_modules/ckeditor/config.js ./public/build/ckeditor
