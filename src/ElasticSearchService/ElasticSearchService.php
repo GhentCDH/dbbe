@@ -133,7 +133,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     protected function aggregate(array $fieldTypes, array $filterValues): array
     {
         $query = (new Query())
-            ->setQuery(self::createQuery($filterValues))
+            ->setQuery(self::createQuery($filterValues, TRUE))
             // Only aggregation will be used
             ->setSize(0);
 
@@ -202,6 +202,30 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     //      'actual field name' (e.g. 'person'),
                     //      'dependend field name' (e.g. 'role')
                     //  ]
+                    foreach ($fieldNames as $fieldName) {
+                        foreach ($fieldName[0] as $key) {
+                            $query->addAggregation(
+                                (new Aggregation\Nested($key, $key))
+                                    ->addAggregation(
+                                        (new Aggregation\Terms('id'))
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($key . '.id')
+                                            ->addAggregation(
+                                                (new Aggregation\Terms('name'))
+                                                    ->setField($key . '.name.keyword')
+                                            )
+                                    )
+                            );
+                        }
+                    }
+                    break;
+                case 'multiple_fields_object_array':
+                    // fieldName = [
+                    //     [multiple_names] (e.g., [patron, scribe, related]),
+                    //      'actual field name' (e.g. 'person'),
+                    //      'dependend field name' (e.g. 'role')
+                    //  ]
+                    // TODO: don't aggregate on filter itself
                     foreach ($fieldNames as $fieldName) {
                         foreach ($fieldName[0] as $key) {
                             $query->addAggregation(
@@ -307,7 +331,8 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     if ($result['key'] == $filterValues['multiple_fields_object'][$fieldName[1]][1]) {
                                         $results[$fieldName[2]][] = [
                                             'id' => $key,
-                                            'name' => $this->roles[str_replace('_public', '', $key)]->getName() . ' (' . $result['doc_count'] . ')',
+                                            'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
+                                            'count' => $result['doc_count'],
                                         ];
                                     }
                                 }
@@ -330,13 +355,71 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
+                case 'multiple_fields_object_array':
+                    foreach ($fieldNames as $fieldName) {
+                        // fieldName = [
+                        //     [multiple_names] (e.g., [patron, scribe, related]),
+                        //      'actual field name' (e.g. 'person'),
+                        //      'dependent field name' (e.g. 'role')
+                        //  ]
+
+                        //  a filter is set for the actual field name
+                        if (isset($filterValues['multiple_fields_object_array'][$fieldName[1]])) {
+                            $ids = [];
+                            $depAggs = [];
+                            foreach ($fieldName[0] as $key) {
+                                $aggregation = $searchResult->getAggregation($key);
+                                foreach ($aggregation['id']['buckets'] as $result) {
+                                    if (!in_array($result['key'], $ids)) {
+                                        $ids[] = $result['key'];
+                                        $results[$fieldName[1]][] = [
+                                            'id' => $result['key'],
+                                            'name' => $result['name']['buckets'][0]['key'],
+                                        ];
+                                    }
+
+                                    // check if this result is a result of the actual field filter
+                                    if (in_array($result['key'], $filterValues['multiple_fields_object_array'][$fieldName[1]][1])) {
+                                        if (array_key_exists($key, $depAggs)) {
+                                            $depAggs[$key]['count'] += $result['doc_count'];
+                                        } else {
+                                            $depAggs[$key] = [
+                                                'id' => $key,
+                                                'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
+                                                'count' => $result['doc_count'],
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                            $results[$fieldName[2]] = array_values($depAggs);
+                        } else {
+                            // prevent duplicate entries
+                            $ids = [];
+                            foreach ($fieldName[0] as $key) {
+                                $aggregation = $searchResult->getAggregation($key);
+                                foreach ($aggregation['id']['buckets'] as $result) {
+                                    if (!in_array($result['key'], $ids)) {
+                                        $ids[] = $result['key'];
+                                        $results[$fieldName[1]][] = [
+                                            'id' => $result['key'],
+                                            'name' => $result['name']['buckets'][0]['key'],
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
             }
         }
+
+        var_dump($results['role']);
 
         return $results;
     }
 
-    protected static function createQuery(array $filterTypes): Query\BoolQuery
+    protected static function createQuery(array $filterTypes, bool $aggregate = FALSE): Query\BoolQuery
     {
         $filterQuery = new Query\BoolQuery();
         foreach ($filterTypes as $filterType => $filterValues) {
@@ -577,15 +660,38 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'multiple_fields_object':
                     // options = [[keys], value]
                     foreach ($filterValues as $key => $options) {
+                        [$keys, $value] = $options;
                         $subQuery = new Query\BoolQuery();
-                        foreach ($options[0] as $key) {
+                        foreach ($keys as $key) {
                             $subQuery->addShould(
                                 (new Query\Nested())
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addMust(['match' => [$key . '.id' => $options[1]]])
+                                            ->addMust(['match' => [$key . '.id' => $value]])
                                     )
+                            );
+                        }
+                        $filterQuery->addMust($subQuery);
+                    }
+                    break;
+                case 'multiple_fields_object_array':
+                    if ($aggregate) {
+                        continue;
+                    }
+                    // options = [[keys], values]
+                    foreach ($filterValues as $key => $options) {
+                        [$keys, $value] = $options;
+                        $subQuery = new Query\BoolQuery();
+                        foreach ($keys as $key) {
+                            $subSubQuery = new Query\BoolQuery();
+                            foreach ($value as $val) {
+                                $subSubQuery->addShould(['match' => [$key . '.id' => $val]]);
+                            }
+                            $subQuery->addShould(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery($subSubQuery)
                             );
                         }
                         $filterQuery->addMust($subQuery);

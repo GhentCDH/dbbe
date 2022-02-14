@@ -431,7 +431,14 @@ export default {
                 { value: 'overlap', name: 'overlap with' },
             ],
         };
-        data.schema.fields.person = this.createMultiSelect('Person');
+        data.schema.fields.person = this.createMultiSelect(
+            'Person',
+            {},
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
         data.schema.fields.role = this.createMultiSelect('Role', { dependency: 'person' });
         data.schema.fields.metre = this.createMultiSelect('Metre');
         data.schema.fields.genre = this.createMultiSelect('Genre');

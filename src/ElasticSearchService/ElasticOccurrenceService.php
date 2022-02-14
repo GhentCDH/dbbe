@@ -197,7 +197,7 @@ class ElasticOccurrenceService extends ElasticEntityService
                 $result['numeric'][] = $value;
                 break;
             case 'person':
-                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                $result['multiple_fields_object_array'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'metre':
             case 'subject':
@@ -285,9 +285,9 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_array'][$key] = [[$filters['role']], $value, 'role'];
                 } else {
-                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_array'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }
                 break;
             case 'date':

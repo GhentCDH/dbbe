@@ -126,7 +126,15 @@ export default {
                 for (const fieldName of Object.keys(this.model)) {
                     if (this.schema.fields[fieldName].type === 'multiselectClear') {
                         if (this.model[fieldName] != null) {
-                            result[fieldName] = this.model[fieldName].id;
+                            if (Array.isArray(this.model[fieldName])) {
+                                const ids = [];
+                                for (const value of this.model[fieldName]) {
+                                    ids.push(value.id);
+                                }
+                                result[fieldName] = ids;
+                            } else {
+                                result[fieldName] = this.model[fieldName].id;
+                            }
                         }
                     } else if (fieldName === 'year_from') {
                         if (!('date' in result)) {
@@ -467,9 +475,15 @@ export default {
                             this.schema.fields[key].type === 'multiselectClear'
                             && this.data.aggregation[key] != null
                         ) {
-                            [model[key]] = this.data.aggregation[key].filter(
-                                (v) => String(v.id) === params.filters[key],
-                            );
+                            if (Array.isArray(params.filters[key])) {
+                                model[key] = this.data.aggregation[key].filter(
+                                    (v) => params.filters[key].includes(String(v.id)),
+                                );
+                            } else {
+                                [model[key]] = this.data.aggregation[key].filter(
+                                    (v) => String(v.id) === params.filters[key],
+                                );
+                            }
                         } else {
                             model[key] = params.filters[key];
                         }
