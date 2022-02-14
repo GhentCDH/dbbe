@@ -375,7 +375,6 @@ export default {
             this.onValidated(true)
         },
         onData(data) {
-            console.log('onData')
             this.data = data;
 
             // Check whether column 'title/text' should be displayed
@@ -387,7 +386,6 @@ export default {
                     || item.hasOwnProperty('title_GR')
                     || item.hasOwnProperty('title_LA')
                 ) {
-                    console.log('textsearch')
                     this.textSearch = true;
                     break;
                 }
@@ -505,7 +503,7 @@ export default {
             }
         },
         updateCountRecords() {
-            let table = this.$refs.resultTable;
+            let table = this.$refs.resultTable.$refs.table;
             if (!table.count) {
                 this.countRecords = '';
                 return
@@ -516,7 +514,7 @@ export default {
             let to = table.Page === table.totalPages ? table.count:from + perPage - 1;
 
             let parts = table.opts.texts.count.split('|');
-            let i = Math.min(table.count === 1 ? 2 : table.totalPages === 1 ? 1 : 0, parts.length-1);
+            let i = Math.min(table.count === 1 ? 2 : table.totalPages === 1 ? 1 : 0, parts.length - 1);
 
             this.countRecords = parts[i].replace('{count}', table.count)
                 .replace('{from}', from)
