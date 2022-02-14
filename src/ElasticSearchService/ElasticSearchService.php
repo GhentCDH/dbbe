@@ -43,6 +43,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     {
         // Construct query
         $query = new Query();
+
         // Number of results
         if (isset($params['limit']) && is_numeric($params['limit'])) {
             $query->setSize($params['limit']);
@@ -68,6 +69,9 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
             $query->setSort($sort);
         }
+
+        // Track total number of hits
+        $query->setTrackTotalHits();
 
         // Filtering
         if (isset($params['filters'])) {
