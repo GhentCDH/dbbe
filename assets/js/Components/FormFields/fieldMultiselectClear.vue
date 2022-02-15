@@ -44,6 +44,8 @@
             @close="onClose",
             :option-height="selectOptions.optionHeight",
         )
+            template(slot="option", slot-scope="props") {{ props.option.name }}&nbsp;
+                span.badge.badge-pill.badge-primary {{ props.option.count }}
             template(slot="clear")
                 div.multiselect__clear(
                     v-if="!disabled && (value !== undefined && value !== null)",

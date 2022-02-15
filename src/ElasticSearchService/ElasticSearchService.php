@@ -133,7 +133,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     protected function aggregate(array $fieldTypes, array $filterValues): array
     {
         $query = (new Query())
-            ->setQuery(self::createQuery($filterValues, TRUE))
+            ->setQuery(self::createQuery($filterValues, 'global'))
             // Only aggregation will be used
             ->setSize(0);
 
@@ -147,7 +147,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 ->setField($fieldName)
                         );
                     }
-                    break;
                     break;
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
@@ -229,14 +228,18 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         foreach ($fieldName[0] as $key) {
                             $query->addAggregation(
-                                (new Aggregation\Nested($key, $key))
+                                (new Aggregation\Filter($key))
+                                    ->setFilter(self::createQuery($filterValues, $key))
                                     ->addAggregation(
-                                        (new Aggregation\Terms('id'))
-                                            ->setSize(self::MAX_AGG)
-                                            ->setField($key . '.id')
+                                        (new Aggregation\Nested($key, $key))
                                             ->addAggregation(
-                                                (new Aggregation\Terms('name'))
-                                                    ->setField($key . '.name.keyword')
+                                                (new Aggregation\Terms('id'))
+                                                    ->setSize(self::MAX_AGG)
+                                                    ->setField($key . '.id')
+                                                    ->addAggregation(
+                                                        (new Aggregation\Terms('name'))
+                                                            ->setField($key . '.name.keyword')
+                                                    )
                                             )
                                     )
                             );
@@ -368,13 +371,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             $ids = [];
                             $depAggs = [];
                             foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key);
+                                $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id']['buckets'] as $result) {
                                     if (!in_array($result['key'], $ids)) {
                                         $ids[] = $result['key'];
                                         $results[$fieldName[1]][] = [
                                             'id' => $result['key'],
                                             'name' => $result['name']['buckets'][0]['key'],
+                                            'count' => $result['doc_count'],
                                         ];
                                     }
 
@@ -397,13 +401,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             // prevent duplicate entries
                             $ids = [];
                             foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key);
+                                $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id']['buckets'] as $result) {
                                     if (!in_array($result['key'], $ids)) {
                                         $ids[] = $result['key'];
                                         $results[$fieldName[1]][] = [
                                             'id' => $result['key'],
                                             'name' => $result['name']['buckets'][0]['key'],
+                                            'count' => $result['doc_count'],
                                         ];
                                     }
                                 }
@@ -414,24 +419,30 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             }
         }
 
-        var_dump($results['role']);
-
         return $results;
     }
 
-    protected static function createQuery(array $filterTypes, bool $aggregate = FALSE): Query\BoolQuery
+    protected static function createQuery(array $filterTypes, string $aggregateKey = null): Query\BoolQuery
     {
         $filterQuery = new Query\BoolQuery();
         foreach ($filterTypes as $filterType => $filterValues) {
             switch ($filterType) {
                 case 'numeric':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(
+                        $filterQuery->addFilter(
                             new Query\Match($key, $value)
                         );
                     }
                     break;
                 case 'object':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
                         if ($value == -1) {
@@ -439,24 +450,28 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 new Query\Exists($key)
                             );
                         } else {
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 new Query\Match($key . '.id', $value)
                             );
                         }
                     }
                     break;
                 case 'date_range':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $value) {
                         // If type is not set, us broad match (backward compatibility)
                         // The data interval must exactly match the search interval
                         if (isset($value['type']) && $value['type'] == 'exact') {
                             if (isset($value['startDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['floorField'], $value['startDate'])
                                 );
                             }
                             if (isset($value['endDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['ceilingField'], $value['endDate'])
                                 );
                             }
@@ -466,19 +481,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         // range must be between floor and ceiling
                         if (isset($value['type']) && $value['type'] == 'included') {
                             if (isset($value['startDate']) && !isset($value['endDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['floorField'], $value['startDate'])
                                 );
                             } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['ceilingField'], $value['endDate'])
                                 );
                             } else {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     (new Query\Range())
                                         ->addField($value['floorField'], ['gte' => $value['startDate']])
                                 );
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     (new Query\Range())
                                         ->addField($value['ceilingField'], ['lte' => $value['endDate']])
                                 );
@@ -489,19 +504,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         // range must be between floor and ceiling
                         if (isset($value['type']) && $value['type'] == 'include') {
                             if (isset($value['startDate']) && !isset($value['endDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['floorField'], $value['startDate'])
                                 );
                             } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     new Query\Match($value['ceilingField'], $value['endDate'])
                                 );
                             } else {
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     (new Query\Range())
                                         ->addField($value['floorField'], ['lte' => $value['startDate']])
                                 );
-                                $filterQuery->addMust(
+                                $filterQuery->addFilter(
                                     (new Query\Range())
                                         ->addField($value['ceilingField'], ['gte' => $value['endDate']])
                                 );
@@ -539,23 +554,27 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     // between floor and ceiling
                                     ->addShould(
                                         (new Query\BoolQuery())
-                                            ->addMust(
+                                            ->addFilter(
                                                 (new Query\Range())
                                                     ->addField($value['floorField'], ['lte' => $value['startDate']])
                                             )
-                                            ->addMust(
+                                            ->addFilter(
                                                 (new Query\Range())
                                                     ->addField($value['ceilingField'], ['gte' => $value['endDate']])
                                             )
                                     );
                             }
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 $subQuery
                             );
                         }
                     }
                     break;
                 case 'nested':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
                         if ($value == -1) {
@@ -564,28 +583,32 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addMust(new Query\Exists($key))
+                                            ->addFilter(new Query\Exists($key))
                                     )
                             );
                         } else {
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 (new Query\Nested())
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addMust(['match' => [$key . '.id' => $value]])
+                                            ->addFilter(['match' => [$key . '.id' => $value]])
                                     )
                             );
                         }
                     }
                     break;
                 case 'nested_toggle':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
                         // value = [actual value, include/exclude]
                         if (!$value[1]) {
                             // management collection not present
                             // no management collections present or only other management collections present
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 (new Query\BoolQuery())
                                     ->addShould(
                                         (new Query\BoolQuery())
@@ -594,7 +617,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                                     ->setPath($key)
                                                     ->setQuery(
                                                         (new Query\BoolQuery())
-                                                            ->addMust(new Query\Exists($key))
+                                                            ->addFilter(new Query\Exists($key))
                                                     )
                                             )
                                     )
@@ -605,30 +628,38 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                                     ->setPath($key)
                                                     ->setQuery(
                                                         (new Query\BoolQuery())
-                                                            ->addMust(['match' => [$key . '.id' => $value[0]]])
+                                                            ->addFilter(['match' => [$key . '.id' => $value[0]]])
                                                     )
                                             )
                                     )
                             );
                         } else {
                             // management collection present
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 (new Query\Nested())
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addMust(['match' => [$key . '.id' => $value[0]]])
+                                            ->addFilter(['match' => [$key . '.id' => $value[0]]])
                                     )
                             );
                         }
                     }
                     break;
                 case 'text':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addMust(self::constructTextQuery($key, $value));
                     }
                     break;
                 case 'multiple_text':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $field => $options) {
                         $subQuery = new Query\BoolQuery();
                         foreach ($options as $key => $value) {
@@ -638,6 +669,10 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     }
                     break;
                 case 'exact_text':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
                         if ($value == -1) {
                             $filterQuery->addMustNot(
@@ -651,13 +686,21 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     }
                     break;
                 case 'boolean':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     foreach ($filterValues as $key => $value) {
-                        $filterQuery->addMust(
+                        $filterQuery->addFilter(
                             (new Query\Match($key, $value))
                         );
                     }
                     break;
                 case 'multiple_fields_object':
+                    // Include in global aggregation query and not in field aggregation queries
+                    if ($aggregateKey != null && $aggregateKey != 'global') {
+                        continue;
+                    }
                     // options = [[keys], value]
                     foreach ($filterValues as $key => $options) {
                         [$keys, $value] = $options;
@@ -672,15 +715,20 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     )
                             );
                         }
-                        $filterQuery->addMust($subQuery);
+                        $filterQuery->addFilter($subQuery);
                     }
                     break;
                 case 'multiple_fields_object_array':
-                    if ($aggregate) {
+                    // Don't include in global aggregation query
+                    if ($aggregateKey == 'global') {
                         continue;
                     }
                     // options = [[keys], values]
                     foreach ($filterValues as $key => $options) {
+                        // Don't include in the aggregation query for the field itself
+                        if ($aggregateKey == $filterType . '__' . $key) {
+                            continue;
+                        }
                         [$keys, $value] = $options;
                         $subQuery = new Query\BoolQuery();
                         foreach ($keys as $key) {
@@ -694,7 +742,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setQuery($subSubQuery)
                             );
                         }
-                        $filterQuery->addMust($subQuery);
+                        $filterQuery->addFilter($subQuery);
                     }
                     break;
             }
