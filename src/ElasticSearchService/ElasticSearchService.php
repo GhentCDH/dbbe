@@ -226,10 +226,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     //  ]
                     // TODO: don't aggregate on filter itself
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName[1]);
                         foreach ($fieldName[0] as $key) {
                             $query->addAggregation(
                                 (new Aggregation\Filter($key))
-                                    ->setFilter(self::createQuery($filterValues, $key))
+                                    ->setFilter($filterQuery)
                                     ->addAggregation(
                                         (new Aggregation\Nested($key, $key))
                                             ->addAggregation(
@@ -726,7 +727,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     // options = [[keys], values]
                     foreach ($filterValues as $key => $options) {
                         // Don't include in the aggregation query for the field itself
-                        if ($aggregateKey == $filterType . '__' . $key) {
+                        if ($aggregateKey == $key) {
                             continue;
                         }
                         [$keys, $value] = $options;
