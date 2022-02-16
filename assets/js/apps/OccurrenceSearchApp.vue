@@ -449,8 +449,22 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.metre = this.createMultiSelect('Metre');
-        data.schema.fields.genre = this.createMultiSelect('Genre');
+        data.schema.fields.metre = this.createMultiSelect(
+            'Metre',
+            {},
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
+        data.schema.fields.genre = this.createMultiSelect(
+            'Genre',
+            {},
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
         data.schema.fields.subject = this.createMultiSelect('Subject');
         data.schema.fields.manuscript_content = this.createMultiSelect(
             'Manuscript Content',

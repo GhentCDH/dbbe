@@ -67,7 +67,6 @@ class LocatedAtManager extends ObjectManager
 
     public function updateLocatedAt(int $locatedAtId, stdClass $data): LocatedAt
     {
-        var_dump($data);
         $this->dbs->beginTransaction();
         try {
             $locatedAts = $this->get([$locatedAtId]);

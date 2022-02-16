@@ -274,8 +274,10 @@ class ElasticOccurrenceService extends ElasticEntityService
                 }
                 break;
             case 'metre':
-            case 'subject':
             case 'genre':
+                $result['nested_array'][$key] = $value;
+                break;
+            case 'subject':
             case 'acknowledgement':
                 $result['nested'][$key] = $value;
                 break;
@@ -285,7 +287,7 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object_array'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_array'][$key] = [$filters['role'], $value, 'role'];
                 } else {
                     $result['multiple_fields_object_array'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }

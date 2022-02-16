@@ -598,6 +598,35 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
+                case 'nested_array':
+                    // Don't include in global aggregation query
+                    if ($aggregateKey == 'global') {
+                        continue;
+                    }
+                    foreach ($filterValues as $fieldName => $values) {
+                        // Don't include in the aggregation query for the field itself
+                        if ($aggregateKey == $fieldName) {
+                            continue;
+                        }
+
+                        $subQuery = new Query\BoolQuery();
+                        foreach ($values as $value) {
+                            if ($value == -1) {
+                                $subQuery->addShould(
+                                    (new Query\BoolQuery())
+                                        ->addMustNot(new Query\Exists($fieldName))
+                                );
+                            } else {
+                                $subQuery->addShould(['match' => [$fieldName . '.id' => $value]]);
+                            }
+                        }
+                        $filterQuery->addFilter(
+                            (new Query\Nested())
+                                ->setPath($fieldName)
+                                ->setQuery($subQuery)
+                        );
+                    }
+                    break;
                 case 'nested_toggle':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
@@ -729,20 +758,18 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         if ($aggregateKey == $fieldName) {
                             continue;
                         }
-                        [$keys, $value] = $options;
+                        [$keys, $values] = $options;
                         $subQuery = new Query\BoolQuery();
-                        foreach ($keys as $key_arr) {
-                            foreach ($key_arr as $key) {
-                                $subSubQuery = new Query\BoolQuery();
-                                foreach ($value as $val) {
-                                    $subSubQuery->addShould(['match' => [$key . '.id' => $val]]);
-                                }
-                                $subQuery->addShould(
-                                    (new Query\Nested())
-                                        ->setPath($key)
-                                        ->setQuery($subSubQuery)
-                                );
+                        foreach ($keys as $key) {
+                            $subSubQuery = new Query\BoolQuery();
+                            foreach ($values as $value) {
+                                $subSubQuery->addShould(['match' => [$key . '.id' => $value]]);
                             }
+                            $subQuery->addShould(
+                                (new Query\Nested())
+                                    ->setPath($key)
+                                    ->setQuery($subSubQuery)
+                            );
                         }
                         $filterQuery->addFilter($subQuery);
                     }
