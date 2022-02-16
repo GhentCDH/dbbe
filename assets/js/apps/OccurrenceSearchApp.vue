@@ -439,7 +439,16 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect('Role', { dependency: 'person' });
+        data.schema.fields.role = this.createMultiSelect(
+            'Role',
+            {
+                dependency: 'person',
+            },
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
         data.schema.fields.metre = this.createMultiSelect('Metre');
         data.schema.fields.genre = this.createMultiSelect('Genre');
         data.schema.fields.subject = this.createMultiSelect('Subject');

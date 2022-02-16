@@ -50,7 +50,7 @@
                     v-if="!disabled && (value === undefined || value === null)",
                     @mousedown.prevent.stop="props.toggle()"
                 )
-            template(slot="option", slot-scope="props") {{ props.option.name }}&nbsp;
+            template(slot="option", slot-scope="props") {{ props.option.name }}
                 span.badge {{ props.option.count }}
 </template>
 <script>

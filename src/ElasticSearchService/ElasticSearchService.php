@@ -224,7 +224,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     //      'actual field name' (e.g. 'person'),
                     //      'dependend field name' (e.g. 'role')
                     //  ]
-                    // TODO: don't aggregate on filter itself
                     foreach ($fieldNames as $fieldName) {
                         $filterQuery = self::createQuery($filterValues, $fieldName[1]);
                         foreach ($fieldName[0] as $key) {
@@ -725,23 +724,25 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         continue;
                     }
                     // options = [[keys], values]
-                    foreach ($filterValues as $key => $options) {
+                    foreach ($filterValues as $fieldName => $options) {
                         // Don't include in the aggregation query for the field itself
-                        if ($aggregateKey == $key) {
+                        if ($aggregateKey == $fieldName) {
                             continue;
                         }
                         [$keys, $value] = $options;
                         $subQuery = new Query\BoolQuery();
-                        foreach ($keys as $key) {
-                            $subSubQuery = new Query\BoolQuery();
-                            foreach ($value as $val) {
-                                $subSubQuery->addShould(['match' => [$key . '.id' => $val]]);
+                        foreach ($keys as $key_arr) {
+                            foreach ($key_arr as $key) {
+                                $subSubQuery = new Query\BoolQuery();
+                                foreach ($value as $val) {
+                                    $subSubQuery->addShould(['match' => [$key . '.id' => $val]]);
+                                }
+                                $subQuery->addShould(
+                                    (new Query\Nested())
+                                        ->setPath($key)
+                                        ->setQuery($subSubQuery)
+                                );
                             }
-                            $subQuery->addShould(
-                                (new Query\Nested())
-                                    ->setPath($key)
-                                    ->setQuery($subSubQuery)
-                            );
                         }
                         $filterQuery->addFilter($subQuery);
                     }

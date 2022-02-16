@@ -331,6 +331,10 @@ fieldset {
     right: 0;
     top: 0;
   }
+
+  .badge {
+    margin-left: 5px;
+  }
 }
 
 .multiselect__option--highlight {
@@ -342,6 +346,11 @@ fieldset {
     background: $brand-primary;
     color: $white;
     content: attr(data-select);
+  }
+
+  .badge {
+    background-color: $white;
+    color: $brand-primary;
   }
 }
 
@@ -362,6 +371,10 @@ fieldset {
       color: $white;
       content: attr(data-deselect);
     }
+  }
+
+  .badge {
+    background-color: $brand-primary;
   }
 }
 
