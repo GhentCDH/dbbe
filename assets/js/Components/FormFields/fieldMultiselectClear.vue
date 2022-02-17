@@ -42,16 +42,18 @@
         )
             template(slot="clear")
                 div.multiselect__clear(
-                    v-if="!disabled && (value !== undefined && value !== null)",
+                    v-if="!disabled && value == null",
                     @mousedown.prevent.stop="clearAll()"
                 )
             template(slot="caret", slot-scope="props")
                 div.multiselect__select(
-                    v-if="!disabled && (value === undefined || value === null)",
+                    v-if="!disabled && value == null",
                     @mousedown.prevent.stop="props.toggle()"
                 )
             template(slot="option", slot-scope="props") {{ props.option.name }}
-                span.badge {{ props.option.count }}
+                span.badge(
+                    v-if="props.option.count != null"
+                ) {{ props.option.count }}
 </template>
 <script>
 import { abstractField } from 'vue-form-generator';

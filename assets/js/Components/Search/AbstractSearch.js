@@ -434,6 +434,19 @@ export default {
                         this.enableField(field, null, true);
                     }
                 }
+                if (
+                    field.multiDependency != null
+                ) {
+                    console.log('onloaded');
+                    console.log(JSON.stringify(this.model[field.multiDependency]));
+                    if (this.model[field.multiDependency] == null || this.model[field.multiDependency].length < 2) {
+                        console.log('disabled');
+                        field.disabled = true;
+                    } else {
+                        console.log('enabled');
+                        field.disabled = false;
+                    }
+                }
             }
 
             // Update number of records text
@@ -442,10 +455,47 @@ export default {
             this.openRequests -= 1;
         },
         pushHistory(data) {
+            const filteredData = JSON.parse(JSON.stringify(data));
+            // Remove default values
+            if ('limit' in filteredData && filteredData.limit === 25) {
+                delete filteredData.limit;
+            }
+            if ('page' in filteredData && filteredData.page === 1) {
+                delete filteredData.page;
+            }
+            if (
+                'orderBy' in filteredData
+                && filteredData.orderBy === this.tableOptions.orderBy.column
+                && 'ascending' in filteredData
+                && filteredData.ascending === 1
+            ) {
+                delete filteredData.orderBy;
+                delete filteredData.ascending;
+            }
+            if ('filters' in filteredData) {
+                for (const fieldName of Object.keys(this.schema.fields)) {
+                    if (fieldName in filteredData.filters) {
+                        const field = this.schema.fields[fieldName];
+                        if (fieldName in this.originalModel) {
+                            if (this.model[fieldName] === this.originalModel[fieldName]) {
+                                delete filteredData.filters[fieldName];
+                            }
+                        }
+                        if (field.multiDependency != null) {
+                            if (
+                                this.model[field.multiDependency] == null
+                                || this.model[field.multiDependency].length < 2
+                            ) {
+                                delete filteredData.filters[fieldName];
+                            }
+                        }
+                    }
+                }
+            }
             window.history.pushState(
-                data,
+                filteredData,
                 document.title,
-                `${document.location.href.split('?')[0]}?${qs.stringify(data)}`,
+                `${document.location.href.split('?')[0]}?${qs.stringify(filteredData)}`,
             );
         },
         popHistory() {

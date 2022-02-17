@@ -323,6 +323,7 @@ export default {
                 date_search_type: 'exact',
                 text_fields: 'text',
                 text_combination: 'all',
+                metre_op: 'or',
             },
             schema: {
                 fields: {},
@@ -449,6 +450,16 @@ export default {
                 closeOnSelect: false,
             },
         );
+        data.schema.fields.metre_op = {
+            label: 'Test',
+            type: 'switch',
+            model: 'metre_op',
+            textOn: 'Or',
+            textOff: 'And',
+            valueOn: 'or',
+            valueOff: 'and',
+            multiDependency: 'metre',
+        };
         data.schema.fields.metre = this.createMultiSelect(
             'Metre',
             {},

@@ -186,6 +186,27 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
+                case 'nested_array':
+                    foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
+                        $query->addAggregation(
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Nested($fieldName, $fieldName))
+                                    ->addAggregation(
+                                        (new Aggregation\Terms('id'))
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($fieldName . '.id')
+                                            ->addAggregation(
+                                                (new Aggregation\Terms('name'))
+                                                    ->setField($fieldName . '.name.keyword')
+                                            )
+                                    )
+                            )
+                        );
+                    }
+                    break;
                 case 'boolean':
                     foreach ($fieldNames as $fieldName) {
                         $query->addAggregation(
@@ -293,6 +314,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
                                 'name' => $result['name']['buckets'][0]['key'],
+                                'count' => $result['doc_count'],
+                            ];
+                        }
+                    }
+                    break;
+                case 'nested_array':
+                    foreach ($fieldNames as $fieldName) {
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                        foreach ($aggregation['id']['buckets'] as $result) {
+                            $results[$fieldName][] = [
+                                'id' => $result['key'],
+                                'name' => $result['name']['buckets'][0]['key'],
+                                'count' => $result['doc_count'],
                             ];
                         }
                     }
@@ -317,7 +351,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         //  ]
 
                         //  a filter is set for the actual field name
-                        if (isset($filterValues['multiple_fields_object'][$fieldName[1]])) {
+                        if (isset($filterValues[$fieldType][$fieldName[1]])) {
                             $ids = [];
                             foreach ($fieldName[0] as $key) {
                                 $aggregation = $searchResult->getAggregation($key);
@@ -331,7 +365,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     }
 
                                     // check if this result is a result of the actual field filter
-                                    if ($result['key'] == $filterValues['multiple_fields_object'][$fieldName[1]][1]) {
+                                    if ($result['key'] == $filterValues[$fieldType][$fieldName[1]][1]) {
                                         $results[$fieldName[2]][] = [
                                             'id' => $key,
                                             'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
@@ -367,7 +401,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         //  ]
 
                         //  a filter is set for the actual field name
-                        if (isset($filterValues['multiple_fields_object_array'][$fieldName[1]])) {
+                        if (isset($filterValues[$fieldType][$fieldName[1]])) {
                             $ids = [];
                             $depAggs = [];
                             foreach ($fieldName[0] as $key) {
@@ -383,7 +417,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     }
 
                                     // check if this result is a result of the actual field filter
-                                    if (in_array($result['key'], $filterValues['multiple_fields_object_array'][$fieldName[1]][1])) {
+                                    if (in_array($result['key'], $filterValues[$fieldType][$fieldName[1]][1])) {
                                         if (array_key_exists($key, $depAggs)) {
                                             $depAggs[$key]['count'] += $result['doc_count'];
                                         } else {

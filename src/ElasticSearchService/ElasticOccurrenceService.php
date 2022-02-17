@@ -200,8 +200,10 @@ class ElasticOccurrenceService extends ElasticEntityService
                 $result['multiple_fields_object_array'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'metre':
-            case 'subject':
             case 'genre':
+                $result['nested_array'][] = $value;
+                break;
+            case 'subject':
             case 'acknowledgement':
             case 'management':
                 $result['nested'][] = $value;
