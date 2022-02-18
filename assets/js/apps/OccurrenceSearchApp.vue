@@ -451,7 +451,7 @@ export default {
             },
         );
         data.schema.fields.metre_op = {
-            label: 'Test',
+            disabled: true,
             type: 'switch',
             model: 'metre_op',
             textOn: 'Or',

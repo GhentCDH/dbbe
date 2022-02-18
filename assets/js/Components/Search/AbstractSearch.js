@@ -437,13 +437,9 @@ export default {
                 if (
                     field.multiDependency != null
                 ) {
-                    console.log('onloaded');
-                    console.log(JSON.stringify(this.model[field.multiDependency]));
                     if (this.model[field.multiDependency] == null || this.model[field.multiDependency].length < 2) {
-                        console.log('disabled');
                         field.disabled = true;
                     } else {
-                        console.log('enabled');
                         field.disabled = false;
                     }
                 }
