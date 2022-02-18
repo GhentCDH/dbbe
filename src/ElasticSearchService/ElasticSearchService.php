@@ -645,45 +645,54 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             continue;
                         }
 
-                        $subQuery = new Query\BoolQuery();
-
-                        // and
                         if (
                             array_key_exists('nested_multi_op', $filterTypes)
                             && array_key_exists($fieldName . '_op', $filterTypes['nested_multi_op'])
                             && $filterTypes['nested_multi_op'][$fieldName . '_op'] == 'and'
                         ) {
+                            // and
                             foreach ($values as $value) {
                                 if ($value == -1) {
-                                    $subQuery->addFilter(
+                                    $filterQuery->addFilter(
+                                        (new Query\Nested())
+                                            ->setPath($fieldName)
+                                            ->setQuery(
+                                                (new Query\BoolQuery())
+                                                    ->addMustNot(new Query\Exists($fieldName))
+                                            )
+                                    );
+                                } else {
+                                    $filterQuery->addFilter(
+                                        (new Query\Nested())
+                                            ->setPath($fieldName)
+                                            ->setQuery(
+                                                (new Query\BoolQuery())
+                                                    ->addFilter(
+                                                        new Query\Match($fieldName . '.id', $value)
+                                                    )
+                                            )
+                                    );
+                                }
+                            }
+                        } else {
+                            // or (default)
+                            $subQuery = new Query\BoolQuery();
+                            foreach ($values as $value) {
+                                if ($value == -1) {
+                                    $subQuery->addShould(
                                         (new Query\BoolQuery())
                                             ->addMustNot(new Query\Exists($fieldName))
                                     );
                                 } else {
-                                    $subQuery->addFilter(
-                                        new Query\Match($fieldName . '.id', $value)
-                                    );
+                                    $subQuery->addShould(['match' => [$fieldName . '.id' => $value]]);
                                 }
                             }
+                            $filterQuery->addFilter(
+                                (new Query\Nested())
+                                    ->setPath($fieldName)
+                                    ->setQuery($subQuery)
+                            );
                         }
-
-                        // Default: or
-                        foreach ($values as $value) {
-                            if ($value == -1) {
-                                $subQuery->addShould(
-                                    (new Query\BoolQuery())
-                                        ->addMustNot(new Query\Exists($fieldName))
-                                );
-                            } else {
-                                $subQuery->addShould(['match' => [$fieldName . '.id' => $value]]);
-                            }
-                        }
-
-                        $filterQuery->addFilter(
-                            (new Query\Nested())
-                                ->setPath($fieldName)
-                                ->setQuery($subQuery)
-                        );
                     }
                     break;
                 case 'nested_toggle':
@@ -771,7 +780,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 new Query\Exists($key)
                             );
                         } else {
-                            $filterQuery->addMust(
+                            $filterQuery->addFilter(
                                 (new Query\Match($key . '.keyword', $value))
                             );
                         }
@@ -824,6 +833,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             continue;
                         }
                         [$keys, $values] = $options;
+
                         $subQuery = new Query\BoolQuery();
                         foreach ($keys as $key) {
                             $subSubQuery = new Query\BoolQuery();

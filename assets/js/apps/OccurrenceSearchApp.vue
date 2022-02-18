@@ -324,6 +324,10 @@ export default {
                 text_fields: 'text',
                 text_combination: 'all',
                 metre_op: 'or',
+                genre_op: 'or',
+                subject_op: 'or',
+                manuscript_content_op: 'or',
+                acknowledgement_op: 'or',
             },
             schema: {
                 fields: {},
@@ -450,34 +454,10 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.metre_op = {
-            disabled: true,
-            type: 'switch',
-            model: 'metre_op',
-            textOn: 'Or',
-            textOff: 'And',
-            valueOn: 'or',
-            valueOff: 'and',
-            multiDependency: 'metre',
-        };
-        data.schema.fields.metre = this.createMultiSelect(
-            'Metre',
-            {},
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        data.schema.fields.genre = this.createMultiSelect(
-            'Genre',
-            {},
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        data.schema.fields.subject = this.createMultiSelect('Subject');
-        data.schema.fields.manuscript_content = this.createMultiSelect(
+        [data.schema.fields.metre_op, data.schema.fields.metre] = this.createMultiMultiSelect('Metre');
+        [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
+        [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
+        [data.schema.fields.manuscript_content_op, data.schema.fields.manuscript_content] = this.createMultiMultiSelect(
             'Manuscript Content',
             {
                 model: 'manuscript_content',
@@ -500,7 +480,12 @@ export default {
                 customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
             },
         );
-        data.schema.fields.acknowledgement = this.createMultiSelect('Acknowledgements', { model: 'acknowledgement' });
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+            'Acknowledgements',
+            {
+                model: 'acknowledgement',
+            },
+        );
         data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
         data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
         if (this.isViewInternal) {

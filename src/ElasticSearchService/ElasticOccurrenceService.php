@@ -201,19 +201,18 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'metre':
             case 'genre':
-                $result['nested_multi'][] = $value;
-                break;
             case 'subject':
             case 'acknowledgement':
+                $result['nested_multi'][] = $value;
+                break;
+            case 'manuscript_content':
+                $result['nested_multi'][] = $viewInternal ? $value : $value . '_public';
+                break;
             case 'management':
                 $result['nested'][] = $value;
                 break;
-            case 'manuscript':
             case 'text_status':
                 $result['object'][] = $value;
-                break;
-            case 'manuscript_content':
-                $result['nested'][] = $viewInternal ? $value : $value . '_public';
                 break;
             case 'public':
             case 'dbbe':
@@ -277,17 +276,24 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'metre':
             case 'genre':
+            case 'subject':
+            case 'acknowledgement':
                 $result['nested_multi'][$key] = $value;
+                break;
+            case 'manuscript_content':
+                if ($viewInternal) {
+                    $result['nested_multi'][$key] = $value;
+                } else {
+                    $result['nested_multi'][$key . '_public'] = $value;
+                }
                 break;
             case 'metre_op':
             case 'genre_op':
+            case 'subject_op':
+            case 'acknowledgement_op':
+            case 'manuscript_content_op':
                 $result['nested_multi_op'][$key] = $value;
                 break;
-            case 'subject':
-            case 'acknowledgement':
-                $result['nested'][$key] = $value;
-                break;
-            case 'manuscript':
             case 'text_status':
                 $result['object'][$key] = $value;
                 break;
@@ -311,13 +317,6 @@ class ElasticOccurrenceService extends ElasticEntityService
                     $date_result['endDate'] = $value['to'];
                 }
                 $result['date_range'][] = $date_result;
-                break;
-            case 'manuscript_content':
-                if ($viewInternal) {
-                    $result['nested'][$key] = $value;
-                } else {
-                    $result['nested'][$key . '_public'] = $value;
-                }
                 break;
             case 'management':
                 if (isset($filters['management_inverse']) && $filters['management_inverse']) {
