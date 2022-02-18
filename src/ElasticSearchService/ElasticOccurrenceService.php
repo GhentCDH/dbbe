@@ -197,11 +197,11 @@ class ElasticOccurrenceService extends ElasticEntityService
                 $result['numeric'][] = $value;
                 break;
             case 'person':
-                $result['multiple_fields_object_array'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                $result['multiple_fields_object_multi'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'metre':
             case 'genre':
-                $result['nested_array'][] = $value;
+                $result['nested_multi'][] = $value;
                 break;
             case 'subject':
             case 'acknowledgement':
@@ -277,7 +277,11 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'metre':
             case 'genre':
-                $result['nested_array'][$key] = $value;
+                $result['nested_multi'][$key] = $value;
+                break;
+            case 'metre_op':
+            case 'genre_op':
+                $result['nested_multi_op'][$key] = $value;
                 break;
             case 'subject':
             case 'acknowledgement':
@@ -289,9 +293,9 @@ class ElasticOccurrenceService extends ElasticEntityService
                 break;
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object_array'][$key] = [$filters['role'], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$filters['role'], $value, 'role'];
                 } else {
-                    $result['multiple_fields_object_array'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }
                 break;
             case 'date':

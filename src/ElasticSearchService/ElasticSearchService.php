@@ -186,7 +186,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         );
                     }
                     break;
-                case 'nested_array':
+                case 'nested_multi':
                     foreach ($fieldNames as $fieldName) {
                         $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
@@ -239,7 +239,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
-                case 'multiple_fields_object_array':
+                case 'multiple_fields_object_multi':
                     // fieldName = [
                     //     [multiple_names] (e.g., [patron, scribe, related]),
                     //      'actual field name' (e.g. 'person'),
@@ -319,7 +319,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
-                case 'nested_array':
+                case 'nested_multi':
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['id']['buckets'] as $result) {
@@ -392,7 +392,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
                     }
                     break;
-                case 'multiple_fields_object_array':
+                case 'multiple_fields_object_multi':
                     foreach ($fieldNames as $fieldName) {
                         // fieldName = [
                         //     [multiple_names] (e.g., [patron, scribe, related]),
@@ -626,13 +626,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addFilter(['match' => [$key . '.id' => $value]])
+                                            ->addFilter(
+                                                new Query\Match($key . '.id', $value)
+                                            )
                                     )
                             );
                         }
                     }
                     break;
-                case 'nested_array':
+                case 'nested_multi':
                     // Don't include in global aggregation query
                     if ($aggregateKey == 'global') {
                         continue;
@@ -644,6 +646,28 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         }
 
                         $subQuery = new Query\BoolQuery();
+
+                        // and
+                        if (
+                            array_key_exists('nested_multi_op', $filterTypes)
+                            && array_key_exists($fieldName . '_op', $filterTypes['nested_multi_op'])
+                            && $filterTypes['nested_multi_op'][$fieldName . '_op'] == 'and'
+                        ) {
+                            foreach ($values as $value) {
+                                if ($value == -1) {
+                                    $subQuery->addFilter(
+                                        (new Query\BoolQuery())
+                                            ->addMustNot(new Query\Exists($fieldName))
+                                    );
+                                } else {
+                                    $subQuery->addFilter(
+                                        new Query\Match($fieldName . '.id', $value)
+                                    );
+                                }
+                            }
+                        }
+
+                        // Default: or
                         foreach ($values as $value) {
                             if ($value == -1) {
                                 $subQuery->addShould(
@@ -654,6 +678,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 $subQuery->addShould(['match' => [$fieldName . '.id' => $value]]);
                             }
                         }
+
                         $filterQuery->addFilter(
                             (new Query\Nested())
                                 ->setPath($fieldName)
@@ -691,7 +716,9 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                                     ->setPath($key)
                                                     ->setQuery(
                                                         (new Query\BoolQuery())
-                                                            ->addFilter(['match' => [$key . '.id' => $value[0]]])
+                                                            ->addFilter(
+                                                                new Query\Match($key . '.id', $value[0])
+                                                            )
                                                     )
                                             )
                                     )
@@ -703,7 +730,9 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addFilter(['match' => [$key . '.id' => $value[0]]])
+                                            ->addFilter(
+                                                new Query\Match($key . '.id', $value[0])
+                                            )
                                     )
                             );
                         }
@@ -774,14 +803,16 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setPath($key)
                                     ->setQuery(
                                         (new Query\BoolQuery())
-                                            ->addMust(['match' => [$key . '.id' => $value]])
+                                            ->addFilter(
+                                                new Query\Match($key . '.id', $value)
+                                            )
                                     )
                             );
                         }
                         $filterQuery->addFilter($subQuery);
                     }
                     break;
-                case 'multiple_fields_object_array':
+                case 'multiple_fields_object_multi':
                     // Don't include in global aggregation query
                     if ($aggregateKey == 'global') {
                         continue;
