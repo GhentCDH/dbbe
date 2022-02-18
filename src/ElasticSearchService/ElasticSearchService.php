@@ -464,7 +464,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'numeric':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addFilter(
@@ -475,7 +475,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'object':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
@@ -493,7 +493,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'date_range':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $value) {
                         // If type is not set, us broad match (backward compatibility)
@@ -607,7 +607,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'nested':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         // If value == -1, select all entries without a value for a specific field
@@ -637,12 +637,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'nested_multi':
                     // Don't include in global aggregation query
                     if ($aggregateKey == 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $fieldName => $values) {
                         // Don't include in the aggregation query for the field itself
                         if ($aggregateKey == $fieldName) {
-                            continue;
+                            break;
                         }
 
                         if (
@@ -698,7 +698,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'nested_toggle':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         // value = [actual value, include/exclude]
@@ -750,7 +750,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'text':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addMust(self::constructTextQuery($key, $value));
@@ -759,7 +759,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'multiple_text':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $field => $options) {
                         $subQuery = new Query\BoolQuery();
@@ -772,7 +772,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'exact_text':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         if ($value == -1) {
@@ -789,7 +789,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'boolean':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addFilter(
@@ -800,7 +800,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'multiple_fields_object':
                     // Include in global aggregation query and not in field aggregation queries
                     if ($aggregateKey != null && $aggregateKey != 'global') {
-                        continue;
+                        break;
                     }
                     // options = [[keys], value]
                     foreach ($filterValues as $key => $options) {
@@ -824,13 +824,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 case 'multiple_fields_object_multi':
                     // Don't include in global aggregation query
                     if ($aggregateKey == 'global') {
-                        continue;
+                        break;
                     }
                     // options = [[keys], values]
                     foreach ($filterValues as $fieldName => $options) {
                         // Don't include in the aggregation query for the field itself
                         if ($aggregateKey == $fieldName) {
-                            continue;
+                            break;
                         }
                         [$keys, $values] = $options;
 
