@@ -42,7 +42,7 @@
         )
             template(slot="clear")
                 div.multiselect__clear(
-                    v-if="!disabled && value == null",
+                    v-if="!disabled && value != null",
                     @mousedown.prevent.stop="clearAll()"
                 )
             template(slot="caret", slot-scope="props")
@@ -108,11 +108,7 @@ export default {
             }
         },
         clearAll() {
-            if (this.selectOptions.multiple) {
-                this.value = [];
-            } else {
-                this.value = null;
-            }
+            this.value = null;
         },
     },
 };
