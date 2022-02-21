@@ -202,7 +202,10 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                                 (new Aggregation\Terms('name'))
                                                     ->setField($fieldName . '.name.keyword')
                                             )
+                                    ->addAggregation(
+                                        (new Aggregation\ReverseNested('reverse_nested'))
                                     )
+                                )
                             )
                         );
                     }
@@ -326,7 +329,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
                                 'name' => $result['name']['buckets'][0]['key'],
-                                'count' => $result['doc_count'],
+                                'count' => $result['reverse_nested']['doc_count'],
                             ];
                         }
                     }
