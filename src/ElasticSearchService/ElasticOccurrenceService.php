@@ -291,8 +291,14 @@ class ElasticOccurrenceService extends ElasticEntityService
             case 'genre_op':
             case 'subject_op':
             case 'acknowledgement_op':
-            case 'manuscript_content_op':
                 $result['nested_multi_op'][$key] = $value;
+                break;
+            case 'manuscript_content_op':
+                if ($viewInternal) {
+                    $result['nested_multi_op'][$key] = $value;
+                } else {
+                    $result['nested_multi_op']['manuscript_content_public_op'] = $value;
+                }
                 break;
             case 'text_status':
                 $result['object'][$key] = $value;
