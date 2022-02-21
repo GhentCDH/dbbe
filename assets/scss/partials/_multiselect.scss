@@ -358,6 +358,10 @@ fieldset {
   color: $brand-primary;
   font-weight: bold;
 
+  .badge {
+    background-color: $brand-primary;
+  }
+
   &::after {
     color: $border-color;
     content: attr(data-selected);
@@ -365,16 +369,17 @@ fieldset {
   }
 
   &.multiselect__option--highlight {
-    color: $white;
+    color: $brand-secondary;
 
     &::after {
       color: $white;
       content: attr(data-deselect);
     }
-  }
 
-  .badge {
-    background-color: $brand-primary;
+    .badge {
+      background-color: $brand-secondary;
+      color: $brand-primary;
+    }
   }
 }
 
