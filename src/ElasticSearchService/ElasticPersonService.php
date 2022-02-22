@@ -122,6 +122,8 @@ class ElasticPersonService extends ElasticEntityService
             case 'self_designation':
             case 'office':
             case 'origin':
+                $result['nested_multi'][$key] = $value;
+                break;
             case 'management':
                 $result['nested'][] = $value;
                 break;
@@ -174,7 +176,13 @@ class ElasticPersonService extends ElasticEntityService
             case 'self_designation':
             case 'office':
             case 'origin':
-                $result['nested'][$key] = $value;
+                $result['nested_multi'][$key] = $value;
+                break;
+            case 'role_op':
+            case 'self_designation_op':
+            case 'office_op':
+            case 'origin_op':
+                $result['nested_multi_op'][$key] = $value;
                 break;
             case 'management':
                 if (isset($filters['management_inverse']) && $filters['management_inverse']) {

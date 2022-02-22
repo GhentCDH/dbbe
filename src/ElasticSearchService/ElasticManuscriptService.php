@@ -167,7 +167,7 @@ class ElasticManuscriptService extends ElasticEntityService
 
             switch ($value) {
             case 'person':
-                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                $result['multiple_fields_object_multi'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'city':
             case 'library':
@@ -180,6 +180,8 @@ class ElasticManuscriptService extends ElasticEntityService
             case 'content':
             case 'origin':
             case 'acknowledgement':
+                $result['nested_multi'][$key] = $value;
+                break;
             case 'management':
                 $result['nested'][] = $value;
                 break;
@@ -214,9 +216,9 @@ class ElasticManuscriptService extends ElasticEntityService
             switch ($key) {
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [[$filters['role']], $value, 'role'];
                 } else {
-                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }
                 break;
             case 'management':
@@ -251,7 +253,12 @@ class ElasticManuscriptService extends ElasticEntityService
             case 'content':
             case 'origin':
             case 'acknowledgement':
-                $result['nested'][$key] = $value;
+                $result['nested_multi'][$key] = $value;
+                break;
+            case 'content_op':
+            case 'origin_op':
+            case 'acknowledgement_op':
+                $result['nested_multi_op'][$key] = $value;
                 break;
             case 'public_comment':
                 $result['text'][$key] = [

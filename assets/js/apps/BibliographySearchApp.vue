@@ -3,16 +3,19 @@
         <div class="col-xs-12">
             <alerts
                 :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
+                @dismiss="alerts.splice($event, 1)"
+            />
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
-                    class="form-group">
+                    class="form-group"
+                >
                     <button
                         class="btn btn-block"
-                        @click="resetAllFilters">
+                        @click="resetAllFilters"
+                    >
                         Reset all filters
                     </button>
                 </div>
@@ -22,13 +25,15 @@
                     :model="model"
                     :options="formOptions"
                     @model-updated="modelUpdated"
-                    @validated="onValidated" />
+                    @validated="onValidated"
+                />
             </div>
         </aside>
         <article class="col-sm-9 search-page">
             <div
                 v-if="countRecords"
-                class="count-records">
+                class="count-records"
+            >
                 <h6>{{ countRecords }}</h6>
             </div>
             <div
@@ -55,10 +60,12 @@
                 :columns="tableColumns"
                 :options="tableOptions"
                 @data="onData"
-                @loaded="onLoaded">
+                @loaded="onLoaded"
+            >
                 <template
                     slot="comment"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     <template v-if="props.row.public_comment">
                         <em v-if="isEditor">Public</em>
                         <ol>
@@ -66,7 +73,8 @@
                                 v-for="(item, index) in props.row.public_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="greekFont(item)" />
+                                v-html="greekFont(item)"
+                            />
                         </ol>
                     </template>
                     <template v-if="props.row.private_comment">
@@ -76,13 +84,15 @@
                                 v-for="(item, index) in props.row.private_comment"
                                 :key="index"
                                 :value="Number(index) + 1"
-                                v-html="greekFont(item)" />
+                                v-html="greekFont(item)"
+                            />
                         </ol>
                     </template>
                 </template>
                 <template
                     slot="type"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
                     {{ props.row.type.name }}
                 </template>
                 <template
@@ -100,19 +110,23 @@
                                 v-for="(author, index) in props.row.author"
                                 :key="index"
                             >
+                                <!-- eslint-disable max-len -->
                                 <a
                                     :href="urls['person_get'].replace('person_id', author.id)"
                                     :class="{'bg-warning': !props.row.author_public || props.row.author_public.filter(auth => auth.id === author.id).length === 0}"
                                 >
+                                    <!-- eslint-enable max-len -->
                                     {{ author.name }}
                                 </a>
                             </li>
                         </ul>
                         <template v-else>
+                            <!-- eslint-disable max-len -->
                             <a
                                 :href="urls['person_get'].replace('person_id', props.row.author[0].id)"
                                 :class="{'bg-warning': !props.row.author_public || props.row.author_public.length === 0}"
                             >
+                                <!-- eslint-enable max-len -->
                                 {{ props.row.author[0].name }}
                             </a>
                         </template>
@@ -140,27 +154,36 @@
                         </template>
                     </template>
                 </template>
+                <!-- eslint-disable max-len -->
                 <a
                     slot="title"
                     slot-scope="props"
                     :href="urls[types[props.row.type.id] + '_get'].replace(types[props.row.type.id] + '_id', props.row.id)"
-                    v-html="greekFont(formatTitle(props.row.title))" />
+                    v-html="greekFont(formatTitle(props.row.title))"
+                />
+                <!-- eslint-enable max-len -->
                 <template
                     slot="actions"
-                    slot-scope="props">
+                    slot-scope="props"
+                >
+                    <!-- eslint-disable max-len -->
                     <a
                         v-if="urls[types[props.row.type.id] + '_edit']"
                         :href="urls[types[props.row.type.id] + '_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
                         class="action"
-                        title="Edit">
+                        title="Edit"
+                    >
+                        <!-- eslint-enable max-len -->
                         <i class="fa fa-pencil-square-o" />
                     </a>
+                    <!-- eslint-disable max-len -->
                     <a
                         v-else-if="urls[types[props.row.type.id] + 's_edit']"
                         :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
                         class="action"
                         title="Edit"
                     >
+                        <!-- eslint-enable max-len -->
                         <i class="fa fa-pencil-square-o" />
                     </a>
                     <a
@@ -177,15 +200,18 @@
                         href="#"
                         class="action"
                         title="Delete"
-                        @click.prevent="del(props.row)">
+                        @click.prevent="del(props.row)"
+                    >
                         <i class="fa fa-trash-o" />
                     </a>
+                    <!-- eslint-disable max-len -->
                     <a
                         v-else-if="urls[types[props.row.type.id] + 's_edit']"
                         :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
                         class="action"
                         title="Delete"
                     >
+                        <!-- eslint-enable max-len -->
                         <i class="fa fa-trash-o" />
                     </a>
                 </template>
@@ -264,6 +290,7 @@
                 <tbody v-if="mergeModel.submitType === 'book'">
                     <tr>
                         <td>Book cluster</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ (mergeModel.primaryFull.bookCluster != null ? mergeModel.primaryFull.bookCluster.title : null) || (mergeModel.secondaryFull.bookCluster != null ? mergeModel.secondaryFull.bookCluster.title : null) }}</td>
                     </tr>
                     <tr>
@@ -288,6 +315,7 @@
                     </tr>
                     <tr>
                         <td>Person roles</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ formatPersonRoles(mergeModel.primaryFull.personRoles || mergeModel.secondaryFull.personRoles) }}</td>
                     </tr>
                     <tr>
@@ -296,6 +324,7 @@
                     </tr>
                     <tr>
                         <td>Book series</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ (mergeModel.primaryFull.bookSeries != null ? mergeModel.primaryFull.bookSeries.title : null) || (mergeModel.secondaryFull.bookSeries != null ? mergeModel.secondaryFull.bookSeries.title : null) }}</td>
                     </tr>
                     <tr>
@@ -309,13 +338,16 @@
                         <td>{{ identifier.name }}</td>
                         <td>
                             {{
+                                // eslint-disable-next-line max-len
                                 (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
+                                    // eslint-disable-next-line max-len
                                     || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
                             }}
                         </td>
                     </tr>
                     <tr>
                         <td>Acknowledgements</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ mergeModel.primaryFull.acknowledgements || mergeModel.secondaryFull.acknowledgements }}</td>
                     </tr>
                     <tr>
@@ -340,27 +372,29 @@
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
             @cancel="deleteModal=false"
-            @confirm="submitDelete()" />
+            @confirm="submitDelete()"
+        />
         <div
             v-if="openRequests"
-            class="loading-overlay">
+            class="loading-overlay"
+        >
             <div class="spinner" />
         </div>
     </div>
 </template>
 <script>
-import Vue from 'vue'
-import VueFormGenerator from 'vue-form-generator'
+import Vue from 'vue';
+import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractSearch from '../Components/Search/AbstractSearch'
+import AbstractField from '../Components/FormFields/AbstractField';
+import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
-import fieldRadio from '../Components/FormFields/fieldRadio'
+import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 
-Vue.component('fieldRadio', fieldRadio)
+Vue.component('FieldRadio', fieldRadio);
 
 export default {
     mixins: [
@@ -369,41 +403,14 @@ export default {
         AbstractListEdit, // merge functionality
     ],
     data() {
-        let data = {
+        const data = {
             model: {
                 title_type: 'any',
             },
             books: null,
             journals: null,
             schema: {
-                fields: {
-                    type: this.createMultiSelect('Type'),
-                    title: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Title',
-                        model: 'title',
-                    },
-                    title_type: {
-                        type: 'radio',
-                        label: 'Title search options:',
-                        model: 'title_type',
-                        values: [
-                            { value: 'any', name: 'Match any words' },
-                            { value: 'all', name: 'Match all words' },
-                            { value: 'phrase', name: 'Match all words in correct order' },
-                        ],
-                    },
-                    person: this.createMultiSelect('Person'),
-                    role: this.createMultiSelect('Role', {dependency: 'person'}),
-                    comment: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Comment',
-                        model: 'comment',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                }
+                fields: {},
             },
             tableOptions: {
                 headings: {
@@ -413,17 +420,17 @@ export default {
                 columnsClasses: {
                     author: 'no-wrap',
                 },
-                'filterable': false,
-                'orderBy': {
-                    'column': 'title'
+                filterable: false,
+                orderBy: {
+                    column: 'title',
                 },
-                'perPage': 25,
-                'perPageValues': [25, 50, 100],
-                'sortable': ['type', 'author', 'title'],
+                perPage: 25,
+                perPageValues: [25, 50, 100],
+                sortable: ['type', 'author', 'title'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
-                rowClassCallback: function(row) {
-                    return (row.public == null || row.public) ? '' : 'warning'
+                rowClassCallback(row) {
+                    return (row.public == null || row.public) ? '' : 'warning';
                 },
             },
             mergeSchema: {
@@ -432,25 +439,21 @@ export default {
                         'Primary',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: VueFormGenerator.validators.required,
                         },
                         {
-                            customLabel: ({id, name}) => {
-                                return '[' + id + '] ' + name
-                            },
-                        }
+                            customLabel: ({ id, name }) => `[${id}] ${name}`,
+                        },
                     ),
                     secondary: this.createMultiSelect(
                         'Secondary',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: VueFormGenerator.validators.required,
                         },
                         {
-                            customLabel: ({id, name}) => {
-                                return '[' + id + '] ' + name
-                            },
-                        }
+                            customLabel: ({ id, name }) => `[${id}] ${name}`,
+                        },
                     ),
                 },
             },
@@ -484,164 +487,226 @@ export default {
                 8: 'blog_post',
                 9: 'phd',
                 10: 'bib_varia',
-            }
-        }
+            },
+        };
+
+        // Add fields
+        data.schema.fields.type = this.createMultiSelect('Type');
+        data.schema.fields.title = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Title',
+            model: 'title',
+        };
+        data.schema.fields.title_type = {
+            type: 'radio',
+            label: 'Title search options:',
+            model: 'title_type',
+            values: [
+                { value: 'any', name: 'Match any words' },
+                { value: 'all', name: 'Match all words' },
+                { value: 'phrase', name: 'Match all words in correct order' },
+            ],
+        };
+        data.schema.fields.person = this.createMultiSelect(
+            'Person',
+            {},
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
+        data.schema.fields.role = this.createMultiSelect(
+            'Role',
+            {
+                dependency: 'person',
+            },
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
+        data.schema.fields.comment = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Comment',
+            model: 'comment',
+            validator: VueFormGenerator.validators.string,
+        };
 
         // Add identifier fields
-        for (let identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
+        for (const identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+                identifier.name,
+                {
+                    model: identifier.systemName,
+                },
+            );
         }
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields['management'] = this.createMultiSelect(
+            data.schema.fields.management = this.createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
                     styleClasses: 'has-warning',
-                }
-            )
-            data.schema.fields['management_inverse'] = {
+                },
+            );
+            data.schema.fields.management_inverse = {
                 type: 'checkbox',
                 styleClasses: 'has-warning',
                 label: 'Inverse management collection selection',
                 labelClasses: 'control-label',
                 model: 'management_inverse',
-            }
+            };
         }
 
-        return data
+        return data;
     },
     computed: {
-        depUrls: function () {
-            if (['article', 'book', 'book_chapter', 'online_source', 'blog_post', 'phd', 'bib_varia'].includes(this.submitModel.submitType)) {
-                const depUrls = {
-                    'Manuscripts': {
-                        depUrl: this.urls['manuscript_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                        url: this.urls['manuscript_get'],
-                        urlIdentifier: 'manuscript_id',
-                    },
-                    'Occurrences': {
-                        depUrl: this.urls['occurrence_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                        url: this.urls['occurrence_get'],
-                        urlIdentifier: 'occurrence_id',
-                    },
-                    'Types': {
-                        depUrl: this.urls['type_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                        url: this.urls['type_get'],
-                        urlIdentifier: 'type_id',
-                    },
-                    'Persons': {
-                        depUrl: this.urls['person_deps_by_' + this.submitModel.submitType].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id),
-                        url: this.urls['person_get'],
-                        urlIdentifier: 'person_id',
-                    },
-                }
-
+        depUrls() {
+            const depUrls = {};
+            switch (this.submitModel.submitType) {
+            case 'article':
+            case 'book':
+            case 'book_chapter':
+            case 'online_source':
+            case 'blog_post':
+            case 'phd':
+            case 'bib_varia':
+                depUrls.Manuscripts = {
+                    depUrl: this.urls[`manuscript_deps_by_${this.submitModel.submitType}`]
+                        .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls.manuscript_get,
+                    urlIdentifier: 'manuscript_id',
+                };
+                depUrls.Occurrences = {
+                    depUrl: this.urls[`occurrence_deps_by_${this.submitModel.submitType}`]
+                        .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls.occurrence_get,
+                    urlIdentifier: 'occurrence_id',
+                };
+                depUrls.Types = {
+                    depUrl: this.urls[`type_deps_by_${this.submitModel.submitType}`]
+                        .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls.type_get,
+                    urlIdentifier: 'type_id',
+                };
+                depUrls.Persons = {
+                    depUrl: this.urls[`person_deps_by_${this.submitModel.submitType}`]
+                        .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
+                    url: this.urls.person_get,
+                    urlIdentifier: 'person_id',
+                };
                 if (this.submitModel.submitType === 'book') {
-                    return {
-                        'Book chapters': {
-                            depUrl: this.urls['book_chapter_deps_by_book'].replace('book_id', this.submitModel.book.id),
-                            url: this.urls['book_chapter_get'],
-                            urlIdentifier: 'book_chapter_id',
-                        },
-                    }
+                    depUrls['Book chapters'] = {
+                        depUrl: this.urls.book_chapter_deps_by_book.replace('book_id', this.submitModel.book.id),
+                        url: this.urls.book_chapter_get,
+                        urlIdentifier: 'book_chapter_id',
+                    };
                 }
-
-                return depUrls
+                break;
+            case 'blog':
+                depUrls['Blog posts'] = {
+                    depUrl: this.urls.blog_post_deps_by_blog.replace('blog_id', this.submitModel.blog.id),
+                    url: this.urls.blog_post_get,
+                    urlIdentifier: 'blog_post_id',
+                };
+                break;
+            default:
+                throw new Error('Unknown submit type');
             }
-            if (this.submitModel.submitType === 'blog') {
-                return {
-                    'Blog posts': {
-                        depUrl: this.urls['blog_post_deps_by_blog'].replace('blog_id', this.submitModel.blog.id),
-                        url: this.urls['blog_post_get'],
-                        urlIdentifier: 'blog_post_id',
-                    },
-                }
-            }
+            return depUrls;
         },
         tableColumns() {
-            let columns = ['type', 'author', 'title']
+            const columns = ['type', 'author', 'title'];
             if (this.commentSearch) {
-                columns.unshift('comment')
+                columns.unshift('comment');
             }
             if (this.isViewInternal) {
-                columns.push('actions')
-                columns.push('c')
+                columns.push('actions');
+                columns.push('c');
             }
-            return columns
+            return columns;
         },
     },
     watch: {
-        'mergeModel.primary'() {
+        'mergeModel.primary': function () {
             if (this.mergeModel.primary == null) {
                 this.mergeModel.primaryFull = null;
-            }
-            else {
+            } else {
                 this.mergeModal = false;
-                this.openRequests++;
+                this.openRequests += 1;
                 let url = '';
                 if (this.mergeModel.submitType === 'book') {
-                    url = this.urls['book_get'].replace('book_id', this.mergeModel.primary.id);
+                    url = this.urls.book_get.replace('book_id', this.mergeModel.primary.id);
                 } else if (this.mergeModel.submitType === 'journal') {
-                    url = this.urls['journal_get'].replace('journal_id', this.mergeModel.primary.id);
+                    url = this.urls.journal_get.replace('journal_id', this.mergeModel.primary.id);
                 }
-                axios.get(url)
+                window.axios.get(url)
                     .then((response) => {
                         this.mergeModel.primaryFull = response.data;
                         this.mergeModal = true;
-                        this.openRequests--;
+                        this.openRequests -= 1;
                     })
                     .catch((error) => {
                         this.mergeModal = true;
-                        this.openRequests--;
+                        this.openRequests -= 1;
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error)
+                            login: this.isLoginError(error),
                         });
-                        console.log(error);
-                    })
+                        console.error(error);
+                    });
             }
         },
-        'mergeModel.secondary'() {
+        'mergeModel.secondary': function () {
             if (this.mergeModel.secondary == null) {
                 this.mergeModel.secondaryFull = null;
-            }
-            else {
+            } else {
                 this.mergeModal = false;
-                this.openRequests++;
+                this.openRequests += 1;
                 let url = '';
                 if (this.mergeModel.submitType === 'book') {
-                    url = this.urls['book_get'].replace('book_id', this.mergeModel.secondary.id);
+                    url = this.urls.book_get.replace('book_id', this.mergeModel.secondary.id);
                 } else if (this.mergeModel.submitType === 'journal') {
-                    url = this.urls['journal_get'].replace('journal_id', this.mergeModel.secondary.id);
+                    url = this.urls.journal_get.replace('journal_id', this.mergeModel.secondary.id);
                 }
-                axios.get(url)
-                    .then( (response) => {
+                window.axios.get(url)
+                    .then((response) => {
                         this.mergeModel.secondaryFull = response.data;
                         this.mergeModal = true;
-                        this.openRequests--;
+                        this.openRequests -= 1;
                     })
-                    .catch( (error) => {
+                    .catch((error) => {
                         this.mergeModal = true;
-                        this.openRequests--;
-                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)});
-                        console.log(error);
-                    })
+                        this.openRequests -= 1;
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the person data.',
+                            login: this.isLoginError(error),
+                        });
+                        console.error(error);
+                    });
             }
         },
     },
     methods: {
         merge(row) {
             this.mergeModel.submitType = this.types[row.type.id];
-            this.openRequests++;
+            this.openRequests += 1;
             if (this.types[row.type.id] === 'book') {
-                axios.get(this.urls['books_get'])
+                window.axios.get(this.urls.books_get)
                     .then((response) => {
                         this.books = response.data;
-                        this.openRequests--;
-                        this.mergeModel.primary = JSON.parse(JSON.stringify(this.books.filter(book => book.id === row.id)[0]));
+                        this.openRequests -= 1;
+                        this.mergeModel.primary = JSON.parse(
+                            JSON.stringify(
+                                this.books.filter((book) => book.id === row.id)[0],
+                            ),
+                        );
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.books;
                         this.mergeSchema.fields.secondary.values = this.books;
@@ -651,20 +716,24 @@ export default {
                         this.mergeModal = true;
                     })
                     .catch((error) => {
-                        this.openRequests--
+                        this.openRequests -= 1;
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the book data.',
-                            login: this.isLoginError(error)
-                        })
-                        console.log(error)
+                            login: this.isLoginError(error),
+                        });
+                        console.error(error);
                     });
             } else if (this.types[row.type.id] === 'journal') {
-                axios.get(this.urls['journals_get'])
+                window.axios.get(this.urls.journals_get)
                     .then((response) => {
                         this.journals = response.data;
-                        this.openRequests--;
-                        this.mergeModel.primary = JSON.parse(JSON.stringify(this.journals.filter(journal => journal.id === row.id)[0]));
+                        this.openRequests -= 1;
+                        this.mergeModel.primary = JSON.parse(
+                            JSON.stringify(
+                                this.journals.filter((journal) => journal.id === row.id)[0],
+                            ),
+                        );
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.journals;
                         this.mergeSchema.fields.secondary.values = this.journals;
@@ -674,66 +743,87 @@ export default {
                         this.mergeModal = true;
                     })
                     .catch((error) => {
-                        this.openRequests--
+                        this.openRequests -= 1;
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the journal data.',
-                            login: this.isLoginError(error)
-                        })
-                        console.log(error)
+                            login: this.isLoginError(error),
+                        });
+                        console.error(error);
                     });
             }
         },
         del(row) {
-            this.submitModel.submitType = this.types[row.type.id]
-            this.submitModel[this.types[row.type.id]] = row
+            this.submitModel.submitType = this.types[row.type.id];
+            this.submitModel[this.types[row.type.id]] = row;
             if (Array.isArray(this.submitModel[this.types[row.type.id]].title)) {
-                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].original_title
+                // eslint-disable-next-line max-len
+                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].original_title;
+            } else {
+                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].title;
             }
-            else {
-                this.submitModel[this.types[row.type.id]].name = this.submitModel[this.types[row.type.id]].title
-            }
-            AbstractListEdit.methods.deleteDependencies.call(this)
+            AbstractListEdit.methods.deleteDependencies.call(this);
         },
         submitMerge() {
             this.mergeModal = false;
-            this.openRequests++;
+            this.openRequests += 1;
             let url = '';
             if (this.mergeModel.submitType === 'book') {
-                url = this.urls['book_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id);
+                url = this.urls.book_merge
+                    .replace('primary_id', this.mergeModel.primary.id)
+                    .replace('secondary_id', this.mergeModel.secondary.id);
             } else if (this.mergeModel.submitType === 'journal') {
-                url = this.urls['journal_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id);
+                url = this.urls.journal_merge
+                    .replace('primary_id', this.mergeModel.primary.id)
+                    .replace('secondary_id', this.mergeModel.secondary.id);
             }
-            axios.put(url)
-                .then( (response) => {
+            window.axios.put(url)
+                .then((_response) => {
                     this.update();
                     this.mergeAlerts = [];
-                    this.alerts.push({type: 'success', message: 'Merge successful.'});
-                    this.openRequests--;
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.mergeModal = true;
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the ' + this.mergeModel.submitType + 's.', login: this.isLoginError(error)});
-                    console.log(error);
-                })
-        },
-        submitDelete() {
-            this.openRequests++
-            this.deleteModal = false
-            axios.delete(this.urls[this.submitModel.submitType + '_delete'].replace(this.submitModel.submitType + '_id', this.submitModel[this.submitModel.submitType].id))
-                .then((response) => {
-                    // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
-                    this.alerts.push({type: 'success', message: this.submitModel.submitType.replace(/^\w/, c => c.toUpperCase()) + ' deleted successfully.'})
+                    this.alerts.push({
+                        type: 'success',
+                        message: 'Merge successful.',
+                    });
+                    this.openRequests -= 1;
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.submitModel.submitType + '.'})
-                    console.log(error)
+                    this.openRequests -= 1;
+                    this.mergeModal = true;
+                    this.mergeAlerts.push({
+                        type: 'error',
+                        message: `Something went wrong while merging the ${this.mergeModel.submitType}s.`,
+                        login: this.isLoginError(error),
+                    });
+                    console.error(error);
+                });
+        },
+        submitDelete() {
+            this.openRequests += 1;
+            this.deleteModal = false;
+            window.axios.delete(
+                this.urls[`${this.submitModel.submitType}_delete`]
+                    .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
+            )
+                .then((_response) => {
+                    // Don't create a new history item
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests -= 1;
+                    this.alerts.push({
+                        type: 'success',
+                        // eslint-disable-next-line max-len
+                        message: `${this.submitModel.submitType.replace(/^\w/, (c) => c.toUpperCase())} deleted successfully.`,
+                    });
                 })
+                .catch((error) => {
+                    this.openRequests -= 1;
+                    this.alerts.push({
+                        type: 'error',
+                        message: `Something went wrong while deleting the ${this.submitModel.submitType}.`,
+                    });
+                    console.error(error);
+                });
         },
         update() {
             // Don't create a new history item
@@ -742,26 +832,25 @@ export default {
         },
         formatTitle(title) {
             if (Array.isArray(title)) {
-                return title[0]
+                return title[0];
             }
-            else {
-                return title
-            }
+
+            return title;
         },
         formatPersonRoles(personRoles) {
             if (personRoles == null) {
                 return null;
             }
-            let result = [];
-            for (let key of Object.keys(personRoles)) {
-                let rolePersons = [];
-                for (let person of personRoles[key]) {
+            const result = [];
+            for (const key of Object.keys(personRoles)) {
+                const rolePersons = [];
+                for (const person of personRoles[key]) {
                     rolePersons.push(person.name);
                 }
-                result.push(key.charAt(0).toUpperCase() + key.substr(1) + '(s): ' + rolePersons.join(', '));
+                result.push(`${key.charAt(0).toUpperCase() + key.substr(1)}(s): ${rolePersons.join(', ')}`);
             }
             return result.join('<br />');
         },
-    }
-}
+    },
+};
 </script>

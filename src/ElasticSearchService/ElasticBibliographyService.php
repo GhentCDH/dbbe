@@ -129,7 +129,7 @@ class ElasticBibliographyService extends ElasticEntityService
 
             switch ($value) {
             case 'person':
-                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                $result['multiple_fields_object_multi'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'management':
                 $result['nested'][] = $value;
@@ -168,9 +168,9 @@ class ElasticBibliographyService extends ElasticEntityService
             switch ($key) {
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [[$filters['role']], $value, 'role'];
                 } else {
-                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }
                 break;
             case 'management':

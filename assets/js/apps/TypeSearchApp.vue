@@ -20,7 +20,11 @@
                     </button>
                 </div>
                 <div class="form-group">
-                    <a :href="urls['help']" class="action" target="_blank"><i class="fa fa-info-circle" /> More information about the text search options.</a>
+                    <a
+                        :href="urls['help']"
+                        class="action"
+                        target="_blank"
+                    ><i class="fa fa-info-circle" /> More information about the text search options.</a>
                 </div>
                 <vue-form-generator
                     ref="form"
@@ -249,18 +253,18 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
-import VueFormGenerator from 'vue-form-generator'
+import Vue from 'vue';
+import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractSearch from '../Components/Search/AbstractSearch'
+import AbstractField from '../Components/FormFields/AbstractField';
+import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
-import fieldRadio from '../Components/FormFields/fieldRadio'
+import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 
-Vue.component('fieldRadio', fieldRadio);
+Vue.component('FieldRadio', fieldRadio);
 
 export default {
     mixins: [
@@ -268,10 +272,15 @@ export default {
         AbstractSearch,
     ],
     data() {
-        let data = {
+        const data = {
             model: {
                 text_fields: 'text',
                 text_combination: 'all',
+                metre_op: 'or',
+                genre_op: 'or',
+                subject_op: 'or',
+                tag_op: 'or',
+                acknowledgement_op: 'or',
             },
             schema: {
                 fields: {},
@@ -286,15 +295,15 @@ export default {
                 },
                 filterable: false,
                 orderBy: {
-                    'column': 'incipit'
+                    column: 'incipit',
                 },
                 perPage: 25,
                 perPageValues: [25, 50, 100],
                 sortable: ['id', 'incipit', 'number_of_occurrences', 'created', 'modified'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
-                rowClassCallback: function(row) {
-                    return (row.public == null || row.public) ? '' : 'warning'
+                rowClassCallback(row) {
+                    return (row.public == null || row.public) ? '' : 'warning';
                 },
             },
             submitModel: {
@@ -305,29 +314,29 @@ export default {
         };
 
         // Add fields
-        data.schema.fields['text'] = {
+        data.schema.fields.text = {
             type: 'input',
             inputType: 'text',
             styleClasses: 'greek',
             labelClasses: 'control-label',
             label: 'Text',
-            model: 'text'
+            model: 'text',
         };
         if (this.isViewInternal) {
-            data.model['text_stem'] = 'original';
-            data.schema.fields['text_stem'] = {
+            data.model.text_stem = 'original';
+            data.schema.fields.text_stem = {
                 type: 'radio',
                 styleClasses: 'has-warning',
                 label: 'Stemmer options:',
                 labelClasses: 'control-label',
                 model: 'text_stem',
                 values: [
-                    {value: 'original', name: 'Original text'},
-                    {value: 'stemmer', name: 'Stemmed text'},
+                    { value: 'original', name: 'Original text' },
+                    { value: 'stemmer', name: 'Stemmed text' },
                 ],
             };
         }
-        data.schema.fields['text_combination'] = {
+        data.schema.fields.text_combination = {
             type: 'radio',
             label: 'Word combination options:',
             labelClasses: 'control-label',
@@ -338,7 +347,7 @@ export default {
                 { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
             ],
         };
-        data.schema.fields['text_fields'] = {
+        data.schema.fields.text_fields = {
             type: 'radio',
             label: 'Which fields should be searched:',
             labelClasses: 'control-label',
@@ -349,13 +358,29 @@ export default {
                 { value: 'all', name: 'Text and title' },
             ],
         };
-        data.schema.fields['person'] = this.createMultiSelect('Person');
-        data.schema.fields['role'] = this.createMultiSelect('Role', {dependency: 'person'});
-        data.schema.fields['metre'] = this.createMultiSelect('Metre');
-        data.schema.fields['genre'] = this.createMultiSelect('Genre');
-        data.schema.fields['subject'] = this.createMultiSelect('Subject');
-        data.schema.fields['tag'] = this.createMultiSelect('Tag');
-        data.schema.fields['comment'] = {
+        data.schema.fields.person = this.createMultiSelect(
+            'Person',
+            {},
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
+        data.schema.fields.role = this.createMultiSelect(
+            'Role',
+            {
+                dependency: 'person',
+            },
+            {
+                multiple: true,
+                closeOnSelect: false,
+            },
+        );
+        [data.schema.fields.metre_op, data.schema.fields.metre] = this.createMultiMultiSelect('Metre');
+        [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
+        [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
+        [data.schema.fields.tag_op, data.schema.fields.tag] = this.createMultiMultiSelect('Tag');
+        data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
             label: 'Comment',
@@ -365,94 +390,100 @@ export default {
         };
 
         // Add identifier fields
-        for (let identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
+        for (const identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+                identifier.name,
+                {
+                    model: identifier.systemName,
+                },
+            );
         }
 
-        data.schema.fields['id'] = this.createMultiSelect('DBBE ID', {model: 'id'});
-        data.schema.fields['prev_id'] = this.createMultiSelect('Former DBBE ID', {model: 'prev_id'});
+        data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
+        data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 
-        data.schema.fields['dbbe'] = this.createMultiSelect(
+        data.schema.fields.dbbe = this.createMultiSelect(
             'Text source DBBE?',
             {
                 model: 'dbbe',
             },
             {
-                customLabel: ({id, name}) => {
-                    return name === 'true' ? 'Yes' : 'No'
-                },
-            }
+                customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+            },
         );
-        data.schema.fields['acknowledgement'] = this.createMultiSelect('Acknowledgements', {model: 'acknowledgement'});
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+            'Acknowledgements',
+            {
+                model: 'acknowledgement',
+            },
+        );
         if (this.isViewInternal) {
-            data.schema.fields['text_status'] = this.createMultiSelect(
+            data.schema.fields.text_status = this.createMultiSelect(
                 'Text Status',
                 {
                     model: 'text_status',
                     styleClasses: 'has-warning',
-                }
+                },
             );
-            data.schema.fields['critical_status'] = this.createMultiSelect(
+            data.schema.fields.critical_status = this.createMultiSelect(
                 'Editorial Status',
                 {
                     model: 'critical_status',
                     styleClasses: 'has-warning',
-                }
+                },
             );
-            data.schema.fields['public'] = this.createMultiSelect(
+            data.schema.fields.public = this.createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
                 },
                 {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Public only' : 'Internal only'
-                    },
-                }
+                    customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
+                },
             );
-            data.schema.fields['management'] = this.createMultiSelect(
+            data.schema.fields.management = this.createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
                     styleClasses: 'has-warning',
-                }
+                },
             );
-            data.schema.fields['management_inverse'] = {
+            data.schema.fields.management_inverse = {
                 type: 'checkbox',
                 styleClasses: 'has-warning',
                 label: 'Inverse management collection selection',
                 labelClasses: 'control-label',
                 model: 'management_inverse',
-            }
+            };
         }
 
-        return data
+        return data;
     },
     computed: {
-        depUrls: function () {
+        depUrls() {
             return {
-                'Occurrences': {
-                    depUrl: this.urls['occurrence_deps_by_type'].replace('type_id', this.submitModel.type.id),
-                    url: this.urls['occurrence_get'],
+                Occurrences: {
+                    depUrl: this.urls.occurrence_deps_by_type.replace('type_id', this.submitModel.type.id),
+                    url: this.urls.occurrence_get,
                     urlIdentifier: 'occurrence_id',
                 },
-            }
+            };
         },
         tableColumns() {
-            let columns = ['id', 'incipit', 'number_of_occurrences'];
+            const columns = ['id', 'incipit', 'number_of_occurrences'];
             if (this.textSearch) {
-                columns.unshift('text')
+                columns.unshift('text');
             }
             if (this.commentSearch) {
-                columns.unshift('comment')
+                columns.unshift('comment');
             }
             if (this.isViewInternal) {
                 columns.push('created');
                 columns.push('modified');
                 columns.push('actions');
-                columns.push('c')
+                columns.push('c');
             }
-            return columns
+            return columns;
         },
     },
     methods: {
@@ -461,25 +492,25 @@ export default {
                 id: row.id,
                 name: row.incipit,
             };
-            AbstractListEdit.methods.deleteDependencies.call(this)
+            AbstractListEdit.methods.deleteDependencies.call(this);
         },
         submitDelete() {
-            this.openRequests++;
+            this.openRequests += 1;
             this.deleteModal = false;
-            axios.delete(this.urls['type_delete'].replace('type_id', this.submitModel.type.id))
-                .then(() => {
+            window.axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
+                .then((_response) => {
                     // Don't create a new history item
                     this.noHistory = true;
                     this.$refs.resultTable.refresh();
-                    this.openRequests--;
-                    this.alerts.push({type: 'success', message: 'Type deleted successfully.'})
+                    this.openRequests -= 1;
+                    this.alerts.push({ type: 'success', message: 'Type deleted successfully.' });
                 })
                 .catch((error) => {
-                    this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the type.'});
-                    console.log(error)
-                })
+                    this.openRequests -= 1;
+                    this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the type.' });
+                    console.error(error);
+                });
         },
-    }
-}
+    },
+};
 </script>

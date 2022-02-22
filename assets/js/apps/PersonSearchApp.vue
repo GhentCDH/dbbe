@@ -158,6 +158,7 @@
                     slot-scope="props"
                 >
                     <!-- set displayContent using a v-for -->
+                    <!-- eslint-disable-next-line max-len -->
                     <template v-for="(displayOffice, index) in [props.row.office.filter((office) => office['display'])]">
                         <ul
                             v-if="displayOffice.length > 1"
@@ -175,12 +176,14 @@
                         </template>
                     </template>
                 </template>
+                <!-- eslint-disable max-len -->
                 <template
                     v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
                     slot="date"
                     slot-scope="props"
                 >
                     {{ formatInterval(props.row.born_date_floor_year, props.row.born_date_ceiling_year, props.row.death_date_floor_year, props.row.death_date_ceiling_year) }}
+                    <!-- eslint-enable max-len -->
                 </template>
                 <template
                     v-if="props.row.death_date_floor_year && props.row.death_date_ceiling_year"
@@ -321,6 +324,7 @@
                     </tr>
                     <tr>
                         <td>Unprocessed</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ (mergeModel.primaryFull.firstName || mergeModel.secondaryFull.firstName || mergeModel.primaryFull.lastName || mergeModel.secondaryFull.lastName || mergeModel.primary.extra || mergeModel.secondary.extra) ? '' : mergeModel.primary.unprocessed || mergeModel.secondary.unprocessed }}</td>
                     </tr>
                     <tr>
@@ -333,10 +337,12 @@
                     </tr>
                     <tr>
                         <td>Born Date</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'born') }}</td>
                     </tr>
                     <tr>
                         <td>Death Date</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'died') }}</td>
                     </tr>
                     <tr
@@ -346,17 +352,21 @@
                         <td>{{ identifier.name }}</td>
                         <td>
                             {{
+                                // eslint-disable-next-line max-len
                                 (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
+                                    // eslint-disable-next-line max-len
                                     || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
                             }}
                         </td>
                     </tr>
                     <tr>
                         <td>(Self) designation</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ formatObjectArray(mergeModel.primaryFull.selfDesignations) || formatObjectArray(mergeModel.secondaryFull.selfDesignations) }}</td>
                     </tr>
                     <tr>
                         <td>Offices</td>
+                        <!-- eslint-disable-next-line max-len -->
                         <td>{{ formatObjectArray(mergeModel.primaryFull.officesWithParents) || formatObjectArray(mergeModel.secondaryFull.officesWithParents) }}</td>
                     </tr>
                     <tr>
@@ -386,18 +396,18 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
-import VueFormGenerator from 'vue-form-generator'
+import Vue from 'vue';
+import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractSearch from '../Components/Search/AbstractSearch'
+import AbstractField from '../Components/FormFields/AbstractField';
+import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies, mergeModal
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
-import fieldRadio from '../Components/FormFields/fieldRadio'
+import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 
-Vue.component('fieldRadio', fieldRadio);
+Vue.component('FieldRadio', fieldRadio);
 
 export default {
     mixins: [
@@ -412,69 +422,17 @@ export default {
         },
     },
     data() {
-        let data = {
+        const data = {
             model: {
                 date_search_type: 'exact',
+                role_op: 'or',
+                office_op: 'or',
+                self_designation_op: 'or',
+                origin_op: 'or',
             },
             persons: null,
             schema: {
-                fields: {
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Name',
-                        model: 'name',
-                    },
-                    year_from: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Year from',
-                        model: 'year_from',
-                        min: AbstractSearch.YEAR_MIN,
-                        max: AbstractSearch.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number,
-                    },
-                    year_to: {
-                        type: 'input',
-                        inputType: 'number',
-                        label: 'Year to',
-                        model: 'year_to',
-                        min: AbstractSearch.YEAR_MIN,
-                        max: AbstractSearch.YEAR_MAX,
-                        validator: VueFormGenerator.validators.number,
-                    },
-                    date_search_type: {
-                        type: 'radio',
-                        label: 'The person date interval must ... the search date interval:',
-                        labelClasses: 'control-label',
-                        model: 'date_search_type',
-                        values: [
-                            { value: 'exact', name: 'exactly match' },
-                            { value: 'included', name: 'be included in' },
-                            { value: 'overlap', name: 'overlap with' },
-                        ],
-                    },
-                    role: this.createMultiSelect('Role'),
-                    office: this.createMultiSelect('Office'),
-                    self_designation: this.createMultiSelect(
-                        '(Self) designation',
-                        {
-                            model: 'self_designation'
-                        },
-                        {
-                            internalSearch: false,
-                            onSearch: this.greekSearch,
-                        }
-                    ),
-                    origin: this.createMultiSelect('Provenance', {model: 'origin'}),
-                    comment: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Comment',
-                        model: 'comment',
-                        validator: VueFormGenerator.validators.string,
-                    },
-                }
+                fields: {},
             },
             tableOptions: {
                 headings: {
@@ -483,17 +441,17 @@ export default {
                 columnsClasses: {
                     name: 'no-wrap',
                 },
-                'filterable': false,
-                'orderBy': {
-                    'column': 'name'
+                filterable: false,
+                orderBy: {
+                    column: 'name',
                 },
-                'perPage': 25,
-                'perPageValues': [25, 50, 100],
-                'sortable': ['name', 'date', 'created', 'modified'],
+                perPage: 25,
+                perPageValues: [25, 50, 100],
+                sortable: ['name', 'date', 'created', 'modified'],
                 customFilters: ['filters'],
                 requestFunction: AbstractSearch.requestFunction,
-                rowClassCallback: function(row) {
-                    return (row.public == null || row.public) ? '' : 'warning'
+                rowClassCallback(row) {
+                    return (row.public == null || row.public) ? '' : 'warning';
                 },
             },
             mergePersonSchema: {
@@ -502,25 +460,21 @@ export default {
                         'Primary',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: VueFormGenerator.validators.required,
                         },
                         {
-                            customLabel: ({id, name}) => {
-                                return '[' + id + '] ' + name
-                            },
-                        }
+                            customLabel: ({ id, name }) => `[${id}] ${name}`,
+                        },
                     ),
                     secondary: this.createMultiSelect(
                         'Secondary',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: VueFormGenerator.validators.required,
                         },
                         {
-                            customLabel: ({id, name}) => {
-                                return '[' + id + '] ' + name
-                            },
-                        }
+                            customLabel: ({ id, name }) => `[${id}] ${name}`,
+                        },
                     ),
                 },
             },
@@ -536,241 +490,324 @@ export default {
                 person: {},
             },
             defaultOrdering: 'name',
-        }
+        };
+
+        // Add fields
+        data.schema.fields.name = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Name',
+            model: 'name',
+        };
+        data.schema.fields.year_from = {
+            type: 'input',
+            inputType: 'number',
+            label: 'Year from',
+            model: 'year_from',
+            min: AbstractSearch.YEAR_MIN,
+            max: AbstractSearch.YEAR_MAX,
+            validator: VueFormGenerator.validators.number,
+        };
+        data.schema.fields.year_to = {
+            type: 'input',
+            inputType: 'number',
+            label: 'Year to',
+            model: 'year_to',
+            min: AbstractSearch.YEAR_MIN,
+            max: AbstractSearch.YEAR_MAX,
+            validator: VueFormGenerator.validators.number,
+        };
+        data.schema.fields.date_search_type = {
+            type: 'radio',
+            label: 'The person date interval must ... the search date interval:',
+            labelClasses: 'control-label',
+            model: 'date_search_type',
+            values: [
+                { value: 'exact', name: 'exactly match' },
+                { value: 'included', name: 'be included in' },
+                { value: 'overlap', name: 'overlap with' },
+            ],
+        };
+        [data.schema.fields.role_op, data.schema.fields.role] = this.createMultiMultiSelect('Role');
+        [data.schema.fields.office_op, data.schema.fields.office] = this.createMultiMultiSelect('Office');
+        [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
+            '(Self) designation',
+            {
+                model: 'self_designation',
+            },
+            {
+                internalSearch: false,
+                onSearch: this.greekSearch,
+            },
+        );
+        [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect(
+            'Provenance',
+            {
+                model: 'origin',
+            },
+        );
+        data.schema.fields.comment = {
+            type: 'input',
+            inputType: 'text',
+            label: 'Comment',
+            model: 'comment',
+            validator: VueFormGenerator.validators.string,
+        };
 
         // Add identifier fields
-        for (let identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(identifier.name, {model: identifier.systemName})
+        for (const identifier of JSON.parse(this.initIdentifiers)) {
+            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+                identifier.name,
+                {
+                    model: identifier.systemName,
+                },
+            );
         }
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields['historical'] = this.createMultiSelect(
+            data.schema.fields.historical = this.createMultiSelect(
                 'Historical',
                 {
                     styleClasses: 'has-warning',
                 },
                 {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Historical only' : 'Non-historical only'
-                    },
-                }
-            )
-            data.schema.fields['modern'] = this.createMultiSelect(
+                    customLabel: ({ _id, name }) => (name === 'true' ? 'Historical only' : 'Non-historical only'),
+                },
+            );
+            data.schema.fields.modern = this.createMultiSelect(
                 'Modern',
                 {
                     styleClasses: 'has-warning',
                 },
                 {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Modern only' : 'Non-modern only'
-                    },
-                }
-            )
-            data.schema.fields['public'] = this.createMultiSelect(
+                    customLabel: ({ _id, name }) => (name === 'true' ? 'Modern only' : 'Non-modern only'),
+                },
+            );
+            data.schema.fields.public = this.createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
                 },
                 {
-                    customLabel: ({id, name}) => {
-                        return name === 'true' ? 'Public only' : 'Internal only'
-                    },
-                }
-            )
-            data.schema.fields['management'] = this.createMultiSelect(
+                    customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
+                },
+            );
+            data.schema.fields.management = this.createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
                     styleClasses: 'has-warning',
-                }
-            )
-            data.schema.fields['management_inverse'] = {
+                },
+            );
+            data.schema.fields.management_inverse = {
                 type: 'checkbox',
                 styleClasses: 'has-warning',
                 label: 'Inverse management collection selection',
                 labelClasses: 'control-label',
                 model: 'management_inverse',
-            }
+            };
         }
 
-        return data
+        return data;
     },
     computed: {
         depUrls() {
             return {
-                'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['manuscript_get'],
+                Manuscripts: {
+                    depUrl: this.urls.manuscript_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.manuscript_get,
                     urlIdentifier: 'manuscript_id',
                 },
-                'Occurrences': {
-                    depUrl: this.urls['occurrence_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['occurrence_get'],
+                Occurrences: {
+                    depUrl: this.urls.occurrence_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.occurrence_get,
                     urlIdentifier: 'occurrence_id',
                 },
-                'Types': {
-                    depUrl: this.urls['type_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['type_get'],
+                Types: {
+                    depUrl: this.urls.type_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.type_get,
                     urlIdentifier: 'type_id',
                 },
-                'Articles': {
-                    depUrl: this.urls['article_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['article_get'],
+                Articles: {
+                    depUrl: this.urls.article_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.article_get,
                     urlIdentifier: 'article_id',
                 },
-                'Books': {
-                    depUrl: this.urls['book_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['book_get'],
+                Books: {
+                    depUrl: this.urls.book_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.book_get,
                     urlIdentifier: 'book_id',
                 },
                 'Book chapters': {
-                    depUrl: this.urls['book_chapter_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['book_chapter_get'],
+                    depUrl: this.urls.book_chapter_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.book_chapter_get,
                     urlIdentifier: 'book_chapter_id',
                 },
-                'Contents': {
-                    depUrl: this.urls['content_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['contents_edit'],
+                Contents: {
+                    depUrl: this.urls.content_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.contents_edit,
                     urlIdentifier: 'content_id',
                 },
                 'Blog posts': {
-                    depUrl: this.urls['blog_post_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['blog_post_get'],
+                    depUrl: this.urls.blog_post_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.blog_post_get,
                     urlIdentifier: 'blog_post_id',
                 },
                 'PhD theses': {
-                    depUrl: this.urls['phd_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['phd_get'],
+                    depUrl: this.urls.phd_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.phd_get,
                     urlIdentifier: 'phd_id',
                 },
                 'Bib varia': {
-                    depUrl: this.urls['bib_varia_deps_by_person'].replace('person_id', this.submitModel.person.id),
-                    url: this.urls['bib_varia_get'],
+                    depUrl: this.urls.bib_varia_deps_by_person.replace('person_id', this.submitModel.person.id),
+                    url: this.urls.bib_varia_get,
                     urlIdentifier: 'bib_varia_id',
                 },
-            }
+            };
         },
         tableColumns() {
-            let columns = ['name', 'identification', 'self_designation', 'office', 'date']
+            const columns = ['name', 'identification', 'self_designation', 'office', 'date'];
             if (this.commentSearch) {
-                columns.unshift('comment')
+                columns.unshift('comment');
             }
             if (this.isViewInternal) {
                 columns.push('created');
                 columns.push('modified');
                 columns.push('actions');
-                columns.push('c')
+                columns.push('c');
             }
-            return columns
+            return columns;
         },
     },
     watch: {
-        'mergeModel.primary'() {
+        'mergeModel.primary': function () {
             if (this.mergeModel.primary == null) {
-                this.mergeModel.primaryFull = null
-            }
-            else {
-                this.mergeModal = false
-                this.openRequests++
-                axios.get(this.urls['person_get'].replace('person_id', this.mergeModel.primary.id))
-                    .then( (response) => {
-                        this.mergeModel.primaryFull = response.data
-                        this.mergeModal = true
-                        this.openRequests--
+                this.mergeModel.primaryFull = null;
+            } else {
+                this.mergeModal = false;
+                this.openRequests += 1;
+                window.axios.get(this.urls.person_get.replace('person_id', this.mergeModel.primary.id))
+                    .then((response) => {
+                        this.mergeModel.primaryFull = response.data;
+                        this.mergeModal = true;
+                        this.openRequests -= 1;
                     })
-                    .catch( (error) => {
-                        this.mergeModal = true
-                        this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
-                        console.log(error)
-                    })
+                    .catch((error) => {
+                        this.mergeModal = true;
+                        this.openRequests -= 1;
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the person data.',
+                            login: this.isLoginError(error),
+                        });
+                        console.error(error);
+                    });
             }
         },
-        'mergeModel.secondary'() {
+        'mergeModel.secondary': function () {
             if (this.mergeModel.secondary == null) {
-                this.mergeModel.secondaryFull = null
-            }
-            else {
-                this.mergeModal = false
-                this.openRequests++
-                axios.get(this.urls['person_get'].replace('person_id', this.mergeModel.secondary.id))
-                    .then( (response) => {
-                        this.mergeModel.secondaryFull = response.data
-                        this.mergeModal = true
-                        this.openRequests--
+                this.mergeModel.secondaryFull = null;
+            } else {
+                this.mergeModal = false;
+                this.openRequests += 1;
+                window.axios.get(this.urls.person_get.replace('person_id', this.mergeModel.secondary.id))
+                    .then((response) => {
+                        this.mergeModel.secondaryFull = response.data;
+                        this.mergeModal = true;
+                        this.openRequests -= 1;
                     })
-                    .catch( (error) => {
-                        this.mergeModal = true
-                        this.openRequests--
-                        this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
-                        console.log(error)
-                    })
+                    .catch((error) => {
+                        this.mergeModal = true;
+                        this.openRequests -= 1;
+                        this.alerts.push({
+                            type: 'error',
+                            message: 'Something went wrong while getting the person data.',
+                            login: this.isLoginError(error),
+                        });
+                        console.error(error);
+                    });
             }
         },
     },
     methods: {
         merge(row) {
-            this.openRequests++
-            axios.get(this.urls['persons_get'])
-                .then( (response) => {
-                    this.persons = response.data
-                    this.openRequests--
-                    this.mergeModel.primary = JSON.parse(JSON.stringify(this.persons.filter(person => person.id === row.id)[0]))
-                    this.mergeModel.secondary = null
-                    this.mergePersonSchema.fields.primary.values = this.persons
-                    this.mergePersonSchema.fields.secondary.values = this.persons
-                    this.enableField(this.mergePersonSchema.fields.primary)
-                    this.enableField(this.mergePersonSchema.fields.secondary)
-                    this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
-                    this.mergeModal = true
+            this.openRequests += 1;
+            window.axios.get(this.urls.persons_get)
+                .then((response) => {
+                    this.persons = response.data;
+                    this.openRequests -= 1;
+                    this.mergeModel.primary = JSON.parse(
+                        JSON.stringify(
+                            this.persons.filter((person) => person.id === row.id)[0],
+                        ),
+                    );
+                    this.mergeModel.secondary = null;
+                    this.mergePersonSchema.fields.primary.values = this.persons;
+                    this.mergePersonSchema.fields.secondary.values = this.persons;
+                    this.enableField(this.mergePersonSchema.fields.primary);
+                    this.enableField(this.mergePersonSchema.fields.secondary);
+                    this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
+                    this.mergeModal = true;
                 })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while getting the person data.', login: this.isLoginError(error)})
-                    console.log(error)
-                })
+                .catch((error) => {
+                    this.openRequests -= 1;
+                    this.alerts.push({
+                        type: 'error',
+                        message: 'Something went wrong while getting the person data.',
+                        login: this.isLoginError(error),
+                    });
+                    console.error(error);
+                });
         },
         del(row) {
             this.submitModel.person = {
                 id: row.id,
                 name: row.original_name == null ? row.name : row.original_name,
-            }
-            AbstractListEdit.methods.deleteDependencies.call(this)
+            };
+            AbstractListEdit.methods.deleteDependencies.call(this);
         },
         submitMerge() {
-            this.mergeModal = false
-            this.openRequests++
-            axios.put(this.urls['person_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
-                .then( (response) => {
-                    this.update()
-                    this.mergeAlerts = []
-                    this.alerts.push({type: 'success', message: 'Merge successful.'})
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the persons.', login: this.isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        submitDelete() {
-            this.openRequests++
-            this.deleteModal = false
-            axios.delete(this.urls['person_delete'].replace('person_id', this.submitModel.person.id))
-                .then((response) => {
-                    // Don't create a new history item
-                    this.noHistory = true
-                    this.$refs.resultTable.refresh()
-                    this.openRequests--
-                    this.alerts.push({type: 'success', message: 'Person deleted successfully.'})
+            this.mergeModal = false;
+            this.openRequests += 1;
+            window.axios.put(
+                this.urls.person_merge
+                    .replace('primary_id', this.mergeModel.primary.id)
+                    .replace('secondary_id', this.mergeModel.secondary.id),
+            )
+                .then((_response) => {
+                    this.update();
+                    this.mergeAlerts = [];
+                    this.alerts.push({ type: 'success', message: 'Merge successful.' });
+                    this.openRequests -= 1;
                 })
                 .catch((error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while deleting the person.'})
-                    console.log(error)
+                    this.openRequests -= 1;
+                    this.mergeModal = true;
+                    this.mergeAlerts.push({
+                        type: 'error',
+                        message: 'Something went wrong while merging the persons.',
+                        login: this.isLoginError(error),
+                    });
+                    console.error(error);
+                });
+        },
+        submitDelete() {
+            this.openRequests += 1;
+            this.deleteModal = false;
+            window.axios.delete(this.urls.person_delete.replace('person_id', this.submitModel.person.id))
+                .then((_response) => {
+                    // Don't create a new history item
+                    this.noHistory = true;
+                    this.$refs.resultTable.refresh();
+                    this.openRequests -= 1;
+                    this.alerts.push({ type: 'success', message: 'Person deleted successfully.' });
                 })
+                .catch((error) => {
+                    this.openRequests -= 1;
+                    this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the person.' });
+                    console.error(error);
+                });
         },
         update() {
             // Don't create a new history item
@@ -778,53 +815,53 @@ export default {
             this.$refs.resultTable.refresh();
         },
         formatMergeDate(primary, secondary, type) {
-            if (primary.filter(d => d.type === type).length === 1) {
-                return this.formatPersonDate(primary.filter(d => d.type === type)[0].date);
+            if (primary.filter((d) => d.type === type).length === 1) {
+                return this.formatPersonDate(primary.filter((d) => d.type === type)[0].date);
             }
-            if (secondary.filter(d => d.type === type).length === 1) {
-                return this.formatPersonDate(secondary.filter(d => d.type === type)[0].date);
+            if (secondary.filter((d) => d.type === type).length === 1) {
+                return this.formatPersonDate(secondary.filter((d) => d.type === type)[0].date);
             }
             return null;
         },
         formatPersonDate(date) {
             if (date == null || date.floor == null || date.ceiling == null) {
-                return null
+                return null;
             }
-            return date.floor + ' - ' + date.ceiling
+            return `${date.floor} - ${date.ceiling}`;
         },
-        formatInterval(born_floor, born_ceiling, death_floor, death_ceiling) {
-            let born = born_floor === born_ceiling ? born_floor : born_floor + '-' + born_ceiling
-            let death = death_floor === death_ceiling ? death_floor : death_floor + '-' + death_ceiling
-            return born === death ? born : '(' + born + ') - (' + death + ')'
+        formatInterval(bornFloor, bornCeiling, deathFloor, deathCeiling) {
+            const born = bornFloor === bornCeiling ? bornFloor : `${bornFloor}-${bornCeiling}`;
+            const death = deathFloor === deathCeiling ? deathFloor : `${deathFloor}-${deathCeiling}`;
+            return born === death ? born : `(${born}) - (${death})`;
         },
         formatObjectArray(objects) {
             if (objects == null || objects.length === 0) {
-                return null
+                return null;
             }
-            return objects.map(objects => objects.name).join(', ')
+            return objects.map((object) => object.name).join(', ');
         },
         hasIdentification(person) {
-            for (let identifier of this.identifiers) {
+            for (const identifier of this.identifiers) {
                 if (person[identifier.systemName] != null && person[identifier.systemName].length > 0) {
-                    return true
+                    return true;
                 }
             }
-            return false
+            return false;
         },
         formatIdentification(person) {
-            let result = []
-            for (let identifier of this.identifiers) {
+            const result = [];
+            for (const identifier of this.identifiers) {
                 if (person[identifier.systemName] != null && person[identifier.systemName].length > 0) {
-                    result.push(identifier.name + ': ' + person[identifier.systemName].join(', '))
+                    result.push(`${identifier.name}: ${person[identifier.systemName].join(', ')}`);
                 }
             }
-            return result.join(' - ')
+            return result.join(' - ');
         },
         greekSearch(searchQuery) {
             this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                option => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery))
+                (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
             );
         },
-    }
-}
+    },
+};
 </script>

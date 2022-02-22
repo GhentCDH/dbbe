@@ -12,7 +12,7 @@
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.5e5cdbc6.js"
+        "/build/bibliographysearch.7732c810.js"
       ]
     },
     "bibvariaedit": {
@@ -107,7 +107,7 @@
     },
     "manuscriptsearch": {
       "js": [
-        "/build/manuscriptsearch.f5f62553.js"
+        "/build/manuscriptsearch.c3ca439e.js"
       ]
     },
     "metresedit": {
@@ -157,7 +157,7 @@
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.938f0043.js"
+        "/build/personsearch.23cda9e7.js"
       ]
     },
     "phdedit": {
@@ -192,7 +192,7 @@
     },
     "typesearch": {
       "js": [
-        "/build/typesearch.f53b2fb6.js"
+        "/build/typesearch.147abfb5.js"
       ]
     },
     "usersedit": {

@@ -194,13 +194,15 @@ class ElasticTypeService extends ElasticEntityService
                 $result['numeric'][] = $value;
                 break;
             case 'person':
-                $result['multiple_fields_object'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                $result['multiple_fields_object_multi'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 break;
             case 'metre':
             case 'subject':
             case 'tag':
             case 'genre':
             case 'acknowledgement':
+                $result['nested_multi'][$key] = $value;
+                break;
             case 'management':
                 $result['nested'][] = $value;
                 break;
@@ -291,7 +293,14 @@ class ElasticTypeService extends ElasticEntityService
             case 'tag':
             case 'genre':
             case 'acknowledgement':
-                $result['nested'][$key] = $value;
+                $result['nested_multi'][$key] = $value;
+                break;
+            case 'metre_op':
+            case 'subject_op':
+            case 'tag_op':
+            case 'genre_op':
+            case 'acknowledgement_op':
+                $result['nested_multi_op'][$key] = $value;
                 break;
             case 'text_status':
             case 'critical_status':
@@ -299,9 +308,9 @@ class ElasticTypeService extends ElasticEntityService
                 break;
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [[$filters['role']], $value, 'role'];
                 } else {
-                    $result['multiple_fields_object'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }
                 break;
             case 'management':

@@ -538,8 +538,19 @@ class PersonController extends BaseController
 
             foreach (array_keys($params['filters']) as $key) {
                 switch ($key) {
-                    case 'name':
+                    case 'role':
                     case 'self_designation':
+                    case 'office':
+                    case 'origin':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'role_op':
+                    case 'self_designation_op':
+                    case 'office_op':
+                    case 'origin_op':
+                    case 'name':
                     case 'comment':
                     case 'date_search_type':
                         if (is_string($params['filters'][$key])) {
@@ -548,9 +559,6 @@ class PersonController extends BaseController
                         break;
                     case 'historical':
                     case 'modern':
-                    case 'role':
-                    case 'office':
-                    case 'origin':
                     case 'public':
                     case 'management':
                         if (is_numeric($params['filters'][$key])) {
