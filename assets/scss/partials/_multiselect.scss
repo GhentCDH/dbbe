@@ -174,7 +174,7 @@ fieldset {
   border: 1px solid $input-border;
   display: block;
   min-height: 40px;
-  padding: 8px 40px 0 8px;
+  padding: 8px 30px 0 8px;
 }
 
 .has-error {
@@ -248,17 +248,17 @@ fieldset {
   box-sizing: border-box;
   cursor: pointer;
   display: block;
-  height: 38px;
+  height: 12px;
   line-height: 16px;
   margin: 0;
-  padding: 4px 8px;
+  // padding: 4px 8px;
   position: absolute;
-  right: 1px;
+  right: 10px;
   text-align: center;
   text-decoration: none;
-  top: 1px;
+  top: 24px;
   transition: transform .2s ease;
-  width: 40px;
+  width: 12px;
 
   &::before {
     border-color: $border-color transparent transparent;
@@ -270,6 +270,12 @@ fieldset {
     position: relative;
     right: 0;
     top: 65%;
+  }
+
+  &:hover {
+    &::before {
+      border-color: $brand-primary transparent transparent;
+    }
   }
 }
 
@@ -410,21 +416,22 @@ fieldset {
 .multiselect__clear {
   cursor: pointer;
   display: block;
-  height: 40px;
+  height: 12px;
   position: absolute;
-  right: 16px;
-  width: 40px;
+  right: 10px;
+  top: 10px;
+  width: 12px;
   z-index: 2;
 
   &::before,
   &::after {
-    background: $border-color;
+    background-color: $border-color;
     content: '';
     display: block;
-    height: 16px;
+    height: 12px;
     position: absolute;
     right: 4px;
-    top: 12px;
+    top: 0px;
     width: 3px;
   }
 
@@ -434,6 +441,13 @@ fieldset {
 
   &::after {
     transform: rotate(-45deg);
+  }
+
+  &:hover {
+    &::before,
+    &::after {
+      background-color: $state-danger-text;
+    }
   }
 }
 
