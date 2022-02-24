@@ -135,7 +135,7 @@ class KeywordService extends DatabaseService
             from data.factoid
             where factoid.subject_identity = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This keyword has dependencies.');
         }

@@ -437,7 +437,7 @@ class BookService extends DocumentService
                 from data.reference
                 where reference.idsource = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This book has reference dependencies.');
             }
@@ -447,7 +447,7 @@ class BookService extends DocumentService
                 from data.document_contains
                 where document_contains.idcontainer = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This book has document_contains dependencies.');
             }
@@ -457,7 +457,7 @@ class BookService extends DocumentService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This book has global_id dependencies.');
             }

@@ -129,7 +129,7 @@ class BookClusterService extends DocumentService
             from data.book
             where book.idcluster = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This book cluster has dependencies.');
         }

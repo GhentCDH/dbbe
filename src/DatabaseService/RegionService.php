@@ -318,7 +318,7 @@ class RegionService extends DatabaseService
             from data.region
             where region.parent_idregion = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This region has region dependencies.');
         }
@@ -329,7 +329,7 @@ class RegionService extends DatabaseService
             inner join data.location on located_at.idlocation = location.idlocation
             where location.idregion = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This region has located_at dependencies.');
         }
@@ -340,7 +340,7 @@ class RegionService extends DatabaseService
             inner join data.location on factoid.idlocation = location.idlocation
             where location.idregion = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This region has factoid dependencies.');
         }
@@ -350,7 +350,7 @@ class RegionService extends DatabaseService
             from data.institution
             where institution.idregion = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This region has institution dependencies.');
         }
@@ -360,7 +360,7 @@ class RegionService extends DatabaseService
             from data.occupation
             where occupation.idregion = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This region has office dependencies.');
         }

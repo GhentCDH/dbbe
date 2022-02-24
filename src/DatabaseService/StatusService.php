@@ -93,7 +93,7 @@ class StatusService extends DatabaseService
             from data.document_status
             where document_status.idstatus = ?',
             [$statusId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This status has dependencies.');
         }

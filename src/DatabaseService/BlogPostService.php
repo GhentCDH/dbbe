@@ -239,7 +239,7 @@ class BlogPostService extends DocumentService
                 from data.reference
                 where reference.idsource = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This blog post has reference dependencies.');
             }
@@ -249,7 +249,7 @@ class BlogPostService extends DocumentService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This blog post has global_id dependencies.');
             }

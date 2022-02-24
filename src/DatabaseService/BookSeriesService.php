@@ -129,7 +129,7 @@ class BookSeriesService extends DocumentService
             from data.book
             where book.idseries = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This book series has dependencies.');
         }

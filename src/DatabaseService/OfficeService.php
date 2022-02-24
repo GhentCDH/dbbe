@@ -291,7 +291,7 @@ class OfficeService extends DatabaseService
             from data.occupation
             where occupation.idparentoccupation = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This office has office dependencies.');
         }
@@ -301,7 +301,7 @@ class OfficeService extends DatabaseService
             from data.person_occupation
             where person_occupation.idoccupation = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This office has person dependencies.');
         }

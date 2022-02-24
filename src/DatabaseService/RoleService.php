@@ -143,7 +143,7 @@ class RoleService extends DatabaseService
             from data.bibrole
             where bibrole.idrole = ?',
             [$roleId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This role has dependencies.');
         }

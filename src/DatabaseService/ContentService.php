@@ -253,7 +253,7 @@ class ContentService extends DatabaseService
             from data.genre
             where genre.idparentgenre = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This content has dependencies.');
         }
@@ -263,7 +263,7 @@ class ContentService extends DatabaseService
             from data.document_genre
             where document_genre.idgenre = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This content has dependencies.');
         }

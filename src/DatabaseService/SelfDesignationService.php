@@ -100,7 +100,7 @@ class SelfDesignationService extends DatabaseService
             from data.person_self_designation
             where person_self_designation.idself_designation = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This self designation has dependencies.');
         }

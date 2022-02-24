@@ -105,7 +105,7 @@ class GenreService extends DatabaseService
             from data.document_genre
             where document_genre.idgenre = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This genre has dependencies.');
         }

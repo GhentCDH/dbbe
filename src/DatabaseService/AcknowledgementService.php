@@ -100,7 +100,7 @@ class AcknowledgementService extends DatabaseService
             from data.document_acknowledgement
             where document_acknowledgement.idacknowledgement = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This acknowledgement has dependencies.');
         }

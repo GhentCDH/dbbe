@@ -194,7 +194,7 @@ class OnlineSourceService extends EntityService
                 from data.reference
                 where reference.idsource = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This online source has reference dependencies.');
             }
@@ -204,7 +204,7 @@ class OnlineSourceService extends EntityService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This online source has global_id dependencies.');
             }

@@ -1025,7 +1025,7 @@ class PersonService extends EntityService
                 from data.bibrole
                 where bibrole.idperson = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This person has bibrole dependencies.');
             }
@@ -1036,7 +1036,7 @@ class PersonService extends EntityService
                 from data.factoid
                 where factoid.object_identity = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This person has factoid dependencies.');
             }
@@ -1048,7 +1048,7 @@ class PersonService extends EntityService
                 where factoid_type.type = \'subject of\'
                 and factoid.subject_identity = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This person has factoid dependencies.');
             }
@@ -1058,7 +1058,7 @@ class PersonService extends EntityService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This person has global_id dependencies.');
             }
@@ -1068,7 +1068,7 @@ class PersonService extends EntityService
                 from data.genre
                 where genre.idperson = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This person has content dependencies.');
             }

@@ -245,7 +245,7 @@ class PhdService extends DocumentService
                 from data.reference
                 where reference.idsource = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This PhD thesis has reference dependencies.');
             }
@@ -255,7 +255,7 @@ class PhdService extends DocumentService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This PhD thesis has global_id dependencies.');
             }

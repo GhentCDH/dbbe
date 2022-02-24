@@ -106,7 +106,7 @@ class CollectionService extends DatabaseService
             inner join data.location on located_at.idlocation = location.idlocation
             where location.idfund = ?',
             [$collectionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This collection has dependencies.');
         }
@@ -117,7 +117,7 @@ class CollectionService extends DatabaseService
             inner join data.location on factoid.idlocation = location.idlocation
             where location.idfund = ?',
             [$collectionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This collection has dependencies.');
         }

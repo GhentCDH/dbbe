@@ -767,7 +767,7 @@ class ManuscriptService extends DocumentService
                 inner join data.manuscript on document_contains.idcontainer = manuscript.identity
                 where manuscript.identity = ?',
                 [$manuscriptId]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This manuscript has dependencies.');
             }

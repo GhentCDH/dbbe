@@ -122,7 +122,7 @@ class JournalService extends DocumentService
             from data.journal_issue
             where journal_issue.idjournal = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This journal has dependencies.');
         }

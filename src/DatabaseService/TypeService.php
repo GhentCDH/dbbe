@@ -841,7 +841,7 @@ class TypeService extends PoemService
                 where factoid.subject_identity = ?
                 and factoid_type.type = \'reconstruction of\'',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This type has dependencies.');
             }

@@ -246,7 +246,7 @@ class BookChapterService extends DocumentService
                 from data.reference
                 where reference.idsource = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This book chapter has dependencies.');
             }

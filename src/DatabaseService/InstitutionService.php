@@ -109,7 +109,7 @@ class InstitutionService extends DatabaseService
             from data.fund
             where fund.idlibrary = ?',
             [$institutionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }
@@ -120,7 +120,7 @@ class InstitutionService extends DatabaseService
             inner join data.location on located_at.idlocation = location.idlocation
             where location.idinstitution = ?',
             [$institutionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }
@@ -131,7 +131,7 @@ class InstitutionService extends DatabaseService
             inner join data.location on factoid.idlocation = location.idlocation
             where location.idinstitution = ?',
             [$institutionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }
@@ -141,7 +141,7 @@ class InstitutionService extends DatabaseService
             from data.online_source
             where online_source.identity = ?',
             [$institutionId]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This institution has dependencies.');
         }

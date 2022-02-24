@@ -100,7 +100,7 @@ class MetreService extends DatabaseService
             from data.poem_meter
             where poem_meter.idmeter = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This metre has dependencies.');
         }

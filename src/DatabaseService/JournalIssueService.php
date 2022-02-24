@@ -180,7 +180,7 @@ class JournalIssueService extends DatabaseService
             from data.document_contains
             where document_contains.idcontainer = ?',
             [$id]
-        )->fetchColumn(0);
+        )->fetchOne(0);
         if ($count > 0) {
             throw new DependencyException('This journal issue has dependencies.');
         }

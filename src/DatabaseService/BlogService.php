@@ -170,7 +170,7 @@ class BlogService extends DocumentService
                 from data.document_contains
                 where document_contains.idcontainer = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This blog has blog post dependencies.');
             }
@@ -180,7 +180,7 @@ class BlogService extends DocumentService
                 from data.global_id
                 where global_id.idauthority = ?',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This blog has global_id dependencies.');
             }

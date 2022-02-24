@@ -929,7 +929,7 @@ class OccurrenceService extends PoemService
                 where factoid.object_identity = ?
                 and factoid_type.type = \'based on\'',
                 [$id]
-            )->fetchColumn(0);
+            )->fetchOne(0);
             if ($count > 0) {
                 throw new DependencyException('This occurrence has dependencies.');
             }
