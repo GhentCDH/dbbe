@@ -133,7 +133,7 @@ class InstitutionController extends BaseController
      */
     public function deleteLibrary(int $id, Request $request)
     {
-        return $this->deleteInstitution($id, $request);
+        return $this->delete($id, $request);
     }
 
     /**
@@ -144,6 +144,6 @@ class InstitutionController extends BaseController
      */
     public function deleteMonastery(int $id, Request $request)
     {
-        return $this->deleteInstitution($id, $request);
+        return $this->delete($id, $request);
     }
 }
