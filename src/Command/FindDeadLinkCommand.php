@@ -68,7 +68,7 @@ class FindDeadLinkCommand extends Command
         if ($type == null || $type == 'occurrence_images') {
             $fileSystem = new Filesystem();
             $imageDirectory = $this->di['Params']->get('kernel.project_dir') . '/'
-                . $this->di['Params']->get('image_directory') . '/';
+                . $this->di['Params']->get('app.image_directory') . '/';
             $occurrenceImages = $this->di['DeadLinkService']->getOccurrenceImages();
 
             foreach ($occurrenceImages as $occurrenceImage) {
