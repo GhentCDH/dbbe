@@ -1,4 +1,6 @@
 security:
+    enable_authenticator_manager: true
+
     providers:
         user_provider:
             id: App\Security\UserProvider
