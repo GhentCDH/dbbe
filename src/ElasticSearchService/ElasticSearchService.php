@@ -645,7 +645,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($filterValues as $fieldName => $values) {
                         // Don't include in the aggregation query for the field itself
                         if ($aggregateKey == $fieldName) {
-                            break;
+                            continue;
                         }
 
                         if (
