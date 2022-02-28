@@ -86,6 +86,7 @@ class ElasticTypeService extends ElasticEntityService
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
+            unset($result['data'][$key]['translated']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
             unset($result['data'][$key]['critical_status']);
@@ -133,7 +134,7 @@ class ElasticTypeService extends ElasticEntityService
             }
         }
 
-        $aggregationFilters = ['metre', 'subject', 'tag', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];
+        $aggregationFilters = ['metre', 'subject', 'tag', 'translated', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -211,6 +212,7 @@ class ElasticTypeService extends ElasticEntityService
                 $result['object'][] = $value;
                 break;
             case 'public':
+            case 'translated':
             case 'dbbe':
                 $result['boolean'][] = $value;
                 break;
@@ -339,6 +341,7 @@ class ElasticTypeService extends ElasticEntityService
                 ];
                 break;
             case 'public':
+            case 'translated':
             case 'dbbe':
                 $result['boolean'][$key] = ($value === '1');
                 break;

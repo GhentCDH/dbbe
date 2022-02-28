@@ -50,13 +50,19 @@
                     v-if="!disabled && value == null",
                     @mousedown.prevent.stop="props.toggle()"
                 )
-            template(slot="option", slot-scope="props") {{ props.option.name }}
+            template(slot="option", slot-scope="props") {{ getOptionLabel(props.option) }}
                 span.badge(
                     v-if="props.option.count != null"
                 ) {{ props.option.count }}
 </template>
 <script>
 import { abstractField } from 'vue-form-generator';
+
+function isEmpty(opt) {
+    if (opt === 0) return false;
+    if (Array.isArray(opt) && opt.length === 0) return true;
+    return !opt;
+}
 
 export default {
     mixins: [abstractField],
@@ -109,6 +115,18 @@ export default {
         },
         clearAll() {
             this.value = null;
+        },
+        getOptionLabel(option) {
+            if (isEmpty(option)) return '';
+            /* istanbul ignore else */
+            if (option.isTag) return option.label;
+            /* istanbul ignore else */
+            if (option.$isLabel) return option.$groupLabel;
+
+            const label = this.customLabel(option, this.label);
+            /* istanbul ignore else */
+            if (isEmpty(label)) return '';
+            return label;
         },
     },
 };

@@ -380,6 +380,15 @@ export default {
         [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
         [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
         [data.schema.fields.tag_op, data.schema.fields.tag] = this.createMultiMultiSelect('Tag');
+        data.schema.fields.translated = this.createMultiSelect(
+            'Translation(s) available?',
+            {
+                model: 'translated',
+            },
+            {
+                customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+            },
+        );
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',

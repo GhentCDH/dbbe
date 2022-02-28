@@ -154,9 +154,9 @@ class Type extends Poem
         return $this->criticalApparatus;
     }
 
-    public function setTranslations(array $translations): Type
+    public function addTranslation(Translation $translation): Type
     {
-        $this->translations = $translations;
+        $this->translations[] = $translation;
 
         return $this;
     }
@@ -284,6 +284,8 @@ class Type extends Poem
                 )
             );
         }
+
+        $result['translated'] = !empty($this->translations);
 
         return $result;
     }

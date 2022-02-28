@@ -151,6 +151,16 @@ class TypeManager extends PoemManager
         // Needed to index DBBE in elasticsearch
         $this->setBibliographies($types);
 
+        // Needed to index translated in elasticsearch
+        $rawTranslations = $this->dbs->getTranslations($ids);
+        $translationIds = self::getUniqueIds($rawTranslations, 'translation_id');
+        if (!empty($translationIds)) {
+            $translations = $this->container->get(TranslationManager::class)->getMini($translationIds);
+            foreach ($rawTranslations as $rawTranslation) {
+                $types[$rawTranslation['type_id']]->addTranslation($translations[$rawTranslation['translation_id']]);
+            }
+        }
+
         $this->setIdentifications($types);
 
         $this->setcontributorRoles($types);
@@ -197,14 +207,6 @@ class TypeManager extends PoemManager
         $rawCriticalApparatuses = $this->dbs->getCriticalApparatuses([$id]);
         if (!empty($rawCriticalApparatuses)) {
             $type->setCriticalApparatus($rawCriticalApparatuses[0]['critical_apparatus']);
-        }
-
-        // translation
-        $rawTranslations = $this->dbs->getTranslations([$id]);
-        $translationIds = self::getUniqueIds($rawTranslations, 'translation_id');
-        if (!empty($translationIds)) {
-            $translations = $this->container->get(TranslationManager::class)->getMini($translationIds);
-            $type->setTranslations($translations);
         }
 
         // based on occurrence
