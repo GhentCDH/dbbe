@@ -208,7 +208,8 @@ export default {
                 basic: {
                     firstName: null,
                     lastName: null,
-                    selfDesignations: null,
+                    selfDesignations: [],
+                    offices: [],
                     origin: null,
                     extra: null,
                     unprocessed: null,
@@ -233,7 +234,9 @@ export default {
                     privateComment: null,
                     public: null,
                 },
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'basic',

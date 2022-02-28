@@ -377,15 +377,21 @@ export default {
                     alternativePageStart: null,
                     alternativePageEnd: null,
                 },
-                types: {types: null},
+                types: {
+                    types: [],
+                },
                 personRoles: {},
                 contributorRoles: {},
                 dates: [],
-                metres: {metres: null},
-                genres: {genres: null},
+                metres: {
+                    metres: [],
+                },
+                genres: {
+                    genres: [],
+                },
                 subjects: {
-                    personSubjects: null,
-                    keywordSubjects: null,
+                    personSubjects: [],
+                    keywordSubjects: [],
                 },
                 identification: {},
                 images: {
@@ -404,7 +410,7 @@ export default {
                 general: {
                     palaeographicalInfo: null,
                     contextualInfo: null,
-                    acknowledgements: null,
+                    acknowledgements: [],
                     publicComment: null,
                     privateComment: null,
                     textStatus: null,
@@ -413,7 +419,9 @@ export default {
                     sourceStatus: null,
                     public: null,
                 },
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'verses',

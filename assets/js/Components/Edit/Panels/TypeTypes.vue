@@ -197,7 +197,7 @@ export default {
             this.relatedTypeIndex = -1
             this.editRelatedType = {
                 type: null,
-                relationTypes: null,
+                relationTypes: [],
             }
             this.updateRelatedTypeModal = true
         },

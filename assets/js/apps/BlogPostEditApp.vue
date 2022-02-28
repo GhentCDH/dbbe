@@ -193,7 +193,9 @@ export default {
                     postDate: null,
                 },
                 urls: {urls: []},
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'persons',
@@ -208,7 +210,7 @@ export default {
             if (role.systemName == 'author') {
                 role.required = true
             }
-            data.model.personRoles[role.systemName] = null
+            data.model.personRoles[role.systemName] = [];
         }
         return data
     },

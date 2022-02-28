@@ -276,10 +276,17 @@ export default {
             model: {
                 text_fields: 'text',
                 text_combination: 'all',
+                person: [],
+                role: [],
+                metre: [],
                 metre_op: 'or',
+                genre: [],
                 genre_op: 'or',
+                subject: [],
                 subject_op: 'or',
+                tag: [],
                 tag_op: 'or',
+                acknowledgement: [],
                 acknowledgement_op: 'or',
             },
             schema: {

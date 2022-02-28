@@ -305,7 +305,9 @@ export default {
                     shelf: null,
                     extra: null,
                 },
-                contents: {contents: null},
+                contents: {
+                    contents: [],
+                },
                 personRoles: {},
                 contributorRoles: {},
                 dates: [],
@@ -322,14 +324,16 @@ export default {
                     bibVarias: [],
                 },
                 general: {
-                    acknowledgements: null,
+                    acknowledgements: [],
                     publicComment: null,
                     privateComment: null,
                     illustrated: null,
                     status: null,
                     public: null,
                 },
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'location',
@@ -349,10 +353,10 @@ export default {
             data.model.identification[identifier.systemName] = null
         }
         for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = null
+            data.model.personRoles[role.systemName] = [];
         }
         for (let role of data.contributorRoles) {
-            data.model.contributorRoles[role.systemName] = null
+            data.model.contributorRoles[role.systemName] = [];
         }
         return data
     },

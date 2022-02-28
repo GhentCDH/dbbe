@@ -189,6 +189,7 @@ export default {
             };
             if (add) {
                 this.submitModel.role =  {
+                    usage: [],
                     name: null,
                 };
                 this.editRoleSchema.fields.systemName.disabled = false;

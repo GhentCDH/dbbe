@@ -208,7 +208,9 @@ export default {
                 },
                 urls: {urls: []},
                 identification: {},
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'persons',
@@ -225,7 +227,7 @@ export default {
             data.panels.push('identification')
         }
         for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = null
+            data.model.personRoles[role.systemName] = [];
         }
         return data
     },

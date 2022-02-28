@@ -258,8 +258,13 @@ export default {
         const data = {
             model: {
                 date_search_type: 'exact',
+                person: [],
+                role: [],
+                content: [],
                 content_op: 'or',
+                origin: [],
                 origin_op: 'or',
+                acknowledgement: [],
                 acknowledgement_op: 'or',
             },
             schema: {

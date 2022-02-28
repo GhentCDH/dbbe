@@ -425,9 +425,13 @@ export default {
         const data = {
             model: {
                 date_search_type: 'exact',
+                role: [],
                 role_op: 'or',
+                office: [],
                 office_op: 'or',
+                self_designation: [],
                 self_designation_op: 'or',
+                origin: [],
                 origin_op: 'or',
             },
             persons: null,

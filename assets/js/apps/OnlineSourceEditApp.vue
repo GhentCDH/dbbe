@@ -165,7 +165,9 @@ export default {
                     lastAccessed: null,
                 },
                 urls: {urls: []},
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'basic',

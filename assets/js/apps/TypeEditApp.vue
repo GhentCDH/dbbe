@@ -368,14 +368,18 @@ export default {
                 types: {types: null},
                 personRoles: {},
                 contributorRoles: {},
-                metres: {metres: null},
-                genres: {genres: null},
+                metres: {
+                    metres: [],
+                },
+                genres: {
+                    genres: [],
+                },
                 subjects: {
                     personSubjects: [],
                     keywordSubjects: [],
                 },
                 keywords: {
-                    keywords: null,
+                    keywords: [],
                 },
                 identification: {},
                 bibliography: {
@@ -392,7 +396,7 @@ export default {
                 },
                 general: {
                     criticalApparatus: null,
-                    acknowledgements: null,
+                    acknowledgements: [],
                     publicComment: null,
                     privateComment: null,
                     textStatus: null,
@@ -400,7 +404,9 @@ export default {
                     basedOn: null,
                     public: null,
                 },
-                managements: {managements: null},
+                managements: {
+                    managements: [],
+                },
             },
             panels: [
                 'basic',
@@ -425,10 +431,10 @@ export default {
             data.panels.push('identification')
         }
         for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = null
+            data.model.personRoles[role.systemName] = [];
         }
         for (let role of data.contributorRoles) {
-            data.model.contributorRoles[role.systemName] = null
+            data.model.contributorRoles[role.systemName] = [];
         }
         return data
     },

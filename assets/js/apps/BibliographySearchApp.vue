@@ -406,6 +406,8 @@ export default {
         const data = {
             model: {
                 title_type: 'any',
+                person: [],
+                role: [],
             },
             books: null,
             journals: null,
