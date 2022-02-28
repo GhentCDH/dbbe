@@ -116,6 +116,13 @@ export default {
         clearAll() {
             this.value = null;
         },
+        customLabelWrapper(option, label) {
+            if (this.customLabel !== undefined) {
+                return this.customLabel(option, label);
+            }
+            if (isEmpty(option)) return '';
+            return label ? option[label] : option;
+        },
         getOptionLabel(option) {
             if (isEmpty(option)) return '';
             /* istanbul ignore else */
@@ -123,7 +130,7 @@ export default {
             /* istanbul ignore else */
             if (option.$isLabel) return option.$groupLabel;
 
-            const label = this.customLabel(option, this.label);
+            const label = this.customLabelWrapper(option, this.label);
             /* istanbul ignore else */
             if (isEmpty(label)) return '';
             return label;
