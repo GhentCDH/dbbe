@@ -294,6 +294,17 @@ export default {
         data.schema.fields.library = this.createMultiSelect('Library', { dependency: 'city' });
         data.schema.fields.collection = this.createMultiSelect('Collection', { dependency: 'library' });
         data.schema.fields.shelf = this.createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
+        // Diktyon identifier
+        for (const identifier of JSON.parse(this.initIdentifiers)) {
+            if (identifier.systemName === 'diktyon') {
+                data.schema.fields[identifier.systemName] = this.createMultiSelect(
+                    identifier.name,
+                    {
+                        model: identifier.systemName,
+                    },
+                );
+            }
+        }
         data.schema.fields.year_from = {
             type: 'input',
             inputType: 'number',
@@ -357,14 +368,16 @@ export default {
             },
         );
 
-        // Add identifier fields
+        // Add identifier fields (without Diktyon (added above))
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(
-                identifier.name,
-                {
-                    model: identifier.systemName,
-                },
-            );
+            if (identifier.systemName !== 'diktyon') {
+                data.schema.fields[identifier.systemName] = this.createMultiSelect(
+                    identifier.name,
+                    {
+                        model: identifier.systemName,
+                    },
+                );
+            }
         }
 
         // Add view internal only fields
