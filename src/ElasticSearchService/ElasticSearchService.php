@@ -141,48 +141,68 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             switch ($fieldType) {
                 case 'numeric':
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
-                            (new Aggregation\Terms($fieldName))
-                                ->setSize(self::MAX_AGG)
-                                ->setField($fieldName)
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Terms($fieldName))
+                                    ->setSize(self::MAX_AGG)
+                                    ->setField($fieldName)
+                            )
                         );
                     }
                     break;
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
-                            (new Aggregation\Terms($fieldName))
-                                ->setSize(self::MAX_AGG)
-                                ->setField($fieldName . '.id')
-                                ->addAggregation(
-                                    (new Aggregation\Terms('name'))
-                                        ->setField($fieldName . '.name.keyword')
-                                )
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Terms($fieldName))
+                                    ->setSize(self::MAX_AGG)
+                                    ->setField($fieldName . '.id')
+                                    ->addAggregation(
+                                        (new Aggregation\Terms('name'))
+                                            ->setField($fieldName . '.name.keyword')
+                                    )
+                            )
                         );
                     }
                     break;
                 case 'exact_text':
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
-                            (new Aggregation\Terms($fieldName))
-                                ->setSize(self::MAX_AGG)
-                                ->setField($fieldName . '.keyword')
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Terms($fieldName))
+                                    ->setSize(self::MAX_AGG)
+                                    ->setField($fieldName . '.keyword')
+                            )
                         );
                     }
                     break;
                 case 'nested':
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
-                            (new Aggregation\Nested($fieldName, $fieldName))
-                                ->addAggregation(
-                                    (new Aggregation\Terms('id'))
-                                        ->setSize(self::MAX_AGG)
-                                        ->setField($fieldName . '.id')
-                                        ->addAggregation(
-                                            (new Aggregation\Terms('name'))
-                                                ->setField($fieldName . '.name.keyword')
-                                        )
-                                )
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Nested($fieldName, $fieldName))
+                                    ->addAggregation(
+                                        (new Aggregation\Terms('id'))
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($fieldName . '.id')
+                                            ->addAggregation(
+                                                (new Aggregation\Terms('name'))
+                                                    ->setField($fieldName . '.name.keyword')
+                                            )
+                                    )
+                            )
                         );
                     }
                     break;
@@ -212,10 +232,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'boolean':
                     foreach ($fieldNames as $fieldName) {
+                        $filterQuery = self::createQuery($filterValues, $fieldName);
                         $query->addAggregation(
-                            (new Aggregation\Terms($fieldName))
-                                ->setSize(self::MAX_AGG)
-                                ->setField($fieldName)
+                            (new Aggregation\Filter($fieldName))
+                            ->setFilter($filterQuery)
+                            ->addAggregation(
+                                (new Aggregation\Terms($fieldName))
+                                    ->setSize(self::MAX_AGG)
+                                    ->setField($fieldName)
+                            )
                         );
                     }
                     break;
@@ -227,17 +252,22 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     //  ]
                     foreach ($fieldNames as $fieldName) {
                         foreach ($fieldName[0] as $key) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
                             $query->addAggregation(
-                                (new Aggregation\Nested($key, $key))
-                                    ->addAggregation(
-                                        (new Aggregation\Terms('id'))
-                                            ->setSize(self::MAX_AGG)
-                                            ->setField($key . '.id')
-                                            ->addAggregation(
-                                                (new Aggregation\Terms('name'))
-                                                    ->setField($key . '.name.keyword')
-                                            )
-                                    )
+                                (new Aggregation\Filter($fieldName))
+                                ->setFilter($filterQuery)
+                                ->addAggregation(
+                                    (new Aggregation\Nested($key, $key))
+                                        ->addAggregation(
+                                            (new Aggregation\Terms('id'))
+                                                ->setSize(self::MAX_AGG)
+                                                ->setField($key . '.id')
+                                                ->addAggregation(
+                                                    (new Aggregation\Terms('name'))
+                                                        ->setField($key . '.name.keyword')
+                                                )
+                                        )
+                                )
                             );
                         }
                     }
@@ -279,7 +309,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             switch ($fieldType) {
                 case 'numeric':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -290,7 +320,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'object':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -301,7 +331,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'exact_text':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -312,7 +342,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'nested':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['id']['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -336,7 +366,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
                 case 'boolean':
                     foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName);
+                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
@@ -357,7 +387,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         if (isset($filterValues[$fieldType][$fieldName[1]])) {
                             $ids = [];
                             foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key);
+                                $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id']['buckets'] as $result) {
                                     if (!in_array($result['key'], $ids)) {
                                         $ids[] = $result['key'];
@@ -381,7 +411,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             // prevent duplicate entries
                             $ids = [];
                             foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key);
+                                $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id']['buckets'] as $result) {
                                     if (!in_array($result['key'], $ids)) {
                                         $ids[] = $result['key'];
@@ -833,7 +863,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($filterValues as $fieldName => $options) {
                         // Don't include in the aggregation query for the field itself
                         if ($aggregateKey == $fieldName) {
-                            break;
+                            continue;
                         }
                         [$keys, $values] = $options;
 
