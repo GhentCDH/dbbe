@@ -997,7 +997,7 @@ class PersonManager extends ObjectEntityManager
                         $esData['subject'] = ArrayToJson::arrayToShortJson($new->subjects);
                     }
                 }
-                $this->container->get(ElasticOccurrenceService)->updateMultiple(
+                $this->container->get(ElasticOccurrenceService::class)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($occurrences) {
@@ -1006,7 +1006,7 @@ class PersonManager extends ObjectEntityManager
                         ARRAY_FILTER_USE_KEY
                     )
                 );
-                $this->container->get(ElasticTypeService)->updateMultiple(
+                $this->container->get(ElasticTypeService::class)->updateMultiple(
                     array_filter(
                         $esData,
                         function ($key) use ($types) {
