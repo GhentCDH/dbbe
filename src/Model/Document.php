@@ -110,6 +110,21 @@ class Document extends Entity
         return $this->personRoles;
     }
 
+    /**
+     * Sort person roles alphabetically per role.
+     */
+    public function sortPersonRoles(): void
+    {
+        foreach ($this->personRoles as $roleName => $personRole) {
+            uasort(
+                $this->personRoles[$roleName][1],
+                function ($a, $b) {
+                    return $a->getFullDescriptionWithOffices() <=> $b->getFullDescriptionWithOffices();
+                }
+            );
+        }
+    }
+
     public function getPublicPersonRoles(): array
     {
         $personRoles = $this->personRoles;
@@ -179,8 +194,8 @@ class Document extends Entity
     }
 
     /**
-     * Sort contributor roles by role name.
-     * Order: creator, transcriber, contributor.
+     * Sort contributor roles by role name and then alphabetically.
+     * Order of role names: creator, transcriber, contributor.
      */
     public function sortContributorRoles(): void
     {
@@ -195,6 +210,14 @@ class Document extends Entity
                 return $order[$a] - $order[$b];
             }
         );
+        foreach ($this->contributorRoles as $roleName => $contributorRole) {
+            uasort(
+                $this->contributorRoles[$roleName][1],
+                function ($a, $b) {
+                    return $a->getFullDescriptionWithOffices() <=> $b->getFullDescriptionWithOffices();
+                }
+            );
+        }
     }
 
     private function getContributorRolesJson(): array

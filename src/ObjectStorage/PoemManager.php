@@ -100,6 +100,9 @@ abstract class PoemManager extends DocumentManager
             $poems[$rawMetre['poem_id']]
                 ->addMetre($metres[$rawMetre['metre_id']]);
         }
+        foreach ($poems as $poem) {
+            $poem->sortMetres();
+        }
     }
 
     protected function setSubjects(array &$poems): void
@@ -136,6 +139,9 @@ abstract class PoemManager extends DocumentManager
         foreach ($rawGenres as $rawGenre) {
             $poems[$rawGenre['poem_id']]
                 ->addGenre($genres[$rawGenre['genre_id']]);
+        }
+        foreach ($poems as $poem) {
+            $poem->sortGenres();
         }
     }
 

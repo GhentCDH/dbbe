@@ -83,6 +83,16 @@ class Type extends Poem
         return $this->keywords;
     }
 
+    public function sortKeywords(): void
+    {
+        usort(
+            $this->keywords,
+            function ($a, $b) {
+                return $a->getName() <=> $b->getName();
+            }
+        );
+    }
+
     public function addOccurrence(Occurrence $occurrence): Type
     {
         $this->occurrences[] = $occurrence;

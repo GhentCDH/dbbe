@@ -74,6 +74,9 @@ abstract class DocumentManager extends ObjectEntityManager
                     );
             }
         }
+        foreach ($documents as $document) {
+            $document->sortPersonRoles();
+        }
     }
 
     protected function setContributorRoles(array &$documents): void
@@ -97,9 +100,9 @@ abstract class DocumentManager extends ObjectEntityManager
                         $persons[$raw['person_id']]
                     );
             }
-        }
-        foreach (array_keys($documents) as $documentId) {
-            $documents[$documentId]->sortContributorRoles();
+            foreach ($documents as $document) {
+                $document->sortContributorRoles();
+            }
         }
     }
 

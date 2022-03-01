@@ -44,6 +44,11 @@ class Manuscript extends Document
      */
     protected $occurrencePersonRoles = [];
     /**
+     * Cache for sorted person roles
+     * @var array
+     */
+    protected $allPersonRoles = [];
+    /**
      * Array of occurrences, in order
      * @var array
      */
@@ -98,6 +103,16 @@ class Manuscript extends Document
         return $this->contentsWithParents;
     }
 
+    public function sortContentsWithParents(): void
+    {
+        usort(
+            $this->contentsWithParents,
+            function ($a, $b) {
+                return $a->getDisplayName() <=> $b->getDisplayName();
+            }
+        );
+    }
+
     public function setOccurrencePersonRoles(array $occurrencePersonRoles): Manuscript
     {
         $this->occurrencePersonRoles = $occurrencePersonRoles;
@@ -140,6 +155,9 @@ class Manuscript extends Document
 
     public function getAllPersonRoles(): array
     {
+        if(!empty($this->allPersonRoles)) {
+            return $this->allPersonRoles;
+        }
         $personRoles = $this->personRoles;
         foreach ($this->occurrencePersonRoles as $roleName => $occurrencePersonRole) {
             $role = array_shift($occurrencePersonRole);
@@ -166,6 +184,7 @@ class Manuscript extends Document
                 }
             }
         }
+        $this->allPersonRoles = $personRoles;
         return $personRoles;
     }
 
@@ -255,6 +274,15 @@ class Manuscript extends Document
                 $allPersonRoles['related'][1] = $relatedPersonRoles;
             }
         }
+        foreach ($allPersonRoles as $roleName => $val) {
+            uasort(
+                $allPersonRoles[$roleName][1],
+                function ($a, $b) {
+                    return $a->getFullDescription() <=> $b->getFullDescription();
+                }
+            );
+
+        }
         return $allPersonRoles;
     }
 
@@ -272,6 +300,15 @@ class Manuscript extends Document
             } else {
                 $allPersonRoles['related'][1] = $relatedPersonRoles;
             }
+        }
+        foreach ($allPersonRoles as $roleName => $val) {
+            uasort(
+                $allPersonRoles[$roleName][1],
+                function ($a, $b) {
+                    return $a->getFullDescription() <=> $b->getFullDescription();
+                }
+            );
+
         }
         return $allPersonRoles;
     }

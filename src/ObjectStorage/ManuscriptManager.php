@@ -63,7 +63,11 @@ class ManuscriptManager extends DocumentManager
                 $manuscripts[$rawContent['manuscript_id']]
                     ->addContentWithParents($contentWithParents);
             }
+            foreach ($manuscripts as $manuscript) {
+                $manuscript->sortContentsWithParents();
+            }
         }
+
 
         $this->setPersonRoles($manuscripts);
 
@@ -91,6 +95,9 @@ class ManuscriptManager extends DocumentManager
                     $occurrences[$raw['occurrence_id']]
                 );
         }
+        // foreach ($manuscripts as $manuscript) {
+        //     $manuscript->sortPersons();
+        // }
 
         $this->setDates($manuscripts);
 

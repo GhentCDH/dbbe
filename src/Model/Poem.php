@@ -81,6 +81,16 @@ class Poem extends Document
         return $this->metres;
     }
 
+    public function sortMetres(): void
+    {
+        uasort(
+            $this->metres,
+            function ($a, $b) {
+                return $a->getName() <=> $b->getName();
+            }
+        );
+    }
+
     public function addGenre(Genre $genre): Poem
     {
         $this->genres[$genre->getId()] = $genre;
@@ -91,6 +101,16 @@ class Poem extends Document
     public function getGenres(): array
     {
         return $this->genres;
+    }
+
+    public function sortGenres(): void
+    {
+        uasort(
+            $this->genres,
+            function ($a, $b) {
+                return $a->getName() <=> $b->getName();
+            }
+        );
     }
 
     public function setSubjects(array $subjects): Poem
@@ -126,22 +146,13 @@ class Poem extends Document
 
     public function sortSubjects(): void
     {
-        usort(
+        uasort(
             $this->subjects,
             function ($a, $b) {
-                if (is_a($a, Person::class)) {
-                    if (!is_a($b, Person::class)) {
-                        return -1;
-                    } else {
-                        return strcmp($a->getFullDescriptionWithOffices(), $b->getFullDescriptionWithOffices());
-                    }
-                } else {
-                    if (is_a($b, Person::class)) {
-                        return 1;
-                    } else {
-                        return strcmp($a->getName(), $b->getName());
-                    }
-                }
+                $a_text = is_a($a, Person::class) ? $a->getFullDescriptionWithOffices() : $a->getName();
+                $b_text = is_a($b, Person::class) ? $b->getFullDescriptionWithOffices() : $b->getName();
+
+                return $a_text <=> $b_text;
             }
         );
     }

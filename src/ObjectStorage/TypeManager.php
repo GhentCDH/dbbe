@@ -110,6 +110,9 @@ class TypeManager extends PoemManager
             $types[$rawKeyword['type_id']]
                 ->addKeyword($keywords[$rawKeyword['keyword_id']]);
         }
+        foreach ($types as $type) {
+            $type->sortKeywords();
+        }
 
         $this->setPersonRoles($types);
 
