@@ -853,8 +853,12 @@ class PersonManager extends ObjectEntityManager
             if (empty($primary->getIdentifications()[$identifier->getSystemName()])
                 && !empty($secondary->getIdentifications()[$identifier->getSystemName()])
             ) {
-                $updates[$identifier->getSystemName()] =
-                    implode(', ', $secondary->getIdentifications()[$identifier->getSystemName()][1]);
+                if (!isset($updates['identification'])) {
+                    $updates['identification'] = [];
+                }
+                $updates['identification'][$identifier->getSystemName()] = ArrayToJson::arrayToJson(
+                    $secondary->getIdentifications()[$identifier->getSystemName()][1]
+                );
             }
         }
         if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
