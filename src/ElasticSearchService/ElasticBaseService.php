@@ -6,6 +6,7 @@ use stdClass;
 
 use Elastica\Document;
 use Elastica\Mapping;
+use Elastica\Query;
 
 use App\Model\IdElasticInterface;
 
@@ -50,7 +51,7 @@ abstract class ElasticBaseService extends ElasticSearchService
 
     public function deleteMultiple(array $ids): void
     {
-        $this->index->deleteIds($ids);
+        $this->index->deleteByQuery(new Query\Terms('id', $ids));
         $this->index->refresh();
     }
 
