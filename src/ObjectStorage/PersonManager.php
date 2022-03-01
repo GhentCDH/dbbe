@@ -1386,9 +1386,11 @@ class PersonManager extends ObjectEntityManager
             // get dependencies
             $dependencies = [];
             foreach (array_values(ElasticManagers::MANAGERS) as $manager) {
-                $ids = $this->container->get($manager)->getPersonDependencies($id, 'getId');
-                if (!empty($ids)) {
-                    $dependencies[$entity] = $ids;
+                if (method_exists($this->container->get($manager), 'getPersonDependencies')) {
+                    $ids = $this->container->get($manager)->getPersonDependencies($id, 'getId');
+                    if (!empty($ids)) {
+                        $dependencies[$entity] = $ids;
+                    }
                 }
             }
 
