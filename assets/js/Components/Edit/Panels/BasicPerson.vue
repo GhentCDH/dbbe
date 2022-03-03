@@ -171,25 +171,54 @@ export default {
             }
             for (let key of Object.keys(this.model)) {
                 // Remove selfdesignations, offices, origin or extra if not historical
-                if (!this.model.historical && ['selfDesignations', 'offices', 'origin', 'extra'].includes(key)) {
+                if (!this.model.historical) {
                     if (
-                        this.originalModel[key] != null
-                        && (
-                            ((['selfDesignations', 'offices', 'extra'].includes(key)) && this.originalModel[key] != '')
-                            || this.originalModel[key] != []
-                        )
+                        ['selfDesignations', 'offices'].includes(key)
+                        && this.originalModel[key] != null
+                        && this.originalModel[key].length !== 0
+                    ) {
+                        this.changes.push({
+                            'key': key,
+                            'label': this.fields[key].label,
+                            'old': this.originalModel[key],
+                            'new': [],
+                            'value': [],
+                        })
+                        continue;
+                    }
+                    if (
+                        key == 'origin'
+                        && this.originalModel[key] != null
+                        && Object.keys(this.originalModel[key]).length === 0
                     ) {
                         this.changes.push({
                             'key': key,
                             'label': this.fields[key].label,
                             'old': this.originalModel[key],
                             'new': null,
-                            'value': ['selfDesignations', 'offices', 'extra'].includes(key) ? '' : null,
+                            'value': null,
                         })
+                        continue;
                     }
-                    continue;
+                    if (
+                        key == 'extra'
+                        && this.originalModel[key] != null
+                        && this.originalModel[key] !== ''
+                    ) {
+                        this.changes.push({
+                            'key': key,
+                            'label': this.fields[key].label,
+                            'old': this.originalModel[key],
+                            'new': null,
+                            'value': '',
+                        })
+                        continue;
+                    }
                 }
-                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
+                if (
+                    JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])
+                    && !(this.model[key] == null && this.originalModel[key] == null)
+                ) {
                     this.changes.push({
                         'key': key,
                         'label': this.fields[key].label,
