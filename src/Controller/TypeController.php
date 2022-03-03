@@ -619,6 +619,7 @@ class TypeController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
+            // TODO detailed sanitization
             $filters = $params['filters'];
         }
 

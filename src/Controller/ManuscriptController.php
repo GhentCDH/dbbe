@@ -73,7 +73,7 @@ class ManuscriptController extends BaseController
                 ]),
                 'data' => json_encode(
                     $elasticManuscriptService->searchAndAggregate(
-                        $this->sanitize($request->query->all()),
+                        $this->sanitize($request->query->all(), $identifierManager),
                         $this->isGranted('ROLE_VIEW_INTERNAL')
                     )
                 ),
@@ -92,15 +92,17 @@ class ManuscriptController extends BaseController
      * @Route("/manuscripts/search_api", name="manuscripts_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticManuscriptService $elasticManuscriptService
+     * @param IdentifierManager $identifierManager
      * @return JsonResponse
      */
     public function searchAPI(
         Request $request,
-        ElasticManuscriptService $elasticManuscriptService
+        ElasticManuscriptService $elasticManuscriptService,
+        IdentifierManager $identifierManager
     ) {
         $this->throwErrorIfNotJson($request);
         $result = $elasticManuscriptService->searchAndAggregate(
-            $this->sanitize($request->query->all()),
+            $this->sanitize($request->query->all(), $identifierManager),
             $this->isGranted('ROLE_VIEW_INTERNAL')
         );
 
@@ -504,8 +506,16 @@ class ManuscriptController extends BaseController
         );
     }
 
-    private function sanitize(array $params): array
-    {
+    /**
+     * Sanitize data from request string
+     * @param array $params
+     * @param IdentifierManager $identifierManager
+     * @return array
+     */
+    private function sanitize(
+        array $params,
+        IdentifierManager $identifierManager
+    ): array {
         $defaults = [
             'limit' => 25,
             'page' => 1,
@@ -560,7 +570,71 @@ class ManuscriptController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            $filters = $params['filters'];
+            $identifiers = array_keys($identifierManager->getPrimaryByType('person'));
+
+            foreach (array_keys($params['filters']) as $key) {
+                switch ($key) {
+                    case 'content':
+                    case 'person':
+                    case 'role':
+                    case 'origin':
+                    case 'acknowledgement':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'content_op':
+                    case 'origin_op':
+                    case 'acknowledgement_op':
+                    case 'shelf':
+                    case 'comment':
+                    case 'date_search_type':
+                        if (is_string($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'city':
+                    case 'library':
+                    case 'collection':
+                    case 'public':
+                    case 'management':
+                        if (is_numeric($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'management_inverse':
+                        if (is_string($params['filters'][$key])
+                            && (
+                                $params['filters'][$key] == 'true'
+                                || $params['filters'][$key] == 'false'
+                            )
+                        ) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'date':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                            foreach (array_keys($params['filters'][$key]) as $subKey) {
+                                switch ($subKey) {
+                                    case 'year_from':
+                                    case 'year_to':
+                                        if (is_numeric($params['filters'][$key][$subKey])) {
+                                            $filters[$key][$subKey] = $params['filters'][$key][$subKey];
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+                        break;
+                }
+
+                if (in_array($key, $identifiers)) {
+                    if (is_string($params['filters'][$key])) {
+                        $filters[$key] = $params['filters'][$key];
+                    }
+                }
+            }
         }
 
         // limit results to public if no access rights

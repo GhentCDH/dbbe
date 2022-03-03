@@ -20,7 +20,7 @@
                             {% embed 'Helpers/renderList.html.twig' with {'list': manuscript.getContentsWithParents()} only %}
                                 {% block renderItem %}
                                     {% for content in item.getArray() %}
-                                        <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[content]'|url_encode ~ '=' ~ content.getId() }}" title="Search for all manuscripts with this content">
+                                        <a href="{{ path('manuscripts_search') ~ '?' ~ 'filters[content][0]'|url_encode ~ '=' ~ content.getId() }}" title="Search for all manuscripts with this content">
                                             {{ content.getPerson() != null ? content.getPerson().getName() : content.getName() }}
                                         </a>
                                         &nbsp;

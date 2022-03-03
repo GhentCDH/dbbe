@@ -76,7 +76,7 @@
                         <td>
                             {% embed 'Helpers/renderList.html.twig' with {'list': type.getGenres()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[genre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this genre">{{ item.getName() }}</a>
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[genre][0]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this genre">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -93,7 +93,7 @@
                         <td>
                             {% embed 'Helpers/renderList.html.twig' with {'list': type.getMetres()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[metre]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this metre">{{ item.getName() }}</a>
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[metre][0]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this metre">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
@@ -109,7 +109,7 @@
                                     {% if item is person %}
                                         {% include 'Helpers/renderPublic.html.twig' with {'item': item, 'path': 'person_get','display': item.getFullDescriptionWithOffices()} only %}
                                     {% else %}
-                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[subject]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this subject">{{ item.getName() }}</a>
+                                        <a href="{{ path('types_search') ~ '?' ~ 'filters[subject][0]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this subject">{{ item.getName() }}</a>
                                     {% endif %}
                                 {% endblock %}
                             {% endembed %}
@@ -122,7 +122,7 @@
                         <td>
                             {% embed 'Helpers/renderList.html.twig' with {'list': type.getKeywords()} only %}
                                 {% block renderItem %}
-                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[tag]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this tag">{{ item.getName() }}</a>
+                                    <a href="{{ path('types_search') ~ '?' ~ 'filters[tag][0]'|url_encode ~ '=' ~ item.getId() }}" title="Search for all types with this tag">{{ item.getName() }}</a>
                                 {% endblock %}
                             {% endembed %}
                         </td>
