@@ -163,6 +163,9 @@ abstract class EntityManager extends ObjectManager
                 )
             );
         }
+        foreach ($entities as $entity) {
+            $entity->sortIdentifications();
+        }
     }
 
     protected function setInverseIdentifications(array &$entities): void

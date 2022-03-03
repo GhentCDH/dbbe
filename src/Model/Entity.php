@@ -152,6 +152,21 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this->identifications;
     }
 
+    public function sortIdentifications(): void
+    {
+        foreach ($this->identifications as $identifierName => $identifierIdentifications) {
+            $identifier = $this->identifications[$identifierName][0];
+            uasort(
+                $this->identifications[$identifierName][1],
+                function ($a, $b) use ($identifier) {
+                    if ($identifier->getLinkType() == 'online_source') {
+                        return $a->__toString() <=> $b->__toString();
+                    }
+                }
+            );
+        }
+    }
+
     public function getFlatIdentifications(): array
     {
         $result = [];
