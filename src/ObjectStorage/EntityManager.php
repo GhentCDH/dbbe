@@ -170,8 +170,8 @@ abstract class EntityManager extends ObjectManager
         $rawInverseIdentifications = $this->dbs->getInverseIdentifications(array_keys($entities));
         if (!empty($rawInverseIdentifications)) {
             $inverseIdentifications = [];
-            foreach (array_values(ElasticManagers::MANAGERS) as $manager) {
-                $ids = self::getUniqueIds($rawInverseIdentifications, 'entity_id', 'type', $type);
+            foreach (ElasticManagers::MANAGERS as $managerType => $manager) {
+                $ids = self::getUniqueIds($rawInverseIdentifications, 'entity_id', 'type', $managerType);
                 $inverseIdentifications += $this->container->get($manager)->getMini($ids);
             }
             // Regions
