@@ -152,6 +152,20 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return $this->identifications;
     }
 
+    private function compareNumbersAndText($a, $b): int
+    {
+        // both start with a number
+        if (preg_match('/^\d+/', $a, $a_matches) === 1 && preg_match('/^\d+/', $b, $b_matches) === 1) {
+            $a_num = $a_matches[0];
+            $b_num = $b_matches[0];
+            if ($a_num != $b_num) {
+                return intval($a_num) - intval($b_num);
+            }
+            return substr($a, strlen($a_num)) <=> substr($b, strlen($b_num));
+        }
+        return $a <=> $b;
+    }
+
     public function sortIdentifications(): void
     {
         foreach ($this->identifications as $identifierName => $identifierIdentifications) {
@@ -159,9 +173,17 @@ class Entity implements IdJsonInterface, IdElasticInterface
             uasort(
                 $this->identifications[$identifierName][1],
                 function ($a, $b) use ($identifier) {
-                    if ($identifier->getLinkType() == 'online_source') {
-                        return $a->__toString() <=> $b->__toString();
+                    if ($identifier->getLinkType() == 'book') {
+                        if ($identifier->getVolumes() == 1) {
+                            return $this->compareNumbersAndText($a->__toString(), $b->__toString());
+                        }
+                        if ($a->getVolume() != $b->getVolume()) {
+                            return $a->getVolume() - $b->getVolume();
+                        }
+                        return $this->compareNumbersAndText($a->getIdentification(), $b->getIdentification());
                     }
+                    // online_source, article
+                    return $this->compareNumbersAndText($a->__toString(), $b->__toString());
                 }
             );
         }
