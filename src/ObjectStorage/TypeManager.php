@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use App\Model\Status;
+use App\Model\Translation;
 use App\Model\Type;
 
 class TypeManager extends PoemManager
@@ -598,10 +599,20 @@ class TypeManager extends PoemManager
         }
     }
 
+    private function getTranslationWithIdFromArray(array $translations, int $id): Translation
+    {
+        foreach ($translations as $translation) {
+            if ($translation->getId() == $id) {
+                return $translation;
+            }
+        }
+    }
+
     private function updateTranslations(Type $type, array $translations): void
     {
         $delIds = [];
-        foreach ($type->getTranslations() as $oldTranslation) {
+        $oldTranslations = $type->getTranslations();
+        foreach ($oldTranslations as $oldTranslation) {
             $found = false;
             foreach ($translations as $newTranslation) {
                 if (property_exists($newTranslation, 'id') && $oldTranslation->getId() == $newTranslation->id) {
@@ -622,7 +633,7 @@ class TypeManager extends PoemManager
             // If a new translation has an id, it will be present in old translations
             if (property_exists($newTranslation, 'id')) {
                 $this->container->get(TranslationManager::class)->updateIfRequired(
-                    $type->getTranslations()[$newTranslation->id],
+                    $this->getTranslationWithIdFromArray($oldTranslations, $newTranslation->id),
                     $newTranslation
                 );
             } else {
