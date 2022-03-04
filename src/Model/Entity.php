@@ -450,14 +450,18 @@ class Entity implements IdJsonInterface, IdElasticInterface
         foreach ($this->identifications as $identifications) {
             if ($identifications[0]->getPrimary()) {
                 $result[$identifications[0]->getSystemName()] =
-                    array_map(
-                        function($identification) {
-                            return $identification->getVolumeIdentification();
-                        },
-                        $identifications[1]
+                    array_values(
+                        array_map(
+                            function($identification) {
+                                return $identification->getVolumeIdentification();
+                            },
+                            $identifications[1]
+                        )
                     );
             }
         }
+
+        echo '<pre>', var_dump($result), '</pre>';
 
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;
