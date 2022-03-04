@@ -164,6 +164,9 @@ class TypeManager extends PoemManager
                 $types[$rawTranslation['type_id']]->addTranslation($translations[$rawTranslation['translation_id']]);
             }
         }
+        foreach ($types as $type) {
+            $type->sortTranslations();
+        }
 
         $this->setIdentifications($types);
 

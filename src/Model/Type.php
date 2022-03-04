@@ -176,6 +176,51 @@ class Type extends Poem
         return $this->translations;
     }
 
+    public function getTranslationYear(Translation $translation): ?int
+    {
+        $year = 9999;
+        foreach ($translation->getBibliographies() as $bibliography) {
+            $new_year = 9999;
+            switch ($bibliography->getType()) {
+                case 'article':
+                    $new_year = $bibliography->getArticle()->getJournalIssue()->getYear();
+                    break;
+                case 'book':
+                    $new_year = $bibliography->getBook()->getYear();
+                    break;
+                case 'bibVaria':
+                    $new_year = $bibliography->getBibVaria()->getYear();
+                    break;
+                case 'bookChapter':
+                    $new_year = $bibliography->getBookChapter()->getBook()->getYear();
+                    break;
+                case 'phd':
+                    $new_year = $bibliography->getPhd()->getYear();
+                    break;
+            }
+            if ($new_year < $year) {
+                $year = $new_year;
+            }
+        }
+        return $year;
+    }
+
+    public function sortTranslations(): void
+    {
+        // echo '<pre>', var_dump($this->translations), '</pre>';
+        usort(
+            $this->translations,
+            function ($a, $b) {
+                if ($a->getLanguage() != $b->getLanguage()) {
+                    return $a->getLanguage() <=> $b->getLanguage();
+                }
+                $a_year = $this->getTranslationYear($a);
+                $b_year = $this->getTranslationYear($b);
+                return $a_year - $b_year;
+            }
+        );
+    }
+
     /**
      * Filter out translations where the language isn't set yet.
      * @return array
