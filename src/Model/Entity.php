@@ -461,8 +461,6 @@ class Entity implements IdJsonInterface, IdElasticInterface
             }
         }
 
-        echo '<pre>', var_dump($result), '</pre>';
-
         if (isset($this->publicComment)) {
             $result['public_comment'] = $this->publicComment;
         }
