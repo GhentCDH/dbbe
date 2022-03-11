@@ -570,7 +570,7 @@ class ManuscriptController extends BaseController
         // Filtering
         $filters = [];
         if (isset($params['filters']) && is_array($params['filters'])) {
-            $identifiers = array_keys($identifierManager->getPrimaryByType('person'));
+            $identifiers = array_keys($identifierManager->getPrimaryByType('manuscript'));
 
             foreach (array_keys($params['filters']) as $key) {
                 switch ($key) {
