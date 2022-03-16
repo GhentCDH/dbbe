@@ -117,7 +117,7 @@ class Document extends Entity
     {
         foreach ($this->personRoles as $roleName => $personRole) {
             // Don't sort some roles (https://github.ugent.be/idevos/DBBE-workflow/issues/453#issuecomment-125090)
-            if (in_array($roleName, ['author', 'editor', 'translator', 'contributor', 'supervisor', 'transcriber'])) {
+            if (in_array($roleName, ['author', 'editor', 'translator', 'creator', 'contributor', 'transcriber'])) {
                 continue;
             }
             uasort(
