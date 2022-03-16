@@ -116,6 +116,10 @@ class Document extends Entity
     public function sortPersonRoles(): void
     {
         foreach ($this->personRoles as $roleName => $personRole) {
+            // Don't sort some roles (https://github.ugent.be/idevos/DBBE-workflow/issues/453#issuecomment-125090)
+            if (in_array($roleName, ['author', 'editor', 'translator', 'contributor', 'supervisor', 'transcriber'])) {
+                continue;
+            }
             uasort(
                 $this->personRoles[$roleName][1],
                 function ($a, $b) {
