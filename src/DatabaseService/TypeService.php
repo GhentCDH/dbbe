@@ -847,6 +847,7 @@ class TypeService extends PoemService
             }
             // Set search_path for triggers
             $this->conn->exec('SET SEARCH_PATH TO data');
+            // Delete subjects and related types
             $this->conn->executeUpdate(
                 'DELETE from data.factoid
                 using factoid_type
@@ -854,11 +855,16 @@ class TypeService extends PoemService
                 or (
                     factoid.object_identity = ?
                     and factoid.idfactoid_type = factoid_type.idfactoid_type
-                    and factoid_type.type = \'subject of\'
+                    and (
+                        factoid_type.type = ?
+                        or factoid_type.group = ?
+                    )
                 )',
                 [
                     $id,
                     $id,
+                    'subject of',
+                    'reconstructed_poem_related_to_reconstructed_poem',
                 ]
             );
             // Delete related translations
