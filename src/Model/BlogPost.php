@@ -92,7 +92,8 @@ class BlogPost extends Document
         }
         return
             implode(', ', $authorNames)
-            . ', ' . $this->title
+            . (!empty($authorNames) ? ', ' : '')
+            . $this->title
             . (!empty($this->postDate) ? ' (posted on: ' . $this->postDate->format('Y-m-d') . ')' : '')
             . '.';
     }
