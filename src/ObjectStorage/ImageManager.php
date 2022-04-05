@@ -73,7 +73,7 @@ class ImageManager extends ObjectManager
         try {
             $rawImages = $this->dbs->getImagesByFileName($filename);
             if (count($rawImages) > 1) {
-                throw new NotFoundHttpException('Multiple images already exsist with filename "' . $filename . '"');
+                throw new NotFoundHttpException('Multiple images already exist with filename "' . $filename . '"');
             } elseif (count($rawImages) == 1) {
                 $new = $this->getWithData($rawImages)[$rawImages[0]['image_id']];
             } else {
