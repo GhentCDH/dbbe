@@ -77,6 +77,17 @@ class Blog extends Document
         return $this->posts;
     }
 
+    public function sortPosts(): void
+    {
+        usort(
+            $this->posts,
+            function ($a, $b) {
+                return $a->getSortKey() <=> $b->getSortKey();
+            }
+        );
+
+    }
+
     /**
      * @return string
      */

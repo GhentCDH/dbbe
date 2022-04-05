@@ -87,6 +87,8 @@ class BlogManager extends DocumentManager
             $blog->addPost($blogPosts[$rawPost['blog_post_id']]);
         }
 
+        $blog->sortPosts();
+
         return $blog;
     }
 
