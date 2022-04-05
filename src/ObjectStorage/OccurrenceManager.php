@@ -85,6 +85,8 @@ class OccurrenceManager extends PoemManager
 
             $this->setNumberOfVerses($occurrences);
 
+            $this->setDates($occurrences);
+
             // Verses (needed in mini to calculate number of verses)
             $rawVerses = $this->dbs->getVerses($ids);
             $verses = $this->container->get(VerseManager::class)->getMiniWithData($rawVerses);
@@ -146,8 +148,6 @@ class OccurrenceManager extends PoemManager
         $this->setSubjects($occurrences);
 
         $this->setPersonRoles($occurrences);
-
-        $this->setDates($occurrences);
 
         $this->setGenres($occurrences);
 

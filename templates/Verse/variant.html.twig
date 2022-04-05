@@ -10,6 +10,7 @@
                     <th>Line</th>
                     <th>Occurrence</th>
                     <th>Occurrence Location</th>
+                    <th>Occurrence Date</th>
                     <th>Manuscript</th>
                 </tr>
             </thead>
@@ -24,6 +25,7 @@
                             </a>
                         </td>
                         <td>{{ verse.getOccurrence().getLocation() }}</td>
+                        <td>{{ verse.getOccurrence().getDate() }}</td>
                         <td>
                             <a href="{{ path('manuscript_get', {'id': verse.getManuscript().getId()}) }}">
                                 {{ verse.getManuscript().getDescription() }}
