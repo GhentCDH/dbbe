@@ -431,7 +431,8 @@ class OccurrenceService extends PoemService
             inner join data.factoid on original_poem.identity = factoid.subject_identity
             inner join data.factoid_type on factoid.idfactoid_type = factoid_type.idfactoid_type
             where original_poem.identity in (?)
-            and factoid_type.type = \'reconstruction of\'',
+            and factoid_type.type = \'reconstruction of\'
+            order by factoid.rank, factoid.object_identity',
             [$ids],
             [Connection::PARAM_INT_ARRAY]
         )->fetchAll();
@@ -838,6 +839,29 @@ class OccurrenceService extends PoemService
             [
                 \PDO::PARAM_INT,
                 Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    /**
+     * @param  int $id
+     * @param  int $typeId
+     * @param  int $rank
+     * @return int
+     */
+    public function updateTypeRank(int $id, int $typeId, int $rank): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.factoid
+            set rank = ?
+            from data.factoid_type
+            where factoid.subject_identity = ?
+            and factoid.object_identity = ?
+            and factoid_type.type = \'reconstruction of\'',
+            [
+                $rank,
+                $id,
+                $typeId,
             ]
         );
     }

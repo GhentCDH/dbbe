@@ -427,9 +427,9 @@ class Occurrence extends Poem
         );
     }
 
-    public function setTypes(array $types): Occurrence
+    public function addType($type): Occurrence
     {
-        $this->types = $types;
+        $this->types[] = $type;
 
         return $this;
     }

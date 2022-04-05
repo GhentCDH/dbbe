@@ -12,15 +12,51 @@
             :options="formOptions"
             @validated="validated"
         />
+        <div>
+            <p>
+                <a
+                    href="#"
+                    class="action"
+                    @click.prevent="displayOrder = !displayOrder"
+                >
+                    <i
+                        v-if="displayOrder"
+                        class="fa fa-caret-down"
+                    />
+                    <i
+                        v-else
+                        class="fa fa-caret-up"
+                    />
+                    Change order
+                </a>
+            </p>
+            <draggable
+                v-if="displayOrder"
+                v-model="model.types"
+                @change="onChange"
+            >
+                <transition-group>
+                    <div
+                        v-for="type in model.types"
+                        :key="type.id"
+                        class="panel panel-default draggable-item"
+                    >
+                        <div class="panel-body">
+                            <i class="fa fa-arrows draggable-icon" />{{ type.id }} - {{ type.name }}
+                        </div>
+                    </div>
+                </transition-group>
+            </draggable>
+        </div>
     </panel>
 </template>
 <script>
-import Vue from 'vue'
-import VueFormGenerator from 'vue-form-generator'
+import Vue from 'vue';
+import VueFormGenerator from 'vue-form-generator';
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
-import Panel from '../Panel'
+import AbstractPanelForm from '../AbstractPanelForm';
+import AbstractField from '../../FormFields/AbstractField';
+import Panel from '../Panel.vue';
 
 Vue.use(VueFormGenerator);
 Vue.component('panel', Panel);
@@ -33,13 +69,12 @@ export default {
     props: {
         keys: {
             type: Object,
-            default: () => {
-                return {types: {field: 'types', init: false}};
-            },
+            default: () => ({ types: { field: 'types', init: false } }),
         },
     },
     data() {
         return {
+            displayOrder: false,
             schema: {
                 fields: {
                     types: this.createMultiSelect(
@@ -50,23 +85,27 @@ export default {
                         {
                             multiple: true,
                             closeOnSelect: false,
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
+                            customLabel: ({ id, name }) => `${id} - ${name}`,
                             internalSearch: false,
                             onSearch: this.greekSearch,
-                        }
+                        },
                     ),
-                }
-            }
-        }
+                },
+            },
+        };
     },
     methods: {
         greekSearch(searchQuery) {
             this.schema.fields.types.values = this.schema.fields.types.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                (option) => this
+                    .removeGreekAccents(`${option.id} - ${option.name}`)
+                    .includes(this.removeGreekAccents(searchQuery)),
             );
         },
+        onChange() {
+            this.calcChanges();
+            this.$emit('validated');
+        },
     },
-}
+};
 </script>

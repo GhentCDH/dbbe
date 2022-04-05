@@ -244,7 +244,9 @@ class OccurrenceManager extends PoemManager
         if (!empty($rawTypes)) {
             $typeIds = self::getUniqueIds($rawTypes, 'type_id');
             $types =  $this->container->get(TypeManager::class)->getMini($typeIds);
-            $occurrence->setTypes($types);
+            foreach ($typeIds as $typeId) {
+                $occurrence->addType($types[$typeId]);
+            }
         }
 
         // images
@@ -850,6 +852,13 @@ class OccurrenceManager extends PoemManager
         }
         foreach ($addIds as $addId) {
             $this->dbs->addType($occurrence->getId(), $addId);
+        }
+
+        $oldTypes = $occurrence->getTypes();
+        foreach ($types as $index => $type) {
+            if (!isset($oldTypes[$index]) || oldTypes[$index]->getId() != $type->id) {
+                $this->dbs->updateTypeRank($occurrence->getId(), $type->id, $index + 1);
+            }
         }
 
         // update elastic types search
