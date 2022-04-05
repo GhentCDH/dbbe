@@ -175,8 +175,9 @@ class BlogPostController extends BaseController
                     'blog_post_post' => $this->generateUrl('blog_post_post'),
                     'blog_post_put' => $this->generateUrl('blog_post_put', ['id' => $id == null ? 'blog_post_id' : $id]),
                     'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
+                    'persons_search' => $this->generateUrl('persons_search'),
                     'blogs_get' => $this->generateUrl('blogs_get'),
-                    'bibliographies_search' => $this->generateUrl('bibliographies_search'),
+                    'bibliographies_search_blog' => $this->generateUrl('bibliographies_search', ['filters' => ['type' => '7']]),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     // @codingStandardsIgnoreEnd

@@ -29,7 +29,7 @@
                 id="basic"
                 ref="basic"
                 header="Basic Information"
-                :links="[{title: 'Blogs', reload: 'blogs', edit: urls['bibliographies_search']}]"
+                :links="[{title: 'Blogs', reload: 'blogs', edit: urls['bibliographies_search_blog']}]"
                 :model="model.basic"
                 :values="blogs"
                 :reloads="reloads"
