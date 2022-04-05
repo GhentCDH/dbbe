@@ -71,6 +71,7 @@ class DocumentService extends EntityService
 
     public function getContributorRoles(array $ids): array
     {
+        // Sort contributor roles in the order in which they were added (https://github.ugent.be/idevos/DBBE-workflow/issues/453#issuecomment-125543).
         return $this->conn->executeQuery(
             'SELECT
                 bibrole.iddocument as document_id,
@@ -86,7 +87,7 @@ class DocumentService extends EntityService
             inner join data.role on bibrole.idrole = role.idrole
             where role.is_contributor_role = true
             and bibrole.iddocument in (?)
-            order by bibrole.rank',
+            order by bibrole.rank, bibrole.created',
             [
                 $ids,
             ],

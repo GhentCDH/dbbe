@@ -117,7 +117,7 @@ class Document extends Entity
     {
         foreach ($this->personRoles as $roleName => $personRole) {
             // Don't sort some roles (https://github.ugent.be/idevos/DBBE-workflow/issues/453#issuecomment-125090)
-            if (in_array($roleName, ['author', 'editor', 'translator', 'creator', 'contributor', 'transcriber'])) {
+            if (in_array($roleName, ['author', 'editor', 'translator'])) {
                 continue;
             }
             uasort(
@@ -214,14 +214,7 @@ class Document extends Entity
                 return $order[$a] - $order[$b];
             }
         );
-        foreach ($this->contributorRoles as $roleName => $contributorRole) {
-            uasort(
-                $this->contributorRoles[$roleName][1],
-                function ($a, $b) {
-                    return $a->getFullDescriptionWithOffices() <=> $b->getFullDescriptionWithOffices();
-                }
-            );
-        }
+        // Don't sort contributorRoles alphabetically (https://github.ugent.be/idevos/DBBE-workflow/issues/453#issuecomment-125543)
     }
 
     private function getContributorRolesJson(): array
