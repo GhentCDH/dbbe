@@ -214,9 +214,7 @@ class Type extends Poem
                 if ($a->getLanguage() != $b->getLanguage()) {
                     return $a->getLanguage() <=> $b->getLanguage();
                 }
-                $a_year = $this->getTranslationYear($a);
-                $b_year = $this->getTranslationYear($b);
-                return $a_year - $b_year;
+                return $this->getTranslationYear($b) - $this->getTranslationYear($a);
             }
         );
     }
