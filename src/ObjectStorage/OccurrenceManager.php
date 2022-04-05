@@ -856,7 +856,7 @@ class OccurrenceManager extends PoemManager
 
         $oldTypes = $occurrence->getTypes();
         foreach ($types as $index => $type) {
-            if (!isset($oldTypes[$index]) || oldTypes[$index]->getId() != $type->id) {
+            if (!isset($oldTypes[$index]) || $oldTypes[$index]->getId() != $type->id) {
                 $this->dbs->updateTypeRank($occurrence->getId(), $type->id, $index + 1);
             }
         }
