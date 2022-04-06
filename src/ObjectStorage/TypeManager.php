@@ -285,6 +285,7 @@ class TypeManager extends PoemManager
      */
     public function update(int $id, stdClass $data, bool $isNew = false): Type
     {
+        var_dump($data);
         $this->dbs->beginTransaction();
         try {
             $old = $this->getFull($id);

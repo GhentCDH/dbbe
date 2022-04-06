@@ -36,6 +36,11 @@ class TranslationManager extends DocumentManager
 
         $this->setBibliographies($translations);
 
+        // Translator
+        $this->setPersonRoles($translations);
+
+        $this->setComments($translations);
+
         return $translations;
     }
 
@@ -122,6 +127,25 @@ class TranslationManager extends DocumentManager
                 $correct = true;
                 $this->updateBibliography($old, $data->bibliography);
             }
+            if (property_exists($data, 'personRoles')) {
+                if (!is_object($data->personRoles)) {
+                    throw new BadRequestHttpException('Incorrect personRole data.');
+                }
+                $roles = $this->container->get(RoleManager::class)->getByType('translation');
+                foreach ($roles as $role) {
+                    if (property_exists($data->personRoles, $role->getSystemName())) {
+                        $correct = true;
+                        $this->updatePersonRole($old, $role, $data->personRoles->{$role->getSystemName()});
+                    }
+                }
+            }
+            if (property_exists($data, 'publicComment')) {
+                if (!empty($data->publicComment) && !is_string($data->publicComment)) {
+                    throw new BadRequestHttpException('Incorrect public comment data.');
+                }
+                $correct = true;
+                $this->dbs->updatePublicComment($id, $data->publicComment);
+            }
 
             if (!$correct && !$isNew) {
                 throw new BadRequestHttpException('Incorrect data.');
@@ -194,6 +218,34 @@ class TranslationManager extends DocumentManager
                     }
                 }
             }
+        }
+        if (property_exists($data, 'personRoles')
+            && !is_object($data->personRoles)
+        ) {
+            throw new BadRequestHttpException('Incorrect personRole data.');
+        }
+        $roles = $this->container->get(RoleManager::class)->getByType('translation');
+        foreach ($roles as $role) {
+            if (!property_exists($data->personRoles, $role->getSystemName())
+                || !is_array($data->personRoles->{$role->getSystemName()})
+            ) {
+                throw new BadRequestHttpException('Incorrect ' . $role->getSystemName() . ' data.');
+            }
+            foreach ($data->personRoles->{$role->getSystemName()} as $person) {
+                if (!is_object($person)
+                    || (property_exists($person, 'id') && !is_numeric($person->id))
+                ) {
+                    throw new BadRequestHttpException('Incorrect ' . $role->getSystemName() . ' data.');
+                }
+            }
+        }
+        if (property_exists($data, 'publicComment')
+            && (
+                !empty($data->publicComment)
+                && !is_string($data->publicComment)
+            )
+        ) {
+            throw new BadRequestHttpException('Incorrect public comment data.');
         }
 
         $update = new stdClass();
@@ -281,6 +333,56 @@ class TranslationManager extends DocumentManager
                     }
                 }
             }
+        }
+
+        $updated = false;
+        $oldPersonRoles = $old->getPersonRoles();
+        foreach ($roles as $role) {
+            $oldPersonIdsWithRole = [];
+            if (array_key_exists($role->getSystemName(), $oldPersonRoles)) {
+                $oldPersonIdsWithRole = array_keys($oldPersonRoles[$role->getSystemName()][1]);
+            }
+            if (count($oldPersonIdsWithRole) != count($data->personRoles->{$role->getSystemName()})) {
+                $updated = true;
+                break;
+            }
+            foreach ($data->personRoles->{$role->getSystemName()} as $newPerson) {
+                if (!in_array($newPerson->id, $oldPersonIdsWithRole)) {
+                    $updated = true;
+                }
+            }
+            if ($updated) {
+                break;
+            }
+        }
+        if ($updated) {
+            $update->personRoles = $data->personRoles;
+        }
+
+        if (
+            // No old, new
+            (
+                empty($old->getPublicComment())
+                && (
+                    property_exists($data, 'publicComment')
+                    && empty($data->publicComment)
+                )
+            )
+            // Old, no new
+            || (
+                !empty($old->getPublicComment())
+                && (
+                    !property_exists($data, 'publicComment')
+                    || empty($data->publicComment)
+                )
+            )
+            // Different old and new
+            || (
+                property_exists($data, 'publicComment')
+                && $old->getPublicComment() !== $data->publicComment
+            )
+        ) {
+            $update->publicComment = $data->publicComment;
         }
 
         if (!empty((array)$update)) {

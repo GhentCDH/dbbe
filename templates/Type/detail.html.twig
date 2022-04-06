@@ -145,14 +145,36 @@
                                         <span class="bg-warning">
                                     {%  endif %}
                                     {{ item.getText()|replace({'|':'\n'})|nl2br }}
-                                    <br />
-                                    Language: {{ item.getLanguage() }}
-                                    <br />
-                                    {% embed 'Helpers/renderList.html.twig' with {'list':  item.getBibliographyDisplay(item.getBibliographies())} only %}
-                                        {% block renderItem %}
-                                            {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
-                                        {% endblock %}
-                                    {% endembed %}
+                                    <dl class="row">
+                                        <dt class="col-sm-2">Language</dt>
+                                        <dd class="col-sm-10 ">{{ item.getLanguage() }}</dd>
+                                        {% if item.getBibliographies() %}
+                                            <dt class="col-sm-2">Source(s)</dt>
+                                            <dd class="col-sm-10">
+                                                {% embed 'Helpers/renderList.html.twig' with {'list':  item.getBibliographyDisplay(item.getBibliographies())} only %}
+                                                    {% block renderItem %}
+                                                        {% include 'Helpers/renderBibliography.html.twig' with {'item': item} only %}
+                                                    {% endblock %}
+                                                {% endembed %}
+                                            </dd>
+                                        {% endif %}
+                                        {% if item.getPersonRoles() %}
+                                            <dt class="col-sm-2">Translator(s)</dt>
+                                            <dd class="col-sm-10">
+                                                {% embed 'Helpers/renderList.html.twig' with {'list':  item.getPersonRoles()['translator'][1]} only %}
+                                                    {% block renderItem %}
+                                                        {{ item.getFullDescriptionWithOffices() }}
+                                                    {% endblock %}
+                                                {% endembed %}
+                                            </dd>
+                                        {% endif %}
+                                        {% if item.getPublicComment() is not empty %}
+                                            <dt class="col-sm-2">Comment</dt>
+                                            <dd class="col-sm-10">
+                                                {{ item.getPublicComment()|nl2br }}
+                                            </dd>
+                                        {% endif %}
+                                    </dl>
                                     {% if item.getLanguage() == 'Unknown' %}
                                         </span>
                                     {%  endif %}

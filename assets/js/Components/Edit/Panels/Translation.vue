@@ -9,6 +9,8 @@
                     <th>Language</th>
                     <th>Text</th>
                     <th>Bibliography</th>
+                    <th>Translator(s)</th>
+                    <th>Comments</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -32,6 +34,20 @@
                             {{ displayBibliography(item.bibliography)[0] }}
                         </template>
                     </td>
+                    <td>
+                        <ul v-if="item.personRoles.translator.length > 1">
+                            <li
+                                v-for="(translator, trIndex) in item.personRoles.translator"
+                                :key="trIndex"
+                            >
+                                {{ translator.name }}
+                            </li>
+                        </ul>
+                        <template v-else-if="item.personRoles.translator.length == 1">
+                            {{ item.personRoles.translator[0].name }}
+                        </template>
+                    </td>
+                    <td>{{ item.publicComment }}</td>
                     <td>
                         <a
                             href="#"
@@ -76,6 +92,19 @@
                 :values="values"
                 :reloads="reloads"
                 :append-to-body="true"
+                @validated="calcChanges"
+                @reload="reload"
+            />
+            <personPanel
+                id="translators"
+                ref="translators"
+                header="Translators"
+                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
+                :roles="values.personRoles"
+                :model="editModel.personRoles"
+                :values="values.dbbePersons"
+                :keys="{dbbePersons: {init: true}}"
+                :reloads="reloads"
                 @validated="calcChanges"
                 @reload="reload"
             />
@@ -142,15 +171,15 @@ export default {
     props: {
         values: {
             type: Object,
-            default: () => {return {}}
+            default: () => ({}),
         },
         urls: {
             type: Object,
-            default: () => {return {}}
+            default: () => ({}),
         },
     },
     data() {
-        return {
+        let data = {
             editModal: false,
             editModel: {
                 bibliography: {
@@ -162,6 +191,7 @@ export default {
                     phds: [],
                     bibVarias: [],
                 },
+                personRoles: {},
             },
             delModal: false,
             schema: {
@@ -181,25 +211,44 @@ export default {
                             values: this.values.languages,
                             required: true,
                             validator: VueFormGenerator.validators.required,
-                        }
+                        },
                     ),
-                }
+                    publicComment: {
+                        type: 'textArea',
+                        label: 'Public comment',
+                        labelClasses: 'control-label',
+                        model: 'publicComment',
+                        rows: 4,
+                        validator: VueFormGenerator.validators.string,
+                    },
+                },
             },
+        };
+        for (const role of this.values.personRoles) {
+            data.editModel.personRoles[role.systemName] = [];
         }
+        return data;
     },
     methods: {
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 this.enableField(this.schema.fields.language);
-            } else if (enableKeys.includes('articles')
-                || enableKeys.includes('blogPosts')
-                || enableKeys.includes('books')
-                || enableKeys.includes('bookChapters')
-                || enableKeys.includes('onlineSources')
-                || enableKeys.includes('phds')
-                || enableKeys.includes('bibVarias')
-            ) {
-                this.$refs.translationBibliography.enableFields(enableKeys);
+                this.$refs.translators.enableFields('dbbePersons');
+            } else {
+                if (
+                    enableKeys.includes('articles')
+                    || enableKeys.includes('blogPosts')
+                    || enableKeys.includes('books')
+                    || enableKeys.includes('bookChapters')
+                    || enableKeys.includes('onlineSources')
+                    || enableKeys.includes('phds')
+                    || enableKeys.includes('bibVarias')
+                ) {
+                    this.$refs.translationBibliography.enableFields(enableKeys);
+                }
+                if (enableKeys.includes('dbbePersons')) {
+                    this.$refs.translators.enableFields(enableKeys);
+                }
             }
         },
         disableFields(disableKeys) {
@@ -212,6 +261,9 @@ export default {
                 || disableKeys.includes('bibVarias')
             ) {
                 this.$refs.translationBibliography.disableFields(disableKeys);
+            }
+            if (disableKeys.includes('dbbePersons')) {
+                this.$refs.translators.disableFields(disableKeys);
             }
         },
         validate() {},
@@ -242,6 +294,10 @@ export default {
                     phds: [],
                     bibVarias: [],
                 },
+                personRoles: {},
+            };
+            for (const role of this.values.personRoles) {
+                this.editModel[role.systemName] = [];
             }
             this.editModal = true
         },
@@ -258,7 +314,7 @@ export default {
         submitEdit() {
             this.$refs.editForm.validate()
             if (this.$refs.editForm.errors.length == 0) {
-                // Edit existing bibliography
+                // Edit existing translation
                 if (this.editModel.index != null) {
                     let index = this.editModel.index
                     delete this.editModel.index
@@ -270,7 +326,7 @@ export default {
                     }
                     this.model.translations[index] = JSON.parse(JSON.stringify(this.editModel))
                 }
-                // Add new bibliography
+                // Add new translation
                 else {
                     this.model.translations.push(JSON.parse(JSON.stringify(this.editModel)))
                 }
@@ -292,6 +348,8 @@ export default {
                     t.text
                         + '\nLanguage: ' + t.language.name
                         + (this.displayBibliography(t.bibliography).length > 0 ? '\nBibliography:\n' + this.displayBibliography(t.bibliography).join('\n') : '')
+                        + (t.personRoles.translator.length > 0 ? '\nTranslator(s):\n' + t.personRoles.translator.map(tr => tr.name).join('\n') : '')
+                        + ((t.publicComment != null && t.publicComment !== '') ? '\nPublic comment:\n' + t.publicComment : '')
                 )
             }
             return result

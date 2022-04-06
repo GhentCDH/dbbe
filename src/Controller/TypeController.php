@@ -559,6 +559,9 @@ class TypeController extends BaseController
                 'contributorRoles' => json_encode(
                     $roleManager->getContributorByTypeJson('type')
                 ),
+                'translationRoles' => json_encode(
+                    $roleManager->getByTypeJson('translation')
+                ),
                 // @codingStandardsIgnoreEnd
             ]
         );

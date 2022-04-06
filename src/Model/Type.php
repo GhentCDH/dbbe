@@ -207,7 +207,6 @@ class Type extends Poem
 
     public function sortTranslations(): void
     {
-        // echo '<pre>', var_dump($this->translations), '</pre>';
         usort(
             $this->translations,
             function ($a, $b) {

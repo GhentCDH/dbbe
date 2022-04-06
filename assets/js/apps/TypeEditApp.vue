@@ -340,13 +340,21 @@ for(let key of panelComponents.keys()) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    props: {
+        initTranslationRoles: {
+            type: String,
+            default: '',
+        },
+    },
     data() {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
             roles: JSON.parse(this.initRoles),
             contributorRoles: JSON.parse(this.initContributorRoles),
+            translationRoles: JSON.parse(this.initTranslationRoles),
             type: null,
             types: null,
+            dbbePersons: null,
             historicalPersons: null,
             metres: null,
             genres: null,
@@ -472,6 +480,8 @@ export default {
             onlineSources: [],
             phds: [],
             bibVarias: [],
+            dbbePersons: this.data.dbbePersons,
+            personRoles: this.translationRoles,
         };
         this.generals = {
             acknowledgements: this.data.acknowledgements,
@@ -603,7 +613,9 @@ export default {
                             onlineSources: [],
                             phds: [],
                             bibVarias: [],
-                        }
+                        },
+                        publicComment: translation.publicComment,
+                        personRoles: {},
                     }
                     if (translation.bibliography != null) {
                         for (let bib of translation.bibliography) {
@@ -631,6 +643,9 @@ export default {
                                 break
                             }
                         }
+                    }
+                    for (const role of this.translationRoles) {
+                        modelTranslation.personRoles[role.systemName] = translation.personRoles == null ? [] : translation.personRoles[role.systemName];
                     }
                     this.model.translations.translations.push(modelTranslation)
                 }
@@ -709,6 +724,15 @@ export default {
                     [this.historicalPersons, this.subjects.historicalPersons],
                     this.urls['historical_persons_get']
                 );
+                break;
+            case 'dbbePersons':
+                this.reloadItems(
+                    'dbbePersons',
+                    ['dbbePersons'],
+                    [this.dbbePersons],
+                    this.urls['dbbe_persons_get']
+                );
+                this.reloadNestedItems(type, [this.translations]);
                 break;
             case 'keywordSubjects':
                 this.reloadItems(
