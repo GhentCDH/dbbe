@@ -231,6 +231,9 @@
                                             <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
                                         </span>
                                     {% endif %}
+                                    {% if item.getDate() is not empty %}
+                                        [{{ item.getDate() }}]
+                                    {% endif %}
                                     <br />
                                     {% if item.getNumberOfVerses() == 0 %}
                                         (? verses)

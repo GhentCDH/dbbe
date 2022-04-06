@@ -339,6 +339,14 @@ class Type extends Poem
         }
 
         $result['translated'] = !empty($this->translations);
+        // Create non-duplicate list with translation languages
+        $keyedTranslationLanguages = [];
+        foreach ($this->translations as $translation) {
+            if (!array_key_exists($translation->getLanguage()->getId(), $keyedTranslationLanguages)) {
+                $keyedTranslationLanguages[$translation->getLanguage()->getId()] = $translation->getLanguage()->getShortJson();
+            }
+        }
+        $result['translation_language'] = array_values($keyedTranslationLanguages);
 
         return $result;
     }

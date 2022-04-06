@@ -286,6 +286,8 @@ export default {
                 subject_op: 'or',
                 tag: [],
                 tag_op: 'or',
+                translation_language: [],
+                translation_language_op: 'or',
                 acknowledgement: [],
                 acknowledgement_op: 'or',
             },
@@ -394,6 +396,15 @@ export default {
             },
             {
                 customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+            },
+        );
+        [
+            data.schema.fields.translation_language_op,
+            data.schema.fields.translation_language,
+        ] = this.createMultiMultiSelect(
+            'Translation language',
+            {
+                model: 'translation_language',
             },
         );
         data.schema.fields.comment = {

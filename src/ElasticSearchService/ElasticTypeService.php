@@ -62,6 +62,7 @@ class ElasticTypeService extends ElasticEntityService
             'subject' => ['type' => 'nested'],
             'tag' => ['type' => 'nested'],
             'genre' => ['type' => 'nested'],
+            'translation_language' => ['type' => 'nested'],
             'acknowledgement' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
         ];
@@ -86,7 +87,9 @@ class ElasticTypeService extends ElasticEntityService
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
+            unset($result['data'][$key]['tag']);
             unset($result['data'][$key]['translated']);
+            unset($result['data'][$key]['translation_language']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);
             unset($result['data'][$key]['critical_status']);
@@ -134,7 +137,7 @@ class ElasticTypeService extends ElasticEntityService
             }
         }
 
-        $aggregationFilters = ['metre', 'subject', 'tag', 'translated', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];
+        $aggregationFilters = ['metre', 'subject', 'tag', 'translated', 'translation_language', 'person', 'genre', 'dbbe', 'text_status', 'critical_status', 'acknowledgement', 'id', 'prev_id'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -201,6 +204,7 @@ class ElasticTypeService extends ElasticEntityService
             case 'subject':
             case 'tag':
             case 'genre':
+            case 'translation_language':
             case 'acknowledgement':
                 $result['nested_multi'][$key] = $value;
                 break;
@@ -294,6 +298,7 @@ class ElasticTypeService extends ElasticEntityService
             case 'subject':
             case 'tag':
             case 'genre':
+            case 'translation_language':
             case 'acknowledgement':
                 $result['nested_multi'][$key] = $value;
                 break;
@@ -301,6 +306,7 @@ class ElasticTypeService extends ElasticEntityService
             case 'subject_op':
             case 'tag_op':
             case 'genre_op':
+            case 'translation_language_op':
             case 'acknowledgement_op':
                 $result['nested_multi_op'][$key] = $value;
                 break;
