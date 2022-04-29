@@ -137,6 +137,7 @@ class BookService extends DocumentService
                 book.idcluster as book_cluster_id,
                 document_title.title,
                 book.year,
+                book.forthcoming,
                 book.city,
                 book.editor,
                 book.volume
@@ -184,22 +185,24 @@ class BookService extends DocumentService
     /**
      * @param  int|null    $bookClusterId
      * @param  string|null $title
-     * @param  int         $year
+     * @param  int|null    $year
+     * @param  bool        $forthcoming
      * @param  string      $city
      * @return int
      */
-    public function insert(int $bookClusterId = null, string $title = null, int $year, string $city): int
+    public function insert(int $bookClusterId = null, string $title = null, int $year = null, bool $forthcoming, string $city): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_book_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.book (idcluster, year, city)
-                values (?, ?, ?)',
+                'INSERT INTO data.book (idcluster, year, forthcoming, city)
+                values (?, ?, ?, ?)',
                 [
                     $bookClusterId,
                     $year,
+                    $forthcoming,
                     $city,
                 ]
             );
@@ -280,11 +283,11 @@ class BookService extends DocumentService
     }
 
     /**
-     * @param  int $id
-     * @param  int $year
+     * @param  int      $id
+     * @param  int|null $year
      * @return int
      */
-    public function updateYear(int $id, int $year): int
+    public function updateYear(int $id, int $year = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.book
@@ -292,6 +295,24 @@ class BookService extends DocumentService
             where book.identity = ?',
             [
                 $year,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $forthcoming
+     * @return int
+     */
+    public function updateForthcoming(int $id, bool $forthcoming): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.book
+            set forthcoming = ?
+            where book.identity = ?',
+            [
+                $forthcoming,
                 $id,
             ]
         );

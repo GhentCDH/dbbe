@@ -19,12 +19,10 @@
                     with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? book.getPersonRoles() : book.getPublicPersonRoles()}
                     only
                 %}
-                {% if book.getYear() is not empty %}
-                    <tr>
-                        <td>Year</td>
-                        <td>{{ book.getYear() }}</td>
-                    </tr>
-                {% endif %}
+                <tr>
+                    <td>Year</td>
+                    <td>{{ book.getForthcoming() ? '(forthcoming)' : book.getYear() }}</td>
+                </tr>
                 {% if book.getCity() is not empty %}
                     <tr>
                         <td>City</td>

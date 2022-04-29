@@ -47,9 +47,16 @@ export default {
     },
     data() {
         return {
+            revalidate: false,
             schema: {
                 fields: {
-                    bookCluster: this.createMultiSelect('Book cluster', {model: 'bookCluster', validator: this.validateClusterOrTitle}),
+                    bookCluster: this.createMultiSelect(
+                        'Book cluster',
+                        {
+                            model: 'bookCluster',
+                            validator: this.validateClusterOrTitle,
+                        },
+                    ),
                     volume: {
                         type: 'input',
                         inputType: 'text',
@@ -80,8 +87,17 @@ export default {
                         label: 'Year',
                         labelClasses: 'control-label',
                         model: 'year',
-                        required: true,
-                        validator: VueFormGenerator.validators.number,
+                        validator: [
+                            VueFormGenerator.validators.number,
+                            this.yearOrForthcoming,
+                        ],
+                    },
+                    forthcoming: {
+                        type: 'checkbox',
+                        label: 'Forthcoming',
+                        labelClasses: 'control-label',
+                        model: 'forthcoming',
+                        validator: this.yearOrForthcoming,
                     },
                     city: {
                         type: 'input',
@@ -109,7 +125,12 @@ export default {
                         model: 'publisher',
                         validator: VueFormGenerator.validators.string,
                     },
-                    bookSeries: this.createMultiSelect('Book series', {model: 'bookSeries'}),
+                    bookSeries: this.createMultiSelect(
+                        'Book series',
+                        {
+                            model: 'bookSeries',
+                        },
+                    ),
                     seriesVolume: {
                         type: 'input',
                         inputType: 'text',
@@ -126,17 +147,17 @@ export default {
         'model.year' () {
             if (isNaN(this.model.year)) {
                 this.model.year = null;
-                this.$nextTick(function() {
-                    this.validate();
-                });
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
             }
         },
         'model.totalVolumes' () {
             if (isNaN(this.model.totalVolumes)) {
                 this.model.totalVolumes = null;
-                this.$nextTick(function() {
-                    this.validate();
-                });
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
             }
         },
         // reset title to null if nothing is entered
@@ -144,15 +165,42 @@ export default {
             if (this.model.title === '') {
                 this.model.title = null
             }
-            this.validate()
+            this.revalidate = true;
+            this.validate();
+            this.revalidate = false;
         },
     },
     methods: {
         validateClusterOrTitle() {
-            if (this.model.bookCluster == null && this.model.title == null) {
-                return ['Please provide at least a cluster or a title.']
+            if (!this.revalidate) {
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
             }
-            return []
+            if (this.model.bookCluster == null && this.model.title == null) {
+                return ['Please provide at least a cluster or a title.'];
+            }
+            return [];
+        },
+        yearOrForthcoming() {
+            if (!this.revalidate) {
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
+            }
+            if (
+                (
+                    this.model.year == null
+                    && this.model.forthcoming === false
+                )
+                || (
+                    this.model.year != null
+                    && this.model.forthcoming === true
+                )
+            ) {
+                return ['Exactly one of the fields "Year", "Forthcoming" is required.'];
+            }
+            return [];
         },
     },
 }

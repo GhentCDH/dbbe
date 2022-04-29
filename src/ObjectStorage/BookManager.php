@@ -41,6 +41,7 @@ class BookManager extends DocumentManager
                 $book = new Book(
                     $rawBook['book_id'],
                     $rawBook['year'],
+                    $rawBook['forthcoming'],
                     $rawBook['city'],
                     $rawBook['title'],
                     $rawBook['book_cluster_id'] != null ? $bookClusters[$rawBook['book_cluster_id']] : null,
@@ -184,9 +185,21 @@ class BookManager extends DocumentManager
                     || empty($data->bookCluster->id)
                 )
             )
-            || !property_exists($data, 'year')
-            || !is_numeric($data->year)
-            || empty($data->year)
+            || (
+                !empty($data->year) &&
+                !is_numeric($data->year)
+            )
+            || (
+                !property_exists($data, 'forthcoming')
+                || !is_bool($data->forthcoming)
+            )
+            || (
+                $data->forthcoming == FALSE
+                && (
+                    !property_exists($data, 'year')
+                    || empty($data->year)
+                )
+            )
             || !property_exists($data, 'city')
             || !is_string($data->city)
             || empty($data->city)
@@ -198,13 +211,15 @@ class BookManager extends DocumentManager
             $id = $this->dbs->insert(
                 property_exists($data, 'bookCluster') ? $data->bookCluster->id: null,
                 property_exists($data, 'title') ? $data->title : null,
-                $data->year,
+                property_exists($data, 'year') ? $data->year : null,
+                $data->forthcoming,
                 $data->city
             );
 
             unset($data->bookCluster);
             unset($data->title);
             unset($data->year);
+            unset($data->forthcoming);
             unset($data->city);
 
             $new = $this->update($id, $data, true);
@@ -298,13 +313,34 @@ class BookManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            // Year is a required field
+            // Year is required if not forthcoming
             if (property_exists($data, 'year')) {
-                if (!is_numeric($data->year) || empty($data->year)) {
+                if (!empty($data->year) && !is_numeric($data->year)) {
                     throw new BadRequestHttpException('Incorrect year data.');
+                }
+                if (empty($data->year)
+                    && (
+                        (
+                            !property_exists($data, 'forthcoming')
+                            && $old->getForthcoming() == FALSE
+                        )
+                        || (
+                            property_exists($data, 'forthcoming')
+                            && $data->forthcoming == FALSE
+                        )
+                    )
+                ) {
+                    throw new BadRequestHttpException('Year or forthcoming is required.');
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateYear($id, $data->year);
+            }
+            if (property_exists($data, 'forthcoming')) {
+                if (!is_bool($data->forthcoming)) {
+                    throw new BadRequestHttpException('Incorrect forthcoming data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateForthcoming($id, $data->forthcoming);
             }
             // City is a required field
             if (property_exists($data, 'city')) {
