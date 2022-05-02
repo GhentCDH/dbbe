@@ -50,6 +50,7 @@ class JournalIssueService extends DatabaseService
                 identity as journal_issue_id,
                 idjournal as journal_id,
                 year,
+                forthcoming,
                 volume,
                 number
             from data.journal_issue
@@ -60,23 +61,25 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  int      $year
+     * @param  int|null $year
+     * @param  bool     $forthcoming
      * @param  int|null $volume
      * @param  int|null $number
      * @return int
      */
-    public function insert(int $journalId, int $year, int $volume = null, int $number = null): int
+    public function insert(int $journalId, int $year = null, bool $forthcoming, int $volume = null, int $number = null): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_journal_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.journal_issue (idjournal, year, volume, number)
-                values (?, ?, ?, ?)',
+                'INSERT INTO data.journal_issue (idjournal, year, forthcoming, volume, number)
+                values (?, ?, ?, ?, ?)',
                 [
                     $journalId,
                     $year,
+                    $forthcoming ? 't' : 'f',
                     $volume,
                     $number,
                 ]
@@ -115,11 +118,11 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  int $id
-     * @param  int $year
+     * @param  int      $id
+     * @param  int|null $year
      * @return int
      */
-    public function updateYear(int $id, int $year): int
+    public function updateYear(int $id, int $year = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.journal_issue
@@ -127,6 +130,24 @@ class JournalIssueService extends DatabaseService
             where journal_issue.identity = ?',
             [
                 $year,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $forthcoming
+     * @return int
+     */
+    public function updateForthcoming(int $id, bool $forthcoming): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.journal_issue
+            set forthcoming = ?
+            where journal_issue.identity = ?',
+            [
+                $forthcoming ? 't' : 'f',
                 $id,
             ]
         );

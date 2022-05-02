@@ -8,19 +8,22 @@ class JournalIssue extends Document
 
     protected $journal;
     protected $year;
+    protected $forthcoming;
     protected $volume;
     protected $number;
 
     public function __construct(
         int $id,
         Journal $journal,
-        int $year,
+        int $year = null,
+        bool $forthcoming,
         int $volume = null,
         int $number = null
     ) {
         $this->id = $id;
         $this->journal = $journal;
         $this->year = $year;
+        $this->forthcoming = $forthcoming;
         $this->volume = $volume;
         $this->number = $number;
 
@@ -32,9 +35,14 @@ class JournalIssue extends Document
         return $this->journal;
     }
 
-    public function getYear(): int
+    public function getYear(): ?int
     {
         return $this->year;
+    }
+
+    public function getForthcoming(): bool
+    {
+        return $this->forthcoming;
     }
 
     public function getVolume(): ?int
@@ -49,7 +57,11 @@ class JournalIssue extends Document
 
     public function getDescription(): string
     {
-        return $this->year
+        return (
+            $this->forthcoming
+                ? '(forthcoming)'
+                : $this->year
+        )
         . ', ' . $this->journal->getTitle()
         . (
             !empty($this->volume)
@@ -82,6 +94,7 @@ class JournalIssue extends Document
         if (!empty($this->year)) {
             $result['year'] = $this->year;
         }
+        $result['forthcoming'] = $this->forthcoming;
         if (!empty($this->volume)) {
             $result['volume'] = $this->volume;
         }

@@ -210,7 +210,7 @@ export default {
                 this.calcChanges();
                 this.$emit('validated', 0, null, this);
                 if (this.asSlot) {
-                    this.$parent.$parent.slotUpdated()
+                    this.$parent.$parent.validate()
                 }
                 this.editModal = false
             }
@@ -223,7 +223,7 @@ export default {
             this.calcChanges();
             this.$emit('validated', 0, null, this);
             if (this.asSlot) {
-                this.$parent.$parent.slotUpdated()
+                this.$parent.$parent.validate()
             }
             this.delModal = false;
         },
@@ -262,7 +262,7 @@ export default {
             this.calcChanges()
             this.$emit('validated')
             if (this.asSlot) {
-                this.$parent.$parent.slotUpdated()
+                this.$parent.$parent.validate()
             }
         },
         maxTgIndex: function() {

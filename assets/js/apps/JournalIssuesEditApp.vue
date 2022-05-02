@@ -28,6 +28,7 @@
             </div>
         </article>
         <editModal
+            ref="editModal"
             :show="editModal"
             :schema="editSchema"
             :submit-model="submitModel"
@@ -67,6 +68,7 @@ export default {
     data() {
         let data = JSON.parse(this.initData);
         return {
+            revalidate: false,
             values: data.journalIssues,
             journals: data.journals,
             schema: {
@@ -90,8 +92,17 @@ export default {
                         label: 'Year',
                         labelClasses: 'control-label',
                         model: 'journal issue.year',
-                        required: true,
-                        validator: VueFormGenerator.validators.number,
+                        validator: [
+                            VueFormGenerator.validators.number,
+                            this.yearOrForthcoming,
+                        ],
+                    },
+                    forthcoming: {
+                        type: 'checkbox',
+                        label: 'Forthcoming',
+                        labelClasses: 'control-label',
+                        model: 'journal issue.forthcoming',
+                        validator: this.yearOrForthcoming,
                     },
                     volume: {
                         type: 'input',
@@ -116,7 +127,7 @@ export default {
             },
             submitModel: {
                 submitType: 'journal issue',
-                'journal issue': null,
+                'journal issue': {},
             },
         }
     },
@@ -142,28 +153,74 @@ export default {
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
         this.enableField(this.schema.fields.journalIssue)
+
+        // Use $watch API because 'journal issue' contains a space
+        this.$watch(
+            function () {
+                return this.submitModel['journal issue'].year;
+            },
+            function () {
+                if (Number.isNaN(this.submitModel['journal issue'].year)) {
+                    this.submitModel['journal issue'].year = null;
+                    this.revalidate = true;
+                    this.$refs.editModal.validate();
+                    this.revalidate = false;
+                }
+            },
+        );
+        this.$watch(
+            function () {
+                return this.submitModel['journal issue'].volume;
+            },
+            function () {
+                if (Number.isNaN(this.submitModel['journal issue'].volume)) {
+                    this.submitModel['journal issue'].volume = null;
+                    this.revalidate = true;
+                    this.$refs.editModal.validate();
+                    this.revalidate = false;
+                }
+            },
+        );
+        this.$watch(
+            function () {
+                return this.submitModel['journal issue'].number;
+            },
+            function () {
+                if (Number.isNaN(this.submitModel['journal issue'].number)) {
+                    this.submitModel['journal issue'].number = null;
+                    this.revalidate = true;
+                    this.$refs.editModal.validate();
+                    this.revalidate = false;
+                }
+            },
+        );
     },
     methods: {
         edit(add = false) {
             // TODO: check if combination journal, year, volume, number already exists
             this.submitModel = {
                 submitType: 'journal issue',
-                'journal issue': null,
+                'journal issue': {},
             };
             if (add) {
-                this.submitModel['journal issue'] =  {
+                this.submitModel['journal issue'] = {
                     journal: null,
                     year: null,
+                    forthcoming: null,
                     volume: null,
                     number: null,
                 }
             }
             else {
-                this.submitModel['journal issue'] = this.model.journalIssue
+                this.submitModel['journal issue'] = JSON.parse(JSON.stringify(this.model.journalIssue))
             }
             this.editSchema.fields.journal.values = this.journals;
             this.enableField(this.editSchema.fields.journal);
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
+            // Make sure forthcoming is set
+            if (this.submitModel['journal issue'].forthcoming == null) {
+                this.submitModel['journal issue'].forthcoming = false
+            }
             this.editModal = true
         },
         del() {
@@ -246,6 +303,26 @@ export default {
                     this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: this.isLoginError(error)});
                     console.log(error)
                 })
+        },
+        yearOrForthcoming() {
+            if (!this.revalidate) {
+                this.revalidate = true;
+                this.$refs.editModal.validate();
+                this.revalidate = false;
+            }
+            if (
+                (
+                    this.submitModel['journal issue'].year == null
+                    && this.submitModel['journal issue'].forthcoming === false
+                )
+                || (
+                    this.submitModel['journal issue'].year != null
+                    && this.submitModel['journal issue'].forthcoming === true
+                )
+            ) {
+                return ['Exactly one of the fields "Year", "Forthcoming" is required.'];
+            }
+            return [];
         },
     }
 }

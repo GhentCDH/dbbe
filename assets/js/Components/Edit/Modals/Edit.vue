@@ -74,8 +74,9 @@ export default {
             default: () => {return []}
         },
     },
-    data () {
+    data() {
         return {
+            revalidating: false,
             formOptions: {
                 validateAfterChanged: true,
                 validationErrorClass: "has-error",
@@ -84,10 +85,24 @@ export default {
             invalidEditForm: true,
         }
     },
+    // mounted() {
+    //     for (const [field, fieldDef] of Object.entries(this.schema.fields)) {
+    //         if (fieldDef.inputType === 'number') {
+    //             this.$watch(
+    //                 function () {
+    //                     return this.submitModel[this.submitModel.submitType][field];
+    //                 },
+    //                 function () {
+    //                     if (Number.isNaN(this.submitModel[this.submitModel.submitType][field])) {
+    //                         this.$emit('fix-nan', field);
+    //                         this.validate();
+    //                     }
+    //                 },
+    //             );
+    //         }
+    //     }
+    // },
     methods: {
-        slotUpdated() {
-            this.$refs.edit.validate()
-        },
         editFormValidated(isValid, errors) {
             this.invalidEditForm = !isValid
         },
@@ -97,10 +112,8 @@ export default {
                 this.$emit('confirm')
             }
         },
-        revalidate() {
-            this.submitModel.revalidate = true
-            this.$refs.edit.validate()
-            delete this.submitModel.revalidate
+        validate() {
+            this.$refs.edit.validate();
         },
     }
 }

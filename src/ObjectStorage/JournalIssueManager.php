@@ -35,6 +35,7 @@ class JournalIssueManager extends DocumentManager
                 $rawJournalIssue['journal_issue_id'],
                 $journals[$rawJournalIssue['journal_id']],
                 $rawJournalIssue['year'],
+                $rawJournalIssue['forthcoming'],
                 $rawJournalIssue['volume'],
                 $rawJournalIssue['number']
             );
@@ -109,18 +110,45 @@ class JournalIssueManager extends DocumentManager
             || !property_exists($data->journal, 'id')
             || !is_numeric($data->journal->id)
             || empty($data->journal->id)
-            || !property_exists($data, 'year')
-            || !is_numeric($data->year)
-            || empty($data->year)
             # optional
-            || (property_exists($data, 'volume') && !is_numeric($data->volume))
-            || (property_exists($data, 'number') && !is_numeric($data->volume))
+            || (
+                property_exists($data, 'year')
+                && !empty($data->year)
+                && !is_numeric($data->year)
+            )
+            || (
+                !property_exists($data, 'forthcoming')
+                || !is_bool($data->forthcoming)
+            )
+            || (
+                $data->forthcoming == FALSE
+                && (
+                    !property_exists($data, 'year')
+                    || empty($data->year)
+                )
+            )
+            || (
+                property_exists($data, 'volume')
+                && !empty($data->volume)
+                && !is_numeric($data->volume)
+            )
+            || (
+                property_exists($data, 'number')
+                && !empty($data->number)
+                && !is_numeric($data->number)
+            )
         ) {
-            throw new BadRequestHttpException('Incorrect data to add a new journal');
+            throw new BadRequestHttpException('Incorrect data to add a new journal issue');
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->journal->id, $data->year, $data->volume, $data->number);
+            $id = $this->dbs->insert(
+                $data->journal->id,
+                property_exists($data, 'year') ? $data->year : null,
+                $data->forthcoming,
+                property_exists($data, 'volume') ? $data->volume : null,
+                property_exists($data, 'number') ? $data->number : null
+            );
 
             $new = $this->getFull($id);
 
@@ -162,12 +190,34 @@ class JournalIssueManager extends DocumentManager
                 $correct = true;
                 $this->dbs->updateJournal($id, $data->journal->id);
             }
-            if (property_exists($data, 'year')
-                && is_numeric($data->year)
-                && !empty($data->year)
-            ) {
-                $correct = true;
+            // Year is required if not forthcoming
+            if (property_exists($data, 'year')) {
+                if (!empty($data->year) && !is_numeric($data->year)) {
+                    throw new BadRequestHttpException('Incorrect year data.');
+                }
+                if (empty($data->year)
+                    && (
+                        (
+                            !property_exists($data, 'forthcoming')
+                            && $old->getForthcoming() == FALSE
+                        )
+                        || (
+                            property_exists($data, 'forthcoming')
+                            && $data->forthcoming == FALSE
+                        )
+                    )
+                ) {
+                    throw new BadRequestHttpException('Year or forthcoming is required.');
+                }
+                $changes['mini'] = true;
                 $this->dbs->updateYear($id, $data->year);
+            }
+            if (property_exists($data, 'forthcoming')) {
+                if (!is_bool($data->forthcoming)) {
+                    throw new BadRequestHttpException('Incorrect forthcoming data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateForthcoming($id, $data->forthcoming);
             }
             if (property_exists($data, 'volume')
                 && (is_numeric($data->volume) || empty($data->volume))
