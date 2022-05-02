@@ -31,6 +31,7 @@ class PhdManager extends DocumentManager
                 $phds[$rawPhd['phd_id']] = new Phd(
                     $rawPhd['phd_id'],
                     $rawPhd['year'],
+                    $rawPhd['forthcoming'],
                     $rawPhd['city'],
                     $rawPhd['title'],
                     $rawPhd['institution'],
@@ -103,12 +104,25 @@ class PhdManager extends DocumentManager
      */
     public function add(stdClass $data): Phd
     {
-        if (!property_exists($data, 'year')
+        if (!property_exists($data, 'title')
             || !is_string($data->title)
             || empty($data->title)
-            || !property_exists($data, 'year')
-            || !is_numeric($data->year)
-            || empty($data->year)
+            || (
+                property_exists($data, 'year')
+                && !empty($data->year)
+                && !is_numeric($data->year)
+            )
+            || (
+                !property_exists($data, 'forthcoming')
+                || !is_bool($data->forthcoming)
+            )
+            || (
+                $data->forthcoming == FALSE
+                && (
+                    !property_exists($data, 'year')
+                    || empty($data->year)
+                )
+            )
             || !property_exists($data, 'city')
             || !is_string($data->city)
             || empty($data->city)
@@ -117,10 +131,16 @@ class PhdManager extends DocumentManager
         }
         $this->dbs->beginTransaction();
         try {
-            $id = $this->dbs->insert($data->title, $data->year, $data->city);
+            $id = $this->dbs->insert(
+                $data->title,
+                property_exists($data, 'year') ? $data->year : null,
+                $data->forthcoming,
+                $data->city
+            );
 
             unset($data->title);
             unset($data->year);
+            unset($data->forthcoming);
             unset($data->city);
 
             $new = $this->update($id, $data, true);
@@ -170,13 +190,34 @@ class PhdManager extends DocumentManager
                 $changes['mini'] = true;
                 $this->dbs->updateTitle($id, $data->title);
             }
-            // Year is a required field
+            // Year is required if not forthcoming
             if (property_exists($data, 'year')) {
-                if (!is_numeric($data->year) || empty($data->year)) {
+                if (!empty($data->year) && !is_numeric($data->year)) {
                     throw new BadRequestHttpException('Incorrect year data.');
+                }
+                if (empty($data->year)
+                    && (
+                        (
+                            !property_exists($data, 'forthcoming')
+                            && $old->getForthcoming() == FALSE
+                        )
+                        || (
+                            property_exists($data, 'forthcoming')
+                            && $data->forthcoming == FALSE
+                        )
+                    )
+                ) {
+                    throw new BadRequestHttpException('Year or forthcoming is required.');
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateYear($id, $data->year);
+            }
+            if (property_exists($data, 'forthcoming')) {
+                if (!is_bool($data->forthcoming)) {
+                    throw new BadRequestHttpException('Incorrect forthcoming data.');
+                }
+                $changes['mini'] = true;
+                $this->dbs->updateForthcoming($id, $data->forthcoming);
             }
             // City is a required field
             if (property_exists($data, 'city')) {

@@ -202,6 +202,7 @@ export default {
                 basic: {
                     title: null,
                     year: null,
+                    forthcoming: null,
                     city: null,
                     institution: null,
                     volume: null,
@@ -238,6 +239,14 @@ export default {
         this.managements = this.data.managements;
     },
     methods: {
+        // Override to make sure forthcoming is set
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model));
+            if (this.model.forthcoming == null) {
+                this.model.forthcoming = false;
+            }
+            this.enableFields();
+        },
         loadAsync() {
             this.reload('modernPersons');
         },
@@ -252,6 +261,7 @@ export default {
                 this.model.basic = {
                     title: this.phd.title,
                     year: this.phd.year,
+                    forthcoming: this.phd.forthcoming,
                     city: this.phd.city,
                     institution: this.phd.institution,
                     volume: this.phd.volume,
@@ -303,6 +313,7 @@ export default {
                     })
             }
             else {
+                console.log('putting');
                 axios.put(this.urls['phd_put'], this.toSave())
                     .then( (response) => {
                         window.onbeforeunload = function () {}

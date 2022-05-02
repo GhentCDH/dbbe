@@ -103,6 +103,7 @@ class PhdService extends DocumentService
                 phd.identity as phd_id,
                 document_title.title,
                 phd.year,
+                phd.forthcoming,
                 phd.city,
                 phd.institution,
                 phd.volume
@@ -115,22 +116,24 @@ class PhdService extends DocumentService
     }
 
     /**
-     * @param  string $title
-     * @param  int    $year
-     * @param  string $city
+     * @param  string   $title
+     * @param  int|null $year
+     * @param  bool     $forthcoming
+     * @param  string   $city
      * @return int
      */
-    public function insert(string $title, int $year, string $city): int
+    public function insert(string $title, int $year = null, bool $forthcoming, string $city): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_phd_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.phd (year, city)
-                values (?, ?)',
+                'INSERT INTO data.phd (year, forthcoming, city)
+                values (?, ?, ?)',
                 [
                     $year,
+                    $forthcoming ? 't' : 'f',
                     $city,
                 ]
             );
@@ -160,11 +163,11 @@ class PhdService extends DocumentService
     }
 
     /**
-     * @param  int $id
-     * @param  int $year
+     * @param  int      $id
+     * @param  int|null $year
      * @return int
      */
-    public function updateYear(int $id, int $year): int
+    public function updateYear(int $id, int $year = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.phd
@@ -172,6 +175,24 @@ class PhdService extends DocumentService
             where phd.identity = ?',
             [
                 $year,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int  $id
+     * @param  bool $forthcoming
+     * @return int
+     */
+    public function updateForthcoming(int $id, bool $forthcoming): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.phd
+            set forthcoming = ?
+            where phd.identity = ?',
+            [
+                $forthcoming ? 't' : 'f',
                 $id,
             ]
         );

@@ -16,12 +16,10 @@
                     with {'personRoles': is_granted('ROLE_VIEW_INTERNAL') ? phd.getPersonRoles() : phd.getPublicPersonRoles()}
                     only
                 %}
-                {% if phd.getYear() is not empty %}
-                    <tr>
-                        <td>Year</td>
-                        <td>{{ phd.getYear() }}</td>
-                    </tr>
-                {% endif %}
+                <tr>
+                    <td>Year</td>
+                    <td>{{ phd.getForthcoming() ? '(forthcoming)' : phd.getYear() }}</td>
+                </tr>
                 {% if phd.getCity() is not empty %}
                     <tr>
                         <td>City</td>

@@ -23,6 +23,10 @@ class Phd extends Document
      */
     protected $year;
     /**
+     * @var bool
+     */
+    protected $forthcoming;
+    /**
      * @var string
      */
     protected $city;
@@ -37,7 +41,8 @@ class Phd extends Document
 
     /**
      * @param int          $id
-     * @param int          $year
+     * @param int|null     $year
+     * @param bool         $forthcoming
      * @param string       $city
      * @param string       $title
      * @param string|null  $institution
@@ -45,7 +50,8 @@ class Phd extends Document
      */
     public function __construct(
         int $id,
-        int $year,
+        int $year = null,
+        bool $forthcoming,
         string $city,
         string $title,
         string $institution = null,
@@ -53,6 +59,7 @@ class Phd extends Document
     ) {
         $this->id = $id;
         $this->year = $year;
+        $this->forthcoming = $forthcoming;
         $this->city = $city;
         $this->title = $title;
         $this->institution = $institution;
@@ -65,11 +72,19 @@ class Phd extends Document
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getYear(): int
+    public function getYear(): ?int
     {
         return $this->year;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getForthcoming(): bool
+    {
+        return $this->forthcoming;
     }
 
     /**
@@ -118,7 +133,12 @@ class Phd extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->year
+            . ' '
+            . (
+                $this->forthcoming
+                    ? '(forthcoming)'
+                    : $this->year
+            )
             . ', ' . $this->getFullTitleAndVolume()
             . (!empty($this->getCity()) ? ', ' . $this->getCity() : '');
     }
@@ -177,6 +197,7 @@ class Phd extends Document
         if (!empty($this->year)) {
             $result['year'] = $this->year;
         }
+        $result['forthcoming'] = $this->forthcoming;
         if (!empty($this->city)) {
             $result['city'] = $this->city;
         }

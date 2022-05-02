@@ -32,6 +32,7 @@ export default {
     ],
     data() {
         return {
+            revalidate: false,
             schema: {
                 fields: {
                     title: {
@@ -49,8 +50,17 @@ export default {
                         label: 'Year',
                         labelClasses: 'control-label',
                         model: 'year',
-                        required: true,
-                        validator: VueFormGenerator.validators.number,
+                        validator: [
+                            VueFormGenerator.validators.number,
+                            this.yearOrForthcoming,
+                        ],
+                    },
+                    forthcoming: {
+                        type: 'checkbox',
+                        label: 'Forthcoming',
+                        labelClasses: 'control-label',
+                        model: 'forthcoming',
+                        validator: this.yearOrForthcoming,
                     },
                     city: {
                         type: 'input',
@@ -85,10 +95,41 @@ export default {
         'model.year' () {
             if (isNaN(this.model.year)) {
                 this.model.year = null;
-                this.$nextTick(function() {
-                    this.validate();
-                });
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
             }
+        },
+    },
+    methods: {
+        // Override to make sure forthcoming is set
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model));
+            if (this.model.forthcoming == null) {
+                this.model.forthcoming = false;
+            }
+            this.enableFields();
+            this.calcChanges();
+        },
+        yearOrForthcoming() {
+            if (!this.revalidate) {
+                this.revalidate = true;
+                this.validate();
+                this.revalidate = false;
+            }
+            if (
+                (
+                    this.model.year == null
+                    && this.model.forthcoming === false
+                )
+                || (
+                    this.model.year != null
+                    && this.model.forthcoming === true
+                )
+            ) {
+                return ['Exactly one of the fields "Year", "Forthcoming" is required.'];
+            }
+            return [];
         },
     },
 }
