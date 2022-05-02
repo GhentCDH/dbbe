@@ -186,8 +186,9 @@ class BookManager extends DocumentManager
                 )
             )
             || (
-                !empty($data->year) &&
-                !is_numeric($data->year)
+                property_exists($data, 'year')
+                && !empty($data->year)
+                && !is_numeric($data->year)
             )
             || (
                 !property_exists($data, 'forthcoming')

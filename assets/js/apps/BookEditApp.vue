@@ -209,7 +209,7 @@ export default {
                     totalVolumes: null,
                     title: null,
                     year: null,
-                    forthcoming: false,
+                    forthcoming: null,
                     city: null,
                     editor: null,
                     publisher: null,

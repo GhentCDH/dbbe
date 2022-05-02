@@ -171,6 +171,15 @@ export default {
         },
     },
     methods: {
+        // Override to make sure forthcoming is set
+        init() {
+            this.originalModel = JSON.parse(JSON.stringify(this.model));
+            if (this.model.forthcoming == null) {
+                this.model.forthcoming = false;
+            }
+            this.enableFields();
+            this.calcChanges();
+        },
         validateClusterOrTitle() {
             if (!this.revalidate) {
                 this.revalidate = true;

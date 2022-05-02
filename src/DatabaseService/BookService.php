@@ -202,7 +202,7 @@ class BookService extends DocumentService
                 [
                     $bookClusterId,
                     $year,
-                    $forthcoming,
+                    $forthcoming ? 't' : 'f',
                     $city,
                 ]
             );
@@ -312,7 +312,7 @@ class BookService extends DocumentService
             set forthcoming = ?
             where book.identity = ?',
             [
-                $forthcoming,
+                $forthcoming ? 't' : 'f',
                 $id,
             ]
         );
