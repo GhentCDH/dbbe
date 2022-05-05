@@ -38,6 +38,9 @@ class ManuscriptManager extends DocumentManager
 
         $this->setPublics($manuscripts);
 
+        // Needed to display manuscript date for occurrences on type detail page
+        $this->setDates($manuscripts);
+
         return $manuscripts;
     }
 
@@ -98,8 +101,6 @@ class ManuscriptManager extends DocumentManager
         // foreach ($manuscripts as $manuscript) {
         //     $manuscript->sortPersons();
         // }
-
-        $this->setDates($manuscripts);
 
         // Origin
         $rawOrigins = $this->dbs->getOrigins($ids);

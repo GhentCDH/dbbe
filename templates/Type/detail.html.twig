@@ -220,19 +220,27 @@
                                     {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                         {% block renderDetail %}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                    {% if item.getDate() is not empty %}
+                                        [{{ item.getDate() }}]
+                                    {% endif %}
                                         {% endblock %}
                                     {% endembed %}
                                     {% if item.getManuscript().getPublic() %}
                                         <br />
-                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}</a>
+                                        {% if item.getManuscript().getDate() is not empty %}
+                                            [{{ item.getManuscript().getDate() }}]
+                                        {% endif %}
+                                    ({{ item.getLocation()}})
                                     {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
                                         <br />
                                         <span class="bg-warning">
-                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }} ({{ item.getLocation()}})</a>
+                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}</a>
+                                            {% if item.getManuscript().getDate() is not empty %}
+                                                [{{ item.getManuscript().getDate() }}]
+                                            {% endif %}
+                                            ({{ item.getLocation()}})
                                         </span>
-                                    {% endif %}
-                                    {% if item.getDate() is not empty %}
-                                        [{{ item.getDate() }}]
                                     {% endif %}
                                     <br />
                                     {% if item.getNumberOfVerses() == 0 %}
