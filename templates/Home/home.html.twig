@@ -6,49 +6,17 @@
     <h2 class="h1">Welcome to the Database of Byzantine Book Epigrams</h1>
 </div>
 <article class="col-sm-9 mbottom-large">
-    <div class="row">
+    <div class="row display-flex">
         <div class="col-sm-6">
             <div class="bg-primary padding-default">
-                <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing <a href="{{ path('page_get', {'slug': 'about'}) }}">project</a> that makes available both textual and contextual data of book epigrams - also known as “metrical paratexts” - from medieval Greek <a href="{{ path('manuscripts_search') }}">manuscripts</a> dating up to the fifteenth century. We define book epigrams as poems in and on books: they have as subject the very manuscript in which they are found, elaborating on its production, contents and use.</p>
+                <p>The Database of Byzantine Book Epigrams (DBBE) is an ongoing <a href="https://www.projectdbbe.ugent.be/" target="_blank">project</a> that makes available both textual and contextual data of book epigrams - also known as “metrical paratexts” - from medieval Greek <a href="{{ path('manuscripts_search') }}">manuscripts</a> dating up to the fifteenth century. We define book epigrams as poems in and on books: they have as subject the very manuscript in which they are found, elaborating on its production, contents and use.</p>
                 <p>We distinguish between two kinds of textual material, namely <a href="{{ path('occurrences_search') }}">occurrences</a> and <a href="{{ path('types_search') }}">types</a>. Further explanation of our definitions and working principles is to be found on the <a href="{{ path('page_get', {'slug': 'help'}) }}">Help page</a>. A technical guide to the use of DBBE is to be found on the <a href="{{ path('page_get', {'slug': 'search-tips-tricks'}) }}">Search tips and tricks page</a>.</p>
             </div>
         </div>
         <div class="col-sm-6">
-            <div class="padding-default">
-                {% if is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('news_events_edit') }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
-                {% endif %}
-                <a href="{{ path('news_events_get') }}">
-                    <h2>News items and events</h2>
-                </a>
-                <ul class="linklist-events list-unstyled">
-                    {% for newsEvent in newsEvents %}
-                        {% if newsEvent.public or is_granted('ROLE_EDITOR_VIEW') %}
-                            {% if newsEvent.public %}
-                                <li>
-                            {% else %}
-                                <li class="bg-warning">
-                            {% endif %}
-                                {% if newsEvent.url %}
-                                    <a href="{{ newsEvent.url }}" target="_blank" class="block-link">
-                                {% elseif newsEvent.text %}
-                                    <a href="{{ path('news_event_get', {'id': newsEvent.id}) }}" class="block-link">
-                                {% endif %}
-                                    <div class="date-container">
-                                        <span class="month">{{ newsEvent.date|month }}</span>
-                                        <span class="day">{{ newsEvent.date|day }}</span>
-                                    </div>
-                                    <div class="content-container">
-                                        <p class="h3"><span>{{ newsEvent.title }}</span></p>
-                                        <p class="date ellipsis"></p>
-                                    </div>
-                                {% if newsEvent.url or newsEvent.text %}
-                                    </a>
-                                {% endif %}
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+            <div class="bg-tertiary padding-default full-height">
+                <h2>About DBBE</h2>
+                <p>More information on the DBBE project (News and Events, Team Members, ...) can be found on our <a href="https://www.projectdbbe.ugent.be/" target="_blank">project website</a>.</p>
             </div>
         </div>
     </div>
@@ -58,7 +26,7 @@
                 <a href="{{ path('occurrences_search') }}">
                     <h2>Occurrences</h2>
                 </a>
-                <p class="text-muted">Book epigrams exactly as they occur in one specific manuscript. The data collected here is largely the result of careful manuscript consultation, either in situ or based on (digital) reproductions, conducted by the <a href="{{ path('page_get', {'slug': 'team'}) }}">DBBE team</a>. The remainder is compiled from descriptive catalogues and other relevant publications. Individual verses found in multiple occurrences are linked together by means of dedicated <a href="{{ path('page_get', {'slug': 'search-tips-tricks'}) }}">Verse variants pages</a>.</p>
+                <p class="text-muted">Book epigrams exactly as they occur in one specific manuscript. The data collected here is largely the result of careful manuscript consultation, either in situ or based on (digital) reproductions, conducted by the <a href="https://www.projectdbbe.ugent.be/team/" target="_blank">DBBE team</a>. The remainder is compiled from descriptive catalogues and other relevant publications. Individual verses found in multiple occurrences are linked together by means of dedicated <a href="{{ path('page_get', {'slug': 'search-tips-tricks'}) }}">Verse variants pages</a>.</p>
             </div>
         </div>
         <div class="col-sm-6">
