@@ -188,7 +188,7 @@ class TypeManager extends PoemManager
      */
     public function getFull(int $id): Type
     {
-        // Get basic occurrence information
+        // Get basic type information
         $types = $this->getShort([$id]);
         if (count($types) == 0) {
             throw new NotFoundHttpException('Type with id ' . $id .' not found.');
