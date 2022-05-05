@@ -244,12 +244,14 @@
             @cancel="deleteModal=false"
             @confirm="submitDelete()"
         />
-        <div
-            v-if="openRequests"
-            class="loading-overlay"
-        >
-            <div class="spinner" />
-        </div>
+        <transition name="fade">
+            <div
+                v-if="openRequests"
+                class="loading-overlay"
+            >
+                <div class="spinner" />
+            </div>
+        </transition>
     </div>
 </template>
 <script>
