@@ -136,7 +136,12 @@
                                     <h6>As {{ manuscriptRole[0].getName() }}:</h6>
                                     {% embed 'Helpers/renderList.html.twig' with {'list': manuscriptRole[1], 'enableCollapse': 1, 'label': 'manuscripts'} only %}
                                         {% block renderItem %}
-                                            {% include 'Helpers/renderPublic.html.twig' with {'item': item, 'path': 'manuscript_get', 'display': item.getName()} only %}
+                                            {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
+                                                {% block renderDetail %}
+                                                    <a href="{{ path('manuscript_get', {'id': item.getId()}) }}">{{ item.getName() }}</a>
+                                                    {% if item.getDate() is not empty %}[{{ item.getDate() }}]{% endif %}
+                                                {% endblock %}
+                                            {% endembed %}
                                         {% endblock %}
                                     {% endembed %}
                                 {% endfor %}
@@ -164,6 +169,9 @@
                                                 {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                                     {% block renderDetail %}
                                                         <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
+                                                        {% if item.getDate() is not empty %}
+                                                            [{{ item.getDate() }}]
+                                                        {% endif %}
                                                     {% endblock %}
                                                 {% endembed %}
                                             {% elseif documentType == 'type' %}
