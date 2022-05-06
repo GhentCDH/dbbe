@@ -249,18 +249,12 @@
                                     {% endembed %}
                                     {% if item.getManuscript().getPublic() %}
                                         <br />
-                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}</a>
-                                        {% if item.getManuscript().getDate() is not empty %}
-                                            [{{ item.getManuscript().getDate() }}]
-                                        {% endif %}
-                                    ({{ item.getLocation()}})
+                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %}[{{ item.getManuscript().getDate() }}]{% endif %}</a>
+                                        ({{ item.getLocation()}})
                                     {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
                                         <br />
                                         <span class="bg-warning">
-                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}</a>
-                                            {% if item.getManuscript().getDate() is not empty %}
-                                                [{{ item.getManuscript().getDate() }}]
-                                            {% endif %}
+                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %}[{{ item.getManuscript().getDate() }}]{% endif %}</a>
                                             ({{ item.getLocation()}})
                                         </span>
                                     {% endif %}
