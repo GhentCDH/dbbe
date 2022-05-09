@@ -161,11 +161,9 @@
                                         {% if item.getPersonRoles() %}
                                             <dt class="col-sm-2">Translator(s)</dt>
                                             <dd class="col-sm-10">
-                                                {% embed 'Helpers/renderList.html.twig' with {'list':  item.getPersonRoles()['translator'][1]} only %}
-                                                    {% block renderItem %}
-                                                        {{ item.getFullDescriptionWithOffices() }}
-                                                    {% endblock %}
-                                                {% endembed %}
+                                                {% for person in item.getPersonRoles()['translator'][1] %}
+                                                    {% if not person.getPublic() %}<span class="bg-warning">{% endif %}<a href="{{ path('person_get', {'id': person.getId()}) }}">{{ person.getFullDescriptionWithOffices() }}</a>{% if not person.getPublic() %}</span>{% endif %}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
                                             </dd>
                                         {% endif %}
                                         {% if item.getPublicComment() is not empty %}
