@@ -210,8 +210,8 @@ class Type extends Poem
         usort(
             $this->translations,
             function ($a, $b) {
-                if ($a->getLanguage() != $b->getLanguage()) {
-                    return $a->getLanguage() <=> $b->getLanguage();
+                if ($a->getLanguage()->getName() != $b->getLanguage()->getName()) {
+                    return $a->getLanguage()->getName() <=> $b->getLanguage()->getName();
                 }
                 return $this->getTranslationYear($b) - $this->getTranslationYear($a);
             }
