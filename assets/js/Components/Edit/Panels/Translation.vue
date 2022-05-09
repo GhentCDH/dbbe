@@ -99,11 +99,11 @@
                 id="translators"
                 ref="translators"
                 header="Translators"
-                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
+                :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
                 :roles="values.personRoles"
                 :model="editModel.personRoles"
-                :values="values.dbbePersons"
-                :keys="{dbbePersons: {init: true}}"
+                :values="values.modernPersons"
+                :keys="{modernPersons: {init: true}}"
                 :reloads="reloads"
                 @validated="calcChanges"
                 @reload="reload"
@@ -233,7 +233,7 @@ export default {
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 this.enableField(this.schema.fields.language);
-                this.$refs.translators.enableFields('dbbePersons');
+                this.$refs.translators.enableFields('modernPersons');
             } else {
                 if (
                     enableKeys.includes('articles')
@@ -246,7 +246,7 @@ export default {
                 ) {
                     this.$refs.translationBibliography.enableFields(enableKeys);
                 }
-                if (enableKeys.includes('dbbePersons')) {
+                if (enableKeys.includes('modernPersons')) {
                     this.$refs.translators.enableFields(enableKeys);
                 }
             }
@@ -262,7 +262,7 @@ export default {
             ) {
                 this.$refs.translationBibliography.disableFields(disableKeys);
             }
-            if (disableKeys.includes('dbbePersons')) {
+            if (disableKeys.includes('modernPersons')) {
                 this.$refs.translators.disableFields(disableKeys);
             }
         },

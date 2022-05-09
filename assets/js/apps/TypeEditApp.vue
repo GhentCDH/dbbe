@@ -356,6 +356,7 @@ export default {
             types: null,
             dbbePersons: null,
             historicalPersons: null,
+            modernPersons: null,
             metres: null,
             genres: null,
             subjects: null,
@@ -480,7 +481,7 @@ export default {
             onlineSources: [],
             phds: [],
             bibVarias: [],
-            dbbePersons: this.data.dbbePersons,
+            modernPersons: this.data.modernPersons,
             personRoles: this.translationRoles,
         };
         this.generals = {
@@ -732,6 +733,8 @@ export default {
                     [this.dbbePersons],
                     this.urls['dbbe_persons_get']
                 );
+                break;
+            case 'modernPersons':
                 this.reloadNestedItems(type, [this.translations]);
                 break;
             case 'keywordSubjects':
