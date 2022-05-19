@@ -12,7 +12,7 @@
                 <a href="{{ path('type_edit', {'id': type.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
             {% endif %}
         </h2>
-        <div class="greek pbottom-default">
+        <div class="pbottom-default">
             {% if (type.getVerses()) %}
                 {# don't display type titles here, these are displayed in the table below #}
                 {% include 'Helpers/renderTitleVersesAsText.html.twig' with {'title': null, 'verses': type.getVerses()} only %}

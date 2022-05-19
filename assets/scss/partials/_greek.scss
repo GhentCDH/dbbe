@@ -1,14 +1,18 @@
 .greek {
   font-family: 'Noto serif', Arial, sans-serif;
-  font-size: 14px;
+  font-size: 0.8em;
 
   &.form-group {
     font-family: $default-font-family;
 
     .form-control {
       font-family: 'Noto serif', Arial, sans-serif;
-      font-size: 14px;
+      font-size: 0.8em;
     }
+  }
+
+  &.verses {
+    font-size: 1em;
   }
 }
 

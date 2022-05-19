@@ -15,7 +15,7 @@
         </h2>
         <div class="row pbottom-default">
             {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
-            <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %} greek">
+            <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %}">
                 {% if (occurrence.getTitle() or occurrence.getVerses()) %}
                      {% include 'Helpers/renderTitleVerses.html.twig' with {'title': occurrence.getTitle(), 'verses': occurrence.getVerses()} only %}
                 {% endif %}
