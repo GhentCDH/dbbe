@@ -486,6 +486,9 @@ class BookManager extends DocumentManager
         if (empty($primary->getYear()) && !empty($secondary->getYear())) {
             $updates['year'] = $secondary->getYear();
         }
+        if (empty($primary->getForthcoming()) && !empty($secondary->getForthcoming())) {
+            $updates['forthcoming'] = $secondary->getForthcoming();
+        }
         if (empty($primary->getCity()) && !empty($secondary->getCity())) {
             $updates['city'] = $secondary->getCity();
         }
