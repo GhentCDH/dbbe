@@ -18,7 +18,7 @@
                 %}
                 <tr>
                     <td>Year</td>
-                    <td>{{ phd.getForthcoming() ? '(forthcoming)' : phd.getYear() }}</td>
+                    <td>{{ phd.getForthcoming() ? 'forthcoming' : phd.getYear() }}</td>
                 </tr>
                 {% if phd.getCity() is not empty %}
                     <tr>

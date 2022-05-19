@@ -21,7 +21,7 @@
                 %}
                 <tr>
                     <td>Year</td>
-                    <td>{{ book.getForthcoming() ? '(forthcoming)' : book.getYear() }}</td>
+                    <td>{{ book.getForthcoming() ? 'forthcoming' : book.getYear() }}</td>
                 </tr>
                 {% if book.getCity() is not empty %}
                     <tr>
