@@ -73,7 +73,12 @@ class Article extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->journalIssue->getYear()
+            . ' '
+            . (
+                $this->journalIssue->getForthcoming()
+                    ? '(forthcoming)'
+                    : $this->journalIssue->getYear()
+            )
             . ', ' . $this->title
             . ', ' . $this->journalIssue->getJournal()->getTitle()
             . (

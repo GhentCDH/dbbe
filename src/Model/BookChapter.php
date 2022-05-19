@@ -71,7 +71,12 @@ class BookChapter extends Document
         }
         return
             implode(', ', $authorNames)
-            . ' ' . $this->book->getYear()
+            . ' '
+            . (
+                $this->book->getForthcoming()
+                    ? '(forthcoming)'
+                    : $this->book->getYear()
+            )
             . ', ' . $this->getTitle()
             . ', in '
             . (
