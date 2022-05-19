@@ -92,7 +92,7 @@
                                 {% block renderItem %}
                                     {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                         {% block renderDetail %}
-                                            ({{ item.getLocation() }})
+                                            {{ item.getLocation() }}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                             {% if item.getDate() is not empty %}
                                                 [{{ item.getDate() }}]
