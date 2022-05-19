@@ -93,19 +93,23 @@
                         </tr>
                     {% endif %}
                 {% endif %}
-</tbody>
-</table>
+            </tbody>
+        </table>
 
-<div class="pbottom-default text-right">
-    <em>Last modified: {{ book_chapter.getModified()|date('Y-m-d') }}.</em>
-</div>
+        <div class="pbottom-default text-right">
+            <em>Last modified: {{ book_chapter.getModified()|date('Y-m-d') }}.</em>
+        </div>
 
-<div id="feedback-app">
-    <feedback-app
-            feedback-url="{{ path('feedback') }}"
-            site-key=" {{ siteKey }}" />
-</div>
-</article>
+        <div class="pbottom-default">
+            <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+        </div>
+
+        <div id="feedback-app">
+            <feedback-app
+                    feedback-url="{{ path('feedback') }}"
+                    site-key=" {{ siteKey }}" />
+        </div>
+    </article>
 {% endblock %}
 
 {% block javascript %}
