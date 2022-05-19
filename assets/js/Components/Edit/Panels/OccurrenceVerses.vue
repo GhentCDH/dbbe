@@ -10,7 +10,7 @@
         <h6>Preview</h6>
         <table
             v-if="model.verses"
-            class="table greek"
+            class="table greek verses"
         >
             <tbody>
                 <tr

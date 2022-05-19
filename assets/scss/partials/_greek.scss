@@ -1,13 +1,34 @@
+// Downloaded from https: //github.com/googlefonts/noto-fonts/tree/main/unhinted/ttf
+// Converted using https: //transfonter.org/
+
+@font-face {
+  font-family: 'NotoSerifRegular';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/noto-serif/NotoSerif-Regular.woff2');
+  src: url('../../fonts/noto-serif/NotoSerif-Regular.woff2') format ('woff2'),
+       url('../../fonts/noto-serif/NotoSerif-Regular.woff') format ('woff');
+}
+
+@font-face {
+  font-family: 'NotoSerifMedium';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../../fonts/noto-serif/NotoSerif-Medium.woff2');
+  src: url('../../fonts/noto-serif/NotoSerif-Medium.woff2') format ('woff2'),
+       url('../../fonts/noto-serif/NotoSerif-Medium.woff') format ('woff');
+}
+
 .greek {
-  font-family: 'Noto serif', Arial, sans-serif;
+  font-family: NotoSerifRegular, Arial, sans-serif;
   font-size: 0.8em;
 
   &.form-group {
     font-family: $default-font-family;
 
     .form-control {
-      font-family: 'Noto serif', Arial, sans-serif;
-      font-size: 0.8em;
+      font-family: NotoSerifRegular, Arial, sans-serif;
+      font-size: 1em;
     }
   }
 
@@ -16,9 +37,26 @@
   }
 }
 
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  .greek {
+    font-family: NotoSerifMedium;
+  }
+}
+
 .modal-title {
   .greek {
-    font-size: $fz-medium;
-    font-weight: 700;
+    font-family: NotoSerifMedium;
+    font-size: 0.8em;
   }
 }
