@@ -162,7 +162,7 @@
                 @validated="validated"
             />
             <div slot="footer">
-                <btn @click="updateLinkModal=false">Cancel</btn>
+                <btn @click="cancelUpdateLink">Cancel</btn>
                 <btn
                     :disabled="submitUpdateLinkDisabled"
                     type="alert"
@@ -351,6 +351,10 @@ export default {
             this.calcChanges()
             this.$emit('validated', 0, null, this)
             this.publicImageModal = false
+        },
+        cancelUpdateLink() {
+            this.updateLinkModal = false
+            this.isValid = true
         },
         submitUpdateLink() {
             this.submitUpdateLinkDisabled = true
