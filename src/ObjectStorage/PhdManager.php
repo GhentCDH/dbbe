@@ -281,7 +281,7 @@ class PhdManager extends DocumentManager
 
             // Reset elasticsearch
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }

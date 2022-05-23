@@ -213,7 +213,7 @@ class VerseManager extends ObjectManager
             $this->dbs->rollBack();
 
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
@@ -300,7 +300,7 @@ class VerseManager extends ObjectManager
 
             $this->updateModified($old, null);
 
-            $this->updateElasticByIds([$id]);
+            $this->deleteElasticByIdIfExists($id);
 
             $this->dbs->commit();
         } catch (Exception $e) {

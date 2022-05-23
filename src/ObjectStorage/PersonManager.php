@@ -768,7 +768,7 @@ class PersonManager extends ObjectEntityManager
 
             // Reset elasticsearch
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
@@ -1055,7 +1055,7 @@ class PersonManager extends ObjectEntityManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            $this->updateElasticByIds([$primaryId]);
+            $this->updateElasticByIds([$primaryId, $secondaryId]);
 
             $this->container->get(ManuscriptManager::class)->updateElasticByIds(array_keys($manuscripts));
             $this->container->get(OccurrenceManager::class)->updateElasticByIds(array_keys($occurrences));
@@ -1385,7 +1385,7 @@ class PersonManager extends ObjectEntityManager
             $this->updateModified($old, null);
 
             // remove from elasticsearch
-            $this->updateElasticByIds([$id]);
+            $this->deleteElasticByIdIfExists($id);
 
             $this->cache->invalidateTags([$this->entityType . 's']);
 

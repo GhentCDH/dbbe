@@ -388,7 +388,7 @@ class ManuscriptManager extends DocumentManager
 
             // Reset elasticsearch on elasticsearch error
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
 

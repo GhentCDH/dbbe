@@ -15,6 +15,7 @@ use App\Model\Entity;
 abstract class  ObjectEntityManager extends EntityManager
 {
     use UpdateElasticByIdsTrait;
+    use DeleteElasticByIdIfExistsTrait;
 
     abstract public function getMini(array $ids): array;
     abstract public function getShort(array $ids): array;
@@ -308,7 +309,7 @@ abstract class  ObjectEntityManager extends EntityManager
             $this->cache->invalidateTags([$this->entityType . 's']);
 
             // remove from elasticsearch
-            $this->updateElasticByIds([$id]);
+            $this->deleteElasticByIdIfExists($id);
 
             // commit transaction
             $this->dbs->commit();

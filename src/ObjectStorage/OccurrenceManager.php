@@ -302,7 +302,7 @@ class OccurrenceManager extends PoemManager
         try {
             $id = $this->dbs->insert($data->manuscript->id, $data->incipit);
 
-            // Reset new manuscript (personroles + number of occurrences)
+            // Reset manuscript (personroles + number of occurrences)
             $this->container->get(ManuscriptManager::class)->updateElasticByIds([
                 $data->manuscript->id,
             ]);
@@ -316,7 +316,10 @@ class OccurrenceManager extends PoemManager
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
-            // manuscript data is not loaded here, so it does not need to be reset
+            // Reset manuscript (personroles + number of occurrences)
+            $this->container->get(ManuscriptManager::class)->updateElasticByIds([
+                $data->manuscript->id,
+            ]);
 
             throw $e;
         }
@@ -710,7 +713,7 @@ class OccurrenceManager extends PoemManager
 
             // Reset elasticsearch
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
@@ -993,7 +996,7 @@ class OccurrenceManager extends PoemManager
             $this->cache->invalidateTags([$this->entityType . 's']);
 
             // remove from elasticsearch
-            $this->updateElasticByIds([$id]);
+            $this->deleteElasticByIdIfExists($id);
 
             // commit transaction
             $this->dbs->commit();

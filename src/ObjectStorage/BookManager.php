@@ -433,7 +433,7 @@ class BookManager extends DocumentManager
 
             // Reset elasticsearch
             if ($isNew) {
-                $this->updateElasticByIds([$id]);
+                $this->deleteElasticByIdIfExists($id);
             } elseif (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
@@ -593,7 +593,7 @@ class BookManager extends DocumentManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            $this->updateElasticByIds([$primaryId]);
+            $this->updateElasticByIds([$primaryId, $secondaryId]);
 
             $this->container->get(ManuscriptManager::class)->updateElasticByIds(array_keys($manuscripts));
             $this->container->get(OccurrenceManager::class)->updateElasticByIds(array_keys($occurrences));
