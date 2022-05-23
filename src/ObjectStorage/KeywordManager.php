@@ -66,14 +66,7 @@ class KeywordManager extends ObjectManager
 
     public function getByTypeShortJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            $type . '_keywords',
-            $type,
-            ['keywords'],
-            function ($type) {
-                return ArrayToJson::arrayToShortJson($this->getByType($type));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getByType($type));
     }
 
     public function getByTypeJson(string $type): array

@@ -537,13 +537,7 @@ class PersonManager extends ObjectEntityManager
      */
     public function getAllHistoricalShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'historical_persons',
-            ['persons'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getByType('historical'));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getByType('historical'));
     }
 
     /**
@@ -551,13 +545,7 @@ class PersonManager extends ObjectEntityManager
      */
     public function getAllModernShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'modern_persons',
-            ['persons'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getByType('modern'));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getByType('modern'));
     }
 
     /**
@@ -565,13 +553,7 @@ class PersonManager extends ObjectEntityManager
      */
     public function getAllDBBEShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'dbbe_persons',
-            ['persons'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getByType('dbbe'));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getByType('dbbe'));
     }
 
     /**

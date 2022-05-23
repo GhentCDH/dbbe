@@ -59,12 +59,6 @@ class ReferenceTypeManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'reference_types',
-            ['reference_types'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 }

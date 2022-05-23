@@ -68,13 +68,7 @@ class GenreManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'genres',
-            ['genres'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 
     /**

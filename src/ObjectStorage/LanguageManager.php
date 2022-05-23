@@ -35,19 +35,13 @@ class LanguageManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'languages',
-            ['languages'],
-            function () {
-                $languages = $this->getAll();
+        $languages = $this->getAll();
 
-                // Sort by name
-                usort($languages, function ($a, $b) {
-                    return strcmp($a->getName(), $b->getName());
-                });
+        // Sort by name
+        usort($languages, function ($a, $b) {
+            return strcmp($a->getName(), $b->getName());
+        });
 
-                return ArrayToJson::arrayToShortJson($languages);
-            }
-        );
+        return ArrayToJson::arrayToShortJson($languages);
     }
 }

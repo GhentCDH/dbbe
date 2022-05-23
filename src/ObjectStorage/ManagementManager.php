@@ -51,13 +51,7 @@ class ManagementManager extends ObjectManager
 
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'managements',
-            ['managements'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 
     public function getAllJson(): array

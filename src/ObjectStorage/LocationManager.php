@@ -61,14 +61,7 @@ class LocationManager extends ObjectManager
 
     public function getByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            $type . '_locations',
-            $type,
-            ['regions', 'institutions', 'collections'],
-            function ($type) {
-                return ArrayToJson::arrayToJson($this->getByType($type));
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getByType($type));
     }
 
     public function getLocationByRegion(int $regionId): int

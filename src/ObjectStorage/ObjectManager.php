@@ -66,30 +66,6 @@ class ObjectManager
         return null;
     }
 
-    protected function wrapArrayCache(string $cacheKey, array $tags, callable $function): array
-    {
-        // https://github.ugent.be/GhentCDH/dbbe2/issues/379
-//        $cache = $this->getArrayCache($cacheKey);
-//        if (!is_null($cache)) {
-//            return $cache;
-//        }
-        $result = $function();
-//        $this->setArrayCache($result, $cacheKey, $tags);
-        return $result;
-    }
-
-    protected function wrapArrayTypeCache(string $cacheKey, string $type, array $tags, callable $function): array
-    {
-        // https://github.ugent.be/GhentCDH/dbbe2/issues/379
-//        $cache = $this->getArrayCache($cacheKey . '.' . $type);
-//        if (!is_null($cache)) {
-//            return $cache;
-//        }
-        $result = $function($type);
-//        $this->setArrayCache($result, $cacheKey . '.' . $type, $tags);
-        return $result;
-    }
-
     /**
      * Update entity modified date and create a revision
      * @param IdJsonInterface|null $old Old values, null in case of an inserted object

@@ -69,13 +69,7 @@ class MetreManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'metres',
-            ['metres'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 
     /**

@@ -116,13 +116,7 @@ class OfficeManager extends ObjectManager
      */
     public function getAllJson(): array
     {
-        return $this->wrapArrayCache(
-            'offices_with_parents',
-            ['offices', 'regions'],
-            function () {
-                return ArrayToJson::arrayToJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getAll());
     }
 
     /**

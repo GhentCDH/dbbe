@@ -70,13 +70,7 @@ class SelfDesignationManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'self_designations',
-            ['self_designations'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 
     /**

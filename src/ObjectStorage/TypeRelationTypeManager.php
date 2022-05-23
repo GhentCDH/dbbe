@@ -50,16 +50,10 @@ class TypeRelationTypeManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'type_relation_types',
-            ['type_relation_types'],
-            function () {
-                $rawIds = $this->dbs->getIds();
-                $ids = self::getUniqueIds($rawIds, 'type_relation_type_id');
-                $typeRelationTypes = $this->get($ids);
+        $rawIds = $this->dbs->getIds();
+        $ids = self::getUniqueIds($rawIds, 'type_relation_type_id');
+        $typeRelationTypes = $this->get($ids);
 
-                return ArrayToJson::arrayToShortJson($typeRelationTypes);
-            }
-        );
+        return ArrayToJson::arrayToShortJson($typeRelationTypes);
     }
 }

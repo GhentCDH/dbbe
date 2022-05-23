@@ -43,64 +43,36 @@ class IdentifierManager extends ObjectManager
 
     public function getByType(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'identifiers',
-            $type,
-            ['identifiers'],
-            function ($type) {
-                $identifiers = [];
-                $rawIdentifiers = $this->dbs->getByType($type);
+        $identifiers = [];
+        $rawIdentifiers = $this->dbs->getByType($type);
 
-                // Keys in this array must be systemnames as they are used in queries
-                $identifiersWithId = $this->getWithData($rawIdentifiers);
-                foreach ($identifiersWithId as $identifierWithId) {
-                    $identifiers[$identifierWithId->getSystemName()] = $identifierWithId;
-                }
+        // Keys in this array must be systemnames as they are used in queries
+        $identifiersWithId = $this->getWithData($rawIdentifiers);
+        foreach ($identifiersWithId as $identifierWithId) {
+            $identifiers[$identifierWithId->getSystemName()] = $identifierWithId;
+        }
 
-                return $identifiers;
-            }
-        );
+        return $identifiers;
     }
 
     public function getByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'identifiers_json',
-            $type,
-            ['identifiers'],
-            function ($type) {
-                return ArrayToJson::arrayToJson($this->getByType($type));
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getByType($type));
     }
 
     public function getPrimaryByType(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'primary_identifiers',
-            $type,
-            ['identifiers'],
-            function ($type) {
-                return array_filter($this->getByType($type), function ($identifier) {
-                    return $identifier->getPrimary();
-                });
-            }
-        );
+        return array_filter($this->getByType($type), function ($identifier) {
+            return $identifier->getPrimary();
+        });
     }
 
     public function getPrimaryByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'primary_identifiers_json',
-            $type,
-            ['identifiers'],
-            function ($type) {
-                return ArrayToJson::arrayToJson(
-                    array_filter($this->getByType($type), function ($identifier) {
-                        return $identifier->getPrimary();
-                    })
-                );
-            }
+        return ArrayToJson::arrayToJson(
+            array_filter($this->getByType($type), function ($identifier) {
+                return $identifier->getPrimary();
+            })
         );
     }
 }

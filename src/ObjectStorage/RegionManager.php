@@ -122,13 +122,7 @@ class RegionManager extends ObjectManager
      */
     public function getAllShortJson(): array
     {
-        return $this->wrapArrayCache(
-            'regions_with_parents',
-            ['regions'],
-            function () {
-                return ArrayToJson::arrayToShortJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAll());
     }
 
     /**
@@ -137,13 +131,7 @@ class RegionManager extends ObjectManager
      */
     public function getAllShortHistoricalJson(): array
     {
-        return $this->wrapArrayCache(
-            'historical_regions_with_parents',
-            ['regions'],
-            function () {
-                return ArrayToJson::arrayToShortHistoricalJson($this->getAll());
-            }
-        );
+        return ArrayToJson::arrayToShortHistoricalJson($this->getAll());
     }
 
     /**

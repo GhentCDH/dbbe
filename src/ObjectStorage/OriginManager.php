@@ -47,14 +47,7 @@ class OriginManager extends ObjectManager
 
     public function getByTypeShortJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            $type . '_origins',
-            $type,
-            ['regions', 'institutions'],
-            function ($type) {
-                return ArrayToJson::arrayToShortJson($this->getByType($type));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getByType($type));
     }
 
     public function getByTypeJson(string $type): array

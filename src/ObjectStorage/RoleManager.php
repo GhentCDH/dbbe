@@ -61,68 +61,40 @@ class RoleManager extends ObjectManager
 
     public function getByType(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'roles',
-            $type,
-            ['roles'],
-            function ($type) {
-                $roles = [];
-                $rawRoles = $this->dbs->getByType($type);
+        $roles = [];
+        $rawRoles = $this->dbs->getByType($type);
 
-                // Keys in this array must be systemnames as they are used in queries
-                $rolesWithId = $this->getWithData($rawRoles);
-                foreach ($rolesWithId as $roleWithId) {
-                    $roles[$roleWithId->getSystemName()] = $roleWithId;
-                }
+        // Keys in this array must be systemnames as they are used in queries
+        $rolesWithId = $this->getWithData($rawRoles);
+        foreach ($rolesWithId as $roleWithId) {
+            $roles[$roleWithId->getSystemName()] = $roleWithId;
+        }
 
-                return $roles;
-            }
-        );
+        return $roles;
     }
 
     public function getContributorByType(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'contributor_roles',
-            $type,
-            ['roles'],
-            function ($type) {
-                $roles = [];
-                $rawRoles = $this->dbs->getContributorByType($type);
+        $roles = [];
+        $rawRoles = $this->dbs->getContributorByType($type);
 
-                // Keys in this array must be systemnames as they are used in queries
-                $rolesWithId = $this->getWithData($rawRoles);
-                foreach ($rolesWithId as $roleWithId) {
-                    $roles[$roleWithId->getSystemName()] = $roleWithId;
-                }
+        // Keys in this array must be systemnames as they are used in queries
+        $rolesWithId = $this->getWithData($rawRoles);
+        foreach ($rolesWithId as $roleWithId) {
+            $roles[$roleWithId->getSystemName()] = $roleWithId;
+        }
 
-                return $roles;
-            }
-        );
+        return $roles;
     }
 
     public function getByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'roles_json',
-            $type,
-            ['roles'],
-            function ($type) {
-                return ArrayToJson::arrayToJson($this->getByType($type));
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getByType($type));
     }
 
     public function getContributorByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'contributor_roles_json',
-            $type,
-            ['roles'],
-            function ($type) {
-                return ArrayToJson::arrayToJson($this->getContributorByType($type));
-            }
-        );
+        return ArrayToJson::arrayToJson($this->getContributorByType($type));
     }
 
     public function add(stdClass $data): Role

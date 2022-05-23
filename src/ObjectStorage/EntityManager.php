@@ -59,13 +59,7 @@ abstract class EntityManager extends ObjectManager
 
     protected function getAllCombinedShortJson(string $level, string $sortFunction = null): array
     {
-        return $this->wrapArrayCache(
-            $this->entityType . 's_' . $level . (!empty($sortFunction) ? '_' . $sortFunction : ''),
-            [$this->entityType . 's'],
-            function () use ($level, $sortFunction) {
-                return ArrayToJson::arrayToShortJson($this->getAllCombined($level, $sortFunction));
-            }
-        );
+        return ArrayToJson::arrayToShortJson($this->getAllCombined($level, $sortFunction));
     }
 
     protected function getAllCombinedJson(string $level, string $sortFunction = null): array

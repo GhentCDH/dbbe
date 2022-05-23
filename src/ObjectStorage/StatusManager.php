@@ -54,32 +54,18 @@ class StatusManager extends ObjectManager
 
     public function getByTypeShortJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'statuses',
-            $type,
-            ['statuses'],
-            function ($type) {
-                $rawStatuses = $this->dbs->getStatusesByType($type);
-                $statuses = $this->getWithData($rawStatuses);
+        $rawStatuses = $this->dbs->getStatusesByType($type);
+        $statuses = $this->getWithData($rawStatuses);
 
-                return ArrayToJson::arrayToShortJson($statuses);
-            }
-        );
+        return ArrayToJson::arrayToShortJson($statuses);
     }
 
     public function getByTypeJson(string $type): array
     {
-        return $this->wrapArrayTypeCache(
-            'statuses_full',
-            $type,
-            ['statuses'],
-            function ($type) {
-                $rawStatuses = $this->dbs->getStatusesByType($type);
-                $statuses = $this->getWithData($rawStatuses);
+        $rawStatuses = $this->dbs->getStatusesByType($type);
+        $statuses = $this->getWithData($rawStatuses);
 
-                return ArrayToJson::arrayToJson($statuses);
-            }
-        );
+        return ArrayToJson::arrayToJson($statuses);
     }
 
     public function add(stdClass $data): Status
