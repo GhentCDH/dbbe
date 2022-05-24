@@ -207,8 +207,6 @@ class OfficeManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['offices']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -316,8 +314,6 @@ class OfficeManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['offices']);
-
             // update Elastic persons
             $personIds = $this->container->get(PersonManager::class)->getOfficeDependenciesWithChildren($id, 'getId');
             $this->container->get(PersonManager::class)->updateElasticByIds($personIds);
@@ -417,8 +413,6 @@ class OfficeManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['offices']);
 
             // commit transaction
             $this->dbs->commit();

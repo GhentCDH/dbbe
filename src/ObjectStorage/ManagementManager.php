@@ -79,8 +79,6 @@ class ManagementManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['managements']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -118,8 +116,6 @@ class ManagementManager extends ObjectManager
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
-
-            $this->cache->invalidateTags(['managements']);
 
             // update Elastic dependencies
             foreach (array_values(ElasticManagers::MANAGERS) as $manager) {
@@ -169,8 +165,6 @@ class ManagementManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['managements']);
 
             // update dependencies
             foreach ($dependencies as $entityType => $ids) {

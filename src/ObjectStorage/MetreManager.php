@@ -103,8 +103,6 @@ class MetreManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['metres']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -145,8 +143,6 @@ class MetreManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['metres']);
-
             // update Elastic occurrences
             $this->container->get(OccurrenceManager::class)->updateElasticMetre(
                 $this->container->get(OccurrenceManager::class)->getMetreDependencies($id, 'getId')
@@ -184,8 +180,6 @@ class MetreManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['metres']);
 
             // commit transaction
             $this->dbs->commit();

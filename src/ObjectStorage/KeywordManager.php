@@ -98,8 +98,6 @@ class KeywordManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['keywords']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -139,8 +137,6 @@ class KeywordManager extends ObjectManager
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
-
-            $this->cache->invalidateTags(['keywords']);
 
             // update Elastic occurrences
             $this->container->get(OccurrenceManager::class)->updateElasticByIds(
@@ -261,8 +257,6 @@ class KeywordManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['keywords']);
 
             // commit transaction
             $this->dbs->commit();

@@ -367,8 +367,6 @@ class ManuscriptManager extends DocumentManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // (re-)index in elastic search
             if ($changes['mini'] || $changes['short']) {
                 $this->ess->add($new);

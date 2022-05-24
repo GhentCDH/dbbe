@@ -102,8 +102,6 @@ class GenreManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['genres']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -144,8 +142,6 @@ class GenreManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['genres']);
-
             // update Elastic occurrences
             $occurrenceIds = $this->container->get(OccurrenceManager::class)->getGenreDependencies($id, 'getId');
             $this->container->get(OccurrenceManager::class)->updateElasticByIds($occurrenceIds);
@@ -181,8 +177,6 @@ class GenreManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['genres']);
 
             // commit transaction
             $this->dbs->commit();

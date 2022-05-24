@@ -186,8 +186,6 @@ class BookSeriesManager extends DocumentManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['book_seriess']);
-
             // (re-)index in elastic search
             $this->ess->add($new);
 
@@ -266,8 +264,6 @@ class BookSeriesManager extends DocumentManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['book_seriess']);
 
             // (re-)index in elastic search
             $this->ess->delete($id);

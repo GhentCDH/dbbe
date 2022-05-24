@@ -212,8 +212,6 @@ class JournalManager extends DocumentManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['journals', 'journal_issues', 'articles']);
-
             // (re-)index in elastic search
             $this->ess->add($new);
 
@@ -292,8 +290,6 @@ class JournalManager extends DocumentManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['journals']);
 
             // (re-)index in elastic search
             $this->ess->delete($id);

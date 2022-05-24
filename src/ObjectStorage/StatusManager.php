@@ -99,8 +99,6 @@ class StatusManager extends ObjectManager
 
             $this->updateModified(null, $newStatus);
 
-            $this->cache->invalidateTags(['statuses']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -139,8 +137,6 @@ class StatusManager extends ObjectManager
 
             $this->updateModified($status, $newStatus);
 
-            $this->cache->invalidateTags(['statuses']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -164,8 +160,6 @@ class StatusManager extends ObjectManager
             $this->dbs->delete($statusId);
 
             $this->updateModified($status, null);
-
-            $this->cache->invalidateTags(['statuses']);
 
             // commit transaction
             $this->dbs->commit();

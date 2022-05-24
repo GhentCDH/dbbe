@@ -480,8 +480,6 @@ class TypeManager extends PoemManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // Reset elasticsearch
             $this->ess->add($new);
 

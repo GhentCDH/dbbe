@@ -156,8 +156,6 @@ class TranslationManager extends DocumentManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags(['translations']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -404,8 +402,6 @@ class TranslationManager extends DocumentManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['translations']);
 
             // commit transaction
             $this->dbs->commit();

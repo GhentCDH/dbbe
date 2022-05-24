@@ -202,8 +202,6 @@ class RegionManager extends ObjectManager
 
             $this->updateModified(null, $newRegionWithParents);
 
-            $this->cache->invalidateTags(['regions']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -284,8 +282,6 @@ class RegionManager extends ObjectManager
             $newRegionWithParents = $this->getWithParents([$id])[$id];
 
             $this->updateModified($regionWithParents, $newRegionWithParents);
-
-            $this->cache->invalidateTags(['regions']);
 
             // update Elastic manuscripts
             $manuscriptIds = $this->container->get(ManuscriptManager::class)->getRegionDependenciesWithChildren($id, 'getId');
@@ -460,8 +456,6 @@ class RegionManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($regionWithParents, null);
-
-            $this->cache->invalidateTags(['regions']);
 
             // commit transaction
             $this->dbs->commit();

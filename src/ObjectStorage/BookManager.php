@@ -421,8 +421,6 @@ class BookManager extends DocumentManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags(['books', 'book_chapters']);
-
             // (re-)index in elastic search
             $this->ess->add($new);
 

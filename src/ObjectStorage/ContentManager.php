@@ -232,8 +232,6 @@ class ContentManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['contents']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -362,8 +360,6 @@ class ContentManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['contents']);
-
             // update Elastic dependencies
             $this->container->get(ManuscriptManager::class)->updateElasticByIds(array_keys($manuscripts));
             $this->container->get(OccurrenceManager::class)->updateElasticByIds($occurrenceIds);
@@ -488,8 +484,6 @@ class ContentManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($contentWithParents, null);
-
-            $this->cache->invalidateTags(['contents']);
 
             // commit transaction
             $this->dbs->commit();

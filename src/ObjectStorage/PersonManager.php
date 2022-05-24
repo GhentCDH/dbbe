@@ -738,12 +738,6 @@ class PersonManager extends ObjectEntityManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
-            if (!empty($contentIds)) {
-                $this->cache->invalidateTags(['contents']);
-            }
-
             // Reset elasticsearch
             $this->ess->add($new);
 
@@ -1386,8 +1380,6 @@ class PersonManager extends ObjectEntityManager
 
             // remove from elasticsearch
             $this->deleteElasticByIdIfExists($id);
-
-            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // update dependencies
             foreach ($dependencies as $entityType => $ids) {

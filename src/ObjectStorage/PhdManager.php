@@ -269,8 +269,6 @@ class PhdManager extends DocumentManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags(['phds']);
-
             // (re-)index in elastic search
             $this->ess->add($new);
 

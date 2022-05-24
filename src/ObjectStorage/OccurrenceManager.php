@@ -725,8 +725,6 @@ class OccurrenceManager extends PoemManager
             $new = $this->getFull($id);
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // (re-)index in elastic search
             if ($changes['mini'] || $changes['short']) {
                 $this->ess->add($new);
@@ -1016,8 +1014,6 @@ class OccurrenceManager extends PoemManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags([$this->entityType . 's']);
 
             // remove from elasticsearch
             $this->deleteElasticByIdIfExists($id);

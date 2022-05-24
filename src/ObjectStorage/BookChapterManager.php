@@ -226,8 +226,6 @@ class BookChapterManager extends DocumentManager
 
             $this->updateModified($isNew ? null : $old, $new);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // (re-)index in elastic search
             $this->ess->add($new);
 

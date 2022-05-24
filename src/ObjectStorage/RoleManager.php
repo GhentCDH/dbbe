@@ -140,8 +140,6 @@ class RoleManager extends ObjectManager
 
             $this->updateModified(null, $newRole);
 
-            $this->cache->invalidateTags(['roles']);
-
             $this->updateRoleMapping();
 
             // commit transaction
@@ -189,8 +187,6 @@ class RoleManager extends ObjectManager
             $newRole = $this->get([$roleId])[$roleId];
 
             $this->updateModified($role, $newRole);
-
-            $this->cache->invalidateTags(['roles']);
 
             // commit transaction
             $this->dbs->commit();
@@ -241,8 +237,6 @@ class RoleManager extends ObjectManager
             $this->dbs->delete($roleId);
 
             $this->updateModified($role, null);
-
-            $this->cache->invalidateTags(['roles']);
 
             // fields cannot be removed from mapping, so don't update mapping
 

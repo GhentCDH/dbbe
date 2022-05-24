@@ -70,8 +70,6 @@ class CollectionManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['collections']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -117,7 +115,6 @@ class CollectionManager extends ObjectManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['collections']);
 
             // commit transaction
             $this->dbs->commit();
@@ -142,8 +139,6 @@ class CollectionManager extends ObjectManager
             $this->dbs->delete($collectionId);
 
             $this->updateModified($collection, null);
-
-            $this->cache->invalidateTags(['collections']);
 
             // commit transaction
             $this->dbs->commit();

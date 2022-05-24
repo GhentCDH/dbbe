@@ -154,8 +154,6 @@ class JournalIssueManager extends DocumentManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['journal_issues']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -241,8 +239,6 @@ class JournalIssueManager extends DocumentManager
 
             $this->updateModified($old, $new);
 
-            $this->cache->invalidateTags(['journal_issues', 'articles']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -265,8 +261,6 @@ class JournalIssueManager extends DocumentManager
             $old = $this->getFull($id);
 
             $this->dbs->delete($id);
-
-            $this->cache->invalidateTags(['journal_issues']);
 
             $this->updateModified($old, null);
 

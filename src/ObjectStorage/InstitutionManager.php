@@ -72,8 +72,6 @@ class InstitutionManager extends ObjectManager
 
             $this->updateModified(null, $newInstitution);
 
-            $this->cache->invalidateTags(['institutions']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -119,8 +117,6 @@ class InstitutionManager extends ObjectManager
 
             $this->updateModified($institution, $newInstitution);
 
-            $this->cache->invalidateTags(['institutions']);
-
             // update Elastic manuscripts
             $manuscriptIds = $this->container->get(ManuscriptManager::class)->getInstitutionDependencies($institutionId, 'getId');
             $this->container->get(ManuscriptManager::class)->updateElasticByIds($manuscriptIds);
@@ -148,8 +144,6 @@ class InstitutionManager extends ObjectManager
             $this->dbs->delete($institutionId);
 
             $this->updateModified($institution, null);
-
-            $this->cache->invalidateTags(['institutions']);
 
             // commit transaction
             $this->dbs->commit();

@@ -105,8 +105,6 @@ class SelfDesignationManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['self_designations']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -147,8 +145,6 @@ class SelfDesignationManager extends ObjectManager
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
-
-            $this->cache->invalidateTags(['self_designations']);
 
             // update Elastic persons
             $this->container->get(PersonManager::class)->updateElasticSelfDesignation(
@@ -254,8 +250,6 @@ class SelfDesignationManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['self_designations']);
 
             // commit transaction
             $this->dbs->commit();

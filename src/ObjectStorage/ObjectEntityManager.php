@@ -306,8 +306,6 @@ abstract class  ObjectEntityManager extends EntityManager
 
             $this->updateModified($old, null);
 
-            $this->cache->invalidateTags([$this->entityType . 's']);
-
             // remove from elasticsearch
             $this->deleteElasticByIdIfExists($id);
 

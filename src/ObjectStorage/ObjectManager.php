@@ -17,7 +17,6 @@ use App\ElasticSearchService\ElasticSearchServiceInterface;
 class ObjectManager
 {
     protected $dbs;
-    protected $cache;
     protected $container;
     protected $ess;
     protected $ts;
@@ -28,14 +27,12 @@ class ObjectManager
 
     public function __construct(
         DatabaseServiceInterface $databaseService = null,
-        CacheItemPoolInterface $cacheItemPool,
         ContainerInterface $container,
         ElasticSearchServiceInterface $elasticSearchService = null,
         TokenStorageInterface $tokenStorage = null,
         string $entityType = null
     ) {
         $this->dbs = $databaseService;
-        $this->cache = new TagAwareAdapter($cacheItemPool);
         $this->container = $container;
         $this->ess = $elasticSearchService;
         $this->ts = $tokenStorage;
@@ -48,22 +45,6 @@ class ObjectManager
             return self::getUniqueIds($rawIds, $this->entityType . '_id');
         }
         return $this->{$method}(self::getUniqueIds($rawIds, $this->entityType . '_id'));
-    }
-
-    protected function setArrayCache(array $items, string $cacheKey, array $tags): void
-    {
-        $cache = $this->cache->getItem($cacheKey);
-        $cache->tag($tags);
-        $this->cache->save($cache->set($items));
-    }
-
-    protected function getArrayCache(string $cacheKey)
-    {
-        $cache = $this->cache->getItem($cacheKey);
-        if ($cache->isHit()) {
-            return $cache->get();
-        }
-        return null;
     }
 
     /**

@@ -107,8 +107,6 @@ class AcknowledgementManager extends ObjectManager
 
             $this->updateModified(null, $new);
 
-            $this->cache->invalidateTags(['acknowledgements']);
-
             // commit transaction
             $this->dbs->commit();
         } catch (Exception $e) {
@@ -148,8 +146,6 @@ class AcknowledgementManager extends ObjectManager
             $new = $this->get([$id])[$id];
 
             $this->updateModified($old, $new);
-
-            $this->cache->invalidateTags(['acknowledgements']);
 
             // update Elastic manuscripts
             $this->container->get(ManuscriptManager::class)->updateElasticAcknowledgement(
@@ -193,8 +189,6 @@ class AcknowledgementManager extends ObjectManager
             $this->dbs->delete($id);
 
             $this->updateModified($old, null);
-
-            $this->cache->invalidateTags(['acknowledgements']);
 
             // commit transaction
             $this->dbs->commit();
