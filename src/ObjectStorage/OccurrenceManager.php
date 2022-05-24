@@ -301,25 +301,49 @@ class OccurrenceManager extends PoemManager
         $this->dbs->beginTransaction();
         try {
             $id = $this->dbs->insert($data->manuscript->id, $data->incipit);
+            $manuscriptId = $data->manuscript->id;
 
             // Reset manuscript (personroles + number of occurrences)
             $this->container->get(ManuscriptManager::class)->updateElasticByIds([
-                $data->manuscript->id,
+                $manuscriptId,
             ]);
 
             unset($data->manuscript);
 
-            $new = $this->update($id, $data, true);
+            $touched = [];
+            $new = $this->update($id, $data, true, $touched);
 
             // commit transaction
             $this->dbs->commit();
         } catch (\Exception $e) {
             $this->dbs->rollBack();
 
+            // Reset ES
+            $this->updateElasticByIds([$id]);
+
+            // There is an issue with doing the re-indexes below after the db rollback in the update function.
+            // That is why they are done here as well.
+
             // Reset manuscript (personroles + number of occurrences)
             $this->container->get(ManuscriptManager::class)->updateElasticByIds([
-                $data->manuscript->id,
+                $manuscriptId,
             ]);
+
+            // Rest types
+            $typeIds = [];
+            if (isset($data->types)) {
+                foreach ($data->types as $type) {
+                    if (!in_array($type->id, $typeIds)) {
+                        $typeIds[] = $type->id;
+                    }
+                }
+            }
+            $this->container->get(TypeManager::class)->updateElasticByIds($typeIds);
+
+            // Reset verses
+            if (isset($touched)) {
+                $this->container->get(VerseManager::class)->updateElasticByIds($touched);
+            }
 
             throw $e;
         }
@@ -327,7 +351,7 @@ class OccurrenceManager extends PoemManager
         return $new;
     }
 
-    public function update(int $id, stdClass $data, bool $isNew = false): Occurrence
+    public function update(int $id, stdClass $data, bool $isNew = false, array &$touched = null): Occurrence
     {
         $this->dbs->beginTransaction();
         try {
@@ -535,7 +559,9 @@ class OccurrenceManager extends PoemManager
                     throw new BadRequestHttpException('Incorrect verses data.');
                 }
                 $changes['mini'] = true;
-                $touched = [];
+                if ($touched == null) {
+                    $touched = [];
+                }
                 $verseIds = $this->updateVerses($old, $data->verses, $touched);
             }
             if (property_exists($data, 'types')) {
@@ -712,9 +738,7 @@ class OccurrenceManager extends PoemManager
             $this->dbs->rollBack();
 
             // Reset elasticsearch
-            if ($isNew) {
-                $this->deleteElasticByIdIfExists($id);
-            } elseif (isset($new) && isset($old)) {
+            if (isset($new) && isset($old)) {
                 $this->ess->add($old);
             }
 
