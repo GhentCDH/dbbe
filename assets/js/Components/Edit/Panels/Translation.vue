@@ -225,7 +225,7 @@ export default {
             },
         };
         for (const role of this.values.personRoles) {
-            data.editModel.personRoles[role.systemName] = [];
+            this.$set(data.editModel.personRoles, role.systemName, []);
         }
         return data;
     },
@@ -297,7 +297,7 @@ export default {
                 personRoles: {},
             };
             for (const role of this.values.personRoles) {
-                this.editModel[role.systemName] = [];
+                this.$set(this.editModel.personRoles, role.systemName, []);
             }
             this.editModal = true
         },
