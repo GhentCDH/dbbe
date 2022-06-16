@@ -112,11 +112,10 @@ export default {
                     },
                     number: {
                         type: 'input',
-                        inputType: 'number',
+                        inputType: 'text',
                         label: 'Number',
                         labelClasses: 'control-label',
                         model: 'journal issue.number',
-                        validator: VueFormGenerator.validators.number,
                     },
                 },
             },
@@ -154,10 +153,8 @@ export default {
 
         // Use $watch API because 'journal issue' contains a space
         this.$watch(
-            function () {
-                return this.submitModel['journal issue'].year;
-            },
-            function () {
+            () => this.submitModel['journal issue'].year,
+            () => {
                 if (this.submitModel['journal issue'].year === '') {
                     this.submitModel['journal issue'].year = null;
                     this.revalidate = true;
@@ -167,10 +164,8 @@ export default {
             },
         );
         this.$watch(
-            function () {
-                return this.submitModel['journal issue'].volume;
-            },
-            function () {
+            () => this.submitModel['journal issue'].volume,
+            () => {
                 if (this.submitModel['journal issue'].volume === '') {
                     this.submitModel['journal issue'].volume = null;
                     this.revalidate = true;
@@ -180,11 +175,9 @@ export default {
             },
         );
         this.$watch(
-            function () {
-                return this.submitModel['journal issue'].number;
-            },
-            function () {
-                if (Number.isNaN(this.submitModel['journal issue'].number)) {
+            () => this.submitModel['journal issue'].number,
+            () => {
+                if (this.submitModel['journal issue'].number === '') {
                     this.submitModel['journal issue'].number = null;
                     this.revalidate = true;
                     this.$refs.editModal.validate();

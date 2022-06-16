@@ -18,7 +18,7 @@ class JournalIssue extends Document
         string $year = null,
         bool $forthcoming,
         string $volume = null,
-        int $number = null
+        string $number = null
     ) {
         $this->id = $id;
         $this->journal = $journal;
@@ -50,7 +50,7 @@ class JournalIssue extends Document
         return $this->volume;
     }
 
-    public function getNumber(): ?int
+    public function getNumber(): ?string
     {
         return $this->number;
     }

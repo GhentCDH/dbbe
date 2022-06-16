@@ -114,7 +114,7 @@ class JournalIssueManager extends DocumentManager
             || (
                 property_exists($data, 'year')
                 && !empty($data->year)
-                && !is_numeric($data->year)
+                && !is_string($data->year)
             )
             || (
                 !property_exists($data, 'forthcoming')
@@ -130,12 +130,12 @@ class JournalIssueManager extends DocumentManager
             || (
                 property_exists($data, 'volume')
                 && !empty($data->volume)
-                && !is_numeric($data->volume)
+                && !is_string($data->volume)
             )
             || (
                 property_exists($data, 'number')
                 && !empty($data->number)
-                && !is_numeric($data->number)
+                && !is_string($data->number)
             )
         ) {
             throw new BadRequestHttpException('Incorrect data to add a new journal issue');
@@ -224,7 +224,7 @@ class JournalIssueManager extends DocumentManager
                 $this->dbs->updateVolume($id, $data->volume);
             }
             if (property_exists($data, 'number')
-                && (is_numeric($data->number) || empty($data->number))
+                && (is_string($data->number) || empty($data->number))
             ) {
                 $correct = true;
                 $this->dbs->updateNumber($id, $data->number);
