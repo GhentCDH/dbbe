@@ -190,7 +190,7 @@ class JournalIssueManager extends DocumentManager
             }
             // Year is required if not forthcoming
             if (property_exists($data, 'year')) {
-                if (!empty($data->year) && !is_numeric($data->year)) {
+                if (!empty($data->year) && !is_string($data->year)) {
                     throw new BadRequestHttpException('Incorrect year data.');
                 }
                 if (empty($data->year)
@@ -218,7 +218,7 @@ class JournalIssueManager extends DocumentManager
                 $this->dbs->updateForthcoming($id, $data->forthcoming);
             }
             if (property_exists($data, 'volume')
-                && (is_numeric($data->volume) || empty($data->volume))
+                && (is_string($data->volume) || empty($data->volume))
             ) {
                 $correct = true;
                 $this->dbs->updateVolume($id, $data->volume);

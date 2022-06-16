@@ -15,9 +15,9 @@ class JournalIssue extends Document
     public function __construct(
         int $id,
         Journal $journal,
-        int $year = null,
+        string $year = null,
         bool $forthcoming,
-        int $volume = null,
+        string $volume = null,
         int $number = null
     ) {
         $this->id = $id;
@@ -35,7 +35,7 @@ class JournalIssue extends Document
         return $this->journal;
     }
 
-    public function getYear(): ?int
+    public function getYear(): ?string
     {
         return $this->year;
     }
@@ -45,7 +45,7 @@ class JournalIssue extends Document
         return $this->forthcoming;
     }
 
-    public function getVolume(): ?int
+    public function getVolume(): ?string
     {
         return $this->volume;
     }

@@ -61,13 +61,13 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  int|null $year
-     * @param  bool     $forthcoming
-     * @param  int|null $volume
-     * @param  int|null $number
+     * @param  string|null $year
+     * @param  bool        $forthcoming
+     * @param  string|null $volume
+     * @param  int|null    $number
      * @return int
      */
-    public function insert(int $journalId, int $year = null, bool $forthcoming, int $volume = null, int $number = null): int
+    public function insert(int $journalId, string $year = null, bool $forthcoming, string $volume = null, int $number = null): int
     {
         $this->beginTransaction();
         try {
@@ -118,11 +118,11 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  int      $id
-     * @param  int|null $year
+     * @param  int         $id
+     * @param  string|null $year
      * @return int
      */
-    public function updateYear(int $id, int $year = null): int
+    public function updateYear(int $id, string $year = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.journal_issue
@@ -154,11 +154,11 @@ class JournalIssueService extends DatabaseService
     }
 
     /**
-     * @param  int      $id
-     * @param  int|null $volume
+     * @param  int         $id
+     * @param  string|null $volume
      * @return int
      */
-    public function updateVolume(int $id, int $volume = null): int
+    public function updateVolume(int $id, string $volume = null): int
     {
         return $this->conn->executeUpdate(
             'UPDATE data.journal_issue

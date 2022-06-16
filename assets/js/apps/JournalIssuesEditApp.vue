@@ -88,12 +88,11 @@ export default {
                     ),
                     year: {
                         type: 'input',
-                        inputType: 'number',
+                        inputType: 'text',
                         label: 'Year',
                         labelClasses: 'control-label',
                         model: 'journal issue.year',
                         validator: [
-                            VueFormGenerator.validators.number,
                             this.yearOrForthcoming,
                         ],
                     },
@@ -106,11 +105,10 @@ export default {
                     },
                     volume: {
                         type: 'input',
-                        inputType: 'number',
+                        inputType: 'text',
                         label: 'Volume',
                         labelClasses: 'control-label',
                         model: 'journal issue.volume',
-                        validator: VueFormGenerator.validators.number,
                     },
                     number: {
                         type: 'input',
@@ -160,7 +158,7 @@ export default {
                 return this.submitModel['journal issue'].year;
             },
             function () {
-                if (Number.isNaN(this.submitModel['journal issue'].year)) {
+                if (this.submitModel['journal issue'].year === '') {
                     this.submitModel['journal issue'].year = null;
                     this.revalidate = true;
                     this.$refs.editModal.validate();
@@ -173,7 +171,7 @@ export default {
                 return this.submitModel['journal issue'].volume;
             },
             function () {
-                if (Number.isNaN(this.submitModel['journal issue'].volume)) {
+                if (this.submitModel['journal issue'].volume === '') {
                     this.submitModel['journal issue'].volume = null;
                     this.revalidate = true;
                     this.$refs.editModal.validate();
