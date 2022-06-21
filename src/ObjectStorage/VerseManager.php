@@ -13,6 +13,7 @@ use App\Model\Verse;
 class VerseManager extends ObjectManager
 {
     use UpdateElasticByIdsTrait;
+    use DeleteElasticByIdIfExistsTrait;
 
     public function getMini(array $ids): array
     {
