@@ -79,8 +79,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             $query->setHighlight(self::createHighlight($params['filters']));
         }
 
-        var_dump($query);
-
         $data = $this->index->search($query)->getResponse()->getData();
 
         // Format response
