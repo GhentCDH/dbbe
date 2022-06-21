@@ -318,7 +318,7 @@ class Type extends Poem
         }
 
         if (!empty($this->lemmas)) {
-            $result['lemma_original'] = implode("\n", $this->lemmas);
+            $result['lemma'] = implode("\n", $this->lemmas);
         }
 
         foreach ($this->titles as $lang => $title) {

@@ -264,12 +264,6 @@ class ElasticTypeService extends ElasticEntityService
                             'combination' => $filters['text_combination'],
                         ];
                         break;
-                    case 'lemma':
-                        $result['lemma'][$key] = [
-                            'field' => $filters['lemma_original'],
-                            'text' => $value,
-                        ];
-                        break;
                     case 'title':
                         $result['multiple_text'][$key] = [
                             'title_GR' => [
@@ -304,6 +298,12 @@ class ElasticTypeService extends ElasticEntityService
                         ];
                         break;
                 }
+                break;
+            case 'lemma':
+                $result['text'][$key] = [
+                    'text' => $value,
+                    'combination' => 'any',
+                ];
                 break;
             case 'metre':
             case 'subject':

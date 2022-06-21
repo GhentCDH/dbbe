@@ -377,6 +377,16 @@ export default {
                 { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
             ],
         };
+        if (this.isViewInternal) {
+            data.schema.fields.lemma = {
+                type: 'input',
+                inputType: 'text',
+                styleClasses: 'greek has-warning',
+                labelClasses: 'control-label',
+                label: 'Lemma',
+                model: 'lemma',
+            };
+        }
         data.schema.fields.person = this.createMultiSelect(
             'Person',
             {},
