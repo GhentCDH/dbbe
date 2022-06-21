@@ -378,6 +378,19 @@ class TypeService extends PoemService
         )->fetchAll();
     }
 
+    public function getLemmas(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                reconstructed_poem_lemma.id_reconstructed_poem as type_id,
+                reconstructed_poem_lemma.lemma
+            from data.reconstructed_poem_lemma
+            where reconstructed_poem_lemma.id_reconstructed_poem in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getPrevIds(array $ids): array
     {
         return $this->conn->executeQuery(

@@ -71,6 +71,13 @@ class Type extends Poem
         return $this;
     }
 
+    public function setLemmas(array $lemmas): Type
+    {
+        $this->lemmas = $lemmas;
+
+        return $this;
+    }
+
     public function addKeyword(Keyword $keyword): Type
     {
         $this->keywords[] = $keyword;

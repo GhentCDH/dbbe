@@ -119,6 +119,12 @@ class TypeManager extends PoemManager
 
         $this->setGenres($types);
 
+        $rawLemmas = $this->dbs->getLemmas($ids);
+        foreach ($rawLemmas as $rawLemma) {
+            $types[$rawLemma['type_id']]
+                ->setLemmas(array_map('trim', explode("\n", $rawLemma['lemma'])));
+        }
+
         $this->setComments($types);
 
         // statuses

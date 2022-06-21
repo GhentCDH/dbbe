@@ -58,6 +58,10 @@ class ElasticTypeService extends ElasticEntityService
                 'type' => 'text',
                 'analyzer' => 'custom_greek_stemmer',
             ],
+            'lemma_original' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek_original',
+            ],
             'metre' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'tag' => ['type' => 'nested'],
@@ -101,11 +105,11 @@ class ElasticTypeService extends ElasticEntityService
             }
 
             // Keep text / title if there was a search, then these will be an array
-            foreach (['text', 'title_GR', 'title_LA'] as $field) {
+            foreach (['text', 'title_GR', 'title_LA', 'lemma'] as $field) {
                 unset($result['data'][$key][$field . '_stemmer']);
                 unset($result['data'][$key][$field . '_original']);
             }
-            foreach (['text', 'title'] as $field) {
+            foreach (['text', 'title', 'lemma'] as $field) {
                 if (isset($result['data'][$key][$field]) && is_string($result['data'][$key][$field])) {
                     unset($result['data'][$key][$field]);
                 }
@@ -258,6 +262,12 @@ class ElasticTypeService extends ElasticEntityService
                             'field' => $filters['text_fields'] . '_' . $filters['text_stem'],
                             'text' => $value,
                             'combination' => $filters['text_combination'],
+                        ];
+                        break;
+                    case 'lemma':
+                        $result['lemma'][$key] = [
+                            'field' => $filters['lemma_original'],
+                            'text' => $value,
                         ];
                         break;
                     case 'title':
