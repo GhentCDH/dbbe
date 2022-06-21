@@ -317,6 +317,10 @@ class Type extends Poem
             $result['text_original'] = implode("\n", $this->verses);
         }
 
+        if (!empty($this->lemmas)) {
+            $result['lemma_original'] = implode("\n", $this->lemmas);
+        }
+
         foreach ($this->titles as $lang => $title) {
             $result['title_' . $lang . '_stemmer'] = $title;
             $result['title_' . $lang . '_original'] = $title;
