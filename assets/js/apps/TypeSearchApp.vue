@@ -129,6 +129,23 @@
                         </ol>
                     </template>
                 </template>
+                <template
+                    slot="lemma"
+                    slot-scope="props"
+                >
+                    <template v-if="props.row.lemma">
+                        <ol>
+                            <!-- eslint-disable vue/no-v-html -->
+                            <li
+                                v-for="(item, index) in props.row.lemma"
+                                :key="index"
+                                :value="Number(index) + 1"
+                                v-html="greekFont(item)"
+                            />
+                            <!-- eslint-enable -->
+                        </ol>
+                    </template>
+                </template>
                 <!-- eslint-disable vue/no-v-html -->
                 <a
                     slot="id"
@@ -305,6 +322,7 @@ export default {
                 headings: {
                     text: 'Title (T.) / text (matching verses only)',
                     comment: 'Comment (matching lines only)',
+                    lamma: 'Lemma (matching lines only)',
                 },
                 columnsClasses: {
                     id: 'no-wrap',
@@ -532,6 +550,9 @@ export default {
             }
             if (this.commentSearch) {
                 columns.unshift('comment');
+            }
+            if (this.lemmaSearch) {
+                columns.unshift('lemma');
             }
             if (this.isViewInternal) {
                 columns.push('created');

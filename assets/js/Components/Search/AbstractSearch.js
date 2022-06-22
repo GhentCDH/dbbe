@@ -84,6 +84,7 @@ export default {
             alerts: [],
             textSearch: false,
             commentSearch: false,
+            lemmaSearch: false,
             aggregation: {},
             lastOrder: null,
             countRecords: '',
@@ -508,6 +509,17 @@ export default {
                     || 'contextual_info' in item
                 ) {
                     this.commentSearch = true;
+                    break;
+                }
+            }
+
+            // Check whether lemma column should be displayed
+            this.lemmaSearch = false;
+            for (const item of data.data) {
+                if (
+                    'lemma' in item
+                ) {
+                    this.lemmaSearch = true;
                     break;
                 }
             }
