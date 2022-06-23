@@ -58,10 +58,6 @@ class ElasticTypeService extends ElasticEntityService
                 'type' => 'text',
                 'analyzer' => 'custom_greek_stemmer',
             ],
-            'lemma_original' => [
-                'type' => 'text',
-                'analyzer' => 'custom_greek_original',
-            ],
             'metre' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'tag' => ['type' => 'nested'],
@@ -86,7 +82,29 @@ class ElasticTypeService extends ElasticEntityService
         $result = $this->search($params);
 
         // Filter out unnecessary results
+        // Add additional results
         foreach ($result['data'] as $key => $value) {
+            // Add text_lemma for lemma queries
+            // The highlighting of lemmas need to be transferred to the original_text
+            if (isset($result['data'][$key]['lemma']) && is_array($result['data'][$key]['lemma'])) {
+                $result['data'][$key]['lemma_text'] = [];
+                foreach ($result['data'][$key]['lemma'] as $row => $highlight) {
+                    $original_line = explode("\n", $result['data'][$key]['text_original'])[$row];
+                    $original_words = explode(' ', $original_line);
+                    $lemma_text_words = [];
+                    foreach (explode(' ', $highlight) as $word_index => $word) {
+                        if (substr($word, 0, 6) === '<mark>') {
+                            $lemma_text_words[] = '<mark>' . $original_words[$word_index] . '</mark>';
+                        } else {
+                            $lemma_text_words[] = $original_words[$word_index];
+                        }
+                    }
+                    $result['data'][$key]['lemma_text'][$row] = implode(' ', $lemma_text_words);
+                }
+                # Unset lemma result that is no longer of use
+                unset($result['data'][$key]['lemma']);
+            }
+
             unset($result['data'][$key]['prevId']);
             unset($result['data'][$key]['genre']);
             unset($result['data'][$key]['metre']);
@@ -104,11 +122,11 @@ class ElasticTypeService extends ElasticEntityService
                 unset($result['data'][$key][$role . '_public']);
             }
 
-            // Keep text / title if there was a search, then these will be an array
-            foreach (['text', 'title_GR', 'title_LA', 'lemma'] as $field) {
+            foreach (['text', 'title_GR', 'title_LA'] as $field) {
                 unset($result['data'][$key][$field . '_stemmer']);
                 unset($result['data'][$key][$field . '_original']);
             }
+            // Keep text / title / lemma if there was a search, then these will be an array
             foreach (['text', 'title', 'lemma'] as $field) {
                 if (isset($result['data'][$key][$field]) && is_string($result['data'][$key][$field])) {
                     unset($result['data'][$key][$field]);

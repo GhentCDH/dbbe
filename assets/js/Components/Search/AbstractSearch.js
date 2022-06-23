@@ -517,7 +517,7 @@ export default {
             this.lemmaSearch = false;
             for (const item of data.data) {
                 if (
-                    'lemma' in item
+                    'lemma_text' in item
                 ) {
                     this.lemmaSearch = true;
                     break;

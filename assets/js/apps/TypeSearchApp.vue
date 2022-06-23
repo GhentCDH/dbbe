@@ -133,11 +133,11 @@
                     slot="lemma"
                     slot-scope="props"
                 >
-                    <template v-if="props.row.lemma">
+                    <template v-if="props.row.lemma_text">
                         <ol>
                             <!-- eslint-disable vue/no-v-html -->
                             <li
-                                v-for="(item, index) in props.row.lemma"
+                                v-for="(item, index) in props.row.lemma_text"
                                 :key="index"
                                 :value="Number(index) + 1"
                                 v-html="greekFont(item)"
@@ -322,7 +322,7 @@ export default {
                 headings: {
                     text: 'Title (T.) / text (matching verses only)',
                     comment: 'Comment (matching lines only)',
-                    lamma: 'Lemma (matching lines only)',
+                    lemma: 'Lemma (matching lines in original text only)',
                 },
                 columnsClasses: {
                     id: 'no-wrap',
