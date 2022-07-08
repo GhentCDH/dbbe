@@ -2,106 +2,9 @@
 
 A Vue / Symfony / Elasticsearch project.
 
-## Setting up a development environment
+## [Set up a development environment](https://github.ugent.be/GhentCDH/Documentation/blob/main/DevelopmentEnvironment.md)
 
-### Prerequirements
-
-* Install Git (<https://git-scm.com/downloads>).
-
-* Install Visual Studio Code (<https://code.visualstudio.com/Download>).
-
-  * Recommended Extensions:
-    * ESLint
-    * PHP IntelliSense
-    * PHP Extension Pack
-    * Remote SSH
-    * Twig
-    * Vetur
-
-* Install Chrome Extensions:
-  * Vue.js devtools
-  * Elasticvue
-
-* On Windows: create and configure an ssh keypair (<https://my.gapinthevoid.com/2020/10/getting-ssh-agent-passthrough-working.html>)
-  * in a Powershell
-
-  ```PowerShell
-  ssh-keygen
-  ```
-
-  * In an administrative Powershell
-
-  ```PowerShell
-  Set-Service ssh-agent -StartupType Automatic
-  Start-Service ssh-agent
-  ```
-
-  * in a Powershell
-
-  ```PowerShell
-  ssh-add -l
-  ssh-add C:\Users\<username>\.ssh\id_rsa
-  ```
-
-### Install Virtual Machine
-
-* Install Vagrant (<https://www.vagrantup.com/downloads>).
-
-* Install Vagrant plugins
-
-```sh
-vagrant plugin install vagrant-reload
-vagrant plugin install vagrant-hostmanager
-```
-
-* Install VirtualBox (<https://www.virtualbox.org/wiki/Downloads>).
-
-* Download a default Vagrant config
-
-```sh
-git clone git@github.ugent.be:GhentCDH/vagrant_default.git dbbe
-```
-
-Required changes to `Vagrantfile`:
-
-```ruby
-  # Configure VM Ram usage and cpus
-  config.vm.provider "virtualbox" do |v|
-    v.memory = 4096
-    v.cpus = 4
-  end
-
-  # hostname
-  config.vm.hostname = "dbbe.local"
-```
-
-On Windows: disable syncing and fixate ssh port:
-
-```ruby
-  # config.vm.synced_folder "./src", "/home/vagrant/src"
-
-  # fix ssh port
-  # r = Random.new
-  # ssh_port = r.rand(1000...5000)
-  config.vm.network :forwarded_port, guest: 22, host: 2222, id: 'ssh', auto_correct: true
-```
-
-### Set up Virtual Machine
-
-```sh
-vagrant up
-```
-
-On Windows: configure Visual Studio Code for editing on the virtual server (<https://medium.com/@lopezgand/connect-visual-studio-code-with-vagrant-in-your-local-machine-24903fb4a9de>). From now on, you can work in the Visual Studio Code Terminal (commands execute on the virtual machine).
-
-On Windows: get install scripts
-
-```
-$ vagrant ssh
-vagrant@dbbe:~$ git clone git@github.ugent.be:GhentCDH/debian-install.git install
-vagrant@dbbe:~$ logout
-$ vagrant provision
-```
+## Install the requirements for this project in the Vagrant Virtual Machine
 
 ```sh
 $ vagrant ssh
@@ -124,10 +27,14 @@ vagrant@dbbe:~$ sudo apt install symfony-cli
 vagrant@dbbe:~$ git clone git@github.ugent.be:GhentCDH/dbbe2.git
 vagrant@dbbe:~$ cd dbbe2
 # Following command doesn't work in Visual Studio Code ssh Terminal
-vagrant@dbbe:~/dbbe2$ git clone git@github.ugent.be:GhentCDH/dbbe2.git
+# You will have to execute it in an ssh terminal in PowerShell
+vagrant@dbbe:~/dbbe2$ git submodule update --init
 vagrant@dbbe:~$ cd
+```
 
-# copy db dump
+Download the database dump from <https://data.ghentcdh.ugent.be/apps/files/?dir=/Summer%20of%20Code/dbbe&fileid=600874> and place it in the project folder (/home/vagrant/dbbe2).
+
+```sh
 vagrant@dbbe:~$ sudo -u postgres createuser --interactive --pwprompt
 Enter name of role to add: dbbe
 Enter password for new role: dbbe
