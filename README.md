@@ -94,6 +94,15 @@ vagrant up
 
 On Windows: configure Visual Studio Code for editing on the virtual server (<https://medium.com/@lopezgand/connect-visual-studio-code-with-vagrant-in-your-local-machine-24903fb4a9de>). From now on, you can work in the Visual Studio Code Terminal (commands execute on the virtual machine).
 
+On Windows: get install scripts
+
+```
+$ vagrant ssh
+vagrant@dbbe:~$ git clone git@github.ugent.be:GhentCDH/debian-install.git install
+vagrant@dbbe:~$ logout
+$ vagrant provision
+```
+
 ```sh
 $ vagrant ssh
 vagrant@dbbe:~$ cd /home/vagrant/install
