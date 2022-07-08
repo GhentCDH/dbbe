@@ -75,10 +75,15 @@ Required changes to `Vagrantfile`:
   config.vm.hostname = "dbbe.local"
 ```
 
-On Windows: disable syncing:
+On Windows: disable syncing and fixate ssh port:
 
 ```ruby
   # config.vm.synced_folder "./src", "/home/vagrant/src"
+
+  # fix ssh port
+  # r = Random.new
+  # ssh_port = r.rand(1000...5000)
+  config.vm.network :forwarded_port, guest: 22, host: 2222, id: 'ssh', auto_correct: true
 ```
 
 ### Set up Virtual Machine
