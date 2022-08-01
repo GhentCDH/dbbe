@@ -10,7 +10,7 @@ A Vue / Symfony / Elasticsearch project.
 $ vagrant ssh
 vagrant@dbbe:~$ cd /home/vagrant/install
 vagrant@dbbe:~/install$ sudo ./php7.4-fpm.sh
-vagrant@dbbe:~/install$ sudo ./postgres12.sh
+vagrant@dbbe:~/install$ sudo ./postgresql-12.sh
 vagrant@dbbe:~/install$ sudo ./elasticsearch7.sh
 vagrant@dbbe:~/install$ sudo ./nodejs.sh
 vagrant@dbbe:~/install$ sudo npm install -g yarn
