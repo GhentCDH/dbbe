@@ -8,6 +8,22 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
+                <h4 v-if="model.text">Text:</h4>
+                <p>{{model.text}}</p>
+                <h4 v-if="model.person.length">Persons:</h4>
+                <p v-for="(person1, index) in model.person" :key="index">{{person1.name}}</p>
+                <h4 v-if="model.metre.length">Metres:</h4>
+                <p v-for="(metre1, index) in model.metre" :key="index">{{metre1.name}}</p>
+                <h4 v-if="model.genre.length">Genres:</h4>
+                <p v-for="(genre1, index) in model.genre" :key="index">{{genre1.name}}</p>
+                <h4 v-if="model.subject.length">Subjects:</h4>
+                <p v-for="(subject1, index) in model.subject" :key="index">{{subject1.name}}</p>
+                <h4 v-if="model.tag.length">Tags:</h4>
+                <p v-for="(tag1, index) in model.tag" :key="index">{{tag1.name}}</p>
+                <h4 v-if="model.translation_language.length">Translations:</h4>
+                <p v-for="(translation1, index) in model.translation_language" :key="index">{{translation1.name}}</p>
+                <h4 v-if="model.comment">Comment:</h4>
+                <p>{{model.comment}}</p>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
