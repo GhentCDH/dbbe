@@ -9,21 +9,27 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <h4 v-if="model.text">Text:</h4>
-                <p>{{model.text}}</p>
+                <p @click="model.text = ''; update()">{{model.text}}</p>
                 <h4 v-if="model.person.length">Persons:</h4>
-                <p v-for="(person1, index) in model.person" :key="index">{{person1.name}}</p>
+                <p v-for="(person1, index) in model.person" :key="index" @click="model.person.splice(index, 1); update()">{{person1.name}}</p>
                 <h4 v-if="model.metre.length">Metres:</h4>
-                <p v-for="(metre1, index) in model.metre" :key="index">{{metre1.name}}</p>
+                <p v-for="(metre1, index) in model.metre" :key="index" @click="model.metre.splice(index, 1); update()">{{metre1.name}}</p>
                 <h4 v-if="model.genre.length">Genres:</h4>
-                <p v-for="(genre1, index) in model.genre" :key="index">{{genre1.name}}</p>
+                <p v-for="(genre1, index) in model.genre" :key="index" @click="model.genre.splice(index, 1); update()">{{genre1.name}}</p>
                 <h4 v-if="model.subject.length">Subjects:</h4>
-                <p v-for="(subject1, index) in model.subject" :key="index">{{subject1.name}}</p>
+                <p v-for="(subject1, index) in model.subject" :key="index" @click="model.subject.splice(index, 1); update()">{{subject1.name}}</p>
                 <h4 v-if="model.tag.length">Tags:</h4>
-                <p v-for="(tag1, index) in model.tag" :key="index">{{tag1.name}}</p>
+                <p v-for="(tag1, index) in model.tag" :key="index" @click="model.tag.splice(index, 1); update()">{{tag1.name}}</p>
                 <h4 v-if="model.translation_language.length">Translations:</h4>
-                <p v-for="(translation1, index) in model.translation_language" :key="index">{{translation1.name}}</p>
+                <p v-for="(translation1, index) in model.translation_language" :key="index" @click="model.translation_languagesheee.splice(index, 1); update()">{{translation1.name}}</p>
                 <h4 v-if="model.comment">Comment:</h4>
-                <p>{{model.comment}}</p>
+                <p @click="model.comment = ''; update()">{{model.comment}}</p>
+                <h4 v-if="model.id">DBBE ID:</h4>
+                <p v-if="model.id" @click="model.id = ''; update()">{{model.id.name}}</p>
+                <h4 v-if="model.prev_id">Former DBBE ID:</h4>
+                <p v-if="model.prev_id" @click="model.prev_id = ''; update()">{{model.prev_id.name}}</p>
+                <h4 v-if="model.acknowledgement.length">Acknowledgements:</h4>
+                <p v-for="(ack1, index) in model.acknowledgement" :key="index" @click="model.acknowledgement.splice(index, 1); update()">{{ack1.name}}</p>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -556,6 +562,11 @@ export default {
                     console.error(error);
                 });
         },
+        update() {
+            // Don't create a new history item
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
+        }
     },
 };
 </script>
