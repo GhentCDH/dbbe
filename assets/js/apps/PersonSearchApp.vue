@@ -8,6 +8,20 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
+                <h4 v-if="model.name">Name:</h4>
+                <delete-span v-if="model.name" :name="model.name" @deleted="model.name = ''; update()"></delete-span>
+                <h4 v-if="model.role.length">Roles:</h4>
+                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.office.length">Office:</h4>
+                <delete-span v-for="(office1, index) in model.office" :key="index" :name="office1.name" @deleted="model.office.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.self_designation.length">(Self) designation:</h4>
+                <delete-span v-for="(des1, index) in model.self_designation" :key="index" :name="self1.name" @deleted="model.self_designation.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.origin.length">Provenance:</h4>
+                <delete-span v-for="(origin1, index) in model.origin" :key="index" :name="origin1.name" @deleted="model.origin.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.comment">Comment:</h4>
+                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
+                <h4 v-if="model">Comment:</h4>
+                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
                 <div
                     v-if="showReset"
                     class="form-group"
@@ -408,10 +422,12 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import DeleteSpan from '../Components/DeleteSpan.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
+  components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,
@@ -867,6 +883,11 @@ export default {
             this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
                 (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
             );
+        },
+        update() {
+            // Don't create a new history item
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
         },
     },
 };

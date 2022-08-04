@@ -569,9 +569,6 @@ export default {
             this.noHistory = true;
             this.$refs.resultTable.refresh();
         },
-        writeToConsole() {
-            console.log("hey console");
-        }
     },
 };
 </script>

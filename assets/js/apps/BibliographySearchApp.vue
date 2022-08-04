@@ -8,6 +8,16 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
+                <h4 v-if="model.type">Type:</h4>
+                <delete-span v-if="model.type" :name="model.type.name" @deleted="model.type = ''; update()"></delete-span>
+                <h4 v-if="model.title">Title:</h4>
+                <delete-span v-if="model.title" :name="model.title" @deleted="model.title = ''; update()"></delete-span>
+                <h4 v-if="model.person.length">Persons:</h4>
+                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.role.length">Roles:</h4>
+                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
+                <h4 v-if="model.comment">Comment:</h4>
+                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -395,10 +405,12 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import DeleteSpan from '../Components/DeleteSpan.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
+  components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,
@@ -854,6 +866,11 @@ export default {
                 result.push(`${key.charAt(0).toUpperCase() + key.substr(1)}(s): ${rolePersons.join(', ')}`);
             }
             return result.join('<br />');
+        },
+        update() {
+            // Don't create a new history item
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
         },
     },
 };
