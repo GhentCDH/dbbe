@@ -9,27 +9,27 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <h4 v-if="model.text">Text:</h4>
-                <p @click="model.text = ''; update()">{{model.text}}</p>
+                <delete-span v-if="model.text" :name="model.text" @deleted="model.text = ''; update()"></delete-span>
                 <h4 v-if="model.person.length">Persons:</h4>
-                <p v-for="(person1, index) in model.person" :key="index" @click="model.person.splice(index, 1); update()">{{person1.name}}</p>
+                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.metre.length">Metres:</h4>
-                <p v-for="(metre1, index) in model.metre" :key="index" @click="model.metre.splice(index, 1); update()">{{metre1.name}}</p>
+                <delete-span v-for="(metre1, index) in model.metre" :key="index" :name="metre1.name" @deleted="model.metre.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.genre.length">Genres:</h4>
-                <p v-for="(genre1, index) in model.genre" :key="index" @click="model.genre.splice(index, 1); update()">{{genre1.name}}</p>
+                <delete-span v-for="(genre1, index) in model.genre" :key="index" :name="genre1.name" @deleted="model.genre.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.subject.length">Subjects:</h4>
-                <p v-for="(subject1, index) in model.subject" :key="index" @click="model.subject.splice(index, 1); update()">{{subject1.name}}</p>
+                <delete-span v-for="(subject1, index) in model.subject" :key="index" :name="subject1.name" @deleted="model.subject.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.tag.length">Tags:</h4>
-                <p v-for="(tag1, index) in model.tag" :key="index" @click="model.tag.splice(index, 1); update()">{{tag1.name}}</p>
+                <delete-span v-for="(tag1, index) in model.tag" :key="index" :name="tag1.name" @deleted="model.tag.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.translation_language.length">Translations:</h4>
-                <p v-for="(translation1, index) in model.translation_language" :key="index" @click="model.translation_languagesheee.splice(index, 1); update()">{{translation1.name}}</p>
+                <delete-span v-for="(translation1, index) in model.translation_language" :key="index" :name="translation1.name" @deleted="model.translation_languagesheee.splice(index, 1); update()"></delete-span>
                 <h4 v-if="model.comment">Comment:</h4>
-                <p @click="model.comment = ''; update()">{{model.comment}}</p>
+                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
                 <h4 v-if="model.id">DBBE ID:</h4>
-                <p v-if="model.id" @click="model.id = ''; update()">{{model.id.name}}</p>
+                <delete-span v-if="model.id" :name="model.id.name" @deleted="model.id = ''; update()"></delete-span>
                 <h4 v-if="model.prev_id">Former DBBE ID:</h4>
-                <p v-if="model.prev_id" @click="model.prev_id = ''; update()">{{model.prev_id.name}}</p>
+                <delete-span v-if="model.prev_id" :name="model.prev_id.name" @deleted="model.prev_id = ''; update()"></delete-span>
                 <h4 v-if="model.acknowledgement.length">Acknowledgements:</h4>
-                <p v-for="(ack1, index) in model.acknowledgement" :key="index" @click="model.acknowledgement.splice(index, 1); update()">{{ack1.name}}</p>
+                <delete-span v-for="(ack1, index) in model.acknowledgement" :key="index" :name="ack1.name" @deleted="model.acknowledgement.splice(index, 1); update()"></delete-span>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -287,10 +287,12 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import DeleteSpan from '../Components/DeleteSpan.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
+  components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,
@@ -566,6 +568,9 @@ export default {
             // Don't create a new history item
             this.noHistory = true;
             this.$refs.resultTable.refresh();
+        },
+        writeToConsole() {
+            console.log("hey console");
         }
     },
 };
