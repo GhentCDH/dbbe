@@ -8,28 +8,9 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <h4 v-if="model.text">Text:</h4>
-                <delete-span v-if="model.text" :name="model.text" @deleted="model.text = ''; update()"></delete-span>
-                <h4 v-if="model.person.length">Persons:</h4>
-                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.metre.length">Metres:</h4>
-                <delete-span v-for="(metre1, index) in model.metre" :key="index" :name="metre1.name" @deleted="model.metre.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.genre.length">Genres:</h4>
-                <delete-span v-for="(genre1, index) in model.genre" :key="index" :name="genre1.name" @deleted="model.genre.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.subject.length">Subjects:</h4>
-                <delete-span v-for="(subject1, index) in model.subject" :key="index" :name="subject1.name" @deleted="model.subject.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.tag.length">Tags:</h4>
-                <delete-span v-for="(tag1, index) in model.tag" :key="index" :name="tag1.name" @deleted="model.tag.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.translation_language.length">Translations:</h4>
-                <delete-span v-for="(translation1, index) in model.translation_language" :key="index" :name="translation1.name" @deleted="model.translation_languagesheee.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.comment">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
-                <h4 v-if="model.id">DBBE ID:</h4>
-                <delete-span v-if="model.id" :name="model.id.name" @deleted="model.id = ''; update()"></delete-span>
-                <h4 v-if="model.prev_id">Former DBBE ID:</h4>
-                <delete-span v-if="model.prev_id" :name="model.prev_id.name" @deleted="model.prev_id = ''; update()"></delete-span>
-                <h4 v-if="model.acknowledgement.length">Acknowledgements:</h4>
-                <delete-span v-for="(ack1, index) in model.acknowledgement" :key="index" :name="ack1.name" @deleted="model.acknowledgement.splice(index, 1); update()"></delete-span>
+                <div>
+                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                </div>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -538,6 +519,25 @@ export default {
             }
             return columns;
         },
+        notEmptyFields() {
+            let show = [];
+            if (this.model !== undefined) {
+                Object.keys(this.model).forEach(key => {
+                    let value = this.model[key];
+                    if (value !== undefined && Array.isArray(value) && value.length) {
+                        show.push(key);
+                    } else if (key !== "text_combination" && 
+                                key !== "text_fields" && 
+                                key !== "date_search_type" && 
+                                key !== "year_from" &&
+                                key !== "year_to" &&
+                                !key.endsWith("_op")) {
+                        show.push(key);
+                    }
+                });
+            }
+            return show;
+        },
     },
     methods: {
         del(row) {
@@ -568,6 +568,14 @@ export default {
             // Don't create a new history item
             this.noHistory = true;
             this.$refs.resultTable.refresh();
+        },
+        deleteOption({key, index}) {
+            if (index === -1) {
+                this.model[key] = "";
+            } else {
+                this.model[key].splice(index, 1);
+            }
+            this.update();
         },
     },
 };

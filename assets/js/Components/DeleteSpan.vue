@@ -25,7 +25,6 @@ export default {
         onDelete(index) {
             this.$emit('deleted', {
                 key: this.modelkey,
-                value: this.modelvalue,
                 index: index,
             });
         }

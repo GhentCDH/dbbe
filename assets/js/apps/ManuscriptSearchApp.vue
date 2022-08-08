@@ -8,28 +8,9 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <h4 v-if="model.city">City:</h4>
-                <delete-span v-if="model.city" :name="model.city.name" @deleted="model.city = ''; update()"></delete-span>
-                <h4 v-if="model.library">Library:</h4>
-                <delete-span v-if="model.library" :name="model.library.name" @deleted="model.library = ''; update()"></delete-span>
-                <h4 v-if="model.collection">Collection:</h4>
-                <delete-span v-if="model.collection" :name="model.collection.name" @deleted="model.collection = ''; update()"></delete-span>
-                <h4 v-if="model.shelf">Shelf number:</h4>
-                <delete-span v-if="model.shelf" :name="model.shelf.name" @deleted="model.shelf = ''; update()"></delete-span>
-                <h4 v-if="model.diktyon">Diktyon (Pinakes):</h4>
-                <delete-span v-if="model.diktyon" :name="model.diktyon.name" @deleted="model.diktyon = ''; update()"></delete-span>
-                <h4 v-if="model.content.length">Content:</h4>
-                <delete-span v-for="(content1, index) in model.content" :key="index" :name="content1.name" @deleted="model.content.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.person.length">Persons:</h4>
-                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.role.length">Roles:</h4>
-                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.origin.length">Origins:</h4>
-                <delete-span v-for="(origin1, index) in model.origin" :key="index" :name="origin1.name" @deleted="model.origin.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.comment">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
-                <h4 v-if="model.acknowledgement.length">Acknowledgements:</h4>
-                <delete-span v-for="(ack1, index) in model.acknowledgement" :key="index" :name="ack1.name" @deleted="model.acknowledgement.splice(index, 1); update()"></delete-span>
+                <div>
+                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                </div>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -467,6 +448,25 @@ export default {
             }
             return columns;
         },
+        notEmptyFields() {
+            let show = [];
+            if (this.model !== undefined) {
+                Object.keys(this.model).forEach(key => {
+                    let value = this.model[key];
+                    if (value !== undefined && Array.isArray(value) && value.length) {
+                        show.push(key);
+                    } else if (key !== "text_combination" && 
+                                key !== "text_fields" && 
+                                key !== "date_search_type" && 
+                                key !== "year_from" &&
+                                key !== "year_to" &&
+                                !key.endsWith("_op")) {
+                        show.push(key);
+                    }
+                });
+            }
+            return show;
+        },
     },
     methods: {
         del(row) {
@@ -494,6 +494,14 @@ export default {
             // Don't create a new history item
             this.noHistory = true;
             this.$refs.resultTable.refresh();
+        },
+        deleteOption({key, index}) {
+            if (index === -1) {
+                this.model[key] = "";
+            } else {
+                this.model[key].splice(index, 1);
+            }
+            this.update();
         },
     },
 };

@@ -8,16 +8,9 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <h4 v-if="model.type">Type:</h4>
-                <delete-span v-if="model.type" :name="model.type.name" @deleted="model.type = ''; update()"></delete-span>
-                <h4 v-if="model.title">Title:</h4>
-                <delete-span v-if="model.title" :name="model.title" @deleted="model.title = ''; update()"></delete-span>
-                <h4 v-if="model.person.length">Persons:</h4>
-                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.role.length">Roles:</h4>
-                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.comment">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
+                <div>
+                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                </div>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -646,6 +639,26 @@ export default {
             }
             return columns;
         },
+        notEmptyFields() {
+            let show = [];
+            if (this.model !== undefined) {
+                Object.keys(this.model).forEach(key => {
+                    let value = this.model[key];
+                    if (value !== undefined && Array.isArray(value) && value.length) {
+                        show.push(key);
+                    } else if (key !== "text_combination" && 
+                                key !== "text_fields" && 
+                                key !== "date_search_type" && 
+                                key !== "year_from" &&
+                                key !== "year_to" &&
+                                key !== "title_type" &&
+                                !key.endsWith("_op")) {
+                        show.push(key);
+                    }
+                });
+            }
+            return show;
+        },
     },
     watch: {
         'mergeModel.primary': function () {
@@ -871,6 +884,14 @@ export default {
             // Don't create a new history item
             this.noHistory = true;
             this.$refs.resultTable.refresh();
+        },
+        deleteOption({key, index}) {
+            if (index === -1) {
+                this.model[key] = "";
+            } else {
+                this.model[key].splice(index, 1);
+            }
+            this.update();
         },
     },
 };

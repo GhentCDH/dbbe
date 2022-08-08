@@ -11,28 +11,6 @@
                 <div>
                     <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
                 </div>
-                <!-- <h4 v-if="model.text">Text:</h4>
-                <delete-span v-if="model.text" :name="model.text" @deleted="model.text = ''; update()"></delete-span>
-                <h4 v-if="model.person.length">Persons:</h4>
-                <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.role.length">Roles:</h4>
-                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.metre.length">Metres:</h4>
-                <delete-span v-for="(metre1, index) in model.metre" :key="index" :name="metre1.name" @deleted="model.metre.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.genre.length">Genres:</h4>
-                <delete-span v-for="(genre1, index) in model.genre" :key="index" :name="genre1.name" @deleted="model.genre.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.subject.length">Subjects:</h4>
-                <delete-span v-for="(subject1, index) in model.subject" :key="index" :name="subject1.name" @deleted="model.subject.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.manuscript_content.length">Manuscript Content:</h4>
-                <delete-span v-for="(manu1, index) in model.manuscript_content" :key="index" :name="manu1.name" @deleted="model.manuscript_content.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.comment">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
-                <h4 v-if="model.acknowledgement.length">Acknowledgements:</h4>
-                <delete-span v-for="(ack1, index) in model.acknowledgement" :key="index" :name="ack1.name" @deleted="model.acknowledgement.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.id">DBBE ID:</h4>
-                <delete-span v-if="model.id" :name="model.id.name" @deleted="model.id = ''; update()"></delete-span>
-                <h4 v-if="model.prev_id">Former DBBE ID:</h4>
-                <delete-span v-if="model.prev_id" :name="model.prev_id.name" @deleted="model.prev_id = ''; update()"></delete-span> -->
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -603,7 +581,7 @@ export default {
                 });
             }
             return show;
-        }
+        },
     },
     methods: {
         del(row) {
@@ -635,14 +613,14 @@ export default {
             this.noHistory = true;
             this.$refs.resultTable.refresh();
         },
-        deleteOption({key, value, index}) {
+        deleteOption({key, index}) {
             if (index === -1) {
                 this.model[key] = "";
             } else {
                 this.model[key].splice(index, 1);
             }
             this.update();
-        }
+        },
     },
 };
 </script>

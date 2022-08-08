@@ -8,20 +8,9 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <h4 v-if="model.name">Name:</h4>
-                <delete-span v-if="model.name" :name="model.name" @deleted="model.name = ''; update()"></delete-span>
-                <h4 v-if="model.role.length">Roles:</h4>
-                <delete-span v-for="(role1, index) in model.role" :key="index" :name="role1.name" @deleted="model.role.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.office.length">Office:</h4>
-                <delete-span v-for="(office1, index) in model.office" :key="index" :name="office1.name" @deleted="model.office.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.self_designation.length">(Self) designation:</h4>
-                <delete-span v-for="(des1, index) in model.self_designation" :key="index" :name="self1.name" @deleted="model.self_designation.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.origin.length">Provenance:</h4>
-                <delete-span v-for="(origin1, index) in model.origin" :key="index" :name="origin1.name" @deleted="model.origin.splice(index, 1); update()"></delete-span>
-                <h4 v-if="model.comment">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
-                <h4 v-if="model">Comment:</h4>
-                <delete-span v-if="model.comment" :name="model.comment" @deleted="model.comment = ''; update()"></delete-span>
+                <div>
+                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                </div>
                 <div
                     v-if="showReset"
                     class="form-group"
@@ -701,6 +690,25 @@ export default {
             }
             return columns;
         },
+        notEmptyFields() {
+            let show = [];
+            if (this.model !== undefined) {
+                Object.keys(this.model).forEach(key => {
+                    let value = this.model[key];
+                    if (value !== undefined && Array.isArray(value) && value.length) {
+                        show.push(key);
+                    } else if (key !== "text_combination" && 
+                                key !== "text_fields" && 
+                                key !== "date_search_type" && 
+                                key !== "year_from" &&
+                                key !== "year_to" &&
+                                !key.endsWith("_op")) {
+                        show.push(key);
+                    }
+                });
+            }
+            return show;
+        },
     },
     watch: {
         'mergeModel.primary': function () {
@@ -888,6 +896,14 @@ export default {
             // Don't create a new history item
             this.noHistory = true;
             this.$refs.resultTable.refresh();
+        },
+        deleteOption({key, index}) {
+            if (index === -1) {
+                this.model[key] = "";
+            } else {
+                this.model[key].splice(index, 1);
+            }
+            this.update();
         },
     },
 };
