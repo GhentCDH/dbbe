@@ -646,7 +646,8 @@ export default {
                     let value = this.model[key];
                     if (value !== undefined && Array.isArray(value) && value.length) {
                         show.push(key);
-                    } else if (key !== "text_combination" && 
+                    } else if ( value !== undefined &&
+                                key !== "text_combination" && 
                                 key !== "text_fields" && 
                                 key !== "date_search_type" && 
                                 !key.endsWith("_op")) {
@@ -886,7 +887,7 @@ export default {
             if (key === "year_from" || key === "year_to") {
                 this.model[key] = undefined;
             }
-            if (index === -1) {
+            else if (index === -1) {
                 this.model[key] = "";
             } else {
                 this.model[key].splice(index, 1);

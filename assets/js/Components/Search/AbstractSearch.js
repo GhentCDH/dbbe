@@ -172,7 +172,7 @@ export default {
             if (this.model != null) {
                 for (const fieldName of Object.keys(this.model)) {
                     if (
-                        this.model[fieldName] === null
+                        this.model[fieldName] == null
                         || this.model[fieldName] === ''
                         || ((['year_from', 'year_to'].indexOf(fieldName) > -1) && Number.isNaN(this.model[fieldName]))
                     ) {
