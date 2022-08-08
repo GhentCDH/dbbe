@@ -573,8 +573,6 @@ export default {
                     } else if (key !== "text_combination" && 
                                 key !== "text_fields" && 
                                 key !== "date_search_type" && 
-                                key !== "year_from" &&
-                                key !== "year_to" &&
                                 !key.endsWith("_op")) {
                         show.push(key);
                     }
@@ -614,6 +612,9 @@ export default {
             this.$refs.resultTable.refresh();
         },
         deleteOption({key, index}) {
+            if (key === "year_from" || key === "year_to") {
+                this.model[key] = undefined;
+            }
             if (index === -1) {
                 this.model[key] = "";
             } else {

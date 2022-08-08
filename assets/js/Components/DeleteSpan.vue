@@ -6,7 +6,7 @@
                 <div v-for="(val, ind) in modelvalue" :key="val.id" class="delete-span-container">{{val.name}} <i class="fa fa-close delete-span-icon" @click="onDelete(ind)"></i></div>
             </div>
         </div>
-        <div v-else-if="typeof this.modelvalue === 'string'">
+        <div v-else-if="typeof this.modelvalue === 'string' || this.modelkey === 'year_from' || this.modelkey === 'year_to'">
             <div v-if="this.modelvalue !== ''">
                 <h4>{{modelkey}}</h4>
                 <div class="delete-span-container">{{modelvalue}} <i class="fa fa-close delete-span-icon" @click="onDelete(-1)"></i></div>
