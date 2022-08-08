@@ -8,7 +8,10 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
-                <h4 v-if="model.text">Text:</h4>
+                <div>
+                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                </div>
+                <!-- <h4 v-if="model.text">Text:</h4>
                 <delete-span v-if="model.text" :name="model.text" @deleted="model.text = ''; update()"></delete-span>
                 <h4 v-if="model.person.length">Persons:</h4>
                 <delete-span v-for="(person1, index) in model.person" :key="index" :name="person1.name" @deleted="model.person.splice(index, 1); update()"></delete-span>
@@ -29,7 +32,7 @@
                 <h4 v-if="model.id">DBBE ID:</h4>
                 <delete-span v-if="model.id" :name="model.id.name" @deleted="model.id = ''; update()"></delete-span>
                 <h4 v-if="model.prev_id">Former DBBE ID:</h4>
-                <delete-span v-if="model.prev_id" :name="model.prev_id.name" @deleted="model.prev_id = ''; update()"></delete-span>
+                <delete-span v-if="model.prev_id" :name="model.prev_id.name" @deleted="model.prev_id = ''; update()"></delete-span> -->
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="form-group"
@@ -582,6 +585,25 @@ export default {
             }
             return columns;
         },
+        notEmptyFields() {
+            let show = [];
+            if (this.model !== undefined) {
+                Object.keys(this.model).forEach(key => {
+                    let value = this.model[key];
+                    if (value !== undefined && Array.isArray(value) && value.length) {
+                        show.push(key);
+                    } else if (key !== "text_combination" && 
+                                key !== "text_fields" && 
+                                key !== "date_search_type" && 
+                                key !== "year_from" &&
+                                key !== "year_to" &&
+                                !key.endsWith("_op")) {
+                        show.push(key);
+                    }
+                });
+            }
+            return show;
+        }
     },
     methods: {
         del(row) {
@@ -613,6 +635,14 @@ export default {
             this.noHistory = true;
             this.$refs.resultTable.refresh();
         },
+        deleteOption({key, value, index}) {
+            if (index === -1) {
+                this.model[key] = "";
+            } else {
+                this.model[key].splice(index, 1);
+            }
+            this.update();
+        }
     },
 };
 </script>
