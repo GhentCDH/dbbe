@@ -5,6 +5,7 @@ import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
+import { betaCodeToGreek } from 'beta-code-js';
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
 import Delete from '../Edit/Modals/Delete.vue';
@@ -147,7 +148,7 @@ export default {
                         }
                         result.date.to = this.model[fieldName];
                     } else if (fieldName === 'text' || fieldName === 'comment') {
-                        result[fieldName] = this.model[fieldName].trim();
+                        result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
                     } else {
                         result[fieldName] = this.model[fieldName];
                     }
