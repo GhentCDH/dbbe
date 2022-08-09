@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="delete-span-box">
         <div v-if="Array.isArray(this.modelvalue)">
             <div v-if="this.modelvalue.length">
                 <h4>{{modelkey}}</h4>
