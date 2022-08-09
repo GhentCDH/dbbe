@@ -9,7 +9,7 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div>
-                    <delete-span v-for="fieldkey in notEmptyFields" :key="fieldkey" :modelkey="fieldkey" :modelvalue="model[fieldkey]" @deleted="deleteOption"></delete-span>
+                    <delete-span v-for="fieldData in notEmptyFields" :key="fieldData.key" :itemkey="fieldData.key" :itemvalue="fieldData.value" :itemlabel="fieldData.label" @deleted="deleteOption"></delete-span>
                 </div>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
@@ -641,17 +641,22 @@ export default {
         },
         notEmptyFields() {
             let show = [];
-            if (this.model !== undefined) {
-                Object.keys(this.model).forEach(key => {
-                    let value = this.model[key];
-                    if (value !== undefined && Array.isArray(value) && value.length) {
-                        show.push(key);
-                    } else if ( value !== undefined &&
-                                key !== "text_combination" && 
-                                key !== "text_fields" && 
-                                key !== "date_search_type" && 
-                                !key.endsWith("_op")) {
-                        show.push(key);
+            if (this.schema.fields !== undefined) {
+                Object.keys(this.schema.fields).forEach(key => {
+                    let load = this.schema.fields[key];
+                    let currentModel = load.model;
+                    let modelValue = this.model[currentModel];
+                    let label = load.label;
+                    if (modelValue !== undefined && Array.isArray(modelValue)) {
+                        if (modelValue.length) {
+                            show.push({key: currentModel, value: modelValue, label: label});
+                        }
+                    } else if ( modelValue !== undefined &&
+                                currentModel !== "text_combination" && 
+                                currentModel !== "text_fields" && 
+                                currentModel !== "date_search_type" && 
+                                !currentModel.endsWith("_op")) {
+                        show.push({key: currentModel, value: modelValue, label: label});
                     }
                 });
             }
