@@ -794,7 +794,8 @@ export default {
             } else {
                 this.model[key].splice(valueIndex, 1);
             }
-            this.update();
+            this.lastChangedField = '';
+            this.onValidated(true);
         },
     },
     requestFunction(data) {
