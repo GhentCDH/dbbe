@@ -263,7 +263,7 @@ import DeleteSpan from '../Components/Search/DeleteSpan.vue';
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-  components: { DeleteSpan },
+    components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,
