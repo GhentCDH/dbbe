@@ -9,7 +9,14 @@
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div>
-                    <delete-span v-for="fieldData in notEmptyFields" :key="fieldData.key" :itemkey="fieldData.key" :itemvalue="fieldData.value" :itemlabel="fieldData.label" @deleted="deleteOption"></delete-span>
+                    <delete-span
+                        v-for="fieldData in notEmptyFields"
+                        :key="fieldData.key"
+                        :model-key="fieldData.key"
+                        :value="fieldData.value"
+                        :label="fieldData.label"
+                        @deleted="deleteOption"
+                    />
                 </div>
                 <div
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
@@ -398,12 +405,12 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import DeleteSpan from '../Components/DeleteSpan.vue';
+import DeleteSpan from '../Components/Search/DeleteSpan.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-  components: { DeleteSpan },
+    components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,
@@ -639,29 +646,6 @@ export default {
             }
             return columns;
         },
-        notEmptyFields() {
-            let show = [];
-            if (this.schema.fields !== undefined) {
-                Object.keys(this.schema.fields).forEach(key => {
-                    let load = this.schema.fields[key];
-                    let currentModel = load.model;
-                    let modelValue = this.model[currentModel];
-                    let label = load.label;
-                    if (modelValue !== undefined && Array.isArray(modelValue)) {
-                        if (modelValue.length) {
-                            show.push({key: currentModel, value: modelValue, label: label});
-                        }
-                    } else if ( modelValue !== undefined &&
-                                currentModel !== "text_combination" && 
-                                currentModel !== "text_fields" && 
-                                currentModel !== "date_search_type" && 
-                                !currentModel.endsWith("_op")) {
-                        show.push({key: currentModel, value: modelValue, label: label});
-                    }
-                });
-            }
-            return show;
-        },
     },
     watch: {
         'mergeModel.primary': function () {
@@ -857,11 +841,6 @@ export default {
                     console.error(error);
                 });
         },
-        update() {
-            // Don't create a new history item
-            this.noHistory = true;
-            this.$refs.resultTable.refresh();
-        },
         formatTitle(title) {
             if (Array.isArray(title)) {
                 return title[0];
@@ -882,22 +861,6 @@ export default {
                 result.push(`${key.charAt(0).toUpperCase() + key.substr(1)}(s): ${rolePersons.join(', ')}`);
             }
             return result.join('<br />');
-        },
-        update() {
-            // Don't create a new history item
-            this.noHistory = true;
-            this.$refs.resultTable.refresh();
-        },
-        deleteOption({key, index}) {
-            if (key === "year_from" || key === "year_to") {
-                this.model[key] = undefined;
-            }
-            else if (index === -1) {
-                this.model[key] = "";
-            } else {
-                this.model[key].splice(index, 1);
-            }
-            this.update();
         },
     },
 };

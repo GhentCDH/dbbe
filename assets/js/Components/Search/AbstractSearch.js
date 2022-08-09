@@ -5,7 +5,6 @@ import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
-import { betaCodeToGreek } from 'beta-code-js';
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
 import Delete from '../Edit/Modals/Delete.vue';
@@ -114,6 +113,29 @@ export default {
             }
             return false;
         },
+        notEmptyFields() {
+            const show = [];
+            if (this.schema.fields !== undefined) {
+                Object.keys(this.schema.fields).forEach((key) => {
+                    const load = this.schema.fields[key];
+                    const currentModel = load.model;
+                    const modelValue = this.model[currentModel];
+                    const filterLabel = load.label;
+                    if (modelValue !== undefined && Array.isArray(modelValue)) {
+                        if (modelValue.length) {
+                            show.push({key: currentModel, value: modelValue, label: filterLabel});
+                        }
+                    } else if (modelValue !== undefined
+                        && currentModel !== 'text_combination'
+                        && currentModel !== 'text_fields'
+                        && currentModel !== 'date_search_type'
+                        && !currentModel.endsWith('_op')) {
+                        show.push({ key: currentModel, value: modelValue, label: filterLabel });
+                    }
+                });
+            }
+            return show;
+        },
     },
     mounted() {
         this.originalModel = JSON.parse(JSON.stringify(this.model));
@@ -148,7 +170,7 @@ export default {
                         }
                         result.date.to = this.model[fieldName];
                     } else if (fieldName === 'text' || fieldName === 'comment') {
-                        result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
+                        result[fieldName] = this.model[fieldName].trim();
                     } else {
                         result[fieldName] = this.model[fieldName];
                     }
@@ -757,6 +779,22 @@ export default {
             const encoded = encodeURIComponent(input.normalize('NFD'));
             const stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
             return decodeURIComponent(stripped).toLocaleLowerCase();
+        },
+        update() {
+            // Don't create a new history item
+            this.noHistory = true;
+            this.$refs.resultTable.refresh();
+        },
+        deleteOption({key, valueIndex}) {
+            if (key === 'year_from' || key === 'year_to') {
+                this.model[key] = undefined;
+            }
+            else if (valueIndex === -1) {
+                this.model[key] = '';
+            } else {
+                this.model[key].splice(valueIndex, 1);
+            }
+            this.update();
         },
     },
     requestFunction(data) {
