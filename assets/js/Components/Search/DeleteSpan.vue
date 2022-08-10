@@ -29,7 +29,7 @@
             </div>
         </div>
         <div v-else>
-            <h4>{{ label }}</h4>
+            <h5>{{ label }}</h5>
             <div class="delete-span-container">
                 {{ value.name }}
                 <i
