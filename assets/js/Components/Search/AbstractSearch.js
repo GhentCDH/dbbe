@@ -129,6 +129,7 @@ export default {
                         && currentModel !== 'text_combination'
                         && currentModel !== 'text_fields'
                         && currentModel !== 'date_search_type'
+                        && currentModel !== 'title_type'
                         && !currentModel.endsWith('_op')) {
                         show.push({ key: currentModel, value: modelValue, label: filterLabel });
                     }

@@ -7,19 +7,20 @@
             />
         </div>
         <aside class="col-sm-3">
-            <div class="bg-tertiary padding-default">
-                <div>
-                    <delete-span
-                        v-for="fieldData in notEmptyFields"
-                        :key="fieldData.key"
-                        :model-key="fieldData.key"
-                        :value="fieldData.value"
-                        :label="fieldData.label"
-                        @deleted="deleteOption"
-                    />
-                </div>
+            <div
+                v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
+                class="bg-tertiary padding-default mbottom-default"
+            >
+                <h2>Active search filters</h2>
+                <delete-span
+                    v-for="fieldData in notEmptyFields"
+                    :key="fieldData.key"
+                    :model-key="fieldData.key"
+                    :value="fieldData.value"
+                    :label="fieldData.label"
+                    @deleted="deleteOption"
+                />
                 <div
-                    v-if="showReset"
                     class="form-group"
                 >
                     <button
@@ -29,6 +30,8 @@
                         Reset all filters
                     </button>
                 </div>
+            </div>
+            <div class="bg-tertiary padding-default">
                 <vue-form-generator
                     ref="form"
                     :schema="schema"
@@ -423,7 +426,7 @@ import DeleteSpan from '../Components/Search/DeleteSpan.vue';
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-  components: { DeleteSpan },
+    components: { DeleteSpan },
     mixins: [
         AbstractField,
         AbstractSearch,

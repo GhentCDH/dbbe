@@ -9,8 +9,14 @@
 
 .delete-span-container {
     color: $brand-primary;
+    margin-right: 0.5rem;
 }
 
 .delete-span-box {
     margin-bottom: 1rem;
+}
+
+.filter-array-values-container {
+    display: flex;
+    flex-wrap: wrap;
 }
