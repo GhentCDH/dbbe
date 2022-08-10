@@ -780,11 +780,6 @@ export default {
             const stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
             return decodeURIComponent(stripped).toLocaleLowerCase();
         },
-        update() {
-            // Don't create a new history item
-            this.noHistory = true;
-            this.$refs.resultTable.refresh();
-        },
         deleteOption({ key, valueIndex }) {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;
