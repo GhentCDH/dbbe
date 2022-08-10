@@ -7,11 +7,11 @@
                         v-for="(val, ind) in value"
                         :key="val.id"
                         class="btn btn-sm btn-primary delete-spam-item"
+                        @click="onDelete(ind)"
                     >
                         <b>{{ label }}</b> {{ val.name }}
                         <i
                             class="fa fa-close delete-span-icon"
-                            @click="onDelete(ind)"
                         />
                     </button>
                 </div>
@@ -19,21 +19,25 @@
         </div>
         <div v-else-if="typeof value === 'string' || modelKey === 'year_from' || modelKey === 'year_to'">
             <div v-if="value !== ''">
-                <button class="btn btn-sm btn-primary delete-spam-item">
+                <button
+                    class="btn btn-sm btn-primary delete-spam-item"
+                    @click="onDelete(ind)"
+                >
                     <b>{{ label }}</b> {{ value }}
                     <i
                         class="fa fa-close delete-span-icon"
-                        @click="onDelete(-1)"
                     />
                 </button>
             </div>
         </div>
         <div v-else>
-            <button class="btn btn-sm btn-primary delete-spam-item">
+            <button
+                class="btn btn-sm btn-primary delete-spam-item"
+                @click="onDelete(ind)"
+            >
                 <b>{{ label }}</b> {{ value.name }}
                 <i
                     class="fa fa-close delete-span-icon"
-                    @click="onDelete(-1)"
                 />
             </button>
         </div>

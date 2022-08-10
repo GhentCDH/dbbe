@@ -41,11 +41,11 @@
                 <button
                     v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
                     class="btn btn-sm btn-primary delete-spam-item"
+                    @click="resetAllFilters"
                 >
                     Reset all filters
                     <i
                         class="fa fa-close delete-span-icon"
-                        @click="resetAllFilters"
                     />
                 </button>
             </div>
