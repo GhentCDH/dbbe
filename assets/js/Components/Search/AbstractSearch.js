@@ -788,8 +788,7 @@ export default {
         deleteOption({ key, valueIndex }) {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;
-            }
-            else if (valueIndex === -1) {
+            } else if (valueIndex === -1) {
                 this.model[key] = '';
             } else {
                 this.model[key].splice(valueIndex, 1);
