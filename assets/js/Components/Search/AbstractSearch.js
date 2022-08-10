@@ -123,7 +123,7 @@ export default {
                     const filterLabel = load.label;
                     if (modelValue !== undefined && Array.isArray(modelValue)) {
                         if (modelValue.length) {
-                            show.push({key: currentModel, value: modelValue, label: filterLabel});
+                            show.push({ key: currentModel, value: modelValue, label: filterLabel });
                         }
                     } else if (modelValue !== undefined
                         && currentModel !== 'text_combination'
