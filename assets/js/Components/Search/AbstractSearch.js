@@ -785,7 +785,7 @@ export default {
             this.noHistory = true;
             this.$refs.resultTable.refresh();
         },
-        deleteOption({key, valueIndex}) {
+        deleteOption({ key, valueIndex }) {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;
             }
