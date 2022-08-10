@@ -7,22 +7,6 @@
             />
         </div>
         <aside class="col-sm-3">
-            <div
-                v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
-                class="bg-tertiary padding-default mbottom-default"
-            >
-                <h2>Active search filters</h2>
-                <div
-                    class="form-group"
-                >
-                    <button
-                        class="btn btn-block"
-                        @click="resetAllFilters"
-                    >
-                        Reset all filters
-                    </button>
-                </div>
-            </div>
             <div class="bg-tertiary padding-default">
                 <div class="form-group">
                     <a
@@ -54,6 +38,16 @@
                     :label="fieldData.label"
                     @deleted="deleteOption"
                 />
+                <button
+                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
+                    class="btn btn-sm btn-primary delete-spam-item"
+                >
+                    Reset all filters
+                    <i
+                        class="fa fa-close delete-span-icon"
+                        @click="resetAllFilters"
+                    />
+                </button>
             </div>
             <div
                 v-if="countRecords"

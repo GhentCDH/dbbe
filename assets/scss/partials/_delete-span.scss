@@ -1,10 +1,5 @@
-.delete-span-icon:hover {
-    cursor: pointer;
-    color: red;
-}
-
 .delete-span-icon {
-    color: black;
+    margin-left: 0.7rem;
 }
 
 .delete-span-container {
@@ -23,4 +18,9 @@
 .delete-span-selected-container {
     display: flex;
     flex-wrap: wrap;
+}
+
+.delete-spam-item {
+    margin-left: 1rem;
+    margin-bottom: 1rem;
 }

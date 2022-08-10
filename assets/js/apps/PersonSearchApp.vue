@@ -7,30 +7,6 @@
             />
         </div>
         <aside class="col-sm-3">
-            <div
-                v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
-                class="bg-tertiary padding-default mbottom-default"
-            >
-                <h2>Active search filters</h2>
-                <delete-span
-                    v-for="fieldData in notEmptyFields"
-                    :key="fieldData.key"
-                    :model-key="fieldData.key"
-                    :value="fieldData.value"
-                    :label="fieldData.label"
-                    @deleted="deleteOption"
-                />
-                <div
-                    class="form-group"
-                >
-                    <button
-                        class="btn btn-block"
-                        @click="resetAllFilters"
-                    >
-                        Reset all filters
-                    </button>
-                </div>
-            </div>
             <div class="bg-tertiary padding-default">
                 <vue-form-generator
                     ref="form"
@@ -43,6 +19,26 @@
             </div>
         </aside>
         <article class="col-sm-9 search-page">
+            <div class="delete-span-selected-container">
+                <delete-span
+                    v-for="fieldData in notEmptyFields"
+                    :key="fieldData.key"
+                    :model-key="fieldData.key"
+                    :value="fieldData.value"
+                    :label="fieldData.label"
+                    @deleted="deleteOption"
+                />
+                <button
+                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
+                    class="btn btn-sm btn-primary delete-spam-item"
+                >
+                    Reset all filters
+                    <i
+                        class="fa fa-close delete-span-icon"
+                        @click="resetAllFilters"
+                    />
+                </button>
+            </div>
             <div
                 v-if="countRecords"
                 class="count-records"
