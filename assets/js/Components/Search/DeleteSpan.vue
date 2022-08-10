@@ -2,14 +2,13 @@
     <div class="delete-span-box">
         <div v-if="Array.isArray(value)">
             <div v-if="value.length">
-                <h5>{{ label }}</h5>
                 <div class="filter-array-values-container">
                     <div
                         v-for="(val, ind) in value"
                         :key="val.id"
                         class="delete-span-container"
                     >
-                        {{ val.name }}
+                        <b>{{ label }}</b> {{ val.name }}
                         <i
                             class="fa fa-close delete-span-icon"
                             @click="onDelete(ind)"
@@ -20,9 +19,8 @@
         </div>
         <div v-else-if="typeof value === 'string' || modelKey === 'year_from' || modelKey === 'year_to'">
             <div v-if="value !== ''">
-                <h5>{{ label }}</h5>
                 <div class="delete-span-container">
-                    {{ value }}
+                    <b>{{ label }}</b> {{ value }}
                     <i
                         class="fa fa-close delete-span-icon"
                         @click="onDelete(-1)"
@@ -31,9 +29,8 @@
             </div>
         </div>
         <div v-else>
-            <h5>{{ label }}</h5>
             <div class="delete-span-container">
-                {{ value.name }}
+                <b>{{ label }}</b> {{ value.name }}
                 <i
                     class="fa fa-close delete-span-icon"
                     @click="onDelete(-1)"

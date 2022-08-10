@@ -12,14 +12,6 @@
                 class="bg-tertiary padding-default mbottom-default"
             >
                 <h2>Active search filters</h2>
-                <delete-span
-                    v-for="fieldData in notEmptyFields"
-                    :key="fieldData.key"
-                    :model-key="fieldData.key"
-                    :value="fieldData.value"
-                    :label="fieldData.label"
-                    @deleted="deleteOption"
-                />
                 <div
                     class="form-group"
                 >
@@ -53,6 +45,16 @@
             </div>
         </aside>
         <article class="col-sm-9 search-page">
+            <div class="delete-span-selected-container">
+                <delete-span
+                    v-for="fieldData in notEmptyFields"
+                    :key="fieldData.key"
+                    :model-key="fieldData.key"
+                    :value="fieldData.value"
+                    :label="fieldData.label"
+                    @deleted="deleteOption"
+                />
+            </div>
             <div
                 v-if="countRecords"
                 class="count-records"
