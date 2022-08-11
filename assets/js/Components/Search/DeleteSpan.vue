@@ -21,7 +21,7 @@
             <div v-if="value !== ''">
                 <button
                     class="btn btn-sm btn-primary delete-spam-item"
-                    @click="onDelete(ind)"
+                    @click="onDelete(-1)"
                 >
                     <b>{{ label }}</b> {{ value }}
                     <i
@@ -33,7 +33,7 @@
         <div v-else>
             <button
                 class="btn btn-sm btn-primary delete-spam-item"
-                @click="onDelete(ind)"
+                @click="onDelete(-1)"
             >
                 <b>{{ label }}</b> {{ value.name }}
                 <i

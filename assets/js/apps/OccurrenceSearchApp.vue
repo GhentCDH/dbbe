@@ -29,26 +29,12 @@
             </div>
         </aside>
         <article class="col-sm-9 search-page">
-            <div class="delete-span-selected-container">
-                <delete-span
-                    v-for="fieldData in notEmptyFields"
-                    :key="fieldData.key"
-                    :model-key="fieldData.key"
-                    :value="fieldData.value"
-                    :label="fieldData.label"
-                    @deleted="deleteOption"
-                />
-                <button
-                    v-if="JSON.stringify(model) !== JSON.stringify(originalModel)"
-                    class="btn btn-sm btn-primary delete-spam-item"
-                    @click="resetAllFilters"
-                >
-                    Reset all filters
-                    <i
-                        class="fa fa-close delete-span-icon"
-                    />
-                </button>
-            </div>
+            <selected-filters
+                :filters="notEmptyFields"
+                class="selected-filters"
+                @resetFilters="resetAllFilters"
+                @deletedField="deleteOption"
+            />
             <div
                 v-if="countRecords"
                 class="count-records"
@@ -321,11 +307,12 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import DeleteSpan from '../Components/Search/DeleteSpan.vue';
+import SelectedFilters from '../Components/Search/SelectedFilters.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { DeleteSpan },
+    components: { DeleteSpan, SelectedFilters },
     mixins: [
         AbstractField,
         AbstractSearch,
