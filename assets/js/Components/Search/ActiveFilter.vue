@@ -1,57 +1,55 @@
 <template>
-    <div>
-        <div v-if="Array.isArray(value)">
-            <div v-if="value.length">
-                <div class="selected-filter-array-container">
-                    <button
-                        v-for="(val, ind) in value"
-                        :key="val.id"
-                        class="btn btn-sm btn-primary selected-filter-item"
-                        @click="onDelete(ind)"
-                    >
-                        <b>{{ label }}</b> {{ val.name }}
-                        <i
-                            class="fa fa-close delete-filter-icon"
-                        />
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div v-else-if="typeof value === 'string' || modelKey === 'year_from' || modelKey === 'year_to'">
-            <div v-if="value !== ''">
+    <div v-if="Array.isArray(value)">
+        <div v-if="value.length">
+            <div class="active-filter-array-container">
                 <button
-                    class="btn btn-sm btn-primary selected-filter-item"
-                    @click="onDelete(-1)"
+                    v-for="(val, ind) in value"
+                    :key="val.id"
+                    class="btn btn-sm btn-primary active-filter-item"
+                    @click="onDelete(ind)"
                 >
-                    <b>{{ label }}</b> {{ value }}
+                    <b>{{ label }}</b> {{ val.name }}
                     <i
-                        class="fa fa-close delete-filter-icon"
+                        class="fa fa-close active-filter-icon"
                     />
                 </button>
             </div>
-        </div>
-        <div v-else>
-            <button
-                class="btn btn-sm btn-primary selected-filter-item"
-                @click="onDelete(-1)"
-            >
-                <b>{{ label }}</b> {{ value.name }}
-                <i
-                    class="fa fa-close delete-filter-icon"
-                />
-            </button>
         </div>
     </div>
 </template>
 <script>
 export default {
-    props: ['modelKey', 'value', 'label'],
+    props: {
+        modelKey: {
+            default: '',
+            type: String,
+        },
+        value: {
+            default: () => [],
+            type: Array,
+        },
+        label: {
+            default: '',
+            type: String,
+        },
+        type: {
+            default: '',
+            type: String,
+        },
+    },
     methods: {
         onDelete(index) {
-            this.$emit('deleted', {
-                key: this.modelKey,
-                valueIndex: index,
-            });
+            if (this.type === 'array') {
+                this.$emit('deleted', {
+                    key: this.modelKey,
+                    valueIndex: index,
+                });
+            } else {
+                this.$emit('deleted', {
+                    key: this.modelKey,
+                    valueIndex: -1,
+                });
+            }
         },
     },
 };

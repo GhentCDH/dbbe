@@ -121,17 +121,36 @@ export default {
                     const currentModel = load.model;
                     const modelValue = this.model[currentModel];
                     const filterLabel = load.label;
-                    if (modelValue !== undefined && Array.isArray(modelValue)) {
-                        if (modelValue.length) {
-                            show.push({ key: currentModel, value: modelValue, label: filterLabel });
-                        }
-                    } else if (modelValue !== undefined
+                    if (modelValue !== undefined
                         && currentModel !== 'text_combination'
                         && currentModel !== 'text_fields'
                         && currentModel !== 'date_search_type'
                         && currentModel !== 'title_type'
                         && !currentModel.endsWith('_op')) {
-                        show.push({ key: currentModel, value: modelValue, label: filterLabel });
+                        if (Array.isArray(modelValue)) {
+                            if (modelValue.length) {
+                                show.push({
+                                    key: currentModel,
+                                    value: modelValue,
+                                    label: filterLabel,
+                                    type: 'array',
+                                });
+                            }
+                        } else if (modelValue.name === undefined) {
+                            show.push({
+                                key: currentModel,
+                                value: [{ name: modelValue }],
+                                label: filterLabel,
+                                type: typeof modelValue,
+                            });
+                        } else {
+                            show.push({
+                                key: currentModel,
+                                value: [modelValue],
+                                label: filterLabel,
+                                type: typeof modelValue,
+                            });
+                        }
                     }
                 });
             }
@@ -781,7 +800,7 @@ export default {
             const stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
             return decodeURIComponent(stripped).toLocaleLowerCase();
         },
-        deleteOption({ key, valueIndex }) {
+        deleteActiveFilter({ key, valueIndex }) {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;
             } else if (valueIndex === -1) {

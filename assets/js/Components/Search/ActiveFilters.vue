@@ -2,7 +2,7 @@
     <div>
         <button
             v-if="filters.length"
-            class="btn btn-sm btn-primary selected-filter-item"
+            class="btn btn-sm btn-primary active-filter-item"
             @click="resetFilters()"
         >
             Reset all filters
@@ -16,7 +16,8 @@
             :model-key="fieldData.key"
             :value="fieldData.value"
             :label="fieldData.label"
-            @deleted="deleteField"
+            :type="fieldData.type"
+            @deleted="deleteActiveFilter"
         />
     </div>
 </template>
@@ -25,10 +26,15 @@ import ActiveFilter from './ActiveFilter.vue';
 
 export default {
     components: { ActiveFilter },
-    props: ['filters'],
+    props: {
+        filters: {
+            default: () => [],
+            type: Array,
+        },
+    },
     methods: {
-        deleteField({ key, valueIndex }) {
-            this.$emit('deletedField', {
+        deleteActiveFilter({ key, valueIndex }) {
+            this.$emit('deletedActiveFilter', {
                 key,
                 valueIndex,
             });

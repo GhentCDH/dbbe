@@ -19,11 +19,11 @@
             </div>
         </aside>
         <article class="col-sm-9 search-page">
-            <selected-filters
+            <active-filters
                 :filters="notEmptyFields"
-                class="selected-filters"
+                class="active-filters"
                 @resetFilters="resetAllFilters"
-                @deletedField="deleteOption"
+                @deletedActiveFilter="deleteActiveFilter"
             />
             <div
                 v-if="countRecords"
@@ -243,12 +243,12 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import SelectedFilters from '../Components/Search/SelectedFilters.vue';
+import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { SelectedFilters },
+    components: { ActiveFilters },
     mixins: [
         AbstractField,
         AbstractSearch,

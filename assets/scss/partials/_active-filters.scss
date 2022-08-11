@@ -1,18 +1,18 @@
-delete-filter-icon {
+.delete-filter-icon {
     margin-left: 0.7rem;
 }
 
-.selected-filter-array-container {
+.active-filter-array-container {
     display: flex;
     flex-wrap: wrap;
 }
 
-.selected-filter-item {
+.active-filter-item {
     margin-left: 1rem;
     margin-bottom: 1rem;
 }
 
-.selected-filters {
+.active-filters {
     display: flex;
     flex-wrap: wrap;
 }
