@@ -6,7 +6,7 @@
         "qs": "^6.10.3",
         "uiv": "^1.4.1",
         "vue": "^2.5",
-        "vue-cookies": "^1.7.4",
+        "vue-cookies": "^1.8.1",
         "vue-form-generator": "^2.3.4",
         "vue-multiselect": "^2.1.6",
         "vue-tables-2": "^2.3.5"
