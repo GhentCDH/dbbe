@@ -36,6 +36,7 @@ export default {
             return [
                 {
                     disabled: true,
+                    switchLabel: `${label} and`,
                     type: 'switch',
                     model: `${systemName}_op`,
                     textOn: 'Or',

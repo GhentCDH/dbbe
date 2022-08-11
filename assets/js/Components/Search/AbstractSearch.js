@@ -125,9 +125,17 @@ export default {
                         && currentModel !== 'text_combination'
                         && currentModel !== 'text_fields'
                         && currentModel !== 'date_search_type'
-                        && currentModel !== 'title_type'
-                        && !currentModel.endsWith('_op')) {
-                        if (Array.isArray(modelValue)) {
+                        && currentModel !== 'title_type') {
+                        if (currentModel.endsWith('_op')) {
+                            if (modelValue !== 'or') {
+                                show.push({
+                                    key: currentModel,
+                                    value: [''],
+                                    label: load.switchLabel,
+                                    type: 'switch',
+                                });
+                            }
+                        } else if (Array.isArray(modelValue)) {
                             if (modelValue.length) {
                                 show.push({
                                     key: currentModel,
@@ -804,6 +812,8 @@ export default {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;
             } else if (valueIndex === -1) {
+                this.model[key] = 'or';
+            } else if (valueIndex === -2) {
                 this.model[key] = '';
             } else {
                 this.model[key].splice(valueIndex, 1);

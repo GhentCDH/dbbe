@@ -44,10 +44,15 @@ export default {
                     key: this.modelKey,
                     valueIndex: index,
                 });
-            } else {
+            } else if (this.type === 'switch') {
                 this.$emit('deleted', {
                     key: this.modelKey,
                     valueIndex: -1,
+                });
+            } else {
+                this.$emit('deleted', {
+                    key: this.modelKey,
+                    valueIndex: -2,
                 });
             }
         },
