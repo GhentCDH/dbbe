@@ -1,13 +1,5 @@
 <template>
     <div>
-        <active-filter
-            v-for="fieldData in filters"
-            :key="fieldData.key"
-            :model-key="fieldData.key"
-            :value="fieldData.value"
-            :label="fieldData.label"
-            @deleted="deleteField"
-        />
         <button
             v-if="filters.length"
             class="btn btn-sm btn-primary selected-filter-item"
@@ -18,6 +10,14 @@
                 class="fa fa-close delete-filter-icon"
             />
         </button>
+        <active-filter
+            v-for="fieldData in filters"
+            :key="fieldData.key"
+            :model-key="fieldData.key"
+            :value="fieldData.value"
+            :label="fieldData.label"
+            @deleted="deleteField"
+        />
     </div>
 </template>
 <script>

@@ -311,7 +311,7 @@ import SelectedFilters from '../Components/Search/SelectedFilters.vue';
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { DeleteSpan, SelectedFilters },
+    components: { SelectedFilters },
     mixins: [
         AbstractField,
         AbstractSearch,
