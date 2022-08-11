@@ -306,7 +306,6 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import DeleteSpan from '../Components/Search/DeleteSpan.vue';
 import SelectedFilters from '../Components/Search/SelectedFilters.vue';
 
 Vue.component('FieldRadio', fieldRadio);

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <delete-span
+        <active-filter
             v-for="fieldData in filters"
             :key="fieldData.key"
             :model-key="fieldData.key"
@@ -10,22 +10,21 @@
         />
         <button
             v-if="filters.length"
-            class="btn btn-sm btn-primary delete-spam-item"
+            class="btn btn-sm btn-primary selected-filter-item"
             @click="resetFilters()"
         >
             Reset all filters
             <i
-                class="fa fa-close delete-span-icon"
+                class="fa fa-close delete-filter-icon"
             />
         </button>
     </div>
 </template>
 <script>
-
-import DeleteSpan from './DeleteSpan.vue';
+import ActiveFilter from './ActiveFilter.vue';
 
 export default {
-    components: { DeleteSpan },
+    components: { ActiveFilter },
     props: ['filters'],
     methods: {
         deleteField({ key, valueIndex }) {
