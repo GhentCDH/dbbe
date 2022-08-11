@@ -808,6 +808,12 @@ export default {
             const stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
             return decodeURIComponent(stripped).toLocaleLowerCase();
         },
+
+        /**
+         * Remove active filter
+         * @param {String} key The key for which filter needs to be removed
+         * @param {Number} valueIndex -1 == switch || -2 == string || rest == remove index from array
+         */
         deleteActiveFilter({ key, valueIndex }) {
             if (key === 'year_from' || key === 'year_to') {
                 this.model[key] = undefined;

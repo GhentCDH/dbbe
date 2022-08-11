@@ -38,6 +38,10 @@ export default {
         },
     },
     methods: {
+        /**
+         * Emit call to delete filter. valueIndex -1 == switch || -2 == string || rest == remove index from array
+         * @param {Number} index Remove this index from the array if this.type === 'array'
+         */
         onDelete(index) {
             if (this.type === 'array') {
                 this.$emit('deleted', {
