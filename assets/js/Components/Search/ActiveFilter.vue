@@ -8,7 +8,7 @@
                     class="btn btn-sm btn-primary active-filter-item"
                     @click="onDelete(ind)"
                 >
-                    <b>{{ label }}</b> {{ val.name }}
+                    <span class="active-filter-label">{{ label }}</span> {{ val.name }}
                     <i
                         class="fa fa-close active-filter-icon"
                     />
