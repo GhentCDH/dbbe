@@ -21,3 +21,15 @@
     }
   }
 }
+
+.form-button-small {
+  width: 25%;
+  border: 1px solid $brand-primary;
+  margin-right: 0.5rem;
+}
+
+.form-button-big {
+  width: 50%;
+  border: 1px solid $brand-primary;
+  margin-right: 0.5rem;
+}

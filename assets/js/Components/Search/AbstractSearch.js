@@ -5,10 +5,12 @@ import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
+import { betaCodeToGreek, greekToBetaCode } from 'beta-code-js';
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
 import Delete from '../Edit/Modals/Delete.vue';
 import CollectionManager from './CollectionManager.vue';
+import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
 
 window.axios = require('axios');
 
@@ -20,6 +22,7 @@ Vue.component('MultiSelect', VueMultiselect);
 Vue.component('FieldMultiselectClear', fieldMultiselectClear);
 Vue.component('DeleteModal', Delete);
 Vue.component('CollectionManager', CollectionManager);
+Vue.component('FieldCheckboxes', fieldCheckboxes);
 
 const YEAR_MIN = 1;
 const YEAR_MAX = (new Date()).getFullYear();
@@ -170,6 +173,26 @@ export default {
         window.onpopstate = ((event) => { this.popHistory(event); });
         this.updateCountRecords();
     },
+    watch: {
+        'model.text_mode': function (value) {
+            if (value !== undefined && this.model.text !== undefined) {
+                if (value[0] === 'greek') {
+                    this.model.text = betaCodeToGreek(this.model.text);
+                } else {
+                    this.model.text = greekToBetaCode(this.model.text);
+                }
+            }
+        },
+        'model.comment_mode': function (value) {
+            if (value !== undefined && this.model.comment !== undefined) {
+                if (value[0] === 'greek') {
+                    this.model.comment = betaCodeToGreek(this.model.comment);
+                } else {
+                    this.model.comment = greekToBetaCode(this.model.comment);
+                }
+            }
+        },
+    },
     methods: {
         constructFilterValues() {
             const result = {};
@@ -198,7 +221,12 @@ export default {
                         }
                         result.date.to = this.model[fieldName];
                     } else if (fieldName === 'text' || fieldName === 'comment') {
-                        result[fieldName] = this.model[fieldName].trim();
+                        const modeField = `${fieldName}_mode`;
+                        if (this.model[modeField] !== undefined && this.model[modeField][0] === 'latin') {
+                            result[fieldName] = greekToBetaCode(this.model[fieldName].trim());
+                        } else {
+                            result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
+                        }
                     } else {
                         result[fieldName] = this.model[fieldName];
                     }
@@ -580,6 +608,15 @@ export default {
                                 [model[key]] = this.data.aggregation[key].filter(
                                     (v) => String(v.id) === params.filters[key],
                                 );
+                            }
+                        } else if (key === 'text' || key === 'comment') {
+                            const mode = `${key}_mode`;
+                            if (mode in params.filters
+                                && (params.filters[mode][0] === 'betacode' || params.filters[mode][0] === 'latin')
+                            ) {
+                                model[key] = greekToBetaCode(params.filters[key]);
+                            } else {
+                                model[key] = params.filters[key];
                             }
                         } else {
                             model[key] = params.filters[key];

@@ -1,6 +1,7 @@
 {
     "dependencies": {
         "axios": "^0.25.0",
+        "beta-code-js": "^3.0.0",
         "qs": "^6.10.3",
         "uiv": "^1.4.1",
         "vue": "^2.5",

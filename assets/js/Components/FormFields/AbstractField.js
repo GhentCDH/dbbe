@@ -58,6 +58,26 @@ export default {
                 ),
             ];
         },
+        createLanguageToggle(label) {
+            const result = {
+                type: 'checkboxes',
+                styleClasses: 'field-inline-options field-checkboxes-labels-only',
+                model: `${label}_mode`,
+                parentModel: label,
+                values: [
+                    {
+                        name: 'GREEK', value: 'greek', toggleGroup: 'greek_betacode_latin',
+                    },
+                    {
+                        name: 'BETACODE', value: 'betacode', toggleGroup: 'greek_betacode_latin',
+                    },
+                    {
+                        name: 'LATIN', value: 'latin', toggleGroup: 'greek_betacode_latin',
+                    },
+                ],
+            };
+            return result;
+        },
         disableField(field, model = null) {
             /* eslint-disable no-param-reassign */
             if (model == null) {

@@ -253,6 +253,7 @@
 <script>
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator';
+import { greekToBetaCode, betaCodeToGreek } from 'beta-code-js';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
@@ -262,6 +263,7 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
+import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
 Vue.component('FieldRadio', fieldRadio);
 
@@ -274,6 +276,8 @@ export default {
     data() {
         const data = {
             model: {
+                text_mode: 'greek',
+                comment_mode: 'greek',
                 text_fields: 'text',
                 text_combination: 'all',
                 person: [],
@@ -323,6 +327,7 @@ export default {
         };
 
         // Add fields
+        data.schema.fields.text_mode = this.createLanguageToggle('text');
         data.schema.fields.text = {
             type: 'input',
             inputType: 'text',
@@ -407,6 +412,7 @@ export default {
                 model: 'translation_language',
             },
         );
+        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
