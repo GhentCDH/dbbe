@@ -130,7 +130,7 @@ export default {
                             if (modelValue !== 'or') {
                                 show.push({
                                     key: currentModel,
-                                    value: [''],
+                                    value: [{ name: '' }],
                                     label: load.switchLabel,
                                     type: 'switch',
                                 });

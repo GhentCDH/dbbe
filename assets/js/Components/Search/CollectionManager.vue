@@ -46,7 +46,7 @@
     </div>
 </template>
 <script>
-import AbstractField from '../FormFields/AbstractField'
+import AbstractField from '../FormFields/AbstractField';
 
 export default {
     mixins: [
@@ -55,14 +55,14 @@ export default {
     props: {
         collectionArray: {
             type: Array,
-            default: () => {return []}
+            default: () => [],
         },
         managements: {
             type: Array,
-            default: () => {return []}
+            default: () => [],
         },
     },
-    data () {
+    data() {
         return {
             collectionModel: {
                 managementCollection: [],
@@ -81,22 +81,22 @@ export default {
                             multiple: true,
                             closeOnSelect: false,
                             loading: false,
-                        }
-                    )
-                }
+                        },
+                    ),
+                },
             },
             formOptions: {
                 validateAfterLoad: true,
                 validateAfterChanged: true,
-                validationErrorClass: "has-error",
-                validationSuccessClass: "success"
+                validationErrorClass: 'has-error',
+                validationSuccessClass: 'success',
             },
-        }
+        };
     },
     methods: {
         addSelection() {
 
         },
-    }
-}
+    },
+};
 </script>

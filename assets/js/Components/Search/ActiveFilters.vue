@@ -11,10 +11,11 @@
             />
         </button>
         <active-filter
-            v-for="fieldData in filters"
-            :key="fieldData.key"
+            v-for="(fieldData, ind) in flattenFilters"
+            :key="ind"
             :model-key="fieldData.key"
-            :value="fieldData.value"
+            :value="fieldData.name"
+            :index="fieldData.index"
             :label="fieldData.label"
             :type="fieldData.type"
             @deleted="deleteActiveFilter"
@@ -30,6 +31,27 @@ export default {
         filters: {
             default: () => [],
             type: Array,
+        },
+    },
+    computed: {
+        flattenFilters() {
+            const allFilters = [];
+            for (const fieldData of this.filters) {
+                let counter = 0;
+                for (const fieldValue of fieldData.value) {
+                    if (fieldData.type === 'array') {
+                        fieldValue.index = counter;
+                    } else {
+                        fieldValue.index = -1;
+                    }
+                    fieldValue.key = fieldData.key;
+                    fieldValue.type = fieldData.type;
+                    fieldValue.label = fieldData.label;
+                    allFilters.push(fieldValue);
+                    counter += 1;
+                }
+            }
+            return allFilters;
         },
     },
     methods: {

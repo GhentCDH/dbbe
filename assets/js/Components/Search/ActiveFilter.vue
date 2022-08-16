@@ -1,20 +1,14 @@
 <template>
-    <div v-if="Array.isArray(value)">
-        <div v-if="value.length">
-            <div class="active-filter-array-container">
-                <button
-                    v-for="(val, ind) in value"
-                    :key="val.id"
-                    class="btn btn-sm btn-primary active-filter-item"
-                    @click="onDelete(ind)"
-                >
-                    <span class="active-filter-label">{{ label }}</span> {{ val.name }}
-                    <i
-                        class="fa fa-close active-filter-icon"
-                    />
-                </button>
-            </div>
-        </div>
+    <div class="active-filter-array-container">
+        <button
+            class="btn btn-sm btn-primary active-filter-item"
+            @click="onDelete()"
+        >
+            <span class="active-filter-label">{{ label }}</span> {{ value }}
+            <i
+                class="fa fa-close active-filter-icon"
+            />
+        </button>
     </div>
 </template>
 <script>
@@ -25,8 +19,10 @@ export default {
             type: String,
         },
         value: {
-            default: () => [],
-            type: Array,
+            type: [Number, String],
+        },
+        index: {
+            type: Number,
         },
         label: {
             default: '',
@@ -42,11 +38,11 @@ export default {
          * Emit call to delete filter. valueIndex -1 == switch || -2 == string || rest == remove index from array
          * @param {Number} index Remove this index from the array if this.type === 'array'
          */
-        onDelete(index) {
+        onDelete() {
             if (this.type === 'array') {
                 this.$emit('deleted', {
                     key: this.modelKey,
-                    valueIndex: index,
+                    valueIndex: this.index,
                 });
             } else if (this.type === 'switch') {
                 this.$emit('deleted', {
