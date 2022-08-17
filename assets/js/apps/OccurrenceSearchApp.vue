@@ -306,13 +306,10 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
-
-import SharedSearch from '../Components/Search/SharedSearch';
-import PersistentConfig from '../Components/Shared/PersistentConfig';
+import fieldButtonGroup from '../Components/FormFields/fieldButtonGroup.vue';
 
 Vue.component('FieldRadio', fieldRadio);
+Vue.component('FieldButtonGroup', fieldButtonGroup);
 
 export default {
     components: { ActiveFilters },
@@ -398,8 +395,17 @@ export default {
             };
         }
         data.schema.fields.text_combination = {
-            type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
+            type: 'buttonGroup',
+            label: 'Word combination options:',
+            model: 'text_combination',
+            values: [
+                { value: 'all', name: 'all' },
+                { value: 'any', name: 'any' },
+                { value: 'phrase', name: 'phrase' },
+            ],
+        };
+        /* data.schema.fields.text_combination = {
+            type: 'radio',
             label: 'Word combination options:',
             model: 'text_combination',
             parentModel: 'text',
@@ -408,7 +414,7 @@ export default {
                 { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
                 { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
-        };
+        }; */
         data.schema.fields.text_fields = {
             type: 'checkboxes',
             styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
@@ -566,6 +572,11 @@ export default {
             }
             return columns;
         },
+    },
+    watch: {
+        'model.text_combination': function(val) {
+            console.log(val);
+        }
     },
     methods: {
         del(row) {
