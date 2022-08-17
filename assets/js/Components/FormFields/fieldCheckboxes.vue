@@ -17,7 +17,6 @@
 <script>
 import { isObject, isNil, clone } from 'lodash';
 import { abstractField, schema } from 'vue-form-generator';
-
 export default {
     mixins: [abstractField],
     data() {
