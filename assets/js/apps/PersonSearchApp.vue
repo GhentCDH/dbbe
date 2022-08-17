@@ -405,14 +405,19 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
+
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
+        PersistentConfig('PersonSearchConfig'),
         AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
+        SharedSearch,
     ],
     props: {
         initPersons: {
@@ -557,15 +562,23 @@ export default {
             validator: VueFormGenerator.validators.string,
         };
 
-        // Add identifier fields
+        const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+            idList.push(this.createMultiSelect(
                 identifier.name,
                 {
                     model: identifier.systemName,
                 },
-            );
+            ));
         }
+
+        data.schema.groups = [
+            {
+                styleClasses: 'collapsible collapsed',
+                legend: 'External identifiers',
+                fields: idList,
+            },
+        ];
 
         // Add view internal only fields
         if (this.isViewInternal) {

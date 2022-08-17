@@ -99,6 +99,29 @@ export default {
         };
     },
     computed: {
+        fields() {
+            const res = {};
+            if (this.schema && this.schema.fields) {
+                Object.keys(this.schema.fields).forEach((key, index) => {
+                    const field = this.schema.fields[key];
+                    if (!field.multiple || field.multi === true) {
+                        res[field.model] = field;
+                    }
+                });
+            }
+            if (this.schema && this.schema.groups) {
+                this.schema.groups.forEach((group) => {
+                    if (group.fields) {
+                        group.fields.forEach((field) => {
+                            if (!this.multiple || field.multi === true) {
+                                res[field.model] = field;
+                            }
+                        });
+                    }
+                });
+            }
+            return res;
+        },
         showReset() {
             for (const key of Object.keys(this.model)) {
                 if (
@@ -199,7 +222,7 @@ export default {
             const result = {};
             if (this.model != null) {
                 for (const fieldName of Object.keys(this.model)) {
-                    if (this.schema.fields[fieldName].type === 'multiselectClear') {
+                    if (this.fields[fieldName] != null && this.fields[fieldName].type === 'multiselectClear') {
                         if (this.model[fieldName] != null) {
                             if (Array.isArray(this.model[fieldName])) {
                                 const ids = [];
@@ -257,24 +280,24 @@ export default {
                     ) {
                         delete this.model[fieldName];
                     }
-                    const field = this.schema.fields[fieldName];
+                    const field = this.fields[fieldName];
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         delete this.model[fieldName];
                     }
                 }
             }
 
-            if ('year_from' in this.schema.fields && 'year_to' in this.schema.fields) {
+            if ('year_from' in this.fields && 'year_to' in this.fields) {
                 // set year min and max values
                 if (this.model.year_from != null) {
-                    this.schema.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from);
+                    this.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from);
                 } else {
-                    this.schema.fields.year_to.min = YEAR_MIN;
+                    this.fields.year_to.min = YEAR_MIN;
                 }
                 if (this.model.year_to != null) {
-                    this.schema.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to);
+                    this.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to);
                 } else {
-                    this.schema.fields.year_from.max = YEAR_MAX;
+                    this.fields.year_from.max = YEAR_MAX;
                 }
             }
 
@@ -287,7 +310,7 @@ export default {
             // Send requests to update filters and result table
             // Add a delay to requests originated from input field changes to limit the number of requests
             let timeoutValue = 0;
-            if (this.lastChangedField !== '' && this.schema.fields[this.lastChangedField].type === 'input') {
+            if (this.lastChangedField !== '' && this.fields[this.lastChangedField].type === 'input') {
                 timeoutValue = 1000;
             }
 
@@ -458,9 +481,7 @@ export default {
             this.model = JSON.parse(JSON.stringify(this.originalModel));
             this.onValidated(true);
         },
-        onData(data) {
-            this.data = data;
-
+        onDataExtend(data) {
             // Check whether column 'title/text' should be displayed
             this.textSearch = false;
             for (const item of data.data) {
@@ -501,12 +522,12 @@ export default {
             }
 
             // Update aggregation fields
-            for (const fieldName of Object.keys(this.schema.fields)) {
-                const field = this.schema.fields[fieldName];
+            for (const fieldName of Object.keys(this.fields)) {
+                const field = this.fields[fieldName];
                 if (field.type === 'multiselectClear') {
-                    field.values = this.data.aggregation[fieldName] == null
+                    field.values = this.aggregation[fieldName] == null
                         ? []
-                        : this.data.aggregation[fieldName].sort(this.sortByName);
+                        : this.aggregation[fieldName].sort(this.sortByName);
                     field.originalValues = JSON.parse(JSON.stringify(field.values));
                     if (field.dependency != null && this.model[field.dependency] == null) {
                         this.dependencyField(field);
@@ -549,9 +570,9 @@ export default {
                 delete filteredData.ascending;
             }
             if ('filters' in filteredData) {
-                for (const fieldName of Object.keys(this.schema.fields)) {
+                for (const fieldName of Object.keys(this.fields)) {
                     if (fieldName in filteredData.filters) {
-                        const field = this.schema.fields[fieldName];
+                        const field = this.fields[fieldName];
                         if (fieldName in this.originalModel) {
                             if (this.model[fieldName] === this.originalModel[fieldName]) {
                                 delete filteredData.filters[fieldName];
@@ -596,9 +617,9 @@ export default {
                         if ('to' in params.filters.date) {
                             model.year_to = Number(params.filters.date.to);
                         }
-                    } else if (key in this.schema.fields) {
+                    } else if (key in this.fields) {
                         if (
-                            this.schema.fields[key].type === 'multiselectClear'
+                            this.fields[key].type === 'multiselectClear'
                             && this.data.aggregation[key] != null
                         ) {
                             if (Array.isArray(params.filters[key])) {

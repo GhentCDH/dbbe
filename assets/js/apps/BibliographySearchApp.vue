@@ -392,14 +392,19 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
+
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
+        PersistentConfig('BibliographySearchConfig'),
         AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
+        SharedSearch,
     ],
     data() {
         const data = {

@@ -265,13 +265,18 @@ import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
+
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
+        PersistentConfig('TypeSearchConfig'),
         AbstractField,
         AbstractSearch,
+        SharedSearch,
     ],
     data() {
         const data = {
@@ -423,15 +428,23 @@ export default {
         };
 
         // Add identifier fields
+        const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+            idList.push(this.createMultiSelect(
                 identifier.name,
                 {
                     model: identifier.systemName,
                 },
-            );
+            ));
         }
 
+        data.schema.groups = [
+            {
+                styleClasses: 'collapsible collapsed',
+                legend: 'External identifiers',
+                fields: idList,
+            },
+        ];
         data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
         data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 

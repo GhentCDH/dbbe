@@ -310,13 +310,18 @@ import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
+
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
+        PersistentConfig('OccurenceSearchConfig'),
         AbstractField,
         AbstractSearch,
+        SharedSearch,
     ],
     data() {
         const data = {
