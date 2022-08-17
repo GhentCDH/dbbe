@@ -6,7 +6,8 @@
     }
 
     .radio-list label, .checkbox-list label {
-
+      line-height: 3rem;
+      padding: 2px 8px;
       display: inline-block;
       border: 1px solid $brand-primary;
       border-radius: 2px;
@@ -29,24 +30,6 @@
       input {
         display: none;
       }
-    }
-  }
-}
-
-.field-checkboxes-sm {
-  .field-wrap {
-    .checkbox-list label {
-      line-height: 1rem;
-      padding: 2px 4px;
-    }
-  }
-}
-
-.field-checkboxes-lg {
-  .field-wrap {
-    .checkbox-list label {
-      line-height: 2rem;
-      padding: 0px 8px;
     }
   }
 }

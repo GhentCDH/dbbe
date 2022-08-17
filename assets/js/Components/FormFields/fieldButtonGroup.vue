@@ -6,7 +6,7 @@
             v-for="(item, index) in items"
             :key="index"
             type="button"
-            class="btn button-group-button"
+            class="btn btn-sm button-group-button"
             @click="onSelection(item)"
         >
             {{ item.name }}

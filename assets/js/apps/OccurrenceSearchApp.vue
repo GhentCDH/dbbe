@@ -395,36 +395,25 @@ export default {
             };
         }
         data.schema.fields.text_combination = {
-            type: 'buttonGroup',
-            label: 'Word combination options:',
-            model: 'text_combination',
-            values: [
-                { value: 'all', name: 'all' },
-                { value: 'any', name: 'any' },
-                { value: 'phrase', name: 'phrase' },
-            ],
-        };
-        /* data.schema.fields.text_combination = {
-            type: 'radio',
-            label: 'Word combination options:',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only',
             model: 'text_combination',
             parentModel: 'text',
             values: [
                 { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
                 { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
-                { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
+                { value: 'phrase', name: 'phrase', toggleGroup: 'all_any_phrase' },
             ],
-        }; */
+        };
         data.schema.fields.text_fields = {
             type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
-            label: 'Which fields should be searched:',
+            styleClasses: 'field-checkboxes-labels-only',
             model: 'text_fields',
             parentModel: 'text',
             values: [
                 { value: 'text', name: 'Text', toggleGroup: 'text_title_all' },
-                { value: 'title', name: 'Title', toggleGroup: 'text_title_all' },
-                { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
+                { value: 'title', name: 'Title' },
+                { value: 'all', name: 'Text and title' },
             ],
         };
         data.schema.fields.year_from = {
@@ -448,14 +437,13 @@ export default {
             validator: VueFormGenerator.validators.number,
         };
         data.schema.fields.date_search_type = {
-            type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
+            type: 'buttonGroup',
             label: 'The occurrence date interval must ... the search date interval:',
             model: 'date_search_type',
             values: [
-                { value: 'exact', name: 'exact', toggleGroup: 'exact_included_overlap' },
-                { value: 'included', name: 'include', toggleGroup: 'exact_included_overlap' },
-                { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
+                { value: 'exact', name: 'match' },
+                { value: 'included', name: 'include' },
+                { value: 'overlap', name: 'overlap' },
             ],
         };
         data.schema.fields.person = this.createMultiSelect(
@@ -574,9 +562,9 @@ export default {
         },
     },
     watch: {
-        'model.text_combination': function(val) {
+        'model.text_combination': function (val) {
             console.log(val);
-        }
+        },
     },
     methods: {
         del(row) {
