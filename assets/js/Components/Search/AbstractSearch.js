@@ -233,8 +233,22 @@ export default {
             this.lastChangedField = fieldName;
         },
         onValidated(isValid) {
-            // do nothin but cancelling requests if invalid
+            // fix number validation and revalidate if needed
+            // else: do nothin but cancelling requests
             if (!isValid) {
+                let revalidate = false;
+                if ('year_from' in this.model && Number.isNaN(this.model.year_from)) {
+                    delete this.model.year_from;
+                    revalidate = true;
+                }
+                if ('year_to' in this.model && Number.isNaN(this.model.year_to)) {
+                    delete this.model.year_to;
+                    revalidate = true;
+                }
+                if (revalidate) {
+                    this.$refs.form.validate();
+                    return;
+                }
                 if (this.inputCancel !== null) {
                     window.clearTimeout(this.inputCancel);
                     this.inputCancel = null;
@@ -247,7 +261,6 @@ export default {
                     if (
                         this.model[fieldName] == null
                         || this.model[fieldName] === ''
-                        || ((['year_from', 'year_to'].indexOf(fieldName) > -1) && Number.isNaN(this.model[fieldName]))
                     ) {
                         delete this.model[fieldName];
                     }
