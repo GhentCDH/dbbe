@@ -303,17 +303,6 @@ export default {
         data.schema.fields.library = this.createMultiSelect('Library', { dependency: 'city' });
         data.schema.fields.collection = this.createMultiSelect('Collection', { dependency: 'library' });
         data.schema.fields.shelf = this.createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
-        // Diktyon identifier
-        for (const identifier of JSON.parse(this.initIdentifiers)) {
-            if (identifier.systemName === 'diktyon') {
-                data.schema.fields[identifier.systemName] = this.createMultiSelect(
-                    identifier.name,
-                    {
-                        model: identifier.systemName,
-                    },
-                );
-            }
-        }
         data.schema.fields.year_from = {
             type: 'input',
             inputType: 'number',
@@ -378,16 +367,23 @@ export default {
         );
 
         // Add identifier fields (without Diktyon (added above))
+        const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            if (identifier.systemName !== 'diktyon') {
-                data.schema.fields[identifier.systemName] = this.createMultiSelect(
-                    identifier.name,
-                    {
-                        model: identifier.systemName,
-                    },
-                );
-            }
+            idList.push(this.createMultiSelect(
+                identifier.name,
+                {
+                    model: identifier.systemName,
+                },
+            ));
         }
+
+        data.schema.groups = [
+            {
+                styleClasses: 'collapsible collapsed',
+                legend: 'External identifiers',
+                fields: idList,
+            },
+        ];
 
         // Add view internal only fields
         if (this.isViewInternal) {
