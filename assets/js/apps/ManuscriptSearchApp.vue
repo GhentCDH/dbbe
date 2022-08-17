@@ -248,6 +248,9 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from '../Components/Shared/PersistentConfig';
 
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
+
 Vue.component('FieldRadio', fieldRadio);
 
 export default {

@@ -11,7 +11,6 @@
       font-size: 100%;
       font-weight: normal;
       transition: 0.3s;
-      transform: rotate(180deg);
     }
 
     .form-group {
@@ -19,8 +18,9 @@
     }
 
     &.collapsed {
+
       legend::after {
-        transform: rotate(0deg);
+        transform: rotate(-90deg);
       }
 
       .form-group {
