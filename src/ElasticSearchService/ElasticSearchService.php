@@ -147,6 +147,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             ->setFilter($filterQuery)
                             ->addAggregation(
                                 (new Aggregation\Terms($fieldName))
+                                    ->setMinimumDocumentCount(0)
                                     ->setSize(self::MAX_AGG)
                                     ->setField($fieldName)
                             )
@@ -161,6 +162,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             ->setFilter($filterQuery)
                             ->addAggregation(
                                 (new Aggregation\Terms($fieldName))
+                                    ->setMinimumDocumentCount(0)
                                     ->setSize(self::MAX_AGG)
                                     ->setField($fieldName . '.id')
                                     ->addAggregation(
@@ -179,6 +181,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             ->setFilter($filterQuery)
                             ->addAggregation(
                                 (new Aggregation\Terms($fieldName))
+                                    ->setMinimumDocumentCount(0)
                                     ->setSize(self::MAX_AGG)
                                     ->setField($fieldName . '.keyword')
                             )
@@ -195,6 +198,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 (new Aggregation\Nested($fieldName, $fieldName))
                                     ->addAggregation(
                                         (new Aggregation\Terms('id'))
+                                            ->setMinimumDocumentCount(0)
                                             ->setSize(self::MAX_AGG)
                                             ->setField($fieldName . '.id')
                                             ->addAggregation(
@@ -216,10 +220,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                 (new Aggregation\Nested($fieldName, $fieldName))
                                     ->addAggregation(
                                         (new Aggregation\Terms('id'))
+                                            ->setMinimumDocumentCount(0)
                                             ->setSize(self::MAX_AGG)
                                             ->setField($fieldName . '.id')
                                             ->addAggregation(
                                                 (new Aggregation\Terms('name'))
+                                                    ->setMinimumDocumentCount(0)
                                                     ->setField($fieldName . '.name.keyword')
                                             )
                                     ->addAggregation(
@@ -238,6 +244,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             ->setFilter($filterQuery)
                             ->addAggregation(
                                 (new Aggregation\Terms($fieldName))
+                                    ->setMinimumDocumentCount(0)
                                     ->setSize(self::MAX_AGG)
                                     ->setField($fieldName)
                             )
@@ -260,6 +267,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     (new Aggregation\Nested($key, $key))
                                         ->addAggregation(
                                             (new Aggregation\Terms('id'))
+                                                ->setMinimumDocumentCount(0)
                                                 ->setSize(self::MAX_AGG)
                                                 ->setField($key . '.id')
                                                 ->addAggregation(
@@ -288,6 +296,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                         (new Aggregation\Nested($key, $key))
                                             ->addAggregation(
                                                 (new Aggregation\Terms('id'))
+                                                    ->setMinimumDocumentCount(0)
                                                     ->setSize(self::MAX_AGG)
                                                     ->setField($key . '.id')
                                                     ->addAggregation(
@@ -311,10 +320,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
-                            $results[$fieldName][] = [
-                                'id' => $result['key'],
-                                'name' => $result['key'],
-                            ];
+                            if (TRUE) {
+                                $results[$fieldName][] = [
+                                    'id' => $result['key'],
+                                    'name' => $result['key'],
+                                ];
+                            }
                         }
                     }
                     break;
@@ -356,6 +367,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['id']['buckets'] as $result) {
+                            var_dump(json_encode($result));
                             $results[$fieldName][] = [
                                 'id' => $result['key'],
                                 'name' => $result['name']['buckets'][0]['key'],
