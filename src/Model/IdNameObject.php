@@ -33,6 +33,7 @@ class IdNameObject implements IdJsonInterface
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'id_name' => $this->getId()."_".$this->name,
         ];
     }
 

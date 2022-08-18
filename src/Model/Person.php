@@ -934,6 +934,7 @@ class Person extends Entity implements SubjectInterface
         return [
             'id' => $this->id,
             'name' => $this->getFullDescription(),
+            'id_name' => $this->id . '_' . $this->getFullDescription(),
         ];
     }
 
