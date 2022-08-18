@@ -526,14 +526,14 @@ export default {
             validator: VueFormGenerator.validators.number,
         };
         data.schema.fields.date_search_type = {
-            type: 'radio',
-            label: 'The person date interval must ... the search date interval:',
-            labelClasses: 'control-label',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
+            label: 'The occurrence date interval must ... the search date interval:',
             model: 'date_search_type',
             values: [
-                { value: 'exact', name: 'exactly match' },
-                { value: 'included', name: 'be included in' },
-                { value: 'overlap', name: 'overlap with' },
+                { value: 'exact', name: 'exact', toggleGroup: 'exact_included_overlap' },
+                { value: 'included', name: 'include', toggleGroup: 'exact_included_overlap' },
+                { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
         [data.schema.fields.role_op, data.schema.fields.role] = this.createMultiMultiSelect('Role');

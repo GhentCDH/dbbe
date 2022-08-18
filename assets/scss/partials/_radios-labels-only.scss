@@ -1,35 +1,52 @@
 .field-radios-labels-only, .field-checkboxes-labels-only {
 
-    .field-wrap {
-      .radio-list, .checkbox-list {
-  
+  .field-wrap {
+    .radio-list, .checkbox-list {
+
+    }
+
+    .radio-list label, .checkbox-list label {
+
+      display: inline-block;
+      border: 1px solid $brand-primary;
+      border-radius: 2px;
+      margin-right: 5px;
+      background: white;
+      color: $brand-primary;
+      cursor: pointer;
+
+      &.is-checked {
+        background: $brand-primary;
+        border-color: $brand-primary;
+        color: white;
       }
-  
-      .radio-list label, .checkbox-list label {
-        line-height: 3rem;
-        padding: 2px 8px;
-        display: inline-block;
-        border: 1px solid $brand-primary;
-        border-radius: 2px;
-        margin-right: 5px;
-        background: white;
-        color: $brand-primary;
-        cursor: pointer;
-  
-        &.is-checked {
-          background: $brand-primary;
-          border-color: $brand-primary;
-          color: white;
-        }
-  
-        &.is-disabled {
-          background: #ddd !important;
-          border-color: #ddd !important;
-        }
-  
-        input {
-          display: none;
-        }
+
+      &.is-disabled {
+        background: #ddd !important;
+        border-color: #ddd !important;
+      }
+
+      input {
+        display: none;
       }
     }
   }
+}
+
+.field-checkboxes-sm {
+  .field-wrap {
+    .checkbox-list label {
+      line-height: 1rem;
+      padding: 2px 4px;
+    }
+  }
+}
+
+.field-checkboxes-lg {
+  .field-wrap {
+    .checkbox-list label {
+      line-height: 2rem;
+      padding: 0px 8px;
+    }
+  }
+}

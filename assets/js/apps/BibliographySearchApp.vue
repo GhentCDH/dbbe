@@ -505,13 +505,15 @@ export default {
             model: 'title',
         };
         data.schema.fields.title_type = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'Title search options:',
             model: 'title_type',
+            parentModel: 'title',
             values: [
-                { value: 'any', name: 'Match any words' },
-                { value: 'all', name: 'Match all words' },
-                { value: 'phrase', name: 'Match all words in correct order' },
+                { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
+                { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
+                { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
         };
         data.schema.fields.person = this.createMultiSelect(

@@ -220,7 +220,14 @@ export default {
                             result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
                         }
                     } else {
-                        result[fieldName] = this.model[fieldName];
+                        const value = this.model[fieldName];
+                        // the label-checkboxes return a list with one element inside
+                        if (Array.isArray(value)) {
+                            const [v] = value;
+                            result[fieldName] = v;
+                        } else {
+                            result[fieldName] = this.model[fieldName];
+                        }
                     }
                 }
             }
