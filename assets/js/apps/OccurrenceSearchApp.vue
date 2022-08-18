@@ -306,10 +306,8 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import fieldButtonGroup from '../Components/FormFields/fieldButtonGroup.vue';
 
 Vue.component('FieldRadio', fieldRadio);
-Vue.component('FieldButtonGroup', fieldButtonGroup);
 
 export default {
     components: { ActiveFilters },
