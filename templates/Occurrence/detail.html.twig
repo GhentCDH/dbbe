@@ -335,7 +335,7 @@
                     <tr>
                         <td>Acknowledgements</td>
                         <td>
-                            <p class="bg-tertiary">The credits system to acknowledge DBBE team members has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
+                            <p class="bg-tertiary padding-default">The credits system to acknowledge DBBE team members has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
                             {% embed 'Helpers/renderList.html.twig' with {'list': occurrence.getAcknowledgements()} only %}
                                 {% block renderItem %}
                                     {{ item.getName() }}
