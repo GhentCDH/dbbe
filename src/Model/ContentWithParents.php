@@ -51,6 +51,7 @@ class ContentWithParents extends IdNameObjectWithParents
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getDisplayName(),
+                'id_name' => $object->getId() . '_' . $object->getDisplayName(),
             ];
             if ($last) {
                 $last = false;
