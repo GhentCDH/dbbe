@@ -147,6 +147,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             ->setFilter($filterQuery)
                             ->addAggregation(
                                 (new Aggregation\Terms($fieldName))
+                                    ->setMinimumDocumentCount(0)
                                     ->setSize(self::MAX_AGG)
                                     ->setField($fieldName)
                             )
@@ -279,6 +280,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                         (new Aggregation\Nested($key, $key))
                                             ->addAggregation(
                                                 (new Aggregation\Terms('id_name'))
+                                                    ->setMinimumDocumentCount(0)
                                                     ->setSize(self::MAX_AGG)
                                                     ->setField($key . '.id_name.keyword')
                                             )
@@ -298,7 +300,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['buckets'] as $result) {
-                            if (TRUE) {
+                            if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && ($result['key'] == $filterValues[$fieldType][$fieldName]))) {
                                 $results[$fieldName][] = [
                                     'id' => $result['key'],
                                     'name' => $result['key'],
@@ -345,11 +347,13 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     foreach ($fieldNames as $fieldName) {
                         $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
                         foreach ($aggregation['id_name']['buckets'] as $result) {
-                            $results[$fieldName][] = [
-                                'id' => explode('_', $result['key'])[0],
-                                'name' => explode('_', $result['key'])[1],
-                                'count' => $result['reverse_nested']['doc_count'],
-                            ];
+                            if ($result['reverse_nested']['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName]))) {
+                                $results[$fieldName][] = [
+                                    'id' => explode('_', $result['key'])[0],
+                                    'name' => explode('_', $result['key'])[1],
+                                    'count' => $result['reverse_nested']['doc_count'],
+                                ];
+                            }
                         }
                     }
                     break;
@@ -378,12 +382,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             foreach ($fieldName[0] as $key) {
                                 $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if (!in_array($result['key'], $ids)) {
-                                        $ids[] = $result['key'];
-                                        $results[$fieldName[1]][] = [
-                                            'id' => explode('_', $result['key'])[0],
-                                            'name' => explode('_', $result['key'])[1],
-                                        ];
+                                    if ($result['doc_count'] != 0) {
+                                        if (!in_array($result['key'], $ids)) {
+                                            $ids[] = $result['key'];
+                                            $results[$fieldName[1]][] = [
+                                                'id' => explode('_', $result['key'])[0],
+                                                'name' => explode('_', $result['key'])[1],
+                                            ];
+                                        }
                                     }
 
                                     // check if this result is a result of the actual field filter
@@ -402,12 +408,14 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             foreach ($fieldName[0] as $key) {
                                 $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if (!in_array($result['key'], $ids)) {
-                                        $ids[] = $result['key'];
-                                        $results[$fieldName[1]][] = [
-                                            'id' => explode('_', $result['key'])[0],
-                                            'name' => explode('_', $result['key'])[1],
-                                        ];
+                                    if ($result['doc_count'] != 0) {
+                                        if (!in_array($result['key'], $ids)) {
+                                            $ids[] = $result['key'];
+                                            $results[$fieldName[1]][] = [
+                                                'id' => explode('_', $result['key'])[0],
+                                                'name' => explode('_', $result['key'])[1],
+                                            ];
+                                        }
                                     }
                                 }
                             }
@@ -429,17 +437,19 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             foreach ($fieldName[0] as $key) {
                                 $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if (!in_array($result['key'], $ids)) {
-                                        $ids[] = $result['key'];
-                                        $results[$fieldName[1]][] = [
-                                            'id' => explode('_', $result['key'])[0],
-                                            'name' => explode('_', $result['key'])[1],
-                                            'count' => $result['doc_count'],
-                                        ];
+                                    if ($result['doc_count'] != 0 || in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
+                                        if (!in_array($result['key'], $ids)) {
+                                            $ids[] = $result['key'];
+                                            $results[$fieldName[1]][] = [
+                                                'id' => explode('_', $result['key'])[0],
+                                                'name' => explode('_', $result['key'])[1],
+                                                'count' => $result['doc_count'],
+                                            ];
+                                        }
                                     }
 
                                     // check if this result is a result of the actual field filter
-                                    if (in_array($result['key'], $filterValues[$fieldType][$fieldName[1]][1])) {
+                                    if (in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
                                         if (array_key_exists($key, $depAggs)) {
                                             $depAggs[$key]['count'] += $result['doc_count'];
                                         } else {
@@ -459,13 +469,15 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             foreach ($fieldName[0] as $key) {
                                 $aggregation = $searchResult->getAggregation($key)[$key];
                                 foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if (!in_array($result['key'], $ids)) {
-                                        $ids[] = $result['key'];
-                                        $results[$fieldName[1]][] = [
-                                            'id' => explode('_', $result['key'])[0],
-                                            'name' => explode('_', $result['key'])[1],
-                                            'count' => $result['doc_count'],
-                                        ];
+                                    if ($result['doc_count'] != 0) {
+                                        if (!in_array($result['key'], $ids)) {
+                                            $ids[] = $result['key'];
+                                            $results[$fieldName[1]][] = [
+                                                'id' => explode('_', $result['key'])[0],
+                                                'name' => explode('_', $result['key'])[1],
+                                                'count' => $result['doc_count'],
+                                            ];
+                                        }
                                     }
                                 }
                             }
