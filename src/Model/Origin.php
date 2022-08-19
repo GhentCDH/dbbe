@@ -32,6 +32,7 @@ class Origin extends Location
             $result[] = [
                 'id' => $this->institution->getId(),
                 'name' => $this->getName(),
+                'id_name' => $this->institution->getId() . '_' . $this->getName(),
                 'display' => true,
             ];
         } else {
