@@ -132,6 +132,7 @@ class OnlineSource extends Entity
         $result['type'] = [
             'id' => 3,
             'name' => 'Online Source',
+            'id_name' => 3 . '_' . 'Online Source',
         ];
         $result['title'] = $this->name;
 

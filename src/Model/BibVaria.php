@@ -158,6 +158,7 @@ class BibVaria extends Document
         $result['type'] = [
             'id' => 10,
             'name' => 'Varia',
+            'id_name' => 10 . '_' . 'Varia',
         ];
 
         $result['title'] = $this->title;

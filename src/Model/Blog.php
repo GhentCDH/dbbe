@@ -146,6 +146,7 @@ class Blog extends Document
         $result['type'] = [
             'id' => 7,
             'name' => 'Blog',
+            'id_name' => 7 . '_' . 'Blog',
         ];
         $result['title'] = $this->title;
 

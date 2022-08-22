@@ -162,6 +162,7 @@ class BlogPost extends Document
         $result['type'] = [
             'id' => 8,
             'name' => 'Blog post',
+            'id_name' => 8 . '_' . 'Blog post',
         ];
         $result['title'] = $this->title;
         $personRoles = $this->getPersonRoles();

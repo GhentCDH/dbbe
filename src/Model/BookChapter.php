@@ -166,6 +166,7 @@ class BookChapter extends Document
         $result['type'] = [
             'id' => 2,
             'name' => 'Book chapter',
+            'id_name' => 2 . '_' . 'Book chapter',
         ];
 
         $result['title'] = $this->title;

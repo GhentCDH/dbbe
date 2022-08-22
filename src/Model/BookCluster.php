@@ -126,6 +126,7 @@ class BookCluster extends Document
         $result['type'] = [
             'id' => 5,
             'name' => 'Book cluster',
+            'id_name' => 5 . '_' . 'Book cluster',
         ];
 
         $result['title'] = $this->title;

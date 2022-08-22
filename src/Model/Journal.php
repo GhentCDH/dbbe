@@ -53,6 +53,7 @@ class Journal extends Document
         $result['type'] = [
             'id' => 4,
             'name' => 'Journal',
+            'id_name' => 4 . '_' . 'Journal',
         ];
 
         $result['title'] = $this->title;

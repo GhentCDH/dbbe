@@ -224,6 +224,7 @@ class Phd extends Document
         $result['type'] = [
             'id' => 9,
             'name' => 'Phd thesis',
+            'id_name' => 9 . '_' . 'Phd thesis',
         ];
 
         $result['title'] = $this->getFullTitleAndVolume();

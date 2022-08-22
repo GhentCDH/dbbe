@@ -172,6 +172,7 @@ class Article extends Document
         $result['type'] = [
             'id' => 0,
             'name' => 'Article',
+            'id_name' => 0 . '_' . 'Article',
         ];
         $result['title'] = $this->title;
         $personRoles = $this->getPersonRoles();

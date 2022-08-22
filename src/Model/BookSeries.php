@@ -81,6 +81,7 @@ class BookSeries extends Document
         $result['type'] = [
             'id' => 6,
             'name' => 'Book series',
+            'id_name' => 6 . '_' . 'Book series',
         ];
 
         $result['title'] = $this->title;

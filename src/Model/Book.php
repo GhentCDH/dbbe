@@ -441,6 +441,7 @@ class Book extends Document
         $result['type'] = [
             'id' => 1,
             'name' => 'Book',
+            'id_name' => 1 . '_' . 'Book',
         ];
 
         $result['title'] = $this->getFullTitleAndVolume();
