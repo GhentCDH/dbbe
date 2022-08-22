@@ -97,6 +97,7 @@ class IdNameObjectWithParents implements IdJsonInterface
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getName(),
+                'id_name' => $object->getId() . '_' . $object->getName()
             ];
             if ($last) {
                 $last = false;

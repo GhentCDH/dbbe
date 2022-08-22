@@ -88,6 +88,7 @@ class RegionWithParents extends IdNameObjectWithParents
             $entry = [
                 'id' => $object->getId(),
                 'name' => $object->getInverseHistoricalName(),
+                'id_name' => $object->getId() . '_' . $object->getInverseHistoricalName(),
             ];
             if ($display) {
                 $display = false;
