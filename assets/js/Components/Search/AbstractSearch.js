@@ -140,52 +140,23 @@ export default {
             return false;
         },
         notEmptyFields() {
-            const show = [];
+            let show = [];
             if (this.schema.fields !== undefined) {
                 Object.keys(this.schema.fields).forEach((key) => {
-                    const load = this.schema.fields[key];
-                    const currentModel = load.model;
-                    const modelValue = this.model[currentModel];
-                    const filterLabel = load.label;
-                    if (modelValue !== undefined
-                        && currentModel !== 'text_combination'
-                        && currentModel !== 'text_fields'
-                        && currentModel !== 'date_search_type'
-                        && currentModel !== 'title_type'
-                        && !currentModel.endsWith('_mode')) {
-                        if (currentModel.endsWith('_op')) {
-                            if (modelValue !== 'or') {
-                                show.push({
-                                    key: currentModel,
-                                    value: [{ name: '' }],
-                                    label: load.switchLabel,
-                                    type: 'switch',
-                                });
-                            }
-                        } else if (Array.isArray(modelValue)) {
-                            if (modelValue.length) {
-                                show.push({
-                                    key: currentModel,
-                                    value: modelValue,
-                                    label: filterLabel,
-                                    type: 'array',
-                                });
-                            }
-                        } else if (modelValue.name === undefined) {
-                            show.push({
-                                key: currentModel,
-                                value: [{ name: modelValue }],
-                                label: filterLabel,
-                                type: typeof modelValue,
-                            });
-                        } else {
-                            show.push({
-                                key: currentModel,
-                                value: [modelValue],
-                                label: filterLabel,
-                                type: typeof modelValue,
-                            });
-                        }
+                    console.log(key);
+                    let extra = this.addActiveFilter(key);
+                    show = show.concat(extra);
+                });
+            }
+            if (this.schema.groups !== undefined) {
+                this.schema.groups.forEach((group) => {
+                    if (group.fields) {
+                        group.fields.forEach((key) => {
+                            console.log(key);
+                            let extra = this.addActiveFilter(key.model);
+                            console.log("here");
+                            show = show.concat(extra);
+                        });
                     }
                 });
             }
@@ -885,6 +856,54 @@ export default {
             }
             this.lastChangedField = '';
             this.onValidated(true);
+        },
+        addActiveFilter(key) {
+            const show = [];
+            const load = this.fields[key];
+            const currentModel = load.model;
+            const modelValue = this.model[currentModel];
+            const filterLabel = load.label;
+            if (modelValue !== undefined
+                && currentModel !== 'text_combination'
+                && currentModel !== 'text_fields'
+                && currentModel !== 'date_search_type'
+                && currentModel !== 'title_type'
+                && !currentModel.endsWith('_mode')) {
+                if (currentModel.endsWith('_op')) {
+                    if (modelValue !== 'or') {
+                        show.push({
+                            key: currentModel,
+                            value: [{ name: '' }],
+                            label: load.switchLabel,
+                            type: 'switch',
+                        });
+                    }
+                } else if (Array.isArray(modelValue)) {
+                    if (modelValue.length) {
+                        show.push({
+                            key: currentModel,
+                            value: modelValue,
+                            label: filterLabel,
+                            type: 'array',
+                        });
+                    }
+                } else if (modelValue.name === undefined) {
+                    show.push({
+                        key: currentModel,
+                        value: [{ name: modelValue }],
+                        label: filterLabel,
+                        type: typeof modelValue,
+                    });
+                } else {
+                    show.push({
+                        key: currentModel,
+                        value: [modelValue],
+                        label: filterLabel,
+                        type: typeof modelValue,
+                    });
+                }
+            }
+            return show;
         },
     },
     requestFunction(data) {
