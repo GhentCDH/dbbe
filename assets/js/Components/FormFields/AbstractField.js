@@ -61,7 +61,7 @@ export default {
         createLanguageToggle(label) {
             const result = {
                 type: 'checkboxes',
-                styleClasses: 'field-inline-options field-checkboxes-labels-only',
+                styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm',
                 model: `${label}_mode`,
                 parentModel: label,
                 values: [

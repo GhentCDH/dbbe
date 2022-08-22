@@ -356,25 +356,27 @@ export default {
             };
         }
         data.schema.fields.text_combination = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'Word combination options:',
-            labelClasses: 'control-label',
             model: 'text_combination',
+            parentModel: 'text',
             values: [
-                { value: 'all', name: 'Match all words' },
-                { value: 'any', name: 'Match any words' },
-                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
+                { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
+                { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
+                { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
         };
         data.schema.fields.text_fields = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'Which fields should be searched:',
-            labelClasses: 'control-label',
             model: 'text_fields',
+            parentModel: 'text',
             values: [
-                { value: 'text', name: 'Text only' },
-                { value: 'title', name: 'Title only' },
-                { value: 'all', name: 'Text and title' },
+                { value: 'text', name: 'Text', toggleGroup: 'text_title_all' },
+                { value: 'title', name: 'Title', toggleGroup: 'text_title_all' },
+                { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
             ],
         };
         data.schema.fields.person = this.createMultiSelect(

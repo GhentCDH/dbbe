@@ -298,7 +298,6 @@
 <script>
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator';
-import { greekToBetaCode, betaCodeToGreek } from 'beta-code-js';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
@@ -399,25 +398,27 @@ export default {
             };
         }
         data.schema.fields.text_combination = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'Word combination options:',
-            labelClasses: 'control-label',
             model: 'text_combination',
+            parentModel: 'text',
             values: [
-                { value: 'all', name: 'Match all words' },
-                { value: 'any', name: 'Match any words' },
-                { value: 'phrase', name: 'Match only consecutive words (not compatible with wildcards)' },
+                { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
+                { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
+                { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
         };
         data.schema.fields.text_fields = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'Which fields should be searched:',
-            labelClasses: 'control-label',
             model: 'text_fields',
+            parentModel: 'text',
             values: [
-                { value: 'text', name: 'Text only' },
-                { value: 'title', name: 'Title only' },
-                { value: 'all', name: 'Text and title' },
+                { value: 'text', name: 'Text', toggleGroup: 'text_title_all' },
+                { value: 'title', name: 'Title', toggleGroup: 'text_title_all' },
+                { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
             ],
         };
         data.schema.fields.year_from = {
@@ -441,14 +442,14 @@ export default {
             validator: VueFormGenerator.validators.number,
         };
         data.schema.fields.date_search_type = {
-            type: 'radio',
+            type: 'checkboxes',
+            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
             label: 'The occurrence date interval must ... the search date interval:',
-            labelClasses: 'control-label',
             model: 'date_search_type',
             values: [
-                { value: 'exact', name: 'exactly match' },
-                { value: 'included', name: 'be included in' },
-                { value: 'overlap', name: 'overlap with' },
+                { value: 'exact', name: 'exact', toggleGroup: 'exact_included_overlap' },
+                { value: 'included', name: 'include', toggleGroup: 'exact_included_overlap' },
+                { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
         data.schema.fields.person = this.createMultiSelect(

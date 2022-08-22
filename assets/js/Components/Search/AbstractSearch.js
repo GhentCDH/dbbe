@@ -111,7 +111,7 @@ export default {
             }
             if (this.schema && this.schema.groups) {
                 this.schema.groups.forEach((group) => {
-                    if (group.fields) {
+                    if (group.fields !== undefined) {
                         group.fields.forEach((field) => {
                             if (!this.multiple || field.multi === true) {
                                 res[field.model] = field;
@@ -143,18 +143,15 @@ export default {
             let show = [];
             if (this.schema.fields !== undefined) {
                 Object.keys(this.schema.fields).forEach((key) => {
-                    console.log(key);
-                    let extra = this.addActiveFilter(key);
+                    const extra = this.addActiveFilter(key);
                     show = show.concat(extra);
                 });
             }
             if (this.schema.groups !== undefined) {
                 this.schema.groups.forEach((group) => {
-                    if (group.fields) {
+                    if (group.fields !== undefined) {
                         group.fields.forEach((key) => {
-                            console.log(key);
-                            let extra = this.addActiveFilter(key.model);
-                            console.log("here");
+                            const extra = this.addActiveFilter(key.model);
                             show = show.concat(extra);
                         });
                     }
@@ -233,22 +230,8 @@ export default {
             this.lastChangedField = fieldName;
         },
         onValidated(isValid) {
-            // fix number validation and revalidate if needed
-            // else: do nothin but cancelling requests
+            // do nothin but cancelling requests if invalid
             if (!isValid) {
-                let revalidate = false;
-                if ('year_from' in this.model && Number.isNaN(this.model.year_from)) {
-                    delete this.model.year_from;
-                    revalidate = true;
-                }
-                if ('year_to' in this.model && Number.isNaN(this.model.year_to)) {
-                    delete this.model.year_to;
-                    revalidate = true;
-                }
-                if (revalidate) {
-                    this.$refs.form.validate();
-                    return;
-                }
                 if (this.inputCancel !== null) {
                     window.clearTimeout(this.inputCancel);
                     this.inputCancel = null;
@@ -261,6 +244,7 @@ export default {
                     if (
                         this.model[fieldName] == null
                         || this.model[fieldName] === ''
+                        || ((['year_from', 'year_to'].indexOf(fieldName) > -1) && Number.isNaN(this.model[fieldName]))
                     ) {
                         delete this.model[fieldName];
                     }
