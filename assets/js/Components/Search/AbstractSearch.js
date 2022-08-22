@@ -128,7 +128,8 @@ export default {
                         && currentModel !== 'text_combination'
                         && currentModel !== 'text_fields'
                         && currentModel !== 'date_search_type'
-                        && currentModel !== 'title_type') {
+                        && currentModel !== 'title_type'
+                        && !currentModel.endsWith('_mode')) {
                         if (currentModel.endsWith('_op')) {
                             if (modelValue !== 'or') {
                                 show.push({
