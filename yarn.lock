@@ -5731,7 +5731,7 @@ vue-ckeditor2@^2.1.5:
   resolved "https://registry.yarnpkg.com/vue-ckeditor2/-/vue-ckeditor2-2.1.5.tgz#1d28e6963612f164afac14568fa50fcee38e9bd9"
   integrity sha512-8aDxfu4Yhfba8b/TPWLEq2qXEasyBvIx5+QPlg1yHe+U3qfKwKBeplQFtQmZN6W8EtDeKEz+AAHn+ALgJMDRsQ==
 
-vue-cookies@^1.7.4:
+vue-cookies@^1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/vue-cookies/-/vue-cookies-1.8.1.tgz#8aeadd7ff9933b820de8c3f121c2be27c5ead7b5"
   integrity sha512-PDq1EaiRRyau5PBQVscXboHW+iWtcG4wRY2UKIz1j0nrjb3KESRU1PUyNUDdOajAwy4RH1IfiNR0suhWRXQdrA==
@@ -5811,7 +5811,7 @@ vue-tables-2@^2.3.5:
     vue "^2.6.10"
     vue-pagination-2 "^3.0"
 
-vue-template-compiler@^2.6.14:
+vue-template-compiler@^2.6.8:
   version "2.7.9"
   resolved "https://registry.yarnpkg.com/vue-template-compiler/-/vue-template-compiler-2.7.9.tgz#ffbeb1769ae6af65cd405a6513df6b1e20e33616"
   integrity sha512-NPJxt6OjVlzmkixYg0SdIN2Lw/rMryQskObY89uAMcM9flS/HrmLK5LaN1ReBTuhBgnYuagZZEkSS6FESATQUQ==
