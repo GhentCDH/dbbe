@@ -268,9 +268,6 @@ import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from '../Components/Shared/PersistentConfig';
 
-import SharedSearch from '../Components/Search/SharedSearch';
-import PersistentConfig from '../Components/Shared/PersistentConfig';
-
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
