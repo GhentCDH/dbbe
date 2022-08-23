@@ -216,6 +216,7 @@ export default {
                         const modeField = `${fieldName}_mode`;
                         if (this.model[modeField] !== undefined && this.model[modeField][0] === 'latin') {
                             result[fieldName] = greekToBetaCode(this.model[fieldName].trim());
+                            console.log(greekToBetaCode(this.model[fieldName].trim()));
                         } else {
                             result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
                         }
