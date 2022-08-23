@@ -30,7 +30,7 @@ export default {
 
         // update group visibility on config change
         this.$on('config-changed', function (config) {
-            if (config) {
+            if (config && this.schema.groups) {
                 this.schema.groups.forEach((group, index) => {
                     group.styleClasses = group.styleClasses.replace(' collapsed', '') + ((config.groupIsOpen[index] !== undefined && config.groupIsOpen[index]) ? '' : ' collapsed');
                 });
