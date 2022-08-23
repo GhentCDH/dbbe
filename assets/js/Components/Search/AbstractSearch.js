@@ -166,8 +166,8 @@ export default {
         this.updateCountRecords();
     },
     watch: {
-        'model.text_mode': function (value) {
-            if (value !== undefined && this.model.text !== undefined) {
+        'model.text_mode': function (value, oldValue) {
+            if (value !== undefined && this.model.text !== undefined && value !== oldValue) {
                 if (value[0] === 'greek') {
                     this.model.text = betaCodeToGreek(this.model.text);
                 } else {
@@ -175,8 +175,8 @@ export default {
                 }
             }
         },
-        'model.comment_mode': function (value) {
-            if (value !== undefined && this.model.comment !== undefined) {
+        'model.comment_mode': function (value, oldValue) {
+            if (value !== undefined && this.model.comment !== undefined && value !== oldValue) {
                 if (value[0] === 'greek') {
                     this.model.comment = betaCodeToGreek(this.model.comment);
                 } else {
