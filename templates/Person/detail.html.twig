@@ -131,10 +131,10 @@
                     <tr>
                         <td>Manuscript(s)</td>
                         <td>
+                            <p class="bg-tertiary padding-default">The credits system has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
                             {% if manuscriptRoles is not empty %}
                                 {% for rolename, manuscriptRole in manuscriptRoles %}
                                     <h6>As {{ manuscriptRole[0].getName() }}:</h6>
-                                    <p class="bg-tertiary padding-default">The credits system to acknowledge DBBE team members has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
                                     {% embed 'Helpers/renderList.html.twig' with {'list': manuscriptRole[1], 'enableCollapse': 1, 'label': 'manuscripts'} only %}
                                         {% block renderItem %}
                                             {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
@@ -162,9 +162,9 @@
                                 {% endif %}
                             </td>
                             <td>
+                                <p class="bg-tertiary padding-default">The credits system has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
                                 {% for rolename, documentRole in documentRoles %}
                                     <h6>As {{ documentRole[0].getName() }}:</h6>
-                                    <p class="bg-tertiary padding-default">The credits system to acknowledge DBBE team members has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
                                     {% embed 'Helpers/renderList.html.twig' with {'list': documentRole[1], 'enableCollapse': 1, 'label': documentType|breakAtCapitals ~ 's'} %}
                                         {% block renderItem %}
                                             {% if documentType == 'occurrence' %}
