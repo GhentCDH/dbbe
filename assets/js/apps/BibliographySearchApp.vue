@@ -412,6 +412,7 @@ export default {
                 title_type: 'any',
                 person: [],
                 role: [],
+                comment_mode: 'greek',
             },
             books: null,
             journals: null,
@@ -534,6 +535,7 @@ export default {
                 closeOnSelect: false,
             },
         );
+        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',

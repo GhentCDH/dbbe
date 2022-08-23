@@ -268,6 +268,7 @@ export default {
                 content_op: 'or',
                 origin: [],
                 origin_op: 'or',
+                comment_mode: 'greek',
                 acknowledgement: [],
                 acknowledgement_op: 'or',
             },
@@ -352,6 +353,7 @@ export default {
             },
         );
         [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect('Origin');
+        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',

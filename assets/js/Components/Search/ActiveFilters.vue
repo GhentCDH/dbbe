@@ -18,6 +18,7 @@
             :index="fieldData.index"
             :label="fieldData.label"
             :type="fieldData.type"
+            :mode="fieldData.mode"
             @deleted="deleteActiveFilter"
         />
     </div>
@@ -43,6 +44,11 @@ export default {
                         fieldValue.index = counter;
                     } else {
                         fieldValue.index = -1;
+                    }
+                    if (fieldData.key === 'text' || fieldData.key === 'comment') {
+                        fieldValue.mode = fieldData.mode;
+                    } else {
+                        fieldValue.mode = '';
                     }
                     fieldValue.key = fieldData.key;
                     fieldValue.type = fieldData.type;

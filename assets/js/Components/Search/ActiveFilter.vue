@@ -4,7 +4,10 @@
             class="btn btn-sm btn-primary active-filter-item"
             @click="onDelete()"
         >
-            <span class="active-filter-label">{{ label }}</span> {{ value }}
+            <span class="active-filter-label">{{ label }} <span
+                v-if="mode"
+                class="active-filter-label"
+            >({{ mode }})</span></span> {{ value }}
             <i
                 class="fa fa-close active-filter-icon"
             />
@@ -29,6 +32,10 @@ export default {
             type: String,
         },
         type: {
+            default: '',
+            type: String,
+        },
+        mode: {
             default: '',
             type: String,
         },

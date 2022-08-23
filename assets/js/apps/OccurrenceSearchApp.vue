@@ -306,6 +306,10 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import ActiveFilters from '../Components/Search/ActiveFilters.vue';
+
+import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from '../Components/Shared/PersistentConfig';
 
 Vue.component('FieldRadio', fieldRadio);
 
@@ -320,8 +324,8 @@ export default {
     data() {
         const data = {
             model: {
-                text_mode: 'greek',
-                comment_mode: 'greek',
+                text_mode: ['greek'],
+                comment_mode: ['greek'],
                 date_search_type: 'exact',
                 text_fields: 'text',
                 text_combination: 'all',

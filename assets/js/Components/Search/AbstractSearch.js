@@ -627,6 +627,8 @@ export default {
                             } else {
                                 model[key] = params.filters[key];
                             }
+                        } else if (key.endsWith('_mode')) {
+                            model[key] = [params.filters[key]];
                         } else {
                             model[key] = params.filters[key];
                         }
@@ -903,6 +905,15 @@ export default {
                             type: 'array',
                         });
                     }
+                } else if (key === 'text' || key === 'comment') {
+                    const languageMode = this.model[`${key}_mode`][0];
+                    show.push({
+                        key: currentModel,
+                        value: [{ name: modelValue }],
+                        label: filterLabel,
+                        type: typeof modelValue,
+                        mode: languageMode,
+                    });
                 } else if (modelValue.name === undefined) {
                     show.push({
                         key: currentModel,

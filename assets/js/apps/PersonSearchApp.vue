@@ -437,6 +437,7 @@ export default {
                 self_designation_op: 'or',
                 origin: [],
                 origin_op: 'or',
+                comment_mode: 'greek',
             },
             persons: null,
             schema: {
@@ -554,6 +555,7 @@ export default {
                 model: 'origin',
             },
         );
+        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
