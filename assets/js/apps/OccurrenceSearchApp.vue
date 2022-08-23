@@ -562,11 +562,6 @@ export default {
             return columns;
         },
     },
-    watch: {
-        'model.date_search_type': function (val) {
-            //console.log(val);
-        },
-    },
     methods: {
         del(row) {
             this.submitModel.occurrence = {
