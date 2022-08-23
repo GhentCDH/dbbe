@@ -488,7 +488,6 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     break;
             }
         }
-
         return $results;
     }
 
