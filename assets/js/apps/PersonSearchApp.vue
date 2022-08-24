@@ -437,7 +437,7 @@ export default {
                 self_designation_op: 'or',
                 origin: [],
                 origin_op: 'or',
-                comment_mode: ['greek'],
+                comment_mode: ['latin'],
             },
             persons: null,
             schema: {

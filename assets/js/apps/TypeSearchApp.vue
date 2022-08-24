@@ -282,7 +282,7 @@ export default {
         const data = {
             model: {
                 text_mode: ['greek'],
-                comment_mode: ['greek'],
+                comment_mode: ['latin'],
                 text_fields: 'text',
                 text_combination: 'all',
                 person: [],

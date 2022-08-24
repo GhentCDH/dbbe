@@ -268,7 +268,7 @@ export default {
                 content_op: 'or',
                 origin: [],
                 origin_op: 'or',
-                comment_mode: ['greek'],
+                comment_mode: ['latin'],
                 acknowledgement: [],
                 acknowledgement_op: 'or',
             },

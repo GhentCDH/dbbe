@@ -325,7 +325,7 @@ export default {
         const data = {
             model: {
                 text_mode: ['greek'],
-                comment_mode: ['greek'],
+                comment_mode: ['latin'],
                 date_search_type: 'exact',
                 text_fields: 'text',
                 text_combination: 'all',

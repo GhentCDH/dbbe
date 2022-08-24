@@ -412,7 +412,7 @@ export default {
                 title_type: 'any',
                 person: [],
                 role: [],
-                comment_mode: ['greek'],
+                comment_mode: ['latin'],
             },
             books: null,
             journals: null,
