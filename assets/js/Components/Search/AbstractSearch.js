@@ -184,8 +184,32 @@ export default {
                 }
             }
         },
+        // model: {
+        //     handler(newValue, oldValue) {
+        //         //console.log(newValue);
+        //     },
+        //     deep: true,
+        // },
+    },
+    created() {
+        this.setUpOperatorWatchers();
     },
     methods: {
+        setUpOperatorWatchers() {
+            for (const fieldName of Object.keys(this.model)) {
+                if (fieldName.endsWith('_op')) {
+                    const parentFieldName = fieldName.substring(0, fieldName.length - 3)
+                    this.$watch(
+                        `model.${parentFieldName}`,
+                        (newValue) => {
+                            if (newValue.length === 1 && this.model[fieldName] === 'and') {
+                                this.model[fieldName] = 'or';
+                            }
+                        },
+                    );
+                }
+            }
+        },
         constructFilterValues() {
             const result = {};
             if (this.model != null) {
