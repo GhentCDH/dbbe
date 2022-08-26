@@ -356,6 +356,11 @@ class BibliographyController extends BaseController
             }
         }
 
+        // default for title type
+        if (isset($filters['title']) && !isset($filters['title_type'])) {
+            $filters['title_type'] = 'any';
+        }
+
         if (!empty($filters)) {
             $esParams['filters'] = $filters;
         }
