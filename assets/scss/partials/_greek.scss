@@ -8,7 +8,7 @@
   font-weight: 400;
   src: url('../../fonts/noto-serif/NotoSerif-Regular.woff2');
   src: url('../../fonts/noto-serif/NotoSerif-Regular.woff2') format ('woff2'),
-       url('../../fonts/noto-serif/NotoSerif-Regular.woff') format ('woff');
+    url('../../fonts/noto-serif/NotoSerif-Regular.woff') format ('woff');
 }
 
 @font-face {
@@ -17,7 +17,7 @@
   font-weight: 500;
   src: url('../../fonts/noto-serif/NotoSerif-Medium.woff2');
   src: url('../../fonts/noto-serif/NotoSerif-Medium.woff2') format ('woff2'),
-       url('../../fonts/noto-serif/NotoSerif-Medium.woff') format ('woff');
+    url('../../fonts/noto-serif/NotoSerif-Medium.woff') format ('woff');
 }
 
 .greek {
@@ -26,6 +26,10 @@
 
   &.form-group {
     font-family: $default-font-family;
+
+    .control-label {
+      font-size: 17px;
+    }
 
     .form-control {
       font-family: NotoSerifRegular, Arial, sans-serif;
