@@ -542,6 +542,7 @@ export default {
         [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
             '(Self) designation',
             {
+                styleClasses: 'greek',
                 model: 'self_designation',
             },
             {

@@ -40,6 +40,11 @@
       font-family: NotoSerifRegular, Arial, sans-serif;
       font-size: 14px;
     }
+
+    .multiselect__input {
+      font-family: $default-font-family;
+      font-size: 17px;
+    }
   }
 
   &.verses {
