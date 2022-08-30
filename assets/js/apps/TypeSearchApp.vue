@@ -253,7 +253,6 @@
 <script>
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator';
-import { greekToBetaCode, betaCodeToGreek } from 'beta-code-js';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';

@@ -27,6 +27,64 @@ Vue.component('FieldCheckboxes', fieldCheckboxes);
 const YEAR_MIN = 1;
 const YEAR_MAX = (new Date()).getFullYear();
 
+// don't replace operators such as AND, OR, (, ), -, *
+// escape round brackets by doubling them (in betacode)
+function changeMode(from, to, input) {
+    const openBracketFrom = from === 'betacode' ? '((' : '(';
+    const openBracketFromRegexp = from === 'betacode' ? '[(][(]' : '[(]';
+    const openBracketTo = to === 'betacode' ? '((' : '(';
+    const closeBracketFrom = from === 'betacode' ? '))' : ')';
+    const closeBracketFromRegexp = from === 'betacode' ? '[)][)]' : '[)]';
+    const closeBracketTo = to === 'betacode' ? '))' : ')';
+
+    const operators = [
+        'AND',
+        'OR',
+        openBracketFromRegexp,
+        closeBracketFromRegexp,
+        '[-]',
+        '[*][ ]',
+        '[*]$',
+    ];
+    const result = input
+        // Make sure things to escape appear as separate elements in array by adding spaces before and after
+        .replace(new RegExp(`(${operators.join('|')})`, 'g'), ' $1 ')
+        // Replace multiple spaces by a single space
+        .replace(/[ ]+/g, ' ')
+        .trim()
+        .split(' ')
+        .map((word) => {
+            if (word === openBracketFrom) {
+                return openBracketTo;
+            }
+            if (word === closeBracketFrom) {
+                return closeBracketTo;
+            }
+            if (word === '*') {
+                return '**';
+            }
+            if (operators.includes(word)) {
+                return word;
+            }
+            if (from === 'greek') {
+                return greekToBetaCode(word);
+            }
+            if (to === 'greek') {
+                return betaCodeToGreek(word);
+            }
+            // betacode to latin or latin to betacode
+            return word;
+        })
+        .join(' ')
+        // Replace multiple spaces by a single space
+        .replace(/[ ]+/g, ' ')
+        .replace(`${openBracketTo} `, openBracketTo)
+        .replace(` ${closeBracketTo}`, closeBracketTo)
+        .replace('- ', '-')
+        .replace(' **', '*');
+    return result;
+}
+
 export default {
     props: {
         isEditor: {
@@ -166,35 +224,30 @@ export default {
         this.updateCountRecords();
     },
     watch: {
+        // Switching between beta input mode
         'model.text_mode': function (value, oldValue) {
-            if (value !== undefined && this.model.text !== undefined && value !== oldValue) {
-                if (value[0] === 'greek') {
-                    this.model.text = betaCodeToGreek(this.model.text);
-                } else {
-                    this.model.text = greekToBetaCode(this.model.text);
-                }
-            }
+            this.changeTextMode(value, oldValue, 'text');
         },
         'model.comment_mode': function (value, oldValue) {
-            if (value !== undefined && this.model.comment !== undefined && value !== oldValue) {
-                if (value[0] === 'greek') {
-                    this.model.comment = betaCodeToGreek(this.model.comment);
-                } else {
-                    this.model.comment = greekToBetaCode(this.model.comment);
-                }
-            }
+            this.changeTextMode(value, oldValue, 'comment');
         },
-        // model: {
-        //     handler(newValue, oldValue) {
-        //         //console.log(newValue);
-        //     },
-        //     deep: true,
-        // },
     },
     created() {
         this.setUpOperatorWatchers();
     },
     methods: {
+        changeTextMode(value, oldValue, modelName) {
+            if (value == null) {
+                return;
+            }
+            if (this.model[modelName] == null) {
+                return;
+            }
+            if (value === oldValue) {
+                return;
+            }
+            this.model[modelName] = changeMode(oldValue[0], value[0], this.model[modelName]);
+        },
         setUpOperatorWatchers() {
             for (const fieldName of Object.keys(this.model)) {
                 if (fieldName.endsWith('_op')) {
@@ -238,10 +291,10 @@ export default {
                         result.date.to = this.model[fieldName];
                     } else if (fieldName === 'text' || fieldName === 'comment') {
                         const modeField = `${fieldName}_mode`;
-                        if (this.model[modeField] !== undefined && this.model[modeField][0] === 'latin') {
-                            result[fieldName] = greekToBetaCode(this.model[fieldName].trim());
+                        if (this.model[modeField] !== undefined && this.model[modeField][0] === 'betacode') {
+                            result[fieldName] = changeMode('betacode', 'greek', this.model[fieldName].trim());
                         } else {
-                            result[fieldName] = betaCodeToGreek(this.model[fieldName].trim());
+                            result[fieldName] = this.model[fieldName].trim();
                         }
                     } else {
                         const value = this.model[fieldName];
@@ -644,10 +697,14 @@ export default {
                             }
                         } else if (key === 'text' || key === 'comment') {
                             const mode = `${key}_mode`;
-                            if (mode in params.filters
-                                && (params.filters[mode][0] === 'betacode' || params.filters[mode][0] === 'latin')
-                            ) {
-                                model[key] = greekToBetaCode(params.filters[key]);
+                            if (mode in params.filters) {
+                                if (params.filters[mode][0] === 'betacode') {
+                                    model[key] = changeMode('greek', 'betacode', params.filters[key]);
+                                } else if (params.filters[mode][0] === 'latin') {
+                                    model[key] = changeMode('greek', 'latin', params.filters[key]);
+                                } else {
+                                    model[key] = params.filters[key];
+                                }
                             } else {
                                 model[key] = params.filters[key];
                             }
