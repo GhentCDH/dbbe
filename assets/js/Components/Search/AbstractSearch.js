@@ -138,19 +138,17 @@ export default {
             return false;
         },
         notEmptyFields() {
-            let show = [];
+            const show = [];
             if (this.schema.fields !== undefined) {
                 Object.keys(this.schema.fields).forEach((key) => {
-                    const extra = this.addActiveFilter(key);
-                    show = show.concat(extra);
+                    show.push(...this.addActiveFilter(key));
                 });
             }
             if (this.schema.groups !== undefined) {
                 this.schema.groups.forEach((group) => {
                     if (group.fields !== undefined) {
                         group.fields.forEach((key) => {
-                            const extra = this.addActiveFilter(key.model);
-                            show = show.concat(extra);
+                            show.push(...this.addActiveFilter(key.model));
                         });
                     }
                 });
@@ -229,7 +227,7 @@ export default {
                             result.date = {};
                         }
                         result.date.to = this.model[fieldName];
-                    } else if (fieldName === 'text' || fieldName === 'comment') {
+                    } else if (`${fieldName}_mode` in this.model) {
                         const modeField = `${fieldName}_mode`;
                         if (this.model[modeField] !== undefined && this.model[modeField][0] === 'betacode') {
                             result[fieldName] = changeMode('betacode', 'greek', this.model[fieldName].trim());
@@ -635,16 +633,12 @@ export default {
                                     (v) => String(v.id) === params.filters[key],
                                 );
                             }
-                        } else if (key === 'text' || key === 'comment') {
+                        } else if (`${key}_mode` in params.filters) {
                             const mode = `${key}_mode`;
-                            if (mode in params.filters) {
-                                if (params.filters[mode][0] === 'betacode') {
-                                    model[key] = changeMode('greek', 'betacode', params.filters[key]);
-                                } else if (params.filters[mode][0] === 'latin') {
-                                    model[key] = changeMode('greek', 'latin', params.filters[key]);
-                                } else {
-                                    model[key] = params.filters[key];
-                                }
+                            if (params.filters[mode] === 'betacode') {
+                                model[key] = changeMode('greek', 'betacode', params.filters[key]);
+                            } else if (params.filters[mode] === 'latin') {
+                                model[key] = changeMode('greek', 'latin', params.filters[key]);
                             } else {
                                 model[key] = params.filters[key];
                             }
@@ -926,7 +920,7 @@ export default {
                             type: 'array',
                         });
                     }
-                } else if (key === 'text' || key === 'comment') {
+                } else if (`${key}_mode` in this.model) {
                     const languageMode = this.model[`${key}_mode`][0];
                     show.push({
                         key: currentModel,

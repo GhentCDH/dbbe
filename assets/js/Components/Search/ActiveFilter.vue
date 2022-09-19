@@ -23,9 +23,11 @@ export default {
         },
         value: {
             type: [Number, String],
+            required: true,
         },
         index: {
             type: Number,
+            required: true,
         },
         label: {
             default: '',

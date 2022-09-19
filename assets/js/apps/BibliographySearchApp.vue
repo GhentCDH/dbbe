@@ -409,6 +409,7 @@ export default {
     data() {
         const data = {
             model: {
+                title_mode: ['latin'],
                 title_type: 'any',
                 person: [],
                 role: [],
@@ -499,6 +500,7 @@ export default {
 
         // Add fields
         data.schema.fields.type = this.createMultiSelect('Type');
+        data.schema.fields.title_mode = this.createLanguageToggle('title');
         data.schema.fields.title = {
             type: 'input',
             inputType: 'text',
@@ -701,6 +703,9 @@ export default {
                         console.error(error);
                     });
             }
+        },
+        'model.title_mode': function (value, oldValue) {
+            this.changeTextMode(value, oldValue, 'title');
         },
     },
     methods: {

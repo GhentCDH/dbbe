@@ -40,20 +40,14 @@ export default {
             for (const fieldData of this.filters) {
                 let counter = 0;
                 for (const fieldValue of fieldData.value) {
+                    const constructedValue = JSON.parse(JSON.stringify(fieldData));
+                    constructedValue.name = fieldValue.name;
                     if (fieldData.type === 'array') {
-                        fieldValue.index = counter;
+                        constructedValue.index = counter;
                     } else {
-                        fieldValue.index = -1;
+                        constructedValue.index = -1;
                     }
-                    if (fieldData.key === 'text' || fieldData.key === 'comment') {
-                        fieldValue.mode = fieldData.mode;
-                    } else {
-                        fieldValue.mode = '';
-                    }
-                    fieldValue.key = fieldData.key;
-                    fieldValue.type = fieldData.type;
-                    fieldValue.label = fieldData.label;
-                    allFilters.push(fieldValue);
+                    allFilters.push(constructedValue);
                     counter += 1;
                 }
             }
