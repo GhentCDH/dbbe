@@ -5,12 +5,13 @@ import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
-import { betaCodeToGreek, greekToBetaCode } from 'beta-code-js';
 
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
 import Delete from '../Edit/Modals/Delete.vue';
 import CollectionManager from './CollectionManager.vue';
 import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
+
+import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
 
 window.axios = require('axios');
 
@@ -23,67 +24,6 @@ Vue.component('FieldMultiselectClear', fieldMultiselectClear);
 Vue.component('DeleteModal', Delete);
 Vue.component('CollectionManager', CollectionManager);
 Vue.component('FieldCheckboxes', fieldCheckboxes);
-
-const YEAR_MIN = 1;
-const YEAR_MAX = (new Date()).getFullYear();
-
-// don't replace operators such as AND, OR, (, ), -, *
-// escape round brackets by doubling them (in betacode)
-function changeMode(from, to, input) {
-    const openBracketFrom = from === 'betacode' ? '((' : '(';
-    const openBracketFromRegexp = from === 'betacode' ? '[(][(]' : '[(]';
-    const openBracketTo = to === 'betacode' ? '((' : '(';
-    const closeBracketFrom = from === 'betacode' ? '))' : ')';
-    const closeBracketFromRegexp = from === 'betacode' ? '[)][)]' : '[)]';
-    const closeBracketTo = to === 'betacode' ? '))' : ')';
-
-    const operators = [
-        'AND',
-        'OR',
-        openBracketFromRegexp,
-        closeBracketFromRegexp,
-        '[-]',
-        '[*][ ]',
-        '[*]$',
-    ];
-    const result = input
-        // Make sure things to escape appear as separate elements in array by adding spaces before and after
-        .replace(new RegExp(`(${operators.join('|')})`, 'g'), ' $1 ')
-        // Replace multiple spaces by a single space
-        .replace(/[ ]+/g, ' ')
-        .trim()
-        .split(' ')
-        .map((word) => {
-            if (word === openBracketFrom) {
-                return openBracketTo;
-            }
-            if (word === closeBracketFrom) {
-                return closeBracketTo;
-            }
-            if (word === '*') {
-                return '**';
-            }
-            if (operators.includes(word)) {
-                return word;
-            }
-            if (from === 'greek') {
-                return greekToBetaCode(word);
-            }
-            if (to === 'greek') {
-                return betaCodeToGreek(word);
-            }
-            // betacode to latin or latin to betacode
-            return word;
-        })
-        .join(' ')
-        // Replace multiple spaces by a single space
-        .replace(/[ ]+/g, ' ')
-        .replace(`${openBracketTo} `, openBracketTo)
-        .replace(` ${closeBracketTo}`, closeBracketTo)
-        .replace('- ', '-')
-        .replace(' **', '*');
-    return result;
-}
 
 export default {
     props: {

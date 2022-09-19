@@ -399,6 +399,8 @@ import VueFormGenerator from 'vue-form-generator';
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
+import { changeMode } from '../Components/Search/utils';
+
 // used for deleteDependencies, mergeModal
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
@@ -434,6 +436,7 @@ export default {
                 office: [],
                 office_op: 'or',
                 self_designation: [],
+                self_designation_mode: ['greek'],
                 self_designation_op: 'or',
                 origin: [],
                 origin_op: 'or',
@@ -539,6 +542,13 @@ export default {
         };
         [data.schema.fields.role_op, data.schema.fields.role] = this.createMultiMultiSelect('Role');
         [data.schema.fields.office_op, data.schema.fields.office] = this.createMultiMultiSelect('Office');
+        data.schema.fields.self_designation_mode = this.createLanguageToggle(
+            'self_designation',
+            {
+                styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm two-line',
+            },
+        );
+        data.schema.fields.self_designation_mode.values[2].disabled = true;
         [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
             '(Self) designation',
             {
@@ -547,7 +557,7 @@ export default {
             },
             {
                 internalSearch: false,
-                onSearch: this.greekSearch,
+                onSearch: this.greekBetaSearch,
             },
         );
         [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect(
@@ -871,10 +881,28 @@ export default {
             }
             return result.join(' - ');
         },
-        greekSearch(searchQuery) {
-            this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
-            );
+        greekBetaSearch(searchQuery) {
+            if (this.model.self_designation_mode[0] === 'greek') {
+                this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
+                    (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
+                );
+                return;
+            }
+            if (this.model.self_designation_mode[0] === 'betacode') {
+                this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
+                    (option) => this.removeGreekAccents(option.name).includes(
+                        changeMode('betacode', 'greek', searchQuery),
+                    ),
+                );
+                return;
+            }
+            if (this.model.self_designation_mode[0] === 'latin') {
+                this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
+                    (option) => option.name.includes(
+                        searchQuery,
+                    ),
+                );
+            }
         },
     },
 };

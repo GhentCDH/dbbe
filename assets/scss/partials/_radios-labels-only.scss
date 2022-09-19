@@ -1,14 +1,13 @@
-.field-radios-labels-only, .field-checkboxes-labels-only {
-
+.field-radios-labels-only,
+.field-checkboxes-labels-only {
   .field-wrap {
-    .radio-list, .checkbox-list {
 
-    }
-
-    .radio-list label, .checkbox-list label {
+    .radio-list label,
+    .checkbox-list label {
       display: inline-block;
       border: 1px solid $brand-primary;
       border-radius: 2px;
+      font-size: $fz-small;
       margin-right: 5px;
       background: white;
       color: $brand-primary;
@@ -29,6 +28,10 @@
         display: none;
       }
     }
+  }
+
+  &.two-line {
+    min-width: 100%;
   }
 }
 

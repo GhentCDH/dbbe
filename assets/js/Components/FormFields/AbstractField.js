@@ -58,7 +58,7 @@ export default {
                 ),
             ];
         },
-        createLanguageToggle(label) {
+        createLanguageToggle(label, extra = null) {
             const result = {
                 type: 'checkboxes',
                 styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm',
@@ -76,6 +76,11 @@ export default {
                     },
                 ],
             };
+            if (extra != null) {
+                for (const key of Object.keys(extra)) {
+                    result[key] = extra[key];
+                }
+            }
             return result;
         },
         disableField(field, model = null) {

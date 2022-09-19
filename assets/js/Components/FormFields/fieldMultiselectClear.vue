@@ -1,59 +1,55 @@
 <template lang="pug">
-    div(
-        @keyup.esc.stop.prevent="onEscStopPrevent",
-    )
-        multiselect(
-            :id="selectOptions.id",
-            :options="options",
-            :value="value",
-            :multiple="selectOptions.multiple",
-            :track-by="selectOptions.trackBy || null",
-            :label="selectOptions.label || null",
-            :searchable="selectOptions.searchable",
-            :clear-on-select="selectOptions.clearOnSelect",
-            :hide-selected="selectOptions.hideSelected",
-            :placeholder="schema.placeholder",
-            :allow-empty="selectOptions.allowEmpty",
-            :reset-after="selectOptions.resetAfter",
-            :close-on-select="selectOptions.closeOnSelect",
-            :custom-label="customLabel",
-            :taggable="selectOptions.taggable",
-            :tag-placeholder="selectOptions.tagPlaceholder",
-            :max="schema.max || null",
-            :options-limit="selectOptions.optionsLimit",
-            :group-values="selectOptions.groupValues",
-            :group-label="selectOptions.groupLabel",
-            :block-keys="selectOptions.blockKeys",
-            :internal-search="selectOptions.internalSearch",
-            :select-label="selectOptions.selectLabel",
-            :selected-label="selectOptions.selectedLabel",
-            :deselect-label="selectOptions.deselectLabel",
-            :show-labels="selectOptions.showLabels",
-            :limit="selectOptions.limit",
-            :limit-text="selectOptions.limitText",
-            :loading="selectOptions.loading",
-            :disabled="disabled",
-            :max-height="selectOptions.maxHeight",
-            :show-pointer="selectOptions.showPointer",
-            @input="updateSelected",
-            @search-change="onSearchChange",
-            @tag="addTag",
-            :option-height="selectOptions.optionHeight",
-        )
-            template(slot="clear")
-                div.multiselect__clear(
-                    v-if="!disabled && value != null",
-                    @mousedown.prevent.stop="clearAll()"
-                )
-            template(slot="caret", slot-scope="props")
-                div.multiselect__select(
-                    v-if="!disabled && value == null",
-                    @mousedown.prevent.stop="props.toggle()"
-                )
-            template(slot="option", slot-scope="props") {{ getOptionLabel(props.option) }}
-                span.badge(
-                    v-if="props.option.count != null"
-                ) {{ props.option.count }}
+div(@keyup.esc.stop.prevent="onEscStopPrevent")
+  multiselect(
+    :id="selectOptions.id",
+    :options="options",
+    :value="value",
+    :multiple="selectOptions.multiple",
+    :track-by="selectOptions.trackBy || null",
+    :label="selectOptions.label || null",
+    :searchable="selectOptions.searchable",
+    :clear-on-select="selectOptions.clearOnSelect",
+    :hide-selected="selectOptions.hideSelected",
+    :placeholder="schema.placeholder",
+    :allow-empty="selectOptions.allowEmpty",
+    :reset-after="selectOptions.resetAfter",
+    :close-on-select="selectOptions.closeOnSelect",
+    :custom-label="customLabel",
+    :taggable="selectOptions.taggable",
+    :tag-placeholder="selectOptions.tagPlaceholder",
+    :max="schema.max || null",
+    :options-limit="selectOptions.optionsLimit",
+    :group-values="selectOptions.groupValues",
+    :group-label="selectOptions.groupLabel",
+    :block-keys="selectOptions.blockKeys",
+    :internal-search="selectOptions.internalSearch",
+    :select-label="selectOptions.selectLabel",
+    :selected-label="selectOptions.selectedLabel",
+    :deselect-label="selectOptions.deselectLabel",
+    :show-labels="selectOptions.showLabels",
+    :limit="selectOptions.limit",
+    :limit-text="selectOptions.limitText",
+    :loading="selectOptions.loading",
+    :disabled="disabled",
+    :max-height="selectOptions.maxHeight",
+    :show-pointer="selectOptions.showPointer",
+    @input="updateSelected",
+    @search-change="onSearchChange",
+    @tag="addTag",
+    :option-height="selectOptions.optionHeight"
+  )
+    template(slot="clear")
+      .multiselect__clear(
+        v-if="!disabled && value != null",
+        @mousedown.prevent.stop="clearAll()"
+      )
+    template(slot="caret", slot-scope="props")
+      .multiselect__select(
+        v-if="!disabled && value == null",
+        @mousedown.prevent.stop="props.toggle()"
+      )
+    template(slot="option", slot-scope="props") {{ getOptionLabel(props.option) }}
+      span.badge(v-if="props.option.count != null") {{ props.option.count }}
 </template>
 <script>
 import { abstractField } from 'vue-form-generator';
@@ -134,6 +130,9 @@ export default {
             /* istanbul ignore else */
             if (isEmpty(label)) return '';
             return label;
+        },
+        onEscStopPrevent(/*event*/) {
+            // console.log(event);
         },
     },
 };

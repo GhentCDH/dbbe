@@ -1,35 +1,48 @@
-.vue-form-generator .form-group.field-inline-options {
-    display: flex;
-    flex-direction: row-reverse;
-    //align-items: center;
-    float: right;
+.field-inline-options {
+  display: flex;
+  flex-direction: row-reverse;
+  float: right;
+  margin: 0;
+
+  &>label {
+    width: 3rem;
+    float: none;
     margin: 0;
-  
-    & > label {
-      width: 3rem;
-      float: none;
-      margin: 0;
-      line-height: 1;
-  
-      &::after {
-        content: '\f085';
-      }
-  
-      span {
-        width: 0px;
-        overflow: hidden;
-        display: inline-block;
-      }
+    line-height: 1;
+
+    &::after {
+      content: '\f085';
     }
-  
-    &.collapsed {
-      & > label::after {
-        transform: none;
-      }
-    }
-  
-    .radio-list, .checkbox-list {
-      display: flex;
-      //margin-top: 2px;
+
+    span {
+      width: 0px;
+      overflow: hidden;
+      display: inline-block;
     }
   }
+
+  &.collapsed {
+    &>label::after {
+      transform: none;
+    }
+  }
+
+  .radio-list,
+  .checkbox-list {
+    display: flex;
+  }
+}
+
+
+// .field-inline-options {
+//   margin-bottom: 0;
+
+//   .field-wrap {
+//     position: relative;
+
+//     .wrapper {
+//       position: absolute;
+//       right: 0;
+//     }
+//   }
+// }
