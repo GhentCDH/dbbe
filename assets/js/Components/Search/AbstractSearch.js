@@ -181,7 +181,7 @@ export default {
             if (this.model[modelName] == null) {
                 return;
             }
-            if (value === oldValue) {
+            if (JSON.stringify(value) === JSON.stringify(oldValue)) {
                 return;
             }
             this.model[modelName] = changeMode(oldValue[0], value[0], this.model[modelName]);
