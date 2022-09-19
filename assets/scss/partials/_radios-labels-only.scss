@@ -7,7 +7,6 @@
       display: inline-block;
       border: 1px solid $brand-primary;
       border-radius: 2px;
-      font-size: $fz-small;
       margin-right: 5px;
       background: white;
       color: $brand-primary;
@@ -38,6 +37,7 @@
 .field-checkboxes-sm {
   .field-wrap {
     .checkbox-list label {
+      font-size: $fz-small;
       line-height: 1rem;
       padding: 2px 4px;
     }
@@ -47,7 +47,7 @@
 .field-checkboxes-lg {
   .field-wrap {
     .checkbox-list label {
-      line-height: 2rem;
+      line-height: 3rem;
       padding: 0px 8px;
     }
   }
