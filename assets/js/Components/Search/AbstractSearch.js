@@ -633,16 +633,8 @@ export default {
                                     (v) => String(v.id) === params.filters[key],
                                 );
                             }
-                        } else if (`${key}_mode` in params.filters) {
-                            const mode = `${key}_mode`;
-                            if (params.filters[mode] === 'betacode') {
-                                model[key] = changeMode('greek', 'betacode', params.filters[key]);
-                            } else if (params.filters[mode] === 'latin') {
-                                model[key] = changeMode('greek', 'latin', params.filters[key]);
-                            } else {
-                                model[key] = params.filters[key];
-                            }
                         } else if (key.endsWith('_mode')) {
+                            // do nothing else special, conversion will hapen in _mode watcher
                             model[key] = [params.filters[key]];
                         } else {
                             model[key] = params.filters[key];

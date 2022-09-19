@@ -12,15 +12,17 @@ export function changeMode(from, to, input) {
     const closeBracketFrom = from === 'betacode' ? '))' : ')';
     const closeBracketFromRegexp = from === 'betacode' ? '[)][)]' : '[)]';
     const closeBracketTo = to === 'betacode' ? '))' : ')';
+    const asteriskFrom = from === 'betacode' ? '**' : '*';
+    const asteriskFromRegexp = from === 'betacode' ? '[*][*]' : '[*]';
+    const asteriskTo = to === 'betacode' ? '**' : '*';
 
     const operators = [
         'AND',
         'OR',
         openBracketFromRegexp,
         closeBracketFromRegexp,
+        asteriskFromRegexp,
         '[-]',
-        '[*][ ]',
-        '[*]$',
     ];
     const result = input
         // Make sure things to escape appear as separate elements in array by adding spaces before and after
@@ -36,8 +38,8 @@ export function changeMode(from, to, input) {
             if (word === closeBracketFrom) {
                 return closeBracketTo;
             }
-            if (word === '*') {
-                return '**';
+            if (word === asteriskFrom) {
+                return asteriskTo;
             }
             if (operators.includes(word)) {
                 return word;
@@ -48,7 +50,10 @@ export function changeMode(from, to, input) {
             if (to === 'greek') {
                 return betaCodeToGreek(word);
             }
-            // betacode to latin or latin to betacode
+            if (from === 'latin' && to === 'betacode') {
+                return greekToBetaCode(word);
+            }
+            // betacode to latin
             return word;
         })
         .join(' ')
@@ -56,7 +61,8 @@ export function changeMode(from, to, input) {
         .replace(/[ ]+/g, ' ')
         .replace(`${openBracketTo} `, openBracketTo)
         .replace(` ${closeBracketTo}`, closeBracketTo)
-        .replace('- ', '-')
-        .replace(' **', '*');
+        .replace(`${asteriskTo} `, asteriskTo)
+        .replace(` ${asteriskTo}`, asteriskTo)
+        .replace('- ', '-');
     return result;
 }
