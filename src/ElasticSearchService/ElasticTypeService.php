@@ -198,7 +198,8 @@ class ElasticTypeService extends ElasticEntityService
                 $result['numeric'][] = $value;
                 break;
             case 'person':
-                $result['multiple_fields_object_multi'][] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                // Display key without _public in aggregation, add the _public
+                $result['multiple_fields_object_multi'][] = [array_values($this->getRoleSystemNames(TRUE)), $value, 'role'];
                 break;
             case 'metre':
             case 'subject':
@@ -316,9 +317,16 @@ class ElasticTypeService extends ElasticEntityService
                 break;
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object_multi'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [
+                        array_map(
+                            function($roleName) use ($viewInternal) {return $viewInternal ? $roleName : $roleName . '_public';},
+                            $filters['role']
+                        ),
+                        $value,
+                        'role'
+                    ];
                 } else {
-                    $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [array_values($this->getRoleSystemNames($viewInternal)), $value, 'role'];
                 }
                 break;
             case 'management':
