@@ -49,6 +49,15 @@ class ElasticBibliographyService extends ElasticEntityService
                     ],
                 ],
             ],
+            'title' => [
+                'type' => 'text',
+                'fields' => [
+                    'analyzed' => [
+                        'type' => 'text',
+                        'analyzer' => 'custom_greek_original',
+                    ],
+                ],
+            ],
             'management' => ['type' => 'nested'],
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
@@ -184,7 +193,9 @@ class ElasticBibliographyService extends ElasticEntityService
                 $result['object'][$key] = $value;
                 break;
             case 'title':
+                // title.analyzed is used as it uses the custom_greek analyzer
                 $result['text'][$key] = [
+                    'field' => 'title.analyzed',
                     'text' => $value,
                     'combination' => $filters['title_type'],
                 ];

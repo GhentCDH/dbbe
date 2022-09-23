@@ -109,6 +109,8 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             $part = $result['_source'];
             if (isset($result['highlight'])) {
                 foreach ($result['highlight'] as $key => $value) {
+                    // remove subfield (e.g., analyzed) from key
+                    $key = explode('.', $key)[0];
                     $part['original_' . $key] = $part[$key];
                     $part[$key] = self::formatHighlight($value[0]);
                 }
