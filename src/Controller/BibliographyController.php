@@ -296,7 +296,7 @@ class BibliographyController extends BaseController
             'limit' => 25,
             'page' => 1,
             'ascending' => 1,
-            'orderBy' => ['title.keyword'],
+            'orderBy' => ['title_sort_key.keyword'],
         ];
         $esParams = [];
 
