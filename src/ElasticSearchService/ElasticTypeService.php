@@ -58,6 +58,10 @@ class ElasticTypeService extends ElasticEntityService
                 'type' => 'text',
                 'analyzer' => 'custom_greek_stemmer',
             ],
+            'lemma' => [
+                'type' => 'text',
+                'analyzer' => 'custom_greek_original',
+            ],
             'metre' => ['type' => 'nested'],
             'subject' => ['type' => 'nested'],
             'tag' => ['type' => 'nested'],

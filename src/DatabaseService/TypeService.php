@@ -557,6 +557,19 @@ class TypeService extends PoemService
         );
     }
 
+    public function updateLemmas(int $id, string $lemma): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.reconstructed_poem_lemma
+            SET lemma = ?
+            WHERE reconstructed_poem_lemma.id_reconstructed_poem = ?',
+            [
+                $lemma,
+                $id,
+            ]
+        );
+    }
+
     public function delRelatedTypes(int $id, array $relTypeIds): int
     {
         return $this->conn->executeUpdate(
@@ -901,5 +914,34 @@ class TypeService extends PoemService
             throw $e;
         }
         return $delete;
+    }
+
+    public function getCachedLemmas(array $words): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                lemma_cache.input,
+                lemma_cache.output
+            from data.lemma_cache
+            where input in (?)',
+            [$words],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
+    public function addCachedLemma(string $word, string $lemma): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT INTO data.lemma_cache (input, output)
+            values (
+                ?,
+                ?
+            )
+            ON CONFLICT (input) DO NOTHING',
+            [
+                $word,
+                $lemma,
+            ]
+        );
     }
 }

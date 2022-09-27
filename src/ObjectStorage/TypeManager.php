@@ -7,6 +7,7 @@ use stdClass;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Unirest\Request as RestRequest;
 
 use App\Model\Status;
 use App\Model\Translation;
@@ -347,10 +348,13 @@ class TypeManager extends PoemManager
             }
             if (property_exists($data, 'verses')) {
                 if (!is_string($data->verses)) {
-                    throw new BadRequestHttpException('Incorrect title data.');
+                    throw new BadRequestHttpException('Incorrect verses data.');
                 }
+
                 $changes['mini'] = true;
                 $this->dbs->updateVerses($id, $data->verses);
+
+                $this->dbs->updateLemmas($id, $this->lemmatize($data->verses));
             }
             if (property_exists($data, 'relatedTypes')) {
                 if (!is_array($data->relatedTypes)) {
@@ -668,5 +672,77 @@ class TypeManager extends PoemManager
                 $this->dbs->updateBasedOn($type->getId(), $basedOn->id);
             }
         }
+    }
+
+    private function lemmatize(string $verses): string
+    {
+        // Remove spaces at the beginning and end of the line
+        // Remove commas, dots, brackets, ...
+        // Remove capital letters.
+        $words = [];
+        $cleanVerses = [];
+        foreach (explode("\n", $verses) as $verse) {
+            $cleanVerses[] = preg_replace('[,.<>()\[\]|\+\-"]', '', $verse);
+        }
+
+        foreach ($cleanVerses as $cleanVerse) {
+            foreach (explode(' ', $cleanVerse) as $word) {
+                $words[] = $word;
+            }
+        }
+
+        $uniqueWords = array_unique($words);
+
+        // Retrieve from cache
+        $cachedLemmasRaw = $this->dbs->getCachedLemmas($uniqueWords);
+        $cachedLemmas = [];
+        foreach ($cachedLemmasRaw as $cachedLemmaRaw) {
+            $cachedLemmas[$cachedLemmaRaw['input']] = $cachedLemmaRaw['output'];
+        }
+
+        $lineLemmas = [];
+
+        foreach ($cleanVerses as $cleanVerse) {
+            $lineLemma = [];
+            foreach (explode(' ', $cleanVerse) as $word) {
+                if (array_key_exists($word, $cachedLemmas)) {
+                    $lineLemma[] = $cachedLemmas[$word];
+                } else {
+                    $lineLemma[] = $this->getMorphLemma($word);
+                }
+            }
+            $lineLemmas[] = implode(' ', $lineLemma);
+        }
+
+        return implode("\n", $lineLemmas);
+    }
+
+    private function getMorphLemma(string $word): string
+    {
+        $response = RestRequest::get(
+            'https://qas.morpheus-perseids.ugent.be/analysis/word',
+            null,
+            [
+                'lang' => 'grc',
+                'engine' => 'morpheusgrc',
+                'word' => $word,
+            ]
+        );
+        if ($response->code !== 201) {
+            throw new Exception('Issue with the lemma server');
+        }
+        if (!property_exists($response->body->RDF->Annotation, 'Body')) {
+            return 'na';
+        }
+
+        $lemma = '';
+        if (is_array($response->body->RDF->Annotation->Body)) {
+            $lemma = $response->body->RDF->Annotation->Body[0]->rest->entry->dict->hdwd->{'$'};
+        } else {
+            $lemma = $response->body->RDF->Annotation->Body->rest->entry->dict->hdwd->{'$'};
+        }
+
+        $this->dbs->addCachedLemma($word, $lemma);
+        return $lemma;
     }
 }
