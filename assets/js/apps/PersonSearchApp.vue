@@ -548,6 +548,7 @@ export default {
                 styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm two-line',
             },
         );
+        // disable latin
         data.schema.fields.self_designation_mode.values[2].disabled = true;
         [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
             '(Self) designation',

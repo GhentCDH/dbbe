@@ -297,6 +297,7 @@ export default {
         const data = {
             model: {
                 text_mode: ['greek'],
+                lemma_mode: ['greek'],
                 comment_mode: ['latin'],
                 text_fields: 'text',
                 text_combination: 'all',
@@ -396,6 +397,9 @@ export default {
             ],
         };
         if (this.isViewInternal) {
+            data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
+            // disable latin
+            data.schema.fields.lemma_mode.values[2].disabled = true;
             data.schema.fields.lemma = {
                 type: 'input',
                 inputType: 'text',
@@ -561,6 +565,11 @@ export default {
                 columns.push('c');
             }
             return columns;
+        },
+    },
+    watch: {
+        'model.lemma_mode': function (value, oldValue) {
+            this.changeTextMode(value, oldValue, 'lemma');
         },
     },
     methods: {
