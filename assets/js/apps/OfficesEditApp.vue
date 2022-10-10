@@ -126,6 +126,10 @@ export default {
             model: {
                 office: null,
             },
+            revalidate: false,
+            originalSubmitModel: {
+                office: null,
+            },
             submitModel: {
                 submitType: 'office',
                 office: null,
@@ -328,8 +332,10 @@ export default {
                 })
         },
         nameOrRegionWithParents(value, field, model) {
-            if (!model.revalidate) {
-                this.$refs.edit.revalidate()
+            if (!this.revalidate) {
+                this.revalidate = true;
+                this.$refs.edit.validate();
+                this.revalidate = false;
             }
             if (
                 ((model.office.individualName == null || model.office.individualName === '') && model.office.individualRegionWithParents == null)
