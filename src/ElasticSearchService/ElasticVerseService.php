@@ -67,7 +67,7 @@ class ElasticVerseService extends ElasticBaseService
             ->addMust(new Query\Exists('group_id'));
         // Eliminate current verse
         if (!$init && $id != null) {
-            $queryQuery->addMustNot(new Query\Match('id', $id));
+            $queryQuery->addMustNot(new Query\MatchQuery('id', $id));
         }
 
         $aggregation = (new Aggregation\Terms('verses_grouped'))
@@ -119,7 +119,7 @@ class ElasticVerseService extends ElasticBaseService
             ->addMustNot(new Query\Exists('group_id'));
         // Eliminate current verse
         if (!$init && $id != null) {
-            $queryQuery->addMustNot(new Query\Match('id', $id));
+            $queryQuery->addMustNot(new Query\MatchQuery('id', $id));
         }
 
         $query = (new Query())

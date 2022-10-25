@@ -505,7 +505,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addFilter(
-                            new Query\Match($key, $value)
+                            new Query\MatchQuery($key, $value)
                         );
                     }
                     break;
@@ -522,7 +522,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             );
                         } else {
                             $filterQuery->addFilter(
-                                new Query\Match($key . '.id', $value)
+                                new Query\MatchQuery($key . '.id', $value)
                             );
                         }
                     }
@@ -538,12 +538,12 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         if (isset($value['type']) && $value['type'] == 'exact') {
                             if (isset($value['startDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['floorField'], $value['startDate'])
+                                    new Query\MatchQuery($value['floorField'], $value['startDate'])
                                 );
                             }
                             if (isset($value['endDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                    new Query\MatchQuery($value['ceilingField'], $value['endDate'])
                                 );
                             }
                         }
@@ -553,11 +553,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         if (isset($value['type']) && $value['type'] == 'included') {
                             if (isset($value['startDate']) && !isset($value['endDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['floorField'], $value['startDate'])
+                                    new Query\MatchQuery($value['floorField'], $value['startDate'])
                                 );
                             } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                    new Query\MatchQuery($value['ceilingField'], $value['endDate'])
                                 );
                             } else {
                                 $filterQuery->addFilter(
@@ -576,11 +576,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                         if (isset($value['type']) && $value['type'] == 'include') {
                             if (isset($value['startDate']) && !isset($value['endDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['floorField'], $value['startDate'])
+                                    new Query\MatchQuery($value['floorField'], $value['startDate'])
                                 );
                             } elseif (isset($value['endDate']) && !isset($value['startDate'])) {
                                 $filterQuery->addFilter(
-                                    new Query\Match($value['ceilingField'], $value['endDate'])
+                                    new Query\MatchQuery($value['ceilingField'], $value['endDate'])
                                 );
                             } else {
                                 $filterQuery->addFilter(
@@ -664,7 +664,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setQuery(
                                         (new Query\BoolQuery())
                                             ->addFilter(
-                                                new Query\Match($key . '.id', $value)
+                                                new Query\MatchQuery($key . '.id', $value)
                                             )
                                     )
                             );
@@ -705,7 +705,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                             ->setQuery(
                                                 (new Query\BoolQuery())
                                                     ->addFilter(
-                                                        new Query\Match($fieldName . '.id', $value)
+                                                        new Query\MatchQuery($fieldName . '.id', $value)
                                                     )
                                             )
                                     );
@@ -763,7 +763,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                                     ->setQuery(
                                                         (new Query\BoolQuery())
                                                             ->addFilter(
-                                                                new Query\Match($key . '.id', $value[0])
+                                                                new Query\MatchQuery($key . '.id', $value[0])
                                                             )
                                                     )
                                             )
@@ -777,7 +777,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setQuery(
                                         (new Query\BoolQuery())
                                             ->addFilter(
-                                                new Query\Match($key . '.id', $value[0])
+                                                new Query\MatchQuery($key . '.id', $value[0])
                                             )
                                     )
                             );
@@ -818,7 +818,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                             );
                         } else {
                             $filterQuery->addFilter(
-                                (new Query\Match($key . '.keyword', $value))
+                                (new Query\MatchQuery($key . '.keyword', $value))
                             );
                         }
                     }
@@ -830,7 +830,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     }
                     foreach ($filterValues as $key => $value) {
                         $filterQuery->addFilter(
-                            (new Query\Match($key, $value))
+                            (new Query\MatchQuery($key, $value))
                         );
                     }
                     break;
@@ -850,7 +850,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                     ->setQuery(
                                         (new Query\BoolQuery())
                                             ->addFilter(
-                                                new Query\Match($key . '.id', $value)
+                                                new Query\MatchQuery($key . '.id', $value)
                                             )
                                     )
                             );
