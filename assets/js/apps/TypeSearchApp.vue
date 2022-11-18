@@ -297,7 +297,6 @@ export default {
         const data = {
             model: {
                 text_mode: ['greek'],
-                lemma_mode: ['greek'],
                 comment_mode: ['latin'],
                 text_fields: 'text',
                 text_combination: 'all',
@@ -397,6 +396,7 @@ export default {
             ],
         };
         if (this.isViewInternal) {
+            data.model.lemma_mode = ['greek'];
             data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
             // disable latin
             data.schema.fields.lemma_mode.values[2].disabled = true;
