@@ -354,7 +354,7 @@ class TypeManager extends PoemManager
                 $changes['mini'] = true;
                 $this->dbs->updateVerses($id, $data->verses);
 
-                $this->dbs->updateLemmas($id, $this->lemmatize($data->verses));
+                $this->dbs->upsertLemmas($id, $this->lemmatize($data->verses));
             }
             if (property_exists($data, 'relatedTypes')) {
                 if (!is_array($data->relatedTypes)) {

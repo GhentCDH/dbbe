@@ -557,17 +557,35 @@ class TypeService extends PoemService
         );
     }
 
-    public function updateLemmas(int $id, string $lemma): int
+    public function upsertLemmas(int $id, string $lemma): int
     {
-        return $this->conn->executeUpdate(
-            'UPDATE data.reconstructed_poem_lemma
-            SET lemma = ?
-            WHERE reconstructed_poem_lemma.id_reconstructed_poem = ?',
-            [
-                $lemma,
-                $id,
-            ]
-        );
+        $this->beginTransaction();
+        try {
+            $upsert = $this->conn->executeUpdate(
+                'UPDATE data.reconstructed_poem_lemma
+                SET lemma = ?
+                WHERE reconstructed_poem_lemma.id_reconstructed_poem = ?',
+                [
+                    $lemma,
+                    $id,
+                ]
+            );
+            if (!$upsert) {
+                $upsert = $this->conn->executeUpdate(
+                    'INSERT into data.reconstructed_poem_lemma (id_reconstructed_poem, lemma)
+                    values (?, ?)',
+                    [
+                        $id,
+                        $lemma,
+                    ]
+                );
+            }
+            $this->commit();
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
+        return $upsert;
     }
 
     public function delRelatedTypes(int $id, array $relTypeIds): int
