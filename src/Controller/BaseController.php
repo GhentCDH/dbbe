@@ -16,7 +16,7 @@ class BaseController extends AbstractController
     /**
      * The name of the manager that can be used to manage relevant objects.
      *
-     * @var string
+     * @var ObjectManager
      */
     protected $manager;
     /**
