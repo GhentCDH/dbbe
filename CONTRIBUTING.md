@@ -29,7 +29,7 @@ APP_SECRET=output of hexdump -vn16 -e'4/4 "%08X" 1 "\n"' /dev/urandom
 
 DATABASE_URL='postgresql://<db_user>:<db_password>@<db_host>:<db_port>/<db_name>?serverVersion=12.10'
 
-MAILER_DSN='smtp://dbbe%40ugent.be@smtp.ugent.be:25'
+MAILER_DSN='smtp://<email_address><email_host>:<email_port>'
 
 ELASTIC_HOSTS='[{"host": "<elasticsearch_host>", "port": <elasticsearch_port>}]'
 ELASTIC_INDEX_PREFIX='<elasticsearch_prefix>'
