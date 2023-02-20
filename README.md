@@ -10,4 +10,4 @@ Please see our [contributing guidelines](CONTRIBUTING.md).
 
 ## Acknowledgements
 
-The development of the DBBE database has been funded by the [DBBE project](https://www.projectdbbe.ugent.be/). More details can be found on the [about the project](https://www.projectdbbe.ugent.be/about-the-project/) page.
+The development of the DBBE database has been funded by the The Special Research Fund of Ghent University. More details can be found on the [about the project](https://www.projectdbbe.ugent.be/about-the-project/) page.
