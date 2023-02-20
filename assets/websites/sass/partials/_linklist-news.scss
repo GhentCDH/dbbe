@@ -1,0 +1,35 @@
+.newsitem-list-container {
+  .border-bottom {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 0;
+  }
+}
+
+.linklist-news {
+  .date {
+    display: block;
+    padding-right: $padding-default-mobile;
+    float: left;
+  }
+  .h3 {
+    font-family: $light-font-family;
+    color: $black;
+    margin-top: 5px;
+    margin-bottom: 0;
+    line-height: 20px;
+  }
+  li {
+    @media(min-width: $screen-sm-min) {
+      padding-bottom: 15px;
+      &:last-of-type {
+        padding-bottom: 0;
+      }
+    }
+  }
+
+  + .btn {
+    margin-top: 5px;
+  }
+}

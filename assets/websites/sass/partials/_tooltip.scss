@@ -1,0 +1,13 @@
+.tooltip-inner {
+  border-radius: 0;
+}
+
+.tooltip {
+  ul {
+    li {
+      &:before {
+        top: -2px;
+      }
+    }
+  }
+}

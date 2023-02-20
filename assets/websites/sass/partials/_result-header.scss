@@ -1,0 +1,52 @@
+.result-header,
+.errorpage {
+  input {
+    font-size: $fz-default;
+    height: 30px;
+    line-height: 30px;
+    color: $black;
+  }
+  button {
+    border: 0;
+    box-sizing: border-box;
+    height: 30px;
+    line-height: 8px;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-right: -1px;
+    letter-spacing: .5px;
+
+  }
+}
+.result-header{
+  padding: $padding-default;
+  margin-bottom: 37px;
+
+  h1 {
+    margin-top: 0;
+  }
+  
+  form {
+    margin-bottom: 20px;
+  }
+
+
+
+  .form-control{
+    border: 0;
+  }
+
+  .linklist {
+    &:last-child{
+      margin-bottom: -10px;
+    }
+  }
+  .list-inline {
+    padding-left: 18px;
+    margin-left: 0;
+    
+    li {
+      padding-left: 0;
+    }
+  }
+}

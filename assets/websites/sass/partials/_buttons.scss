@@ -1,0 +1,94 @@
+.btn {
+  display: inline-block;
+  padding: 13px 15px 12px;
+  color: $white;
+  background-color: $brand-primary;
+  //text-transform: uppercase;
+  font-size: $fz-default;
+  line-height: 15px;
+  font-family: $medium-font-family;
+  border: 0;
+  max-width: calc(100vw - 30px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.disabled,
+  &[disabled],
+  fieldset[disabled] & {
+    font-style: italic;
+  }
+}
+
+.btn-clean {
+  i {
+    display: none;
+  }
+}
+
+.btn-primary {
+  background-color: $brand-tertiary;
+
+  &.right {
+    padding-right: 30px;
+    .glyphicon {
+      margin-right: -16px;
+    }
+  }
+}
+.btn-primary,
+.btn-primary i {
+  color: $brand-primary;
+
+  &:focus,
+  &:hover {
+    background-color: $brand-primary;
+  }
+  &:focus,
+  &:hover,
+  &:focus i,
+  &:hover i{
+    color: $white;
+  }
+}
+
+.btn-tag {
+  margin: 5px 0;
+  font-family: $light-font-family;
+  height: 30px;
+  font-family: "PannoTextLight",Arial,sans-serif;
+  line-height: 6px;
+  font-size: 14px;
+  background: #eee;
+  color: #666;
+}
+
+
+.btn-secondary {
+  background-color: $brand-secondary;
+  color: $black;
+}
+.btn-secondary,
+.btn-secondary i {
+
+  &:focus,
+  &:hover {
+    background-color: $white;
+  }
+}
+
+.btn-default,
+.btn-default i {
+  color: $white;
+
+  &:focus,
+  &:hover {
+    background-color: $brand-tertiary;
+  }
+  &:focus,
+  &:hover,
+  &:focus i,
+  &:hover i{
+    color: $brand-primary;
+  }
+}

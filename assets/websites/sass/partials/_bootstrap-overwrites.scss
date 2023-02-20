@@ -1,0 +1,78 @@
+.bg-primary {
+  background-color: $brand-primary;
+}
+
+.bg-secondary {
+  background-color: $brand-secondary;
+}
+
+.bg-tertiary {
+  background-color: $brand-tertiary;
+}
+
+.thumbnail {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  .caption {
+    padding: 0;
+    font-size: $fz-small;
+  }
+  @media(max-width: $screen-xs-max){
+    img {
+      width: 100%;
+    }
+  }
+}
+
+.alert {
+  border-radius: 0;
+  padding: $padding-default;
+  border: 0;
+  color: $black;
+  *:first-child {
+    margin-top: 0;
+  }
+}
+
+.input-group {
+  border: 1px solid $border-color;
+
+  > * {
+    border: 0;
+  }
+  > [type="text"] {
+    border-top: 1px solid $border-color-light;
+  }
+}
+.input-group-addon {
+  padding: 7px 15px 6px;
+  font-size: 20px;
+  font-weight: normal;
+  line-height: 1;
+  color: $white;
+  text-align: center;
+  background-color: $brand-primary;
+  border: 0;
+  border-radius: 0;
+
+  .secondary & {
+    background-color: $brand-secondary;
+    color: $black;
+  }
+}
+
+.input-group-btn:last-child > .btn, .input-group-btn:last-child > .btn-group {
+  margin-left: 0;
+  min-width: 70px; // Fix known issue on Firefox 45 of button being cut off. This is fixed in later Firefox versions
+}
+
+.alert-warning {
+  $state-warning-bg: #fef5c8;
+  @include alert-variant($state-warning-bg, darken(adjust-hue($state-warning-bg, -10), 5%), $black);
+}
+
+.filter-option {
+  width: auto !important; // Fix issue on IE where the width would cause an elipsis to be shown
+}

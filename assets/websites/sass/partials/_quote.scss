@@ -1,0 +1,12 @@
+blockquote {
+  background-color: $brand-tertiary;
+  width: 100%;
+  padding: 15px 20px;
+  border-left: 0;
+  color: $brand-primary;
+  p {
+    font-family: $medium-font-family;
+    font-size: $fz-medium;
+    line-height: $line-height-medium;
+  }
+}

@@ -1,0 +1,45 @@
+body {
+  > .fluid-container {
+    max-width: $maxwidth-container;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+    > .row {
+
+      > section {
+        margin-bottom: $margin-default-vertical;
+      }
+
+      > aside {
+        margin-top: 4px;
+        .content-wrapper {
+        }
+      }
+    }
+
+    @media (max-width: $screen-xs-max) {
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+  }
+}
+
+img {
+  max-width: 100%;
+  aside & {
+    width: 100%;
+  }
+  aside .configlets & {
+    width: auto;
+  }
+}
+
+.flexbox {
+  display: -webkit-flex;
+  display: flex;
+  display: -ms-flexbox;
+  -webkit-flex-wrap: wrap;
+  flex-wrap:         wrap;
+  -ms-flex-wrap:     wrap;
+}

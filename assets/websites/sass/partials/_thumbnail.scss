@@ -1,0 +1,15 @@
+.thumbnail {
+  &:last-child {
+    margin-bottom: 0;
+  }
+  .caption {
+
+  }
+}
+
+.thumbnail-container {
+  margin-bottom: $padding-default;
+  &.margin-none {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,26 @@
+.content-text {
+  border-bottom: 1px solid $border-color;
+
+  &:last-of-type {
+    border-bottom: 0;
+  }
+  p {
+    max-width: $maxwidth-content;
+  }
+  *:not(.btn):not(div[class*='.embed-responsive-']):last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  h2 {
+    margin-bottom: 10px !important;
+  }
+  .thumbnail {
+    img {
+      width: 100%;
+    }
+  }
+
+  p:last-child {
+    margin-bottom: -3px;
+  }
+}

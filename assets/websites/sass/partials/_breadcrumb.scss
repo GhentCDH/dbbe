@@ -1,0 +1,39 @@
+.breadcrumb {
+  padding: 0;
+  list-style: none;
+  background-color: transparent;
+  border-radius: 0;
+  margin: 0;
+  @media(min-width: $screen-sm-min) {
+    margin-bottom: 20px;
+  }
+  a,
+  >.active {
+    color: $black;
+    border-color: $default-text-color;
+    &:hover,
+    &:focus {
+      border-color: transparent;
+    }
+  }
+
+  >li,
+  >li + li{
+    &:before {
+      content: "";
+      padding: 0;
+    }
+    &:after {
+      content: ">";
+      padding: 0 5px 0 10px;
+      color: $black;
+    }
+    &:last-of-type {
+      white-space: nowrap;
+      &:after {
+        content: "";
+      }
+    }
+  }
+
+}

@@ -1,0 +1,68 @@
+.bootstrap-select {
+
+  // The selectpicker button
+  > .dropdown-toggle {
+    padding-right: 30px;
+  }
+
+}
+
+.bootstrap-select.form-control {
+  &.open{
+    border-radius: 0;
+    border-color: $border-color;
+    .dropdown-toggle {
+      box-shadow: none;
+      background-color: $brand-primary;
+      color: $white;
+    }
+    .dropdown-menu {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      li {
+        height: 40px;
+        margin-bottom: 0;
+        border-bottom: 1px solid $border-color;
+        line-height: 39px;
+        &:last-child {
+          border: 0;
+        }
+
+        a {
+          height: 100%;
+          padding: 0 15px;
+          line-height: inherit;
+          font-size: $fz-default;
+          border: 0;
+
+          &:hover,
+          &:focus {
+            background-color: $brand-tertiary;
+          }
+        }
+      }
+    }
+  }
+}
+
+// The selectpicker components
+.bootstrap-select.btn-group {
+
+  // The selectpicker button
+  .dropdown-toggle {
+
+    .caret {
+      position: absolute;
+      top: 50%;
+      right: 25px;
+      margin-top: -6px;
+      vertical-align: middle;
+      border: 0;
+      &:before {
+        font-family: $medium-font-family;
+        content: '↓';
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+.page-footer {
+  //hm, hackje for safari
+  .flexbox .col-md-3 {
+    @media(min-width: $screen-xs) {
+      width: calc(50% - 1px) !important;
+    }
+  }
+  .flexbox .col-md-3 {
+    @media(min-width: $screen-md-min) {
+      width: calc(25% - 1px) !important;
+    }
+  }
+  a,
+  h4 {
+    color: $white;
+  }
+
+  h4 {
+    margin-top: 0;
+  }
+
+  .branding-container {
+    a {
+      border-bottom: 0;
+    }
+  }
+
+
+  .linklist,
+  .list-inline {
+    &:not(.social) {
+      li {
+        a {
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+          &:hover,
+          &:focus {
+            color: $white;
+            border-color: $white;
+          }
+        }
+        i {
+          color: $white;
+        }
+      }
+    }
+  }
+
+  .list-inline {
+    color: $white;
+    font-size: $fz-small;
+    margin-bottom: 25px;
+    margin-right: -10px;
+
+    li {
+      padding-left: 10px;
+      padding-right: 10px;
+      a {
+        font-family: $default-font-family;
+      }
+    }
+
+    &.social {
+      margin-bottom: 0;
+      li{
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+    }
+  }
+
+
+  
+  .border-bottom {
+    border-color: rgba(255, 255, 255, .5);
+  }
+
+  .content-wrapper {
+    padding: 20px;
+  }
+
+  @media(max-width: $screen-xs-max) {
+    .list-inline:not(.social) {
+      float: none !important;
+      margin-top: 10px;
+      li {
+        display: block;
+        &:last-of-type {
+          margin-top: 25px;
+        }
+      }
+    }
+  }
+}

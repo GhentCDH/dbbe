@@ -1,0 +1,205 @@
+//transitions
+a,
+button,
+.btn,
+a i{
+  @include transition(color $transition-duration-default $transition-ease-default, background-color $transition-duration-default $transition-ease-default);
+
+}
+
+//defaults
+
+ul,
+ol {
+  padding-left: 18px;
+
+  li {
+    margin-bottom: 8px;
+    position: relative;
+
+    a {
+      border-bottom: 1px solid transparent;
+      &:hover,
+      &:focus,
+      &.selected {
+        color: $brand-primary;
+        border-color: $brand-primary;
+      }
+    }
+  }
+}
+ul {
+  list-style-type: none;
+
+  li {
+    &:before {
+      content: "→";
+      font-family: $medium-font-family;
+      font-size: 16px;
+      color: inherit;
+      margin-right: 6px;
+      position: absolute;
+      top: 2px;
+      left: -18px;
+    }
+    ol > li { // No arrow for nested ol li's
+      &:before {
+        display: none;
+      }
+    }
+  }
+}
+
+ol, // Margin for nested lists (ul in ol and ol in ul)
+ul {
+  ul,
+  ol {
+    margin-top: 8px;
+    padding-left: 10px;
+  }
+}
+
+a {
+  color: $brand-primary;
+  text-decoration: none;
+  -ms-word-break: break-word;
+  word-break: break-word;
+  border-bottom: 1px solid $brand-primary;
+  @include transition(border-color $transition-duration-default $transition-ease-default);
+
+  &:hover,
+  &:focus {
+    color: $brand-primary;
+    text-decoration: none;
+    border-color: transparent;
+  }
+
+  &.btn {
+    text-decoration: none;
+  }
+
+  &.block-link {
+    text-decoration: none;
+    h3,
+    .h3 {
+      span {
+        border-bottom: 1px solid transparent;
+      }
+    }
+    &:hover,
+    &:focus {
+      h3,
+      .h3{
+        span {
+          border-color: $default-text-color;
+        }
+      }
+    }
+  }
+  h3 & {
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    &:hover,
+    &:focus {
+      border-color: $default-text-color;
+    }
+  }
+
+  &[data-type='image'] {
+    border-bottom: 0;
+  }
+}
+
+
+//small elements
+.standalone-link {
+  display: block;
+  margin-bottom: -3px;
+  border-bottom: 0;
+
+  i {
+    color: $black;
+    &.fa {
+      color: $brand-primary;
+    }
+  }
+  span {
+    border-bottom: 1px solid transparent;
+    @include transition(border-color $transition-duration-default $transition-ease-default);
+  }
+  &.heavy {
+    font-family: $semibold-font-family;
+    text-decoration: none;
+    i {
+      color: $brand-primary;
+    }
+  }
+  &:hover,
+  &:focus {
+    span {
+      border-color: $brand-primary;
+    }
+  }
+}
+
+.has-icon {
+  border-bottom: 0 !important;
+  span {
+    border-bottom: 1px solid transparent;
+    @include transition(border-color $transition-duration-default $transition-ease-default);
+  }
+  &:hover,
+  &:focus {
+    span {
+      border-color: $brand-primary;
+    }
+  }
+}
+
+dl {
+  color: $black;
+  dt {
+    font-family: $medium-font-family;
+    line-height: $line-height-base;
+  }
+  dd {
+    font-family: $light-font-family;
+    line-height: $line-height-base;
+  }
+}
+
+//ipad hack
+@media(min-width: $screen-sm-min){
+  .flexbox {
+    .col-sm-6:last-child {
+      width: calc(50% - 1px);
+    }
+  }
+
+}
+
+.caption {
+  font-size: 15px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.list-inline {
+  margin-bottom: 0px;
+  //li {
+  //  &:before {
+  //    content: "";
+  //  }
+  //}
+}
+.list-unstyled {
+  margin-bottom: 0;
+  li {
+    &:before {
+      content: "";
+    }
+    &:last-child {
+      margin-bottom: 0px;
+    }
+  }
+}

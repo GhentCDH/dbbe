@@ -1,0 +1,64 @@
+//icons
+.icon {
+  position: relative;
+  display: inline-block;
+  &:before {
+    text-decoration: none;
+  }
+}
+
+
+.icon,
+.glyphicon {
+  font-style: normal;
+  font-size: 14px;
+}
+
+a {
+  .icon,
+  .glyphicon {
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  .fa {
+    margin-left: 10px;
+  }
+}
+
+.glyphicon-calendar {
+  font-size: 22px;
+}
+.panno-arrow-right,
+.panno-arrow-left,
+.panno-plus {
+  font-family: $medium-font-family;
+  font-size: 16px;
+  color: $brand-primary;
+  margin-right: 6px;
+}
+
+.panno-plus {
+  &:before {
+    content: "+";
+    font-size: 20px;
+    line-height: 10px;
+  }
+}
+.panno-arrow-left {
+  &:before {
+    content: "←";
+  }
+}
+.panno-arrow-right {
+  &:before {
+    content: "→";
+  }
+
+  &.pull-right {
+    margin-right: 0;
+    margin-left: 6px !important;
+  }
+}

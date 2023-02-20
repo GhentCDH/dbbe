@@ -1,0 +1,39 @@
+
+.table-newsoverview {
+  .date {
+    padding: 0;
+  }
+  td {
+    vertical-align: top;
+    padding: 0 0 10px;
+  }
+  td.date {
+    white-space: nowrap;
+    padding-right: 30px;
+  }
+  a {
+    font-family: $light-font-family;
+    color: $brand-primary;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 20px;
+    text-decoration: none;
+    &:hover {
+      border-color: transparent;
+    }
+  }
+  li {
+    @media(min-width: $screen-sm-min) {
+      &:last-of-type {
+        padding-bottom: 0;
+      }
+    }
+    .block-link {
+
+    }
+  }
+
+  .h3 {
+    font-size: $fz-default;
+  }
+}

@@ -1,0 +1,36 @@
+.inpage-nav-container {
+
+  .h2 {
+    margin-top: 0;
+  }
+  
+  nav {
+    
+    &.stick {
+      position: fixed;
+      top: 30px;
+      z-index: $zindex-inpage-nav-container;
+    }
+
+    .linklist {
+      a {
+        &:focus {
+          border-bottom: transparent;
+          color: $default-text-color;
+        }
+        &.nav-active {
+          border-bottom: 1px solid $brand-primary;
+          color: $brand-primary;
+        }
+      }
+    }
+
+  }
+
+  .tocify-focus {
+    a {
+      border-bottom: 1px solid $brand-primary;
+      color: $brand-primary;
+    }
+  }
+}

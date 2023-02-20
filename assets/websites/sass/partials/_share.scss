@@ -1,0 +1,84 @@
+.container-share {
+  .social {
+    margin-left: 0;
+  }
+  li {
+    padding: 0;
+  }
+  .icon,
+  .fa {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    color: $white;
+    text-align: center;
+    margin-right: 4px;
+    line-height: 30px;
+    text-indent: -100%;
+    overflow: hidden;
+    border-bottom: 0;
+    &:before {
+      text-indent: 0;
+      overflow: visible;
+      display: block;
+    }
+  }
+
+  footer & {
+    li {
+      padding: 0 !important;
+    }
+    .fa {
+      margin-left: 0;
+      font-size: 18px;
+      background-color: $white;
+      color: $brand-primary;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: none;
+
+        &.fa-facebook {
+          color: $white;
+          background-color: #37589A;
+        }
+        &.fa-linkedin {
+          color: $white;
+          background-color: #03679A;
+        }
+        &.fa-pinterest-p {
+          color: $white;
+          background-color: #cb2027;
+        }
+        &.fa-youtube {
+          color: $white;
+          background-color: #cb2027;
+        }
+        &.fa-twitter {
+          color: $white;
+          background-color: #55acee;
+        }
+        &.fa-flickr {
+          color: $white;
+          background-color: #ff0084;
+        }
+        &.fa-google-plus {
+          color: $white;
+          background-color: #d62223;
+        }
+        &.fa-instagram {
+          color: $white;
+          background-color: #808080;
+        }
+        &.fa-foursquare {
+          color: $white;
+          background-color: #fb2d6e;
+        }
+        &.fa-delicious {
+          color: $white;
+          background-color: #2a96ff;
+        }
+      }
+    }
+  }
+}

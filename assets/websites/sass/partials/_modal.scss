@@ -1,0 +1,16 @@
+.modal-content {
+  border-radius: 0;
+}
+
+//Add extra padding to loadingmodal (so that it doesn't stick to the top) and space the content of the modal on the top and bottom
+//For xs and lower : fall back to bootstrap default
+@media (min-width: $screen-sm-min) {
+  .loadingmodal {
+    padding-top: 15%;
+
+    .modal-content {
+      padding-bottom: 15%;
+      padding-top: 15%;
+    }
+  }
+}

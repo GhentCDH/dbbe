@@ -1,0 +1,123 @@
+.ekko-lightbox-nav-overlay a {
+  color: $brand-primary;
+  text-shadow: 2px 2px 4px #000;
+  text-decoration: none;
+  opacity: 1;
+  filter: dropshadow(color=#000000, offx=2, offy=2);
+  -webkit-transition: opacity 0.5s;
+     -moz-transition: opacity 0.5s;
+       -o-transition: opacity 0.5s;
+          transition: opacity 0.5s;
+
+  &:before {
+    text-decoration: none;
+  }
+}
+
+.ekko-lightbox-nav-overlay a:empty {
+  width: 49%;
+}
+
+.ekko-lightbox {
+  a {
+    &:focus,
+    &:hover {
+      opacity: 1;
+      outline: none;
+      text-decoration: none;
+
+      &:before {
+        text-decoration: none;
+      }
+    }
+
+    &:focus {
+      &:before {
+        border: 1px solid $brand-primary !important;
+      }
+    }
+  }
+
+  .modal-content {
+    -webkit-box-shadow: none;
+    background-clip: padding-box;
+    background-color: #fff;
+    border: 1px solid #999;
+    border: 1px solid rgba(0,0,0,0.2);
+    box-shadow: none;
+    outline: 0;
+    position: relative;
+  }
+
+  .modal-header {
+    border: 0;
+    padding-bottom: 0;
+
+    .close {
+      background: transparent;
+      border: 0;
+      font-size: 34px;
+      opacity: 1;
+      position: absolute;
+      right: 10px;
+      text-shadow: none;
+      top: 0;
+    }
+  }
+
+  .modal-body {
+    padding: 10px 15px 15px;
+  }
+
+  .modal-footer {
+    border: 0;
+    padding-top: 0;
+    text-align: left;
+  }
+}
+
+.ekko-lightbox-nav-overlay {
+  a {
+    text-shadow: none;
+    &:before {
+      line-height: 20px;
+      color: $white;
+      text-shadow: 1px 1px 6px rgba(0,0,0,0.5);
+      position: absolute;
+      top: 50%;
+      margin-top: -15px;
+      padding: 5px;
+    }
+    &:hover,
+    &:focus {
+      &:before {
+        color: $brand-primary;
+      }
+    }
+    &.glyphicon {
+      font-family:  "FontAwesome";
+    }
+    &.glyphicon-chevron-left {
+      left: 0;
+      float: left;
+      padding-left: 15px;
+      text-align: left;
+      &:before {
+        left: 15px;
+        content: "\f104";
+      }
+    }
+    &.glyphicon-chevron-right {
+      right: 0;
+      float: right;
+      padding-right: 15px;
+      text-align: right;
+      &:before {
+        content: "\f105";
+        right: 15px;
+      }
+    }
+  }
+}
+
+

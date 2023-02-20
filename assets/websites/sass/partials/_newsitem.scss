@@ -1,0 +1,28 @@
+.newsitem {
+  img {
+    width: 100%;
+    height: auto;
+    display: inline-block;
+    padding: 0 0 5px 0;
+    @media(min-width: $screen-sm-min) {
+      padding-right: $padding-default;
+      width: 130px;
+    }
+
+  }
+
+  h3 {
+    margin-top: 4px;
+    a{
+      &:hover,
+      &:focus {
+        border-color: $brand-primary;
+      }
+    }
+  }
+
+}
+
+.newsitem-image-container {
+  z-index: 1;
+}

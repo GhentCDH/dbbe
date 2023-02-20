@@ -1,0 +1,11 @@
+.content-list {
+  border-bottom: 1px solid $border-color;
+  &.pbottom-large.no-border {
+    margin-bottom: -8px;
+  }
+  p {
+    max-width: $maxwidth-content;
+  }
+
+
+}

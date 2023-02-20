@@ -1,0 +1,19 @@
+.pageheader {
+  .branding-container {
+    .site-baseline {
+      color: $brand-primary;
+      padding: 0;
+    }
+    @media(min-width: $screen-sm-min) {
+      &.with-baseline {
+        position: absolute;
+        top: 22px;
+      }
+
+      .site-baseline {
+        color: $white;
+        padding: 0 0 0 20px;
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+.alert-dismissible {
+  
+  // Adjust close link position
+  .close {
+    position: static;
+  }
+}
+
+// Use Bootstrap 'danger' styling for Plone 'error' alert
+.alert-error {
+  @include alert-variant($alert-danger-bg, $alert-danger-border, $alert-danger-text);
+}

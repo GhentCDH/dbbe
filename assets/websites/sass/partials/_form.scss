@@ -1,0 +1,28 @@
+.form-control,
+.btn {
+  border-radius: 0;
+}
+
+.form-control {
+  font-size: 17px;
+  height: 40px;
+}
+
+.has-success,
+.has-warning,
+.has-error {
+  .form-control {
+    border-width: 3px;
+  }
+}
+
+.radio,
+.checkbox {
+  margin-bottom: 0;
+}
+
+label,
+dt {
+  font-family: $medium-font-family;
+  font-weight: 300;
+}
