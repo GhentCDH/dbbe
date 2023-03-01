@@ -48,6 +48,10 @@ vagrant@dbbe:~/dbbe2$ cd assets/websites
 vagrant@dbbe:~/dbbe2/assets/websites$ bower install
 ```
 
+## Add data
+
+A database dump can be downloaded from <https://doi.org/10.5281/zenodo.7682523>.
+
 ## Index search pages
 
 ```sh
