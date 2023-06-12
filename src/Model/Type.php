@@ -183,14 +183,24 @@ class Type extends Poem
         return $this->translations;
     }
 
-    public function getTranslationYear(Translation $translation): ?int
+    public function getTranslationYear(Translation $translation, bool $earliest = true): int
     {
         $year = 9999;
         foreach ($translation->getBibliographies() as $bibliography) {
             $new_year = 9999;
             switch ($bibliography->getType()) {
                 case 'article':
-                    $new_year = $bibliography->getArticle()->getJournalIssue()->getYear();
+                    // journal issue year is a string of the form "YYYY" or "YYYY-YYYY"
+                    $string_year = $bibliography->getArticle()->getJournalIssue()->getYear();
+                    if (is_numeric($string_year)) {
+                        $new_year = (int)$string_year;
+                    } else {
+                        if ($earliest) {
+                            $new_year = (int)(explode('-', $string_year)[0]);
+                        } else {
+                            $new_year = (int)(explode('-', $string_year)[1]);
+                        }
+                    }
                     break;
                 case 'book':
                     $new_year = $bibliography->getBook()->getYear();
