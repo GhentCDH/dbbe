@@ -127,7 +127,17 @@
                     slot="identification"
                     slot-scope="props"
                 >
-                    {{ formatIdentification(props.row) }}
+                    <ul v-if="getIdentificationList(props.row).length > 1">
+                        <li
+                            v-for="(identification, index) in getIdentificationList(props.row)"
+                            :key="index"
+                        >
+                            {{ identification }}
+                        </li>
+                    </ul>
+                    <template v-else>
+                        <span>{{ getIdentificationList(props.row)[0] }}</span>
+                    </template>
                 </template>
                 <template
                     v-if="props.row.self_designation"
@@ -880,14 +890,14 @@ export default {
             }
             return false;
         },
-        formatIdentification(person) {
-            const result = [];
+        getIdentificationList(person) {
+            const results = [];
             for (const identifier of this.identifiers) {
                 if (person[identifier.systemName] != null && person[identifier.systemName].length > 0) {
-                    result.push(`${identifier.name}: ${person[identifier.systemName].join(', ')}`);
+                    results.push(`${identifier.name}: ${person[identifier.systemName].join(', ')}`);
                 }
             }
-            return result.join(' - ');
+            return results;
         },
         greekBetaSearch(searchQuery) {
             if (this.model.self_designation_mode[0] === 'greek') {
