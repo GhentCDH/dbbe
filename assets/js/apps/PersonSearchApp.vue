@@ -450,9 +450,6 @@ export default {
                 headings: {
                     comment: 'Comment (matching lines only)',
                 },
-                columnsClasses: {
-                    name: 'no-wrap',
-                },
                 filterable: false,
                 orderBy: {
                     column: 'name',
@@ -865,9 +862,9 @@ export default {
             return `${date.floor} - ${date.ceiling}`;
         },
         formatInterval(bornFloor, bornCeiling, deathFloor, deathCeiling) {
-            const born = bornFloor === bornCeiling ? bornFloor : `${bornFloor}-${bornCeiling}`;
-            const death = deathFloor === deathCeiling ? deathFloor : `${deathFloor}-${deathCeiling}`;
-            return born === death ? born : `(${born}) - (${death})`;
+            const born = bornFloor === bornCeiling ? bornFloor : `${bornFloor} - ${bornCeiling}`;
+            const death = deathFloor === deathCeiling ? deathFloor : `${deathFloor} - ${deathCeiling}`;
+            return `${born} -> ${death}`;
         },
         formatObjectArray(objects) {
             if (objects == null || objects.length === 0) {
