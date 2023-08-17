@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 // Base font size (body font-size)
 $em-base: 17px;
 $fz-default: $em-base;
@@ -67,10 +69,10 @@ $margin-default-vertical-small-mobile: 22px;
 $margin-large: 60px;
 $transition-duration-default: .15s;
 $transition-ease-default: ease-in-out;
-$line-height-base: 21/17;
-$line-height-medium: 26/20;
-$line-height-medium-caps: 20/20;
-$line-height-large: 50/50;
+$line-height-base: math.div(21, 17);
+$line-height-medium: math.div(26, 20);
+$line-height-medium-caps: math.div(20, 20);
+$line-height-large: math.div(50, 50);
 $grid-gutter-width: 20px;
 
 

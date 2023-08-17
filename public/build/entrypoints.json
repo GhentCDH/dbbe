@@ -2,202 +2,202 @@
   "entrypoints": {
     "acknowledgementsedit": {
       "js": [
-        "/build/acknowledgementsedit.543e22d3.js"
+        "/build/acknowledgementsedit.542d8b4d.js"
       ]
     },
     "articleedit": {
       "js": [
-        "/build/articleedit.c33cb370.js"
+        "/build/articleedit.289c4d7f.js"
       ]
     },
     "bibliographysearch": {
       "js": [
-        "/build/bibliographysearch.ad06133d.js"
+        "/build/bibliographysearch.18cd3ea6.js"
       ]
     },
     "bibvariaedit": {
       "js": [
-        "/build/bibvariaedit.403cae7f.js"
+        "/build/bibvariaedit.cca14c3b.js"
       ]
     },
     "blogedit": {
       "js": [
-        "/build/blogedit.0a9eaa58.js"
+        "/build/blogedit.906e7155.js"
       ]
     },
     "blogpostedit": {
       "js": [
-        "/build/blogpostedit.7cadef3f.js"
+        "/build/blogpostedit.4b579779.js"
       ]
     },
     "bookedit": {
       "js": [
-        "/build/bookedit.8b600a75.js"
+        "/build/bookedit.5edad4e5.js"
       ]
     },
     "bookchapteredit": {
       "js": [
-        "/build/bookchapteredit.c7a5a975.js"
+        "/build/bookchapteredit.074a4955.js"
       ]
     },
     "bookclustersedit": {
       "js": [
-        "/build/bookclustersedit.d3750748.js"
+        "/build/bookclustersedit.53eac8f4.js"
       ]
     },
     "bookseriessedit": {
       "js": [
-        "/build/bookseriessedit.693b8e90.js"
+        "/build/bookseriessedit.b99d4cce.js"
       ]
     },
     "contentsedit": {
       "js": [
-        "/build/contentsedit.8e00f289.js"
+        "/build/contentsedit.93d4cb02.js"
       ]
     },
     "feedback": {
       "js": [
-        "/build/feedback.b49f2baa.js"
+        "/build/feedback.ab769e23.js"
       ]
     },
     "genresedit": {
       "js": [
-        "/build/genresedit.dc3b8a1f.js"
+        "/build/genresedit.a9fe9ca7.js"
       ]
     },
     "journalsedit": {
       "js": [
-        "/build/journalsedit.b619253a.js"
+        "/build/journalsedit.7291a37e.js"
       ]
     },
     "journalissuesedit": {
       "js": [
-        "/build/journalissuesedit.8665ba5d.js"
+        "/build/journalissuesedit.58fe7709.js"
       ]
     },
     "keywordsedit": {
       "js": [
-        "/build/keywordsedit.c5fc3fcc.js"
+        "/build/keywordsedit.5c345eba.js"
       ]
     },
     "lightbox": {
       "js": [
-        "/build/lightbox.5aac026f.js"
+        "/build/lightbox.a3da3519.js"
       ]
     },
     "locationsedit": {
       "js": [
-        "/build/locationsedit.63ee279e.js"
+        "/build/locationsedit.56dc3c34.js"
       ]
     },
     "main": {
       "js": [
-        "/build/main.a716684f.js"
+        "/build/main.421dd68c.js"
       ]
     },
     "managementsedit": {
       "js": [
-        "/build/managementsedit.94d0c153.js"
+        "/build/managementsedit.3687f786.js"
       ]
     },
     "manuscriptedit": {
       "js": [
-        "/build/manuscriptedit.c97a39f3.js"
+        "/build/manuscriptedit.84d1a0a4.js"
       ]
     },
     "manuscriptsearch": {
       "js": [
-        "/build/manuscriptsearch.2ec78562.js"
+        "/build/manuscriptsearch.cb367e55.js"
       ]
     },
     "metresedit": {
       "js": [
-        "/build/metresedit.e933319e.js"
+        "/build/metresedit.31fdaefa.js"
       ]
     },
     "newseventedit": {
       "js": [
-        "/build/newseventedit.9ff82ac6.js"
+        "/build/newseventedit.2f3253ba.js"
       ]
     },
     "occurrenceedit": {
       "js": [
-        "/build/occurrenceedit.f052d7fd.js"
+        "/build/occurrenceedit.c7425686.js"
       ]
     },
     "occurrencesearch": {
       "js": [
-        "/build/occurrencesearch.62ad698b.js"
+        "/build/occurrencesearch.91fa2b2c.js"
       ]
     },
     "officesedit": {
       "js": [
-        "/build/officesedit.476f29aa.js"
+        "/build/officesedit.d9653590.js"
       ]
     },
     "onlinesourceedit": {
       "js": [
-        "/build/onlinesourceedit.5b12f892.js"
+        "/build/onlinesourceedit.c374c63f.js"
       ]
     },
     "originsedit": {
       "js": [
-        "/build/originsedit.235ffa7c.js"
+        "/build/originsedit.b1c7efd3.js"
       ]
     },
     "pageedit": {
       "js": [
-        "/build/pageedit.d301574d.js"
+        "/build/pageedit.091b667a.js"
       ]
     },
     "personedit": {
       "js": [
-        "/build/personedit.a86873f7.js"
+        "/build/personedit.9fb451cc.js"
       ]
     },
     "personsearch": {
       "js": [
-        "/build/personsearch.f9985e8f.js"
+        "/build/personsearch.2bb8dd09.js"
       ]
     },
     "phdedit": {
       "js": [
-        "/build/phdedit.5e7eab2c.js"
+        "/build/phdedit.3701abb8.js"
       ]
     },
     "regionsedit": {
       "js": [
-        "/build/regionsedit.ccc86eb2.js"
+        "/build/regionsedit.1c1392c2.js"
       ]
     },
     "rolesedit": {
       "js": [
-        "/build/rolesedit.bbed9aa7.js"
+        "/build/rolesedit.970907ea.js"
       ]
     },
     "selfdesignationsedit": {
       "js": [
-        "/build/selfdesignationsedit.6b457bad.js"
+        "/build/selfdesignationsedit.0fbcf83d.js"
       ]
     },
     "statusesedit": {
       "js": [
-        "/build/statusesedit.f6ba0512.js"
+        "/build/statusesedit.93e89453.js"
       ]
     },
     "typeedit": {
       "js": [
-        "/build/typeedit.583a73a3.js"
+        "/build/typeedit.3f7b2307.js"
       ]
     },
     "typesearch": {
       "js": [
-        "/build/typesearch.639e09bf.js"
+        "/build/typesearch.9b7aa3bb.js"
       ]
     },
     "usersedit": {
       "js": [
-        "/build/usersedit.0bd3065e.js"
+        "/build/usersedit.9b24ab73.js"
       ]
     },
     "screen": {
