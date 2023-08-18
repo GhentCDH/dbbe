@@ -157,7 +157,26 @@ abstract class EntityManager extends ObjectManager
                 )
             );
         }
+        $identifierLookup = [];
         foreach ($entities as $entity) {
+            // Add all identifiers, so they can be used in elasticsearch
+            if (!array_key_exists($entity::CACHENAME, $identifierLookup)) {
+                $identifierLookup[$entity::CACHENAME] = $this->container->get(IdentifierManager::class)->getByType($entity::CACHENAME);
+            }
+            $allIdentifiers = $identifierLookup[$entity::CACHENAME];
+            foreach ($allIdentifiers as $identifier) {
+                $present = false;
+                foreach (array_keys($entity->getIdentifications()) as $identifier_name) {
+                    if ($identifier_name == $identifier->getSystemName()) {
+                        $present = true;
+                        break;
+                    }
+                }
+                if (!$present) {
+                    $entity->addIdentifications(Identification::constructFromDB($identifier, [], [], []));
+                }
+            }
+            // Sort identifications
             $entity->sortIdentifications();
         }
     }
@@ -288,7 +307,8 @@ abstract class EntityManager extends ObjectManager
             throw new BadRequestHttpException('Incorrect dates data.');
         }
         foreach ($dates as $index => $item) {
-            if (!is_object($item)
+            if (
+                !is_object($item)
                 || !property_exists($item, 'type')
                 || !is_string($item->type)
                 || empty($item->type)
@@ -361,16 +381,15 @@ abstract class EntityManager extends ObjectManager
                 throw new BadRequestHttpException('Incorrect urls data.');
             }
             foreach ($data->urls as $url) {
-                if (!is_object($url)
+                if (
+                    !is_object($url)
                     || !property_exists($url, 'url')
                     || !is_string($url->url)
-                    || (
-                        property_exists($url, 'title')
+                    || (property_exists($url, 'title')
                         && !is_string($url->title)
                         && !empty($url->title)
                     )
-                    || (
-                        property_exists($url, 'id')
+                    || (property_exists($url, 'id')
                         && !is_numeric($url->id)
                         && !empty($url->id)
                     )
@@ -390,15 +409,14 @@ abstract class EntityManager extends ObjectManager
                     foreach ($oldUrls as $oldIndex => $oldUrl) {
                         if ($oldUrl->getId() === $newUrl->id) {
                             $found = true;
-                            if ($oldIndex === $newIndex
+                            if (
+                                $oldIndex === $newIndex
                                 && $oldUrl->getUrl() == $newUrl->url
                                 && (
-                                    (
-                                        $oldUrl->getTitle() == null
+                                    ($oldUrl->getTitle() == null
                                         && (!property_exists($newUrl, 'title')) || $newUrl->title == null
                                     )
-                                    || (
-                                        property_exists($newUrl, 'title')
+                                    || (property_exists($newUrl, 'title')
                                         && $oldUrl->getTitle() == $newUrl->title
                                     )
                                 )
@@ -473,7 +491,7 @@ abstract class EntityManager extends ObjectManager
                     if (
                         !empty($data->identification->{$identifier->getSystemName()})
                         && !is_array($data->identification->{$identifier->getSystemName()})
-                    )  {
+                    ) {
                         throw new BadRequestHttpException('Incorrect identification data.');
                     }
                     if (!empty($data->identification->{$identifier->getSystemName()})) {
@@ -517,7 +535,8 @@ abstract class EntityManager extends ObjectManager
             }
             $changes[$level] = true;
             foreach ($identifiers as $identifier) {
-                if (property_exists($data->identification, $identifier->getSystemName())
+                if (
+                    property_exists($data->identification, $identifier->getSystemName())
                     || array_key_exists($identifier->getSystemName(), $entity->getIdentifications())
                 ) {
                     $oldIdentifications = isset($entity->getIdentifications()[$identifier->getSystemName()]) ? $entity->getIdentifications()[$identifier->getSystemName()][1] : [];
@@ -531,16 +550,24 @@ abstract class EntityManager extends ObjectManager
                             $newIdentifications
                         );
                     } else {
-                        $oldVolumes = array_unique(array_map(function ($oldIdentification) { return $oldIdentification->getVolume(); }, $oldIdentifications));
-                        $newVolumes = array_unique(array_map(function ($newIdentification) { return $newIdentification->volume; }, $newIdentifications));
+                        $oldVolumes = array_unique(array_map(function ($oldIdentification) {
+                            return $oldIdentification->getVolume();
+                        }, $oldIdentifications));
+                        $newVolumes = array_unique(array_map(function ($newIdentification) {
+                            return $newIdentification->volume;
+                        }, $newIdentifications));
                         $allVolumes = array_merge($oldVolumes, $newVolumes);
 
                         foreach ($allVolumes as $volume) {
                             $this->updateIdentification(
                                 $entity,
                                 $identifier,
-                                array_filter($oldIdentifications, function ($oldIdentification) use ($volume) { return $oldIdentification->getVolume() == $volume; }),
-                                array_filter($newIdentifications, function ($newIdentification) use ($volume) { return $newIdentification->volume == $volume; }),
+                                array_filter($oldIdentifications, function ($oldIdentification) use ($volume) {
+                                    return $oldIdentification->getVolume() == $volume;
+                                }),
+                                array_filter($newIdentifications, function ($newIdentification) use ($volume) {
+                                    return $newIdentification->volume == $volume;
+                                }),
                                 $volume
                             );
                         }
@@ -559,22 +586,30 @@ abstract class EntityManager extends ObjectManager
         // Old value, but no new value => delete
         elseif (!empty($old) && empty($new)) {
             $this->dbs->delIdentification($entity->getId(), $identifier->getId(), $volume);
-        // Insert or update
+            // Insert or update
         } else {
-            $identificationValue = implode('|', array_map(function($identification) {return $identification->identification;}, $new));
+            $identificationValue = implode('|', array_map(function ($identification) {
+                return $identification->identification;
+            }, $new));
             $extraValue = null;
             if ($identifier->getExtra()) {
-                $extraValue = implode('|', array_map(function($identification) {return $identification->extra;}, $new));
-            }// Insert
+                $extraValue = implode('|', array_map(function ($identification) {
+                    return $identification->extra;
+                }, $new));
+            } // Insert
             if (empty($old)) {
                 $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $identificationValue, $extraValue, $volume);
             }
             // Update if necessary
             else {
                 $oldExtraValue = null;
-                $oldIdentificationValue = implode('|', array_map(function($oldIdentification) {return $oldIdentification->getIdentification();}, $old));
+                $oldIdentificationValue = implode('|', array_map(function ($oldIdentification) {
+                    return $oldIdentification->getIdentification();
+                }, $old));
                 if ($identifier->getExtra()) {
-                    $oldExtraValue = implode('|', array_map(function($oldIdentification) {return $oldIdentification->getExtra();}, $old));
+                    $oldExtraValue = implode('|', array_map(function ($oldIdentification) {
+                        return $oldIdentification->getExtra();
+                    }, $old));
                 }
                 if ($oldIdentificationValue !== $identificationValue || $oldExtraValue !== $extraValue) {
                     $this->dbs->upsertIdentification($entity->getId(), $identifier->getId(), $identificationValue, $extraValue, $volume);
@@ -609,31 +644,33 @@ abstract class EntityManager extends ObjectManager
                 throw new BadRequestHttpException('Incorrect bibliography data.');
             }
             foreach ($bibliography->$plurBibType as $bib) {
-                if (!is_object($bib)
+                if (
+                    !is_object($bib)
                     || (property_exists($bib, 'id') && (empty($bib->id) || !is_numeric($bib->id)))
                     || !property_exists($bib, $bibType) || !is_object($bib->$bibType)
                     || !property_exists($bib->$bibType, 'id') || !is_numeric($bib->$bibType->id)
                     || ($referenceTypeRequired
-                        && (
-                            !property_exists($bib, 'referenceType')
+                        && (!property_exists($bib, 'referenceType')
                             || !is_object($bib->referenceType)
                             || !property_exists($bib->referenceType, 'id')
                             || !is_numeric($bib->referenceType->id)
                         )
                     )
-                    || (property_exists($bib, 'image') && !(is_string($bib->image)||is_null($bib->image)))
+                    || (property_exists($bib, 'image') && !(is_string($bib->image) || is_null($bib->image)))
                 ) {
                     throw new BadRequestHttpException('Incorrect bibliography data.' . json_encode($bib));
                 }
                 if (in_array($bibType, ['book', 'article', 'bookChapter', 'phd', 'bibVaria'])) {
-                    if (!property_exists($bib, 'startPage') || !(empty($bib->startPage) || is_string($bib->startPage))
+                    if (
+                        !property_exists($bib, 'startPage') || !(empty($bib->startPage) || is_string($bib->startPage))
                         || !property_exists($bib, 'endPage')  || !(empty($bib->endPage) || is_string($bib->endPage))
                         || (property_exists($bib, 'rawPages') && !(empty($bib->rawPages) || is_string($bib->rawPages)))
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
                 } elseif (in_array($bibType, ['onlineSource'])) {
-                    if (!property_exists($bib, 'relUrl') || !(empty($bib->relUrl) ||is_string($bib->relUrl))
+                    if (
+                        !property_exists($bib, 'relUrl') || !(empty($bib->relUrl) || is_string($bib->relUrl))
                     ) {
                         throw new BadRequestHttpException('Incorrect bibliography data.');
                     }
@@ -725,7 +762,7 @@ abstract class EntityManager extends ObjectManager
                     } else {
                         throw new NotFoundHttpException(
                             'Bibliography with id "' . $bib->id . '" not found '
-                            . ' in entity with id "' . $entity->getId() . '".'
+                                . ' in entity with id "' . $entity->getId() . '".'
                         );
                     }
                 }
@@ -757,7 +794,8 @@ abstract class EntityManager extends ObjectManager
                 throw new BadRequestHttpException('Incorrect managements data.');
             }
             foreach ($data->managements as $management) {
-                if (!is_object($management)
+                if (
+                    !is_object($management)
                     || !property_exists($management, 'id')
                     || !is_numeric($management->id)
                 ) {

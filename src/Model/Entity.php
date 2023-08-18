@@ -222,8 +222,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return array_filter(
             $this->bibliographies,
             function ($bibliography) {
-                return (
-                    !empty($bibliography->getReferenceType())
+                return (!empty($bibliography->getReferenceType())
                     && $bibliography->getReferenceType()->getName() == ReferenceType::TEXT_SOURCE
                 );
             }
@@ -235,8 +234,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return array_filter(
             $this->bibliographies,
             function ($bibliography) {
-                return (
-                    !empty($bibliography->getReferenceType())
+                return (!empty($bibliography->getReferenceType())
                     && $bibliography->getReferenceType()->getName() == ReferenceType::PRIMARY_SOURCE
                 );
             }
@@ -248,8 +246,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return array_filter(
             $this->bibliographies,
             function ($bibliography) {
-                return (
-                    !empty($bibliography->getReferenceType())
+                return (!empty($bibliography->getReferenceType())
                     && $bibliography->getReferenceType()->getName() == ReferenceType::SECONDARY_SOURCE
                 );
             }
@@ -261,8 +258,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         return array_filter(
             $this->bibliographies,
             function ($bibliography) {
-                return (
-                    empty($bibliography->getReferenceType())
+                return (empty($bibliography->getReferenceType())
                     || !in_array(
                         $bibliography->getReferenceType()->getName(),
                         [
@@ -360,7 +356,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
         foreach (array_keys($inverseReferences) as $type) {
             usort(
                 $inverseReferences[$type],
-                function($a, $b) {
+                function ($a, $b) {
                     return $a[0]->getId() > $b[0]->getId();
                 }
             );
@@ -379,7 +375,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
                     unset($inverseReferences[$type][$id]);
                 }
             }
-            if(empty($inverseReferences[$type])) {
+            if (empty($inverseReferences[$type])) {
                 unset($inverseReferences[$type]);
             }
         }
@@ -452,12 +448,13 @@ class Entity implements IdJsonInterface, IdElasticInterface
                 $result[$identifications[0]->getSystemName()] =
                     array_values(
                         array_map(
-                            function($identification) {
+                            function ($identification) {
                                 return $identification->getVolumeIdentification();
                             },
                             $identifications[1]
                         )
                     );
+                $result[$identifications[0]->getSystemName() . '_available'] = !empty($result[$identifications[0]->getSystemName()]);
             }
         }
 
@@ -582,8 +579,7 @@ class Entity implements IdJsonInterface, IdElasticInterface
             if (!empty($bibliography->getImage())) {
                 if (isset($result[$id]['pages'])) {
                     $result[$id]['pages'][count($result[$id]['pages']) - 1] .= ' (image: plate ' . $bibliography->getImage() . ')';
-                }
-                elseif (isset($result[$id]['relUrl'])) {
+                } elseif (isset($result[$id]['relUrl'])) {
                     $result[$id]['relUrl'][count($result[$id]['relUrl']) - 1] .= ' (image: plate ' . $bibliography->getImage() . ')';
                 }
             }

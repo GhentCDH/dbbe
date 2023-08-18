@@ -194,7 +194,7 @@ export default {
                     this.$watch(
                         `model.${parentFieldName}`,
                         (newValue) => {
-                            if (newValue.length === 1 && this.model[fieldName] === 'and') {
+                            if (newValue != null && newValue.length === 1 && this.model[fieldName] === 'and') {
                                 this.model[fieldName] = 'or';
                             }
                         },

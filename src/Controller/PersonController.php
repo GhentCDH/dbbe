@@ -446,7 +446,7 @@ class PersonController extends BaseController
                 ]),
                 'data' => json_encode([
                     'person' =>
-                        empty($id)
+                    empty($id)
                         ? null
                         : $this->manager->getFull($id)->getJson(),
                     'offices' => $officeManager->getAllJson(),
@@ -525,7 +525,7 @@ class PersonController extends BaseController
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
             }
-        // Don't set default order if there is a text field filter
+            // Don't set default order if there is a text field filter
         } elseif (!(isset($params['filters']['comment']))) {
             $esParams['orderBy'] = $defaults['orderBy'];
         }
@@ -566,9 +566,9 @@ class PersonController extends BaseController
                         }
                         break;
                     case 'management_inverse':
-                        if (is_string($params['filters'][$key])
-                            && (
-                                $params['filters'][$key] == 'true'
+                        if (
+                            is_string($params['filters'][$key])
+                            && ($params['filters'][$key] == 'true'
                                 || $params['filters'][$key] == 'false'
                             )
                         ) {
@@ -592,6 +592,11 @@ class PersonController extends BaseController
                         break;
                 }
 
+                if (str_ends_with($key, '_available') && in_array(substr($key, 0, -10), $identifiers)) {
+                    if (is_string($params['filters'][$key]) && in_array($params['filters'][$key], ['0', '1'])) {
+                        $filters[$key] = $params['filters'][$key];
+                    }
+                }
                 if (in_array($key, $identifiers)) {
                     if (is_string($params['filters'][$key])) {
                         $filters[$key] = $params['filters'][$key];
@@ -616,8 +621,7 @@ class PersonController extends BaseController
 
         // sanitize date search type
         if (!(isset($filters['date_search_type'])
-            && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))
-        ) {
+            && in_array($filters['date_search_type'], ['exact', 'included', 'include', 'overlap']))) {
             $filters['date_search_type'] = 'exact';
         }
 

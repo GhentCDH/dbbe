@@ -183,7 +183,7 @@ class Type extends Poem
         return $this->translations;
     }
 
-    public function getTranslationYear(Translation $translation, bool $earliest = true): int
+    public function getTranslationYear(Translation $translation, bool $earliest = true): ?int
     {
         $year = 9999;
         foreach ($translation->getBibliographies() as $bibliography) {

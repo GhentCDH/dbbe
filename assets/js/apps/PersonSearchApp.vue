@@ -579,8 +579,18 @@ export default {
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
             idList.push(this.createMultiSelect(
+                `${identifier.name} available?`,
+                {
+                    model: `${identifier.systemName}_available`,
+                },
+                {
+                    customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+                },
+            ));
+            idList.push(this.createMultiSelect(
                 identifier.name,
                 {
+                    dependency: `${identifier.systemName}_available`,
                     model: identifier.systemName,
                 },
             ));

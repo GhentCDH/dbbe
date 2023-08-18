@@ -113,25 +113,26 @@ class ElasticPersonService extends ElasticEntityService
         foreach ($filters as $key => $value) {
             // Primary identifiers
             if (in_array($value, $this->getIdentifierSystemNames())) {
+                $result['boolean'][] = $value . '_available';
                 $result['exact_text'][] = $value;
                 continue;
             }
 
             switch ($value) {
-            case 'role':
-            case 'self_designation':
-            case 'office':
-            case 'origin':
-                $result['nested_multi'][$key] = $value;
-                break;
-            case 'management':
-                $result['nested'][] = $value;
-                break;
-            case 'public':
-            case 'historical':
-            case 'modern':
-                $result['boolean'][] = $value;
-                break;
+                case 'role':
+                case 'self_designation':
+                case 'office':
+                case 'origin':
+                    $result['nested_multi'][$key] = $value;
+                    break;
+                case 'management':
+                    $result['nested'][] = $value;
+                    break;
+                case 'public':
+                case 'historical':
+                case 'modern':
+                    $result['boolean'][] = $value;
+                    break;
             }
         }
         return $result;
@@ -152,69 +153,73 @@ class ElasticPersonService extends ElasticEntityService
             }
 
             // Primary identifiers
+            if (str_ends_with($key, '_available') && in_array(substr($key, 0, -10), $this->getIdentifierSystemNames())) {
+                $result['boolean'][$key] = ($value === '1');
+                continue;
+            }
             if (in_array($key, $this->getIdentifierSystemNames())) {
                 $result['exact_text'][$key] = $value;
                 continue;
             }
 
             switch ($key) {
-            case 'date':
-                $date_result = [
-                    'floorField' => 'born_date_floor_year',
-                    'ceilingField' => 'death_date_ceiling_year',
-                    'type' => $filters['date_search_type'],
-                ];
-                if (array_key_exists('from', $value)) {
-                    $date_result['startDate'] = $value['from'];
-                }
-                if (array_key_exists('to', $value)) {
-                    $date_result['endDate'] = $value['to'];
-                }
-                $result['date_range'][] = $date_result;
-                break;
-            case 'role':
-            case 'self_designation':
-            case 'office':
-            case 'origin':
-                $result['nested_multi'][$key] = $value;
-                break;
-            case 'role_op':
-            case 'self_designation_op':
-            case 'office_op':
-            case 'origin_op':
-                $result['nested_multi_op'][$key] = $value;
-                break;
-            case 'management':
-                if (isset($filters['management_inverse']) && $filters['management_inverse']) {
-                    $result['nested_toggle'][$key] = [$value, false];
-                } else {
-                    $result['nested_toggle'][$key] = [$value, true];
-                }
-                break;
-            case 'name':
-            case 'public_comment':
-                $result['text'][$key] = [
-                    'text' => $value,
-                    'combination' => 'any',
-                ];
-                break;
-            case 'comment':
-                $result['multiple_text'][$key] = [
-                    'public_comment'=> [
+                case 'date':
+                    $date_result = [
+                        'floorField' => 'born_date_floor_year',
+                        'ceilingField' => 'death_date_ceiling_year',
+                        'type' => $filters['date_search_type'],
+                    ];
+                    if (array_key_exists('from', $value)) {
+                        $date_result['startDate'] = $value['from'];
+                    }
+                    if (array_key_exists('to', $value)) {
+                        $date_result['endDate'] = $value['to'];
+                    }
+                    $result['date_range'][] = $date_result;
+                    break;
+                case 'role':
+                case 'self_designation':
+                case 'office':
+                case 'origin':
+                    $result['nested_multi'][$key] = $value;
+                    break;
+                case 'role_op':
+                case 'self_designation_op':
+                case 'office_op':
+                case 'origin_op':
+                    $result['nested_multi_op'][$key] = $value;
+                    break;
+                case 'management':
+                    if (isset($filters['management_inverse']) && $filters['management_inverse']) {
+                        $result['nested_toggle'][$key] = [$value, false];
+                    } else {
+                        $result['nested_toggle'][$key] = [$value, true];
+                    }
+                    break;
+                case 'name':
+                case 'public_comment':
+                    $result['text'][$key] = [
                         'text' => $value,
                         'combination' => 'any',
-                    ],
-                    'private_comment'=> [
-                        'text' => $value,
-                        'combination' => 'any',
-                    ],
-                ];
-                break;
-            case 'public':
-            case 'historical':
-            case 'modern':
-                $result['boolean'][$key] = ($value === '1');
-                break;
+                    ];
+                    break;
+                case 'comment':
+                    $result['multiple_text'][$key] = [
+                        'public_comment' => [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                        'private_comment' => [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ],
+                    ];
+                    break;
+                case 'public':
+                case 'historical':
+                case 'modern':
+                    $result['boolean'][$key] = ($value === '1');
+                    break;
             }
         }
         return $result;
