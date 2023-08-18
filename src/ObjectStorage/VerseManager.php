@@ -51,7 +51,8 @@ class VerseManager extends ObjectManager
         $manuscripts = $this->container->get(ManuscriptManager::class)->getMini($manuscriptIds);
 
         foreach ($rawOccMans as $rawOccMan) {
-            if (!isset($occurrences[$rawOccMan['occurrence_id']])
+            if (
+                !isset($occurrences[$rawOccMan['occurrence_id']])
                 || !isset($manuscripts[$rawOccMan['manuscript_id']])
             ) {
                 unset($verses[$rawOccMan['verse_id']]);
@@ -74,7 +75,7 @@ class VerseManager extends ObjectManager
     {
         $verses = $this->getShort([$id]);
         if (count($verses) == 0) {
-            throw new NotFoundHttpException('Verse with id ' . $id .' not found.');
+            throw new NotFoundHttpException('Verse with id ' . $id . ' not found.');
         }
 
         return $verses[$id];
@@ -91,14 +92,19 @@ class VerseManager extends ObjectManager
     {
         $rawIds = $this->dbs->getByGroup($groupId);
         if (count($rawIds) == 0) {
-            throw new NotFoundHttpException('Verse variants with id ' . $groupId .' not found.');
+            throw new NotFoundHttpException('Verse variants with id ' . $groupId . ' not found.');
         }
         $ids = self::getUniqueIds($rawIds, 'verse_id');
         $verses = $this->getShort($ids);
 
-        usort($verses,
-            function($a, $b) {
-                return $a->getOccurrence()->getSortKey() <=> $b->getOccurrence()->getSortKey();
+        usort(
+            $verses,
+            function ($a, $b) {
+                if ($a->getOccurrence()->getDate()->getSortKey() == $b->getOccurrence()->getDate()->getSortKey()) {
+                    return $a->getOccurrence()->getSortKey() <=> $b->getOccurrence()->getSortKey();
+                } else {
+                    return $a->getOccurrence()->getDate()->getSortKey() <=> $b->getOccurrence()->getDate()->getSortKey();
+                }
             }
         );
 
@@ -107,7 +113,8 @@ class VerseManager extends ObjectManager
 
     public function add(stdClass $data): Verse
     {
-        if (!property_exists($data, 'order')
+        if (
+            !property_exists($data, 'order')
             || !is_numeric($data->order)
             || !property_exists($data, 'verse')
             || !is_string($data->verse)
@@ -145,7 +152,7 @@ class VerseManager extends ObjectManager
     {
         $old = $this->getFull($id);
         if ($old == null) {
-            throw new NotFoundHttpException('Verse with id ' . $id .' not found.');
+            throw new NotFoundHttpException('Verse with id ' . $id . ' not found.');
         }
 
         $changes = [
@@ -181,8 +188,7 @@ class VerseManager extends ObjectManager
                 }
             }
             if (property_exists($data, 'linkVerses')) {
-                if (!is_array($data->linkVerses)
-                ) {
+                if (!is_array($data->linkVerses)) {
                     throw new BadRequestHttpException('Incorrect linkVerses data.');
                 }
                 $changes['mini'] = true;
@@ -242,11 +248,11 @@ class VerseManager extends ObjectManager
     {
         // Sanitize
         foreach ($linkVerses as $linkVerse) {
-            if (!is_object($linkVerse)
-                ||!property_exists($linkVerse, 'id')
-                ||!is_numeric($linkVerse->id)
-                ||(
-                    property_exists($linkVerse, 'groupId')
+            if (
+                !is_object($linkVerse)
+                || !property_exists($linkVerse, 'id')
+                || !is_numeric($linkVerse->id)
+                || (property_exists($linkVerse, 'groupId')
                     && !(is_numeric($linkVerse->groupId) || empty($linkVerse->groupId))
                 )
             ) {
@@ -257,7 +263,8 @@ class VerseManager extends ObjectManager
         // find min groupId (can be null)
         $groupId = $old->getGroupId();
         foreach ($linkVerses as $linkVerse) {
-            if (property_exists($linkVerse, 'group_id')
+            if (
+                property_exists($linkVerse, 'group_id')
                 && !empty($linkVerse->group_id)
                 && ($groupId == null || $linkVerse->group_id < $groupId)
             ) {
@@ -274,7 +281,8 @@ class VerseManager extends ObjectManager
             $this->dbs->updateGroup($old->getId(), $groupId);
 
             foreach ($linkVerses as $linkVerse) {
-                if (!property_exists($linkVerse, 'group_id')
+                if (
+                    !property_exists($linkVerse, 'group_id')
                     || $linkVerse->group_id != $groupId
                 ) {
                     $this->update($linkVerse->id, json_decode(json_encode(['groupId' => $groupId])));
