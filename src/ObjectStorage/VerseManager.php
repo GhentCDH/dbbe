@@ -100,10 +100,14 @@ class VerseManager extends ObjectManager
         usort(
             $verses,
             function ($a, $b) {
-                if ($a->getOccurrence()->getDate()->getSortKey() == $b->getOccurrence()->getDate()->getSortKey()) {
+                if (
+                    $a->getOccurrence()->getDate() != null
+                    && $b->getOccurrence()->getDate() != null
+                    && $a->getOccurrence()->getDate()->getSortKey() == $b->getOccurrence()->getDate()->getSortKey()
+                ) {
                     return $a->getOccurrence()->getSortKey() <=> $b->getOccurrence()->getSortKey();
                 } else {
-                    return $a->getOccurrence()->getDate()->getSortKey() <=> $b->getOccurrence()->getDate()->getSortKey();
+                    return ($a->getOccurrence()->getDate() == null ? '9999999999999999' : $a->getOccurrence()->getDate()->getSortKey()) <=> ($b->getOccurrence()->getDate() == null ? '9999999999999999' : $b->getOccurrence()->getDate()->getSortKey());
                 }
             }
         );
