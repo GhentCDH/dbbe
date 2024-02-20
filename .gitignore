@@ -3,7 +3,7 @@
 /.env.local
 /.env.local.php
 /.env.*.local
-/.env
+/.env.dev.secret
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
@@ -11,9 +11,11 @@
 ###< symfony/framework-bundle ###
 
 ###> symfony/webpack-encore-bundle ###
-/node_modules/
+node_modules
+bower_components
 /public/build/*.LICENSE.txt
 .gitignore
 npm-debug.log
 yarn-error.log
+.pnpm-store
 ###< symfony/webpack-encore-bundle ###

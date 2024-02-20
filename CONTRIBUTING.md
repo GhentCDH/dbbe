@@ -6,17 +6,18 @@ Documentation is currently severely lacking. Please contact <https://github.ugen
 
 ## Requirements
 
-Apache, PHP (8.0), Composer, PostgreSQL (12.10), Elasticsearch (7)
-
-## Additional development requirements
-
-Nodejs, Yarn, Bower
+Docker (>= 19.03) with compose plugin
 
 ## Download code
 
 ```sh
-vagrant@dbbe:~$ git clone git@github.ugent.be:GhentCDH/dbbe2.git
-vagrant@dbbe:~$ cd dbbe2
+git clone git@github.com:GhentCDH/dbbe.git
+```
+
+## Start development environment
+
+```sh
+docker compose --env-file .env.dev -f compose.dev.yaml up
 ```
 
 ## Configure

@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+
+  app:
+    build:
+        context: .
+        target: dev
+    ports:
+      - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8080}:8000"
+    volumes:
+      - ./:/app
+    environment:
+      DATABASE_URL: ${DATABASE_DRIVER}://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT:-5432}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}'
+      ELASTIC_HOSTS: "[{\"host\": \"${ELASTICSEARCH_HOST}\", \"port\": ${ELASTICSEARCH_PORT:-9200}}]"
+      ELASTIC_INDEX_PREFIX: ${ELASTICSEARCH_INDEX_PREFIX}
+      MAILER_DSN: ${MAILER_DSN}
+      SITEKEY: ${RECAPTCHA_SITEKEY}
+      SECRETKEY: ${RECAPTCHA_SECRETKEY}
+    tty: true
+    command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
+
+  database:
+    image: postgres:16.1-bookworm
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+    container_name: "database"
+    ports:
+      - "127.0.0.1:${DATABASE_EXTERNAL_PORT:-15432}:5432"
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: $DATABASE_USER
+      POSTGRES_PASSWORD: $DATABASE_PASSWORD
+      POSTGRES_DB: $DATABASE_NAME
+
+  elasticsearch:
+    image:  elasticsearch:7.17.18
+    ports:
+      - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      discovery.type: single-node
+      network.host: 0.0.0.0
+      http.port: 9200
+      transport.host: localhost
+      cluster.name: docker-cluster
+      bootstrap.memory_lock: "true"
+      xpack.security.enabled: "false"
+      cluster.routing.allocation.disk.threshold_enabled: "false"
+      ES_JAVA_OPTS: -Xms2g -Xmx2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+volumes:
+  elasticsearch:
+    name: "dbbe-elasticsearch"
+  database:
+    name: "dbbe-database"
