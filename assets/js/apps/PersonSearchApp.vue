@@ -872,8 +872,8 @@ export default {
             return `${date.floor} - ${date.ceiling}`;
         },
         formatInterval(bornFloor, bornCeiling, deathFloor, deathCeiling) {
-            const born = bornFloor === bornCeiling ? bornFloor : `${bornFloor} - ${bornCeiling}`;
-            const death = deathFloor === deathCeiling ? deathFloor : `${deathFloor} - ${deathCeiling}`;
+            const born = bornFloor === bornCeiling ? bornFloor : `ca. ${bornFloor} - ${bornCeiling}`;
+            const death = deathFloor === deathCeiling ? deathFloor : `ca. ${deathFloor} - ${deathCeiling}`;
             return `${born} -> ${death}`;
         },
         formatObjectArray(objects) {
