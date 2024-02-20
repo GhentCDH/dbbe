@@ -872,7 +872,7 @@ class Person extends Entity implements SubjectInterface
         if ($this->fullDescription == null) {
             $description = $this->getNameAndDate();
             foreach ($this->identifications as $identifications) {
-                if ($identifications[0]->getPrimary()) {
+                if ($identifications[0]->getPrimary() && $identifications[1]) {
                     $description .=
                         ' - ' .
                         $identifications[0]->getName() .
