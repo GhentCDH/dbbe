@@ -12,6 +12,7 @@ class ElasticSearchService implements ElasticSearchServiceInterface
     private $client;
     private $indexPrefix;
     private $indexName;
+    protected $index;
     protected $type;
     protected $primaryIdentifiers;
     protected $roles;

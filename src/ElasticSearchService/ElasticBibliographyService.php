@@ -31,11 +31,10 @@ class ElasticBibliographyService extends ElasticEntityService
 
     public function setup(): void
     {
-        $index = $this->getIndex();
-        if ($index->exists()) {
-            $index->delete();
+        if ($this->index->exists()) {
+            $this->index->delete();
         }
-        $index->create(['settings' => Analysis::ANALYSIS]);
+        $this->index->create(['settings' => Analysis::ANALYSIS]);
         $properties = [
             // Needed for sorting (book: cluster - volume number - volume title)
             'title_sort_key' => [
@@ -64,7 +63,7 @@ class ElasticBibliographyService extends ElasticEntityService
             $properties[$role] = ['type' => 'nested'];
             $properties[$role . '_public'] = ['type' => 'nested'];
         }
-        $index->setMapping(new Mapping($properties));
+        $this->index->setMapping(new Mapping($properties));
     }
 
     public function searchAndAggregate(array $params, bool $viewInternal): array

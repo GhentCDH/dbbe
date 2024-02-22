@@ -21,12 +21,11 @@ class ElasticPersonService extends ElasticEntityService
 
     public function setup(): void
     {
-        $index = $this->getIndex();
-        if ($index->exists()) {
-            $index->delete();
+        if ($this->index->exists()) {
+            $this->index->delete();
         }
         // Configure analysis
-        $index->create(['settings' => Analysis::ANALYSIS]);
+        $this->index->create(['settings' => Analysis::ANALYSIS]);
 
         $properties = [
             'name' => [
