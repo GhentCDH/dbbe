@@ -13,7 +13,7 @@
         "hslavich/oneloginsaml-bundle": "^2.8",
         "jbroadway/urlify": "^1.2",
         "mashape/unirest-php": "^3.0",
-        "ruflin/elastica": "^7.1",
+        "ruflin/elastica": "7.3.*",
         "sensio/framework-extra-bundle": "^6.2",
         "symfony/asset": "5.4.*",
         "symfony/console": "5.4.*",

@@ -12,13 +12,15 @@ services:
       - ./:/app
     environment:
       DATABASE_URL: ${DATABASE_DRIVER}://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT:-5432}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}'
-      ELASTIC_HOSTS: "[{\"host\": \"${ELASTICSEARCH_HOST}\", \"port\": ${ELASTICSEARCH_PORT:-9200}}]"
+      ELASTIC_HOSTS: "{\"host\": \"${ELASTICSEARCH_HOST}\", \"port\": ${ELASTICSEARCH_PORT:-9200}}"
       ELASTIC_INDEX_PREFIX: ${ELASTICSEARCH_INDEX_PREFIX}
       MAILER_DSN: ${MAILER_DSN}
       SITEKEY: ${RECAPTCHA_SITEKEY}
       SECRETKEY: ${RECAPTCHA_SECRETKEY}
+      PHP_MEMORY_LIMIT: 1024M
     tty: true
-    command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
+    # command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
+    command: bash -c "symfony server:start --no-tls"
 
   database:
     image: postgres:16.1-bookworm
@@ -38,7 +40,9 @@ services:
       POSTGRES_DB: $DATABASE_NAME
 
   elasticsearch:
-    image:  elasticsearch:7.17.18
+    build:
+        context: .
+        dockerfile: elasticsearch.Dockerfile
     ports:
       - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
     volumes:
