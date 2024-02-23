@@ -7,7 +7,7 @@ services:
         context: .
         target: dev
     ports:
-      - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8080}:8000"
+      - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8001}:8000"
     volumes:
       - ./:/app
       # images
@@ -27,6 +27,7 @@ services:
     depends_on:
       - database
       - elasticsearch
+      - keycloak
 
   database:
     image: postgres:16.1-bookworm
@@ -71,6 +72,47 @@ services:
         soft: 65536
         hard: 65536
 
+  # Keycloak uses a postgres database
+  keycloak_database:
+    image: postgres:16.1-bookworm
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+    ports:
+      - "127.0.0.1:${KEYCLOAK_DATABASE_EXTERNAL_TCP_PORT}:${KEYCLOAK_DATABASE_INTERNAL_TCP_PORT}"
+    volumes:
+      - keycloak_database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: $KEYCLOAK_DATABASE_USER
+      POSTGRES_PASSWORD: $KEYCLOAK_DATABASE_PASSWORD
+      POSTGRES_DB: $KEYCLOAK_DATABASE_NAME
+
+  # The keycloack service itself, depends on the availability of the database
+  keycloak:
+    image: keycloak/keycloak:23.0.6
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2G"
+    depends_on:
+      - keycloak_database
+    ports:
+      - "127.0.0.1:${KEYCLOAK_EXTERNAL_TCP_PORT}:${KEYCLOAK_INTERNAL_TCP_PORT}"
+    volumes:
+      - ./keycloak-dev:/opt/keycloak/data/import
+    environment:
+      - KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN
+      - KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://keycloak_database:${KEYCLOAK_DATABASE_INTERNAL_TCP_PORT}/$KEYCLOAK_DATABASE_NAME
+      - KC_DB_USERNAME=$KEYCLOAK_DATABASE_USER
+      - KC_DB_PASSWORD=$KEYCLOAK_DATABASE_PASSWORD
+
+    command: start-dev --import-realm
+
 volumes:
   database:
     external: true
@@ -78,3 +120,6 @@ volumes:
   elasticsearch:
     external: true
     name: dbbe-elasticsearch
+  keycloak_database:
+    external: true
+    name: dbbe-keycloak-database
