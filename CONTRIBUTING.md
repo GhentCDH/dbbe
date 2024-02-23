@@ -70,14 +70,8 @@ The sql file can be imported in the dev database using `psql -h 127.0.0.1 -p 154
 root@...:/app# php bin/console app:elasticsearch:index
 ```
 
-## Run the front-end in dev mode
+## Watch front-end changes and rebuild
 
 ```sh
 root@...:/app# pnpm encore dev --watch
-```
-
-## Build the front-end in production mode
-
-```sh
-root@...:/app# pnpm encore production
 ```
