@@ -19,3 +19,7 @@ npm-debug.log
 yarn-error.log
 .pnpm-store
 ###< symfony/webpack-encore-bundle ###
+
+### docker volumes
+/volumes
+###

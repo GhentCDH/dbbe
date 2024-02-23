@@ -10,6 +10,8 @@ services:
       - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8080}:8000"
     volumes:
       - ./:/app
+      # images
+      # page-images
     environment:
       DATABASE_URL: ${DATABASE_DRIVER}://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT:-5432}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}'
       ELASTIC_HOSTS: "{\"host\": \"${ELASTICSEARCH_HOST}\", \"port\": ${ELASTICSEARCH_PORT:-9200}}"
@@ -19,8 +21,12 @@ services:
       SECRETKEY: ${RECAPTCHA_SECRETKEY}
       PHP_MEMORY_LIMIT: 1024M
     tty: true
+    # First time: install dependencies
     # command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
-    command: bash -c "symfony server:start --no-tls"
+    command: bash -c "symfony server:start --no-tls && sleep infinity"
+    depends_on:
+      - database
+      - elasticsearch
 
   database:
     image: postgres:16.1-bookworm
@@ -33,7 +39,7 @@ services:
     ports:
       - "127.0.0.1:${DATABASE_EXTERNAL_PORT:-15432}:5432"
     volumes:
-      - ./db/data:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: $DATABASE_USER
       POSTGRES_PASSWORD: $DATABASE_PASSWORD
@@ -66,7 +72,9 @@ services:
         hard: 65536
 
 volumes:
-  elasticsearch:
-    name: "dbbe-elasticsearch"
   database:
-    name: "dbbe-database"
+    external: true
+    name: dbbe-database
+  elasticsearch:
+    external: true
+    name: dbbe-elasticsearch

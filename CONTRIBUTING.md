@@ -12,67 +12,72 @@ Docker (>= 19.03) with compose plugin
 
 ```sh
 git clone git@github.com:GhentCDH/dbbe.git
+cd dbbe
 ```
 
-## Start development environment
+## Create docker volumes
+
+### Host mount
 
 ```sh
-docker compose --env-file .env.dev -f compose.dev.yaml up
+docker volume create dbbe-database
+docker volume create dbbe-elasticsearch
+docker volume create dbbe-keycloak-database
+```
+
+### volumes folder
+
+```sh
+mkdir volumes
+mkdir volumes/database
+mkdir volumes/elasticsearch
+mkdir volumes/keycloak-database
+docker volume create --driver local --opt type=none --opt device=$PWD/volumes/database --opt o=bind dbbe-database
+docker volume create --driver local --opt type=none --opt device=$PWD/volumes/elasticsearch --opt o=bind dbbe-elasticsearch
+docker volume create --driver local --opt type=none --opt device=$PWD/volumes/keycloak-database --opt o=bind dbbe-keycloak-database
 ```
 
 ## Configure
 
-Create a .env file in the base of the newly created folder with following contents:
+Create a `.env.dev.secret` file with following contents:
 
 ```text
-APP_ENV=<dev,qas or prod>
-APP_SECRET=output of hexdump -vn16 -e'4/4 "%08X" 1 "\n"' /dev/urandom
-
-DATABASE_URL='postgresql://<db_user>:<db_password>@<db_host>:<db_port>/<db_name>?serverVersion=12.10'
-
-MAILER_DSN='smtp://<email_address><email_host>:<email_port>'
-
-ELASTIC_HOSTS='[{"host": "<elasticsearch_host>", "port": <elasticsearch_port>}]'
-ELASTIC_INDEX_PREFIX='<elasticsearch_prefix>'
-
 SITEKEY=<recaptcha_sitekey>
 SECRETKEY=<recaptcha_secretkey>
 ```
 
 ## Install dependencies
 
+Uncomment the line below `First time: install dependencies` in `compose.dev.yaml` and comment the line below that one.
+
+## Start development environment
+
 ```sh
-vagrant@dbbe:~$ cd /home/vagrant/dbbe2
-vagrant@dbbe:~/dbbe2$ composer install
-vagrant@dbbe:~/dbbe2$ yarn install
-vagrant@dbbe:~/dbbe2$ cd assets/websites
-vagrant@dbbe:~/dbbe2/assets/websites$ bower install
+docker compose --env-file .env.dev --env-file .env.dev.secret -f compose.dev.yaml up
 ```
 
 ## Add data
 
 A database dump can be downloaded from <https://doi.org/10.5281/zenodo.7682523>.
 
+Alternatively, if using a data dump from the production server, use `tar xvzf file.sql.tar.gz` to extract the sql file and `sed -i 's/db_dbbe_prod/db_dbbe/g' file.sql` to change the owner of schemas and tables.
+
+The sql file can be imported in the dev database using `psql -h 127.0.0.1 -p 15432 db_dbbe -U db_dbbe < file.sql`.
+
 ## Index search pages
 
 ```sh
-vagrant@dbbe:~/dbbe2$ php bin/console app:elasticsearch:index
-```
-
-## Start the back-end dev server
-
-```sh
-vagrant@dbbe:~/dbbe2$ symfony server:start --no-tls
+root@...:/app# php bin/console app:elasticsearch:index
 ```
 
 ## Run the front-end in dev mode
 
 ```sh
-vagrant@dbbe:~/dbbe2$ yarn encore dev --watch
+root@...:/app# pnpm encore dev --watch
 ```
 
 ## Build the front-end in production mode
 
 ```sh
-vagrant@dbbe:~/dbbe2$ yarn encore production
+root@...:/app# pnpm encore production
 ```
