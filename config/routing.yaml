@@ -1,0 +1,2 @@
+keycloak_login:
+    path: /login/check-keycloak

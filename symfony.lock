@@ -94,8 +94,18 @@
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.5"
     },
-    "hslavich/oneloginsaml-bundle": {
-        "version": "v2.8.0"
+    "hwi/oauth-bundle": {
+        "version": "2.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "2.0",
+            "ref": "20154480d558409ad3eb9de3644817c81fad2268"
+        },
+        "files": [
+            "config/packages/hwi_oauth.yaml",
+            "config/routes/hwi_oauth_routing.yaml"
+        ]
     },
     "laminas/laminas-code": {
         "version": "4.5.1"
@@ -105,9 +115,6 @@
     },
     "nyholm/dsn": {
         "version": "2.0.1"
-    },
-    "onelogin/php-saml": {
-        "version": "3.6.1"
     },
     "psr/cache": {
         "version": "1.0.1"
@@ -123,9 +130,6 @@
     },
     "react/promise": {
         "version": "v2.8.0"
-    },
-    "robrichards/xmlseclibs": {
-        "version": "3.1.1"
     },
     "ruflin/elastica": {
         "version": "7.1.3"

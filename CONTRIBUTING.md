@@ -75,3 +75,9 @@ root@...:/app# php bin/console app:elasticsearch:index
 ```sh
 root@...:/app# pnpm encore dev --watch
 ```
+
+## Default users
+
+|Username|Password|
+|---|---|
+|editor|editor|

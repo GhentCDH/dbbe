@@ -1,0 +1,18 @@
+security:
+    enable_authenticator_manager: true
+
+    firewalls:
+        main:
+            pattern: ^/
+            oauth:
+                resource_owners:
+                    keycloak: "/login/check-keycloak"
+                login_path:   /login
+                use_forward:  false
+                failure_path: /login
+
+                oauth_user_provider:
+                    service: hwi_oauth.user.provider
+
+    access_control: # acces control is configured in controllers
+        - { path: ^/, roles: PUBLIC_ACCESS }

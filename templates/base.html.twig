@@ -82,7 +82,7 @@
                                                         <li>
                                                             <a href="https://www.ugent.be/en" title="Home Ghent University">Home Ghent University</a>
                                                         </li>
-                                                        {% if app.environment == 'dev' %}
+                                                        {# {% if app.environment == 'dev' %}
                                                             {% if is_granted("ROLE_USER") %}
                                                                 <li>
                                                                     <span><i class="fa fa-key"></i>&nbsp;{{ app.user.getUsername() }}</span>
@@ -108,7 +108,7 @@
                                                                     <a href="{{ path('dbbe_login') }}">Login</a>
                                                                 </li>
                                                             {% endif %}
-                                                        {% endif %}
+                                                        {% endif %} #}
                                                     </ul>
                                                 </div>
                                             </div>
