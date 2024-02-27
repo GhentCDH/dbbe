@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   app:
     build:
         context: .
@@ -20,10 +19,13 @@ services:
       SITEKEY: ${RECAPTCHA_SITEKEY}
       SECRETKEY: ${RECAPTCHA_SECRETKEY}
       PHP_MEMORY_LIMIT: 1024M
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
     tty: true
     # First time: install dependencies
     # command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
     command: bash -c "symfony server:start --no-tls && sleep infinity"
+    # command: bash -c "sleep infinity"
     depends_on:
       - database
       - elasticsearch

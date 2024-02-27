@@ -5,11 +5,14 @@ namespace App\Security;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
+use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthUser;
 
-class UserProvider implements UserProviderInterface
+class UserProvider implements UserProviderInterface, OAuthAwareUserProviderInterface
 {
     private $userRepository;
 
@@ -68,6 +71,20 @@ class UserProvider implements UserProviderInterface
      */
     public function supportsClass($class)
     {
-        return User::class === $class;
+        return $class === OAuthUser::class;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function loadUserByOAuthUserResponse(UserResponseInterface $response)
+    {
+        $user = $this->loadUserByIdentifier($response->getUserIdentifier());
+
+        if (!$user) {
+            return (new User())->setUsername(strtolower($response->getUserIdentifier()));
+        }
+
+        return $user;
     }
 }

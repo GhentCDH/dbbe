@@ -13,6 +13,11 @@ security:
 
                 oauth_user_provider:
                     service: hwi_oauth.user.provider
+                    # service: App\Security\UserProvider
 
-    access_control: # acces control is configured in controllers
+    access_control: # access control is configured in controllers
         - { path: ^/, roles: PUBLIC_ACCESS }
+
+    providers:
+        hwi:
+            id: hwi_oauth.user.provider

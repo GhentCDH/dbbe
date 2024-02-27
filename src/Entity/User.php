@@ -102,6 +102,14 @@ class User implements Serializable, UserInterface, EquatableInterface
         return $this->username;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getUserIdentifier()
+    {
+        return $this->username;
+    }
+
     public function setUsername(string $username)
     {
         $this->username = $username;

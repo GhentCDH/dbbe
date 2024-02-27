@@ -46,6 +46,12 @@ SITEKEY=<recaptcha_sitekey>
 SECRETKEY=<recaptcha_secretkey>
 ```
 
+## Add keycloak entry in /etc/hosts
+
+```text
+127.0.0.1 keycloak
+```
+
 ## Install dependencies
 
 Uncomment the line below `First time: install dependencies` in `compose.dev.yaml` and comment the line below that one.

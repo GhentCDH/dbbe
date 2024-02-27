@@ -82,6 +82,9 @@
                                                         <li>
                                                             <a href="https://www.ugent.be/en" title="Home Ghent University">Home Ghent University</a>
                                                         </li>
+                                                        <li>
+                                                            <a href="{{ path('hwi_oauth_service_redirect', {'service': 'keycloak' }) }}">Login</a>
+                                                        </li>
                                                         {# {% if app.environment == 'dev' %}
                                                             {% if is_granted("ROLE_USER") %}
                                                                 <li>
