@@ -64,7 +64,7 @@ class JournalIssueController extends BaseController
                     'journal_issue_post' => $this->generateUrl('journal_issue_post'),
                     'journal_issue_put' => $this->generateUrl('journal_issue_put', ['id' => 'journal_issue_id']),
                     'journal_issue_delete' => $this->generateUrl('journal_issue_delete', ['id' => 'journal_issue_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([

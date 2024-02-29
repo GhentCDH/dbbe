@@ -94,17 +94,29 @@
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.5"
     },
-    "hwi/oauth-bundle": {
-        "version": "2.1",
+    "idci/keycloak-security-bundle": {
+        "version": "2.0",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
             "branch": "main",
             "version": "2.0",
-            "ref": "20154480d558409ad3eb9de3644817c81fad2268"
+            "ref": "c160126d5ae8b2625161194e5d5c685b6c60c03d"
         },
         "files": [
-            "config/packages/hwi_oauth.yaml",
-            "config/routes/hwi_oauth_routing.yaml"
+            "config/packages/idci_keycloak_security.yaml",
+            "config/routes/idci_keycloak_security.yaml"
+        ]
+    },
+    "knpuniversity/oauth2-client-bundle": {
+        "version": "2.18",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.20",
+            "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
+        },
+        "files": [
+            "config/packages/knpu_oauth2_client.yaml"
         ]
     },
     "laminas/laminas-code": {

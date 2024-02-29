@@ -1,23 +1,19 @@
+imports:
+    # Import Keycloak security providers
+    - { resource: '@IDCIKeycloakSecurityBundle/Resources/config/security.yaml' }
+
 security:
     enable_authenticator_manager: true
 
     firewalls:
         main:
             pattern: ^/
-            oauth:
-                resource_owners:
-                    keycloak: "/login/check-keycloak"
-                login_path:   /login
-                use_forward:  false
-                failure_path: /login
-
-                oauth_user_provider:
-                    service: hwi_oauth.user.provider
-                    # service: App\Security\UserProvider
+            provider: idci_keycloak_security_provider
+            entry_point: IDCI\Bundle\KeycloakSecurityBundle\Security\EntryPoint\AuthenticationEntryPoint
+            custom_authenticators:
+                - IDCI\Bundle\KeycloakSecurityBundle\Security\Authenticator\KeycloakAuthenticator
+            logout:
+                path: idci_keycloak_security_auth_logout
 
     access_control: # access control is configured in controllers
         - { path: ^/, roles: PUBLIC_ACCESS }
-
-    providers:
-        hwi:
-            id: hwi_oauth.user.provider

@@ -93,7 +93,7 @@ class UserController extends AbstractController
                     'users_get' => $this->generateUrl('users_get'),
                     'user_post' => $this->generateUrl('user_post'),
                     'user_put' => $this->generateUrl('user_put', ['id' => 'user_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                 ]),
             ]
         );

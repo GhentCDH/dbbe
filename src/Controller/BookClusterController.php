@@ -52,7 +52,7 @@ class BookClusterController extends BaseController
                     'book_cluster_merge' => $this->generateUrl('book_cluster_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'book_cluster_put' => $this->generateUrl('book_cluster_put', ['id' => 'book_cluster_id']),
                     'book_cluster_delete' => $this->generateUrl('book_cluster_delete', ['id' => 'book_cluster_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'book_clusters' => json_encode($this->manager->getAllJson('getTitle')),

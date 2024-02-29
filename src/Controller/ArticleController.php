@@ -199,7 +199,7 @@ class ArticleController extends BaseController
                     'journal_issues_edit' => $this->generateUrl('journal_issues_edit'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'article' => empty($id)

@@ -48,7 +48,7 @@ class GenreController extends BaseController
                     'genre_post' => $this->generateUrl('genre_post'),
                     'genre_put' => $this->generateUrl('genre_put', ['id' => 'genre_id']),
                     'genre_delete' => $this->generateUrl('genre_delete', ['id' => 'genre_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'genres' => json_encode($this->manager->getAllJson()),

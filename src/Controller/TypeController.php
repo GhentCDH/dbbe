@@ -72,7 +72,7 @@ class TypeController extends BaseController
                     'type_edit' => $this->generateUrl('type_edit', ['id' => 'type_id']),
                     'type_delete' => $this->generateUrl('type_delete', ['id' => 'type_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                     'managements_add' => $this->generateUrl('types_managements_add'),
                     'managements_remove' => $this->generateUrl('types_managements_remove'),
                     'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
@@ -532,7 +532,7 @@ class TypeController extends BaseController
                     'modern_persons_get' => $this->generateUrl('persons_get', ['type' => 'modern']),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('app_login') : $this->generateUrl('saml_login'),
+                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
                 ]),
                 'data' => json_encode([
                     'type' => empty($id)

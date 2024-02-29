@@ -82,36 +82,18 @@
                                                         <li>
                                                             <a href="https://www.ugent.be/en" title="Home Ghent University">Home Ghent University</a>
                                                         </li>
-                                                        <li>
-                                                            <a href="{{ path('hwi_oauth_service_redirect', {'service': 'keycloak' }) }}">Login</a>
-                                                        </li>
-                                                        {# {% if app.environment == 'dev' %}
-                                                            {% if is_granted("ROLE_USER") %}
-                                                                <li>
-                                                                    <span><i class="fa fa-key"></i>&nbsp;{{ app.user.getUsername() }}</span>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="{{ path('app_logout') }}">Log out</a>
-                                                                </li>
-                                                            {% else %}
-                                                                <li>
-                                                                    <a href="{{ path('app_login') }}">Login</a>
-                                                                </li>
-                                                            {% endif %}
+                                                        {% if is_granted("ROLE_USER") %}
+                                                            <li>
+                                                                <span><i class="fa fa-key"></i>&nbsp;{{ app.user.getDisplayName() }}</span>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{{ path('idci_keycloak_security_auth_logout') }}">Log out</a>
+                                                            </li>
                                                         {% else %}
-                                                            {% if is_granted("ROLE_USER") %}
-                                                                <li>
-                                                                    <span><i class="fa fa-key"></i>&nbsp;{{ app.user.getUsername() }}</span>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="{{ path('saml_logout') }}">Log out</a>
-                                                                </li>
-                                                            {% else %}
-                                                                <li>
-                                                                    <a href="{{ path('dbbe_login') }}">Login</a>
-                                                                </li>
-                                                            {% endif %}
-                                                        {% endif %} #}
+                                                            <li>
+                                                                <a href="{{ path('idci_keycloak_security_auth_connect') }}">Login</a>
+                                                            </li>
+                                                        {% endif %}
                                                     </ul>
                                                 </div>
                                             </div>

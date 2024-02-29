@@ -45,14 +45,6 @@
   "failureFactor" : 30,
   "roles" : {
     "realm" : [ {
-      "id" : "636a0fd9-c8ec-4c20-b8af-8cb72a9be5dc",
-      "name" : "occurrence edit",
-      "description" : "",
-      "composite" : false,
-      "clientRole" : false,
-      "containerId" : "577713c4-df0e-4015-b69c-6ac9897cfa07",
-      "attributes" : { }
-    }, {
       "id" : "a53e44bf-6935-4ab5-b2be-48ef9dd7b6ad",
       "name" : "offline_access",
       "description" : "${role_offline-access}",
@@ -339,7 +331,48 @@
         "containerId" : "94a282bc-b394-4fe8-93ed-b3d4b7ee8fb8",
         "attributes" : { }
       } ],
-      "dbbe" : [ ]
+      "dbbe" : [ {
+        "id" : "ab63b15a-5ea1-4281-9e9b-930d0671b8e0",
+        "name" : "ROLE_EDITOR",
+        "description" : "",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "dbbe" : [ "ROLE_USER", "ROLE_EDITOR_VIEW" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "7cfa2b3c-e97b-4076-97f7-fd54502895bc",
+        "attributes" : { }
+      }, {
+        "id" : "20f7e643-4767-4a12-b7c4-0b98d547e1d6",
+        "name" : "ROLE_USER",
+        "description" : "",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "7cfa2b3c-e97b-4076-97f7-fd54502895bc",
+        "attributes" : { }
+      }, {
+        "id" : "1fb6db01-0c9f-4f90-970d-a6713d521f87",
+        "name" : "ROLE_EDITOR_VIEW",
+        "description" : "",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "dbbe" : [ "ROLE_EDITOR" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "7cfa2b3c-e97b-4076-97f7-fd54502895bc",
+        "attributes" : { }
+      }, {
+        "id" : "6d05bef1-566f-46d4-8c35-912980cd88d7",
+        "name" : "uma_protection",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "7cfa2b3c-e97b-4076-97f7-fd54502895bc",
+        "attributes" : { }
+      } ]
     }
   },
   "groups" : [ {
@@ -348,8 +381,10 @@
     "path" : "/editor",
     "subGroups" : [ ],
     "attributes" : { },
-    "realmRoles" : [ "occurrence edit" ],
-    "clientRoles" : { }
+    "realmRoles" : [ "default-roles-dbbe" ],
+    "clientRoles" : {
+      "dbbe" : [ "ROLE_EDITOR" ]
+    }
   } ],
   "defaultRole" : {
     "id" : "f75d42fc-7169-467c-82f6-eaa758725a51",
@@ -397,7 +432,13 @@
     "username" : "editor",
     "enabled" : true,
     "totp" : false,
-    "emailVerified" : false,
+    "emailVerified" : true,
+    "firstName" : "First Name",
+    "lastName" : "Last Name",
+    "email" : "editor@dbbe.ugent.be",
+    "attributes" : {
+      "dbbe_id" : [ "1" ]
+    },
     "credentials" : [ {
       "id" : "e316de5c-dc21-41ce-93a4-6cc6beaab9a2",
       "type" : "password",
@@ -411,6 +452,23 @@
     "realmRoles" : [ "default-roles-dbbe" ],
     "notBefore" : 0,
     "groups" : [ "/editor" ]
+  }, {
+    "id" : "5cf4b1af-9a6a-4cbf-ab6c-0cb446ab9328",
+    "createdTimestamp" : 1709216277956,
+    "username" : "service-account-dbbe",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "serviceAccountClientId" : "dbbe",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-dbbe" ],
+    "clientRoles" : {
+      "dbbe" : [ "uma_protection" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
@@ -567,8 +625,9 @@
     "consentRequired" : false,
     "standardFlowEnabled" : true,
     "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : true,
-    "serviceAccountsEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "authorizationServicesEnabled" : true,
     "publicClient" : false,
     "frontchannelLogout" : true,
     "protocol" : "openid-connect",
@@ -583,8 +642,87 @@
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "9c579f16-a85e-4f14-8025-fde4db8b858f",
+      "name" : "Client Host",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientHost",
+        "introspection.token.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientHost",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "d79b2048-c07c-41dc-ac4f-5db12d5b7ddc",
+      "name" : "Client ID",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "client_id",
+        "introspection.token.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "client_id",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "06d92dde-b9d9-4dca-afe7-50174a4a3387",
+      "name" : "Client IP Address",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientAddress",
+        "introspection.token.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientAddress",
+        "jsonType.label" : "String"
+      }
+    } ],
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "email" ],
-    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ],
+    "authorizationSettings" : {
+      "allowRemoteResourceManagement" : true,
+      "policyEnforcementMode" : "ENFORCING",
+      "resources" : [ {
+        "name" : "Default Resource",
+        "type" : "urn:dbbe:resources:default",
+        "ownerManagedAccess" : false,
+        "attributes" : { },
+        "_id" : "02bda724-df3a-45eb-bf3b-d24e1bc7679a",
+        "uris" : [ "/*" ]
+      } ],
+      "policies" : [ {
+        "id" : "79cfcef5-3e4f-4b0c-bb5a-95cce965f347",
+        "name" : "Default Policy",
+        "description" : "A policy that grants access only for users within this realm",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "code" : "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+        }
+      }, {
+        "id" : "ae94aee7-f8a8-4e64-bfbf-b7708cb8c33a",
+        "name" : "Default Permission",
+        "description" : "A permission that applies to the default resource type",
+        "type" : "resource",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "defaultResourceType" : "urn:dbbe:resources:default",
+          "applyPolicies" : "[\"Default Policy\"]"
+        }
+      } ],
+      "scopes" : [ ],
+      "decisionStrategy" : "UNANIMOUS"
+    }
   }, {
     "id" : "b66bd5c1-fa23-4c7c-8acb-478faa6357d1",
     "clientId" : "realm-management",
@@ -669,6 +807,7 @@
     "attributes" : {
       "include.in.token.scope" : "false",
       "display.on.consent.screen" : "true",
+      "gui.order" : "",
       "consent.screen.text" : "${rolesScopeConsentText}"
     },
     "protocolMappers" : [ {
@@ -680,7 +819,9 @@
       "config" : {
         "introspection.token.claim" : "true",
         "multivalued" : "true",
+        "userinfo.token.claim" : "true",
         "user.attribute" : "foo",
+        "id.token.claim" : "false",
         "access.token.claim" : "true",
         "claim.name" : "resource_access.${client_id}.roles",
         "jsonType.label" : "String"
@@ -704,7 +845,9 @@
       "config" : {
         "introspection.token.claim" : "true",
         "multivalued" : "true",
+        "userinfo.token.claim" : "false",
         "user.attribute" : "foo",
+        "id.token.claim" : "false",
         "access.token.claim" : "true",
         "claim.name" : "realm_access.roles",
         "jsonType.label" : "String"
@@ -1154,7 +1297,7 @@
       }
     } ]
   } ],
-  "defaultDefaultClientScopes" : [ "role_list", "profile", "email", "roles", "web-origins", "acr" ],
+  "defaultDefaultClientScopes" : [ "role_list", "profile", "email", "web-origins", "acr", "roles" ],
   "defaultOptionalClientScopes" : [ "offline_access", "address", "phone", "microprofile-jwt" ],
   "browserSecurityHeaders" : {
     "contentSecurityPolicyReportOnly" : "",

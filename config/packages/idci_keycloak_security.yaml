@@ -1,0 +1,10 @@
+idci_keycloak_security:
+    server_url: '%env(resolve:KEYCLOAK_SERVER_URL)%'
+    server_public_url: '%env(resolve:KEYCLOAK_SERVER_URL)%'
+    server_private_url: '%env(resolve:KEYCLOAK_SERVER_URL)%'
+    realm: '%env(resolve:KEYCLOAK_REALM)%'
+    client_id: '%env(resolve:KEYCLOAK_CLIENT_ID)%'
+    client_secret: '%env(resolve:KEYCLOAK_CLIENT_SECRET)%'
+    default_target_route_name: 'homepage'
+    ssl_verification: false
+    # ssl_verification: true
