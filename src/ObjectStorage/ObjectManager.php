@@ -4,8 +4,6 @@ namespace App\ObjectStorage;
 
 use Exception;
 
-use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
