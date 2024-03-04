@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\ObjectStorage\RoleManager;
 use App\Security\Roles;
 
-class RoleController extends AbstractController
+class RoleController extends BaseController
 {
     public function __construct(RoleManager $roleManager)
     {
