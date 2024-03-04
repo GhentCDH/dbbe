@@ -66,7 +66,6 @@ Encore
     .addEntry('statusesedit', './assets/js/main/statusesedit.js')
     .addEntry('typeedit', './assets/js/main/typeedit.js')
     .addEntry('typesearch', './assets/js/main/typesearch.js')
-    .addEntry('usersedit', './assets/js/main/usersedit.js')
 
     /*
      * FEATURE CONFIG
