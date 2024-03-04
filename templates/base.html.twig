@@ -265,13 +265,6 @@
                                                                 <span>Tags</span>
                                                             </a>
                                                         </li>
-                                                        {% if is_granted('ROLE_ADMIN') %}
-                                                            <li>
-                                                                <a href="{{ path('users_edit') }}">
-                                                                    <span>Users</span>
-                                                                </a>
-                                                            </li>
-                                                        {% endif %}
                                                     </ul>
                                                 </li>
                                             {% endif %}

@@ -225,7 +225,7 @@ class NewsEventController extends AbstractController
                 ) {
                     $newsEventService->update(
                         $item->id,
-                        $this->get('security.token_storage')->getToken()->getUser()->getId(),
+                        $this->get('security.token_storage')->getToken()->getUser()->getEmail(),
                         $item->title,
                         $item->url,
                         $item->date,
@@ -237,7 +237,7 @@ class NewsEventController extends AbstractController
                 }
             } else {
                 $newsEventService->insert(
-                    $this->get('security.token_storage')->getToken()->getUser()->getId(),
+                    $this->get('security.token_storage')->getToken()->getUser()->getEmail(),
                     $item->title,
                     $item->url,
                     $item->date,

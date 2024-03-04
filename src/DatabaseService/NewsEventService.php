@@ -152,7 +152,7 @@ SQL
     }
 
     /**
-     * @param int $userId
+     * @param string $userEmail
      * @param string $title
      * @param string $url
      * @param string $date
@@ -164,7 +164,7 @@ SQL
      * @throws \Doctrine\DBAL\DBALException
      */
     public function insert(
-        int $userId,
+        string $userEmail,
         string $title,
         string $url = null,
         string $date,
@@ -176,12 +176,12 @@ SQL
         return $this->conn->executeUpdate(
             <<<'SQL'
 insert into logic.news_event
-(iduser, title, url, "date", public, "order", abstract, "text")
+(user_email, title, url, "date", public, "order", abstract, "text")
 values (?, ?, ?, ?, ?, ?, ?, ?)
 SQL
 ,
             [
-                $userId,
+                $userEmail,
                 $title,
                 $url,
                 $date,
@@ -195,7 +195,7 @@ SQL
 
     /**
      * @param int $id
-     * @param int $userId
+     * @param string $userEmail
      * @param string $title
      * @param string $url
      * @param string $date
@@ -208,7 +208,7 @@ SQL
      */
     public function update(
         int $id,
-        int $userId,
+        string $userEmail,
         string $title,
         string $url = null,
         string $date,
@@ -220,12 +220,12 @@ SQL
         return $this->conn->executeUpdate(
             <<<'SQL'
 update logic.news_event
-set iduser = ?, title = ?, url = ?, "date" = ?, public = ?, "order" = ?, abstract = ?, "text" = ?
+set user_email = ?, title = ?, url = ?, "date" = ?, public = ?, "order" = ?, abstract = ?, "text" = ?
 where id = ?
 SQL
 ,
             [
-                $userId,
+                $userEmail,
                 $title,
                 $url,
                 $date,

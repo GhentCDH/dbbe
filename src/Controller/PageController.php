@@ -69,7 +69,7 @@ class PageController extends AbstractController
             );
         }
         $pageService->update(
-            $this->get('security.token_storage')->getToken()->getUser()->getId(),
+            $this->get('security.token_storage')->getToken()->getUser()->getEmail(),
             $slug,
             $data->title,
             $data->content,
