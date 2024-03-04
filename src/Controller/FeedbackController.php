@@ -10,12 +10,20 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Unirest\Request as RestRequest;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 use App\DatabaseService\FeedbackService;
 
 class FeedbackController extends AbstractController
 {
+    private $client;
+
+    public function __construct(
+        HttpClientInterface $client
+    ) {
+        $this->client = $client;
+    }
+
     /**
      * @Route("/feedback", name="feedback", methods={"POST"})
      * @param Request $request
@@ -50,16 +58,18 @@ class FeedbackController extends AbstractController
         }
 
         // Verify captcha
-        $response = RestRequest::post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            null,
+        $response = $this->client->request(
+            'POST',
+            $this->getParameter('app.recaptcha_siteverify_url'),
             [
-                'secret' => $this->getParameter('app.secretKey'),
-                'response' => $content->recaptcha,
+                'body' => [
+                    'secret' => $this->getParameter('app.secretKey'),
+                    'response' => $content->recaptcha,
+                ]
             ]
         );
 
-        if ($response->code !== 200) {
+        if ($response->getStatusCode() !== 200) {
             return new JsonResponse(['error' => ['code' => 400, 'message' => 'Invalid captcha']], 400);
         }
 

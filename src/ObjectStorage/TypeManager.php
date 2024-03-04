@@ -5,16 +5,34 @@ namespace App\ObjectStorage;
 use Exception;
 use stdClass;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Unirest\Request as RestRequest;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 use App\Model\Status;
 use App\Model\Translation;
 use App\Model\Type;
+use App\DatabaseService\DatabaseServiceInterface;
+use App\ElasticSearchService\ElasticSearchServiceInterface;
 
 class TypeManager extends PoemManager
 {
+    private $client;
+
+    public function __construct(
+        DatabaseServiceInterface $databaseService = null,
+        ContainerInterface $container,
+        ElasticSearchServiceInterface $elasticSearchService = null,
+        TokenStorageInterface $tokenStorage = null,
+        string $entityType = null,
+        HttpClientInterface $client
+    ) {
+        parent::__construct($databaseService, $container, $elasticSearchService, $tokenStorage, $entityType);
+        $this->client = $client;
+    }
+
     protected function setTitles(array &$types): void
     {
         $rawTitles = $this->dbs->getTitles(array_keys($types));
@@ -719,27 +737,31 @@ class TypeManager extends PoemManager
 
     private function getMorphLemma(string $word): string
     {
-        $response = RestRequest::get(
-            'https://qas.morpheus-perseids.ugent.be/analysis/word',
-            null,
+        $response = $this->client->request(
+            'GET',
+            $this->container->getParameter('app.morph') . '/analysis/word',
             [
-                'lang' => 'grc',
-                'engine' => 'morpheusgrc',
-                'word' => $word,
+                'query' => [
+                    'lang' => 'grc',
+                    'engine' => 'morpheusgrc',
+                    'word' => $word,
+                ]
             ]
         );
-        if ($response->code !== 201) {
+        if ($response->getStatusCode() !== 201) {
             throw new Exception('Issue with the lemma server');
         }
-        if (!property_exists($response->body->RDF->Annotation, 'Body')) {
+        $annotation = $response->toArray()['RDF']['Annotation'];
+        if (!array_key_exists('Body', $annotation)) {
             return 'na';
         }
 
         $lemma = '';
-        if (is_array($response->body->RDF->Annotation->Body)) {
-            $lemma = $response->body->RDF->Annotation->Body[0]->rest->entry->dict->hdwd->{'$'};
+        // Check if array with multiple objects or single object
+        if (array_key_exists(0, $annotation['Body'])) {
+            $lemma = $annotation['Body'][0]['rest']['entry']['dict']['hdwd']['$'];
         } else {
-            $lemma = $response->body->RDF->Annotation->Body->rest->entry->dict->hdwd->{'$'};
+            $lemma = $annotation['Body']['rest']['entry']['dict']['hdwd']['$'];
         }
 
         $this->dbs->addCachedLemma($word, $lemma);

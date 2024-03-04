@@ -122,9 +122,6 @@
     "laminas/laminas-code": {
         "version": "4.5.1"
     },
-    "mashape/unirest-php": {
-        "version": "v3.0.4"
-    },
     "nyholm/dsn": {
         "version": "2.0.1"
     },
