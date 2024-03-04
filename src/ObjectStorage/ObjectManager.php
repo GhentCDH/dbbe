@@ -66,7 +66,7 @@ class ObjectManager
         $this->dbs->createRevision(
             $old == null ? get_class($new) : get_class($old),
             $old == null ? $new->getId() : $old->getId(),
-            $this->ts->getToken()->getUser()->getId(),
+            $this->ts->getToken()->getUser()->getEmail(),
             $old == null ? null : json_encode($old->getJson()),
             $new == null ? null : json_encode($new->getJson())
         );
