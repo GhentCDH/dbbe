@@ -9,6 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\ContentManager;
 use App\ObjectStorage\PersonManager;
+use App\Security\Roles;
 
 class ContentController extends BaseController
 {
@@ -48,7 +49,7 @@ class ContentController extends BaseController
      */
     public function edit(PersonManager $personManager)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Content/edit.html.twig',

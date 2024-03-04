@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\ManagementManager;
+use App\Security\Roles;
 
 class ManagementController extends BaseController
 {
@@ -24,7 +25,7 @@ class ManagementController extends BaseController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         return parent::getAll($request);
     }
 
@@ -34,7 +35,7 @@ class ManagementController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder  . 'edit.html.twig',

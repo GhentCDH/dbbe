@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\GenreManager;
+use App\Security\Roles;
 
 class GenreController extends BaseController
 {
@@ -33,7 +34,7 @@ class GenreController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Genre/edit.html.twig',

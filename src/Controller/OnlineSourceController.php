@@ -12,6 +12,7 @@ use App\ObjectStorage\IdentifierManager;
 use App\ObjectStorage\ManagementManager;
 use App\ObjectStorage\OnlineSourceManager;
 use App\ObjectStorage\RoleManager;
+use App\Security\Roles;
 
 class OnlineSourceController extends BaseController
 {
@@ -47,7 +48,7 @@ class OnlineSourceController extends BaseController
         IdentifierManager $identifierManager,
         RoleManager $roleManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $args = func_get_args();
         $args[] = null;
@@ -149,7 +150,7 @@ class OnlineSourceController extends BaseController
         RoleManager $roleManager,
         int $id = null
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',

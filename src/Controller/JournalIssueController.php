@@ -9,6 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\JournalIssueManager;
 use App\ObjectStorage\JournalManager;
+use App\Security\Roles;
 
 class JournalIssueController extends BaseController
 {
@@ -51,7 +52,7 @@ class JournalIssueController extends BaseController
      */
     public function edit(JournalManager $journalManager)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',

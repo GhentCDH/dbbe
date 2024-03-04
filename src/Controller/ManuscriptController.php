@@ -20,6 +20,8 @@ use App\ObjectStorage\PersonManager;
 use App\ObjectStorage\RoleManager;
 use App\ObjectStorage\StatusManager;
 
+use App\Security\Roles;
+
 class ManuscriptController extends BaseController
 {
     public function __construct(ManuscriptManager $manuscriptManager)
@@ -74,14 +76,14 @@ class ManuscriptController extends BaseController
                 'data' => json_encode(
                     $elasticManuscriptService->searchAndAggregate(
                         $this->sanitize($request->query->all(), $identifierManager),
-                        $this->isGranted('ROLE_VIEW_INTERNAL')
+                        $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
                     )
                 ),
                 'identifiers' => json_encode(
                     $identifierManager->getPrimaryByTypeJson('manuscript')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
+                    $this->isGranted(Roles::ROLE_EDITOR_VIEW) ? $managementManager->getAllShortJson() : []
                 ),
             ]
             // @codingStandardsIgnoreEnd
@@ -103,7 +105,7 @@ class ManuscriptController extends BaseController
         $this->throwErrorIfNotJson($request);
         $result = $elasticManuscriptService->searchAndAggregate(
             $this->sanitize($request->query->all(), $identifierManager),
-            $this->isGranted('ROLE_VIEW_INTERNAL')
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
         return new JsonResponse($result);
@@ -131,7 +133,7 @@ class ManuscriptController extends BaseController
         IdentifierManager $identifierManager,
         RoleManager $roleManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $args = func_get_args();
         $args[] = null;
@@ -445,7 +447,7 @@ class ManuscriptController extends BaseController
         RoleManager $roleManager,
         int $id = null
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Manuscript/edit.html.twig',
@@ -643,13 +645,13 @@ class ManuscriptController extends BaseController
         }
 
         // limit results to public if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+        if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
             $filters['public'] = '1';
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
-            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }

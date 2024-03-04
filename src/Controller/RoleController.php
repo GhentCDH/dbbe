@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\RoleManager;
+use App\Security\Roles;
 
 class RoleController extends AbstractController
 {
@@ -26,7 +27,7 @@ class RoleController extends AbstractController
      */
     public function getRoles(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return new JsonResponse(
@@ -42,7 +43,7 @@ class RoleController extends AbstractController
      */
     public function editRoles(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         return $this->render(
             'Role/edit.html.twig',
@@ -80,7 +81,7 @@ class RoleController extends AbstractController
      */
     public function postRole(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         try {
             $role = $this->manager->add(json_decode($request->getContent()));
@@ -102,7 +103,7 @@ class RoleController extends AbstractController
      */
     public function putRole(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         try {
             $role = $this->manager->update($id, json_decode($request->getContent()));
@@ -128,7 +129,7 @@ class RoleController extends AbstractController
      */
     public function deleteRole(int $id)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         try {
             $this->manager->delete($id);

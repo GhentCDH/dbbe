@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\SelfDesignationManager;
+use App\Security\Roles;
 
 class SelfDesignationController extends BaseController
 {
@@ -33,7 +34,7 @@ class SelfDesignationController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'SelfDesignation/edit.html.twig',

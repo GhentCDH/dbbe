@@ -13,6 +13,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\DatabaseService\PageService;
+use App\Security\Roles;
 
 class PageController extends AbstractController
 {
@@ -43,7 +44,7 @@ class PageController extends AbstractController
      */
     public function put(Request $request, string $slug, PageService $pageService)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }
@@ -90,7 +91,7 @@ class PageController extends AbstractController
      */
     public function edit(string $slug, PageService $pageService)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         $page = $pageService->getBySlug($slug);
         if (empty($page)) {
             throw $this->createNotFoundException('The requested page does not exist');
@@ -134,7 +135,7 @@ class PageController extends AbstractController
      */
     public function postImage(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }

@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\BookClusterManager;
+use App\Security\Roles;
 
 class BookClusterController extends BaseController
 {
@@ -24,7 +25,7 @@ class BookClusterController extends BaseController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -38,7 +39,7 @@ class BookClusterController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder  . 'edit.html.twig',

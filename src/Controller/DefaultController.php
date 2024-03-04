@@ -25,6 +25,7 @@ use App\ObjectStorage\PhdManager;
 use App\ObjectStorage\BibVariaManager;
 use App\ObjectStorage\BlogManager;
 use App\ObjectStorage\BlogPostManager;
+use App\Security\Roles;
 
 class DefaultController extends AbstractController
 {
@@ -36,7 +37,7 @@ class DefaultController extends AbstractController
     public function home(NewsEventService $newsEventService)
     {
         try {
-            if ($this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if ($this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $newsEvents = $newsEventService->getThree();
             } else {
                 $newsEvents = $newsEventService->getThreePublic();

@@ -8,8 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Model\Status;
 use App\ElasticSearchService\ElasticTypeService;
+use App\Model\Status;
 use App\ObjectStorage\AcknowledgementManager;
 use App\ObjectStorage\GenreManager;
 use App\ObjectStorage\IdentifierManager;
@@ -23,6 +23,7 @@ use App\ObjectStorage\RoleManager;
 use App\ObjectStorage\StatusManager;
 use App\ObjectStorage\TypeManager;
 use App\ObjectStorage\TypeRelationTypeManager;
+use App\Security\Roles;
 
 class TypeController extends BaseController
 {
@@ -80,14 +81,14 @@ class TypeController extends BaseController
                 'data' => json_encode(
                     $elasticTypeService->searchAndAggregate(
                         $this->sanitize($request->query->all()),
-                        $this->isGranted('ROLE_VIEW_INTERNAL')
+                        $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
                     )
                 ),
                 'identifiers' => json_encode(
                     $identifierManager->getPrimaryByTypeJson('type')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
+                    $this->isGranted(Roles::ROLE_EDITOR_VIEW) ? $managementManager->getAllShortJson() : []
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -107,7 +108,7 @@ class TypeController extends BaseController
         $this->throwErrorIfNotJson($request);
         $result = $elasticTypeService->searchAndAggregate(
             $this->sanitize($request->query->all()),
-            $this->isGranted('ROLE_VIEW_INTERNAL')
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
         return new JsonResponse($result);
@@ -144,7 +145,7 @@ class TypeController extends BaseController
         RoleManager $roleManager
     ) {
 
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $args = func_get_args();
         $args[] = null;
@@ -491,7 +492,7 @@ class TypeController extends BaseController
         RoleManager $roleManager,
         int $id = null
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',
@@ -629,14 +630,14 @@ class TypeController extends BaseController
         }
 
         // limit results to public if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+        if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
             $filters['public'] = '1';
             unset($filters['text_status']);
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
-            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }

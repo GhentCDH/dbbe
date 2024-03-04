@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use App\Utils\ArrayToJson;
+use App\Security\Roles;
 
 class BaseController extends AbstractController
 {
@@ -33,7 +34,7 @@ class BaseController extends AbstractController
     public function getSingle(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
             try {
                 $object = $this->manager->getFull($id);
             } catch (NotFoundHttpException $e) {
@@ -47,7 +48,7 @@ class BaseController extends AbstractController
             // Let the 404 page handle the not found exception
             $object = $this->manager->getFull($id);
             if (method_exists($object, 'getPublic') && !$object->getPublic()) {
-                $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
+                $this->denyAccessUnlessGranted(Roles::ROLE_VIEW_INTERNAL);
             }
             return $this->render(
                 $this->templateFolder . 'detail.html.twig',
@@ -62,7 +63,7 @@ class BaseController extends AbstractController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -76,7 +77,7 @@ class BaseController extends AbstractController
      */
     public function getAllMicro(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -90,7 +91,7 @@ class BaseController extends AbstractController
      */
     public function getAllMini(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -106,7 +107,7 @@ class BaseController extends AbstractController
      */
     public function getDependencies(int $id, Request $request, string $method)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         $objects = $this->manager->{$method}($id, 'getMini');
@@ -119,7 +120,7 @@ class BaseController extends AbstractController
      */
     public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {
@@ -142,7 +143,7 @@ class BaseController extends AbstractController
      */
     public function merge(int $primaryId, int $secondaryId, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {
@@ -163,7 +164,7 @@ class BaseController extends AbstractController
      */
     public function put(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {
@@ -189,7 +190,7 @@ class BaseController extends AbstractController
      */
     public function addManagements(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {
@@ -216,7 +217,7 @@ class BaseController extends AbstractController
      */
     public function removeManagements(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {
@@ -243,7 +244,7 @@ class BaseController extends AbstractController
      */
     public function delete(int $id, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {

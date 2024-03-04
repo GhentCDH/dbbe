@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\LocationManager;
+use App\Security\Roles;
 
 class LocationController extends BaseController
 {
@@ -24,7 +25,7 @@ class LocationController extends BaseController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             if (!empty($request->query->get('type'))
@@ -48,7 +49,7 @@ class LocationController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Location/edit.html.twig',

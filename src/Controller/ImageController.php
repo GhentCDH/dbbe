@@ -13,6 +13,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\ImageManager;
+use App\Security\Roles;
 
 class ImageController extends BaseController
 {
@@ -35,7 +36,7 @@ class ImageController extends BaseController
         $image = $images[$id];
 
         if (!$image->getPublic()) {
-            $this->denyAccessUnlessGranted('ROLE_VIEW_INTERNAL');
+            $this->denyAccessUnlessGranted(Roles::ROLE_VIEW_INTERNAL);
         }
         try {
             return new BinaryFileResponse(
@@ -56,7 +57,7 @@ class ImageController extends BaseController
      */
     public function post(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         $file = $request->files->get('file');

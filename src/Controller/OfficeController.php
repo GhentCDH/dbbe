@@ -4,11 +4,12 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\OfficeManager;
 use App\ObjectStorage\RegionManager;
-use Symfony\Component\HttpFoundation\Response;
+use App\Security\Roles;
 
 class OfficeController extends BaseController
 {
@@ -62,7 +63,7 @@ class OfficeController extends BaseController
     public function edit(
         RegionManager $regionManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',

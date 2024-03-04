@@ -8,6 +8,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\OriginManager;
+use App\Security\Roles;
 
 class OriginController extends BaseController
 {
@@ -22,7 +23,7 @@ class OriginController extends BaseController
      */
     public function getOrigins(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             if ($request->query->get('type') == 'person') {
@@ -51,7 +52,7 @@ class OriginController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Origin/edit.html.twig',

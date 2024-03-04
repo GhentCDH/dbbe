@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\ElasticSearchService\ElasticVerseService;
 use App\ObjectStorage\VerseManager;
-
+use App\Security\Roles;
 use App\Utils\ArrayToJson;
 
 class VerseController extends BaseController
@@ -31,7 +31,7 @@ class VerseController extends BaseController
      */
     public function getVerseSearch(Request $request, ElasticVerseService $elasticVerseService)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         if ($request->query->get('verse') == null
@@ -64,7 +64,7 @@ class VerseController extends BaseController
     public function getVerseVariant(int $groupId, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
             try {
                 $group = $this->manager->getByGroup($groupId);
             } catch (NotFoundHttpException $e) {
@@ -95,7 +95,7 @@ class VerseController extends BaseController
         Request $request,
         ElasticVerseService $elasticVerseService
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
 
         $page = (int)$request->get('page');
 
@@ -118,7 +118,7 @@ class VerseController extends BaseController
      */
     public function postVerseInit(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
 
         $data = $request->request->all();
 

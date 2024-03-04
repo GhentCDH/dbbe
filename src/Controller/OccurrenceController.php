@@ -21,6 +21,7 @@ use App\ObjectStorage\ReferenceTypeManager;
 use App\ObjectStorage\RoleManager;
 use App\ObjectStorage\StatusManager;
 use App\ElasticSearchService\ElasticOccurrenceService;
+use App\Security\Roles;
 
 class OccurrenceController extends BaseController
 {
@@ -76,14 +77,14 @@ class OccurrenceController extends BaseController
             'data' => json_encode(
                 $elasticOccurrenceService->searchAndAggregate(
                     $this->sanitize($request->query->all()),
-                    $this->isGranted('ROLE_VIEW_INTERNAL')
+                    $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
                 )
             ),
             'identifiers' => json_encode(
                 $identifierManager->getPrimaryByTypeJson('occurrence')
             ),
             'managements' => json_encode(
-                $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
+                $this->isGranted(Roles::ROLE_EDITOR_VIEW) ? $managementManager->getAllShortJson() : []
             ),
             // @codingStandardsIgnoreEnd
         ];
@@ -106,7 +107,7 @@ class OccurrenceController extends BaseController
         $this->throwErrorIfNotJson($request);
         $result = $elasticOccurrenceService->searchAndAggregate(
             $this->sanitize($request->query->all()),
-            $this->isGranted('ROLE_VIEW_INTERNAL')
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
         return new JsonResponse($result);
@@ -140,7 +141,7 @@ class OccurrenceController extends BaseController
         IdentifierManager $identifierManager,
         RoleManager $roleManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $args = func_get_args();
         $args[] = null;
@@ -498,7 +499,7 @@ class OccurrenceController extends BaseController
         RoleManager $roleManager,
         int $id = null
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $occurrenceJson = null;
         $clone = false;
@@ -662,14 +663,14 @@ class OccurrenceController extends BaseController
         }
 
         // limit results to public if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+        if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
             $filters['public'] = '1';
             unset($filters['text_status']);
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
-            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }

@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Security\Roles;
+
 class JulieController extends AbstractController
 {
     /**
@@ -19,7 +21,7 @@ class JulieController extends AbstractController
      */
     public function julie()
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
 
         return $this->render('Julie/index.html.twig');
     }
@@ -33,7 +35,7 @@ class JulieController extends AbstractController
      */
     public function getOriginalPoem(int $id, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $originalpoem = $julieService->getOriginalPoem($id);
@@ -54,7 +56,7 @@ class JulieController extends AbstractController
      */
     public function getSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $annotations = $julieService->getSubstringAnnotation($occurrenceId);
@@ -71,7 +73,7 @@ class JulieController extends AbstractController
      */
     public function postSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent(), true);
@@ -103,7 +105,7 @@ class JulieController extends AbstractController
      */
     public function deleteSubstringAnnotation(int $annotationId, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $julieService->deleteSubstringAnnotation($annotationId);
@@ -120,7 +122,7 @@ class JulieController extends AbstractController
      */
     public function getPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $annotation = $julieService->getPoemAnnotation($occurrenceId);
@@ -141,7 +143,7 @@ class JulieController extends AbstractController
      */
     public function putPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
     {
-        $this->denyAccessUnlessGranted('ROLE_JULIE');
+        $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent(), true);

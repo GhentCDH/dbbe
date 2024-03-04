@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\ElasticSearchService\ElasticBibliographyService;
 use App\ObjectStorage\IdentifierManager;
 use App\ObjectStorage\ManagementManager;
+use App\Security\Roles;
 
 class BibliographyController extends BaseController
 {
@@ -132,12 +133,12 @@ class BibliographyController extends BaseController
                 'data' => json_encode(
                     $elasticBibliographyService->searchAndAggregate(
                         $this->sanitize($request->query->all()),
-                        $this->isGranted('ROLE_VIEW_INTERNAL')
+                        $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
                     )
                 ),
                 'identifiers' => json_encode($identifierManager->getPrimaryByTypeJson('book')),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
+                    $this->isGranted(Roles::ROLE_EDITOR_VIEW) ? $managementManager->getAllShortJson() : []
                 ),
                 // @codingStandardsIgnoreEnd
             ]
@@ -157,7 +158,7 @@ class BibliographyController extends BaseController
         $this->throwErrorIfNotJson($request);
         $result = $elasticBibliographyService->searchAndAggregate(
             $this->sanitize($request->query->all()),
-            $this->isGranted('ROLE_VIEW_INTERNAL')
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
         return new JsonResponse($result);
@@ -194,7 +195,7 @@ class BibliographyController extends BaseController
         PhdManager $phdManager,
         BibVariaManager $bibVariaManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent());
@@ -258,7 +259,7 @@ class BibliographyController extends BaseController
         PhdManager $phdManager,
         BibVariaManager $bibVariaManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         $content = json_decode($request->getContent());
@@ -326,7 +327,7 @@ class BibliographyController extends BaseController
                 $esParams['orderBy'] = ['type.name.keyword'];
             } elseif (($params['orderBy']) == 'author') {
                 $esParams['orderBy'] = [
-                    $this->isGranted('ROLE_VIEW_INTERNAL') ? 'author_last_name.keyword' : 'author_last_name_public.keyword'
+                    $this->isGranted(Roles::ROLE_VIEW_INTERNAL) ? 'author_last_name.keyword' : 'author_last_name_public.keyword'
                 ];
             } else {
                 $esParams['orderBy'] = $defaults['orderBy'];
@@ -344,13 +345,13 @@ class BibliographyController extends BaseController
         }
 
         // limit results to public if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+        if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
             $filters['public'] = '1';
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
-            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }

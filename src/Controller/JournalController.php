@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\JournalManager;
+use App\Security\Roles;
 
 class JournalController extends BaseController
 {
@@ -25,7 +26,7 @@ class JournalController extends BaseController
      */
     public function getAll(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -38,7 +39,7 @@ class JournalController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder  . 'edit.html.twig',
@@ -68,7 +69,7 @@ class JournalController extends BaseController
     public function getSingle(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
             try {
                 $object = $this->manager->getFull($id);
             } catch (NotFoundHttpException $e) {

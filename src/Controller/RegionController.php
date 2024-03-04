@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\RegionManager;
+use App\Security\Roles;
 
 class RegionController extends BaseController
 {
@@ -46,7 +47,7 @@ class RegionController extends BaseController
      */
     public function editRegions()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Region/edit.html.twig',

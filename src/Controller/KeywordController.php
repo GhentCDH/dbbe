@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\KeywordManager;
 use App\ObjectStorage\PersonManager;
+use App\Security\Roles;
 
 class KeywordController extends BaseController
 {
@@ -28,7 +29,7 @@ class KeywordController extends BaseController
      */
     public function getAllSubjects(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -43,7 +44,7 @@ class KeywordController extends BaseController
      */
     public function getAllTags(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
 
         return new JsonResponse(
@@ -58,7 +59,7 @@ class KeywordController extends BaseController
      */
     public function subjectEdit(PersonManager $personManager)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',
@@ -90,7 +91,7 @@ class KeywordController extends BaseController
      */
     public function tagEdit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             $this->templateFolder . 'edit.html.twig',
@@ -146,7 +147,7 @@ class KeywordController extends BaseController
      */
     public function migrate(int $primaryId, int $secondaryId, Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
 
         try {

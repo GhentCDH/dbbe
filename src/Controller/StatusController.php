@@ -8,9 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\ObjectStorage\StatusManager;
-
 use App\Model\Status;
+use App\ObjectStorage\StatusManager;
+use App\Security\Roles;
 
 class StatusController extends BaseController
 {
@@ -25,7 +25,7 @@ class StatusController extends BaseController
      */
     public function getStatuses(Request $request)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             if (!empty($request->query->get('type'))) {
@@ -69,7 +69,7 @@ class StatusController extends BaseController
      */
     public function edit()
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Status/edit.html.twig',

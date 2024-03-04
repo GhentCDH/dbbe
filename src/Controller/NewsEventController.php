@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use App\DatabaseService\NewsEventService;
+use App\Security\Roles;
 
 class NewsEventController extends AbstractController
 {
@@ -24,7 +25,7 @@ class NewsEventController extends AbstractController
      */
     public function getAll(NewsEventService $newsEventService)
     {
-        if ($this->isGranted('ROLE_EDITOR_VIEW')) {
+        if ($this->isGranted(Roles::ROLE_EDITOR_VIEW)) {
             $newsEvents = $newsEventService->getDateSorted();
         } else {
             $newsEvents = $newsEventService->getPublicDateSorted();
@@ -56,7 +57,7 @@ class NewsEventController extends AbstractController
      */
     public function edit(NewsEventService $newsEventService)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
         $newsEvents = $newsEventService->getAll();
 
@@ -105,7 +106,7 @@ class NewsEventController extends AbstractController
      */
     public function put(Request $request, NewsEventService $newsEventService)
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
             throw new BadRequestHttpException('Only JSON requests allowed.');
         }

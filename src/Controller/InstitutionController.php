@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\ObjectStorage\InstitutionManager;
+use App\Security\Roles;
 use App\Utils\ArrayToJson;
 
 class InstitutionController extends BaseController
@@ -41,7 +42,7 @@ class InstitutionController extends BaseController
      */
     public function postInstitution(Request $request, bool $library = false, bool $monastery = false)
     {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
 
         try {
             $institution = $this->manager->add(json_decode($request->getContent()), $library, $monastery);

@@ -15,6 +15,7 @@ use App\ObjectStorage\OfficeManager;
 use App\ObjectStorage\OriginManager;
 use App\ObjectStorage\PersonManager;
 use App\ObjectStorage\SelfDesignationManager;
+use App\Security\Roles;
 
 class PersonController extends BaseController
 {
@@ -32,7 +33,7 @@ class PersonController extends BaseController
     public function getAll(Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
-            $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+            $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
             if ($request->query->get('type') === 'historical') {
                 return new JsonResponse(
                     $this->manager->getAllHistoricalShortJson()
@@ -111,14 +112,14 @@ class PersonController extends BaseController
                 'data' => json_encode(
                     $elasticPersonService->searchAndAggregate(
                         $this->sanitize($request->query->all(), $identifierManager),
-                        $this->isGranted('ROLE_VIEW_INTERNAL')
+                        $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
                     )
                 ),
                 'identifiers' => json_encode(
                     $identifierManager->getPrimaryByTypeJson('person')
                 ),
                 'managements' => json_encode(
-                    $this->isGranted('ROLE_EDITOR_VIEW') ? $managementManager->getAllShortJson() : []
+                    $this->isGranted(Roles::ROLE_EDITOR_VIEW) ? $managementManager->getAllShortJson() : []
                 ),
             ]
         );
@@ -138,7 +139,7 @@ class PersonController extends BaseController
     ) {
         $result = $elasticPersonService->searchAndAggregate(
             $this->sanitize($request->query->all(), $identifierManager),
-            $this->isGranted('ROLE_VIEW_INTERNAL')
+            $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
         return new JsonResponse($result);
@@ -160,7 +161,7 @@ class PersonController extends BaseController
         ManagementManager $managementManager,
         IdentifierManager $identifierManager
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         $args = func_get_args();
         $args[] = null;
@@ -416,7 +417,7 @@ class PersonController extends BaseController
         IdentifierManager $identifierManager,
         int $id = null
     ) {
-        $this->denyAccessUnlessGranted('ROLE_EDITOR_VIEW');
+        $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
         return $this->render(
             'Person/edit.html.twig',
@@ -606,14 +607,14 @@ class PersonController extends BaseController
         }
 
         // limit results to public if no access rights
-        if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+        if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
             $filters['public'] = '1';
             $filters['historical'] = '1';
         }
 
         // set which comments should be searched
         if (isset($filters['comment'])) {
-            if (!$this->isGranted('ROLE_VIEW_INTERNAL')) {
+            if (!$this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
                 $filters['public_comment'] = $filters['comment'];
                 unset($filters['comment']);
             }
