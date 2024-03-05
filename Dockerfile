@@ -65,26 +65,26 @@ WORKDIR "/app"
 
 # ----------------------------------------------------------
 # BASE-PRD
-# php-fpm runs as user application:application
+# php-fpm runs as user 1000:1000
 # ----------------------------------------------------------
 FROM webdevops/php-apache:${PHP_VERSION} AS base-prd
 WORKDIR "/app"
 USER application
 
 # Backend dependencies
-COPY --chown=application:application --link composer.json ./composer.json
-COPY --chown=application:application --link composer.lock ./composer.lock
+COPY --chown=1000:1000 --link composer.json ./composer.json
+COPY --chown=1000:1000 --link composer.lock ./composer.lock
 RUN composer install --no-scripts
 
 # Backend code
-COPY --chown=application:application --link bin ./bin
-COPY --chown=application:application --link config ./config
-COPY --chown=application:application --link src ./src
-COPY --chown=application:application --link templates ./templates
-COPY --chown=application:application --link public/index.php ./public/index.php
+COPY --chown=1000:1000 --link bin ./bin
+COPY --chown=1000:1000 --link config ./config
+COPY --chown=1000:1000 --link src ./src
+COPY --chown=1000:1000 --link templates ./templates
+COPY --chown=1000:1000 --link public/index.php ./public/index.php
 
 # Frontend: copy from frontend_builder
-COPY --chown=application:application --link --from=frontend_builder /app/public/build ./public/build
+COPY --chown=1000:1000 --link --from=frontend_builder /app/public/build ./public/build
 
 # ----------------------------------------------------------
 # PRD
