@@ -14,3 +14,14 @@ cp ./node_modules/ckeditor/styles.js ./public/build/ckeditor
 find public/build/ckeditor -name "lang" -print0 | while IFS= read -r -d $'\0' line; do
     ls -d -1 "$line/"*.* | grep -v "en.js" | xargs -r rm
 done
+
+mkdir -p ./public/build/static/icons
+cp ./assets/websites/static/icons/* ./public/build/static/icons
+mkdir -p ./public/build/static/images
+cp ./assets/websites/static/images/* ./public/build/static/images
+cp ./assets/images/* ./public/build/static/images
+
+mkdir -p ./public/build/julie
+cp ./assets/dbbe-julie-frontend/dist/*.js ./public/build/julie
+cp ./assets/dbbe-julie-frontend/dist/*.css ./public/build/julie
+cp ./assets/dbbe-julie-frontend/dist/fontawesome-webfont* ./public/build/julie

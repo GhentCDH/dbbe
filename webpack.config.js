@@ -105,8 +105,7 @@ Encore
     .addPlugin(new WebpackShellPluginNext({
         onBuildEnd: {
             scripts: [
-                './create_symlinks.sh',
-                './copy_libraries.sh',
+                './copy_build_files.sh',
             ]
         }
     }))
