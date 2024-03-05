@@ -6,18 +6,24 @@ ARG NODE_PLATFORM=bookworm-slim
 # - https://pnpm.io/docker
 
 # ----------------------------------------------------------
-# ASSET_BUILDER
+# FRONTEND_BUILDER
 # ----------------------------------------------------------
-FROM node:${NODE_VERSION}-${NODE_PLATFORM} as asset_builder
+FROM node:${NODE_VERSION}-${NODE_PLATFORM} as frontend_builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-WORKDIR /dist
+
+WORKDIR "/app"
 COPY --link package.json pnpm-lock.yaml webpack.config.js ./
 COPY --link config ./config
 COPY --link assets ./assets
+COPY --link copy_build_files.sh ./copy_build_files.sh
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store set -eux; \
     pnpm install --frozen-lockfile; \
+    # Install website dependencies using bower
+    cd assets/websites; \
+    ../../node_modules/bower/bin/bower --allow-root install; \
+    cd ../..; \
     pnpm encore production;
 
 # ----------------------------------------------------------
@@ -56,3 +62,31 @@ FROM base-dev AS dev
 ENV APP_ENV=dev
 
 WORKDIR "/app"
+
+# ----------------------------------------------------------
+# BASE-PRD
+# php-fpm runs as user application:application
+# ----------------------------------------------------------
+FROM webdevops/php-apache:${PHP_VERSION} AS base-prd
+WORKDIR "/app"
+USER application
+
+# Backend dependencies
+COPY --chown=application:application --link composer.json ./composer.json
+COPY --chown=application:application --link composer.lock ./composer.lock
+RUN composer install --no-scripts
+
+# Backend code
+COPY --chown=application:application --link bin ./bin
+COPY --chown=application:application --link config ./config
+COPY --chown=application:application --link src ./src
+COPY --chown=application:application --link templates ./templates
+COPY --chown=application:application --link public/index.php ./public/index.php
+
+# Frontend: copy from frontend_builder
+COPY --chown=application:application --link --from=frontend_builder /app/public/build ./public/build
+
+# ----------------------------------------------------------
+# PRD
+# ----------------------------------------------------------
+FROM base-prd AS prd
