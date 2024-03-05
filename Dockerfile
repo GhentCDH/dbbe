@@ -92,6 +92,8 @@ COPY --chown=1000:1000 --link public/index.php ./public/index.php
 # Frontend: copy from frontend_builder
 COPY --chown=1000:1000 --link --from=frontend_builder /app/public/build ./public/build
 
+USER root
+
 # ----------------------------------------------------------
 # PRD
 # ----------------------------------------------------------
