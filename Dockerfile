@@ -9,6 +9,12 @@ ARG NODE_PLATFORM=bookworm-slim
 # FRONTEND_BUILDER
 # ----------------------------------------------------------
 FROM node:${NODE_VERSION}-${NODE_PLATFORM} as frontend_builder
+
+# Install git
+RUN set -eux; \
+    apt-get update -qq; \
+    apt-get install -qq -y git;
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
