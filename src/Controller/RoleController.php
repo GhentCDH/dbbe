@@ -64,7 +64,7 @@ class RoleController extends BaseController
                     'role_post' => $this->generateUrl('role_post'),
                     'role_put' => $this->generateUrl('role_put', ['id' => 'role_id']),
                     'role_delete' => $this->generateUrl('role_delete', ['id' => 'role_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                 ]),
                 'roles' => json_encode(
                     $this->manager->getAllRolesJson()

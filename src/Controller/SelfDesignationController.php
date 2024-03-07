@@ -48,7 +48,7 @@ class SelfDesignationController extends BaseController
                     'self_designation_merge' => $this->generateUrl('self_designation_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'self_designation_put' => $this->generateUrl('self_designation_put', ['id' => 'self_designation_id']),
                     'self_designation_delete' => $this->generateUrl('self_designation_delete', ['id' => 'self_designation_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'selfDesignations' => json_encode(

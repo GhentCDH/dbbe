@@ -66,7 +66,7 @@ class RegionController extends BaseController
                     'region_merge' => $this->generateUrl('region_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'region_put' => $this->generateUrl('region_put', ['id' => 'region_id']),
                     'region_delete' => $this->generateUrl('region_delete', ['id' => 'region_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'regions' => json_encode(

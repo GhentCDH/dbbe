@@ -194,7 +194,7 @@ class BookChapterController extends BaseController
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                 ]),
                 'data' => json_encode([
                     'bookChapter' => empty($id)

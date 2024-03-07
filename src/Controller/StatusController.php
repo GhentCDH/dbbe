@@ -86,7 +86,7 @@ class StatusController extends BaseController
                     'status_post' => $this->generateUrl('status_post'),
                     'status_put' => $this->generateUrl('status_put', ['id' => 'status_id']),
                     'status_delete' => $this->generateUrl('status_delete', ['id' => 'status_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                 ]),
                 'statuses' => json_encode(
                     $this->manager->getAllJson()

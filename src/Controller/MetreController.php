@@ -49,7 +49,7 @@ class MetreController extends BaseController
                     'metre_post' => $this->generateUrl('metre_post'),
                     'metre_put' => $this->generateUrl('metre_put', ['id' => 'metre_id']),
                     'metre_delete' => $this->generateUrl('metre_delete', ['id' => 'metre_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'metres' => json_encode(

@@ -52,7 +52,7 @@ class BookSeriesController extends BaseController
                     'book_series_merge' => $this->generateUrl('book_series_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'book_series_put' => $this->generateUrl('book_series_put', ['id' => 'book_series_id']),
                     'book_series_delete' => $this->generateUrl('book_series_delete', ['id' => 'book_series_id']),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'book_seriess' => json_encode($this->manager->getAllJson()),

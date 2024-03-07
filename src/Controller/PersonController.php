@@ -104,7 +104,7 @@ class PersonController extends BaseController
                     'person_merge' => $this->generateUrl('person_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'person_delete' => $this->generateUrl('person_delete', ['id' => 'person_id']),
                     'persons_get' => $this->generateUrl('persons_get'),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                     'managements_add' => $this->generateUrl('persons_managements_add'),
                     'managements_remove' => $this->generateUrl('persons_managements_remove'),
                     // @codingStandardsIgnoreEnd
@@ -443,7 +443,7 @@ class PersonController extends BaseController
                     'bibliographies_search' => $this->generateUrl('bibliographies_search'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->getParameter('app.env') == 'dev' ? $this->generateUrl('idci_keycloak_security_auth_connect') : $this->generateUrl('saml_login'),
+                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
                 ]),
                 'data' => json_encode([
                     'person' =>
