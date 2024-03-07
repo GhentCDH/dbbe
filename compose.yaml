@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  app:
+    image: "ghentcdh/dbbe:${VERSION}"
+    volumes:
+      - ./.env.symfony:/app/.env
+    ports:
+      - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8000}:80"
+    command: bash -c "composer dump-env prod && supervisord"
+    restart: unless-stopped
+
+  morph:
+    image: perseidsproject/morpheus-perseids-api:v2.1.12

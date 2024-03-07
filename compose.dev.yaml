@@ -34,7 +34,7 @@ services:
       - keycloak
 
   database:
-    image: postgres:16.1-bookworm
+    image: "postgres:${DATABASE_VERSION}-bookworm"
     deploy:
       resources:
         limits:
