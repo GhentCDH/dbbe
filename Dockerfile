@@ -98,3 +98,6 @@ USER root
 # PRD
 # ----------------------------------------------------------
 FROM base-prd AS prd
+# required for elasticsearch indexing operations
+ENV PHP_MEMORY_LIMIT=1024M
+ENV WEB_DOCUMENT_ROOT="/app/public"
