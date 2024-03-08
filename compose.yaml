@@ -19,5 +19,5 @@ volumes:
     driver: local
     driver_opts:
       type: cifs
-      o: "uid=application,gid=application,credentials=${DBBE_DATA_CREDENTIALS}"
+      o: "credentials=${DBBE_DATA_CREDENTIALS}"
       device: "${DBBE_DATA_SHARE}"
