@@ -74,6 +74,11 @@ WORKDIR "/app"
 # php-fpm runs as user 1000:1000
 # ----------------------------------------------------------
 FROM webdevops/php-apache:${PHP_VERSION} AS base-prd
+# Install cifs-utils
+RUN set -eux; \
+    apt-get update -qq; \
+    apt-get install -qq -y cifs-utils;
+
 WORKDIR "/app"
 USER application
 

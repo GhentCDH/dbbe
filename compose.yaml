@@ -5,19 +5,12 @@ services:
     image: "ghentcdh/dbbe:${DBBE_VERSION}"
     volumes:
       - ./.env.symfony:/app/.env
-      - dbbe_data:/app/data
     ports:
       - "127.0.0.1:${DBBE_EXTERNAL_PORT:-8000}:80"
+    # Add mount instruction to command if necessary:
+    # mount -t cifs //<server>/<share> /app/data -o uid=application,gid=applicatioin,credentials=<credential_path>
     command: bash -c "composer dump-env prod && supervisord"
     restart: unless-stopped
 
   morph:
     image: perseidsproject/morpheus-perseids-api:v2.1.12
-
-volumes:
-  dbbe_data:
-    driver: local
-    driver_opts:
-      type: cifs
-      o: "credentials=${DBBE_DATA_CREDENTIALS}"
-      device: "${DBBE_DATA_SHARE}"
