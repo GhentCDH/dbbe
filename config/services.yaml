@@ -11,8 +11,8 @@ parameters:
     app.saml_mail: '%env(SAML_MAIL)%'
     app.saml_username: '%env(SAML_USERNAME)%'
     app.saml_password: '%env(SAML_PASSWORD)%'
-    app.page_image_directory: 'page-images'
-    app.image_directory: 'images'
+    app.page_image_directory: '%env(PAGE_IMAGE_PATH)%'
+    app.image_directory: '%env(IMAGE_PATH)%'
     app.morph: '%env(MORPH_HOST)%'
 
 services:

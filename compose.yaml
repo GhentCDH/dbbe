@@ -5,6 +5,7 @@ services:
     image: "ghentcdh/dbbe:${DBBE_VERSION}"
     volumes:
       - ./.env.symfony:/app/.env
+      - dbbe_data:/app/data
     ports:
       - "127.0.0.1:${DBBE_EXTERNAL_PORT:-8000}:80"
     command: bash -c "composer dump-env prod && supervisord"
@@ -12,3 +13,11 @@ services:
 
   morph:
     image: perseidsproject/morpheus-perseids-api:v2.1.12
+
+volumes:
+  dbbe_data:
+    driver: local
+    driver_opts:
+      type: cifs
+      o: "uid=application,gid=application,credentials=${DBBE_DATA_CREDENTIALS}"
+      device: "${DBBE_DATA_SHARE}"
