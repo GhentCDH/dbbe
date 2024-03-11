@@ -40,8 +40,7 @@ class ImageController extends BaseController
         }
         try {
             return new BinaryFileResponse(
-                $this->getParameter('kernel.project_dir') . '/'
-                . $this->getParameter('app.image_directory') . '/'
+                $this->getParameter('app.image_directory') . '/'
                 . $image->getFilename()
             );
         } catch (FileNotFoundException $e) {

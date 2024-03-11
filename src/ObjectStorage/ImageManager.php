@@ -57,8 +57,7 @@ class ImageManager extends ObjectManager
     public function getImageByFile(UploadedFile $file): Image
     {
         $filename = $file->getClientOriginalName();
-        $imageDirectory = $this->container->getParameter('kernel.project_dir') . '/'
-            . $this->container->getParameter('app.image_directory') . '/';
+        $imageDirectory = $this->container->getParameter('app.image_directory') . '/';
 
         // Make sure file exists
         $fileSystem = new Filesystem();
