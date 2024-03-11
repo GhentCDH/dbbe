@@ -10,13 +10,12 @@ import '@firstandthird/toc/dist/toc.js';
         $(this).ekkoLightbox();
     });
 
-    const images = $('.thumbnail.hidden img');
-    images.each(() => {
-        if ($(this).complete) {
-            $(this).closest('.thumbnail').fadeIn(500).removeClass('hidden');
+    $('.thumbnail.hidden img').each((_, image) => {
+        if ($(image).complete) {
+            $(image).closest('.thumbnail').fadeIn(500).removeClass('hidden');
         } else {
-            $(this).on('load', () => {
-                $(this).closest('.thumbnail').fadeIn(500).removeClass('hidden');
+            $(image).on('load', () => {
+                $(image).closest('.thumbnail').fadeIn(500).removeClass('hidden');
             });
         }
     });
