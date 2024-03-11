@@ -21,6 +21,13 @@ yarn-error.log
 .pnpm-store
 ###< symfony/webpack-encore-bundle ###
 
+### images folders for development
+/image_data/images/*
+!/image_data/images/.gitkeep
+/image_data/page-images/*
+!/image_data/page-images/.gitkeep
+###
+
 ### docker volumes
 /volumes
 ###

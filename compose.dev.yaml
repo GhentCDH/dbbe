@@ -9,6 +9,7 @@ services:
       - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8001}:8000"
     volumes:
       - ./:/app
+      - ./image_data:/app/data
       # images
       # page-images
     environment:
@@ -16,6 +17,8 @@ services:
       ELASTIC_HOSTS: "{\"host\": \"${ELASTICSEARCH_HOST}\", \"port\": ${ELASTICSEARCH_PORT:-9200}}"
       ELASTIC_INDEX_PREFIX: ${ELASTICSEARCH_INDEX_PREFIX}
       MAILER_DSN: ${MAILER_DSN}
+      PAGE_IMAGE_PATH: ${PAGE_IMAGE_PATH}
+      IMAGE_PATH: ${IMAGE_PATH}
       SITEKEY: ${RECAPTCHA_SITEKEY}
       SECRETKEY: ${RECAPTCHA_SECRETKEY}
       RECAPTCHA_SITEVERIFY_URL: ${RECAPTCHA_SITEVERIFY_URL}
