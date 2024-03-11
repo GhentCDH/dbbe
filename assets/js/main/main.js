@@ -11,7 +11,7 @@ import '@firstandthird/toc/dist/toc.js';
     });
 
     $('.thumbnail.hidden img').each((_, image) => {
-        if ($(image).complete) {
+        if (image.complete) {
             $(image).closest('.thumbnail').fadeIn(500).removeClass('hidden');
         } else {
             $(image).on('load', () => {
