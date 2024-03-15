@@ -14,8 +14,6 @@ parameters:
     app.page_image_directory: '%env(PAGE_IMAGE_PATH)%'
     app.image_directory: '%env(IMAGE_PATH)%'
     app.morph: '%env(MORPH_HOST)%'
-    router.request_context.scheme: 'https'
-    asset.request_context.secure: true
 
 services:
     # default configuration for services in *this* file

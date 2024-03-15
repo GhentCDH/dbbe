@@ -1,0 +1,2 @@
+idci_keycloak_security:
+  ssl_verification: false
