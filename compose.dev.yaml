@@ -43,7 +43,6 @@ services:
         limits:
           cpus: "1"
           memory: "256M"
-    container_name: "database"
     ports:
       - "127.0.0.1:${DATABASE_EXTERNAL_PORT:-15432}:5432"
     volumes:
