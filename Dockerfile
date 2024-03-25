@@ -77,6 +77,9 @@ FROM webdevops/php-apache:${PHP_VERSION} AS base-prd
 WORKDIR "/app"
 USER application
 
+# Create data folder with correct permissions (for images and page-images)
+RUN mkdir -p /app/data
+
 # Backend dependencies
 COPY --chown=1000:1000 --link composer.json ./composer.json
 COPY --chown=1000:1000 --link composer.lock ./composer.lock
@@ -85,7 +88,6 @@ RUN composer install --no-scripts
 # Backend code
 COPY --chown=1000:1000 --link bin ./bin
 COPY --chown=1000:1000 --link config ./config
-COPY --chown=1000:1000 --link data ./data
 COPY --chown=1000:1000 --link src ./src
 COPY --chown=1000:1000 --link templates ./templates
 COPY --chown=1000:1000 --link public/index.php ./public/index.php
