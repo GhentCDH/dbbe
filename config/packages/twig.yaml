@@ -3,6 +3,7 @@ twig:
 
     globals:
         siteKey: '%env(SITEKEY)%'
+        keycloakAdminUrl: '%env(KEYCLOAK_ADMIN_URL)%'
 
 when@test:
     twig:
