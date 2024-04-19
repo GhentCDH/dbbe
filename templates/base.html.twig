@@ -265,11 +265,13 @@
                                                                 <span>Tags</span>
                                                             </a>
                                                         </li>
-                                                        <li>
-                                                            <a href="{{ keycloakAdminUrl }}" target="_blank">
-                                                                <span>Users</span>
-                                                            </a>
-                                                        </li>
+                                                        {% if is_granted('ROLE_USER_ADMIN') %}
+                                                            <li>
+                                                                <a href="{{ keycloakAdminUrl }}" target="_blank">
+                                                                    <span>Users</span>
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
                                                     </ul>
                                                 </li>
                                             {% endif %}
