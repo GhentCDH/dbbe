@@ -7,17 +7,6 @@
     li {
       margin-bottom: 8px;
       position: relative;
-
-      a {
-        border-bottom: 1px solid $brand-primary;
-
-        &:hover,
-        &:focus,
-        &.selected {
-          border-color: transparent;
-          color: $brand-primary;
-        }
-      }
     }
   }
 
@@ -59,6 +48,13 @@
 }
 
 a {
+  border-color:transparent;
+  &:hover,
+  &:focus,
+  &.selected {
+    border-color:$brand-primary;
+  }
+
   &.relUrl {
     margin-left: 1em;
 
