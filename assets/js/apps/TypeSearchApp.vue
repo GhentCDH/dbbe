@@ -395,20 +395,18 @@ export default {
                 { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
             ],
         };
-        if (this.isViewInternal) {
-            data.model.lemma_mode = ['greek'];
-            data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
-            // disable latin
-            data.schema.fields.lemma_mode.values[2].disabled = true;
-            data.schema.fields.lemma = {
-                type: 'input',
-                inputType: 'text',
-                styleClasses: 'greek has-warning',
-                labelClasses: 'control-label',
-                label: 'Lemma',
-                model: 'lemma',
-            };
-        }
+        data.model.lemma_mode = ['greek'];
+        data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
+        // disable latin
+        data.schema.fields.lemma_mode.values[2].disabled = true;
+        data.schema.fields.lemma = {
+            type: 'input',
+            inputType: 'text',
+            styleClasses: 'greek',
+            labelClasses: 'control-label',
+            label: 'Lemma',
+            model: 'lemma',
+        };
         data.schema.fields.person = this.createMultiSelect(
             'Person',
             {},
