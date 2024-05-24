@@ -357,17 +357,20 @@ export default {
             label: 'Text',
             model: 'text',
         };
-        data.model.text_stem = 'original';
-        data.schema.fields.text_stem = {
-            type: 'radio',
-            label: 'Stemmer options:',
-            labelClasses: 'control-label',
-            model: 'text_stem',
-            values: [
-                { value: 'original', name: 'Original text' },
-                { value: 'stemmer', name: 'Stemmed text' },
-            ],
-        };
+        if (this.isViewInternal) {
+            data.model.text_stem = 'original';
+            data.schema.fields.text_stem = {
+                type: 'radio',
+                styleClasses: 'has-warning',
+                label: 'Stemmer options:',
+                labelClasses: 'control-label',
+                model: 'text_stem',
+                values: [
+                    { value: 'original', name: 'Original text' },
+                    { value: 'stemmer', name: 'Stemmed text' },
+                ],
+            };
+        }
         data.schema.fields.text_combination = {
             type: 'checkboxes',
             styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
