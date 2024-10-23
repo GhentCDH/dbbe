@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   app:
@@ -30,7 +29,7 @@ services:
     tty: true
     # First time: install dependencies
     # command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
-    command: bash -c "symfony server:start --no-tls && sleep infinity"
+    command: bash -c "composer require symfony/runtime && symfony server:start --no-tls --allow-http --allow-all-ip && sleep infinity"
     # command: bash -c "sleep infinity"
     depends_on:
       - database
@@ -47,7 +46,8 @@ services:
     ports:
       - "127.0.0.1:${DATABASE_EXTERNAL_PORT:-15432}:5432"
     volumes:
-      - database:/var/lib/postgresql/data
+      - ./docker_data/dbbe_db/data:/var/lib/postgresql/data
+      - ./docker_data/dbbe_db/initdb:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: $DATABASE_USER
       POSTGRES_PASSWORD: $DATABASE_PASSWORD
@@ -60,7 +60,7 @@ services:
     ports:
       - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
     volumes:
-      - elasticsearch:/usr/share/elasticsearch/data
+      - ./docker_data/elasticsearch/data:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
       network.host: 0.0.0.0
@@ -95,7 +95,7 @@ services:
     ports:
       - "127.0.0.1:${KEYCLOAK_DATABASE_EXTERNAL_TCP_PORT}:${KEYCLOAK_DATABASE_INTERNAL_TCP_PORT}"
     volumes:
-      - keycloak_database:/var/lib/postgresql/data
+      - ./docker_data/keycloak/db/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: $KEYCLOAK_DATABASE_USER
       POSTGRES_PASSWORD: $KEYCLOAK_DATABASE_PASSWORD
@@ -114,7 +114,7 @@ services:
     ports:
       - "127.0.0.1:${KEYCLOAK_EXTERNAL_TCP_PORT}:${KEYCLOAK_INTERNAL_TCP_PORT}"
     volumes:
-      - ./keycloak-dev:/opt/keycloak/data/import
+      - ./docker_data/keycloak/import:/opt/keycloak/data/import
     environment:
       - KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN
       - KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
@@ -125,13 +125,3 @@ services:
 
     command: start-dev --import-realm
 
-volumes:
-  database:
-    external: true
-    name: dbbe-database
-  elasticsearch:
-    external: true
-    name: dbbe-elasticsearch
-  keycloak_database:
-    external: true
-    name: dbbe-keycloak-database
