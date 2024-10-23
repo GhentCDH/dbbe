@@ -27,10 +27,9 @@ services:
       XDEBUG_MODE: debug
       XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
     tty: true
-    # First time: install dependencies
-    # command: bash -c "composer install && pnpm install && cd assets/websites && ../../node_modules/bower/bin/bower --allow-root install && cd ../.. && pnpm encore dev && symfony server:start --no-tls"
-    command: bash -c "composer require symfony/runtime && symfony server:start --no-tls --allow-http --allow-all-ip && sleep infinity"
-    # command: bash -c "sleep infinity"
+
+    command: bash -c "cd /app && ./symfony_startup_script.sh"
+
     depends_on:
       - database
       - elasticsearch
