@@ -40,3 +40,4 @@ docker_data/dbbe_db/data
 docker_data/dbbe_db/initdb/*gz
 
 docker_data/keycloak/db
+docker_data/elasticsearch/data
