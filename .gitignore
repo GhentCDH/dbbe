@@ -31,3 +31,12 @@ yarn-error.log
 ### docker volumes
 /volumes
 ###
+
+.DS_Store
+Thumbs.db
+Thumbs.db:encryptable
+
+docker_data/dbbe_db/data
+docker_data/dbbe_db/initdb/*gz
+
+docker_data/keycloak/db
