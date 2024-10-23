@@ -20,19 +20,7 @@ Next run the following command to run the docker services:
 docker compose -f compose.dev.yaml --env-file .env.dev up --build
 ``````
 
-Open a bash shell inside the container running php 
-
-``````
-#build the asset files to serve a css file
-pnpm install --frozen-lockfile
-cd assets/websites/
-../../node_modules/bower/bin/bower --allow-root install
-cd ../..
-pnpm encore production
-
-#build the elasticsearch indexes
-php bin/console app:elasticsearch:index
-``````
+The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process. 
 
 ## Contributing
 
