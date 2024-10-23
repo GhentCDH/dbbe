@@ -16,11 +16,9 @@ Next run the following command to run the docker services:
 * Keycloak authentication service
 * Keycloak postgres database
 
-
 ``````
 docker compose -f compose.dev.yaml --env-file .env.dev up --build
 ``````
-
 
 Open a bash shell inside the container running php 
 
