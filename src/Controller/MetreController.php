@@ -19,20 +19,20 @@ class MetreController extends BaseController
     }
 
     /**
-     * @Route("/metres", name="metres_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/metres', name: 'metres_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         return parent::getAll($request);
     }
 
     /**
-     * @Route("/metres/edit", name="metres_edit", methods={"GET"})
      * @return Response
      */
-    public function edit()
+    #[Route(path: '/metres/edit', name: 'metres_edit', methods: ['GET'])]
+    public function edit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -60,33 +60,33 @@ class MetreController extends BaseController
     }
 
     /**
-     * @Route("/metres", name="metre_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/metres', name: 'metre_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/metres/{id}", name="metre_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/metres/{id}', name: 'metre_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/metres/{id}", name="metre_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/metres/{id}', name: 'metre_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

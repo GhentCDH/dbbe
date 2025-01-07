@@ -5,7 +5,6 @@ namespace App\Controller;
 use DateTime;
 
 use Doctrine\DBAL\DBALException;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,12 +17,13 @@ use App\Security\Roles;
 class NewsEventController extends AbstractController
 {
     /**
-     * @Route("/news-events", name="news_events_get", methods={"GET"})
      * @param NewsEventService $newsEventService
      * @return Response
      * @throws DBALException
      */
-    public function getAll(NewsEventService $newsEventService)
+
+#[Route(path: '/news-events', name: 'news_events_get',  methods: ['GET'])]
+public function getAll(NewsEventService $newsEventService): Response
     {
         if ($this->isGranted(Roles::ROLE_EDITOR_VIEW)) {
             $newsEvents = $newsEventService->getDateSorted();
@@ -50,12 +50,12 @@ class NewsEventController extends AbstractController
     }
 
     /**
-     * @Route("/news-events/edit", name="news_events_edit", methods={"GET"})
      * @param NewsEventService $newsEventService
      * @return Response
      * @throws DBALException
      */
-    public function edit(NewsEventService $newsEventService)
+    #[Route(path: '/news-events/edit', name: 'news_events_edit',  methods: ['GET'])]
+    public function edit(NewsEventService $newsEventService): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
@@ -75,13 +75,13 @@ class NewsEventController extends AbstractController
     }
 
     /**
-     * @Route("/news-events/{id}", name="news_event_get", methods={"GET"})
      * @param int $id
      * @param NewsEventService $newsEventService
      * @return Response
      * @throws DBALException
      */
-    public function getSingle(int $id, NewsEventService $newsEventService)
+    #[Route(path: '/news-events/{id}', name: 'news_event_get',  methods: ['GET'])]
+    public function getSingle(int $id, NewsEventService $newsEventService): Response
     {
         $newsEvent = $newsEventService->getSingle($id);
 
@@ -98,13 +98,13 @@ class NewsEventController extends AbstractController
     }
 
     /**
-     * @Route("/news-events", name="news_events_put", methods={"PUT"})
      * @param Request $request
      * @param NewsEventService $newsEventService
      * @return JsonResponse
      * @throws DBALException
      */
-    public function put(Request $request, NewsEventService $newsEventService)
+    #[Route(path: '/news-events', name: 'news_events_put',  methods: ['PUT'])]
+    public function put(Request $request, NewsEventService $newsEventService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {

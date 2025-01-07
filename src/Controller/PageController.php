@@ -18,12 +18,12 @@ use App\Security\Roles;
 class PageController extends AbstractController
 {
     /**
-     * @Route("/pages/{slug}", name="page_get", methods={"GET"})
      * @param string $slug
      * @param PageService $pageService
      * @return Response
      */
-    public function getPage(string $slug, PageService $pageService)
+    #[Route(path: '/pages/{slug}', name: 'page_get', methods: ['GET'])]
+    public function getPage(string $slug, PageService $pageService): Response
     {
         $page = $pageService->getBySlug($slug);
         if (empty($page)) {
@@ -36,13 +36,13 @@ class PageController extends AbstractController
     }
 
     /**
-     * @Route("/pages/{slug}", name="page_put", methods={"PUT"})
      * @param Request $request
      * @param string $slug
      * @param PageService $pageService
      * @return JsonResponse
      */
-    public function put(Request $request, string $slug, PageService $pageService)
+    #[Route(path: '/pages/{slug}', name: 'page_put', methods: ['PUT'])]
+    public function put(Request $request, string $slug, PageService $pageService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         if (explode(',', $request->headers->get('Accept'))[0] != 'application/json') {
@@ -84,12 +84,12 @@ class PageController extends AbstractController
     }
 
     /**
-     * @Route("/pages/{slug}/edit", name="page_edit", methods={"GET"})
      * @param string $slug
      * @param PageService $pageService
      * @return Response
      */
-    public function edit(string $slug, PageService $pageService)
+    #[Route(path: '/pages/{slug}/edit', name: 'page_edit', methods: ['GET'])]
+    public function edit(string $slug, PageService $pageService): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
         $page = $pageService->getBySlug($slug);
@@ -112,11 +112,11 @@ class PageController extends AbstractController
     }
 
     /**
-     * @Route("/pages/images/{name}", name="page_image_get", methods={"GET"})
      * @param string $name
      * @return BinaryFileResponse
      */
-    public function getImage(string $name)
+    #[Route(path: '/pages/images/{name}', name: 'page_image_get', methods: ['GET'])]
+    public function getImage(string $name): BinaryFileResponse
     {
         try {
             return new BinaryFileResponse(
@@ -129,9 +129,9 @@ class PageController extends AbstractController
     }
 
     /**
-     * @Route("/pages/images", name="page_image_post", methods={"POST"})
      * @param  Request $request
      */
+    #[Route(path: '/pages/images', name: 'page_image_post', methods: ['POST'])]
     public function postImage(Request $request)
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);

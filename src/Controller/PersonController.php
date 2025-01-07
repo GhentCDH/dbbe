@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,11 +25,11 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons", name="persons_get", methods={"GET"})
      * @param Request $request
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/persons', name: 'persons_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -60,13 +59,13 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/search", name="persons_search", methods={"GET"})
      * @param Request $request
      * @param ElasticPersonService $elasticPersonService
      * @param IdentifierManager $identifierManager
      * @param ManagementManager $managementManager
      * @return Response
      */
+    #[Route(path: '/persons/search', name: 'persons_search', methods: ['GET'])]
     public function search(
         Request $request,
         ElasticPersonService $elasticPersonService,
@@ -126,12 +125,12 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/search_api", name="persons_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticPersonService $elasticPersonService
      * @param IdentifierManager $identifierManager
      * @return JsonResponse
      */
+    #[Route(path: '/persons/search_api', name: 'persons_search_api', methods: ['GET'])]
     public function searchAPI(
         Request $request,
         ElasticPersonService $elasticPersonService,
@@ -146,7 +145,6 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/add", name="person_add", methods={"GET"})
      * @param OfficeManager $officeManager
      * @param OriginManager $originManager
      * @param SelfDesignationManager $selfDesignationManager
@@ -154,6 +152,7 @@ class PersonController extends BaseController
      * @param IdentifierManager $identifierManager
      * @return Response
      */
+    #[Route(path: '/persons/add', name: 'person_add', methods: ['GET'])]
     public function add(
         OfficeManager $officeManager,
         OriginManager $originManager,
@@ -170,12 +169,12 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/{id}", name="person_get", methods={"GET"})
      * @param  int    $id person id
      * @param Request $request
      * @return Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/persons/{id}', name: 'person_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): Response
     {
         return parent::getSingle($id, $request);
     }
@@ -183,12 +182,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on an office
      * (person_occupation)
-     * @Route("/persons/offices/{id}", name="person_deps_by_office", methods={"GET"})
      * @param  int    $id office id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOffice(int $id, Request $request)
+    #[Route(path: '/persons/offices/{id}', name: 'person_deps_by_office', methods: ['GET'])]
+    public function getDepsByOffice(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOfficeDependencies');
     }
@@ -196,12 +195,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a region
      * (factoid: origination)
-     * @Route("/persons/regions/{id}", name="person_deps_by_region", methods={"GET"})
      * @param  int    $id region id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRegion(int $id, Request $request)
+    #[Route(path: '/persons/regions/{id}', name: 'person_deps_by_region', methods: ['GET'])]
+    public function getDepsByRegion(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
@@ -209,12 +208,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a self designation
      * (person_self_designation)
-     * @Route("/persons/self-designations/{id}", name="person_deps_by_self_designation", methods={"GET"})
      * @param  int    $id self designation id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsBySelfDesignation(int $id, Request $request)
+    #[Route(path: '/persons/self-designations/{id}', name: 'person_deps_by_self_designation', methods: ['GET'])]
+    public function getDepsBySelfDesignation(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getSelfDesignationDependencies');
     }
@@ -222,12 +221,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on an article
      * (reference)
-     * @Route("/persons/articles/{id}", name="person_deps_by_article", methods={"GET"})
      * @param int $id article id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByArticle(int $id, Request $request)
+    #[Route(path: '/persons/articles/{id}', name: 'person_deps_by_article', methods: ['GET'])]
+    public function getDepsByArticle(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getArticleDependencies');
     }
@@ -235,12 +234,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a blog post
      * (reference)
-     * @Route("/persons/blogposts/{id}", name="person_deps_by_blog_post", methods={"GET"})
      * @param int $id blog post id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBlogPost(int $id, Request $request)
+    #[Route(path: '/persons/blogposts/{id}', name: 'person_deps_by_blog_post', methods: ['GET'])]
+    public function getDepsByBlogPost(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBlogPostDependencies');
     }
@@ -248,12 +247,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a book
      * (reference)
-     * @Route("/persons/books/{id}", name="person_deps_by_book", methods={"GET"})
      * @param int $id book id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBook(int $id, Request $request)
+    #[Route(path: '/persons/books/{id}', name: 'person_deps_by_book', methods: ['GET'])]
+    public function getDepsByBook(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
     }
@@ -261,12 +260,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a book chapter
      * (reference)
-     * @Route("/persons/bookchapters/{id}", name="person_deps_by_book_chapter", methods={"GET"})
      * @param int $id book chapter id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBookChapter(int $id, Request $request)
+    #[Route(path: '/persons/bookchapters/{id}', name: 'person_deps_by_book_chapter', methods: ['GET'])]
+    public function getDepsByBookChapter(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookChapterDependencies');
     }
@@ -274,12 +273,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on an online source
      * (reference)
-     * @Route("/persons/onlinesources/{id}", name="person_deps_by_online_source", methods={"GET"})
      * @param int $id online source id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOnlineSource(int $id, Request $request)
+    #[Route(path: '/persons/onlinesources/{id}', name: 'person_deps_by_online_source', methods: ['GET'])]
+    public function getDepsByOnlineSource(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
     }
@@ -287,12 +286,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a PhD thesis
      * (reference)
-     * @Route("/persons/phd_theses/{id}", name="person_deps_by_phd", methods={"GET"})
      * @param int $id phd id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPhd(int $id, Request $request)
+    #[Route(path: '/persons/phd_theses/{id}', name: 'person_deps_by_phd', methods: ['GET'])]
+    public function getDepsByPhd(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPhdDependencies');
     }
@@ -300,12 +299,12 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a bib varia
      * (reference)
-     * @Route("/persons/bib_varia/{id}", name="person_deps_by_bib_varia", methods={"GET"})
      * @param int $id bib varia id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBibVaria(int $id, Request $request)
+    #[Route(path: '/persons/bib_varia/{id}', name: 'person_deps_by_bib_varia', methods: ['GET'])]
+    public function getDepsByBibVaria(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBibVariaDependencies');
     }
@@ -313,22 +312,22 @@ class PersonController extends BaseController
     /**
      * Get all persons that have a dependency on a management collection
      * (reference)
-     * @Route("/persons/managements/{id}", name="person_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/persons/managements/{id}', name: 'person_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/persons", name="person_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/persons', name: 'person_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -340,12 +339,12 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/{id}", name="person_put", methods={"PUT"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/persons/{id}', name: 'person_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -357,50 +356,49 @@ class PersonController extends BaseController
     }
 
     /**
-     * @Route("/persons/managements/add", name="persons_managements_add", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function addManagements(Request $request)
+    #[Route(path: '/persons/managements/add', name: 'persons_managements_add', methods: ['PUT'])]
+    public function addManagements(Request $request): JsonResponse
     {
         return parent::addManagements($request);
     }
 
     /**
-     * @Route("/persons/managements/remove", name="persons_managements_remove", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function removeManagements(Request $request)
+    #[Route(path: '/persons/managements/remove', name: 'persons_managements_remove', methods: ['PUT'])]
+    public function removeManagements(Request $request): JsonResponse
     {
         return parent::removeManagements($request);
     }
 
     /**
-     * @Route("/persons/{primaryId}/{secondaryId}", name="person_merge", methods={"PUT"})
      * @param  int    $primaryId   first person id (will stay)
      * @param  int    $secondaryId second person id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/persons/{primaryId}/{secondaryId}', name: 'person_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/persons/{id}", name="person_delete", methods={"DELETE"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/persons/{id}', name: 'person_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/persons/{id}/edit", name="person_edit", methods={"GET"})
      * @param OfficeManager $officeManager
      * @param OriginManager $originManager
      * @param SelfDesignationManager $selfDesignationManager
@@ -409,6 +407,7 @@ class PersonController extends BaseController
      * @param int|null $id person id
      * @return Response
      */
+    #[Route(path: '/persons/{id}/edit', name: 'person_edit', methods: ['GET'])]
     public function edit(
         OfficeManager $officeManager,
         OriginManager $originManager,

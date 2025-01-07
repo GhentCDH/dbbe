@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,11 +22,11 @@ class BibVariaController extends BaseController
     }
 
     /**
-     * @Route("/bib_varia", name="bib_varias_get", methods={"GET"})
      * @param Request $request
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/bib_varia', name: 'bib_varias_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -37,12 +36,12 @@ class BibVariaController extends BaseController
     }
 
     /**
-     * @Route("/bib_varia/add", name="bib_varia_add", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/bib_varia/add', name: 'bib_varia_add', methods: ['GET'])]
     public function add(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
@@ -57,12 +56,12 @@ class BibVariaController extends BaseController
     }
 
     /**
-     * @Route("/bib_varia/{id}", name="bib_varia_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/bib_varia/{id}', name: 'bib_varia_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
@@ -70,12 +69,12 @@ class BibVariaController extends BaseController
     /**
      * Get all bib varias that have a dependency on a person
      * (bibrole)
-     * @Route("/bib_varia/persons/{id}", name="bib_varia_deps_by_person", methods={"GET"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/bib_varia/persons/{id}', name: 'bib_varia_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -83,12 +82,12 @@ class BibVariaController extends BaseController
     /**
      * Get all bib varias that have a dependency on a role
      * (bibrole)
-     * @Route("/bib_varia/roles/{id}", name="bib_varia_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/bib_varia/roles/{id}', name: 'bib_varia_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -96,22 +95,22 @@ class BibVariaController extends BaseController
     /**
      * Get all bib varias that have a dependency on a management collection
      * (reference)
-     * @Route("/bib_varia/managements/{id}", name="bib_varia_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/bib_varia/managements/{id}', name: 'bib_varia_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/bib_varia", name="bib_varia_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/bib_varia', name: 'bib_varia_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -123,12 +122,12 @@ class BibVariaController extends BaseController
     }
 
     /**
-     * @Route("/bib_varia/{id}", name="bib_varia_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/bib_varia/{id}', name: 'bib_varia_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -140,24 +139,24 @@ class BibVariaController extends BaseController
     }
 
     /**
-     * @Route("/bib_varia/{id}", name="bib_varia_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/bib_varia/{id}', name: 'bib_varia_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/bib_varia/{id}/edit", name="bib_varia_edit", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/bib_varia/{id}/edit', name: 'bib_varia_edit', methods: ['GET'])]
     public function edit(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,

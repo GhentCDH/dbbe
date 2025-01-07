@@ -23,7 +23,7 @@ class OfficeManager extends ObjectManager
      * @param  array $ids
      * @return array
      */
-    public function get(array $ids)
+    public function get(array $ids): array
     {
         $rawOffices = $this->dbs->getOfficesByIds($ids);
         return $this->getWithData($rawOffices);
@@ -34,7 +34,7 @@ class OfficeManager extends ObjectManager
      * @param  array $data
      * @return array
      */
-    public function getWithData(array $data)
+    public function getWithData(array $data): array
     {
         $offices = [];
 
@@ -62,7 +62,7 @@ class OfficeManager extends ObjectManager
      * @param  array $ids
      * @return array
      */
-    public function getWithParents(array $ids)
+    public function getWithParents(array $ids): array
     {
         $officesWithParents = [];
         $rawOfficesWithParents = $this->dbs->getOfficesWithParentsByIds($ids);

@@ -68,7 +68,7 @@ class OnlineSource extends Entity
     /**
      * @return DateTime
      */
-    public function getLastAccessed(): ?DateTime
+    public function getLastAccessed(): DateTime
     {
         return $this->lastAccessed;
     }

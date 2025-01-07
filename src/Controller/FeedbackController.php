@@ -25,12 +25,12 @@ class FeedbackController extends AbstractController
     }
 
     /**
-     * @Route("/feedback", name="feedback", methods={"POST"})
      * @param Request $request
      * @param FeedbackService $feedbackService
      * @return JsonResponse
      */
-    public function postFeedback(Request $request, FeedbackService $feedbackService, ValidatorInterface $validator, MailerInterface $mailer)
+    #[Route(path: '/feedback', name: 'feedback', methods: ['POST'])]
+    public function postFeedback(Request $request, FeedbackService $feedbackService, ValidatorInterface $validator, MailerInterface $mailer): JsonResponse
     {
         // sanitize input
         $content = json_decode($request->getContent());

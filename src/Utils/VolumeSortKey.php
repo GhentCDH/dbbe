@@ -10,7 +10,7 @@ class VolumeSortKey
      * @param string $volume
      * @return string
      */
-    public static function sortKey($volume)
+    public static function sortKey($volume): string
     {
         $parts = explode('.', $volume);
         foreach ($parts as $part) {

@@ -19,11 +19,11 @@ class LocationController extends BaseController
     }
 
     /**
-     * @Route("/locations", name="locations_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/locations', name: 'locations_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -44,10 +44,10 @@ class LocationController extends BaseController
     }
 
     /**
-     * @Route("/locations/edit", name="locations_edit", methods={"GET"})
      * @return Response
      */
-    public function edit()
+    #[Route(path: '/locations/edit', name: 'locations_edit', methods: ['GET'])]
+    public function edit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 

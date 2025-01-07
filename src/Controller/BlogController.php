@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,11 +22,11 @@ class BlogController extends BaseController
     }
 
     /**
-     * @Route("/blogs", name="blogs_get", methods={"GET"})
      * @param Request $request
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/blogs', name: 'blogs_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -37,12 +36,12 @@ class BlogController extends BaseController
     }
 
     /**
-     * @Route("/blogs/add", name="blog_add", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/blogs/add', name: 'blog_add', methods: ['GET'])]
     public function add(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
@@ -57,12 +56,12 @@ class BlogController extends BaseController
     }
 
     /**
-     * @Route("/blogs/{id}", name="blog_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/blogs/{id}', name: 'blog_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
@@ -70,22 +69,22 @@ class BlogController extends BaseController
     /**
      * Get all blogs that have a dependency on a management collection
      * (reference)
-     * @Route("/blogs/managements/{id}", name="blog_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/blogs/managements/{id}', name: 'blog_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/blogs", name="blog_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/blogs', name: 'blog_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -97,12 +96,12 @@ class BlogController extends BaseController
     }
 
     /**
-     * @Route("/blogs/{id}", name="blog_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/blogs/{id}', name: 'blog_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -114,24 +113,24 @@ class BlogController extends BaseController
     }
 
     /**
-     * @Route("/blogs/{id}", name="blog_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/blogs/{id}', name: 'blog_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/blogs/{id}/edit", name="blog_edit", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/blogs/{id}/edit', name: 'blog_edit', methods: ['GET'])]
     public function edit(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,

@@ -34,11 +34,11 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types", name="types_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse|RedirectResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/types', name: 'types_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMicro($request);
@@ -48,13 +48,13 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/search", name="types_search", methods={"GET"})
      * @param Request $request
      * @param ElasticTypeService $elasticTypeService
      * @param IdentifierManager $identifierManager
      * @param ManagementManager $managementManager
      * @return Response
      */
+    #[Route(path: '/types/search', name: 'types_search', methods: ['GET'])]
     public function search(
         Request $request,
         ElasticTypeService $elasticTypeService,
@@ -96,11 +96,11 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/search_api", name="types_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticTypeService $elasticTypeService
      * @return JsonResponse
      */
+    #[Route(path: '/types/search_api', name: 'types_search_api', methods: ['GET'])]
     public function searchAPI(
         Request $request,
         ElasticTypeService $elasticTypeService
@@ -115,7 +115,6 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/add", name="type_add", methods={"GET"})
      * @param TypeRelationTypeManager $typeRelationTypeManager
      * @param PersonManager $personManager
      * @param MetreManager $metreManager
@@ -130,6 +129,7 @@ class TypeController extends BaseController
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/types/add', name: 'type_add', methods: ['GET'])]
     public function add(
         TypeRelationTypeManager $typeRelationTypeManager,
         PersonManager $personManager,
@@ -154,22 +154,22 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/{id}", name="type_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/types/{id}', name: 'type_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
 
     /**
-     * @Route("/typ/{id}", name="type_get_old_perma", methods={"GET"})
      * @param int $id
      * @return RedirectResponse
      */
-    public function getOldPerma(int $id)
+    #[Route(path: '/typ/{id}', name: 'type_get_old_perma', methods: ['GET'])]
+    public function getOldPerma(int $id): RedirectResponse
     {
         // Let the 404 page handle the not found exception
         $newId = $this->manager->getNewId($id);
@@ -177,11 +177,11 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/type/view/id/{id}", name="type_get_old", methods={"GET"})
      * @param int $id
      * @return RedirectResponse
      */
-    public function getOld(int $id)
+    #[Route(path: '/type/view/id/{id}', name: 'type_get_old', methods: ['GET'])]
+    public function getOld(int $id): RedirectResponse
     {
         // Let the 404 page handle the not found exception
         $newId = $this->manager->getNewId($id);
@@ -191,12 +191,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a status
      * (document_status)
-     * @Route("/types/statuses/{id}", name="type_deps_by_status", methods={"GET"})
      * @param int $id status id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByStatus(int $id, Request $request)
+    #[Route(path: '/types/statuses/{id}', name: 'type_deps_by_status', methods: ['GET'])]
+    public function getDepsByStatus(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getStatusDependencies');
     }
@@ -204,12 +204,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a person
      * (bibrole / factoid)
-     * @Route("/types/persons/{id}", name="type_deps_by_person", methods={"GET"})
      * @param int $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/types/persons/{id}', name: 'type_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -217,12 +217,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a metre
      * (poem_metre)
-     * @Route("/types/metres/{id}", name="type_deps_by_metre", methods={"GET"})
      * @param int $id metre id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByMetre(int $id, Request $request)
+    #[Route(path: '/types/metres/{id}', name: 'type_deps_by_metre', methods: ['GET'])]
+    public function getDepsByMetre(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getMetreDependencies');
     }
@@ -230,12 +230,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a genre
      * (document_genre)
-     * @Route("/types/genres/{id}", name="type_deps_by_genre", methods={"GET"})
      * @param int $id genre id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByGenre(int $id, Request $request)
+    #[Route(path: '/types/genres/{id}', name: 'type_deps_by_genre', methods: ['GET'])]
+    public function getDepsByGenre(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getGenreDependencies');
     }
@@ -243,12 +243,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a keyword
      * (factoid / document_keyword)
-     * @Route("/types/keywords/{id}", name="type_deps_by_keyword", methods={"GET"})
      * @param int $id keyword id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByKeyword(int $id, Request $request)
+    #[Route(path: '/types/keywords/{id}', name: 'type_deps_by_keyword', methods: ['GET'])]
+    public function getDepsByKeyword(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getKeywordDependencies');
     }
@@ -256,12 +256,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on an acknowledgement
      * (document_acknowledgement)
-     * @Route("/types/acknowledgements/{id}", name="type_deps_by_acknowledgement", methods={"GET"})
      * @param int $id acknowledgement id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByAcknowledgement(int $id, Request $request)
+    #[Route(path: '/types/acknowledgements/{id}', name: 'type_deps_by_acknowledgement', methods: ['GET'])]
+    public function getDepsByAcknowledgement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getAcknowledgementDependencies');
     }
@@ -269,12 +269,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on an occurrence
      * (factoid: based on)
-     * @Route("/types/occurrences/{id}", name="type_deps_by_occurrence", methods={"GET"})
      * @param int $id occurrence id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOccurrence(int $id, Request $request)
+    #[Route(path: '/types/occurrences/{id}', name: 'type_deps_by_occurrence', methods: ['GET'])]
+    public function getDepsByOccurrence(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOccurrenceDependencies');
     }
@@ -282,12 +282,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a role
      * (bibrole)
-     * @Route("/types/roles/{id}", name="type_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/types/roles/{id}', name: 'type_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -295,12 +295,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on an article
      * (reference)
-     * @Route("/types/articles/{id}", name="type_deps_by_article", methods={"GET"})
      * @param int $id article id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByArticle(int $id, Request $request)
+    #[Route(path: '/types/articles/{id}', name: 'type_deps_by_article', methods: ['GET'])]
+    public function getDepsByArticle(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getArticleDependencies');
     }
@@ -308,12 +308,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a blog post
      * (reference)
-     * @Route("/types/blogposts/{id}", name="type_deps_by_blog_post", methods={"GET"})
      * @param int $id blog post id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBlogPost(int $id, Request $request)
+    #[Route(path: '/types/blogposts/{id}', name: 'type_deps_by_blog_post', methods: ['GET'])]
+    public function getDepsByBlogPost(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBlogPostDependencies');
     }
@@ -321,12 +321,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a book
      * (reference)
-     * @Route("/types/books/{id}", name="type_deps_by_book", methods={"GET"})
      * @param int $id book id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBook(int $id, Request $request)
+    #[Route(path: '/types/books/{id}', name: 'type_deps_by_book', methods: ['GET'])]
+    public function getDepsByBook(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
     }
@@ -334,12 +334,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a book chapter
      * (reference)
-     * @Route("/types/bookchapters/{id}", name="type_deps_by_book_chapter", methods={"GET"})
      * @param int $id book chapter id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBookChapter(int $id, Request $request)
+    #[Route(path: '/types/bookchapters/{id}', name: 'type_deps_by_book_chapter', methods: ['GET'])]
+    public function getDepsByBookChapter(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookChapterDependencies');
     }
@@ -347,12 +347,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on an online source
      * (reference)
-     * @Route("/types/onlinesources/{id}", name="type_deps_by_online_source", methods={"GET"})
      * @param int $id online source id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOnlineSource(int $id, Request $request)
+    #[Route(path: '/types/onlinesources/{id}', name: 'type_deps_by_online_source', methods: ['GET'])]
+    public function getDepsByOnlineSource(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
     }
@@ -360,12 +360,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a PhD thesis
      * (reference)
-     * @Route("/types/phd_theses/{id}", name="type_deps_by_phd", methods={"GET"})
      * @param int $id phd id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPhd(int $id, Request $request)
+    #[Route(path: '/types/phd_theses/{id}', name: 'type_deps_by_phd', methods: ['GET'])]
+    public function getDepsByPhd(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPhdDependencies');
     }
@@ -373,12 +373,12 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a bib varia
      * (reference)
-     * @Route("/types/bib_varia/{id}", name="type_deps_by_bib_varia", methods={"GET"})
      * @param int $id bib varia id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBibVaria(int $id, Request $request)
+    #[Route(path: '/types/bib_varia/{id}', name: 'type_deps_by_bib_varia', methods: ['GET'])]
+    public function getDepsByBibVaria(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBibVariaDependencies');
     }
@@ -386,22 +386,22 @@ class TypeController extends BaseController
     /**
      * Get all types that have a dependency on a management collection
      * (reference)
-     * @Route("/types/managements/{id}", name="type_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/types/managements/{id}', name: 'type_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/types", name="type_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/types', name: 'type_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -413,12 +413,12 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/{id}", name="type_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/types/{id}', name: 'type_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -430,38 +430,37 @@ class TypeController extends BaseController
     }
 
     /**
-     * @Route("/types/managements/add", name="types_managements_add", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function addManagements(Request $request)
+    #[Route(path: '/types/managements/add', name: 'types_managements_add', methods: ['PUT'])]
+    public function addManagements(Request $request): JsonResponse
     {
         return parent::addManagements($request);
     }
 
     /**
-     * @Route("/types/managements/remove", name="types_managements_remove", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function removeManagements(Request $request)
+    #[Route(path: '/types/managements/remove', name: 'types_managements_remove', methods: ['PUT'])]
+    public function removeManagements(Request $request): JsonResponse
     {
         return parent::removeManagements($request);
     }
 
     /**
-     * @Route("/types/{id}", name="type_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/types/{id}', name: 'type_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/types/{id}/edit", name="type_edit", methods={"GET"})
      * @param TypeRelationTypeManager $typeRelationTypeManager
      * @param PersonManager $personManager
      * @param MetreManager $metreManager
@@ -477,6 +476,7 @@ class TypeController extends BaseController
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/types/{id}/edit', name: 'type_edit', methods: ['GET'])]
     public function edit(
         TypeRelationTypeManager $typeRelationTypeManager,
         PersonManager $personManager,

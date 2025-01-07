@@ -23,11 +23,11 @@ class BookChapterController extends BaseController
     }
 
     /**
-     * @Route("/bookchapters", name="book_chapters_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse|RedirectResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/bookchapters', name: 'book_chapters_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -37,12 +37,12 @@ class BookChapterController extends BaseController
     }
 
     /**
-     * @Route("/bookchapters/add", name="book_chapter_add", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/bookchapters/add', name: 'book_chapter_add', methods: ['GET'])]
     public function add(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
@@ -57,12 +57,12 @@ class BookChapterController extends BaseController
     }
 
     /**
-     * @Route("/bookchapters/{id}", name="book_chapter_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/bookchapters/{id}', name: 'book_chapter_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
@@ -70,12 +70,12 @@ class BookChapterController extends BaseController
     /**
      * Get all book chapters that have a dependency on a book
      * (document_contains)
-     * @Route("/bookchapters/books/{id}", name="book_chapter_deps_by_book", methods={"GET"})
      * @param int $id book id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBook(int $id, Request $request)
+    #[Route(path: '/bookchapters/books/{id}', name: 'book_chapter_deps_by_book', methods: ['GET'])]
+    public function getDepsByBook(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
     }
@@ -83,12 +83,12 @@ class BookChapterController extends BaseController
     /**
      * Get all book chapters that have a dependency on a person
      * (bibrole)
-     * @Route("/bookchapters/persons/{id}", name="book_chapter_deps_by_person", methods={"GET"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/bookchapters/persons/{id}', name: 'book_chapter_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -96,12 +96,12 @@ class BookChapterController extends BaseController
     /**
      * Get all book chapters that have a dependency on a role
      * (bibrole)
-     * @Route("/bookchapters/roles/{id}", name="book_chapter_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/bookchapters/roles/{id}', name: 'book_chapter_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -109,22 +109,22 @@ class BookChapterController extends BaseController
     /**
      * Get all book chapters that have a dependency on a management collection
      * (reference)
-     * @Route("/bookchapters/managements/{id}", name="book_chapter_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/bookchapters/managements/{id}', name: 'book_chapter_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/bookchapters", name="book_chapter_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/bookchapters', name: 'book_chapter_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -136,12 +136,12 @@ class BookChapterController extends BaseController
     }
 
     /**
-     * @Route("/bookchapters/{id}", name="book_chapter_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/bookchapters/{id}', name: 'book_chapter_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -153,24 +153,24 @@ class BookChapterController extends BaseController
     }
 
     /**
-     * @Route("/bookchapters/{id}", name="book_chapter_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/bookchapters/{id}', name: 'book_chapter_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/bookchapters/{id}/edit", name="book_chapter_edit", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/bookchapters/{id}/edit', name: 'book_chapter_edit', methods: ['GET'])]
     public function edit(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,

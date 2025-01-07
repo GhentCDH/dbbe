@@ -15,11 +15,11 @@ use App\Security\Roles;
 class JulieController extends AbstractController
 {
     /**
-     * @Route("/julie", name="julie")
-     * @Route("/julie/{route}", name="julie_pages", requirements={"route"="^.+"})
      * @return Response
      */
-    public function julie()
+    #[Route(path: '/julie', name: 'julie')]
+    #[Route(path: '/julie/{route}', name: 'julie_pages', requirements: ['route' => '^.+'])]
+    public function julie(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
 
@@ -27,13 +27,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/originalpoem/{id}", name="originalpoem_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function getOriginalPoem(int $id, Request $request, JulieService $julieService)
+    #[Route(path: '/originalpoem/{id}', name: 'originalpoem_get', methods: ['GET'])]
+    public function getOriginalPoem(int $id, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
@@ -48,13 +48,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/substringannotation/{occurrenceId}", name="substringannotation_get", methods={"GET"})
      * @param int $occurrenceId
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function getSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
+    #[Route(path: '/substringannotation/{occurrenceId}', name: 'substringannotation_get', methods: ['GET'])]
+    public function getSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
@@ -65,13 +65,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/substringannotation/{occurrenceId}", name="substringannotation_post", methods={"POST"})
      * @param int $occurrenceId
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function postSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
+    #[Route(path: '/substringannotation/{occurrenceId}', name: 'substringannotation_post', methods: ['POST'])]
+    public function postSubstringAnnotation(int $occurrenceId, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
@@ -97,13 +97,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/substringannotation/{annotationId}", name="substringannotation_delete", methods={"DELETE"})
      * @param int $annotationId
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function deleteSubstringAnnotation(int $annotationId, Request $request, JulieService $julieService)
+    #[Route(path: '/substringannotation/{annotationId}', name: 'substringannotation_delete', methods: ['DELETE'])]
+    public function deleteSubstringAnnotation(int $annotationId, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
@@ -114,13 +114,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/poemannotation/{occurrenceId}", name="poemannotation_get", methods={"GET"})
      * @param int $occurrenceId
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function getPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
+    #[Route(path: '/poemannotation/{occurrenceId}', name: 'poemannotation_get', methods: ['GET'])]
+    public function getPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);
@@ -135,13 +135,13 @@ class JulieController extends AbstractController
     }
 
     /**
-     * @Route("/poemannotation/{occurrenceId}", name="poemannotation_put", methods={"PUT"})
      * @param int $occurrenceId
      * @param Request $request
      * @param JulieService $julieService
      * @return JsonResponse
      */
-    public function putPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService)
+    #[Route(path: '/poemannotation/{occurrenceId}', name: 'poemannotation_put', methods: ['PUT'])]
+    public function putPoemAnnotation(int $occurrenceId, Request $request, JulieService $julieService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_JULIE);
         $this->throwErrorIfNotJson($request);

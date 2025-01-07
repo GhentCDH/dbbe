@@ -19,21 +19,21 @@ class ManagementController extends BaseController
     }
 
     /**
-     * @Route("/managements", name="managements_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/managements', name: 'managements_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         return parent::getAll($request);
     }
 
     /**
-     * @Route("/managements/edit", name="managements_edit", methods={"GET"})
      * @return Response
      */
-    public function edit()
+    #[Route(path: '/managements/edit', name: 'managements_edit', methods: ['GET'])]
+    public function edit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -53,33 +53,33 @@ class ManagementController extends BaseController
     }
 
     /**
-     * @Route("/managements", name="management_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/managements', name: 'management_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/managements/{id}", name="management_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/managements/{id}', name: 'management_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/managements/{id}", name="management_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/managements/{id}', name: 'management_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

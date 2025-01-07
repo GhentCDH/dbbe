@@ -23,11 +23,11 @@ class OnlineSourceController extends BaseController
     }
 
     /**
-     * @Route("/onlinesources", name="online_sources_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse|RedirectResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/onlinesources', name: 'online_sources_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -37,12 +37,12 @@ class OnlineSourceController extends BaseController
     }
 
     /**
-     * @Route("/onlinesources/add", name="online_source_add", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/onlinesources/add', name: 'online_source_add', methods: ['GET'])]
     public function add(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
@@ -57,24 +57,24 @@ class OnlineSourceController extends BaseController
     }
 
     /**
-     * @Route("/onlinesources/{id}", name="online_source_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/onlinesources/{id}', name: 'online_source_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
 
     /**
      * Get all online sources that have a dependency on an instutution
-     * @Route("/onlinesources/institutions/{id}", name="online_source_deps_by_institution", methods={"GET"})
      * @param int $id institution id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByInstitution(int $id, Request $request)
+    #[Route(path: '/onlinesources/institutions/{id}', name: 'online_source_deps_by_institution', methods: ['GET'])]
+    public function getDepsByInstitution(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getInstitutionDependencies');
     }
@@ -82,22 +82,22 @@ class OnlineSourceController extends BaseController
     /**
      * Get all online sources that have a dependency on a management collection
      * (reference)
-     * @Route("/onlinesources/managements/{id}", name="online_source_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/onlinesources/managements/{id}', name: 'online_source_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/onlinesources", name="online_source_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/onlinesources', name: 'online_source_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -109,12 +109,12 @@ class OnlineSourceController extends BaseController
     }
 
     /**
-     * @Route("/onlinesources/{id}", name="online_source_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/onlinesources/{id}', name: 'online_source_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -126,24 +126,24 @@ class OnlineSourceController extends BaseController
     }
 
     /**
-     * @Route("/onlinesources/{id}", name="online_source_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/onlinesources/{id}', name: 'online_source_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/onlinesources/{id}/edit", name="online_source_edit", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/onlinesources/{id}/edit', name: 'online_source_edit', methods: ['GET'])]
     public function edit(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,

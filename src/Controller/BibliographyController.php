@@ -29,23 +29,23 @@ use App\Security\Roles;
 class BibliographyController extends BaseController
 {
     /**
-     * @Route("/bibliographies", name="bibliographies_base", methods={"GET"})
      * @param Request $request
      * @return RedirectResponse
      */
-    public function base(Request $request)
+    #[Route(path: '/bibliographies', name: 'bibliographies_base', methods: ['GET'])]
+    public function base(Request $request): RedirectResponse
     {
         return $this->redirectToRoute('bibliographies_search', ['request' =>  $request], 301);
     }
 
     /**
-     * @Route("/bibliographies/search", name="bibliographies_search", methods={"GET"})
      * @param Request $request
      * @param ElasticBibliographyService $elasticBibliographyService
      * @param IdentifierManager $identifierManager
      * @param ManagementManager $managementManager
      * @return Response
      */
+    #[Route(path: '/bibliographies/search', name: 'bibliographies_search', methods: ['GET'])]
     public function search(
         Request $request,
         ElasticBibliographyService $elasticBibliographyService,
@@ -146,11 +146,11 @@ class BibliographyController extends BaseController
     }
 
     /**
-     * @Route("/bibliographies/search_api", name="bibliographies_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticBibliographyService $elasticBibliographyService
      * @return JsonResponse
      */
+    #[Route(path: '/bibliographies/search_api', name: 'bibliographies_search_api', methods: ['GET'])]
     public function searchAPI(
         Request $request,
         ElasticBibliographyService $elasticBibliographyService
@@ -165,7 +165,6 @@ class BibliographyController extends BaseController
     }
 
     /**
-     * @Route("/bibliographies/managements/add", name="bibliographies_managements_add", methods={"PUT"})
      * @param Request $request
      * @param ArticleManager $articleManager
      * @param BookManager $bookManager
@@ -181,6 +180,7 @@ class BibliographyController extends BaseController
      * @return JsonResponse
      * @throws \Exception
      */
+    #[Route(path: '/bibliographies/managements/add', name: 'bibliographies_managements_add', methods: ['PUT'])]
     public function addBibliographyManagements(
         Request $request,
         ArticleManager $articleManager,
@@ -229,7 +229,6 @@ class BibliographyController extends BaseController
     }
 
     /**
-     * @Route("/bibliographies/managements/remove", name="bibliographies_managements_remove", methods={"PUT"})
      * @param Request $request
      * @param ArticleManager $articleManager
      * @param BookManager $bookManager
@@ -245,6 +244,7 @@ class BibliographyController extends BaseController
      * @return JsonResponse
      * @throws \Exception
      */
+    #[Route(path: '/bibliographies/managements/remove', name: 'bibliographies_managements_remove', methods: ['PUT'])]
     public function removeBibliographyManagements(
         Request $request,
         ArticleManager $articleManager,

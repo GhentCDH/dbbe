@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,11 +30,11 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts", name="manuscripts_get", methods={"GET"})
      * @param Request $request
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/manuscripts', name: 'manuscripts_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -45,13 +44,13 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/search", name="manuscripts_search", methods={"GET"})
      * @param Request $request
      * @param ElasticManuscriptService $elasticManuscriptService
      * @param IdentifierManager $identifierManager
      * @param ManagementManager $managementManager
      * @return Response
      */
+    #[Route(path: '/manuscripts/search', name: 'manuscripts_search', methods: ['GET'])]
     public function search(
         Request $request,
         ElasticManuscriptService $elasticManuscriptService,
@@ -91,12 +90,12 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/search_api", name="manuscripts_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticManuscriptService $elasticManuscriptService
      * @param IdentifierManager $identifierManager
      * @return JsonResponse
      */
+    #[Route(path: '/manuscripts/search_api', name: 'manuscripts_search_api', methods: ['GET'])]
     public function searchAPI(
         Request $request,
         ElasticManuscriptService $elasticManuscriptService,
@@ -112,7 +111,6 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/add", name="manuscript_add", methods={"GET"})
      * @param ContentManager $contentManager
      * @param PersonManager $personManager
      * @param OriginManager $originManager
@@ -123,6 +121,7 @@ class ManuscriptController extends BaseController
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/manuscripts/add', name: 'manuscript_add', methods: ['GET'])]
     public function add(
         ContentManager $contentManager,
         PersonManager $personManager,
@@ -142,22 +141,22 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/{id}", name="manuscript_get", methods={"GET"})
      * @param int $id manuscript id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/manuscripts/{id}', name: 'manuscript_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
 
     /**
-     * @Route("/manuscript/view/id/{id}", name="manuscript_get_old", methods={"GET"})
      * @param int $id
      * @return RedirectResponse
      */
-    public function getOld(int $id)
+    #[Route(path: '/manuscript/view/id/{id}', name: 'manuscript_get_old', methods: ['GET'])]
+    public function getOld(int $id): RedirectResponse
     {
         // Let the 404 page handle the not found exception
         $newId = $this->manager->getNewId($id);
@@ -167,12 +166,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a region
      * (located_at / factoid)
-     * @Route("/manuscripts/regions/{id}", name="manuscript_deps_by_region", methods={"GET"})
      * @param int $id region id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRegion(int $id, Request $request)
+    #[Route(path: '/manuscripts/regions/{id}', name: 'manuscript_deps_by_region', methods: ['GET'])]
+    public function getDepsByRegion(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
@@ -180,12 +179,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on an institution
      * (located_at / factoid)
-     * @Route("/manuscripts/institutions/{id}", name="manuscript_deps_by_institution", methods={"GET"})
      * @param int $id institution id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByInstitution(int $id, Request $request)
+    #[Route(path: '/manuscripts/institutions/{id}', name: 'manuscript_deps_by_institution', methods: ['GET'])]
+    public function getDepsByInstitution(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getInstitutionDependencies');
     }
@@ -193,12 +192,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a collection
      * (located_at / factoid)
-     * @Route("/manuscripts/collections/{id}", name="manuscript_deps_by_collection", methods={"GET"})
      * @param int $id collection id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByCollection(int $id, Request $request)
+    #[Route(path: '/manuscripts/collections/{id}', name: 'manuscript_deps_by_collection', methods: ['GET'])]
+    public function getDepsByCollection(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getCollectionDependencies');
     }
@@ -206,12 +205,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a content
      * (document_genre)
-     * @Route("/manuscripts/contents/{id}", name="manuscript_deps_by_content", methods={"GET"})
      * @param int $id content id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByContent(int $id, Request $request)
+    #[Route(path: '/manuscripts/contents/{id}', name: 'manuscript_deps_by_content', methods: ['GET'])]
+    public function getDepsByContent(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getContentDependencies');
     }
@@ -219,12 +218,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a status
      * (document_status)
-     * @Route("/manuscripts/statuses/{id}", name="manuscript_deps_by_status", methods={"GET"})
      * @param int $id status id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByStatus(int $id, Request $request)
+    #[Route(path: '/manuscripts/statuses/{id}', name: 'manuscript_deps_by_status', methods: ['GET'])]
+    public function getDepsByStatus(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getStatusDependencies');
     }
@@ -232,12 +231,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a person
      * (bibrole, factoid)
-     * @Route("/manuscripts/persons/{id}", name="manuscript_deps_by_person", methods={"GET"})
      * @param int $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/manuscripts/persons/{id}', name: 'manuscript_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -245,12 +244,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a role
      * (bibrole)
-     * @Route("/manuscripts/roles/{id}", name="manuscript_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/manuscripts/roles/{id}', name: 'manuscript_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -258,12 +257,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on an article
      * (reference)
-     * @Route("/manuscripts/articles/{id}", name="manuscript_deps_by_article", methods={"GET"})
      * @param int $id article id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByArticle(int $id, Request $request)
+    #[Route(path: '/manuscripts/articles/{id}', name: 'manuscript_deps_by_article', methods: ['GET'])]
+    public function getDepsByArticle(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getArticleDependencies');
     }
@@ -271,12 +270,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a blog post
      * (reference)
-     * @Route("/manuscripts/blogposts/{id}", name="manuscript_deps_by_blog_post", methods={"GET"})
      * @param int $id blog post id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBlogPost(int $id, Request $request)
+    #[Route(path: '/manuscripts/blogposts/{id}', name: 'manuscript_deps_by_blog_post', methods: ['GET'])]
+    public function getDepsByBlogPost(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBlogPostDependencies');
     }
@@ -284,12 +283,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a book
      * (reference)
-     * @Route("/manuscripts/books/{id}", name="manuscript_deps_by_book", methods={"GET"})
      * @param int $id book id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBook(int $id, Request $request)
+    #[Route(path: '/manuscripts/books/{id}', name: 'manuscript_deps_by_book', methods: ['GET'])]
+    public function getDepsByBook(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
     }
@@ -297,12 +296,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a book chapter
      * (reference)
-     * @Route("/manuscripts/bookchapters/{id}", name="manuscript_deps_by_book_chapter", methods={"GET"})
      * @param int $id book chapter id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBookChapter(int $id, Request $request)
+    #[Route(path: '/manuscripts/bookchapters/{id}', name: 'manuscript_deps_by_book_chapter', methods: ['GET'])]
+    public function getDepsByBookChapter(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookChapterDependencies');
     }
@@ -310,12 +309,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on an online source
      * (reference)
-     * @Route("/manuscripts/onlinesources/{id}", name="manuscript_deps_by_online_source", methods={"GET"})
      * @param int $id online source id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOnlineSource(int $id, Request $request)
+    #[Route(path: '/manuscripts/onlinesources/{id}', name: 'manuscript_deps_by_online_source', methods: ['GET'])]
+    public function getDepsByOnlineSource(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
     }
@@ -323,12 +322,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a PhD thesis
      * (reference)
-     * @Route("/manuscripts/phd_theses/{id}", name="manuscript_deps_by_phd", methods={"GET"})
      * @param int $id phd id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPhd(int $id, Request $request)
+    #[Route(path: '/manuscripts/phd_theses/{id}', name: 'manuscript_deps_by_phd', methods: ['GET'])]
+    public function getDepsByPhd(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPhdDependencies');
     }
@@ -336,12 +335,12 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a bib varia
      * (reference)
-     * @Route("/manuscripts/bib_varia/{id}", name="manuscript_deps_by_bib_varia", methods={"GET"})
      * @param int $id bib varia id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBibVaria(int $id, Request $request)
+    #[Route(path: '/manuscripts/bib_varia/{id}', name: 'manuscript_deps_by_bib_varia', methods: ['GET'])]
+    public function getDepsByBibVaria(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBibVariaDependencies');
     }
@@ -349,22 +348,22 @@ class ManuscriptController extends BaseController
     /**
      * Get all manuscripts that have a dependency on a management collection
      * (reference)
-     * @Route("/manuscripts/managements/{id}", name="manuscript_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/manuscripts/managements/{id}', name: 'manuscript_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/manuscripts", name="manuscript_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/manuscripts', name: 'manuscript_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -376,12 +375,12 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/{id}", name="manuscript_put", methods={"PUT"})
      * @param  int    $id manuscript id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/manuscripts/{id}', name: 'manuscript_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -393,38 +392,37 @@ class ManuscriptController extends BaseController
     }
 
     /**
-     * @Route("/manuscripts/managements/add", name="manuscripts_managements_add", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function addManagements(Request $request)
+    #[Route(path: '/manuscripts/managements/add', name: 'manuscripts_managements_add', methods: ['PUT'])]
+    public function addManagements(Request $request): JsonResponse
     {
         return parent::addManagements($request);
     }
 
     /**
-     * @Route("/manuscripts/managements/remove", name="manuscripts_managements_remove", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function removeManagements(Request $request)
+    #[Route(path: '/manuscripts/managements/remove', name: 'manuscripts_managements_remove', methods: ['PUT'])]
+    public function removeManagements(Request $request): JsonResponse
     {
         return parent::removeManagements($request);
     }
 
     /**
-     * @Route("/manuscripts/{id}", name="manuscript_delete", methods={"DELETE"})
      * @param  int    $id manuscript id
      * @param Request $request
      * @return Response
      */
-    public function deleteManuscript(int $id, Request $request)
+    #[Route(path: '/manuscripts/{id}', name: 'manuscript_delete', methods: ['DELETE'])]
+    public function deleteManuscript(int $id, Request $request): Response
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/manuscripts/{id}/edit", name="manuscript_edit", methods={"GET"})
      * @param ContentManager $contentManager
      * @param PersonManager $personManager
      * @param OriginManager $originManager
@@ -436,6 +434,7 @@ class ManuscriptController extends BaseController
      * @param int|null $id manuscript id
      * @return Response
      */
+    #[Route(path: '/manuscripts/{id}/edit', name: 'manuscript_edit', methods: ['GET'])]
     public function edit(
         ContentManager $contentManager,
         PersonManager $personManager,

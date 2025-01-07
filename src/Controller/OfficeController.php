@@ -20,11 +20,11 @@ class OfficeController extends BaseController
     }
 
     /**
-     * @Route("/offices", name="offices_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/offices', name: 'offices_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         return parent::getAll($request);
     }
@@ -32,12 +32,12 @@ class OfficeController extends BaseController
     /**
      * Get all offices that have a dependency on an office
      * (occupation ->idparentoccupation)
-     * @Route("/offices/offices/{id}", name="office_deps_by_office", methods={"GET"})
      * @param int $id office id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOffice(int $id, Request $request)
+    #[Route(path: '/offices/offices/{id}', name: 'office_deps_by_office', methods: ['GET'])]
+    public function getDepsByOffice(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOfficeDependencies');
     }
@@ -45,21 +45,21 @@ class OfficeController extends BaseController
     /**
      * Get all offices that have a dependency on a region
      * (occupation -> idregion)
-     * @Route("/offices/regions/{id}", name="office_deps_by_region", methods={"GET"})
      * @param int $id region id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRegion(int $id, Request $request)
+    #[Route(path: '/offices/regions/{id}', name: 'office_deps_by_region', methods: ['GET'])]
+    public function getDepsByRegion(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**
-     * @Route("/offices/edit", name="offices_edit", methods={"GET"})
      * @param RegionManager $regionManager
      * @return Response
      */
+    #[Route(path: '/offices/edit', name: 'offices_edit', methods: ['GET'])]
     public function edit(
         RegionManager $regionManager
     ) {
@@ -90,45 +90,45 @@ class OfficeController extends BaseController
     }
 
     /**
-     * @Route("/offices", name="office_post", methods={"POST"})
      * @param  Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/offices', name: 'office_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/offices/{primaryId}/{secondaryId}", name="office_merge", methods={"PUT"})
      * @param  int     $primaryId   first office id (will stay)
      * @param  int     $secondaryId second office id (will be deleted)
      * @param  Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/offices/{primaryId}/{secondaryId}', name: 'office_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/offices/{id}", name="office_put", methods={"PUT"})
      * @param  int     $id office id
      * @param  Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/offices/{id}', name: 'office_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/offices/{id}", name="office_delete", methods={"DELETE"})
      * @param  int     $id office id
      * @param  Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/offices/{id}', name: 'office_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
