@@ -46,7 +46,3 @@ docker_data/elasticsearch/data
 /.idea/modules.xml
 /.idea/vcs.xml
 /.symfony5/tmp
-
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###
