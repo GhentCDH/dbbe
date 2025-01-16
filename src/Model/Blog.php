@@ -60,7 +60,7 @@ class Blog extends Document
     /**
      * @return DateTime
      */
-    public function getLastAccessed(): DateTime
+    public function getLastAccessed(): ?DateTime
     {
         return $this->lastAccessed;
     }

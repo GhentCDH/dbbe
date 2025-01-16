@@ -187,7 +187,7 @@ class FuzzyDate
      *
      * @return self
      */
-    public function setFloor(DateTime $floor = null): \App\Model\FuzzyDate
+    public function setFloor(DateTime $floor = null): FuzzyDate
     {
         $this->floor = $floor;
 
@@ -211,7 +211,7 @@ class FuzzyDate
      *
      * @return self
      */
-    public function setCeiling(DateTime $ceiling = null): \App\Model\FuzzyDate
+    public function setCeiling(DateTime $ceiling = null): FuzzyDate
     {
         $this->ceiling = $ceiling;
 

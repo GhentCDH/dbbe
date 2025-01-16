@@ -100,9 +100,9 @@ class Book extends Document
     }
 
     /**
-     * @return int|null
+     * @return ?int
      */
-    public function getYear(): int|null
+    public function getYear(): ?int
     {
         return $this->year;
     }
@@ -214,7 +214,7 @@ class Book extends Document
      * @param string|null $seriesVolume
      * @return $this
      */
-    public function setSeriesVolume(string $seriesVolume = null): static
+    public function setSeriesVolume(string $seriesVolume = null): Book
     {
         $this->seriesVolume = $seriesVolume;
 

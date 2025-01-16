@@ -74,7 +74,7 @@ class BlogPost extends Document
     /**
      * @return DateTime
      */
-    public function getPostDate(): DateTime
+    public function getPostDate(): ?DateTime
     {
         return $this->postDate;
     }
