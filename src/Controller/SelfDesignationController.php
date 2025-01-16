@@ -19,20 +19,20 @@ class SelfDesignationController extends BaseController
     }
 
     /**
-     * @Route("/self-designations", name="self_designations_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/self-designations', name: 'self_designations_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         return parent::getAll($request);
     }
 
     /**
-     * @Route("/self-designations/edit", name="self_designations_edit", methods={"GET"})
      * @return Response
      */
-    public function edit()
+    #[Route(path: '/self-designations/edit', name: 'self_designations_edit', methods: ['GET'])]
+    public function edit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -59,45 +59,45 @@ class SelfDesignationController extends BaseController
     }
 
     /**
-     * @Route("/self-designations/{primaryId}/{secondaryId}", name="self_designation_merge", methods={"PUT"})
      * @param  int    $primaryId   first self designation id (will stay)
      * @param  int    $secondaryId second self designation id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/self-designations/{primaryId}/{secondaryId}', name: 'self_designation_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/self-designations", name="self_designation_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/self-designations', name: 'self_designation_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/self-designations/{id}", name="self_designation_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/self-designations/{id}', name: 'self_designation_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/self-designations/{id}", name="self_designation_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/self-designations/{id}', name: 'self_designation_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

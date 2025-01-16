@@ -24,11 +24,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * @Route("/articles", name="articles_get", methods={"GET"})
      * @param Request $request
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/articles', name: 'articles_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -38,13 +38,13 @@ class ArticleController extends BaseController
     }
 
     /**
-     * @Route("/articles/add", name="article_add", methods={"GET"})
      * @param PersonManager $personManager
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/articles/add', name: 'article_add', methods: ['GET'])]
     public function add(
         PersonManager $personManager,
         ManagementManager $managementManager,
@@ -60,12 +60,12 @@ class ArticleController extends BaseController
     }
 
     /**
-     * @Route("/articles/{id}", name="article_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/articles/{id}', name: 'article_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
@@ -73,12 +73,12 @@ class ArticleController extends BaseController
     /**
      * Get all articles that have a dependency on a journal issue
      * (document_contains)
-     * @Route("/articles/journal_issues/{id}", name="article_deps_by_journal_issue", methods={"GET"})
      * @param  int    $id journal issue id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByJournalIssue(int $id, Request $request)
+    #[Route(path: '/articles/journal_issues/{id}', name: 'article_deps_by_journal_issue', methods: ['GET'])]
+    public function getDepsByJournalIssue(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getJournalIssueDependencies');
     }
@@ -86,12 +86,12 @@ class ArticleController extends BaseController
     /**
      * Get all articles that have a dependency on a person
      * (bibrole)
-     * @Route("/articles/persons/{id}", name="article_deps_by_person", methods={"GET"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/articles/persons/{id}', name: 'article_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -99,12 +99,12 @@ class ArticleController extends BaseController
     /**
      * Get all articles that have a dependency on a role
      * (bibrole)
-     * @Route("/articles/roles/{id}", name="article_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/articles/roles/{id}', name: 'article_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -112,22 +112,22 @@ class ArticleController extends BaseController
     /**
      * Get all articles that have a dependency on a management collection
      * (reference)
-     * @Route("/articles/managements/{id}", name="article_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/articles/managements/{id}', name: 'article_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/articles", name="article_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/articles', name: 'article_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -139,12 +139,12 @@ class ArticleController extends BaseController
     }
 
     /**
-     * @Route("/articles/{id}", name="article_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/articles/{id}', name: 'article_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -156,18 +156,17 @@ class ArticleController extends BaseController
     }
 
     /**
-     * @Route("/articles/{id}", name="article_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/articles/{id}', name: 'article_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/articles/{id}/edit", name="article_edit", methods={"GET"})
      * @param PersonManager $personManager
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
@@ -175,6 +174,7 @@ class ArticleController extends BaseController
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/articles/{id}/edit', name: 'article_edit', methods: ['GET'])]
     public function edit(
         PersonManager $personManager,
         ManagementManager $managementManager,

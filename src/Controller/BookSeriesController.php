@@ -19,11 +19,11 @@ class BookSeriesController extends BaseController
     }
 
     /**
-     * @Route("/book_seriess", name="book_seriess_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/book_seriess', name: 'book_seriess_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
@@ -33,9 +33,7 @@ class BookSeriesController extends BaseController
         );
     }
 
-    /**
-     * @Route("/book_seriess/edit", name="book_seriess_edit", methods={"GET"})
-     */
+    #[Route(path: '/book_seriess/edit', name: 'book_seriess_edit', methods: ['GET'])]
     public function edit()
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -61,56 +59,56 @@ class BookSeriesController extends BaseController
     }
 
     /**
-     * @Route("/book_series/{id}", name="book_series_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/book_series/{id}', name: 'book_series_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
 
     /**
-     * @Route("/book_seriess/{primaryId}/{secondaryId}", name="book_series_merge", methods={"PUT"})
      * @param  int    $primaryId   first book series id (will stay)
      * @param  int    $secondaryId second book series id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/book_seriess/{primaryId}/{secondaryId}', name: 'book_series_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/book_seriess", name="book_series_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/book_seriess', name: 'book_series_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/book_seriess/{id}", name="book_series_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/book_seriess/{id}', name: 'book_series_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/book_seriess/{id}", name="book_series_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/book_seriess/{id}', name: 'book_series_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

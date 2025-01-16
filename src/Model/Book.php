@@ -100,7 +100,7 @@ class Book extends Document
     }
 
     /**
-     * @return int
+     * @return ?int
      */
     public function getYear(): ?int
     {

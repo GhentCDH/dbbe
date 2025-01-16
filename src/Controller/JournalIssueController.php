@@ -20,11 +20,11 @@ class JournalIssueController extends BaseController
     }
 
     /**
-     * @Route("/journal_issues", name="journal_issues_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/journal_issues', name: 'journal_issues_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         if ($request->query->get('mini') === '1') {
             return parent::getAllMini($request);
@@ -35,22 +35,22 @@ class JournalIssueController extends BaseController
     /**
      * Get all journal issues that have a dependency on a journal
      * (journal_issue)
-     * @Route("/journal_issues/journals/{id}", name="journal_issue_deps_by_journal", methods={"GET"})
      * @param  int    $id journal id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByJournal(int $id, Request $request)
+    #[Route(path: '/journal_issues/journals/{id}', name: 'journal_issue_deps_by_journal', methods: ['GET'])]
+    public function getDepsByJournal(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getJournalDependencies');
     }
 
     /**
-     * @Route("/journal_issues/edit", name="journal_issues_edit", methods={"GET"})
      * @param JournalManager $journalManager
      * @return Response
      */
-    public function edit(JournalManager $journalManager)
+    #[Route(path: '/journal_issues/edit', name: 'journal_issues_edit', methods: ['GET'])]
+    public function edit(JournalManager $journalManager): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -77,33 +77,33 @@ class JournalIssueController extends BaseController
     }
 
     /**
-     * @Route("/journal_issues", name="journal_issue_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/journal_issues', name: 'journal_issue_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/journal_issues/{id}", name="journal_issue_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/journal_issues/{id}', name: 'journal_issue_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/journal_issues/{id}", name="journal_issue_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/journal_issues/{id}', name: 'journal_issue_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

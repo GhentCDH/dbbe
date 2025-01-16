@@ -20,9 +20,9 @@ class StatusController extends BaseController
     }
 
     /**
-     * @Route("/statuses", name="statuses_get", methods={"GET"})
      * @param Request $request
      */
+    #[Route(path: '/statuses', name: 'statuses_get', methods: ['GET'])]
     public function getStatuses(Request $request)
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -64,10 +64,10 @@ class StatusController extends BaseController
     }
 
     /**
-     * @Route("/statuses/edit", name="statuses_edit", methods={"GET"})
      * @return Response
      */
-    public function edit()
+    #[Route(path: '/statuses/edit', name: 'statuses_edit', methods: ['GET'])]
+    public function edit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -97,11 +97,11 @@ class StatusController extends BaseController
     }
 
     /**
-     * @Route("/statuses", name="status_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/statuses', name: 'status_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -113,23 +113,23 @@ class StatusController extends BaseController
     }
 
     /**
-     * @Route("/statuses/{id}", name="status_put", methods={"PUT"})
      * @param  int    $id status id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/statuses/{id}', name: 'status_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/statuses/{id}", name="status_delete", methods={"DELETE"})
      * @param int $id status id
      * @param Request $request
      * @return JsonResponse
      */
-    public function deleteStatus(int $id, Request $request)
+    #[Route(path: '/statuses/{id}', name: 'status_delete', methods: ['DELETE'])]
+    public function deleteStatus(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

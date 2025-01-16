@@ -23,11 +23,11 @@ class BlogPostController extends BaseController
     }
 
     /**
-     * @Route("/blogposts", name="blog_posts_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse|RedirectResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/blogposts', name: 'blog_posts_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMini($request);
@@ -37,12 +37,12 @@ class BlogPostController extends BaseController
     }
 
     /**
-     * @Route("/blogposts/add", name="blog_post_add", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/blogposts/add', name: 'blog_post_add', methods: ['GET'])]
     public function add(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
@@ -57,12 +57,12 @@ class BlogPostController extends BaseController
     }
 
     /**
-     * @Route("/blogposts/{id}", name="blog_post_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/blogposts/{id}', name: 'blog_post_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
@@ -70,12 +70,12 @@ class BlogPostController extends BaseController
     /**
      * Get all blog posts that have a dependency on a blog
      * (document_contains)
-     * @Route("/blogposts/blogs/{id}", name="blog_post_deps_by_blog", methods={"GET"})
      * @param int $id blog id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBlog(int $id, Request $request)
+    #[Route(path: '/blogposts/blogs/{id}', name: 'blog_post_deps_by_blog', methods: ['GET'])]
+    public function getDepsByBlog(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBlogDependencies');
     }
@@ -83,12 +83,12 @@ class BlogPostController extends BaseController
     /**
      * Get all blog posts that have a dependency on a person
      * (bibrole)
-     * @Route("/blogposts/persons/{id}", name="blog_post_deps_by_person", methods={"GET"})
      * @param  int    $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/blogposts/persons/{id}', name: 'blog_post_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -96,22 +96,22 @@ class BlogPostController extends BaseController
     /**
      * Get all blog posts that have a dependency on a management collection
      * (reference)
-     * @Route("/blogposts/managements/{id}", name="blog_post_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/blogposts/managements/{id}', name: 'blog_post_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/blogposts", name="blog_post_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/blogposts', name: 'blog_post_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -123,12 +123,12 @@ class BlogPostController extends BaseController
     }
 
     /**
-     * @Route("/blogposts/{id}", name="blog_post_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/blogposts/{id}', name: 'blog_post_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -140,24 +140,24 @@ class BlogPostController extends BaseController
     }
 
     /**
-     * @Route("/blogposts/{id}", name="blog_post_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/blogposts/{id}', name: 'blog_post_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/blogposts/{id}/edit", name="blog_post_edit", methods={"GET"})
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
      * @param RoleManager $roleManager
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/blogposts/{id}/edit', name: 'blog_post_edit', methods: ['GET'])]
     public function edit(
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,

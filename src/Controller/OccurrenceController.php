@@ -32,11 +32,11 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences", name="occurrences_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse|RedirectResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/occurrences', name: 'occurrences_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse|RedirectResponse
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             return parent::getAllMicro($request);
@@ -46,13 +46,13 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/search", name="occurrences_search", methods={"GET"})
      * @param Request $request
      * @param ElasticOccurrenceService $elasticOccurrenceService
      * @param IdentifierManager $identifierManager
      * @param ManagementManager $managementManager
      * @return Response
      */
+    #[Route(path: '/occurrences/search', name: 'occurrences_search', methods: ['GET'])]
     public function search(
         Request $request,
         ElasticOccurrenceService $elasticOccurrenceService,
@@ -95,11 +95,11 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/search_api", name="occurrences_search_api", methods={"GET"})
      * @param Request $request
      * @param ElasticOccurrenceService $elasticOccurrenceService
      * @return JsonResponse
      */
+    #[Route(path: '/occurrences/search_api', name: 'occurrences_search_api', methods: ['GET'])]
     public function searchAPI(
         Request $request,
         ElasticOccurrenceService $elasticOccurrenceService
@@ -114,7 +114,6 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/add", name="occurrence_add", methods={"GET"})
      * @param Request $request
      * @param PersonManager $personManager
      * @param MetreManager $metreManager
@@ -128,6 +127,7 @@ class OccurrenceController extends BaseController
      * @param RoleManager $roleManager
      * @return mixed
      */
+    #[Route(path: '/occurrences/add', name: 'occurrence_add', methods: ['GET'])]
     public function add(
         Request $request,
         PersonManager $personManager,
@@ -150,22 +150,22 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/{id}", name="occurrence_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/occurrences/{id}', name: 'occurrence_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         return parent::getSingle($id, $request);
     }
 
     /**
-     * @Route("/occ/{id}", name="occurrence_get_old_perma", methods={"GET"})
      * @param int $id
      * @return RedirectResponse
      */
-    public function getOldPerma(int $id)
+    #[Route(path: '/occ/{id}', name: 'occurrence_get_old_perma', methods: ['GET'])]
+    public function getOldPerma(int $id): RedirectResponse
     {
         // Let the 404 page handle the not found exception
         $newId = $this->manager->getNewId($id);
@@ -173,11 +173,11 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrence/view/id/{id}", name="occurrence_get_old", methods={"GET"})
      * @param int $id
      * @return RedirectResponse
      */
-    public function getOld(int $id)
+    #[Route(path: '/occurrence/view/id/{id}', name: 'occurrence_get_old', methods: ['GET'])]
+    public function getOld(int $id): RedirectResponse
     {
         // Let the 404 page handle the not found exception
         $newId = $this->manager->getNewId($id);
@@ -187,12 +187,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a manuscript
      * (document_contains)
-     * @Route("/occurrences/manuscripts/{id}", name="occurrence_deps_by_manuscript", methods={"GET"})
      * @param int $id manuscript id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManuscript(int $id, Request $request)
+    #[Route(path: '/occurrences/manuscripts/{id}', name: 'occurrence_deps_by_manuscript', methods: ['GET'])]
+    public function getDepsByManuscript(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManuscriptDependencies');
     }
@@ -200,12 +200,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a status
      * (document_status)
-     * @Route("/occurrences/statuses/{id}", name="occurrence_deps_by_status", methods={"GET"})
      * @param int $id status id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByStatus(int $id, Request $request)
+    #[Route(path: '/occurrences/statuses/{id}', name: 'occurrence_deps_by_status', methods: ['GET'])]
+    public function getDepsByStatus(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getStatusDependencies');
     }
@@ -213,12 +213,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a person
      * (bibrole / factoid)
-     * @Route("/occurrences/persons/{id}", name="occurrence_deps_by_person", methods={"GET"})
      * @param int $id person id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPerson(int $id, Request $request)
+    #[Route(path: '/occurrences/persons/{id}', name: 'occurrence_deps_by_person', methods: ['GET'])]
+    public function getDepsByPerson(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPersonDependencies');
     }
@@ -226,12 +226,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a metre
      * (poem_metre)
-     * @Route("/occurrences/metres/{id}", name="occurrence_deps_by_metre", methods={"GET"})
      * @param int $id metre id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByMetre(int $id, Request $request)
+    #[Route(path: '/occurrences/metres/{id}', name: 'occurrence_deps_by_metre', methods: ['GET'])]
+    public function getDepsByMetre(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getMetreDependencies');
     }
@@ -239,12 +239,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a genre
      * (document_genre)
-     * @Route("/occurrences/genres/{id}", name="occurrence_deps_by_genre", methods={"GET"})
      * @param int $id genre id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByGenre(int $id, Request $request)
+    #[Route(path: '/occurrences/genres/{id}', name: 'occurrence_deps_by_genre', methods: ['GET'])]
+    public function getDepsByGenre(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getGenreDependencies');
     }
@@ -252,12 +252,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a keyword
      * (factoid)
-     * @Route("/occurrences/keywords/{id}", name="occurrence_deps_by_keyword", methods={"GET"})
      * @param int $id keyword id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByKeyword(int $id, Request $request)
+    #[Route(path: '/occurrences/keywords/{id}', name: 'occurrence_deps_by_keyword', methods: ['GET'])]
+    public function getDepsByKeyword(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getKeywordDependencies');
     }
@@ -265,12 +265,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on an acknowledgement
      * (document_acknowledgement)
-     * @Route("/occurrences/acknowledgements/{id}", name="occurrence_deps_by_acknowledgement", methods={"GET"})
      * @param int $id acknowledgement id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByAcknowledgement(int $id, Request $request)
+    #[Route(path: '/occurrences/acknowledgements/{id}', name: 'occurrence_deps_by_acknowledgement', methods: ['GET'])]
+    public function getDepsByAcknowledgement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getAcknowledgementDependencies');
     }
@@ -278,12 +278,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a type
      * (factoid: reconstruction of)
-     * @Route("/occurrences/types/{id}", name="occurrence_deps_by_type", methods={"GET"})
      * @param int $id type id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOccurrence(int $id, Request $request)
+    #[Route(path: '/occurrences/types/{id}', name: 'occurrence_deps_by_type', methods: ['GET'])]
+    public function getDepsByOccurrence(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getTypeDependencies');
     }
@@ -291,12 +291,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a role
      * (bibrole)
-     * @Route("/occurrences/roles/{id}", name="occurrence_deps_by_role", methods={"GET"})
      * @param int $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRole(int $id, Request $request)
+    #[Route(path: '/occurrences/roles/{id}', name: 'occurrence_deps_by_role', methods: ['GET'])]
+    public function getDepsByRole(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRoleDependencies');
     }
@@ -304,12 +304,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on an article
      * (reference)
-     * @Route("/occurrences/articles/{id}", name="occurrence_deps_by_article", methods={"GET"})
      * @param int $id article id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByArticle(int $id, Request $request)
+    #[Route(path: '/occurrences/articles/{id}', name: 'occurrence_deps_by_article', methods: ['GET'])]
+    public function getDepsByArticle(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getArticleDependencies');
     }
@@ -317,12 +317,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a blog post
      * (reference)
-     * @Route("/occurrences/blogposts/{id}", name="occurrence_deps_by_blog_post", methods={"GET"})
      * @param int $id blog post id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBlogPost(int $id, Request $request)
+    #[Route(path: '/occurrences/blogposts/{id}', name: 'occurrence_deps_by_blog_post', methods: ['GET'])]
+    public function getDepsByBlogPost(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBlogPostDependencies');
     }
@@ -330,12 +330,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a book
      * (reference)
-     * @Route("/occurrences/books/{id}", name="occurrence_deps_by_book", methods={"GET"})
      * @param int $id book id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBook(int $id, Request $request)
+    #[Route(path: '/occurrences/books/{id}', name: 'occurrence_deps_by_book', methods: ['GET'])]
+    public function getDepsByBook(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookDependencies');
     }
@@ -343,12 +343,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a book chapter
      * (reference)
-     * @Route("/occurrences/bookchapters/{id}", name="occurrence_deps_by_book_chapter", methods={"GET"})
      * @param int $id book chapter id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBookChapter(int $id, Request $request)
+    #[Route(path: '/occurrences/bookchapters/{id}', name: 'occurrence_deps_by_book_chapter', methods: ['GET'])]
+    public function getDepsByBookChapter(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBookChapterDependencies');
     }
@@ -356,12 +356,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on an online source
      * (reference)
-     * @Route("/occurrences/onlinesources/{id}", name="occurrence_deps_by_online_source", methods={"GET"})
      * @param int $id online source id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByOnlineSource(int $id, Request $request)
+    #[Route(path: '/occurrences/onlinesources/{id}', name: 'occurrence_deps_by_online_source', methods: ['GET'])]
+    public function getDepsByOnlineSource(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getOnlineSourceDependencies');
     }
@@ -369,12 +369,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a PhD thesis
      * (reference)
-     * @Route("/occurrences/phd_theses/{id}", name="occurrence_deps_by_phd", methods={"GET"})
      * @param int $id phd id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByPhd(int $id, Request $request)
+    #[Route(path: '/occurrences/phd_theses/{id}', name: 'occurrence_deps_by_phd', methods: ['GET'])]
+    public function getDepsByPhd(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getPhdDependencies');
     }
@@ -382,12 +382,12 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a bib varia
      * (reference)
-     * @Route("/occurrences/bib_varia/{id}", name="occurrence_deps_by_bib_varia", methods={"GET"})
      * @param int $id bib varia id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByBibVaria(int $id, Request $request)
+    #[Route(path: '/occurrences/bib_varia/{id}', name: 'occurrence_deps_by_bib_varia', methods: ['GET'])]
+    public function getDepsByBibVaria(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getBibVariaDependencies');
     }
@@ -395,22 +395,22 @@ class OccurrenceController extends BaseController
     /**
      * Get all occurrences that have a dependency on a management collection
      * (reference)
-     * @Route("/occurrences/managements/{id}", name="occurrence_deps_by_management", methods={"GET"})
      * @param int $id management id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByManagement(int $id, Request $request)
+    #[Route(path: '/occurrences/managements/{id}', name: 'occurrence_deps_by_management', methods: ['GET'])]
+    public function getDepsByManagement(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getManagementDependencies');
     }
 
     /**
-     * @Route("/occurrences", name="occurrence_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/occurrences', name: 'occurrence_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -422,12 +422,12 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/{id}", name="occurrence_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/occurrences/{id}', name: 'occurrence_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -439,38 +439,37 @@ class OccurrenceController extends BaseController
     }
 
     /**
-     * @Route("/occurrences/managements/add", name="occurrences_managements_add", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function addManagements(Request $request)
+    #[Route(path: '/occurrences/managements/add', name: 'occurrences_managements_add', methods: ['PUT'])]
+    public function addManagements(Request $request): JsonResponse
     {
         return parent::addManagements($request);
     }
 
     /**
-     * @Route("/occurrences/managements/remove", name="occurrences_managements_remove", methods={"PUT"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function removeManagements(Request $request)
+    #[Route(path: '/occurrences/managements/remove', name: 'occurrences_managements_remove', methods: ['PUT'])]
+    public function removeManagements(Request $request): JsonResponse
     {
         return parent::removeManagements($request);
     }
 
     /**
-     * @Route("/occurrences/{id}", name="occurrence_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/occurrences/{id}', name: 'occurrence_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/occurrences/{id}/edit", name="occurrence_edit", methods={"GET"})
      * @param Request $request
      * @param PersonManager $personManager
      * @param MetreManager $metreManager
@@ -485,6 +484,7 @@ class OccurrenceController extends BaseController
      * @param int|null $id
      * @return Response
      */
+    #[Route(path: '/occurrences/{id}/edit', name: 'occurrence_edit', methods: ['GET'])]
     public function edit(
         Request $request,
         PersonManager $personManager,

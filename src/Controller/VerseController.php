@@ -24,12 +24,12 @@ class VerseController extends BaseController
     }
 
     /**
-     * @Route("/verses/search", name="verse_search", methods={"GET"})
      * @param Request $request
      * @param ElasticVerseService $elasticVerseService
      * @return JsonResponse
      */
-    public function getVerseSearch(Request $request, ElasticVerseService $elasticVerseService)
+    #[Route(path: '/verses/search', name: 'verse_search', methods: ['GET'])]
+    public function getVerseSearch(Request $request, ElasticVerseService $elasticVerseService): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
@@ -56,12 +56,12 @@ class VerseController extends BaseController
     }
 
     /**
-     * @Route("/verse_variants/{groupId}", name="verse_variant_get", methods={"GET"})
      * @param int $groupId
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getVerseVariant(int $groupId, Request $request)
+    #[Route(path: '/verse_variants/{groupId}', name: 'verse_variant_get', methods: ['GET'])]
+    public function getVerseVariant(int $groupId, Request $request): JsonResponse|Response
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -86,11 +86,11 @@ class VerseController extends BaseController
     }
 
     /**
-     * @Route("/verses/init", name="get_verse_init", methods={"GET"})
      * @param Request $request
      * @param ElasticVerseService $elasticVerseService
      * @return Response
      */
+    #[Route(path: '/verses/init', name: 'get_verse_init', methods: ['GET'])]
     public function getVerseInit(
         Request $request,
         ElasticVerseService $elasticVerseService
@@ -111,12 +111,12 @@ class VerseController extends BaseController
     }
 
     /**
-     * @Route("/verses/init", name="post_verse_init", methods={"POST"})
      * @param Request $request
      * @return Response
      * @throws Exception
      */
-    public function postVerseInit(Request $request)
+    #[Route(path: '/verses/init', name: 'post_verse_init', methods: ['POST'])]
+    public function postVerseInit(Request $request): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
 

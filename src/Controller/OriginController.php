@@ -18,9 +18,9 @@ class OriginController extends BaseController
     }
 
     /**
-     * @Route("/origins", name="origins_get", methods={"GET"})
      * @param Request $request
      */
+    #[Route(path: '/origins', name: 'origins_get', methods: ['GET'])]
     public function getOrigins(Request $request)
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -47,9 +47,7 @@ class OriginController extends BaseController
         throw new BadRequestHttpException('Only JSON requests allowed.');
     }
 
-    /**
-     * @Route("/origins/edit", name="origins_edit", methods={"GET"})
-     */
+    #[Route(path: '/origins/edit', name: 'origins_edit', methods: ['GET'])]
     public function edit()
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);

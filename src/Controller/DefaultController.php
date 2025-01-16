@@ -30,11 +30,11 @@ use App\Security\Roles;
 class DefaultController extends AbstractController
 {
     /**
-     * @Route("/", name="homepage", methods={"GET"})
      * @param NewsEventService $newsEventService
      * @return Response
      */
-    public function home(NewsEventService $newsEventService)
+    #[Route(path: '/', name: 'homepage', methods: ['GET'])]
+    public function home(NewsEventService $newsEventService): Response
     {
         try {
             if ($this->isGranted(Roles::ROLE_VIEW_INTERNAL)) {
@@ -55,7 +55,6 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @Route("/sitemap.xml", name="sitemap", methods={"GET"})
      * @param OccurrenceManager $occurrenceManager
      * @param TypeManager $typeManager
      * @param ManuscriptManager $manuscriptManager
@@ -73,6 +72,7 @@ class DefaultController extends AbstractController
      * @param BlogPostManager $blogPostManager
      * @return Response
      */
+    #[Route(path: '/sitemap.xml', name: 'sitemap', methods: ['GET'])]
     public function sitemap(
         OccurrenceManager $occurrenceManager,
         TypeManager $typeManager,
@@ -105,7 +105,6 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @Route("/sitemap_{part}.xml", name="sitemap_part", methods={"GET"})
      * @param  string  $part
      * @param OccurrenceManager $occurrenceManager
      * @param TypeManager $typeManager
@@ -125,6 +124,7 @@ class DefaultController extends AbstractController
      * @return Response
      * @throws NotFoundHttpException
      */
+    #[Route(path: '/sitemap_{part}.xml', name: 'sitemap_part', methods: ['GET'])]
     public function sitemapPart(
         string $part,
         OccurrenceManager $occurrenceManager,

@@ -16,11 +16,11 @@ class CollectionController extends BaseController
     }
 
     /**
-     * @Route("/collections", name="collection_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/collections', name: 'collection_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $response = parent::post($request);
 
@@ -32,12 +32,12 @@ class CollectionController extends BaseController
     }
 
     /**
-     * @Route("/collections/{id}", name="collection_put", methods={"PUT"})
      * @param  int    $id collection id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/collections/{id}', name: 'collection_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -49,12 +49,12 @@ class CollectionController extends BaseController
     }
 
     /**
-     * @Route("/collections/{id}", name="collection_delete", methods={"DELETE"})
      * @param int $id collection id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/collections/{id}', name: 'collection_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

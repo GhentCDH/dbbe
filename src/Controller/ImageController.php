@@ -23,11 +23,11 @@ class ImageController extends BaseController
     }
 
     /**
-     * @Route("/images/{id}", name="image_get", methods={"GET"})
      * @param int $id
      * @return BinaryFileResponse
      */
-    public function getImage(int $id)
+    #[Route(path: '/images/{id}', name: 'image_get', methods: ['GET'])]
+    public function getImage(int $id): BinaryFileResponse
     {
         $images = $this->manager->get([$id]);
         if (count($images) != 1) {
@@ -49,12 +49,12 @@ class ImageController extends BaseController
     }
 
     /**
-     * @Route("/images", name="image_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      * @throws Exception
      */
-    public function post(Request $request)
+    #[Route(path: '/images', name: 'image_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);

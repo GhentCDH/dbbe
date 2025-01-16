@@ -21,9 +21,9 @@ class RoleController extends BaseController
     }
 
     /**
-     * @Route("/roles", name="roles_get", methods={"GET"})
      * @param Request $request
      */
+    #[Route(path: '/roles', name: 'roles_get', methods: ['GET'])]
     public function getRoles(Request $request)
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
@@ -37,9 +37,9 @@ class RoleController extends BaseController
     }
 
     /**
-     * @Route("/roles/edit", name="roles_edit", methods={"GET"})
      * @param Request $request
      */
+    #[Route(path: '/roles/edit', name: 'roles_edit', methods: ['GET'])]
     public function editRoles(Request $request)
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
@@ -74,11 +74,11 @@ class RoleController extends BaseController
     }
 
     /**
-     * @Route("/roles", name="role_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function postRole(Request $request)
+    #[Route(path: '/roles', name: 'role_post', methods: ['POST'])]
+    public function postRole(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
@@ -95,12 +95,12 @@ class RoleController extends BaseController
     }
 
     /**
-     * @Route("/roles/{id}", name="role_put", methods={"PUT"})
      * @param  int    $id role id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putRole(int $id, Request $request)
+    #[Route(path: '/roles/{id}', name: 'role_put', methods: ['PUT'])]
+    public function putRole(int $id, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 
@@ -122,11 +122,11 @@ class RoleController extends BaseController
     }
 
     /**
-     * @Route("/roles/{id}", name="role_delete", methods={"DELETE"})
      * @param  int    $id role id
      * @return JsonResponse
      */
-    public function deleteRole(int $id)
+    #[Route(path: '/roles/{id}', name: 'role_delete', methods: ['DELETE'])]
+    public function deleteRole(int $id): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_ADMIN);
 

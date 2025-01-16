@@ -20,10 +20,10 @@ class InstitutionController extends BaseController
     }
 
     /**
-     * @Route("/institutions/regions/{id}", name="institution_deps_by_region")
      * @param int $id The region id
      * @param Request $request
      */
+    #[Route(path: '/institutions/regions/{id}', name: 'institution_deps_by_region')]
     public function getInstitutionsByRegion(int $id, Request $request)
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
@@ -34,13 +34,13 @@ class InstitutionController extends BaseController
     }
 
     /**
-     * @Route("/institutions", name="institution_post", methods={"POST"})
      * @param Request $request
      * @param bool $library Indicates whether the institution is a library
      * @param bool $monastery Indicates whether the institution is a library
      * @return JsonResponse
      */
-    public function postInstitution(Request $request, bool $library = false, bool $monastery = false)
+    #[Route(path: '/institutions', name: 'institution_post', methods: ['POST'])]
+    public function postInstitution(Request $request, bool $library = false, bool $monastery = false): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
 
@@ -57,32 +57,32 @@ class InstitutionController extends BaseController
     }
 
     /**
-     * @Route("/libraries", name="library_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function postLibrary(Request $request)
+    #[Route(path: '/libraries', name: 'library_post', methods: ['POST'])]
+    public function postLibrary(Request $request): JsonResponse
     {
         return $this->postInstitution($request, true);
     }
 
     /**
-     * @Route("/monasteries", name="monastery_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function postMonastery(Request $request)
+    #[Route(path: '/monasteries', name: 'monastery_post', methods: ['POST'])]
+    public function postMonastery(Request $request): JsonResponse
     {
         return $this->postInstitution($request, false, true);
     }
 
     /**
-     * @Route("/institutions/{id}", name="institution_put", methods={"PUT"})
      * @param  int    $id institution id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/institutions/{id}', name: 'institution_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         $response = parent::put($id, $request);
 
@@ -94,56 +94,56 @@ class InstitutionController extends BaseController
     }
 
     /**
-     * @Route("/libraries/{id}", name="library_put", methods={"PUT"})
      * @param  int    $id library id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putLibrary(int $id, Request $request)
+    #[Route(path: '/libraries/{id}', name: 'library_put', methods: ['PUT'])]
+    public function putLibrary(int $id, Request $request): JsonResponse
     {
         return $this->put($id, $request);
     }
 
     /**
-     * @Route("/monasteries/{id}", name="monastery_put", methods={"PUT"})
      * @param  int    $id monastery id
      * @param Request $request
      * @return JsonResponse
      */
-    public function putMonastery(int $id, Request $request)
+    #[Route(path: '/monasteries/{id}', name: 'monastery_put', methods: ['PUT'])]
+    public function putMonastery(int $id, Request $request): JsonResponse
     {
         return $this->put($id, $request);
     }
 
     /**
-     * @Route("/institutions/{id}", name="institution_delete", methods={"DELETE"})
      * @param int $id institution id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/institutions/{id}', name: 'institution_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }
 
     /**
-     * @Route("/libraries/{id}", name="library_delete", methods={"DELETE"})
      * @param int $id library id
      * @param Request $request
      * @return JsonResponse
      */
-    public function deleteLibrary(int $id, Request $request)
+    #[Route(path: '/libraries/{id}', name: 'library_delete', methods: ['DELETE'])]
+    public function deleteLibrary(int $id, Request $request): JsonResponse
     {
         return $this->delete($id, $request);
     }
 
     /**
-     * @Route("/monasteries/{id}", name="monastery_delete", methods={"DELETE"})
      * @param int $id monastery id
      * @param Request $request
      * @return JsonResponse
      */
-    public function deleteMonastery(int $id, Request $request)
+    #[Route(path: '/monasteries/{id}', name: 'monastery_delete', methods: ['DELETE'])]
+    public function deleteMonastery(int $id, Request $request): JsonResponse
     {
         return $this->delete($id, $request);
     }

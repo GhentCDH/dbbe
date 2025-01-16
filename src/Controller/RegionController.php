@@ -19,11 +19,11 @@ class RegionController extends BaseController
     }
 
     /**
-     * @Route("/regions", name="regions_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/regions', name: 'regions_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         return parent::getAll($request);
     }
@@ -31,21 +31,21 @@ class RegionController extends BaseController
     /**
      * Get all regions that have a dependency on a region
      * (region -> parent_idregion)
-     * @Route("/regions/regions/{id}", name="region_deps_by_region")
      * @param int     $id      region id
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDepsByRegion(int $id, Request $request)
+    #[Route(path: '/regions/regions/{id}', name: 'region_deps_by_region')]
+    public function getDepsByRegion(int $id, Request $request): JsonResponse
     {
         return $this->getDependencies($id, $request, 'getRegionDependencies');
     }
 
     /**
-     * @Route("/regions/edit", name="regions_edit", methods={"GET"})
      * @return Response
      */
-    public function editRegions()
+    #[Route(path: '/regions/edit', name: 'regions_edit', methods: ['GET'])]
+    public function editRegions(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -77,45 +77,45 @@ class RegionController extends BaseController
     }
 
     /**
-     * @Route("/regions", name="region_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/regions', name: 'region_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/regions/{primaryId}/{secondaryId}", name="region_merge", methods={"PUT"})
      * @param  int    $primaryId   first region id (will stay)
      * @param  int    $secondaryId second region id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/regions/{primaryId}/{secondaryId}', name: 'region_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/regions/{id}", name="region_put", methods={"PUT"})
      * @param  int    $id region id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/regions/{id}', name: 'region_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/regions/{id}", name="region_delete", methods={"DELETE"})
      * @param int     $id office id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/regions/{id}', name: 'region_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

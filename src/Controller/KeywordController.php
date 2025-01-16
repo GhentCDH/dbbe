@@ -23,11 +23,11 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords", name="subjects_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAllSubjects(Request $request)
+    #[Route(path: '/keywords', name: 'subjects_get', methods: ['GET'])]
+    public function getAllSubjects(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
@@ -38,11 +38,11 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/tags", name="tags_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAllTags(Request $request)
+    #[Route(path: '/tags', name: 'tags_get', methods: ['GET'])]
+    public function getAllTags(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
@@ -53,11 +53,11 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords/edit", name="subjects_edit", methods={"GET"})
      * @param PersonManager $personManager
      * @return Response
      */
-    public function subjectEdit(PersonManager $personManager)
+    #[Route(path: '/keywords/edit', name: 'subjects_edit', methods: ['GET'])]
+    public function subjectEdit(PersonManager $personManager): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -86,10 +86,10 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/tags/edit", name="tags_edit", methods={"GET"})
      * @return Response
      */
-    public function tagEdit()
+    #[Route(path: '/tags/edit', name: 'tags_edit', methods: ['GET'])]
+    public function tagEdit(): Response
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
 
@@ -117,35 +117,35 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords", name="keyword_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/keywords', name: 'keyword_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/keywords/{id}", name="keyword_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/keywords/{id}', name: 'keyword_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/keywords/{primaryId}/persons/{secondaryId}", name="keyword_migrate_person", methods={"PUT"})
      * @param int $primaryId keyword id (will be deleted)
      * @param int $secondaryId person id (will stay)
      * @param Request $request
      * @return JsonResponse
      * @throws Exception
      */
-    public function migrate(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/keywords/{primaryId}/persons/{secondaryId}', name: 'keyword_migrate_person', methods: ['PUT'])]
+    public function migrate(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR);
         $this->throwErrorIfNotJson($request);
@@ -163,12 +163,12 @@ class KeywordController extends BaseController
     }
 
     /**
-     * @Route("/keywords/{id}", name="keyword_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/keywords/{id}', name: 'keyword_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

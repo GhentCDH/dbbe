@@ -1,4 +1,3 @@
-
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -41,3 +40,13 @@ docker_data/dbbe_db/initdb/*gz
 
 docker_data/keycloak/db
 docker_data/elasticsearch/data
+/.bash_history
+/.idea/dbbe.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.symfony5/tmp
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

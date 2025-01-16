@@ -2,11 +2,12 @@
 
 namespace App\Twig;
 
+use Twig\TwigFilter;
+use Twig\TwigTest;
 use DateTime;
 
 use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-use Twig\TwigTest;
+
 
 use App\Model\Image;
 use App\Model\Person;
@@ -14,7 +15,7 @@ use App\Model\SubjectInterface;
 
 class AppExtension extends AbstractExtension
 {
-    public function getTests()
+    public function getTests(): array
     {
         return [
             new TwigTest('person', function (SubjectInterface $object) {
@@ -26,7 +27,7 @@ class AppExtension extends AbstractExtension
         ];
     }
 
-    public function getFilters()
+    public function getFilters(): array
     {
         return [
             new TwigFilter('public', function ($object) {

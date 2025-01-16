@@ -20,11 +20,11 @@ class JournalController extends BaseController
     }
 
     /**
-     * @Route("/journals", name="journals_get", methods={"GET"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function getAll(Request $request)
+    #[Route(path: '/journals', name: 'journals_get', methods: ['GET'])]
+    public function getAll(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
         $this->throwErrorIfNotJson($request);
@@ -34,9 +34,7 @@ class JournalController extends BaseController
         );
     }
 
-    /**
-     * @Route("/journals/edit", name="journals_edit", methods={"GET"})
-     */
+    #[Route(path: '/journals/edit', name: 'journals_edit', methods: ['GET'])]
     public function edit()
     {
         $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -61,12 +59,12 @@ class JournalController extends BaseController
     }
 
     /**
-     * @Route("/journals/{id}", name="journal_get", methods={"GET"})
      * @param int $id
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function getSingle(int $id, Request $request)
+    #[Route(path: '/journals/{id}', name: 'journal_get', methods: ['GET'])]
+    public function getSingle(int $id, Request $request): JsonResponse|Response
     {
         if (explode(',', $request->headers->get('Accept'))[0] == 'application/json') {
             $this->denyAccessUnlessGranted(Roles::ROLE_EDITOR_VIEW);
@@ -93,45 +91,45 @@ class JournalController extends BaseController
     }
 
     /**
-     * @Route("/journals/{primaryId}/{secondaryId}", name="journal_merge", methods={"PUT"})
      * @param  int    $primaryId   first journal id (will stay)
      * @param  int    $secondaryId second journal id (will be deleted)
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(int $primaryId, int $secondaryId, Request $request)
+    #[Route(path: '/journals/{primaryId}/{secondaryId}', name: 'journal_merge', methods: ['PUT'])]
+    public function merge(int $primaryId, int $secondaryId, Request $request): JsonResponse
     {
         return parent::merge($primaryId, $secondaryId, $request);
     }
 
     /**
-     * @Route("/journals", name="journal_post", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
-    public function post(Request $request)
+    #[Route(path: '/journals', name: 'journal_post', methods: ['POST'])]
+    public function post(Request $request): JsonResponse
     {
         return parent::post($request);
     }
 
     /**
-     * @Route("/journals/{id}", name="journal_put", methods={"PUT"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function put(int $id, Request $request)
+    #[Route(path: '/journals/{id}', name: 'journal_put', methods: ['PUT'])]
+    public function put(int $id, Request $request): JsonResponse
     {
         return parent::put($id, $request);
     }
 
     /**
-     * @Route("/journals/{id}", name="journal_delete", methods={"DELETE"})
      * @param  int    $id
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(int $id, Request $request)
+    #[Route(path: '/journals/{id}', name: 'journal_delete', methods: ['DELETE'])]
+    public function delete(int $id, Request $request): JsonResponse
     {
         return parent::delete($id, $request);
     }

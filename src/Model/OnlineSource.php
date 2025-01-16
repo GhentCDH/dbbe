@@ -66,7 +66,7 @@ class OnlineSource extends Entity
     }
 
     /**
-     * @return DateTime
+     * @return ?DateTime
      */
     public function getLastAccessed(): ?DateTime
     {
