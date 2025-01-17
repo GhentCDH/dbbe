@@ -52,14 +52,11 @@ SECRETKEY=<recaptcha_secretkey>
 127.0.0.1 keycloak
 ```
 
-## Install dependencies
-
-Uncomment the line below `First time: install dependencies` in `compose.dev.yaml` and comment the line below that one.
-
 ## Start development environment
 
 ```sh
-docker compose --env-file .env.dev --env-file .env.dev.secret -f compose.dev.yaml up
+docker-compose build
+docker-compose up -d
 ```
 
 ## Add data
