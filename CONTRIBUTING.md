@@ -56,7 +56,7 @@ SECRETKEY=<recaptcha_secretkey>
 
 ```sh
 docker-compose build
-docker-compose up -d
+docker-compose --env-file .env.dev up -d
 ```
 
 ## Add data

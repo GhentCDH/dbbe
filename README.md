@@ -18,7 +18,7 @@ Next run the following command to run the docker services:
 
 ``````
 docker-compose build
-docker-compose up -d
+docker-compose --env-file .env.dev up -d
 ``````
 
 The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process. 
