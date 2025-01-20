@@ -23,7 +23,12 @@ docker-compose --env-file .env.dev up -d
 
 The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process. 
 
+## Running with podman
 
+If you're running podman instead of docker, replace the XDEBUG_CONFIG line in docker-compose with the following (or add to your docker-compose.override.yml):
+```
+XDEBUG_CONFIG: client_host=host.containers.internal client_port=9003
+```
 ## Debugging
 
 Debugging is done using xdebug. Xdebug is an application that listens to requests coming from
