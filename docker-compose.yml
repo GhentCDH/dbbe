@@ -2,8 +2,8 @@
 services:
   app:
     build:
-        context: .
-        target: dev
+      context: .
+      target: dev
     ports:
       - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8001}:8000"
     volumes:
@@ -54,8 +54,8 @@ services:
 
   elasticsearch:
     build:
-        context: .
-        dockerfile: elasticsearch.Dockerfile
+      context: .
+      dockerfile: elasticsearch.Dockerfile
     ports:
       - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
     volumes:
