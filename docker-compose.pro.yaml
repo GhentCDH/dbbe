@@ -5,7 +5,6 @@ services:
     image: "ghentcdh/dbbe:${DBBE_VERSION}"
     ports:
       - "127.0.0.1:${DBBE_EXTERNAL_PORT:-8000}:80"
-    command: bash -c "composer dump-env prod && supervisord"
     restart: unless-stopped
 
   morph:
