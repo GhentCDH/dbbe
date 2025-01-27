@@ -84,7 +84,7 @@ RUN mkdir -p /app/data
 COPY --chown=1000:1000 --link composer.json ./composer.json
 COPY --chown=1000:1000 --link composer.lock ./composer.lock
 RUN composer install --no-scripts
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+RUN composer dump-autoload
 
 # Backend code
 COPY --chown=1000:1000 --link bin ./bin
