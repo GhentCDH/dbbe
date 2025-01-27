@@ -81,9 +81,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "6.4.*"
-        },
-        "runtime": {
+            "require": "6.4.*",
             "disable_dotenv": true
         }
     }
