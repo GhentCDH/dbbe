@@ -272,37 +272,28 @@ services:
 
     App\ElasticSearchService\ElasticBibliographyService:
         public: true
-        arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%' ]
 
     App\ElasticSearchService\ElasticManuscriptService:
         public: true
-        arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%' ]
 
     App\ElasticSearchService\ElasticOccurrenceService:
         public: true
-        arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%' ]
 
     App\ElasticSearchService\ElasticPersonService:
         public: true
-        arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%' ]
 
     App\ElasticSearchService\ElasticTypeService:
         public: true
-        arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%' ]
 
     App\ElasticSearchService\ElasticVerseService:
         public: true
+#        arguments: [ '%elasticsearch.config%', '%elasticsearch.index_prefix%','@App\DatabaseService\VerseService' ]
         arguments:
-            $config: '%env(json:ELASTIC_HOSTS)%'
-            $indexPrefix: '%env(ELASTIC_INDEX_PREFIX)%'
+            $config: '%elasticsearch.config%'
+            $indexPrefix: '%elasticsearch.index_prefix%'
             $databaseService: '@App\DatabaseService\VerseService'

@@ -12,7 +12,6 @@
         "idci/keycloak-security-bundle": "^2.0",
         "jbroadway/urlify": "^1.2",
         "ruflin/elastica": "7.3.*",
-        "sensio/framework-extra-bundle": "^6.2",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
