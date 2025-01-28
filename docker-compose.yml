@@ -28,6 +28,10 @@ services:
       PHP_MEMORY_LIMIT: 1024M
       XDEBUG_MODE: debug
       XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
+      KEYCLOAK_CLIENT_ID: dbbe
+      KEYCLOAK_CLIENT_SECRET: CTop7KIDgJuGJJ25JdjaA7vCQZGfQhi5
+      KEYCLOAK_REALM: dbbe
+      KEYCLOAK_SERVER_URL: http://keycloak:8080
     tty: true
 
     command: bash -c "cd /app && ./symfony_startup_script.sh"
