@@ -5,5 +5,5 @@ idci_keycloak_security:
     realm: '%env(resolve:KEYCLOAK_REALM)%'
     client_id: '%env(resolve:KEYCLOAK_CLIENT_ID)%'
     client_secret: '%env(resolve:KEYCLOAK_CLIENT_SECRET)%'
-    default_target_route_name: 'homepage'
+    default_target_route_name: 'post_login_redirect'
     ssl_verification: true

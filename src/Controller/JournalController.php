@@ -50,7 +50,7 @@ class JournalController extends BaseController
                     'journal_merge' => $this->generateUrl('journal_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'journal_put' => $this->generateUrl('journal_put', ['id' => 'journal_id']),
                     'journal_delete' => $this->generateUrl('journal_delete', ['id' => 'journal_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'journals' => json_encode($this->manager->getAllJson()),

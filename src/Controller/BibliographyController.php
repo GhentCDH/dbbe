@@ -126,7 +126,7 @@ class BibliographyController extends BaseController
                     'journal_merge' => $this->generateUrl('journal_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'books_get' => $this->generateUrl('books_get'),
                     'journals_get' => $this->generateUrl('journals_get'),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     'managements_add' => $this->generateUrl('bibliographies_managements_add'),
                     'managements_remove' => $this->generateUrl('bibliographies_managements_remove'),
                 ]),

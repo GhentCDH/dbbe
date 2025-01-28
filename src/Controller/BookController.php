@@ -218,7 +218,7 @@ class BookController extends BaseController
                     'book_seriess_edit' => $this->generateUrl('book_seriess_edit'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'book' => empty($id)

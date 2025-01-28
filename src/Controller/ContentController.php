@@ -64,7 +64,7 @@ class ContentController extends BaseController
                     'content_merge' => $this->generateUrl('content_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'content_put' => $this->generateUrl('content_put', ['id' => 'content_id']),
                     'content_delete' => $this->generateUrl('content_delete', ['id' => 'content_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'contents' => json_encode($this->manager->getAllJson()),
