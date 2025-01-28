@@ -69,7 +69,7 @@ class OccurrenceController extends BaseController
                 'occurrence_edit' => $this->generateUrl('occurrence_edit', ['id' => 'occurrence_id']),
                 'occurrence_delete' => $this->generateUrl('occurrence_delete', ['id' => 'occurrence_id']),
                 'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
-                'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                'login' => $this->generateUrl('login'),
                 'managements_add' => $this->generateUrl('occurrences_managements_add'),
                 'managements_remove' => $this->generateUrl('occurrences_managements_remove'),
                 'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
@@ -564,7 +564,7 @@ class OccurrenceController extends BaseController
                     'dbbe_persons_get' => $this->generateUrl('persons_get', ['type' => 'dbbe']),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'clone' => $clone,

@@ -65,7 +65,7 @@ class OriginController extends BaseController
                     'monastery_post' => $this->generateUrl('monastery_post'),
                     'monastery_put' => $this->generateUrl('monastery_put', ['id' => 'monastery_id']),
                     'monastery_delete' => $this->generateUrl('monastery_delete', ['id' => 'monastery_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'origins' => json_encode(

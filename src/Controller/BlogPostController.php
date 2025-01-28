@@ -182,7 +182,7 @@ class BlogPostController extends BaseController
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
                     // @codingStandardsIgnoreEnd
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'blogPost' => empty($id)

@@ -49,7 +49,7 @@ class AcknowledgementController extends BaseController
                     'acknowledgement_post' => $this->generateUrl('acknowledgement_post'),
                     'acknowledgement_put' => $this->generateUrl('acknowledgement_put', ['id' => 'acknowledgement_id']),
                     'acknowledgement_delete' => $this->generateUrl('acknowledgement_delete', ['id' => 'acknowledgement_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'acknowledgements' => json_encode(

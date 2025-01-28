@@ -78,7 +78,7 @@ class OfficeController extends BaseController
                     'office_merge' => $this->generateUrl('office_merge', ['primaryId' => 'primary_id', 'secondaryId' => 'secondary_id']),
                     'office_put' => $this->generateUrl('office_put', ['id' => 'office_id']),
                     'office_delete' => $this->generateUrl('office_delete', ['id' => 'office_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data'=> json_encode([

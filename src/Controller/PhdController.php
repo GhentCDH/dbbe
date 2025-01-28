@@ -190,7 +190,7 @@ class PhdController extends BaseController
                     'persons_search' => $this->generateUrl('persons_search'),
                     'managements_get' => $this->generateUrl('managements_get'),
                     'managements_edit' => $this->generateUrl('managements_edit'),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'data' => json_encode([
                     'phd' => empty($id)

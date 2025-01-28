@@ -45,7 +45,7 @@ class ManagementController extends BaseController
                     'management_post' => $this->generateUrl('management_post'),
                     'management_put' => $this->generateUrl('management_put', ['id' => 'management_id']),
                     'management_delete' => $this->generateUrl('management_delete', ['id' => 'management_id']),
-                    'login' => $this->generateUrl('idci_keycloak_security_auth_connect'),
+                    'login' => $this->generateUrl('login'),
                 ]),
                 'managements' => json_encode($this->manager->getAllJson()),
             ]
