@@ -32,6 +32,7 @@ services:
       KEYCLOAK_CLIENT_SECRET: CTop7KIDgJuGJJ25JdjaA7vCQZGfQhi5
       KEYCLOAK_REALM: dbbe
       KEYCLOAK_SERVER_URL: http://keycloak:8080
+      PHP_IDE_CONFIG: serverName=localhost
     tty: true
 
     command: bash -c "cd /app && ./symfony_startup_script.sh"
@@ -65,7 +66,7 @@ services:
     ports:
       - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
     volumes:
-      - ./docker_data/elasticsearch/data:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
       network.host: 0.0.0.0
@@ -130,3 +131,6 @@ services:
 
     command: start-dev --import-realm
 
+volumes:
+  esdata:
+    driver: local
