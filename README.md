@@ -4,6 +4,11 @@ This repository contains the source code for the [DBBE database](https://www.dbb
 
 The DBBE database consists of a Symphony back-end connected to a PostgreSQL database and Elasticsearch search engine. The search and edit pages consist of Vue.js applications.
 
+## Prerequisites
+- docker
+- docker-compose
+- php
+
 ## Getting started
 
 First download a dbbe database dump and place it in the `docker_data/dbbe_db/initdb` folder. SQL or bash scripts in this folder are executed only the first time the container is started. To rerun the import, delete the data directory
@@ -17,7 +22,7 @@ Next run the following command to run the docker services:
 * Keycloak postgres database
 
 ``````
-docker-compose build
+docker-compose --env-file .env.dev build
 docker-compose --env-file .env.dev up -d
 ``````
 
@@ -37,7 +42,7 @@ your PHP application and sends debugging information about these to your IDE.
 ### 1. Install and configure XDebug
 You can check if it's installed on your host computer by running `php -i | grep xdebug` .
 
-You can opt to add the following configuration to your `/etc/php/php.ini` file in order to have Xdebug ready for connections every time you run a php server. This might help if you have issues getting XDebug to start properly.
+You need to add the following configuration to your `/etc/php/php.ini` file in order to have Xdebug ready for connections every time you run a php server. This might help if you have issues getting XDebug to start properly.
 ```
 [xdebug]
 xdebug.mode=debug
