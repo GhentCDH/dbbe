@@ -17,6 +17,7 @@ RUN set -eux; \
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack prepare pnpm@10.0.0 --activate
 RUN corepack enable
 
 WORKDIR "/app"
