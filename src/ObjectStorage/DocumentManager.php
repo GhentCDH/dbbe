@@ -141,9 +141,11 @@ abstract class DocumentManager extends ObjectEntityManager
         try {
             if (count($delIds) > 0) {
                 $this->dbs->delPersonRole($document->getId(), $role->getId(), $delIds);
+                $this->container->get(PersonManager::class)->updateElasticByIds($delIds);
             }
             foreach ($addIds as $addId) {
                 $this->dbs->addPersonRole($document->getId(), $role->getId(), $addId);
+                $this->container->get(PersonManager::class)->updateElasticByIds($addIds);
             }
 
             // Update rank if needed
