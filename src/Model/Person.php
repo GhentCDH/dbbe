@@ -730,7 +730,16 @@ class Person extends Entity implements SubjectInterface
                             return $a->getSortKey() <=> $b->getSortKey();
                         }
                     );
-                } else {
+                } else if (in_array($documentType, ['occurrence'])){
+                    $collator = new Collator('el_GR');
+                    usort(
+                        $this->documentRoles[$documentType][$role][1],
+                        function ($a, $b) use ($collator) {
+                            return $collator->compare($a->getDescription(), $b->getDescription());
+                        }
+                    );
+                }
+                else {
                     usort(
                         $this->documentRoles[$documentType][$role][1],
                         function ($a, $b) {
