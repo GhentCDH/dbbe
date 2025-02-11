@@ -1,6 +1,6 @@
 ARG PHP_VERSION=8.3
-ARG NODE_VERSION=18
-ARG NODE_PLATFORM=bookworm-slim
+ARG NODE_VERSION=20
+ARG NODE_PLATFORM=slim
 # based on:
 # - https://adambrodziak.pl/dockerfile-good-practices-for-node-and-npm
 # - https://pnpm.io/docker
@@ -43,9 +43,9 @@ RUN set -eux; \
     apt-get update -qq; \
     apt-get install -qq -y curl git apt-transport-https gnupg software-properties-common;
 
-# Install NodeJs 18
+# Install NodeJs 20
 RUN set -eux; \
-    curl -sL https://deb.nodesource.com/setup_18.x | bash - ; \
+    curl -sL https://deb.nodesource.com/setup_20.x | bash - ; \
     apt-get update -qq; \
     apt-get install -qq -y nodejs;
 
