@@ -64,6 +64,10 @@ class ElasticManuscriptService extends ElasticEntityService
             $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
         }
 
+        if (isset($params['filters']['exact_text']['diktyon'])) {
+            $params['filters']['exact_text']['diktyon'] = str_pad($params['filters']['exact_text']['diktyon'], 5, '0', STR_PAD_LEFT);
+        }
+
         $result = $this->search($params);
 
         // Filter out unnecessary results
@@ -113,6 +117,16 @@ class ElasticManuscriptService extends ElasticEntityService
             $this->classifyAggregationFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
+
+        if (!empty($result['aggregation']['diktyon']) && is_array($result['aggregation']['diktyon'])) {
+            $result['aggregation']['diktyon'] = array_map(
+                fn($item) => [
+                    'id' => ltrim($item['id'] ?? '', '0'),
+                    'name' => ltrim($item['name'] ?? '', '0')
+                ],
+                $result['aggregation']['diktyon']
+            );
+        }
 
         // Add 'No collection' when necessary
         // When a library has been selected and no collection has been selected

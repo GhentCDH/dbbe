@@ -34,7 +34,7 @@ class Identification
             foreach (array_keys($itemIdentifications) as $index) {
                 $identification = new Identification();
                 $identification->identifier = $identifier;
-                $identification->identification = $itemIdentifications[$index];
+                $identification->identification = ($identifier->getSystemName()) === 'diktyon' ? ltrim($itemIdentifications[$index], '0') : $itemIdentifications[$index];
                 $identification->volume = $item[1];
                 $identification->extra = $identifier->getExtra() ? $itemExtras[$index] : null;
                 $result[1][] = $identification;
