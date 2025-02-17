@@ -561,6 +561,7 @@ class PersonController extends BaseController
                     case 'historical':
                     case 'modern':
                     case 'public':
+                    case 'external_ref':
                     case 'management':
                         if (is_numeric($params['filters'][$key])) {
                             $filters[$key] = $params['filters'][$key];

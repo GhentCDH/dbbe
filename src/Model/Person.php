@@ -134,6 +134,10 @@ class Person extends Entity implements SubjectInterface
      * @var string
      */
     protected $fullDescription = null;
+    /**
+     * @var string
+     */
+    protected $externalRef = null;
 
     /**
      * @param  string|null $firstName
@@ -172,6 +176,15 @@ class Person extends Entity implements SubjectInterface
     {
         return $this->lastName;
     }
+
+    /**
+     * @return string|null
+     */
+    public function addExternalRef(string $externalRef = null): ?string
+    {
+        return $this->externalRef=$externalRef;
+    }
+
 
     /**
      * @param  SelfDesignation $selfDesignation
@@ -1053,6 +1066,9 @@ class Person extends Entity implements SubjectInterface
         }
         if (!empty($this->origin)) {
             $result['origin'] = $this->origin->getShortElastic();
+        }
+        if(!empty($this->externalRef)){
+            $result['external_ref']=$this->externalRef;
         }
 
         return $result;

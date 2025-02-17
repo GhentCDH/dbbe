@@ -427,6 +427,19 @@ class PersonService extends EntityService
         )->fetchAll();
     }
 
+    public function getExternalRefs(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                data.reference.idtarget as person_id,
+                data.reference.external_ref as external_ref_id
+            from data.reference
+            where data.reference.idtarget in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
+
     public function getManuscriptsAsRoles(array $ids): array
     {
         return $this->conn->executeQuery(

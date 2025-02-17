@@ -44,6 +44,7 @@ class ElasticPersonService extends ElasticEntityService
             'office' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
             'origin' => ['type' => 'nested'],
+            'external_ref' => ['type' => 'text']
         ];
         $this->index->setMapping(new Mapping($properties));
     }
@@ -212,6 +213,14 @@ class ElasticPersonService extends ElasticEntityService
                             'text' => $value,
                             'combination' => 'any',
                         ],
+                    ];
+                    break;
+                case 'external_ref':
+                    $result['multiple_text'][$key] = [
+                        'external_ref' => [
+                            'text' => $value,
+                            'combination' => 'any',
+                        ]
                     ];
                     break;
                 case 'public':

@@ -163,6 +163,15 @@ class PersonManager extends ObjectEntityManager
             }
         }
 
+        # External references
+        $rawExternalRefs = $this->dbs->getExternalRefs($ids);
+        foreach($rawExternalRefs as $rawExternalRef) {
+            if (isset($rawExternalRef['external_ref_id'])) {
+                $persons[$rawExternalRef['person_id']]
+                    ->addExternalRef($rawExternalRef['external_ref_id']);
+            }
+        }
+
         foreach ($persons as $person) {
             $person->sortOfficesWithParents();
         }
