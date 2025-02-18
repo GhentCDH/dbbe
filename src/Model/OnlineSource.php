@@ -122,12 +122,22 @@ class OnlineSource extends Entity
         ];
     }
 
+    public function getTitle(): ?string
+    {
+        return $this->name;
+    }
+
+    public function getTitleSortKey(): ?string
+    {
+        return $this->name;
+    }
     /**
      * @return array
      */
     public function getElastic(): array
     {
         $result = parent::getElastic();
+        $result['title_sort_key'] = $this->getTitleSortKey();
 
         $result['type'] = [
             'id' => 3,
@@ -138,4 +148,6 @@ class OnlineSource extends Entity
 
         return $result;
     }
+
+
 }
