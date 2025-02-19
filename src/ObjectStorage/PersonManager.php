@@ -826,8 +826,8 @@ class PersonManager extends ObjectEntityManager
         }
         $identifiers = $this->container->get(IdentifierManager::class)->getByType('person');
         foreach ($identifiers as $identifier) {
-            if (empty($primary->getIdentifications()[$identifier->getSystemName()])
-                && !empty($secondary->getIdentifications()[$identifier->getSystemName()])
+            if (empty($primary->getIdentifications()[$identifier->getSystemName()][1])
+                && !empty($secondary->getIdentifications()[$identifier->getSystemName()][1])
             ) {
                 if (!isset($updates['identification'])) {
                     $updates['identification'] = [];
@@ -917,7 +917,7 @@ class PersonManager extends ObjectEntityManager
                     if ($found) {
                         $old->setPersonRoles($personRoles);
                         $new->setPersonRoles($newPersonRoles);
-                        if (get_class($poem == 'App\Model\Occurrences')) {
+                        if (get_class($poem) == 'App\Model\Occurrences') {
                             $manuscriptIds[] = $poem->getManuscript()->getId();
                         }
                     }
