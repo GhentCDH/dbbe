@@ -6,7 +6,7 @@
         {{ item.getIdentifier().getName() }}
     </a>,
     {% if item.getIdentifier().getSystemName() == 'pinakes_person' %}
-        {% set id_number = item.getIdentification()|slice(4) %}
+        {% set id_number = item.getIdentification()|regex_replace('^(A\.|CPA\.|S\.)', '') %}
         {% if item.getIdentification() starts with 'CPA.' %}
             <a href="https://pinakes.irht.cnrs.fr/notices/copiste-possesseur-autre/{{ id_number }}">
                 {{ item }}
