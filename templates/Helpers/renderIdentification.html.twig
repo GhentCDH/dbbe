@@ -6,16 +6,21 @@
         {{ item.getIdentifier().getName() }}
     </a>,
     {% if item.getIdentifier().getSystemName() == 'pinakes_person' %}
-        {% set id_number = item.getIdentification()|regex_replace('^(A\.|CPA\.|S\.)', '') %}
+
+        {% set id_number = item.getIdentification() %}
+
         {% if item.getIdentification() starts with 'CPA.' %}
+            {% set id_number = id_number|slice(4) %}
             <a href="https://pinakes.irht.cnrs.fr/notices/copiste-possesseur-autre/{{ id_number }}">
                 {{ item }}
             </a>
         {% elseif item.getIdentification() starts with 'A.' %}
-            <a href="https://pinakes.irht.cnrs.fr/notices/auteur/{{ id_number }}">
+            {% set id_number = id_number|slice(2) %}
+            <a href="https://pinakes.irht.cnrs.fr/notices/auteur/{{ id_number|replace({'A. ': ''})  }}">
                 {{ item }}
             </a>
         {% elseif item.getIdentification() starts with 'S.' %}
+            {% set id_number = id_number|slice(2) %}
             <a href="https://pinakes.irht.cnrs.fr/notices/saint/{{ id_number }}">
                 {{ item }}
             </a>
