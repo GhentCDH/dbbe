@@ -2,30 +2,33 @@
 {% if item.getIdentifier().getSystemName == 'vassis' %}
     {# Institution, link is provided by identifier #}
 {% elseif item.getIdentifier().getLinkType() == 'online_source' %}
-    <a href="{{ path('online_source_get', {'id': item.getIdentifier().getIds()[0]}) }}">
-        {{ item.getIdentifier().getName() }}
-    </a>,
     {% if item.getIdentifier().getSystemName() == 'pinakes_person' %}
+        <a href="{{ path('online_source_get', {'id': item.getIdentifier().getIds()[0]}) }}">
+            {{ item.getIdentifier().getName() }}
+        </a>,
 
         {% set id_number = item.getIdentification() %}
-
         {% if item.getIdentification() starts with 'CPA.' %}
             {% set id_number = id_number|slice(4) %}
-            <a href="https://pinakes.irht.cnrs.fr/notices/copiste-possesseur-autre/{{ id_number }}">
+            <a href="https://pinakes.irht.cnrs.fr/notices/copiste-possesseur-autre/{{ id_number }}" target="_blank">
                 {{ item }}
             </a>
         {% elseif item.getIdentification() starts with 'A.' %}
             {% set id_number = id_number|slice(2) %}
-            <a href="https://pinakes.irht.cnrs.fr/notices/auteur/{{ id_number|replace({'A. ': ''})  }}">
+            <a href="https://pinakes.irht.cnrs.fr/notices/auteur/{{ id_number|replace({'A. ': ''})  }}" target="_blank">
                 {{ item }}
             </a>
         {% elseif item.getIdentification() starts with 'S.' %}
             {% set id_number = id_number|slice(2) %}
-            <a href="https://pinakes.irht.cnrs.fr/notices/saint/{{ id_number }}">
+            <a href="https://pinakes.irht.cnrs.fr/notices/saint/{{ id_number }}" target="_blank">
                 {{ item }}
             </a>
         {% endif %}
+
     {% else %}
+        <a href="{{ path('online_source_get', {'id': item.getIdentifier().getIds()[0]}) }}">
+            {{ item.getIdentifier().getName() }}
+        </a>,
         <a href="{{ item.getIdentifier().getLink() }}{{ item.getIdentification() }}" target="_blank">{{ item }}</a>
     {% endif %}
 
@@ -40,6 +43,7 @@
     {% else %}
         {{ item.getIdentifier().getName() }}, <a href="{{ path('book_get', {'id': item.getIdentifier().getIds()[item.getVolume() - 1]}) }}">{{ item.getRomanVolume() }}</a>.{{ item.getIdentification() }}
     {% endif %}
+
     {# Article #}
 {% elseif item.getIdentifier().getLinkType() == 'article' %}
     {# Specific markup for #}
