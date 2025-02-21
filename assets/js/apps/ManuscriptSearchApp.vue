@@ -386,6 +386,9 @@ export default {
                     dependency: `${identifier.systemName}_available`,
                     model: identifier.systemName,
                 },
+                {
+                  optionsLimit: 7000
+                }
             ));
         }
 
