@@ -345,14 +345,20 @@
                         :key="identifier.systemName"
                     >
                         <td>{{ identifier.name }}</td>
-                        <td>
-                            {{
-                                // eslint-disable-next-line max-len
-                                (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
-                                    // eslint-disable-next-line max-len
-                                    || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
-                            }}
-                        </td>
+                      <td>
+                        {{
+                          (Array.isArray(mergeModel.primaryFull?.identifications?.[identifier.systemName]) &&
+                              !mergeModel.primaryFull?.identifications?.[identifier.systemName].length)
+                              ? ''
+                              : mergeModel.primaryFull?.identifications?.[identifier.systemName]
+                        }}
+                        {{
+                          (Array.isArray(mergeModel.secondaryFull?.identifications?.[identifier.systemName]) &&
+                              !mergeModel.secondaryFull?.identifications?.[identifier.systemName].length)
+                              ? ''
+                              : mergeModel.secondaryFull?.identifications?.[identifier.systemName]
+                        }}
+                      </td>
                     </tr>
                     <tr>
                         <td>(Self) designation</td>
