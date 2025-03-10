@@ -826,15 +826,19 @@ class PersonManager extends ObjectEntityManager
         }
         $identifiers = $this->container->get(IdentifierManager::class)->getByType('person');
         foreach ($identifiers as $identifier) {
-            if (empty($primary->getIdentifications()[$identifier->getSystemName()])
-                && !empty($secondary->getIdentifications()[$identifier->getSystemName()])
-            ) {
-                if (!isset($updates['identification'])) {
-                    $updates['identification'] = [];
-                }
-                $updates['identification'][$identifier->getSystemName()] = ArrayToJson::arrayToJson(
-                    $secondary->getIdentifications()[$identifier->getSystemName()][1]
-                );
+            if (!isset($updates['identification'])) {
+                $updates['identification'] = [];
+            }
+
+            $primary_identification = $primary->getIdentifications()[$identifier->getSystemName()][1] ?? null;
+            $secondary_identification = $secondary->getIdentifications()[$identifier->getSystemName()][1] ?? null;
+
+            if (!empty($primary_identification)) {
+                $updates['identification'][$identifier->getSystemName()] = ArrayToJson::arrayToJson($primary_identification);
+            }
+
+            if (!empty($secondary_identification)) {
+                $updates['identification'][$identifier->getSystemName()]= ArrayToJson::arrayToJson($secondary_identification);
             }
         }
         if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
@@ -917,7 +921,7 @@ class PersonManager extends ObjectEntityManager
                     if ($found) {
                         $old->setPersonRoles($personRoles);
                         $new->setPersonRoles($newPersonRoles);
-                        if (get_class($poem == 'App\Model\Occurrences')) {
+                        if (get_class($poem) == 'App\Model\Occurrences') {
                             $manuscriptIds[] = $poem->getManuscript()->getId();
                         }
                     }
