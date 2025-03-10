@@ -816,13 +816,12 @@ export default {
                     .replace('secondary_id', this.mergeModel.secondary.id),
             )
                 .then((_response) => {
-                    this.update();
                     this.mergeAlerts = [];
                     this.alerts.push({ type: 'success', message: 'Merge successful.' });
-                    this.openRequests -= 1;
+                    this.openRequests--;
                 })
                 .catch((error) => {
-                    this.openRequests -= 1;
+                    this.openRequests--;
                     this.mergeModal = true;
                     this.mergeAlerts.push({
                         type: 'error',
