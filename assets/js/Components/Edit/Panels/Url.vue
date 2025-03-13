@@ -97,11 +97,11 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue'
+
 import draggable from 'vuedraggable'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import Panel from '../Panel'
+import Panel from '../Panel.vue'
 import VueFormGenerator from "vue-form-generator";
 
 Vue.component('panel', Panel)

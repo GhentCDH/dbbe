@@ -518,7 +518,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue'
+
 import VueFormGenerator from 'vue-form-generator'
 
 import VueMultiselect from 'vue-multiselect'
