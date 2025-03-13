@@ -44,10 +44,10 @@
 <script>
 window.axios = require('axios')
 
-import Vue from 'vue'
+
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
-import Recaptcha from '../Components/Recaptcha'
+import Recaptcha from '../Components/Recaptcha.vue'
 
 Vue.use(uiv)
 Vue.use(VueFormGenerator)

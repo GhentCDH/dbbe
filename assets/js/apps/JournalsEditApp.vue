@@ -116,7 +116,7 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import Url from '../Components/Edit/Panels/Url'
+import Url from '../Components/Edit/Panels/Url.vue'
 
 export default {
     components: {

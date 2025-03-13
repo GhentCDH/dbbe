@@ -323,11 +323,11 @@
 </template>
 
 <script>
-import Vue from 'vue'
+
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:OccurrenceVerses|BasicOccurrence|OccurrenceTypes|Person|Date|Metre|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
+const panelComponents = require.context('../Components/Edit/Panels.vue', false, /[/](?:OccurrenceVerses|BasicOccurrence|OccurrenceTypes|Person|Date|Metre|Genre|Subject|Identification|Image|Bibliography|GeneralOccurrence|Management)[.]vue$/)
 
 for(let key of panelComponents.keys()) {
     let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')

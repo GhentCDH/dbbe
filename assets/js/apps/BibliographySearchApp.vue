@@ -380,7 +380,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+;
 import VueFormGenerator from 'vue-form-generator';
 
 import AbstractField from '../Components/FormFields/AbstractField';
