@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import BookEditApp from '../apps/BookEditApp'
+import createApp from 'vue';
+import BookEditApp from "../apps/BookEditApp.vue";
 
-new Vue({
+createApp({
     el: '#book-edit-app',
     components: {
-        BookEditApp
-    }
-})
+        BookEditApp,
+    },
+});

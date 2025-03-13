@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import ContentsEditApp from '../apps/ContentsEditApp'
+import createApp from 'vue';
+import ContentsEditApp from "../apps/ContentsEditApp.vue";
 
-new Vue({
+createApp({
     el: '#contents-edit-app',
     components: {
-        ContentsEditApp
-    }
-})
+        ContentsEditApp,
+    },
+});

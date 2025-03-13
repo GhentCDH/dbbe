@@ -1,7 +1,8 @@
-import Vue from 'vue'
-import PersonEditApp from '../apps/PersonEditApp'
 
-new Vue({
+import PersonEditApp  from '../apps/PersonEditApp.vue'
+
+import createApp from "vue";
+createApp({
     el: '#person-edit-app',
     components: {
         PersonEditApp

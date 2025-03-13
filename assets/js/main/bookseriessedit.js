@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import BookSeriessEditApp from '../apps/BookSeriessEditApp'
+import createApp from 'vue';
+import BookSeriessEditApp from "../apps/BookSeriessEditApp.vue";
 
-new Vue({
+createApp({
     el: '#book-seriess-edit-app',
     components: {
-        BookSeriessEditApp
-    }
-})
+        BookSeriessEditApp,
+    },
+});

@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import ManagementsEditApp from '../apps/ManagementsEditApp'
+import ManagementsEditApp  from '../apps/ManagementsEditApp.vue'
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#managements-edit-app',
     components: {
         ManagementsEditApp

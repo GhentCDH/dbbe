@@ -1,7 +1,8 @@
-import Vue from 'vue'
-import GenresEditApp from '../apps/GenresEditApp'
 
-new Vue({
+
+import createApp from "vue";
+import GenresEditApp from "../apps/GenresEditApp.vue";
+createApp({
     el: '#genres-edit-app',
     components: {
         GenresEditApp

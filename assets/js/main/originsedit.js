@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import OriginsEditApp from '../apps/OriginsEditApp'
+import OriginsEditApp  from '../apps/OriginsEditApp.vue'
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#origins-edit-app',
     components: {
         OriginsEditApp

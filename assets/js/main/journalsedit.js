@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import JournalsEditApp from '../apps/JournalsEditApp'
+import JournalsEditApp  from '../apps/JournalsEditApp.vue'
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#journals-edit-app',
     components: {
         JournalsEditApp

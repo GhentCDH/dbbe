@@ -1,7 +1,8 @@
-import Vue from 'vue'
-import SelfDesignationsEditApp from '../apps/SelfDesignationsEditApp'
 
-new Vue({
+import SelfDesignationsEditApp  from '../apps/SelfDesignationsEditApp.vue'
+
+import createApp from "vue";
+createApp({
     el: '#self-designations-edit-app',
     components: {
         SelfDesignationsEditApp

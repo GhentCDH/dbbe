@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import BibVariaEditApp from '../apps/BibVariaEditApp'
+import createApp from "vue";
+import BibVariaEditApp from "../apps/BibVariaEditApp.vue";
 
-new Vue({
+createApp({
     el: '#bib-varia-edit-app',
     components: {
         BibVariaEditApp

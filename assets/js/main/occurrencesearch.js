@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import OccurrenceSearchApp from '../apps/OccurrenceSearchApp'
+import OccurrenceSearchApp  from '../apps/OccurrenceSearchApp.vue'
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#occurrence-search-app',
     components: {
         OccurrenceSearchApp

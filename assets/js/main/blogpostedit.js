@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import BlogPostEditApp from '../apps/BlogPostEditApp'
+import createApp from "vue";
+import BlogPostEditApp from "../apps/BlogPostEditApp.vue";
 
-new Vue({
+createApp({
     el: '#blog-post-edit-app',
     components: {
         BlogPostEditApp

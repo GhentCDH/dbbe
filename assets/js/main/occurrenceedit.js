@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import OccurrenceEditApp from '../apps/OccurrenceEditApp'
+import createApp from 'vue';
+import OccurrenceEditApp  from '../apps/OccurrenceEditApp.vue';
 
-new Vue({
+createApp({
     el: '#occurrence-edit-app',
     components: {
-        OccurrenceEditApp
-    }
-})
+        OccurrenceEditApp,
+    },
+});

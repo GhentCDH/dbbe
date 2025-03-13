@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import BookClustersEditApp from '../apps/BookClustersEditApp'
+import BookClustersEditApp  from "../apps/BookClustersEditApp.vue";
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#book-clusters-edit-app',
     components: {
         BookClustersEditApp

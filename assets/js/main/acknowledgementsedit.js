@@ -1,7 +1,6 @@
-import Vue from 'vue'
-import AcknowledgementsEditApp from '../apps/AcknowledgementsEditApp'
-
-new Vue({
+import createApp from "vue";
+import AcknowledgementsEditApp from "../apps/AcknowledgementsEditApp.vue";
+createApp({
     el: '#acknowledgements-edit-app',
     components: {
         AcknowledgementsEditApp

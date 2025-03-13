@@ -1,7 +1,7 @@
-import Vue from 'vue'
-import OnlineSourceEditApp from '../apps/OnlineSourceEditApp'
+import OnlineSourceEditApp  from '../apps/OnlineSourceEditApp.vue'
 
-new Vue({
+import createApp from "vue";
+createApp({
     el: '#online-source-edit-app',
     components: {
         OnlineSourceEditApp
