@@ -1,6 +1,6 @@
 import qs from 'qs';
 
-import Vue from 'vue';
+;
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';

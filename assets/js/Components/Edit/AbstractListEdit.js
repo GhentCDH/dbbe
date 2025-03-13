@@ -1,14 +1,14 @@
 window.axios = require('axios')
 
-import Vue from 'vue'
+
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
 
-import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
-import Alerts from '../Alerts'
-import EditListRow from './EditListRow'
-import Panel from './Panel'
+import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue'
+import Alerts from '../Alerts.vue'
+import EditListRow from './EditListRow.vue'
+import Panel from './Panel.vue'
 
 Vue.use(VueFormGenerator)
 Vue.use(uiv)

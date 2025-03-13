@@ -1,13 +1,12 @@
 window.axios = require('axios')
 
-import Vue from 'vue'
+
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
 
-import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
-import Alerts from '../Alerts'
-import Panel from './Panel'
+import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue'
+import Alerts from '../Alerts.vue'
 
 const modalComponents = require.context('./Modals', false, /[.]vue$/)
 
