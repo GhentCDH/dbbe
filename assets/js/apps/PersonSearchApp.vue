@@ -345,20 +345,7 @@
                         :key="identifier.systemName"
                     >
                         <td>{{ identifier.name }}</td>
-                      <td>
-                        {{
-                          (Array.isArray(mergeModel.primaryFull?.identifications?.[identifier.systemName]) &&
-                              !mergeModel.primaryFull?.identifications?.[identifier.systemName].length)
-                              ? ''
-                              : mergeModel.primaryFull?.identifications?.[identifier.systemName]
-                        }}
-                        {{
-                          (Array.isArray(mergeModel.secondaryFull?.identifications?.[identifier.systemName]) &&
-                              !mergeModel.secondaryFull?.identifications?.[identifier.systemName].length)
-                              ? ''
-                              : mergeModel.secondaryFull?.identifications?.[identifier.systemName]
-                        }}
-                      </td>
+                        <td>{{getMergedIdentification(identifier)}}</td>
                     </tr>
                     <tr>
                         <td>(Self) designation</td>
@@ -777,6 +764,18 @@ export default {
         },
     },
     methods: {
+        getMergedIdentification(identifier) {
+            const { systemName } = identifier;
+            const primary = this.mergeModel.primaryFull?.identifications?.[systemName];
+            const secondary = this.mergeModel.secondaryFull?.identifications?.[systemName];
+            if (Array.isArray(primary) && primary.length > 0) {
+              return primary;
+            }
+            if (Array.isArray(secondary) && secondary.length > 0) {
+              return secondary;
+            }
+            return '';
+        },
         merge(row) {
             this.openRequests += 1;
             window.axios.get(this.urls.persons_get)
