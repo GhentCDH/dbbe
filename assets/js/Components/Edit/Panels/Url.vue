@@ -102,8 +102,6 @@ import draggable from 'vuedraggable'
 
 import AbstractPanelForm from '../AbstractPanelForm'
 import Panel from '../Panel.vue'
-import VueFormGenerator from "vue-form-generator";
-
 Vue.component('panel', Panel)
 Vue.component('draggable', draggable)
 

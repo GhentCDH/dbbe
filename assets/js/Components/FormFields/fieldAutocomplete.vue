@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { abstractField } from 'vue-form-generator';
+import { abstractField } from 'vue3-form-generator-legacy';
 
 export default {
     mixins: [abstractField],

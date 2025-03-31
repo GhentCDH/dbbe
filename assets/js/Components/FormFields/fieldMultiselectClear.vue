@@ -52,7 +52,8 @@ div(@keyup.esc.stop.prevent="onEscStopPrevent")
       span.badge(v-if="props.option.count != null") {{ props.option.count }}
 </template>
 <script>
-import { abstractField } from 'vue-form-generator';
+
+import { abstractField } from "vue3-form-generator-legacy";
 
 function isEmpty(opt) {
     if (opt === 0) return false;
