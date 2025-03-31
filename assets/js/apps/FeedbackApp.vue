@@ -42,15 +42,11 @@
 </template>
 
 <script>
-window.axios = require('axios')
 
 
-import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import Recaptcha from '../Components/Recaptcha.vue'
 
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
 
 export default {
     components: {

@@ -146,18 +146,15 @@
     </div>
 </template>
 <script>
-window.axios = require('axios');
 
 
 import draggable from 'vuedraggable'
-import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
-import VueCkeditor from 'vue-ckeditor2'
+import VueCkeditor from 'vue-ckeditor4'
 
 import Alerts from '../Components/Alerts.vue'
 
-Vue.use(uiv);
-Vue.use(VueFormGenerator);
+;
 
 export default {
     components: {
