@@ -519,7 +519,7 @@
 </template>
 <script>
 
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import VueMultiselect from 'vue-multiselect'
 import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
@@ -528,8 +528,7 @@ import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
+
 
 export default {
     mixins: [

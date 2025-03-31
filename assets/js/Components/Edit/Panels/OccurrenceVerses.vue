@@ -275,7 +275,7 @@ import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
 
-Vue.use(VueFormGenerator)
+
 Vue.component('draggable', draggable)
 Vue.component('panel', Panel)
 Vue.component('verseTable', VerseTable)
