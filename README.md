@@ -34,6 +34,19 @@ If you're running podman instead of docker, replace the XDEBUG_CONFIG line in do
 ```
 XDEBUG_CONFIG: client_host=host.containers.internal client_port=9003
 ```
+
+## Customizing Keycloak
+
+If you want to add more roles (see Roles.php) to the default Keycloak user, follow these steps:
+
+- Browse to keycloak on localhost:8080
+- Select dbbe from the realms drop down on the top left 
+- Select "clients" from the sidebar and pick DBBE
+- Go to the roles tab and click "create role"
+- Give the new role a name that corresponds to one of the roles in Roles.php
+- Save it and, from the roles overview, go to the ROLE_EDITOR (which is automatically assigned to the default user)
+- Go to the "associated roles" tab and click "assign role". Select your newly created role.
+
 ## Debugging
 
 Debugging is done using xdebug. Xdebug is an application that listens to requests coming from
