@@ -1,20 +1,16 @@
 
-import VueCookies from 'vue-cookies';
 
-const _merge = require('lodash.merge');
-
-Vue.use(VueCookies)
 
 export default function(cookieName) {
     return {
         data() {
             return {
                 configCookieName: cookieName,
-                config: {},
+                appConfig: {},
             }
         },
         watch: {
-            config: {
+            appConfig: {
                 handler: function (newConfig, oldConfig) {
                     this.setCookie(this.configCookieName, newConfig)
                     this.$emit('config-changed', newConfig)
@@ -43,11 +39,11 @@ export default function(cookieName) {
         mounted() {
         },
         created() {
-            this.config = this.defaultConfig;
+            this.appConfig = this.defaultConfig;
             if ( !this.$cookies.isKey(this.configCookieName) )
-                this.setCookie(this.configCookieName, this.config)
+                this.setCookie(this.configCookieName, this.appConfig)
             else {
-                this.config = this.getCookie(this.configCookieName,this.defaultConfig)
+                this.appConfig = this.getCookie(this.configCookieName,this.defaultConfig)
             }
         }
     }
