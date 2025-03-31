@@ -1048,7 +1048,6 @@ class PersonManager extends ObjectEntityManager
 
             // commit transaction
             $this->dbs->commit();
-            $this->updateElasticByIds([$primaryId, $secondaryId]);
         } catch (Exception $e) {
             $this->dbs->rollBack();
 
