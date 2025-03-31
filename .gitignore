@@ -47,3 +47,8 @@ docker_data/elasticsearch/data
 /.idea/vcs.xml
 /.symfony5/tmp
 /docker-compose.override.yml
+
+###> pentatrion/vite-bundle ###
+/node_modules/
+/public/build/
+###< pentatrion/vite-bundle ###

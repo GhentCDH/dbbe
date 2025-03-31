@@ -1,25 +1,24 @@
 {
     "dependencies": {
+        "@vue/compat": "^3.1.0",
         "axios": "^1.6.7",
         "beta-code-js": "^3.1.0",
+        "ckeditor4-vue": "^3.2.1",
         "lodash": "^4.17.21",
         "lodash.merge": "^4.6.2",
         "qs": "^6.12.0",
-        "uiv": "^1.4.3",
-        "vue": "^2.7.16",
+        "uiv": "^2.0.6",
+        "vue": "^3.1.0",
         "vue-cookies": "^1.8.3",
-        "vue-form-generator": "^2.3.4",
-        "vue-multiselect": "^2.1.9",
-        "vue-tables-2": "^2.3.5"
+        "vue-multiselect": "^3.2.0",
+        "vue3-form-generator-legacy": "^1.7.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.24.0",
-        "@babel/eslint-parser": "^7.23.10",
-        "@babel/preset-env": "^7.24.0",
         "@firstandthird/toc": "^2.1.0",
         "@hotwired/stimulus": "^3.2.2",
         "@symfony/stimulus-bridge": "^3.2.2",
-        "@symfony/webpack-encore": "^4.6.1",
+        "@vitejs/plugin-vue": "^5.2.1",
+        "@vue/compiler-sfc": "^3.1.0",
         "bootstrap-sass": "^3.4.3",
         "bower": "^1.8.14",
         "ckeditor": "^4.12.1",
@@ -35,26 +34,17 @@
         "mark.js": "^8.11.1",
         "pug": "^3.0.2",
         "pug-plain-loader": "^1.1.0",
-        "regenerator-runtime": "^0.14.1",
         "sass": "^1.71.1",
         "sass-loader": "^13.3.3",
-        "vue-ckeditor2": "^2.1.5",
-        "vue-loader": "^15.11.1",
-        "vue-template-compiler": "^2.7.16",
+        "vite": "^6.0",
+        "vite-plugin-symfony": "^8.0",
+        "vite-plugin-vue-devtools": "^7.7.2",
         "vue2-dropzone": "^3.6.0",
-        "vuedraggable": "^2.24.3",
-        "webpack": "^5.90.3",
-        "webpack-cli": "^5.1.4",
-        "webpack-notifier": "^1.15.0",
-        "webpack-shell-plugin-next": "^2.3.1"
+        "vuedraggable": "^2.24.3"
     },
-    "license": "UNLICENSED",
-    "private": true,
     "scripts": {
-        "dev-server": "encore dev-server",
-        "dev": "encore dev",
-        "watch": "encore dev --watch",
-        "build": "encore production --progress"
+        "dev": "vite",
+        "build": "vite build"
     },
-    "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"
+    "packageManager": "pnpm@10.0.0+sha512.b8fef5494bd3fe4cbd4edabd0745df2ee5be3e4b0b8b08fa643aa3e4c6702ccc0f00d68fa8a8c9858a735a0032485a44990ed2810526c875e416f001b17df12b"
 }
