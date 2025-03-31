@@ -67,7 +67,7 @@ services:
     ports:
       - "127.0.0.1:${ELASTICSEARCH_EXTERNAL_PORT:-19200}:9200"
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - ./docker_data/elasticsearch:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
       network.host: 0.0.0.0
