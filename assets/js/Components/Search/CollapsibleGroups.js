@@ -3,7 +3,7 @@
 export default {
     data() {
         return {
-            config: {
+            groupConfig: {
                 groupIsOpen: [],
             },
             defaultConfig: {
@@ -17,9 +17,9 @@ export default {
             // get element index
             const index = Array.from(group.parentNode.children).indexOf(group) - 1;
             Vue.set(
-                this.config.groupIsOpen,
+                this.groupConfig.groupIsOpen,
                 index,
-                this.config.groupIsOpen[index] !== undefined ? !this.config.groupIsOpen[index] : true
+                this.groupConfig.groupIsOpen[index] !== undefined ? !this.groupConfig.groupIsOpen[index] : true
             );
         },
     },
@@ -29,10 +29,10 @@ export default {
         collapsableLegends.forEach((legend) => legend.onclick = this.collapseGroup);
 
         // update group visibility on config change
-        this.$on('config-changed', function (config) {
-            if (config && this.schema.groups) {
+        this.$on('config-changed', function (groupConfig) {
+            if (groupConfig && this.schema.groups) {
                 this.schema.groups.forEach((group, index) => {
-                    group.styleClasses = group.styleClasses.replace(' collapsed', '') + ((config.groupIsOpen[index] !== undefined && config.groupIsOpen[index]) ? '' : ' collapsed');
+                    group.styleClasses = group.styleClasses.replace(' collapsed', '') + ((groupConfig.groupIsOpen[index] !== undefined && groupConfig.groupIsOpen[index]) ? '' : ' collapsed');
                 });
             }
         });
