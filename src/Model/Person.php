@@ -735,7 +735,9 @@ class Person extends Entity implements SubjectInterface
                     usort(
                         $this->documentRoles[$documentType][$role][1],
                         function ($a, $b) use ($collator) {
-                            return $collator->compare($a->getDescription(), $b->getDescription());
+                            $a_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($a->getDescription())));
+                            $b_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($b->getDescription())));
+                            return $collator->compare($a_cleaned, $b_cleaned);
                         }
                     );
                 }
