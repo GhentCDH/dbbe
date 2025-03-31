@@ -380,8 +380,8 @@
     </div>
 </template>
 <script>
-;
-import VueFormGenerator from 'vue-form-generator';
+
+import VueFormGenerator from 'vue3-form-generator-legacy';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
