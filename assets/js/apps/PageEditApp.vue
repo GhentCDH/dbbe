@@ -32,22 +32,18 @@
 </template>
 
 <script>
-window.axios = require('axios')
 
 
 import * as uiv from 'uiv'
-import VueFormGenerator from 'vue-form-generator'
-import VueCkeditor from 'vue-ckeditor2'
+import VueFormGenerator from 'vue3-form-generator-legacy'
+import CKEditor from 'vue-ckeditor4'
 
 import Alerts from '../Components/Alerts.vue'
-
-Vue.use(uiv)
-Vue.use(VueFormGenerator)
 
 export default {
     components: {
         'alerts': Alerts,
-        'vue-ckeditor': VueCkeditor,
+        'vue-ckeditor': CKEditor,
     },
     props: {
         initUrls: {
