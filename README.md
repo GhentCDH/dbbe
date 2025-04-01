@@ -26,7 +26,7 @@ docker-compose --env-file .env.dev build
 docker-compose --env-file .env.dev up -d
 ``````
 
-The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process. 
+The symfony_startup_script.sh automatically installs dependencies and runs an elastic search reindex process.
 
 ## Running with podman
 
@@ -34,6 +34,19 @@ If you're running podman instead of docker, replace the XDEBUG_CONFIG line in do
 ```
 XDEBUG_CONFIG: client_host=host.containers.internal client_port=9003
 ```
+
+## Customizing Keycloak
+
+If you want to add more roles (see Roles.php) to the default Keycloak user, follow these steps:
+
+- Browse to keycloak on localhost:8080
+- Select dbbe from the realms drop down on the top left
+- Select "clients" from the sidebar and pick DBBE
+- Go to the roles tab and click "create role"
+- Give the new role a name that corresponds to one of the roles in Roles.php
+- Save it and, from the roles overview, go to the ROLE_EDITOR (which is automatically assigned to the default user)
+- Go to the "associated roles" tab and click "assign role". Select your newly created role.
+
 ## Debugging
 
 Debugging is done using xdebug. Xdebug is an application that listens to requests coming from
@@ -52,20 +65,20 @@ xdebug.start_with_request=yes
 ### 2. Configure your IDE
 - In PHPStorm, go to `Settings > PHP > Debug` and make sure xdebug is configured (default ports: 9003,9000).
 - In the upper right corner, click the debugging dropdown and click "edit configurations" and add a new `PHP Remote Debug` configuration with the following settings
-  - Check the "Filter debug connection by IDE key" and set the IDE key to `PHPSTORM`
-  - Click the "..." next to the "server" field. Make sure the port is set to the port where your application is running and check "use path mappings". In the left hand column, select the root directory of your project. Type the path to the matching directory in your container on the right. Copy the name in the "name" field (defaults to "localhost") and run one of the following to make the serverName available in the container:
-    ```
-    docker exec -it dbbe-app-1 /bin/sh
-    export PHP_IDE_CONFIG="serverName=localhost" 
-    ```
-    or make a docker-compose.override.yml (which adds variables to the default docker-copose.yml) with the following config and rerun docker-compose up -d
+    - Check the "Filter debug connection by IDE key" and set the IDE key to `PHPSTORM`
+    - Click the "..." next to the "server" field. Make sure the port is set to the port where your application is running and check "use path mappings". In the left hand column, select the root directory of your project. Type the path to the matching directory in your container on the right. Copy the name in the "name" field (defaults to "localhost") and run one of the following to make the serverName available in the container:
+      ```
+      docker exec -it dbbe-app-1 /bin/sh
+      export PHP_IDE_CONFIG="serverName=localhost" 
+      ```
+      or make a docker-compose.override.yml (which adds variables to the default docker-copose.yml) with the following config and rerun docker-compose up -d
 
-    ```
-    services:
-      app:
-        environment:
-          PHP_IDE_CONFIG: serverName=localhost
-    ```
+      ```
+      services:
+        app:
+          environment:
+            PHP_IDE_CONFIG: serverName=localhost
+      ```
 
 
 ### 3. Configure your browser
