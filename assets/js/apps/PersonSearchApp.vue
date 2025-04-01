@@ -345,14 +345,7 @@
                         :key="identifier.systemName"
                     >
                         <td>{{ identifier.name }}</td>
-                        <td>
-                            {{
-                                // eslint-disable-next-line max-len
-                                (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
-                                    // eslint-disable-next-line max-len
-                                    || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
-                            }}
-                        </td>
+                        <td>{{getMergedIdentification(identifier)}}</td>
                     </tr>
                     <tr>
                         <td>(Self) designation</td>
@@ -771,6 +764,18 @@ export default {
         },
     },
     methods: {
+        getMergedIdentification(identifier) {
+            const { systemName } = identifier;
+            const primary = this.mergeModel.primaryFull?.identifications?.[systemName];
+            const secondary = this.mergeModel.secondaryFull?.identifications?.[systemName];
+            if (Array.isArray(primary) && primary.length > 0) {
+              return primary;
+            }
+            if (Array.isArray(secondary) && secondary.length > 0) {
+              return secondary;
+            }
+            return '';
+        },
         merge(row) {
             this.openRequests += 1;
             window.axios.get(this.urls.persons_get)

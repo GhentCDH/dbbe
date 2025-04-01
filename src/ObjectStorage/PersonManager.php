@@ -830,15 +830,14 @@ class PersonManager extends ObjectEntityManager
                 $updates['identification'] = [];
             }
 
-            $primary_identification = $primary->getIdentifications()[$identifier->getSystemName()][1] ?? null;
-            $secondary_identification = $secondary->getIdentifications()[$identifier->getSystemName()][1] ?? null;
+            $systemName = $identifier->getSystemName();
+            $primary_identification = $primary->getIdentifications()[$systemName][1] ?? null;
+            $secondary_identification = $secondary->getIdentifications()[$systemName][1] ?? null;
 
             if (!empty($primary_identification)) {
-                $updates['identification'][$identifier->getSystemName()] = ArrayToJson::arrayToJson($primary_identification);
-            }
-
-            if (!empty($secondary_identification)) {
-                $updates['identification'][$identifier->getSystemName()]= ArrayToJson::arrayToJson($secondary_identification);
+                $updates['identification'][$systemName] = ArrayToJson::arrayToJson($primary_identification);
+            } elseif (!empty($secondary_identification)) {
+                $updates['identification'][$systemName] = ArrayToJson::arrayToJson($secondary_identification);
             }
         }
         if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
