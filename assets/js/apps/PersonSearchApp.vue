@@ -8,6 +8,16 @@
         </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
+              <div class="form-group">
+                <a
+                    :href="urls['help'] + '#how-to-search-for-persons'"
+                    class="action"
+                    target="_blank"
+                >
+                  <i class="fa fa-info-circle" />
+                  More information about the person search options.
+                </a>
+              </div>
                 <vue-form-generator
                     ref="form"
                     :schema="schema"
