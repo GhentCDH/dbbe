@@ -145,7 +145,7 @@
                                         {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                             {% block renderDetail %}
                                                 <a href="{{ path('manuscript_get', {'id': item.getId()}) }}">{{ item.getName() }}</a>
-                                                {% if item.getDate() is not empty %}[{{ item.getDate() }}]{% endif %}
+                                                {% if item.getFormattedDate() is not empty %}[{{ item.getFormattedDate() }}]{% endif %}
                                             {% endblock %}
                                         {% endembed %}
                                     {% endblock %}
