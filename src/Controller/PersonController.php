@@ -107,6 +107,8 @@ class PersonController extends BaseController
                     'login' => $this->generateUrl('login'),
                     'managements_add' => $this->generateUrl('persons_managements_add'),
                     'managements_remove' => $this->generateUrl('persons_managements_remove'),
+                    'help' => $this->generateUrl('page_get', ['slug' => 'search-tips-tricks']),
+
                     // @codingStandardsIgnoreEnd
                 ]),
                 'data' => json_encode(
