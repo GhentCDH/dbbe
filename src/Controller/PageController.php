@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Controller;
-
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -17,6 +17,12 @@ use App\Security\Roles;
 
 class PageController extends AbstractController
 {
+    private TokenStorageInterface $tokenStorage;
+    public function __construct(TokenStorageInterface $tokenStorage)
+    {
+        $this->tokenStorage = $tokenStorage;
+    }
+
     /**
      * @param string $slug
      * @param PageService $pageService
@@ -69,8 +75,11 @@ class PageController extends AbstractController
                 Response::HTTP_BAD_REQUEST
             );
         }
+
+        $userEmail = $this->tokenStorage->getToken()->getUser()->getEmail();
+
         $pageService->update(
-            $this->get('security.token_storage')->getToken()->getUser()->getEmail(),
+            $userEmail,
             $slug,
             $data->title,
             $data->content,
