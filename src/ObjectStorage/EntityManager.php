@@ -710,7 +710,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                            $newBibIds[] = $newgBib->getId();
+                            $newBibIds[] = $newBib->getId();
                         } elseif (in_array($bibType, ['onlineSource'])) {
                             $newBib = $this->container->get(BibliographyManager::class)->add(
                                 $entity->getId(),
