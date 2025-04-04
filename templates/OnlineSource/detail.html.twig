@@ -16,8 +16,15 @@
                 </tr>
                 {% if online_source.getLastAccessed() is not empty %}
                     <tr>
+
                         <td>Last accessed</td>
-                        <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
+                        <td>
+                            {% if online_source.getName() == 'DBBE' %}
+                                {{ "now"|date('d/m/Y') }}
+                            {% else %}
+                                {{ online_source.getLastAccessed()|date('d/m/Y') }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endif %}
                 {% if online_source.getUrls() is not empty %}
