@@ -290,6 +290,12 @@ class Person extends Entity implements SubjectInterface
         return $this->bornDate;
     }
 
+
+    public function getFormattedBornDate(): ?string
+    {
+        return $this->bornDate->getFormattedDate();
+    }
+
     /**
      * @param  FuzzyDate|null $deathDate
      * @return Person
@@ -307,6 +313,11 @@ class Person extends Entity implements SubjectInterface
     public function getDeathDate(): ?FuzzyDate
     {
         return $this->deathDate;
+    }
+
+    public function getFormattedDeathDate(): ?string
+    {
+        return $this->deathDate->getFormattedDate();
     }
 
     /**
@@ -851,10 +862,10 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyInterval
      */
-    public function getInterval(): ?FuzzyInterval
+    public function getInterval(): ?string
     {
         if ($this->bornDate != null && $this->deathDate != null) {
-            return new FuzzyInterval($this->bornDate, $this->deathDate);
+            return (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval();
         }
         return null;
     }
@@ -873,7 +884,7 @@ class Person extends Entity implements SubjectInterface
             $this->extra,
             ])))) {
             if ($this->bornDate != null && !$this->bornDate->isEmpty() && $this->deathDate != null && !$this->deathDate->isEmpty()) {
-                $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+                $description .= ' (' . (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval() . ')';
             }
         }
         return $description;

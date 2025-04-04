@@ -38,12 +38,12 @@
                 {% elseif person.getBornDate() is not empty %}
                     <tr>
                         <td>Date of birth</td>
-                        <td>{{ person.getBornDate() }}</td>
+                        <td>{{ person.getFormattedBornDate() }}</td>
                     </tr>
                 {% elseif person.getDeathDate() is not empty %}
                     <tr>
                         <td>Date of death</td>
-                        <td>{{ person.getDeathDate() }}</td>
+                        <td>{{ person.getFormattedDeathDate() }}</td>
                     </tr>
                 {% endif %}
                 {% if person.getAttestedDatesAndIntervals() is not empty %}
