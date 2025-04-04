@@ -238,10 +238,15 @@ class FuzzyDate
 
     public function getFormattedDate(): string
     {
+        $year = (int) $this->floor->format('Y');
+        $isBC = $year < 0;
+        $year = abs($year);
+
         if ($this->floor->format('Y-m') === $this->ceiling->format('Y-m')) {
-            return $this->floor->format('F Y');
+            $formattedDate = $this->floor->format('F ') . $year;
         } else {
             return $this;
         }
+        return $isBC ? $formattedDate . ' BC' : $formattedDate;
     }
 }
