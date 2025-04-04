@@ -50,7 +50,7 @@
                     <tr>
                         <td>Attested dates and intervals</td>
                         <td>
-                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getAttestedDatesAndIntervals()} only %}
+                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getFormattedAttestedDatesAndIntervals()} only %}
                                 {% block renderItem %}
                                     {{ item }}
                                 {% endblock %}

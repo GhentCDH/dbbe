@@ -328,6 +328,10 @@ class Person extends Entity implements SubjectInterface
         return $this->attestedDatesAndIntervals;
     }
 
+    public function getFormattedAttestedDatesAndIntervals(): array {
+        return array_map(fn($fuzzyDate) => $fuzzyDate->getFormattedDate(), $this->attestedDatesAndIntervals);
+    }
+
     public function sortAttestedDatesAndIntervals(): Person
     {
         usort($this->attestedDatesAndIntervals, function ($a, $b) {
