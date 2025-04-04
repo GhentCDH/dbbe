@@ -710,6 +710,10 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
+                            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                                $bib->{$bibType}->id,
+                                (new \DateTime())->format('Y-m-d')
+                            );
                         } elseif (in_array($bibType, ['blogPost'])) {
                             $newBib = $this->container->get(BibliographyManager::class)->add(
                                 $entity->getId(),
@@ -747,7 +751,11 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                        } elseif (in_array($bibType, ['blogPost'])) {
+                            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                                $bib->{$bibType}->id,
+                                (new \DateTime())->format('Y-m-d')
+                            );                        }
+                        elseif (in_array($bibType, ['blogPost'])) {
                             $this->container->get(BibliographyManager::class)->update(
                                 $bib->id,
                                 $bib->{$bibType}->id,
