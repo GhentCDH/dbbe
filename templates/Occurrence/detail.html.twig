@@ -95,7 +95,7 @@
                 {% if occurrence.getDate() is not empty %}
                     <tr>
                         <td>Date</td>
-                        <td>{{ occurrence.getDate() }}</td>
+                        <td>{{ occurrence.getFormattedDate() }}</td>
                     </tr>
                 {% endif %}
                 {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
@@ -260,7 +260,7 @@
                                         {% block renderDetail %}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                             {% if item.getDate() is not empty %}
-                                                [{{ item.getDate() }}]
+                                                [{{ item.getFormattedDate() }}]
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}
