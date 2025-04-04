@@ -70,6 +70,14 @@ class OnlineSource extends Entity
      */
     public function getLastAccessed(): ?DateTime
     {
+        return $this->getEffectiveLastAccessed();
+    }
+
+    private function getEffectiveLastAccessed(): ?DateTime
+    {
+        if ($this->getName() === 'DBBE') {
+            return new DateTime();
+        }
         return $this->lastAccessed;
     }
 
@@ -79,7 +87,7 @@ class OnlineSource extends Entity
     public function getDescription(): string
     {
         return $this->name
-            . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')' : '')
+            . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->getEffectiveLastAccessed()->format('Y-m-d') . ')' : '')
             . '.';
     }
 
@@ -104,7 +112,7 @@ class OnlineSource extends Entity
         $result['url'] = $this->url;
 
         if (!empty($this->lastAccessed)) {
-            $result['lastAccessed'] = $this->lastAccessed->format('d/m/Y');
+            $result['lastAccessed'] = $this->getEffectiveLastAccessed()->format('d/m/Y');
         }
 
         return $result;

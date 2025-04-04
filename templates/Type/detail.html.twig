@@ -241,7 +241,7 @@
                                         {% block renderDetail %}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                             {% if item.getDate() is not empty %}
-                                                [{{ item.getDate() }}]
+                                                [{{ item.getFormattedDate() }}]
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}

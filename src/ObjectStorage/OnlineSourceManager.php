@@ -228,4 +228,8 @@ class OnlineSourceManager extends ObjectEntityManager
 
         return $new;
     }
+
+    public function updateLastAccessed($id, $lastAccessed) : void {
+        $this->dbs->updateLastAccessed($id, $lastAccessed);
+    }
 }

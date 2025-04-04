@@ -16,6 +16,7 @@
                 </tr>
                 {% if online_source.getLastAccessed() is not empty %}
                     <tr>
+
                         <td>Last accessed</td>
                         <td>{{ online_source.getLastAccessed().format('d/m/Y') }}</td>
                     </tr>
