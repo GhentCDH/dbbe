@@ -19,11 +19,7 @@
 
                         <td>Last accessed</td>
                         <td>
-                            {% if online_source.getName() == 'DBBE' %}
-                                {{ "now"|date('d/m/Y') }}
-                            {% else %}
-                                {{ online_source.getLastAccessed()|date('d/m/Y') }}
-                            {% endif %}
+                            {{ online_source.getFormattedLastAccessed() }}
                         </td>
                     </tr>
                 {% endif %}
