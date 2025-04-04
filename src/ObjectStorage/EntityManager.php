@@ -632,6 +632,18 @@ abstract class EntityManager extends ObjectManager
         }
     }
 
+    private function updateOnlineSourceAccess($id): void {
+        $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+            $id,
+            (new \DateTime())->format('Y-m-d')
+        );
+        $dbbeOnlineSourceId = 11523;
+        $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+            $dbbeOnlineSourceId,
+            (new \DateTime())->format('Y-m-d')
+        );
+    }
+
     protected function updateBibliography(
         Entity $entity,
         stdClass $bibliography,
@@ -698,7 +710,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                            $newBibIds[] = $newBib->getId();
+                            $newBibIds[] = $newgBib->getId();
                         } elseif (in_array($bibType, ['onlineSource'])) {
                             $newBib = $this->container->get(BibliographyManager::class)->add(
                                 $entity->getId(),
@@ -710,10 +722,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
-                            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
-                                $bib->{$bibType}->id,
-                                (new \DateTime())->format('Y-m-d')
-                            );
+                            $this->updateOnlineSourceAccess($bib->{$bibType}->id);
                         } elseif (in_array($bibType, ['blogPost'])) {
                             $newBib = $this->container->get(BibliographyManager::class)->add(
                                 $entity->getId(),
@@ -751,10 +760,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
-                                $bib->{$bibType}->id,
-                                (new \DateTime())->format('Y-m-d')
-                            );                        }
+                            $this->updateOnlineSourceAccess($bib->{$bibType}->id);                       }
                         elseif (in_array($bibType, ['blogPost'])) {
                             $this->container->get(BibliographyManager::class)->update(
                                 $bib->id,
