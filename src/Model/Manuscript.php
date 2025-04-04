@@ -84,6 +84,10 @@ class Manuscript extends Document
         return $this->getName();
     }
 
+    public function getFormattedDate(): string {
+        return $this->getDate()->getFormattedDate();
+    }
+
     private function setContentsWithParents(array $contentsWithParents): Manuscript
     {
         $this->contentsWithParents = $contentsWithParents;

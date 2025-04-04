@@ -235,4 +235,13 @@ class FuzzyDate
     {
         return new FuzzyDate('(' . $input->floor . ',' . $input->ceiling . ')');
     }
+
+    public function getFormattedDate(): string
+    {
+        if ($this->floor->format('Y-m') === $this->ceiling->format('Y-m')) {
+            return $this->floor->format('F Y');
+        } else {
+            return $this;
+        }
+    }
 }
