@@ -633,15 +633,21 @@ abstract class EntityManager extends ObjectManager
     }
 
     private function updateOnlineSourceAccess($id): void {
-        $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
-            $id,
-            (new \DateTime())->format('Y-m-d')
-        );
+        //TODO: Cleaner fix.
         $dbbeOnlineSourceId = 11523;
-        $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
-            $dbbeOnlineSourceId,
-            (new \DateTime())->format('Y-m-d')
-        );
+        //Only update DBBE if the altered source is NOT DBBE so that manual lastModified changes are possible
+        if ($id !== $dbbeOnlineSourceId) {
+            //Update last accessed date of the source that has been changed
+            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                $id,
+                (new \DateTime())->format('Y-m-d')
+            );
+            //Use this occasion to update DBBE to a recent last accessed
+            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                $dbbeOnlineSourceId,
+                (new \DateTime())->format('Y-m-d')
+            );
+        }
     }
 
     protected function updateBibliography(
