@@ -44,7 +44,7 @@
                 {% if manuscript.getDate() is not empty %}
                     <tr>
                         <td>Date</td>
-                        <td>{{ manuscript.getDate() }}</td>
+                        <td>{{ manuscript.getFormattedDate() }}</td>
                     </tr>
                 {% endif %}
                 {% if manuscript.getOrigin() is not empty %}
@@ -95,7 +95,7 @@
                                             {{ item.getLocation() }}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                             {% if item.getDate() is not empty %}
-                                                [{{ item.getDate() }}]
+                                                [{{ item.getFormattedDate() }}]
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}

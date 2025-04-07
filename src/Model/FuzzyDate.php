@@ -235,4 +235,20 @@ class FuzzyDate
     {
         return new FuzzyDate('(' . $input->floor . ',' . $input->ceiling . ')');
     }
+
+    public function getFormattedDate(): string
+    {
+        $year = (int) $this->floor->format('Y');
+        $isBC = $year < 0;
+        $year = abs($year);
+
+        if ($this->floor->format('Y-m') === $this->ceiling->format('Y-m') &&
+            $this->floor->format('Y-m-d') !== $this->ceiling->format('Y-m-d')) {
+            $formattedDate = $this->floor->format('F ') . $year;
+        } else {
+            return $this;
+        }
+
+        return $isBC ? $formattedDate . ' BC' : $formattedDate;
+    }
 }
