@@ -10,8 +10,8 @@ import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
 import Delete from '../Edit/Modals/Delete.vue';
 import CollectionManager from './CollectionManager.vue';
 import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
-
 import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
+import {dependencyField, enableField} from "../FormFields/formFieldUtils";
 
 window.axios = require('axios');
 
@@ -544,9 +544,9 @@ export default {
                         : this.aggregation[fieldName].sort(this.sortByName);
                     field.originalValues = JSON.parse(JSON.stringify(field.values));
                     if (field.dependency != null && this.model[field.dependency] == null) {
-                        this.dependencyField(field);
+                        dependencyField(field);
                     } else {
-                        this.enableField(field, null, true);
+                        enableField(field, null, true);
                     }
                 }
                 if (
