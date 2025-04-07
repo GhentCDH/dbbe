@@ -1,3 +1,5 @@
+import {noValuesField} from "./formFieldUtils";
+
 export default {
     methods: {
         createMultiSelect(label, extra = null, extraSelectOptions = null) {
@@ -116,7 +118,7 @@ export default {
                 model = this.model;
             }
             if (field.values.length === 0) {
-                this.noValuesField(field, model, search);
+                noValuesField(field, model, search);
                 return;
             }
 

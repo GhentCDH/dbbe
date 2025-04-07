@@ -299,16 +299,18 @@
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
-
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle
+} from '../Components/FormFields/formFieldUtils';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from '../Components/Shared/PersistentConfig';
 
 Vue.component('FieldRadio', fieldRadio);
@@ -317,9 +319,7 @@ export default {
     components: { ActiveFilters },
     mixins: [
         PersistentConfig('OccurenceSearchConfig'),
-        AbstractField,
         AbstractSearch,
-        SharedSearch,
     ],
     data() {
         const data = {
@@ -373,7 +373,7 @@ export default {
             defaultOrdering: 'incipit',
         };
         // Add fields
-        data.schema.fields.text_mode = this.createLanguageToggle('text');
+        data.schema.fields.text_mode = createLanguageToggle('text');
         data.schema.fields.text = {
             type: 'input',
             inputType: 'text',
@@ -451,7 +451,7 @@ export default {
                 { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
-        data.schema.fields.person = this.createMultiSelect(
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -459,7 +459,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -469,16 +469,16 @@ export default {
                 closeOnSelect: false,
             },
         );
-        [data.schema.fields.metre_op, data.schema.fields.metre] = this.createMultiMultiSelect('Metre');
-        [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
-        [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
-        [data.schema.fields.manuscript_content_op, data.schema.fields.manuscript_content] = this.createMultiMultiSelect(
+        [data.schema.fields.metre_op, data.schema.fields.metre] = createMultiMultiSelect('Metre');
+        [data.schema.fields.genre_op, data.schema.fields.genre] = createMultiMultiSelect('Genre');
+        [data.schema.fields.subject_op, data.schema.fields.subject] = createMultiMultiSelect('Subject');
+        [data.schema.fields.manuscript_content_op, data.schema.fields.manuscript_content] = createMultiMultiSelect(
             'Manuscript Content',
             {
                 model: 'manuscript_content',
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -487,7 +487,7 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
-        data.schema.fields.dbbe = this.createMultiSelect(
+        data.schema.fields.dbbe = createMultiSelect(
             'Transcribed by DBBE',
             {
                 model: 'dbbe',
@@ -496,23 +496,23 @@ export default {
                 customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
             },
         );
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
                 model: 'acknowledgement',
             },
         );
-        data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
-        data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
+        data.schema.fields.id = createMultiSelect('DBBE ID', { model: 'id' });
+        data.schema.fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
         if (this.isViewInternal) {
-            data.schema.fields.text_status = this.createMultiSelect(
+            data.schema.fields.text_status = createMultiSelect(
                 'Text Status',
                 {
                     model: 'text_status',
                     styleClasses: 'has-warning',
                 },
             );
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -521,7 +521,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
