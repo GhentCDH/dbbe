@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block javascript %}
-    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/ckeditor/ckeditor.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/pageedit.js") }}"></script>
+    {{ vite_entry_script_tags('main') }}
+    {{ vite_entry_script_tags('ckeditor/ckeditor') }}
+    {{ vite_entry_script_tags('pageedit') }}
 {% endblock %}
