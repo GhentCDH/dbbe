@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import MetresEditApp from '../apps/MetresEditApp'
+import MetresEditApp from '@/apps/MetresEditApp'
 
 new Vue({
     el: '#metres-edit-app',

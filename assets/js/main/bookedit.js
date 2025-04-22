@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import BookEditApp from '../apps/BookEditApp'
+import BookEditApp from '@/apps/BookEditApp'
 
 new Vue({
     el: '#book-edit-app',

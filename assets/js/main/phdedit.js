@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import PhdEditApp from '../apps/PhdEditApp'
+import PhdEditApp from '@/apps/PhdEditApp'
 
 new Vue({
     el: '#phd-edit-app',
