@@ -1,11 +1,11 @@
 <template>
     <div>
-        <div class="col-xs-12">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
-            />
-        </div>
+<!--        <div class="col-xs-12">-->
+<!--            <alerts-->
+<!--                :alerts="alerts"-->
+<!--                @dismiss="alerts.splice($event, 1)"-->
+<!--            />-->
+<!--        </div>-->
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div class="form-group">
@@ -316,13 +316,14 @@ Vue.component('FieldRadio', fieldRadio);
 export default {
     components: { ActiveFilters },
     mixins: [
-        PersistentConfig('OccurenceSearchConfig'),
+        PersistentConfig('OccurrenceSearchConfig'),
         AbstractField,
         AbstractSearch,
         SharedSearch,
     ],
     data() {
         const data = {
+            urls: window.urls || {},
             model: {
                 text_mode: ['greek'],
                 comment_mode: ['latin'],

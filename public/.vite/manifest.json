@@ -1,0 +1,707 @@
+{
+  "_AbstractEntityEdit-HRSC3RiT.js": {
+    "file": "assets/AbstractEntityEdit-HRSC3RiT.js",
+    "name": "AbstractEntityEdit",
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "_AbstractListEdit-oPN5tdBI.js": {
+    "file": "assets/AbstractListEdit-oPN5tdBI.js",
+    "name": "AbstractListEdit",
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_Alerts-Dh7wACl_.js"
+    ],
+    "dynamicImports": [
+      "assets/js/Components/Edit/Modals/Delete.vue",
+      "assets/js/Components/Edit/Modals/Edit.vue",
+      "assets/js/Components/Edit/Modals/Merge.vue",
+      "assets/js/Components/Edit/Modals/Migrate.vue"
+    ]
+  },
+  "_Alerts-Dh7wACl_.js": {
+    "file": "assets/Alerts-Dh7wACl_.js",
+    "name": "Alerts",
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js"
+    ]
+  },
+  "_PersistentConfig-DRZ9XEZz.js": {
+    "file": "assets/PersistentConfig-DRZ9XEZz.js",
+    "name": "PersistentConfig",
+    "imports": [
+      "_index-BObQbidq.js",
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "assets/js/Components/Edit/Modals/Delete.vue",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "_Url-B2S8lB3C.js": {
+    "file": "assets/Url-B2S8lB3C.js",
+    "name": "Url",
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_vuedraggable.umd-d0yCidAw.js",
+      "_AbstractListEdit-oPN5tdBI.js"
+    ]
+  },
+  "__commonjsHelpers-D6-XlEtG.js": {
+    "file": "assets/_commonjsHelpers-D6-XlEtG.js",
+    "name": "_commonjsHelpers"
+  },
+  "__plugin-vue2_normalizer-D4aV6SYl.js": {
+    "file": "assets/_plugin-vue2_normalizer-D4aV6SYl.js",
+    "name": "_plugin-vue2_normalizer",
+    "imports": [
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "_fieldMultiselectClear-BVEu47TG.js": {
+    "file": "assets/fieldMultiselectClear-BVEu47TG.js",
+    "name": "fieldMultiselectClear",
+    "imports": [
+      "__commonjsHelpers-D6-XlEtG.js",
+      "__plugin-vue2_normalizer-D4aV6SYl.js"
+    ]
+  },
+  "_index-BObQbidq.js": {
+    "file": "assets/index-BObQbidq.js",
+    "name": "index",
+    "imports": [
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "_vue-ckeditor2.esm-D25MD5sh.js": {
+    "file": "assets/vue-ckeditor2.esm-D25MD5sh.js",
+    "name": "vue-ckeditor2.esm"
+  },
+  "_vuedraggable.umd-d0yCidAw.js": {
+    "file": "assets/vuedraggable.umd-d0yCidAw.js",
+    "name": "vuedraggable.umd",
+    "imports": [
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/images/banner.jpg": {
+    "file": "assets/banner-DHLwhxbo.jpg",
+    "src": "assets/images/banner.jpg"
+  },
+  "assets/js/Components/Edit/Modals/Delete.vue": {
+    "file": "assets/Delete-vR1qju9v.js",
+    "name": "Delete",
+    "src": "assets/js/Components/Edit/Modals/Delete.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/Components/Edit/Modals/Edit.vue": {
+    "file": "assets/Edit-DRo-AWs4.js",
+    "name": "Edit",
+    "src": "assets/js/Components/Edit/Modals/Edit.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/Components/Edit/Modals/Merge.vue": {
+    "file": "assets/Merge-B_WE3Dvu.js",
+    "name": "Merge",
+    "src": "assets/js/Components/Edit/Modals/Merge.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/Components/Edit/Modals/Migrate.vue": {
+    "file": "assets/Migrate-kcYeRTFJ.js",
+    "name": "Migrate",
+    "src": "assets/js/Components/Edit/Modals/Migrate.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/main/acknowledgementsedit.js": {
+    "file": "assets/acknowledgementsedit-C254lEMN.js",
+    "name": "acknowledgementsedit",
+    "src": "assets/js/main/acknowledgementsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/articleedit.js": {
+    "file": "assets/articleedit---qCYRra.js",
+    "name": "articleedit",
+    "src": "assets/js/main/articleedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/bibliographysearch.js": {
+    "file": "assets/bibliographysearch-CydmX0Ne.js",
+    "name": "bibliographysearch",
+    "src": "assets/js/main/bibliographysearch.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_PersistentConfig-DRZ9XEZz.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_index-BObQbidq.js",
+      "assets/js/Components/Edit/Modals/Delete.vue"
+    ]
+  },
+  "assets/js/main/bibvariaedit.js": {
+    "file": "assets/bibvariaedit-DxBwmZcn.js",
+    "name": "bibvariaedit",
+    "src": "assets/js/main/bibvariaedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/blogedit.js": {
+    "file": "assets/blogedit-PFcP7b56.js",
+    "name": "blogedit",
+    "src": "assets/js/main/blogedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/blogpostedit.js": {
+    "file": "assets/blogpostedit-Rort-pTc.js",
+    "name": "blogpostedit",
+    "src": "assets/js/main/blogpostedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/bookchapteredit.js": {
+    "file": "assets/bookchapteredit-Dj1fMyHZ.js",
+    "name": "bookchapteredit",
+    "src": "assets/js/main/bookchapteredit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/bookclustersedit.js": {
+    "file": "assets/bookclustersedit-D9jPEoQe.js",
+    "name": "bookclustersedit",
+    "src": "assets/js/main/bookclustersedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_index-BObQbidq.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_Url-B2S8lB3C.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_vuedraggable.umd-d0yCidAw.js"
+    ]
+  },
+  "assets/js/main/bookedit.js": {
+    "file": "assets/bookedit-CG0Lihpq.js",
+    "name": "bookedit",
+    "src": "assets/js/main/bookedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/bookseriessedit.js": {
+    "file": "assets/bookseriessedit-CsrfeYoe.js",
+    "name": "bookseriessedit",
+    "src": "assets/js/main/bookseriessedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_index-BObQbidq.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_Url-B2S8lB3C.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_vuedraggable.umd-d0yCidAw.js"
+    ]
+  },
+  "assets/js/main/contentsedit.js": {
+    "file": "assets/contentsedit-CHmSDZPc.js",
+    "name": "contentsedit",
+    "src": "assets/js/main/contentsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_index-BObQbidq.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/feedback.js": {
+    "file": "assets/feedback-CgsC11Ct.js",
+    "name": "feedback",
+    "src": "assets/js/main/feedback.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/main/genresedit.js": {
+    "file": "assets/genresedit-CG9jUoN-.js",
+    "name": "genresedit",
+    "src": "assets/js/main/genresedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/journalissuesedit.js": {
+    "file": "assets/journalissuesedit-BG8KYmNT.js",
+    "name": "journalissuesedit",
+    "src": "assets/js/main/journalissuesedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_index-BObQbidq.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/journalsedit.js": {
+    "file": "assets/journalsedit-DNi3Kl8q.js",
+    "name": "journalsedit",
+    "src": "assets/js/main/journalsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_index-BObQbidq.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_Url-B2S8lB3C.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_vuedraggable.umd-d0yCidAw.js"
+    ]
+  },
+  "assets/js/main/keywordsedit.js": {
+    "file": "assets/keywordsedit-BXKWmXHR.js",
+    "name": "keywordsedit",
+    "src": "assets/js/main/keywordsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/locationsedit.js": {
+    "file": "assets/locationsedit-N2smNlrM.js",
+    "name": "locationsedit",
+    "src": "assets/js/main/locationsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/main.js": {
+    "file": "assets/main-BZoejc8t.js",
+    "name": "main",
+    "src": "assets/js/main/main.js",
+    "isEntry": true,
+    "imports": [
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/main/managementsedit.js": {
+    "file": "assets/managementsedit-D8TzvEZl.js",
+    "name": "managementsedit",
+    "src": "assets/js/main/managementsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/manuscriptedit.js": {
+    "file": "assets/manuscriptedit-BWAt_7Pi.js",
+    "name": "manuscriptedit",
+    "src": "assets/js/main/manuscriptedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/manuscriptsearch.js": {
+    "file": "assets/manuscriptsearch-Cz40qJ4N.js",
+    "name": "manuscriptsearch",
+    "src": "assets/js/main/manuscriptsearch.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_PersistentConfig-DRZ9XEZz.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_index-BObQbidq.js",
+      "assets/js/Components/Edit/Modals/Delete.vue"
+    ]
+  },
+  "assets/js/main/metresedit.js": {
+    "file": "assets/metresedit-CUE9CPof.js",
+    "name": "metresedit",
+    "src": "assets/js/main/metresedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/newseventedit.js": {
+    "file": "assets/newseventedit-nxDHvqLj.js",
+    "name": "newseventedit",
+    "src": "assets/js/main/newseventedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_vuedraggable.umd-d0yCidAw.js",
+      "_vue-ckeditor2.esm-D25MD5sh.js",
+      "_Alerts-Dh7wACl_.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/main/occurrenceedit.js": {
+    "file": "assets/occurrenceedit-sgg1VQcQ.js",
+    "name": "occurrenceedit",
+    "src": "assets/js/main/occurrenceedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/occurrencesearch.js": {
+    "file": "assets/occurrencesearch-Be21BcVh.js",
+    "name": "occurrencesearch",
+    "src": "assets/js/main/occurrencesearch.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_PersistentConfig-DRZ9XEZz.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_index-BObQbidq.js",
+      "assets/js/Components/Edit/Modals/Delete.vue"
+    ]
+  },
+  "assets/js/main/officesedit.js": {
+    "file": "assets/officesedit-C2kdPwPZ.js",
+    "name": "officesedit",
+    "src": "assets/js/main/officesedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/onlinesourceedit.js": {
+    "file": "assets/onlinesourceedit-CvAguRry.js",
+    "name": "onlinesourceedit",
+    "src": "assets/js/main/onlinesourceedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/originsedit.js": {
+    "file": "assets/originsedit-DDDeM6e4.js",
+    "name": "originsedit",
+    "src": "assets/js/main/originsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/pageedit.js": {
+    "file": "assets/pageedit-BAD-f5WM.js",
+    "name": "pageedit",
+    "src": "assets/js/main/pageedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_vue-ckeditor2.esm-D25MD5sh.js",
+      "_Alerts-Dh7wACl_.js",
+      "__commonjsHelpers-D6-XlEtG.js"
+    ]
+  },
+  "assets/js/main/personedit.js": {
+    "file": "assets/personedit-D8LCcyad.js",
+    "name": "personedit",
+    "src": "assets/js/main/personedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/personsearch.js": {
+    "file": "assets/personsearch-BQ-ff3OA.js",
+    "name": "personsearch",
+    "src": "assets/js/main/personsearch.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_PersistentConfig-DRZ9XEZz.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_index-BObQbidq.js",
+      "assets/js/Components/Edit/Modals/Delete.vue"
+    ]
+  },
+  "assets/js/main/phdedit.js": {
+    "file": "assets/phdedit-B3cW91I7.js",
+    "name": "phdedit",
+    "src": "assets/js/main/phdedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/regionsedit.js": {
+    "file": "assets/regionsedit-DOygVsK0.js",
+    "name": "regionsedit",
+    "src": "assets/js/main/regionsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/rolesedit.js": {
+    "file": "assets/rolesedit-DrsKE6xK.js",
+    "name": "rolesedit",
+    "src": "assets/js/main/rolesedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/selfdesignationsedit.js": {
+    "file": "assets/selfdesignationsedit-Cb4JvZ1r.js",
+    "name": "selfdesignationsedit",
+    "src": "assets/js/main/selfdesignationsedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/statusesedit.js": {
+    "file": "assets/statusesedit-CyMS8NRJ.js",
+    "name": "statusesedit",
+    "src": "assets/js/main/statusesedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/typeedit.js": {
+    "file": "assets/typeedit-DymPKJUw.js",
+    "name": "typeedit",
+    "src": "assets/js/main/typeedit.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractEntityEdit-HRSC3RiT.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js"
+    ]
+  },
+  "assets/js/main/typesearch.js": {
+    "file": "assets/typesearch-CyrUArJQ.js",
+    "name": "typesearch",
+    "src": "assets/js/main/typesearch.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue2_normalizer-D4aV6SYl.js",
+      "_AbstractListEdit-oPN5tdBI.js",
+      "_PersistentConfig-DRZ9XEZz.js",
+      "__commonjsHelpers-D6-XlEtG.js",
+      "_fieldMultiselectClear-BVEu47TG.js",
+      "_Alerts-Dh7wACl_.js",
+      "_index-BObQbidq.js",
+      "assets/js/Components/Edit/Modals/Delete.vue"
+    ]
+  },
+  "assets/scss/screen.scss": {
+    "file": "assets/screen-D0POGiSm.css",
+    "src": "assets/scss/screen.scss",
+    "isEntry": true
+  },
+  "assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js": {
+    "file": "assets/lightbox-Cw8iy9Xm.js",
+    "name": "lightbox",
+    "src": "assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox.min.js",
+    "isEntry": true
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-medium-web.eot": {
+    "file": "assets/ugentpannotext-medium-web-BnQViwec.eot",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-medium-web.eot"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-medium-web.ttf": {
+    "file": "assets/ugentpannotext-medium-web-m5wPJV-3.ttf",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-medium-web.ttf"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-medium-web.woff": {
+    "file": "assets/ugentpannotext-medium-web-CjCQZBOq.woff",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-medium-web.woff"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-normal-web.eot": {
+    "file": "assets/ugentpannotext-normal-web-CWcUcnZU.eot",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-normal-web.eot"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-normal-web.ttf": {
+    "file": "assets/ugentpannotext-normal-web-D9HMVyFS.ttf",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-normal-web.ttf"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-normal-web.woff": {
+    "file": "assets/ugentpannotext-normal-web-DtR87KmT.woff",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-normal-web.woff"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.eot": {
+    "file": "assets/ugentpannotext-semibold-web-BWMYVCYN.eot",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.eot"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.ttf": {
+    "file": "assets/ugentpannotext-semibold-web-DQ0o0UPO.ttf",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.ttf"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.woff": {
+    "file": "assets/ugentpannotext-semibold-web-CgBxPTOB.woff",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semibold-web.woff"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.eot": {
+    "file": "assets/ugentpannotext-semilight-web-CZNrnfRl.eot",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.eot"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.ttf": {
+    "file": "assets/ugentpannotext-semilight-web-5A-rbIdP.ttf",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.ttf"
+  },
+  "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.woff": {
+    "file": "assets/ugentpannotext-semilight-web-C21EXqo3.woff",
+    "src": "assets/websites/static/fonts/panno/ugentpannotext-semilight-web.woff"
+  }
+}

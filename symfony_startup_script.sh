@@ -10,7 +10,7 @@ if [ ! -d "./vendor" ]; then
     cd assets/websites 
     ../../node_modules/bower/bin/bower --allow-root install 
     cd ../..
-    pnpm encore dev
+    pnpm dev
 
     # create the elastic search index
     php bin/console app:elasticsearch:index
