@@ -143,7 +143,7 @@
 <script>
 import Vue from 'vue'
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '@/Components/Edit/AbstractEntityEdit'
 
 const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBlog|Url|GeneralBibItem|Management)[.]vue$/)
 

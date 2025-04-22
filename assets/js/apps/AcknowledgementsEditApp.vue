@@ -48,8 +48,8 @@
 <script>
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractField from '@/Components/FormFields/AbstractField'
+import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
 
 export default {
     mixins: [

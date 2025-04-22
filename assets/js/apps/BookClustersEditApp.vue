@@ -114,9 +114,9 @@ import qs from 'qs'
 
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import Url from '../Components/Edit/Panels/Url'
+import AbstractField from '@/Components/FormFields/AbstractField'
+import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
+import Url from '@/Components/Edit/Panels/Url'
 
 export default {
     components: {
