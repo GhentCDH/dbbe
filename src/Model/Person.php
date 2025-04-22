@@ -756,6 +756,17 @@ class Person extends Entity implements SubjectInterface
                         }
                     );
                 }
+                else if (in_array($documentType, ['type'])){
+                    $collator = new Collator('el_GR');
+                    usort(
+                        $this->documentRoles[$documentType][$role][1],
+                        function ($a, $b) use ($collator) {
+                            $a_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($a->getDescription())));
+                            $b_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($b->getDescription())));
+                            return $collator->compare($a_cleaned, $b_cleaned);
+                        }
+                    );
+                }
                 else {
                     usort(
                         $this->documentRoles[$documentType][$role][1],
