@@ -1076,6 +1076,10 @@ class Person extends Entity implements SubjectInterface
             $result['origin'] = $this->origin->getShortElastic();
         }
 
+        if (!empty($this->getAcknowledgements())) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
         return $result;
     }
 

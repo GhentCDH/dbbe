@@ -557,6 +557,12 @@ class PersonController extends BaseController
                             $filters[$key] = $params['filters'][$key];
                         }
                         break;
+                    case 'acknowledgement':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'acknowledgement_op':
                     case 'role_op':
                     case 'self_designation_op':
                     case 'office_op':
