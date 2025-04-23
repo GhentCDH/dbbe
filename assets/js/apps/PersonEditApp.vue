@@ -60,7 +60,7 @@
             <generalPersonPanel
                 id="general"
                 ref="general"
-                header="General test"
+                header="General"
                 :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}]"
                 :model="model.general"
                 :values="generals"
