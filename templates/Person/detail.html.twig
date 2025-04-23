@@ -256,6 +256,23 @@
                         <td>{{ person.getPublic() ? 'Public': 'Not public' }}</td>
                     </tr>
                 {% endif %}
+                {% if person.getAcknowledgements() is not empty  %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if person.getAcknowledgements() is not empty  %}
+                                <br /><br />
+                            {% endif %}
+
+                            <p class="bg-tertiary padding-default mtop-small">The credits system has been implemented in 2019. Credits from before the new system was in use might be incomplete.</p>
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

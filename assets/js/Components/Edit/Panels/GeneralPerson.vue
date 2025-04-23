@@ -30,11 +30,30 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+          type: Object,
+          default: () => {
+            return {
+              acknowledgements: {field: 'acknowledgements', init: true}
+            };
+          },
+        },
     },
     data() {
         return {
             schema: {
                 fields: {
+                    acknowledgements: this.createMultiSelect(
+                        'Acknowledgements',
+                        {
+                          model: 'acknowledgements',
+                          values: this.values.acknowledgements,
+                        },
+                        {
+                          multiple: true,
+                          closeOnSelect: false,
+                        }
+                    ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',

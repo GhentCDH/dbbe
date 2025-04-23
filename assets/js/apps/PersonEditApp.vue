@@ -60,9 +60,13 @@
             <generalPersonPanel
                 id="general"
                 ref="general"
-                header="General"
+                header="General test"
+                :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}]"
                 :model="model.general"
+                :values="generals"
+                :reloads="reloads"
                 @validated="validated"
+                @reload="reload"
             />
 
             <managementPanel
@@ -230,6 +234,7 @@ export default {
                     bibVarias: [],
                 },
                 general: {
+                    acknowledgements: [],
                     publicComment: null,
                     privateComment: null,
                     public: null,
@@ -268,6 +273,9 @@ export default {
             bibVarias: [],
         };
         this.managements = this.data.managements
+        this.generals = {
+          acknowledgements: this.data.acknowledgements,
+        };
     },
     methods: {
         loadAsync() {
@@ -344,6 +352,7 @@ export default {
 
                 // General
                 this.model.general = {
+                    acknowledgements: this.person.acknowledgements,
                     publicComment: this.person.publicComment,
                     privateComment: this.person.privateComment,
                     public: this.person.public,
@@ -398,6 +407,7 @@ export default {
             case 'bookChapters':
             case 'onlineSources':
             case 'phds':
+            case 'acknowledgements':
             case 'bibVarias':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
