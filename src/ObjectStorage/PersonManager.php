@@ -695,6 +695,7 @@ class PersonManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->updateDBBE($old, $data->dbbe);
             }
+
             if (property_exists($data, 'dates')) {
                 $this->validateDates($data->dates);
                 $changes['mini'] = true;
@@ -803,27 +804,58 @@ class PersonManager extends ObjectEntityManager
         $secondary = $this->getFull($secondaryId);
 
         $updates = [];
-        if (empty($primary->getFirstName()) && !empty($secondary->getFirstName())) {
-            $updates['firstName'] = $secondary->getFirstName();
+
+        $fieldsToCheck = [
+            'getFirstName' => 'firstName',
+            'getLastName' => 'lastName',
+            'getExtra' => 'extra',
+            'getUnprocessed' => 'unprocessed',
+            'getBornDate' => 'bornDate',
+            'getDeathDate' => 'deathDate',
+            'getPublicComment' => 'publicComment',
+            'getPrivateComment' => 'privateComment',
+        ];
+
+        foreach ($fieldsToCheck as $method => $field) {
+            $value = $primary->$method();
+            if (!empty($value)) {
+                $updates[$field] = $value;
+            }
         }
-        if (empty($primary->getLastName()) && !empty($secondary->getLastName())) {
-            $updates['lastName'] = $secondary->getLastName();
+
+        $updates = $this->mergeAndSetIfNotEmpty(
+            fn() => $primary->getSelfDesignations(),
+            fn() => $secondary->getSelfDesignations(),
+            'selfDesignations',
+            $updates
+        );
+
+        $updates = $this->mergeAndSetIfNotEmpty(
+            fn() => $primary->getOfficesWithParents(),
+            fn() => $secondary->getOfficesWithParents(),
+            'offices',
+            $updates
+        );
+
+        $mergedAttested = array_unique(array_merge(
+            $primary->getAttestedDatesAndIntervals() ?? [],
+            $secondary->getAttestedDatesAndIntervals() ?? []
+        ));
+        $updates['dates'] = array_map(function ($item) {
+            return [
+                'date' => [
+                    'floor' => $item->getFloor()->format('Y-m-d'),
+                    'ceiling' => $item->getCeiling()->format('Y-m-d'),
+                ],
+                'isInterval' => false,
+                'type' => 'attested',
+            ];
+        }, $mergedAttested);
+
+        if (!empty($mergedAttested)) {
+            $updates['attestedDatesAndIntervals'] = $mergedAttested;
         }
-        if (empty($primary->getExtra()) && !empty($secondary->getExtra())) {
-            $updates['extra'] = $secondary->getExtra();
-        }
-        if (empty($primary->getUnprocessed()) && !empty($secondary->getUnprocessed())) {
-            $updates['unprocessed'] = $secondary->getUnprocessed();
-        }
-        if (empty($primary->getBornDate()) && !empty($secondary->getBornDate())) {
-            $updates['bornDate'] = $secondary->getBornDate();
-        }
-        if (empty($primary->getDeathDate()) && !empty($secondary->getDeathDate())) {
-            $updates['deathDate'] = $secondary->getDeathDate();
-        }
-        if (empty($primary->getSelfDesignations()) && !empty($secondary->getSelfDesignations())) {
-            $updates['selfDesignations'] = ArrayToJson::arrayToShortJson($secondary->getSelfDesignations());
-        }
+
         $identifiers = $this->container->get(IdentifierManager::class)->getByType('person');
         foreach ($identifiers as $identifier) {
             if (!isset($updates['identification'])) {
@@ -831,24 +863,36 @@ class PersonManager extends ObjectEntityManager
             }
 
             $systemName = $identifier->getSystemName();
-            $primary_identification = $primary->getIdentifications()[$systemName][1] ?? null;
-            $secondary_identification = $secondary->getIdentifications()[$systemName][1] ?? null;
+            $primary_identifications = $primary->getIdentifications()[$systemName][1] ?? null;
+            $secondary_identifications = $secondary->getIdentifications()[$systemName][1] ?? null;
 
-            if (!empty($primary_identification)) {
-                $updates['identification'][$systemName] = ArrayToJson::arrayToJson($primary_identification);
-            } elseif (!empty($secondary_identification)) {
-                $updates['identification'][$systemName] = ArrayToJson::arrayToJson($secondary_identification);
+            $merged_identifications = array_merge($primary_identifications, $secondary_identifications);
+            $merged_identifications = array_filter(array_unique($merged_identifications));
+
+            if (!empty($merged_identifications)) {
+                $updates['identification'][$systemName] = ArrayToJson::arrayToJson($merged_identifications);
             }
         }
-        if (empty($primary->getOfficesWithParents()) && !empty($secondary->getOfficesWithParents())) {
-            $updates['offices'] = ArrayToJson::arrayToShortJson($secondary->getOfficesWithParents());
+
+        if(!empty($primary->getOrigin())) {
+            $updates['origin'] = $primary->getOrigin()->getShortJson();
         }
-        if (empty($primary->getPublicComment()) && !empty($secondary->getPublicComment())) {
-            $updates['publicComment'] = $secondary->getPublicComment();
+
+        $allManagements = array_merge(
+            iterator_to_array($primary->getManagements() ?? []),
+            iterator_to_array($secondary->getManagements() ?? [])
+        );
+        $managementArray=[];
+        foreach($allManagements as $management) {
+            $jsonManagement = $management->getJson();
+            $managementArray[] = $jsonManagement;
         }
-        if (empty($primary->getPrivateComment()) && !empty($secondary->getPrivateComment())) {
-            $updates['privateComment'] = $secondary->getPrivateComment();
-        }
+        $updates['managements']  = $managementArray;
+
+        $primaryBibliographies = $primary->getBibliographies() ?? [];
+        $secondaryBibliographies = $secondary->getBibliographies() ?? [];
+        $mergedBibliographies = array_merge($primaryBibliographies, $secondaryBibliographies);
+        $this->container->get(BibliographyManager::class)->updatePersonBibliographies($mergedBibliographies, $primary);
 
         $manuscripts = $this->container->get(ManuscriptManager::class)->getPersonDependencies($secondaryId, 'getShort');
         $occurrences = $this->container->get(OccurrenceManager::class)->getPersonDependencies($secondaryId, 'getShort');
@@ -1401,4 +1445,23 @@ class PersonManager extends ObjectEntityManager
 
         return;
     }
+
+    function mergeAndSetIfNotEmpty(
+        callable $primaryGetter,
+        callable $secondaryGetter,
+        string $key,
+        array $updates
+    ): array {
+        $merged = array_unique(array_merge(
+            $primaryGetter() ?? [],
+            $secondaryGetter() ?? []
+        ));
+
+        if (!empty($merged)) {
+            $updates[$key] = ArrayToJson::arrayToShortJson($merged);
+        }
+
+        return $updates;
+    }
+
 }

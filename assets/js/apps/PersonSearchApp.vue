@@ -317,20 +317,20 @@
                 <tbody>
                     <tr>
                         <td>First Name</td>
-                        <td>{{ mergeModel.primaryFull.firstName || mergeModel.secondaryFull.firstName }}</td>
+                        <td>{{ mergeModel.primaryFull.firstName }}</td>
                     </tr>
                     <tr>
                         <td>Last Name</td>
-                        <td>{{ mergeModel.primaryFull.lastName || mergeModel.secondaryFull.lastName }}</td>
+                        <td>{{ mergeModel.primaryFull.lastName }}</td>
                     </tr>
                     <tr>
                         <td>Extra</td>
-                        <td>{{ mergeModel.primaryFull.extra || mergeModel.secondaryFull.extra }}</td>
+                        <td>{{ mergeModel.primaryFull.extra }}</td>
                     </tr>
                     <tr>
                         <td>Unprocessed</td>
                         <!-- eslint-disable-next-line max-len -->
-                        <td>{{ (mergeModel.primaryFull.firstName || mergeModel.secondaryFull.firstName || mergeModel.primaryFull.lastName || mergeModel.secondaryFull.lastName || mergeModel.primary.extra || mergeModel.secondary.extra) ? '' : mergeModel.primary.unprocessed || mergeModel.secondary.unprocessed }}</td>
+                        <td>{{ (mergeModel.primaryFull.firstName || mergeModel.primaryFull.lastName || mergeModel.primary.extra) ? '' : mergeModel.primary.unprocessed }}</td>
                     </tr>
                     <tr>
                         <td>Historical</td>
@@ -343,12 +343,12 @@
                     <tr>
                         <td>Born Date</td>
                         <!-- eslint-disable-next-line max-len -->
-                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'born') }}</td>
+                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, 'born') }}</td>
                     </tr>
                     <tr>
                         <td>Death Date</td>
                         <!-- eslint-disable-next-line max-len -->
-                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, mergeModel.secondaryFull.dates, 'died') }}</td>
+                        <td>{{ formatMergeDate(mergeModel.primaryFull.dates, 'died') }}</td>
                     </tr>
                     <tr
                         v-for="identifier in identifiers"
@@ -360,20 +360,26 @@
                     <tr>
                         <td>(Self) designation</td>
                         <!-- eslint-disable-next-line max-len -->
-                        <td>{{ formatObjectArray(mergeModel.primaryFull.selfDesignations) || formatObjectArray(mergeModel.secondaryFull.selfDesignations) }}</td>
+                        <td>{{ formatObjectArray([
+                          ...(mergeModel.primaryFull.selfDesignations || []),
+                          ...(mergeModel.secondaryFull.selfDesignations || [])
+                        ]) }}</td>
                     </tr>
                     <tr>
                         <td>Offices</td>
                         <!-- eslint-disable-next-line max-len -->
-                        <td>{{ formatObjectArray(mergeModel.primaryFull.officesWithParents) || formatObjectArray(mergeModel.secondaryFull.officesWithParents) }}</td>
+                        <td>{{ formatObjectArray([
+                          ...(mergeModel.primaryFull.officesWithParents || []),
+                          ...(mergeModel.secondaryFull.officesWithParents || [])
+                          ]) }}</td>
                     </tr>
                     <tr>
                         <td>Public comment</td>
-                        <td>{{ mergeModel.primaryFull.publicComment || mergeModel.secondaryFull.publicComment }}</td>
+                        <td>{{ mergeModel.primaryFull.publicComment }}</td>
                     </tr>
                     <tr>
                         <td>Private comment</td>
-                        <td>{{ mergeModel.primaryFull.privateComment || mergeModel.secondaryFull.privateComment }}</td>
+                        <td>{{ mergeModel.primaryFull.privateComment }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -775,16 +781,11 @@ export default {
     },
     methods: {
         getMergedIdentification(identifier) {
-            const { systemName } = identifier;
-            const primary = this.mergeModel.primaryFull?.identifications?.[systemName];
-            const secondary = this.mergeModel.secondaryFull?.identifications?.[systemName];
-            if (Array.isArray(primary) && primary.length > 0) {
-              return primary;
-            }
-            if (Array.isArray(secondary) && secondary.length > 0) {
-              return secondary;
-            }
-            return '';
+          const { systemName } = identifier;
+          const primary = this.mergeModel.primaryFull?.identifications?.[systemName] || [];
+          const secondary = this.mergeModel.secondaryFull?.identifications?.[systemName] || [];
+
+          return [...primary, ...secondary];
         },
         merge(row) {
             this.openRequests += 1;
@@ -863,12 +864,9 @@ export default {
                     console.error(error);
                 });
         },
-        formatMergeDate(primary, secondary, type) {
-            if (primary.filter((d) => d.type === type).length === 1) {
-                return this.formatPersonDate(primary.filter((d) => d.type === type)[0].date);
-            }
-            if (secondary.filter((d) => d.type === type).length === 1) {
-                return this.formatPersonDate(secondary.filter((d) => d.type === type)[0].date);
+        formatMergeDate(mergedDate, type) {
+            if (mergedDate.filter((d) => d.type === type).length === 1) {
+                return this.formatPersonDate(mergedDate.filter((d) => d.type === type)[0].date);
             }
             return null;
         },
