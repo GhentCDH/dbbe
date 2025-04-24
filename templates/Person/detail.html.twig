@@ -145,7 +145,7 @@
                                         {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                             {% block renderDetail %}
                                                 <a href="{{ path('manuscript_get', {'id': item.getId()}) }}">{{ item.getName() }}</a>
-                                                {% if item.getFormattedDate() is not empty %}[{{ item.getFormattedDate() }}]{% endif %}
+                                                {% if item is defined and item.getFormattedDate() is not empty %}[{{ item.getFormattedDate() }}]{% endif %}
                                             {% endblock %}
                                         {% endembed %}
                                     {% endblock %}
@@ -181,7 +181,7 @@
                                                 {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                                     {% block renderDetail %}
                                                         <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
-                                                        {% if item.getDate() is not empty %}
+                                                        {% if item is defined and item.getDate() is not empty %}
                                                             [{{ item.getFormattedDate() }}]
                                                         {% endif %}
                                                     {% endblock %}
