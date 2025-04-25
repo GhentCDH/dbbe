@@ -87,8 +87,16 @@ class OnlineSource extends Entity
      */
     public function getDescription(): string
     {
+        $lastAccessedDate = null;
+
+        if ($this->name === 'DBBE') {
+            $lastAccessedDate = (new \DateTime())->format('Y-m-d');
+        } elseif (!empty($this->lastAccessed)) {
+            $lastAccessedDate = $this->lastAccessed->format('Y-m-d');
+        }
+
         return $this->name
-            . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')' : '')
+            . ($lastAccessedDate ? ' (last accessed: ' . $lastAccessedDate . ')' : '')
             . '.';
     }
 
