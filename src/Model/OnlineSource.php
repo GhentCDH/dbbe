@@ -73,13 +73,24 @@ class OnlineSource extends Entity
         return $this->lastAccessed;
     }
 
+    public function getFormattedLastAccessed(): ?string
+    {
+        if ($this->getName() === 'DBBE') {
+            return (new \DateTime())->format('Y-m-d');
+        }
+
+        return $this->lastAccessed->format('Y-m-d');
+    }
+
     /**
      * @return string
      */
     public function getDescription(): string
     {
         return $this->name
-            . (!empty($this->lastAccessed) ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')' : '')
+            . (!empty($this->lastAccessed)
+                ? ' (last accessed: ' . $this->lastAccessed->format('Y-m-d') . ')'
+                : '')
             . '.';
     }
 
