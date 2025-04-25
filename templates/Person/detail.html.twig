@@ -146,7 +146,7 @@
                                             {% block renderDetail %}
                                                 <a href="{{ path('manuscript_get', {'id': item.getId()}) }}">{{ item.getName() }}</a>
 
-                                                {% if item is defined and item is not null and item.getDate() is not empty %}}
+                                                {% if item is defined and item is not null and item.getDate() is not empty %}
                                                   [{{ item.getFormattedDate() }}]
                                                   {% endif %}
 
