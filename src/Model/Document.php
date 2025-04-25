@@ -86,6 +86,10 @@ class Document extends Entity
         return $this->date;
     }
 
+    public function getFormattedDate(): string {
+        return $this->getDate()->getFormattedDate();
+    }
+
     public function setPersonRoles(array $personRoles): Document
     {
         $this->personRoles = $personRoles;

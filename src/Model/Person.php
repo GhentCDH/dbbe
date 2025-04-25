@@ -290,6 +290,12 @@ class Person extends Entity implements SubjectInterface
         return $this->bornDate;
     }
 
+
+    public function getFormattedBornDate(): ?string
+    {
+        return $this->bornDate->getFormattedDate();
+    }
+
     /**
      * @param  FuzzyDate|null $deathDate
      * @return Person
@@ -309,6 +315,11 @@ class Person extends Entity implements SubjectInterface
         return $this->deathDate;
     }
 
+    public function getFormattedDeathDate(): ?string
+    {
+        return $this->deathDate->getFormattedDate();
+    }
+
     /**
      * @param  FuzzyDate|FuzzyInterval $attestedDate
      * @return Person
@@ -326,6 +337,10 @@ class Person extends Entity implements SubjectInterface
     public function getAttestedDatesAndIntervals(): array
     {
         return $this->attestedDatesAndIntervals;
+    }
+
+    public function getFormattedAttestedDatesAndIntervals(): array {
+        return array_map(fn($fuzzyDate) => $fuzzyDate->getFormattedDate(), $this->attestedDatesAndIntervals);
     }
 
     public function sortAttestedDatesAndIntervals(): Person
@@ -741,6 +756,17 @@ class Person extends Entity implements SubjectInterface
                         }
                     );
                 }
+                else if (in_array($documentType, ['type'])){
+                    $collator = new Collator('el_GR');
+                    usort(
+                        $this->documentRoles[$documentType][$role][1],
+                        function ($a, $b) use ($collator) {
+                            $a_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($a->getDescription())));
+                            $b_cleaned= trim(preg_replace('/[()\[\]…]|\.{3}/u', '', strtolower($b->getDescription())));
+                            return $collator->compare($a_cleaned, $b_cleaned);
+                        }
+                    );
+                }
                 else {
                     usort(
                         $this->documentRoles[$documentType][$role][1],
@@ -847,10 +873,10 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyInterval
      */
-    public function getInterval(): ?FuzzyInterval
+    public function getInterval(): ?string
     {
         if ($this->bornDate != null && $this->deathDate != null) {
-            return new FuzzyInterval($this->bornDate, $this->deathDate);
+            return (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval();
         }
         return null;
     }
@@ -869,7 +895,7 @@ class Person extends Entity implements SubjectInterface
             $this->extra,
             ])))) {
             if ($this->bornDate != null && !$this->bornDate->isEmpty() && $this->deathDate != null && !$this->deathDate->isEmpty()) {
-                $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+                $description .= ' (' . (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval() . ')';
             }
         }
         return $description;
