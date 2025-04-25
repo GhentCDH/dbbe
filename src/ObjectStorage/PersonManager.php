@@ -889,10 +889,16 @@ class PersonManager extends ObjectEntityManager
         }
         $updates['managements']  = $managementArray;
 
-        $primaryBibliographies = $primary->getBibliographies() ?? [];
         $secondaryBibliographies = $secondary->getBibliographies() ?? [];
-        $mergedBibliographies = array_merge($primaryBibliographies, $secondaryBibliographies);
-        $this->container->get(BibliographyManager::class)->updatePersonBibliographies($mergedBibliographies, $primary);
+        $secondaryBibliographiesArray = array_map(function ($item) {
+            if (is_array($item)) {
+                return (object) $item; // Convert associative array to stdClass
+            } elseif (is_object($item)) {
+                return (object) get_object_vars($item); // Re-wrap object as stdClass
+            }
+            return (object) ['value' => $item]; // Fallback for scalars
+        }, $secondaryBibliographies);
+        $updates['bibliography']= $secondaryBibliographiesArray;
 
         $manuscripts = $this->container->get(ManuscriptManager::class)->getPersonDependencies($secondaryId, 'getShort');
         $occurrences = $this->container->get(OccurrenceManager::class)->getPersonDependencies($secondaryId, 'getShort');
