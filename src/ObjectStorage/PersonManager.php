@@ -171,6 +171,8 @@ class PersonManager extends ObjectEntityManager
 
         $this->setManagements($persons);
 
+        $this->setAcknowledgements($persons);
+
         $this->setCreatedAndModifiedDates($persons);
 
         return $persons;
@@ -645,6 +647,15 @@ class PersonManager extends ObjectEntityManager
                 $changes['mini'] = true;
                 $this->updateSelfDesignations($old, $data->selfDesignations);
             }
+
+            if (property_exists($data, 'acknowledgements')) {
+                if (!is_array($data->acknowledgements)) {
+                    throw new BadRequestHttpException('Incorrect acknowledgements data.');
+                }
+                $changes['short'] = true;
+                $this->updateAcknowledgements($old, $data->acknowledgements);
+            }
+
             if (property_exists($data, 'origin')) {
                 if (!is_object($data->origin) && !empty($data->origin)) {
                     throw new BadRequestHttpException('Incorrect origin data.');
@@ -1476,5 +1487,38 @@ class PersonManager extends ObjectEntityManager
         }
 
         return $updates;
+    }
+
+    protected function updateAcknowledgements(Person $person, array $acknowledgements): void
+    {
+        foreach ($acknowledgements as $acknowledgement) {
+            if (!is_object($acknowledgement)
+                || !property_exists($acknowledgement, 'id')
+                || !is_numeric($acknowledgement->id)
+            ) {
+                throw new BadRequestHttpException('Incorrect acknowledgement data.');
+            }
+        }
+        list($delIds, $addIds) = self::calcDiff($acknowledgements, $person->getAcknowledgements());
+
+        if (count($delIds) > 0) {
+            $this->dbs->delAcknowledgements($person->getId(), $delIds);
+        }
+        foreach ($addIds as $addId) {
+            $this->dbs->addAcknowledgement($person->getId(), $addId);
+        }
+    }
+
+    protected function setAcknowledgements(array &$persons)
+    {
+        $rawAcknowledgements = $this->dbs->getAcknowledgements(array_keys($persons));
+        $acknowledgements = $this->container->get(AcknowledgementManager::class)->getWithData($rawAcknowledgements);
+        foreach ($rawAcknowledgements as $rawAcknowledgement) {
+            $persons[$rawAcknowledgement['person_id']]
+                ->addAcknowledgement($acknowledgements[$rawAcknowledgement['acknowledgement_id']]);
+        }
+        foreach (array_keys($persons) as $personId) {
+            $persons[$personId]->sortAcknowledgements();
+        }
     }
 }
