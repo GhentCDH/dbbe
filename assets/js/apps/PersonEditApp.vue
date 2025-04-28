@@ -408,13 +408,6 @@ export default {
             case 'onlineSources':
             case 'phds':
             case 'acknowledgements':
-              this.reloadItems(
-                  'acknowledgements',
-                  ['acknowledgements'],
-                  [this.generals.acknowledgements],
-                  this.urls['acknowledgements_get']
-              );
-              break;
             case 'bibVarias':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
