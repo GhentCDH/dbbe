@@ -260,6 +260,22 @@
                         <td>{{ person.getPublic() ? 'Public': 'Not public' }}</td>
                     </tr>
                 {% endif %}
+                {% if person.getAcknowledgements() is not empty  %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if person.getAcknowledgements() is not empty  %}
+                                <br /><br />
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 

@@ -43,6 +43,7 @@ class ElasticPersonService extends ElasticEntityService
             'self_designation' => ['type' => 'nested'],
             'office' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
+            'acknowledgement' => ['type' => 'nested'],
             'origin' => ['type' => 'nested'],
         ];
         $this->index->setMapping(new Mapping($properties));
@@ -61,6 +62,7 @@ class ElasticPersonService extends ElasticEntityService
             unset($result['data'][$key]['historical']);
             unset($result['data'][$key]['modern']);
             unset($result['data'][$key]['role']);
+            unset($result['data'][$key]['acknowledgement']);
             unset($result['data'][$key]['management']);
             // Keep comments if there was a search, then these will be an array
             if (isset($result['data'][$key]['public_comment']) && is_string($result['data'][$key]['public_comment'])) {
@@ -76,7 +78,7 @@ class ElasticPersonService extends ElasticEntityService
             }
         }
 
-        $aggregationFilters = ['historical', 'modern', 'role', 'office', 'self_designation', 'origin'];
+        $aggregationFilters = ['historical', 'modern', 'role', 'office', 'self_designation', 'origin', 'acknowledgement'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -132,6 +134,9 @@ class ElasticPersonService extends ElasticEntityService
                 case 'modern':
                     $result['boolean'][] = $value;
                     break;
+                case 'acknowledgement':
+                    $result['nested_multi'][] = $value;
+                    break;
             }
         }
         return $result;
@@ -179,6 +184,12 @@ class ElasticPersonService extends ElasticEntityService
                 case 'role':
                 case 'self_designation':
                 case 'office':
+                case 'acknowledgement':
+                    $result['nested_multi'][$key] = $value;
+                    break;
+                case 'acknowledgement_op':
+                    $result['nested_multi_op'][$key] = $value;
+                    break;
                 case 'origin':
                     $result['nested_multi'][$key] = $value;
                     break;

@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\ObjectStorage\AcknowledgementManager;
 
 use App\ElasticSearchService\ElasticPersonService;
 use App\ObjectStorage\IdentifierManager;
@@ -153,6 +154,7 @@ class PersonController extends BaseController
      * @param SelfDesignationManager $selfDesignationManager
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
+     * @param AcknowledgementManager $acknowledgementManager
      * @return Response
      */
     #[Route(path: '/persons/add', name: 'person_add', methods: ['GET'])]
@@ -160,6 +162,7 @@ class PersonController extends BaseController
         OfficeManager $officeManager,
         OriginManager $originManager,
         SelfDesignationManager $selfDesignationManager,
+        AcknowledgementManager $acknowledgementManager,
         ManagementManager $managementManager,
         IdentifierManager $identifierManager
     ) {
@@ -407,6 +410,7 @@ class PersonController extends BaseController
      * @param SelfDesignationManager $selfDesignationManager
      * @param ManagementManager $managementManager
      * @param IdentifierManager $identifierManager
+     * @param AcknowledgementManager $acknowledgementManager
      * @param int|null $id person id
      * @return Response
      */
@@ -415,6 +419,7 @@ class PersonController extends BaseController
         OfficeManager $officeManager,
         OriginManager $originManager,
         SelfDesignationManager $selfDesignationManager,
+        AcknowledgementManager $acknowledgementManager,
         ManagementManager $managementManager,
         IdentifierManager $identifierManager,
         int $id = null
@@ -426,6 +431,8 @@ class PersonController extends BaseController
             [
                 'id' => $id,
                 'urls' => json_encode([
+                    'acknowledgements_get' => $this->generateUrl('acknowledgements_get'),
+                    'acknowledgements_edit' => $this->generateUrl('acknowledgements_edit'),
                     'person_get' => $this->generateUrl('person_get', ['id' => $id == null ? 'person_id' : $id]),
                     'person_post' => $this->generateUrl('person_post'),
                     'person_put' => $this->generateUrl('person_put', ['id' => $id == null ? 'person_id' : $id]),
@@ -454,6 +461,7 @@ class PersonController extends BaseController
                         : $this->manager->getFull($id)->getJson(),
                     'offices' => $officeManager->getAllJson(),
                     'origins' => $originManager->getByTypeShortJson('person'),
+                    'acknowledgements' => $acknowledgementManager->getAllShortJson(),
                     'selfDesignations' => $selfDesignationManager->getAllJson(),
                     'managements' => $managementManager->getAllShortJson(),
                 ]),
@@ -549,6 +557,12 @@ class PersonController extends BaseController
                             $filters[$key] = $params['filters'][$key];
                         }
                         break;
+                    case 'acknowledgement':
+                        if (is_array($params['filters'][$key])) {
+                            $filters[$key] = $params['filters'][$key];
+                        }
+                        break;
+                    case 'acknowledgement_op':
                     case 'role_op':
                     case 'self_designation_op':
                     case 'office_op':

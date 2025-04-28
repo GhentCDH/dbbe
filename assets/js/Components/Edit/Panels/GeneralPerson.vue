@@ -1,5 +1,10 @@
 <template>
-    <panel :header="header">
+    <panel
+        :header="header"
+        :links="links"
+        :reloads="reloads"
+        @reload="reload"
+    >
         <vue-form-generator
             ref="form"
             :schema="schema"
@@ -30,11 +35,29 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+          type: Object,
+          default: () => {
+            return {
+              acknowledgements: {field: 'acknowledgements', init: true}
+            };
+          },
+        },
     },
     data() {
         return {
             schema: {
                 fields: {
+                    acknowledgements: this.createMultiSelect(
+                        'Acknowledgements',
+                        {
+                          model: 'acknowledgements',
+                        },
+                        {
+                          multiple: true,
+                          closeOnSelect: false,
+                        }
+                    ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',

@@ -40,6 +40,10 @@ class Person extends Entity implements SubjectInterface
      */
     protected $unprocessed;
     /**
+     * @var array
+     */
+    protected $acknowledgements = [];
+    /**
      * @var FuzzyDate
      */
     protected $bornDate;
@@ -1039,6 +1043,10 @@ class Person extends Entity implements SubjectInterface
             $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
         }
 
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
         return $result;
     }
 
@@ -1083,6 +1091,34 @@ class Person extends Entity implements SubjectInterface
             $result['origin'] = $this->origin->getShortElastic();
         }
 
+        if (!empty($this->getAcknowledgements())) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
         return $result;
     }
+
+    public function getAcknowledgements(): array
+    {
+        return $this->acknowledgements;
+    }
+
+    public function sortAcknowledgements(): void
+    {
+        usort(
+            $this->acknowledgements,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+    }
+
+    public function addAcknowledgement(Acknowledgement $acknowledgement): Person
+    {
+        $this->acknowledgements[] = $acknowledgement;
+
+        return $this;
+    }
+
+
 }
