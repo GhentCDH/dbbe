@@ -852,9 +852,28 @@ class PersonManager extends ObjectEntityManager
             ];
         }, $mergedAttested);
 
-        if (!empty($mergedAttested)) {
-            $updates['attestedDatesAndIntervals'] = $mergedAttested;
+        if ($primary->getBornDate() !== null) {
+            $updates['dates'][] = [
+                'date' => [
+                    'floor' => $primary->getBornDate()->getFloor()->format('Y-m-d'),
+                    'ceiling' => $primary->getBornDate()->getCeiling()->format('Y-m-d'),
+                ],
+                'isInterval' => false,
+                'type' => 'born',
+            ];
         }
+
+        if ($primary->getDeathDate() !== null) {
+            $updates['dates'][] = [
+                'date' => [
+                    'floor' => $primary->getDeathDate()->getFloor()->format('Y-m-d'),
+                    'ceiling' => $primary->getDeathDate()->getCeiling()->format('Y-m-d'),
+                ],
+                'isInterval' => false,
+                'type' => 'died',
+            ];
+        }
+
 
         $identifiers = $this->container->get(IdentifierManager::class)->getByType('person');
         foreach ($identifiers as $identifier) {
