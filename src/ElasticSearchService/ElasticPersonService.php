@@ -78,7 +78,7 @@ class ElasticPersonService extends ElasticEntityService
             }
         }
 
-        $aggregationFilters = ['historical', 'modern', 'role', 'office', 'self_designation', 'origin','acknowledgement'];
+        $aggregationFilters = ['historical', 'modern', 'role', 'office', 'self_designation', 'origin', 'acknowledgement'];
         if ($viewInternal) {
             $aggregationFilters[] = 'public';
             $aggregationFilters[] = 'management';
@@ -131,11 +131,11 @@ class ElasticPersonService extends ElasticEntityService
                     break;
                 case 'public':
                 case 'historical':
-                case 'acknowledgement':
-                    $result['nested_multi'][$key] = $value;
-                    break;
                 case 'modern':
                     $result['boolean'][] = $value;
+                    break;
+                case 'acknowledgement':
+                    $result['nested_multi'][] = $value;
                     break;
             }
         }
