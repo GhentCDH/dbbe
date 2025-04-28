@@ -632,6 +632,24 @@ abstract class EntityManager extends ObjectManager
         }
     }
 
+    private function updateOnlineSourceAccess($id): void {
+        //TODO: Cleaner fix.
+        $dbbeOnlineSourceId = 11523;
+        //Only update DBBE if the altered source is NOT DBBE so that manual lastModified changes are possible
+        if ($id !== $dbbeOnlineSourceId) {
+            //Update last accessed date of the source that has been changed
+            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                $id,
+                (new \DateTime())->format('Y-m-d')
+            );
+            //Use this occasion to update DBBE to a recent last accessed
+            $this->container->get(OnlineSourceManager::class)->updateLastAccessed(
+                $dbbeOnlineSourceId,
+                (new \DateTime())->format('Y-m-d')
+            );
+        }
+    }
+
     protected function updateBibliography(
         Entity $entity,
         stdClass $bibliography,
@@ -710,6 +728,7 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
                             $newBibIds[] = $newBib->getId();
+                            $this->updateOnlineSourceAccess($bib->{$bibType}->id);
                         } elseif (in_array($bibType, ['blogPost'])) {
                             $newBib = $this->container->get(BibliographyManager::class)->add(
                                 $entity->getId(),
@@ -747,7 +766,8 @@ abstract class EntityManager extends ObjectManager
                                 property_exists($bib, 'referenceType') ? $bib->referenceType->id : null,
                                 property_exists($bib, 'image') ? $bib->image : null
                             );
-                        } elseif (in_array($bibType, ['blogPost'])) {
+                            $this->updateOnlineSourceAccess($bib->{$bibType}->id);                       }
+                        elseif (in_array($bibType, ['blogPost'])) {
                             $this->container->get(BibliographyManager::class)->update(
                                 $bib->id,
                                 $bib->{$bibType}->id,
