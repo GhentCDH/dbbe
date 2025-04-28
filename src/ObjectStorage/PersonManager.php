@@ -889,10 +889,6 @@ class PersonManager extends ObjectEntityManager
         }
         $updates['managements']  = $managementArray;
 
-        $secondaryBibliographies = $secondary->getBibliographies() ?? [];
-        $updates['bibliography'] = $this->getFormattedMergeBibliographies($secondaryBibliographies);
-
-
         $manuscripts = $this->container->get(ManuscriptManager::class)->getPersonDependencies($secondaryId, 'getShort');
         $occurrences = $this->container->get(OccurrenceManager::class)->getPersonDependencies($secondaryId, 'getShort');
         $types = $this->container->get(TypeManager::class)->getPersonDependencies($secondaryId, 'getShort');
@@ -1462,60 +1458,4 @@ class PersonManager extends ObjectEntityManager
 
         return $updates;
     }
-
-    function getFormattedMergeBibliographies($bibliographies) {
-        $validTypes = [
-            'book' => 'books',
-            'article' => 'articles',
-            'bookChapter' => 'bookChapters',
-            'onlineSource' => 'onlineSources',
-            'blogPost' => 'blogPosts',
-            'phd' => 'phds',
-            'bibVaria' => 'bibVarias'
-        ];
-
-        $groupedBibliographies = array_fill_keys(array_values($validTypes), []);
-
-        foreach ($bibliographies as $item) {
-            if (is_array($item)) {
-                continue; // Skip if it's an array
-            }
-
-            if (is_object($item)) {
-                $shortJson = $item->getShortJson();
-                $type = $item->getType();
-
-                // Check if the type is valid
-                if (isset($validTypes[$type])) {
-                    $key = $validTypes[$type];
-
-                    // Add the item data to the corresponding type array
-                    $groupedBibliographies[$key][] = $shortJson;
-                } else {
-                    // If type is not valid, we just use the raw shortJson
-                    continue;
-                }
-            } else {
-                // For scalars (not objects or arrays)
-                continue;
-            }
-        }
-
-        // Remove 'id' from all grouped bibliographies at the end
-        foreach ($groupedBibliographies as $type => $items) {
-            foreach ($items as $index => $item) {
-                if (isset($item->id)) {
-                    unset($item->id); // Remove 'id' field
-                }
-                // Reassign the modified item back
-                $groupedBibliographies[$type][$index] = $item;
-            }
-        }
-
-        // Return the final grouped bibliographies
-        return $groupedBibliographies;
-    }
-
-
-
 }
