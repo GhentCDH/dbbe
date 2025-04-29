@@ -407,10 +407,12 @@ export default {
             case 'bookChapters':
             case 'onlineSources':
             case 'phds':
-            case 'acknowledgements':
             case 'bibVarias':
                 this.reloadNestedItems(type, this.bibliographies);
                 break;
+            case 'acknowledgements':
+              this.reloadNestedItems(type, this.generals);
+              break;
             default:
                 this.reloadSimpleItems(type);
             }
