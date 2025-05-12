@@ -173,7 +173,6 @@ Vue.use(VueFormGenerator);
 Vue.component('panel', Panel);
 Vue.component('autoDate', AutoDate);
 
-const $ = require('jquery');
 
 const YEAR_MIN = -5000;
 const YEAR_MAX = (new Date()).getFullYear();

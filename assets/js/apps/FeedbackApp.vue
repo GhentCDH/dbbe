@@ -42,7 +42,7 @@
 </template>
 
 <script>
-window.axios = require('axios')
+import axios from 'axios'
 
 import Vue from 'vue/dist/vue.js';
 import * as uiv from 'uiv'

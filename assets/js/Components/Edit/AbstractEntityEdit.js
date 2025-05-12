@@ -1,5 +1,4 @@
-window.axios = require('axios')
-
+import axios from 'axios'
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
@@ -9,7 +8,19 @@ import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
 import Alerts from '../Alerts'
 import Panel from './Panel'
 
-const modalComponents = require.context('./Modals', false, /[.]vue$/)
+const modalComponents = import.meta.glob('./Modals/*.vue', { eager: true })
+
+for (const path in modalComponents) {
+    const component = modalComponents[path].default
+    const compName = path
+        .replace(/^\.\/Modals\//, '')
+        .replace(/\.vue$/, '')
+
+    if (['Invalid', 'Reset', 'Save'].includes(compName)) {
+        const globalName = compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal'
+        Vue.component(globalName, component)
+    }
+}
 
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
@@ -18,12 +29,6 @@ Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('alerts', Alerts)
 
-for(let key of modalComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    if (['Invalid', 'Reset', 'Save'].includes(compName)) {
-        Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', modalComponents(key).default)
-    }
-}
 
 export default {
     props: {
