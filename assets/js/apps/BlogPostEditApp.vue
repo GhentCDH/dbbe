@@ -166,6 +166,7 @@
 
 <script>
 import Vue from 'vue/dist/vue.js';
+import axios from 'axios'
 
 import AbstractEntityEdit from '@/Components/Edit/AbstractEntityEdit'
 

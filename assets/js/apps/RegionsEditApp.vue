@@ -118,6 +118,7 @@
 
 <script>
 import VueFormGenerator from 'vue-form-generator'
+import axios from 'axios'
 
 import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'

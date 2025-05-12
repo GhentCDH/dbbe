@@ -21,7 +21,7 @@ RUN corepack prepare pnpm@10.0.0 --activate
 RUN corepack enable
 
 WORKDIR "/app"
-COPY --link package.json pnpm-lock.yaml webpack.config.js ./
+COPY --link package.json pnpm-lock.yaml ./
 COPY --link config ./config
 COPY --link assets ./assets
 COPY --link copy_build_files.sh ./copy_build_files.sh
