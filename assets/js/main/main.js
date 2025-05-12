@@ -10,8 +10,7 @@ import('bootstrap-sass/assets/javascripts/bootstrap')
     });
 
 import 'mark.js/dist/jquery.mark.js';
-
-// import 'bootstrap-sass'
+import '../../scss/screen.scss'
 // import 'ekko-lightbox'
 
 import '@firstandthird/toc/dist/toc.js';
