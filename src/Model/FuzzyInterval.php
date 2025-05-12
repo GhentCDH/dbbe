@@ -27,7 +27,7 @@ class FuzzyInterval
         return $this->end;
     }
 
-    public function getFormattedInterval(): string
+    public function getFormattedDate(): string
     {
         $start = $this->start->getFormattedDate();
         $end = $this->end->getFormattedDate();
