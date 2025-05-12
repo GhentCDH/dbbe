@@ -1,11 +1,11 @@
 <template>
     <div>
-<!--        <div class="col-xs-12">-->
-<!--            <alerts-->
-<!--                :alerts="alerts"-->
-<!--                @dismiss="alerts.splice($event, 1)"-->
-<!--            />-->
-<!--        </div>-->
+        <div class="col-xs-12">
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)"
+            />
+        </div>
         <aside class="col-sm-3">
             <div class="bg-tertiary padding-default">
                 <div class="form-group">
@@ -296,7 +296,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
 import AbstractField from '../Components/FormFields/AbstractField';
