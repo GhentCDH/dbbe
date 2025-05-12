@@ -1,6 +1,7 @@
 // overrides
-$fa-font-path: "assets/websites/static/fonts/font-awesome/" !default;
-$icon-font-path: "assets/websites/static/fonts/bootstrap/" !default;
+$fa-font-path: "@/../websites/static/fonts/font-awesome/" !default;
+$icon-font-path: "@/../websites/static/fonts/bootstrap/" !default;
+
 // settings and bootstrap
 @import '../websites/sass/settings';
 @import '../websites/sass/bootstrap-custom';
