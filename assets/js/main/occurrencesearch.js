@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';
 import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'; // Root component
 import * as uiv from 'uiv'; // UI library
 import fieldMultiselectClear from "../Components/FormFields/fieldMultiselectClear.vue"; // Custom component

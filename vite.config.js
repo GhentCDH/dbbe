@@ -15,13 +15,12 @@ export default {
                     isCustomElement: tag => tag.startsWith('custom-')
                 }
             }
-        }),
-        inject({
-            $: 'jquery',
-            jQuery: 'jquery'
         })
     ],
 
+    optimizeDeps: {
+        include: ['jquery'],
+    },
     base: '/', //if you remove this then it makes public/build in dev (so without running pnpm build)
     outDir: 'public/build',
     manifest: true,
@@ -83,6 +82,7 @@ export default {
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
+            'vue$': 'vue/dist/vue.esm.js',
             // 'ekko-lightbox': path.resolve(__dirname, 'assets/websites/static/js/ekko-lightbox.min.js')
         },
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],

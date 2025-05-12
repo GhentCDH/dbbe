@@ -1,11 +1,18 @@
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
+import('bootstrap-sass/assets/javascripts/bootstrap')
+    .then(() => {
+        console.log('Bootstrap JS loaded successfully');
+    })
+    .catch(err => {
+        console.error('Failed to load Bootstrap JS:', err);
+    });
 
 import 'mark.js/dist/jquery.mark.js';
-import 'bootstrap-sass'
-import 'bootstrap-sass/assets/javascripts/bootstrap';
-import 'ekko-lightbox'
+
+// import 'bootstrap-sass'
+// import 'ekko-lightbox'
 
 import '@firstandthird/toc/dist/toc.js';
 
