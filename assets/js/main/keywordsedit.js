@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import KeywordsEditApp from '@/apps/KeywordsEditApp'
 
 new Vue({

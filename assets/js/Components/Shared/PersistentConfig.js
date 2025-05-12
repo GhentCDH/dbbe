@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import VueCookies from 'vue-cookies';
 
 import merge from 'lodash.merge';

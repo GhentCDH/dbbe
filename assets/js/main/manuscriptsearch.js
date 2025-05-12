@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import ManuscriptSearchApp from '@/apps/ManuscriptSearchApp'
 
 new Vue({

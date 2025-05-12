@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import ManagementsEditApp from '@/apps/ManagementsEditApp'
 
 new Vue({
