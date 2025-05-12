@@ -613,6 +613,18 @@ class Entity implements IdJsonInterface, IdElasticInterface
             }
         );
 
+        $today = new \DateTime();
+        foreach ($result as $item) {
+            if (
+                isset($item['type'], $item['onlineSource']) &&
+                $item['type'] === 'onlineSource' &&
+                $item['onlineSource']->name === 'DBBE'
+            ) {
+                $item['onlineSource']->lastAccessed = $today;
+            }
+        }
+
+
         return $result;
     }
 }

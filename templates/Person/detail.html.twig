@@ -38,19 +38,19 @@
                 {% elseif person.getBornDate() is not empty %}
                     <tr>
                         <td>Date of birth</td>
-                        <td>{{ person.getBornDate() }}</td>
+                        <td>{{ person.getFormattedBornDate() }}</td>
                     </tr>
                 {% elseif person.getDeathDate() is not empty %}
                     <tr>
                         <td>Date of death</td>
-                        <td>{{ person.getDeathDate() }}</td>
+                        <td>{{ person.getFormattedDeathDate() }}</td>
                     </tr>
                 {% endif %}
                 {% if person.getAttestedDatesAndIntervals() is not empty %}
                     <tr>
                         <td>Attested dates and intervals</td>
                         <td>
-                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getAttestedDatesAndIntervals()} only %}
+                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getFormattedAttestedDatesAndIntervals()} only %}
                                 {% block renderItem %}
                                     {{ item }}
                                 {% endblock %}
@@ -145,7 +145,11 @@
                                         {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                             {% block renderDetail %}
                                                 <a href="{{ path('manuscript_get', {'id': item.getId()}) }}">{{ item.getName() }}</a>
-                                                {% if item.getDate() is not empty %}[{{ item.getDate() }}]{% endif %}
+
+                                                {% if item is defined and item is not null and item.getDate() is not empty %}
+                                                  [{{ item.getFormattedDate() }}]
+                                                  {% endif %}
+
                                             {% endblock %}
                                         {% endembed %}
                                     {% endblock %}
@@ -181,8 +185,8 @@
                                                 {% embed 'Helpers/renderPublic.html.twig' with {'item': item} only %}
                                                     {% block renderDetail %}
                                                         <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
-                                                        {% if item.getDate() is not empty %}
-                                                            [{{ item.getDate() }}]
+                                                        {% if item is defined and item is not null and item.getDate() is not empty %}
+                                                            [{{ item.getFormattedDate() }}]
                                                         {% endif %}
                                                     {% endblock %}
                                                 {% endembed %}
@@ -254,6 +258,22 @@
                     <tr class="danger">
                         <td>Publication state</td>
                         <td>{{ person.getPublic() ? 'Public': 'Not public' }}</td>
+                    </tr>
+                {% endif %}
+                {% if person.getAcknowledgements() is not empty  %}
+                    <tr>
+                        <td>Acknowledgements</td>
+                        <td>
+                            {% embed 'Helpers/renderList.html.twig' with {'list': person.getAcknowledgements()} only %}
+                                {% block renderItem %}
+                                    {{ item.getName() }}
+                                {% endblock %}
+                            {% endembed %}
+                            {% if person.getAcknowledgements() is not empty  %}
+                                <br /><br />
+                            {% endif %}
+
+                        </td>
                     </tr>
                 {% endif %}
             </tbody>

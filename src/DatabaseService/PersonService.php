@@ -1091,4 +1091,59 @@ class PersonService extends EntityService
         }
         return $delete;
     }
+
+    /**
+     * @param  int $id
+     * @param  int $acknowledgementId
+     * @return int
+     */
+    public function addAcknowledgement(int $id, int $acknowledgementId): int
+    {
+        return $this->conn->executeUpdate(
+            'INSERT into data.person_acknowledgement (idperson, idacknowledgement)
+            values (?, ?)',
+            [
+                $id,
+                $acknowledgementId,
+            ]
+        );
+    }
+
+    /**
+     * @param  int   $id
+     * @param  array $acknowledgementIds
+     * @return int
+     */
+    public function delAcknowledgements(int $id, array $acknowledgementIds): int
+    {
+        return $this->conn->executeUpdate(
+            'DELETE
+            from data.person_acknowledgement
+            where idperson = ?
+            and idacknowledgement in (?)',
+            [
+                $id,
+                $acknowledgementIds,
+            ],
+            [
+                \PDO::PARAM_INT,
+                Connection::PARAM_INT_ARRAY,
+            ]
+        );
+    }
+
+    public function getAcknowledgements(array $ids): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                person_acknowledgement.idperson as person_id,
+                person_acknowledgement.idacknowledgement as acknowledgement_id,
+                acknowledgement.acknowledgement as name
+            from data.person_acknowledgement
+            inner join data.acknowledgement on person_acknowledgement.idacknowledgement = acknowledgement.id
+            where person_acknowledgement.idperson in (?)',
+            [$ids],
+            [Connection::PARAM_INT_ARRAY]
+        )->fetchAll();
+    }
 }
