@@ -444,6 +444,8 @@ export default {
                 origin: [],
                 origin_op: 'or',
                 comment_mode: ['latin'],
+                acknowledgement: [],
+                acknowledgement_op: 'or',
             },
             persons: null,
             schema: {
@@ -578,6 +580,12 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+            'Acknowledgements',
+            {
+              model: 'acknowledgement',
+            },
+        );
 
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {

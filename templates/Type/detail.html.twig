@@ -241,18 +241,18 @@
                                         {% block renderDetail %}
                                             <a href="{{ path('occurrence_get', {'id': item.getId()})}}">[{{ item.getId() }}] <span class="greek">{{ item.getDescription() }}</span></a>
                                             {% if item.getDate() is not empty %}
-                                                [{{ item.getDate() }}]
+                                                [{{ item.getFormattedDate() }}]
                                             {% endif %}
                                         {% endblock %}
                                     {% endembed %}
                                     {% if item.getManuscript().getPublic() %}
                                         <br />
-                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %} [{{ item.getManuscript().getDate() }}]{% endif %}</a>
+                                        <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %} [{{ item.getManuscript().getFormattedDate() }}]{% endif %}</a>
                                         ({{ item.getLocation()}})
                                     {% elseif is_granted('ROLE_VIEW_INTERNAL') %}
                                         <br />
                                         <span class="bg-warning">
-                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %} [{{ item.getManuscript().getDate() }}]{% endif %}</a>
+                                            <a href="{{ path('manuscript_get', {'id': item.getManuscript().getId()}) }}">{{ item.getManuscript().getName() }}{% if item.getManuscript().getDate() is not empty %} [{{ item.getManuscript().getFormattedDate() }}]{% endif %}</a>
                                             ({{ item.getLocation()}})
                                         </span>
                                     {% endif %}

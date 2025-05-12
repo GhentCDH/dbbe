@@ -40,6 +40,10 @@ class Person extends Entity implements SubjectInterface
      */
     protected $unprocessed;
     /**
+     * @var array
+     */
+    protected $acknowledgements = [];
+    /**
      * @var FuzzyDate
      */
     protected $bornDate;
@@ -290,6 +294,12 @@ class Person extends Entity implements SubjectInterface
         return $this->bornDate;
     }
 
+
+    public function getFormattedBornDate(): ?string
+    {
+        return $this->bornDate->getFormattedDate();
+    }
+
     /**
      * @param  FuzzyDate|null $deathDate
      * @return Person
@@ -309,6 +319,11 @@ class Person extends Entity implements SubjectInterface
         return $this->deathDate;
     }
 
+    public function getFormattedDeathDate(): ?string
+    {
+        return $this->deathDate->getFormattedDate();
+    }
+
     /**
      * @param  FuzzyDate|FuzzyInterval $attestedDate
      * @return Person
@@ -326,6 +341,10 @@ class Person extends Entity implements SubjectInterface
     public function getAttestedDatesAndIntervals(): array
     {
         return $this->attestedDatesAndIntervals;
+    }
+
+    public function getFormattedAttestedDatesAndIntervals(): array {
+        return array_map(fn($fuzzyDate) => $fuzzyDate->getFormattedDate(), $this->attestedDatesAndIntervals);
     }
 
     public function sortAttestedDatesAndIntervals(): Person
@@ -858,10 +877,10 @@ class Person extends Entity implements SubjectInterface
     /**
      * @return FuzzyInterval
      */
-    public function getInterval(): ?FuzzyInterval
+    public function getInterval(): ?string
     {
         if ($this->bornDate != null && $this->deathDate != null) {
-            return new FuzzyInterval($this->bornDate, $this->deathDate);
+            return (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedDate();
         }
         return null;
     }
@@ -880,7 +899,7 @@ class Person extends Entity implements SubjectInterface
             $this->extra,
             ])))) {
             if ($this->bornDate != null && !$this->bornDate->isEmpty() && $this->deathDate != null && !$this->deathDate->isEmpty()) {
-                $description .= ' (' . new FuzzyInterval($this->bornDate, $this->deathDate) . ')';
+                $description .= ' (' . (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedDate() . ')';
             }
         }
         return $description;
@@ -1024,6 +1043,10 @@ class Person extends Entity implements SubjectInterface
             $result['officesWithParents'] = ArrayToJson::arrayToShortJson($this->officesWithParents);
         }
 
+        if (!empty($this->acknowledgements)) {
+            $result['acknowledgements'] = ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
         return $result;
     }
 
@@ -1068,6 +1091,34 @@ class Person extends Entity implements SubjectInterface
             $result['origin'] = $this->origin->getShortElastic();
         }
 
+        if (!empty($this->getAcknowledgements())) {
+            $result['acknowledgement'] =  ArrayToJson::arrayToShortJson($this->acknowledgements);
+        }
+
         return $result;
     }
+
+    public function getAcknowledgements(): array
+    {
+        return $this->acknowledgements;
+    }
+
+    public function sortAcknowledgements(): void
+    {
+        usort(
+            $this->acknowledgements,
+            function ($a, $b) {
+                return strcmp($a->getName(), $b->getName());
+            }
+        );
+    }
+
+    public function addAcknowledgement(Acknowledgement $acknowledgement): Person
+    {
+        $this->acknowledgements[] = $acknowledgement;
+
+        return $this;
+    }
+
+
 }
