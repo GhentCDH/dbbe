@@ -36,6 +36,7 @@ class JournalIssueManager extends DocumentManager
                 $journals[$rawJournalIssue['journal_id']],
                 $rawJournalIssue['year'],
                 $rawJournalIssue['forthcoming'],
+                $rawJournalIssue['series'],
                 $rawJournalIssue['volume'],
                 $rawJournalIssue['number']
             );
@@ -146,6 +147,7 @@ class JournalIssueManager extends DocumentManager
                 $data->journal->id,
                 property_exists($data, 'year') ? $data->year : null,
                 $data->forthcoming,
+                property_exists($data, 'series') ? $data->series : null,
                 property_exists($data, 'volume') ? $data->volume : null,
                 property_exists($data, 'number') ? $data->number : null
             );
@@ -216,6 +218,12 @@ class JournalIssueManager extends DocumentManager
                 }
                 $changes['mini'] = true;
                 $this->dbs->updateForthcoming($id, $data->forthcoming);
+            }
+            if (property_exists($data, 'series')
+                && (is_string($data->series) || empty($data->series))
+            ) {
+                $correct = true;
+                $this->dbs->updateSeries($id, $data->series);
             }
             if (property_exists($data, 'volume')
                 && (is_string($data->volume) || empty($data->volume))
