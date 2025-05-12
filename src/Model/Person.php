@@ -880,7 +880,7 @@ class Person extends Entity implements SubjectInterface
     public function getInterval(): ?string
     {
         if ($this->bornDate != null && $this->deathDate != null) {
-            return (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval();
+            return (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedDate();
         }
         return null;
     }
@@ -899,7 +899,7 @@ class Person extends Entity implements SubjectInterface
             $this->extra,
             ])))) {
             if ($this->bornDate != null && !$this->bornDate->isEmpty() && $this->deathDate != null && !$this->deathDate->isEmpty()) {
-                $description .= ' (' . (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedInterval() . ')';
+                $description .= ' (' . (new FuzzyInterval($this->bornDate, $this->deathDate))->getFormattedDate() . ')';
             }
         }
         return $description;
