@@ -20,7 +20,10 @@ Vue.use(VueFormGenerator);
 Vue.use(uiv);
 Vue.use(VueCookies);
 
-// Create and mount the app
+
 new Vue({
-    render: h => h(OccurrenceSearchApp),
-}).$mount('#occurrence-search-app');
+    el: '#occurrence-search-app',
+    components: {
+        OccurrenceSearchApp
+    }
+})
