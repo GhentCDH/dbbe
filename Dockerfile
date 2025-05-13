@@ -13,12 +13,12 @@ FROM node:${NODE_VERSION}-${NODE_PLATFORM} as frontend_builder
 # Install git
 RUN set -eux; \
     apt-get update -qq; \
-    apt-get install -qq -y git \
-    corepack prepare pnpm@10.0.0 --activate && \
-    corepack enable
+    apt-get install -qq -y git;
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack prepare pnpm@10.0.0 --activate
+RUN corepack enable
 
 WORKDIR "/app"
 COPY --link package.json pnpm-lock.yaml ./
