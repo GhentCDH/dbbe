@@ -1,20 +1,26 @@
 import symfonyPlugin from 'vite-plugin-symfony';
-import {inject} from "vue";
+import { defineConfig } from 'vite';
 import path from 'path';
 import vue from '@vitejs/plugin-vue2';
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
-export default {
-
+export default defineConfig({
     plugins: [
         symfonyPlugin(),
         vue({
-            // This option ensures that the "compiler-included" build of Vue is used
             template: {
                 compilerOptions: {
-                    // Disable the runtime-only build warning
                     isCustomElement: tag => tag.startsWith('custom-')
                 }
             }
+        }),
+        viteStaticCopy({
+            targets: [
+                {
+                    src: './assets/websites/static/**/*',
+                    dest: './assets/websites/static'
+                }
+            ]
         })
     ],
 
@@ -22,11 +28,11 @@ export default {
         include: ['jquery'],
     },
     base: '/', //if you remove this then it makes public/build in dev (so without running pnpm build)
-    outDir: 'public/build',
-    manifest: true,
     build: {
+        manifest: true,
+        outDir: 'public/build',
+        assetsDir: '',
         rollupOptions: {
-
             input: {
                 acknowledgementsedit: 'assets/js/main/acknowledgementsedit.js',
                 articleedit: 'assets/js/main/articleedit.js',
@@ -89,4 +95,4 @@ export default {
     },
 
 
-};
+});
