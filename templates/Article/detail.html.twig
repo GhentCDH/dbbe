@@ -23,6 +23,7 @@
                             <dl>
                                 <dt>Title</dt><dd><a href="{{ path('journal_get', {'id': journalIssue.getJournal().getId() }) }}">{{ journalIssue.getJournal().getTitle() }}</a></dd></dt>
                                 <dt>Year</dt><dd>{{ journalIssue.getForthcoming() ? 'forthcoming' : journalIssue.getYear() }}</dd></dt>
+                                {% if journalIssue.getSeries() is not empty %}<dt>Series</dt><dd>{{ journalIssue.getSeries() }}</dd></dt>{% endif %}
                                 {% if journalIssue.getVolume() is not empty %}<dt>Volume</dt><dd>{{ journalIssue.getVolume() }}</dd></dt>{% endif %}
                                 {% if journalIssue.getNumber() is not empty %}<dt>Number</dt><dd>{{ journalIssue.getNumber() }}</dd></dt>{% endif %}
                             </dl>

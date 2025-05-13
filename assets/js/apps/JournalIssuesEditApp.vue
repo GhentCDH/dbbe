@@ -103,6 +103,13 @@ export default {
                         model: 'journal issue.forthcoming',
                         validator: this.yearOrForthcoming,
                     },
+                    series: {
+                      type: 'input',
+                      inputType: 'text',
+                      label: 'Series',
+                      labelClasses: 'control-label',
+                      model: 'journal issue.series',
+                    },
                     volume: {
                         type: 'input',
                         inputType: 'text',
@@ -175,6 +182,17 @@ export default {
             },
         );
         this.$watch(
+            () => this.submitModel['journal issue'].series,
+            () => {
+              if (this.submitModel['journal issue'].series === '') {
+                this.submitModel['journal issue'].series = null;
+                this.revalidate = true;
+                this.$refs.editModal.validate();
+                this.revalidate = false;
+              }
+            },
+        );
+        this.$watch(
             () => this.submitModel['journal issue'].number,
             () => {
                 if (this.submitModel['journal issue'].number === '') {
@@ -198,6 +216,7 @@ export default {
                     journal: null,
                     year: null,
                     forthcoming: null,
+                    series: null,
                     volume: null,
                     number: null,
                 }

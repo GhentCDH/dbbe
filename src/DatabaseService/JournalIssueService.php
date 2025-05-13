@@ -51,6 +51,7 @@ class JournalIssueService extends DatabaseService
                 idjournal as journal_id,
                 year,
                 forthcoming,
+                series,
                 volume,
                 number
             from data.journal_issue
@@ -67,19 +68,20 @@ class JournalIssueService extends DatabaseService
      * @param  string|null $number
      * @return int
      */
-    public function insert(int $journalId, string $year = null, bool $forthcoming, string $volume = null, string $number = null): int
+    public function insert(int $journalId, string $year = null, bool $forthcoming, string $series = null, string $volume = null, string $number = null): int
     {
         $this->beginTransaction();
         try {
             // Set search_path for trigger ensure_journal_has_document
             $this->conn->exec('SET SEARCH_PATH TO data');
             $this->conn->executeUpdate(
-                'INSERT INTO data.journal_issue (idjournal, year, forthcoming, volume, number)
-                values (?, ?, ?, ?, ?)',
+                'INSERT INTO data.journal_issue (idjournal, year, forthcoming, series, volume, number)
+                values (?, ?, ?, ?, ?, ?)',
                 [
                     $journalId,
                     $year,
                     $forthcoming ? 't' : 'f',
+                    $series,
                     $volume,
                     $number,
                 ]
@@ -166,6 +168,24 @@ class JournalIssueService extends DatabaseService
             where journal_issue.identity = ?',
             [
                 $volume,
+                $id,
+            ]
+        );
+    }
+
+    /**
+     * @param  int         $id
+     * @param  string|null $series
+     * @return int
+     */
+    public function updateSeries(int $id, string $series = null): int
+    {
+        return $this->conn->executeUpdate(
+            'UPDATE data.journal_issue
+            set series = ?
+            where journal_issue.identity = ?',
+            [
+                $series,
                 $id,
             ]
         );
