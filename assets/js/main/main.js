@@ -1,17 +1,16 @@
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
-import('bootstrap-sass/assets/javascripts/bootstrap')
-    .then(() => {
-        console.log('Bootstrap JS loaded successfully');
-    })
-    .catch(err => {
-        console.error('Failed to load Bootstrap JS:', err);
+Promise.all([
+    import('bootstrap-sass/assets/javascripts/bootstrap'),
+    import('ekko-lightbox')
+])
+    .catch(() => {
+        console.error('Failed to load one or more dependencies:', err);
     });
 
 import 'mark.js/dist/jquery.mark.js';
 import '../../scss/screen.scss'
-// import 'ekko-lightbox'
 
 import '@firstandthird/toc/dist/toc.js';
 

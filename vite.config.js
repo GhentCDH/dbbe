@@ -83,7 +83,6 @@ export default {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
             'vue$': 'vue/dist/vue.esm.js',
-            // 'ekko-lightbox': path.resolve(__dirname, 'assets/websites/static/js/ekko-lightbox.min.js')
         },
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
 
