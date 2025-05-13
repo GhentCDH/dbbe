@@ -14,6 +14,14 @@ export default defineConfig({
                 }
             }
         }),
+        viteStaticCopy({
+            targets: [
+                {
+                    src: './assets/websites/static/**/*',
+                    dest: './assets/websites/static'
+                }
+            ]
+        })
     ],
 
     optimizeDeps: {
