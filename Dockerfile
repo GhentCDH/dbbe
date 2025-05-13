@@ -13,12 +13,12 @@ FROM node:${NODE_VERSION}-${NODE_PLATFORM} as frontend_builder
 # Install git
 RUN set -eux; \
     apt-get update -qq; \
-    apt-get install -qq -y git;
+    apt-get install -qq -y git \
+    corepack prepare pnpm@10.0.0 --activate && \
+    corepack enable
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack prepare pnpm@10.0.0 --activate
-RUN corepack enable
 
 WORKDIR "/app"
 COPY --link package.json pnpm-lock.yaml ./
@@ -27,11 +27,10 @@ COPY --link assets ./assets
 COPY --link copy_build_files.sh ./copy_build_files.sh
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store set -eux; \
     pnpm install --frozen-lockfile; \
-    # Install website dependencies using bower
     cd assets/websites; \
     ../../node_modules/bower/bin/bower --allow-root install; \
     cd ../..; \
-    pnpm encore production;
+    pnpm run build;
 
 # ----------------------------------------------------------
 # BASE-DEV
