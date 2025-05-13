@@ -97,7 +97,9 @@ COPY --chown=1000:1000 --link templates ./templates
 
 
 # Frontend: copy from frontend_builder
-COPY --chown=1000:1000 --link --from=frontend_builder /app/public/ ./public/
+COPY --chown=1000:1000 --link --from=frontend_builder /app/public/build ./public/build
+COPY --chown=1000:1000 --link public/index.php ./public/index.php
+COPY --chown=1000:1000 --link public/.htaccess ./public/.htaccess
 USER root
 
 # ----------------------------------------------------------
