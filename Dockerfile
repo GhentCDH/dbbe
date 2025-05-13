@@ -24,6 +24,9 @@ WORKDIR "/app"
 COPY --link package.json pnpm-lock.yaml ./
 COPY --link config ./config
 COPY --link assets ./assets
+COPY --link public ./public
+COPY --link vite.config.js ./vite.config.js
+
 COPY --link copy_build_files.sh ./copy_build_files.sh
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store set -eux; \
     pnpm install --frozen-lockfile; \
