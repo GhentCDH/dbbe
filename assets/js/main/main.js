@@ -11,7 +11,6 @@ Promise.all([
 
 import 'mark.js/dist/jquery.mark.js';
 import '../../scss/screen.scss'
-
 import '@firstandthird/toc/dist/toc.js';
 
 (function() {

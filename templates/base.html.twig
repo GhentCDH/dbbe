@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <title>Database of Byzantine Book Epigrams</title>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <link rel="stylesheet" href="{{ asset('assets/websites/static/css/screen.css') }}">
+{#        <link rel="stylesheet" href="{{ asset('assets/websites/static/css/screen.css') }}">#}
         <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('assets/websites/static/icons/apple-icon-57x57.png') }}"/>
         <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('assets/websites/static/icons/apple-icon-60x60.png') }}"/>
         <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('assets/websites/static/icons/apple-icon-72x72.png') }}"/>
@@ -32,6 +32,9 @@
         <meta property="og:description" content="The Database of Byzantine Book Epigrams (DBBE) project makes available textual and contextual data of book epigrams from medieval Greek manuscripts. We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found.">
         <meta property="og:image" content="{{ app.request.getSchemeAndHttpHost() ~ asset('assets/websites/static/images/logo_square.png') }}">
         <meta property="og:url" content="{{ app.request.uri }}">
+        {%  block stylesheets %}
+            {{ vite_entry_link_tags('main') }}
+        {% endblock %}
     </head>
 
     <!-- Google tag (gtag.js) -->
