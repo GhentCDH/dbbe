@@ -31,7 +31,7 @@ export default defineConfig({
     build: {
         manifest: true,
         outDir: 'public/build',
-        assetsDir:'',
+        // assetsDir:'',
         rollupOptions: {
             input: {
                 acknowledgementsedit: './assets/js/main/acknowledgementsedit.js',
@@ -84,7 +84,7 @@ export default defineConfig({
         cors:true,
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
     },
-    publicDir: 'assets/websites/static',
+    // publicDir: 'assets/websites/static',
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
@@ -93,6 +93,4 @@ export default defineConfig({
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
 
     },
-
-
 });
