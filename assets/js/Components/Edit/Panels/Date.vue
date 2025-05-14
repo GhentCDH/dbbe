@@ -165,7 +165,6 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 import AutoDate from './Components/AutoDate'
 
@@ -179,7 +178,6 @@ const YEAR_MAX = (new Date()).getFullYear();
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {

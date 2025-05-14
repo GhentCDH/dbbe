@@ -49,19 +49,18 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '@/Components/FormFields/AbstractField'
 import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    acknowledgement: this.createMultiSelect('Acknowledgement'),
+                    acknowledgement: createMultiSelect('Acknowledgement'),
                 },
             },
             editSchema: {
@@ -107,7 +106,7 @@ export default {
     },
     mounted () {
         this.schema.fields.acknowledgement.values = this.values
-        this.enableField(this.schema.fields.acknowledgement)
+        enableField(this.schema.fields.acknowledgement)
     },
     methods: {
         edit(add = false) {

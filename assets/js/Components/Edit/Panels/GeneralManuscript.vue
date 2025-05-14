@@ -19,7 +19,9 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import {
+  createMultiSelect,
+} from '@/Components/FormFields/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -27,7 +29,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -49,7 +50,7 @@ export default {
         return {
             schema: {
                 fields: {
-                    acknowledgements: this.createMultiSelect(
+                    acknowledgements: createMultiSelect(
                         'Acknowledgements',
                         {
                             model: 'acknowledgements',
@@ -77,7 +78,7 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    status: this.createMultiSelect('Status', {values: this.values.statuses}, {}),
+                    status: createMultiSelect('Status', {values: this.values.statuses}, {}),
                     illustrated: {
                         type: 'checkbox',
                         styleClasses: 'has-warning',

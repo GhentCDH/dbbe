@@ -86,19 +86,18 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    selfDesignation: this.createMultiSelect(
+                    selfDesignation: createMultiSelect(
                         '(Self) designation',
                         {
                             model: 'selfDesignation',
@@ -130,7 +129,7 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             styleClasses: 'greek',
@@ -143,7 +142,7 @@ export default {
                             onSearch: this.greekSearchPrimary,
                         }
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             styleClasses: 'greek',
@@ -190,7 +189,7 @@ export default {
     mounted () {
         this.schema.fields.selfDesignation.values = this.values;
         this.schema.fields.selfDesignation.originalValues = JSON.parse(JSON.stringify(this.values));
-        this.enableField(this.schema.fields.selfDesignation)
+        enableField(this.schema.fields.selfDesignation)
     },
     methods: {
         edit(add = false) {
@@ -212,8 +211,8 @@ export default {
             this.mergeModel.secondary = null;
             this.mergeSchema.fields.primary.values = this.values;
             this.mergeSchema.fields.secondary.values = this.values;
-            this.enableField(this.mergeSchema.fields.primary);
-            this.enableField(this.mergeSchema.fields.secondary);
+            enableField(this.mergeSchema.fields.primary);
+            enableField(this.mergeSchema.fields.secondary);
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
             this.mergeModal = true
         },
@@ -314,17 +313,17 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
             );
         },
         greekSearchPrimary(searchQuery) {
             this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
             );
         },
         greekSearchSecondary(searchQuery) {
             this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
             );
         },
     }

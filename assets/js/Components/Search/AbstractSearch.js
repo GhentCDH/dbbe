@@ -1,6 +1,7 @@
 import qs from 'qs';
 
-import Vue from 'vue/dist/vue.js';;
+import Vue from 'vue/dist/vue.js';
+import {dependencyField, enableField,removeGreekAccents} from "../FormFields/formFieldUtils";
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
@@ -439,10 +440,10 @@ export default {
                 first = a.name.match(this.greekRegex);
                 second = b.name.match(this.greekRegex);
                 if (first && second) {
-                    if (this.removeGreekAccents(a.name) < this.removeGreekAccents(b.name)) {
+                    if (removeGreekAccents(a.name) < removeGreekAccents(b.name)) {
                         return -1;
                     }
-                    if (this.removeGreekAccents(a.name) > this.removeGreekAccents(b.name)) {
+                    if (removeGreekAccents(a.name) > removeGreekAccents(b.name)) {
                         return 1;
                     }
                     return 0;
@@ -543,9 +544,9 @@ export default {
                         : this.aggregation[fieldName].sort(this.sortByName);
                     field.originalValues = JSON.parse(JSON.stringify(field.values));
                     if (field.dependency != null && this.model[field.dependency] == null) {
-                        this.dependencyField(field);
+                        dependencyField(field, this.model);
                     } else {
-                        this.enableField(field, null, true);
+                        enableField(field, null, true);
                     }
                 }
                 if (

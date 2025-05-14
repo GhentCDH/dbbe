@@ -115,23 +115,22 @@ import qs from 'qs'
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '@/Components/FormFields/AbstractField'
 import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
 import Url from '@/Components/Edit/Panels/Url'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     components: {
         UrlPanel: Url
     },
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    bookCluster: this.createMultiSelect('BookCluster', {label: 'Book cluster'}),
+                    bookCluster: createMultiSelect('BookCluster', {label: 'Book cluster'}),
                 },
             },
             editSchema: {
@@ -149,8 +148,8 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -191,7 +190,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.schema.fields.bookCluster);
+        enableField(this.schema.fields.bookCluster);
     },
     methods: {
         edit(add = false) {
@@ -226,8 +225,8 @@ export default {
             this.mergeModel.secondary = null;
             this.mergeSchema.fields.primary.values = this.values;
             this.mergeSchema.fields.secondary.values = this.values;
-            this.enableField(this.mergeSchema.fields.primary);
-            this.enableField(this.mergeSchema.fields.secondary);
+            enableField(this.mergeSchema.fields.primary);
+            enableField(this.mergeSchema.fields.secondary);
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
             this.mergeModal = true
         },

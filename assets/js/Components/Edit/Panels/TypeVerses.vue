@@ -14,7 +14,6 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -22,7 +21,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {

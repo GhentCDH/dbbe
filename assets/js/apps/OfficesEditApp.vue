@@ -80,12 +80,11 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
@@ -95,7 +94,7 @@ export default {
             regions: data.regions,
             schema: {
                 fields: {
-                    office: this.createMultiSelect('Office'),
+                    office: createMultiSelect('Office'),
                 },
             },
             editSchema: {
@@ -108,20 +107,20 @@ export default {
                         model: 'office.individualName',
                         validator: [VueFormGenerator.validators.string, this.nameOrRegionWithParents, this.uniqueName],
                     },
-                    individualRegionWithParents: this.createMultiSelect(
+                    individualRegionWithParents: createMultiSelect(
                         'Region',
                         {
                             model: 'office.individualRegionWithParents',
                             validator: [this.nameOrRegionWithParents, this.uniqueRegionWithParents]
                         }
                     ),
-                    parent: this.createMultiSelect('Parent', {model: 'office.parent'}),
+                    parent: createMultiSelect('Parent', {model: 'office.parent'}),
                 },
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -171,7 +170,7 @@ export default {
     },
     mounted () {
         this.schema.fields.office.values = this.values
-        this.enableField(this.schema.fields.office)
+        enableField(this.schema.fields.office)
     },
     methods: {
         edit(add = false) {
@@ -192,10 +191,10 @@ export default {
                 this.submitModel.office = JSON.parse(JSON.stringify(this.model.office))
             }
             this.editSchema.fields.individualRegionWithParents.values = this.regions
-            this.enableField(this.editSchema.fields.individualRegionWithParents)
+            enableField(this.editSchema.fields.individualRegionWithParents)
             this.editSchema.fields.parent.values = this.values
                 .filter((office) => !this.isOrIsChild(office, this.model.office)) // Remove values that create cycles
-            this.enableField(this.editSchema.fields.parent)
+            enableField(this.editSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -204,8 +203,8 @@ export default {
             this.mergeModel.secondary = null
             this.mergeSchema.fields.primary.values = this.values
             this.mergeSchema.fields.secondary.values = this.values
-            this.enableField(this.mergeSchema.fields.primary)
-            this.enableField(this.mergeSchema.fields.secondary)
+            enableField(this.mergeSchema.fields.primary)
+            enableField(this.mergeSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },

@@ -80,13 +80,12 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '@/Components/FormFields/AbstractField'
 import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
 import qs from "qs";
+import {createMultiSelect, enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     props: {
@@ -100,12 +99,12 @@ export default {
             persons: JSON.parse(this.initPersons),
             contentSchema: {
                 fields: {
-                    content: this.createMultiSelect('Content'),
+                    content: createMultiSelect('Content'),
                 },
             },
             editContentSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent', {model: 'content.parent'}),
+                    parent: createMultiSelect('Parent', {model: 'content.parent'}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
@@ -114,13 +113,13 @@ export default {
                         model: 'content.individualName',
                         validator: [VueFormGenerator.validators.string, this.validateIndividualNameOrPerson],
                     },
-                    individualPerson: this.createMultiSelect('Person', {model: 'content.individualPerson', validator: this.validateIndividualNameOrPerson}),
+                    individualPerson: createMultiSelect('Person', {model: 'content.individualPerson', validator: this.validateIndividualNameOrPerson}),
                 },
             },
             mergeContentSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -181,7 +180,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.contentSchema.fields.content)
+        enableField(this.contentSchema.fields.content)
     },
     methods: {
         editContent(add = false) {
@@ -200,9 +199,9 @@ export default {
             }
             this.editContentSchema.fields.parent.values = this.values
                 .filter((content) => !this.isOrIsChild(content, this.model.content)) // Remove values that create cycles
-            this.enableField(this.editContentSchema.fields.parent)
+            enableField(this.editContentSchema.fields.parent)
             this.editContentSchema.fields.individualPerson.values = this.persons
-            this.enableField(this.editContentSchema.fields.individualPerson)
+            enableField(this.editContentSchema.fields.individualPerson)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -211,8 +210,8 @@ export default {
             this.mergeModel.secondary = null
             this.mergeContentSchema.fields.primary.values = this.values
             this.mergeContentSchema.fields.secondary.values = this.values
-            this.enableField(this.mergeContentSchema.fields.primary)
-            this.enableField(this.mergeContentSchema.fields.secondary)
+            enableField(this.mergeContentSchema.fields.primary)
+            enableField(this.mergeContentSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },

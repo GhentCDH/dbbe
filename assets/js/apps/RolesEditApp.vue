@@ -54,8 +54,8 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {
@@ -66,19 +66,18 @@ VueFormGenerator.validators.requiredMultiSelect = function (value, field, model)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             roleSchema: {
                 fields: {
-                    role: this.createMultiSelect('Role'),
+                    role: createMultiSelect('Role'),
                 },
             },
             editRoleSchema: {
                 fields: {
-                    usage: this.createMultiSelect(
+                    usage: createMultiSelect(
                         'Usage',
                         {
                             model: 'role.usage',
@@ -179,7 +178,7 @@ export default {
     },
     mounted () {
         this.roleSchema.fields.role.values = this.values;
-        this.enableField(this.roleSchema.fields.role)
+        enableField(this.roleSchema.fields.role)
     },
     methods: {
         editRole(add = false) {
@@ -206,7 +205,7 @@ export default {
                 this.editRoleSchema.fields.contributorRole.disabled = true;
                 this.editRoleSchema.fields.rank.disabled = true;
             }
-            this.enableField(this.editRoleSchema.fields.usage);
+            enableField(this.editRoleSchema.fields.usage);
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             this.editModal = true
         },

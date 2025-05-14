@@ -49,19 +49,18 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    metre: this.createMultiSelect('Metre'),
+                    metre: createMultiSelect('Metre'),
                 },
             },
             editSchema: {
@@ -107,7 +106,7 @@ export default {
     },
     mounted () {
         this.schema.fields.metre.values = this.values
-        this.enableField(this.schema.fields.metre)
+        enableField(this.schema.fields.metre)
     },
     methods: {
         edit(add = false) {

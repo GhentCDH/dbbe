@@ -68,12 +68,11 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     props: {
@@ -92,7 +91,7 @@ export default {
             isSubject: JSON.parse(this.initIsSubject),
             schema: {
                 fields: {
-                    keyword: this.createMultiSelect(JSON.parse(this.initIsSubject) ? 'Keyword' : 'Tag', {model: 'keyword'}),
+                    keyword: createMultiSelect(JSON.parse(this.initIsSubject) ? 'Keyword' : 'Tag', {model: 'keyword'}),
                 },
             },
             editSchema: {
@@ -110,8 +109,8 @@ export default {
             },
             migrateSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -150,7 +149,7 @@ export default {
     },
     mounted () {
         this.schema.fields.keyword.values = this.values
-        this.enableField(this.schema.fields.keyword)
+        enableField(this.schema.fields.keyword)
     },
     methods: {
         edit(add = false) {
@@ -172,9 +171,9 @@ export default {
             this.migrateModel.secondary = null
             this.migrateSchema.fields.primary.values = this.values
             this.migrateSchema.fields.secondary.values = this.persons
-            this.enableField(this.migrateSchema.fields.primary)
+            enableField(this.migrateSchema.fields.primary)
             this.migrateSchema.fields.primary.disabled = true
-            this.enableField(this.migrateSchema.fields.secondary)
+            enableField(this.migrateSchema.fields.secondary)
             this.originalMigrateModel = JSON.parse(JSON.stringify(this.migrateModel))
             this.migrateModal = true
         },

@@ -236,7 +236,6 @@
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
@@ -247,14 +246,17 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from '../Components/Shared/PersistentConfig';
-
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle
+} from '@/Components/FormFields/formFieldUtils';
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
         PersistentConfig('ManuscriptSearchConfig'),
-        AbstractField,
         AbstractSearch,
         SharedSearch,
     ],
@@ -300,10 +302,10 @@ export default {
         };
 
         // Add fields
-        data.schema.fields.city = this.createMultiSelect('City');
-        data.schema.fields.library = this.createMultiSelect('Library', { dependency: 'city' });
-        data.schema.fields.collection = this.createMultiSelect('Collection', { dependency: 'library' });
-        data.schema.fields.shelf = this.createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
+        data.schema.fields.city = createMultiSelect('City');
+        data.schema.fields.library = createMultiSelect('Library', { dependency: 'city' });
+        data.schema.fields.collection = createMultiSelect('Collection', { dependency: 'library' });
+        data.schema.fields.shelf = createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
         data.schema.fields.year_from = {
             type: 'input',
             inputType: 'number',
@@ -333,8 +335,8 @@ export default {
                 { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
-        [data.schema.fields.content_op, data.schema.fields.content] = this.createMultiMultiSelect('Content');
-        data.schema.fields.person = this.createMultiSelect(
+        [data.schema.fields.content_op, data.schema.fields.content] = createMultiMultiSelect('Content');
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -342,7 +344,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -352,8 +354,8 @@ export default {
                 closeOnSelect: false,
             },
         );
-        [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect('Origin');
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        [data.schema.fields.origin_op, data.schema.fields.origin] = createMultiMultiSelect('Origin');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -361,7 +363,7 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
                 model: 'acknowledgement',
@@ -371,7 +373,7 @@ export default {
         // Add identifier fields
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 `${identifier.name} available?`,
                 {
                     model: `${identifier.systemName}_available`,
@@ -380,7 +382,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
                 },
             ));
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 identifier.name,
                 {
                     dependency: `${identifier.systemName}_available`,
@@ -402,7 +404,7 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -411,7 +413,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',

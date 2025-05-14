@@ -405,13 +405,18 @@
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 import { changeMode } from '../Components/Search/utils';
 
 // used for deleteDependencies, mergeModal
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle,
+  removeGreekAccents
+} from '@/Components/FormFields/formFieldUtils';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
@@ -425,7 +430,6 @@ export default {
     components: { ActiveFilters },
     mixins: [
         PersistentConfig('PersonSearchConfig'),
-        AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
         SharedSearch,
@@ -479,7 +483,7 @@ export default {
             },
             mergePersonSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             required: true,
@@ -489,7 +493,7 @@ export default {
                             customLabel: ({ id, name }) => `[${id}] ${name}`,
                         },
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             required: true,
@@ -551,9 +555,9 @@ export default {
                 { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
-        [data.schema.fields.role_op, data.schema.fields.role] = this.createMultiMultiSelect('Role');
-        [data.schema.fields.office_op, data.schema.fields.office] = this.createMultiMultiSelect('Office');
-        data.schema.fields.self_designation_mode = this.createLanguageToggle(
+        [data.schema.fields.role_op, data.schema.fields.role] = createMultiMultiSelect('Role');
+        [data.schema.fields.office_op, data.schema.fields.office] = createMultiMultiSelect('Office');
+        data.schema.fields.self_designation_mode = createLanguageToggle(
             'self_designation',
             {
                 styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm two-line',
@@ -561,7 +565,7 @@ export default {
         );
         // disable latin
         data.schema.fields.self_designation_mode.values[2].disabled = true;
-        [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
+        [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = createMultiMultiSelect(
             '(Self) designation',
             {
                 styleClasses: 'greek',
@@ -572,13 +576,13 @@ export default {
                 onSearch: this.greekBetaSearch,
             },
         );
-        [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect(
+        [data.schema.fields.origin_op, data.schema.fields.origin] = createMultiMultiSelect(
             'Provenance',
             {
                 model: 'origin',
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -586,7 +590,7 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
               model: 'acknowledgement',
@@ -595,7 +599,7 @@ export default {
 
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 `${identifier.name} available?`,
                 {
                     model: `${identifier.systemName}_available`,
@@ -604,7 +608,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
                 },
             ));
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 identifier.name,
                 {
                     dependency: `${identifier.systemName}_available`,
@@ -623,7 +627,7 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields.historical = this.createMultiSelect(
+            data.schema.fields.historical = createMultiSelect(
                 'Historical',
                 {
                     styleClasses: 'has-warning',
@@ -632,7 +636,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Historical only' : 'Non-historical only'),
                 },
             );
-            data.schema.fields.modern = this.createMultiSelect(
+            data.schema.fields.modern = createMultiSelect(
                 'Modern',
                 {
                     styleClasses: 'has-warning',
@@ -641,7 +645,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Modern only' : 'Non-modern only'),
                 },
             );
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -650,7 +654,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
@@ -809,8 +813,8 @@ export default {
                     this.mergeModel.secondary = null;
                     this.mergePersonSchema.fields.primary.values = this.persons;
                     this.mergePersonSchema.fields.secondary.values = this.persons;
-                    this.enableField(this.mergePersonSchema.fields.primary);
-                    this.enableField(this.mergePersonSchema.fields.secondary);
+                    enableField(this.mergePersonSchema.fields.primary);
+                    enableField(this.mergePersonSchema.fields.secondary);
                     this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                     this.mergeModal = true;
                 })
@@ -915,13 +919,13 @@ export default {
         greekBetaSearch(searchQuery) {
             if (this.model.self_designation_mode[0] === 'greek') {
                 this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                    (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
+                    (option) => removeGreekAccents(option.name).includes(removeGreekAccents(searchQuery)),
                 );
                 return;
             }
             if (this.model.self_designation_mode[0] === 'betacode') {
                 this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                    (option) => this.removeGreekAccents(option.name).includes(
+                    (option) => removeGreekAccents(option.name).includes(
                         changeMode('betacode', 'greek', searchQuery),
                     ),
                 );

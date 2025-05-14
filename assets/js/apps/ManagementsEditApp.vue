@@ -54,8 +54,8 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {
@@ -66,14 +66,13 @@ VueFormGenerator.validators.requiredMultiSelect = function (value, field, model)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    management: this.createMultiSelect('Management'),
+                    management: createMultiSelect('Management'),
                 },
             },
             editSchema: {
@@ -106,7 +105,7 @@ export default {
     },
     mounted () {
         this.schema.fields.management.values = this.values
-        this.enableField(this.schema.fields.management)
+        enableField(this.schema.fields.management)
     },
     methods: {
         edit(add = false) {

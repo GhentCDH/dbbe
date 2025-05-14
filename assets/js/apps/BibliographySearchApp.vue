@@ -378,7 +378,10 @@
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractField from '../Components/FormFields/AbstractField';
+import {
+  createMultiSelect,
+  createLanguageToggle
+} from '@/Components/FormFields/formFieldUtils';
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
@@ -396,7 +399,6 @@ export default {
     components: { ActiveFilters },
     mixins: [
         PersistentConfig('BibliographySearchConfig'),
-        AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
         SharedSearch,
@@ -438,7 +440,7 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             required: true,
@@ -448,7 +450,7 @@ export default {
                             customLabel: ({ id, name }) => `[${id}] ${name}`,
                         },
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             required: true,
@@ -494,8 +496,8 @@ export default {
         };
 
         // Add fields
-        data.schema.fields.type = this.createMultiSelect('Type');
-        data.schema.fields.title_mode = this.createLanguageToggle('title');
+        data.schema.fields.type = createMultiSelect('Type');
+        data.schema.fields.title_mode = createLanguageToggle('title');
         data.schema.fields.title = {
             type: 'input',
             inputType: 'text',
@@ -514,7 +516,7 @@ export default {
                 { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
         };
-        data.schema.fields.person = this.createMultiSelect(
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -522,7 +524,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -532,7 +534,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -543,7 +545,7 @@ export default {
 
         // Add identifier fields
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+            data.schema.fields[identifier.systemName] = createMultiSelect(
                 identifier.name,
                 {
                     model: identifier.systemName,
@@ -553,7 +555,7 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
@@ -731,8 +733,8 @@ export default {
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.books;
                         this.mergeSchema.fields.secondary.values = this.books;
-                        this.enableField(this.mergeSchema.fields.primary);
-                        this.enableField(this.mergeSchema.fields.secondary);
+                        enableField(this.mergeSchema.fields.primary);
+                        enableField(this.mergeSchema.fields.secondary);
                         this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                         this.mergeModal = true;
                     })
@@ -758,8 +760,8 @@ export default {
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.journals;
                         this.mergeSchema.fields.secondary.values = this.journals;
-                        this.enableField(this.mergeSchema.fields.primary);
-                        this.enableField(this.mergeSchema.fields.secondary);
+                        enableField(this.mergeSchema.fields.primary);
+                        enableField(this.mergeSchema.fields.secondary);
                         this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                         this.mergeModal = true;
                     })

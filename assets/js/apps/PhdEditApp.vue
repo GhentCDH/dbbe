@@ -181,6 +181,7 @@ import Vue from 'vue/dist/vue.js';
 import axios from 'axios'
 
 import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import {enableField} from "@/Components/FormFields/formFieldUtils";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicPhd,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 
@@ -247,7 +248,7 @@ export default {
             if (this.model.forthcoming == null) {
                 this.model.forthcoming = false;
             }
-            this.enableFields();
+            enableField();
         },
         loadAsync() {
             this.reload('modernPersons');

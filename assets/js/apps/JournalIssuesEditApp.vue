@@ -58,12 +58,11 @@ import axios from 'axios'
 
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
@@ -74,12 +73,12 @@ export default {
             journals: data.journals,
             schema: {
                 fields: {
-                    journalIssue: this.createMultiSelect('JournalIssue', {label: 'Journal issue'}),
+                    journalIssue: createMultiSelect('JournalIssue', {label: 'Journal issue'}),
                 },
             },
             editSchema: {
                 fields: {
-                    journal: this.createMultiSelect(
+                    journal: createMultiSelect(
                         'Journal',
                         {
                             model: 'journal issue.journal',
@@ -157,7 +156,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.schema.fields.journalIssue)
+        enableField(this.schema.fields.journalIssue)
 
         // Use $watch API because 'journal issue' contains a space
         this.$watch(
@@ -226,7 +225,7 @@ export default {
                 this.submitModel['journal issue'] = JSON.parse(JSON.stringify(this.model.journalIssue))
             }
             this.editSchema.fields.journal.values = this.journals;
-            this.enableField(this.editSchema.fields.journal);
+            enableField(this.editSchema.fields.journal);
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             // Make sure forthcoming is set
             if (this.submitModel['journal issue'].forthcoming == null) {

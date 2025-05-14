@@ -79,29 +79,30 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-
+import {
+  createMultiSelect, dependencyField,
+  enableField, loadLocationField
+} from '@/Components/FormFields/formFieldUtils';
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             citySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents'}),
+                    city: createMultiSelect('City', {model: 'regionWithParents'}),
                 }
             },
             librarySchema: {
                 fields: {
-                    library: this.createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
+                    library: createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
                 }
             },
             collectionSchema: {
                 fields: {
-                    collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
+                    collection: createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
                 }
             },
             editCitySchema: {
@@ -119,7 +120,7 @@ export default {
             },
             editLibrarySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    city: createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -133,8 +134,8 @@ export default {
             },
             editCollectionSchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
+                    city: createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    library: createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -196,39 +197,39 @@ export default {
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                this.dependencyField(this.librarySchema.fields.library)
+                dependencyField(this.librarySchema.fields.library)
             }
             else {
-                this.loadLocationField(this.librarySchema.fields.library, this.model)
-                this.enableField(this.librarySchema.fields.library)
+                loadLocationField(this.librarySchema.fields.library, this.model)
+                enableField(this.librarySchema.fields.library)
             }
         },
         'submitModel.regionWithParents'() {
             if (this.submitModel.submitType === 'collection') {
                 if (this.submitModel.regionWithParents == null) {
-                    this.dependencyField(this.editCollectionSchema.fields.library, this.submitModel)
+                    dependencyField(this.editCollectionSchema.fields.library, this.submitModel)
                 }
                 else {
-                    this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-                    this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
+                    loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
+                    enableField(this.editCollectionSchema.fields.library, this.submitModel)
                 }
             }
         },
         'model.institution'() {
             if (this.model.institution == null) {
-                this.dependencyField(this.collectionSchema.fields.collection)
+                dependencyField(this.collectionSchema.fields.collection)
             }
             else {
-                this.loadLocationField(this.collectionSchema.fields.collection)
-                this.enableField(this.collectionSchema.fields.collection)
+                loadLocationField(this.collectionSchema.fields.collection)
+                enableField(this.collectionSchema.fields.collection)
             }
         },
     },
     mounted () {
-        this.loadLocationField(this.citySchema.fields.city)
-        this.enableField(this.citySchema.fields.city)
-        this.dependencyField(this.librarySchema.fields.library)
-        this.dependencyField(this.collectionSchema.fields.collection)
+        loadLocationField(this.citySchema.fields.city)
+        enableField(this.citySchema.fields.city)
+        dependencyField(this.librarySchema.fields.library)
+        dependencyField(this.collectionSchema.fields.collection)
     },
     methods: {
         editCity() {
@@ -251,8 +252,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            this.loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
-            this.enableField(this.editLibrarySchema.fields.city, this.submitModel)
+            loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
+            enableField(this.editLibrarySchema.fields.city, this.submitModel)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -277,10 +278,10 @@ export default {
                 this.submitModel.collection = JSON.parse(JSON.stringify(this.model.collection))
             }
 
-            this.loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
+            loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
+            loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
+            enableField(this.editCollectionSchema.fields.city, this.submitModel)
+            enableField(this.editCollectionSchema.fields.library, this.submitModel)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -447,23 +448,23 @@ export default {
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.submitModel)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.enableField(this.librarySchema.fields.library, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        loadLocationField(this.librarySchema.fields.library, this.submitModel)
+                        enableField(this.librarySchema.fields.library, this.submitModel)
                         break
                     case 'collection':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
                         this.model.collection = JSON.parse(JSON.stringify(this.submitModel.collection))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
-                        this.enableField(this.collectionSchema.fields.collection, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        loadLocationField(this.librarySchema.fields.library, this.submitModel)
+                        loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
+                        enableField(this.collectionSchema.fields.collection, this.submitModel)
                         break
                     }
                     this.openRequests--

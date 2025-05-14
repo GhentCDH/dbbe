@@ -271,7 +271,6 @@ import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
 
@@ -282,7 +281,6 @@ Vue.component('verseTable', VerseTable)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {

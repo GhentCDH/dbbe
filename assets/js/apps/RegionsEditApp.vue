@@ -120,24 +120,23 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect, enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             regionSchema: {
                 fields: {
-                    region: this.createMultiSelect('Region', null, {customLabel: this.formatNameHistoricalName}),
+                    region: createMultiSelect('Region', null, {customLabel: this.formatNameHistoricalName}),
                 },
             },
             editRegionSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent', {model: 'region.parent'}, {customLabel: this.formatNameHistoricalName}),
+                    parent: createMultiSelect('Parent', {model: 'region.parent'}, {customLabel: this.formatNameHistoricalName}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
@@ -174,8 +173,8 @@ export default {
             },
             mergeRegionSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatNameHistoricalName}),
                 },
             },
             model: {
@@ -251,7 +250,7 @@ export default {
     },
     mounted () {
         this.regionSchema.fields.region.values = this.values
-        this.enableField(this.regionSchema.fields.region)
+        enableField(this.regionSchema.fields.region)
     },
     methods: {
         editRegion(add = false) {
@@ -272,7 +271,7 @@ export default {
             }
             this.editRegionSchema.fields.parent.values = this.values
                 .filter((region) => !this.isOrIsChild(region, this.model.region)) // Remove values that create cycles
-            this.enableField(this.editRegionSchema.fields.parent)
+            enableField(this.editRegionSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -281,8 +280,8 @@ export default {
             this.mergeModel.secondary = null
             this.mergeRegionSchema.fields.primary.values = this.values
             this.mergeRegionSchema.fields.secondary.values = this.values
-            this.enableField(this.mergeRegionSchema.fields.primary)
-            this.enableField(this.mergeRegionSchema.fields.secondary)
+            enableField(this.mergeRegionSchema.fields.primary)
+            enableField(this.mergeRegionSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },

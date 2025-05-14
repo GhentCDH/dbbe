@@ -52,29 +52,28 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {createMultiSelect,enableField,dependencyField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     data() {
         return {
             statusTypeSchema: {
                 fields: {
-                    statusType: this.createMultiSelect('Status Type', {model: 'statusType'}),
+                    statusType: createMultiSelect('Status Type', {model: 'statusType'}),
                 },
             },
             statusSchema: {
                 fields: {
-                    status: this.createMultiSelect('Status', {dependency: 'statusType', dependencyName: 'status type'}),
+                    status: createMultiSelect('Status', {dependency: 'statusType', dependencyName: 'status type'}),
                 },
             },
             editStatusSchema: {
                 fields: {
-                    statusType: this.createMultiSelect('Status Type', {model: 'statusType'}, {loading: false}),
+                    statusType: createMultiSelect('Status Type', {model: 'statusType'}, {loading: false}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -121,18 +120,18 @@ export default {
     watch: {
         'model.statusType'() {
             if (this.model.statusType == null) {
-                this.dependencyField(this.statusSchema.fields.status)
+                dependencyField(this.statusSchema.fields.status)
             }
             else {
                 this.loadStatusField()
-                this.enableField(this.statusSchema.fields.status)
+                enableField(this.statusSchema.fields.status)
             }
         },
     },
     mounted () {
         this.loadStatusTypeField(this.statusTypeSchema.fields.statusType)
-        this.enableField(this.statusTypeSchema.fields.statusType)
-        this.dependencyField(this.statusSchema.fields.status)
+        enableField(this.statusTypeSchema.fields.statusType)
+        dependencyField(this.statusSchema.fields.status)
     },
     methods: {
         editStatus(add = false) {

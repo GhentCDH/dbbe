@@ -268,10 +268,15 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';;
-import VueFormGenerator from 'vue-form-generator';
+import Vue from 'vue/dist/vue.js';
 
-import AbstractField from '../Components/FormFields/AbstractField';
+import VueFormGenerator from 'vue-form-generator';
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle
+} from '@/Components/FormFields/formFieldUtils';
+
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
@@ -289,7 +294,6 @@ export default {
     components: { ActiveFilters },
     mixins: [
         PersistentConfig('TypeSearchConfig'),
-        AbstractField,
         AbstractSearch,
         SharedSearch,
     ],
@@ -348,7 +352,7 @@ export default {
         };
 
         // Add fields
-        data.schema.fields.text_mode = this.createLanguageToggle('text');
+        data.schema.fields.text_mode = createLanguageToggle('text');
         data.schema.fields.text = {
             type: 'input',
             inputType: 'text',
@@ -396,7 +400,7 @@ export default {
             ],
         };
         data.model.lemma_mode = ['greek'];
-        data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
+        data.schema.fields.lemma_mode = createLanguageToggle('lemma');
         // disable latin
         data.schema.fields.lemma_mode.values[2].disabled = true;
         data.schema.fields.lemma = {
@@ -407,7 +411,7 @@ export default {
             label: 'Lemma',
             model: 'lemma',
         };
-        data.schema.fields.person = this.createMultiSelect(
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -415,7 +419,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -425,11 +429,11 @@ export default {
                 closeOnSelect: false,
             },
         );
-        [data.schema.fields.metre_op, data.schema.fields.metre] = this.createMultiMultiSelect('Metre');
-        [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
-        [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
-        [data.schema.fields.tag_op, data.schema.fields.tag] = this.createMultiMultiSelect('Tag');
-        data.schema.fields.translated = this.createMultiSelect(
+        [data.schema.fields.metre_op, data.schema.fields.metre] = createMultiMultiSelect('Metre');
+        [data.schema.fields.genre_op, data.schema.fields.genre] = createMultiMultiSelect('Genre');
+        [data.schema.fields.subject_op, data.schema.fields.subject] = createMultiMultiSelect('Subject');
+        [data.schema.fields.tag_op, data.schema.fields.tag] = createMultiMultiSelect('Tag');
+        data.schema.fields.translated = createMultiSelect(
             'Translation(s) available?',
             {
                 model: 'translated',
@@ -441,14 +445,14 @@ export default {
         [
             data.schema.fields.translation_language_op,
             data.schema.fields.translation_language,
-        ] = this.createMultiMultiSelect(
+        ] = createMultiMultiSelect(
             'Translation language',
             {
                 dependency: 'translated',
                 model: 'translation_language',
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -461,7 +465,7 @@ export default {
         // Add identifier fields
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 `${identifier.name} available?`,
                 {
                     model: `${identifier.systemName}_available`,
@@ -470,7 +474,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
                 },
             ));
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 identifier.name,
                 {
                     dependency: `${identifier.systemName}_available`,
@@ -486,10 +490,10 @@ export default {
                 fields: idList,
             },
         ];
-        data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
-        data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
+        data.schema.fields.id = createMultiSelect('DBBE ID', { model: 'id' });
+        data.schema.fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 
-        data.schema.fields.dbbe = this.createMultiSelect(
+        data.schema.fields.dbbe = createMultiSelect(
             'Text source DBBE?',
             {
                 model: 'dbbe',
@@ -498,28 +502,28 @@ export default {
                 customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
             },
         );
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
                 model: 'acknowledgement',
             },
         );
         if (this.isViewInternal) {
-            data.schema.fields.text_status = this.createMultiSelect(
+            data.schema.fields.text_status = createMultiSelect(
                 'Text Status',
                 {
                     model: 'text_status',
                     styleClasses: 'has-warning',
                 },
             );
-            data.schema.fields.critical_status = this.createMultiSelect(
+            data.schema.fields.critical_status = createMultiSelect(
                 'Editorial Status',
                 {
                     model: 'critical_status',
                     styleClasses: 'has-warning',
                 },
             );
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -528,7 +532,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',

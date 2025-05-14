@@ -19,7 +19,10 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import {
+  createMultiSelect,
+  removeGreekAccents
+} from '@/Components/FormFields/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -27,7 +30,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -59,7 +61,7 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    acknowledgements: this.createMultiSelect(
+                    acknowledgements: createMultiSelect(
                         'Acknowledgements',
                         {
                             model: 'acknowledgements',
@@ -86,7 +88,7 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    textStatus: this.createMultiSelect(
+                    textStatus: createMultiSelect(
                         'Text Status',
                         {
                             model: 'textStatus',
@@ -94,7 +96,7 @@ export default {
                             validator: VueFormGenerator.validators.required,
                         }
                     ),
-                    criticalStatus: this.createMultiSelect(
+                    criticalStatus: createMultiSelect(
                         'Editorial Status',
                         {
                             model: 'criticalStatus',
@@ -102,7 +104,7 @@ export default {
                             validator: VueFormGenerator.validators.required,
                         }
                     ),
-                    basedOn: this.createMultiSelect(
+                    basedOn: createMultiSelect(
                         'Based On (occurrence)',
                         {
                             model: 'basedOn',
@@ -130,7 +132,7 @@ export default {
     methods: {
         greekSearch(searchQuery) {
             this.schema.fields.basedOn.values = this.schema.fields.basedOn.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
             );
         },
     },

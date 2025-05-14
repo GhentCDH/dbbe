@@ -214,7 +214,6 @@ import VueFormGenerator from 'vue-form-generator'
 import vue2Dropzone from 'vue2-dropzone'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -223,7 +222,6 @@ Vue.component('vueDropzone', vue2Dropzone)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {

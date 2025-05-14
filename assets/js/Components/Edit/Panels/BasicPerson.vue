@@ -19,7 +19,10 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import {
+  createMultiSelect,
+  removeGreekAccents
+} from '@/Components/FormFields/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator);
@@ -40,7 +43,6 @@ VueFormGenerator.validators.name = function(value, field, model) {
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -99,7 +101,7 @@ export default {
                         model: 'lastName',
                         validator: [VueFormGenerator.validators.string, VueFormGenerator.validators.name],
                     },
-                    selfDesignations: this.createMultiSelect(
+                    selfDesignations: createMultiSelect(
                         '(Self) designation',
                         {
                             model: 'selfDesignations',
@@ -119,7 +121,7 @@ export default {
                         }
 
                     ),
-                    offices: this.createMultiSelect(
+                    offices: createMultiSelect(
                         'Offices',
                         {
                             originalDisabled: (model) => {
@@ -130,7 +132,7 @@ export default {
                             multiple: true, closeOnSelect: false
                         }
                     ),
-                    origin: this.createMultiSelect(
+                    origin: createMultiSelect(
                         'Provenance',
                         {
                             model: 'origin',
@@ -231,7 +233,7 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignations.values = this.schema.fields.selfDesignations.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
             );
         },
     },
