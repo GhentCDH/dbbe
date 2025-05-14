@@ -27,7 +27,6 @@ export default defineConfig({
     optimizeDeps: {
         include: ['jquery'],
     },
-    base: '/', //if you remove this then it makes public/build in dev (so without running pnpm build)
     build: {
         manifest: true,
         outDir: 'public/build',
