@@ -82,6 +82,11 @@ class Article extends Document
             . ', ' . $this->title
             . ', ' . $this->journalIssue->getJournal()->getTitle()
             . (
+            !empty($this->journalIssue->getSeries())
+                ? ' (Series ' . $this->journalIssue->getSeries() . ')'
+                : ''
+            )
+            . (
                 !empty($this->journalIssue->getVolume())
                     ? ', ' . $this->journalIssue->getVolume()
                     : ''
