@@ -45,7 +45,11 @@ docker_data/elasticsearch/data
 /.idea/misc.xml
 /.idea/modules.xml
 /.idea/vcs.xml
+/.idea/dataSources.xml
+/.idea/jsLibraryMappings.xml
+/.idea/php.xml
 /.symfony5/tmp
 /docker-compose.override.yml
+/docker_data/elasticsearch
 
 public/.vite

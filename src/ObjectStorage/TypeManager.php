@@ -337,7 +337,7 @@ class TypeManager extends PoemManager
                 ) {
                     throw new BadRequestHttpException('Incorrect incipit data.');
                 }
-
+                $data->incipit = ltrim($data->incipit);
                 $changes['mini'] = true;
                 $this->dbs->updateIncipit($id, $data->incipit);
             }

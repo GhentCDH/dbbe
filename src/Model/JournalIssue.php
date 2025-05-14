@@ -9,6 +9,7 @@ class JournalIssue extends Document
     protected $journal;
     protected $year;
     protected $forthcoming;
+    protected $series;
     protected $volume;
     protected $number;
 
@@ -17,6 +18,7 @@ class JournalIssue extends Document
         Journal $journal,
         string $year = null,
         bool $forthcoming,
+        string $series = null,
         string $volume = null,
         string $number = null
     ) {
@@ -24,6 +26,7 @@ class JournalIssue extends Document
         $this->journal = $journal;
         $this->year = $year;
         $this->forthcoming = $forthcoming;
+        $this->series = $series;
         $this->volume = $volume;
         $this->number = $number;
 
@@ -45,6 +48,11 @@ class JournalIssue extends Document
         return $this->forthcoming;
     }
 
+    public function getSeries(): ?string
+    {
+        return $this->series;
+    }
+
     public function getVolume(): ?string
     {
         return $this->volume;
@@ -63,6 +71,11 @@ class JournalIssue extends Document
                 : $this->year
         )
         . ', ' . $this->journal->getTitle()
+            . (
+            !empty($this->series)
+                ? ' (Series ' . $this->series . ')'
+                : ''
+            )
         . (
             !empty($this->volume)
                 ? ', ' . $this->volume
@@ -95,6 +108,9 @@ class JournalIssue extends Document
             $result['year'] = $this->year;
         }
         $result['forthcoming'] = $this->forthcoming;
+        if (!empty($this->series)) {
+            $result['series'] = $this->series;
+        }
         if (!empty($this->volume)) {
             $result['volume'] = $this->volume;
         }
