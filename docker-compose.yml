@@ -131,6 +131,19 @@ services:
       - KC_DB_PASSWORD=$KEYCLOAK_DATABASE_PASSWORD
 
     command: start-dev --import-realm
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    depends_on:
+      - app
+      - keycloak
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ["node", "crawl.js"]
+    environment:
+      - NODE_ENV=development
+    networks:
+      - default
 
 volumes:
   esdata:
