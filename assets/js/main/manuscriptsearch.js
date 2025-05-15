@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import ManuscriptSearchApp from '../apps/ManuscriptSearchApp'
+import Vue from 'vue/dist/vue.js';
+import ManuscriptSearchApp from '@/apps/ManuscriptSearchApp'
 
 new Vue({
     el: '#manuscript-search-app',

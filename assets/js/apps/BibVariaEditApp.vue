@@ -177,15 +177,22 @@
 </template>
 
 <script>
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
+import axios from 'axios'
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '@/Components/Edit/AbstractEntityEdit'
 
-const panelComponents = require.context('../Components/Edit/Panels', false, /[/](?:Person|BasicBibVaria|Url|Identification|GeneralBibItem|Management)[.]vue$/);
+const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicBibVaria,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 
-for(let key of panelComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '');
-    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', panelComponents(key).default)
+for (const path in panelComponents) {
+  const component = panelComponents[path].default
+  const compName = path
+      .split('/')
+      .pop()
+      .replace(/\.vue$/, '')
+
+  const globalName = compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel'
+  Vue.component(globalName, component)
 }
 
 export default {

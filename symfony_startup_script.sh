@@ -10,12 +10,11 @@ if [ ! -d "./vendor" ]; then
     cd assets/websites 
     ../../node_modules/bower/bin/bower --allow-root install 
     cd ../..
-    pnpm encore dev
 
     # create the elastic search index
     php bin/console app:elasticsearch:index
 fi
 
-symfony server:start --no-tls --allow-http --allow-all-ip
+pnpm dev & symfony server:start --no-tls --allow-http --allow-all-ip
 
 sleep infinity

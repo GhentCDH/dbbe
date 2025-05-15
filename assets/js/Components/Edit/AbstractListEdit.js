@@ -1,14 +1,19 @@
-window.axios = require('axios')
-
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
-
+import VueTables from 'vue-tables-2';
+import { defineAsyncComponent } from 'vue';
 import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
 import Alerts from '../Alerts'
 import EditListRow from './EditListRow'
 import Panel from './Panel'
+import axios from 'axios';
+window.axios = axios;
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
+Vue.use(VueTables.ServerTable);
+
 
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
@@ -19,10 +24,11 @@ Vue.component('alerts', Alerts)
 Vue.component('editListRow', EditListRow)
 Vue.component('panel', Panel)
 
-const modalComponents = require.context('./Modals', false, /[/](?:Edit|Merge|Migrate|Delete)[.]vue$/)
-for(let key of modalComponents.keys()) {
-    let compName = key.replace(/^\.\//, '').replace(/\.vue/, '')
-    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', modalComponents(key).default)
+const modalComponents = import.meta.glob('./Modals/*{Edit,Merge,Migrate,Delete}.vue');
+
+for (let path in modalComponents) {
+    let compName = path.replace(/^\.\//, '').replace(/\.vue$/, '').split('/').pop();
+    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', defineAsyncComponent(modalComponents[path]));
 }
 
 export default {

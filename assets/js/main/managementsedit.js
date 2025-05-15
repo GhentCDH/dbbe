@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import ManagementsEditApp from '../apps/ManagementsEditApp'
+import Vue from 'vue/dist/vue.js';
+import ManagementsEditApp from '@/apps/ManagementsEditApp'
 
 new Vue({
     el: '#managements-edit-app',

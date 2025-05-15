@@ -11,6 +11,10 @@ a {
     margin-left: 5px;
   }
 
+  & + .action {
+    margin-left: 5px;
+  }
+
   &.edit-link {
     border-bottom: 0;
   }

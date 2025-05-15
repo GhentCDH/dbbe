@@ -12,6 +12,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  & + .btn {
+    margin-left: 10px;
+  }
 
   &.disabled,
   &[disabled],

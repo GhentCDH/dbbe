@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import OnlineSourceEditApp from '../apps/OnlineSourceEditApp'
+import Vue from 'vue/dist/vue.js';
+import OnlineSourceEditApp from '@/apps/OnlineSourceEditApp'
 
 new Vue({
     el: '#online-source-edit-app',

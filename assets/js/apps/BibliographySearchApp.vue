@@ -331,14 +331,9 @@
                         :key="identifier.systemName"
                     >
                         <td>{{ identifier.name }}</td>
-                        <td>
-                            {{
-                                // eslint-disable-next-line max-len
-                                (mergeModel.primaryFull.identifications != null ? mergeModel.primaryFull.identifications[identifier.systemName] : null)
-                                    // eslint-disable-next-line max-len
-                                    || (mergeModel.secondaryFull.identifications != null ? mergeModel.secondaryFull.identifications[identifier.systemName] : null)
-                            }}
-                        </td>
+                      <td>
+                        {{ identificationValue }}
+                      </td>
                     </tr>
                     <tr>
                         <td>Acknowledgements</td>
@@ -380,7 +375,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
 import AbstractField from '../Components/FormFields/AbstractField';
@@ -577,6 +572,17 @@ export default {
         return data;
     },
     computed: {
+        identificationValue() {
+          const { mergeModel, identifier } = this;
+          return (
+              (mergeModel.primaryFull.identifications != null
+                  ? mergeModel.primaryFull.identifications[identifier.systemName]
+                  : null) ||
+              (mergeModel.secondaryFull.identifications != null
+                  ? mergeModel.secondaryFull.identifications[identifier.systemName]
+                  : null)
+          );
+        },
         depUrls() {
             const depUrls = {};
             switch (this.submitModel.submitType) {
