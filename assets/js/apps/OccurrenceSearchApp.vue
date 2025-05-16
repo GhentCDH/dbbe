@@ -306,13 +306,13 @@ import {
 
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
-// used for deleteDependencies
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import SharedSearch from '../Components/Search/SharedSearch';
+import PersistentConfig from "@/Components/Shared/PersistentConfig";
 
 
 Vue.component('FieldRadio', fieldRadio);
@@ -321,7 +321,8 @@ export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-        SharedSearch
+        SharedSearch,
+        PersistentConfig('OccurrenceSearchConfig'),
     ],
     data() {
         const data = {

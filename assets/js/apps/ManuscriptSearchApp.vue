@@ -251,6 +251,7 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/Components/FormFields/formFieldUtils';
+import PersistentConfig from "@/Components/Shared/PersistentConfig";
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
@@ -258,6 +259,7 @@ export default {
     mixins: [
         AbstractSearch,
         SharedSearch,
+      PersistentConfig('ManuscriptSearchConfig'),
     ],
     data() {
         const data = {
