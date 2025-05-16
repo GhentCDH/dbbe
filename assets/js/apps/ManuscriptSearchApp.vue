@@ -244,7 +244,6 @@ import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import SharedSearch from '../Components/Search/SharedSearch';
 
 import {
   createMultiSelect,
@@ -253,13 +252,13 @@ import {
 } from '@/Components/FormFields/formFieldUtils';
 import PersistentConfig from "@/Components/Shared/PersistentConfig";
 import {formatDate, greekFont} from "@/Components/Search/utils";
+import {useSearchSession} from "@/Components/Search/useSearchSession";
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-        SharedSearch,
       PersistentConfig('ManuscriptSearchConfig'),
     ],
     data() {
@@ -432,6 +431,15 @@ export default {
         }
 
         return data;
+    },
+    created(){
+      this.session = useSearchSession(this);
+      this.onData = this.session.onData;
+      this.session.init();
+    },
+    mounted(){
+      this.session.setupCollapsibleLegends();
+      this.$on('config-changed', this.session.handleConfigChange(this.schema));
     },
     computed: {
         depUrls() {
