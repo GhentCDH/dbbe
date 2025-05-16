@@ -1,28 +1,42 @@
 import qs from 'qs';
 import SearchSession from './SearchSession';
-import CollapsibleGroups from './CollapsibleGroups';
+import Vue from 'vue/dist/vue.js';
 
 export default {
     mixins: [
         SearchSession,
-        CollapsibleGroups,
     ],
+    data() {
+        return {
+            config: {
+                groupIsOpen: [],
+            },
+            defaultConfig: {
+                groupIsOpen: [],
+            },
+        };
+    },
     methods: {
+        collapseGroup(e) {
+            const group = e.target.parentElement;
+            const index = Array.from(group.parentNode.children).indexOf(group) - 1;
+            Vue.set(
+                this.config.groupIsOpen,
+                index,
+                this.config.groupIsOpen[index] !== undefined ? !this.config.groupIsOpen[index] : true
+            );
+        },
         onData(data) {
-            // Execute extended on data method (e.g., defined in AbstractSearch.js)
             if ('onDataExtend' in this) {
                 this.onDataExtend(data);
             }
-            // update search session
             const params = this.getSearchParams();
             this.updateSearchSession({
                 params,
                 count: data.count,
             });
 
-            // update local data
             this.aggregation = data.aggregation;
-            // todo: ditch .data?
             this.data.search = data.search;
             this.data.filters = data.filters;
             this.data.count = data.count;
@@ -47,6 +61,18 @@ export default {
             },
             count: this.data.count,
             params: this.getSearchParams(),
+        });
+    },
+    mounted() {
+        const collapsableLegends = this.$el.querySelectorAll('.vue-form-generator .collapsible legend');
+        collapsableLegends.forEach((legend) => legend.onclick = this.collapseGroup);
+
+        this.$on('config-changed', function (config) {
+            if (config && this.schema.groups) {
+                this.schema.groups.forEach((group, index) => {
+                    group.styleClasses = group.styleClasses.replace(' collapsed', '') + ((config.groupIsOpen[index] !== undefined && config.groupIsOpen[index]) ? '' : ' collapsed');
+                });
+            }
         });
     },
 };
