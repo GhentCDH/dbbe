@@ -1,13 +1,10 @@
-import Vue from 'vue/dist/vue.js';;
 import qs from 'qs';
 import SearchSession from './SearchSession';
-import SearchContext from './SearchContext';
 import CollapsibleGroups from './CollapsibleGroups';
 
 export default {
     mixins: [
         SearchSession,
-        SearchContext,
         CollapsibleGroups,
     ],
     methods: {
@@ -32,14 +29,6 @@ export default {
         },
         getUrl(route) {
             return this.urls[route] ?? '';
-        },
-        getTextUrl(id, index) {
-            const context = {
-                params: this.data.filters,
-                searchIndex: (this.data.search.page - 1) * this.data.search.limit + index, // rely on data or params?
-                searchSessionHash: this.getSearchSessionHash(),
-            };
-            return `${this.urls.text_get_single.replace('text_id', id)}#${this.getContextHash(context)}`;
         },
         getSearchParams() {
             const params = qs.parse(window.location.href.split('?', 2)[1], { plainObjects: true }) ?? [];
