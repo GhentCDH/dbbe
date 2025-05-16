@@ -146,7 +146,6 @@ export default {
         this.updateCountRecords();
     },
     watch: {
-        // Switching between beta input mode
         'model.text_mode': function (value, oldValue) {
             this.changeTextMode(value, oldValue, 'text');
         },
@@ -159,13 +158,11 @@ export default {
     },
     methods: {
         changeTextMode(value, oldValue, modelName) {
-            if (value == null) {
-                return;
-            }
-            if (this.model[modelName] == null) {
-                return;
-            }
-            if (JSON.stringify(value) === JSON.stringify(oldValue)) {
+            if (
+                value == null ||
+                this.model[modelName] == null ||
+                JSON.stringify(value) === JSON.stringify(oldValue)
+            ) {
                 return;
             }
             this.model[modelName] = changeMode(oldValue[0], value[0], this.model[modelName]);
@@ -714,150 +711,79 @@ export default {
             this.collectionArray = [];
         },
         addManagementsToSelection(managementCollections) {
-            this.openRequests += 1;
-            window.axios.put(
-                this.urls.managements_add,
-                {
-                    ids: this.collectionArray,
-                    managements: managementCollections,
-                },
-            )
-                .then(() => {
-                    // Don't create a new history item
-                    this.noHistory = true;
-                    this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'success',
-                            message: 'Management collections added successfully.',
-                        },
-                    );
-                })
-                .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'error',
-                            message: 'Something went wrong while adding the management collections.',
-                        },
-                    );
-                    console.error(error);
-                });
+            this.updateManagements({
+                action: 'add',
+                target: 'selection',
+                managementCollections,
+            });
         },
         removeManagementsFromSelection(managementCollections) {
-            this.openRequests += 1;
-            window.axios.put(
-                this.urls.managements_remove,
-                {
-                    ids: this.collectionArray,
-                    managements: managementCollections,
-                },
-            )
-                .then(() => {
-                    // Don't create a new history item
-                    this.noHistory = true;
-                    this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'success',
-                            message: 'Management collections removed successfully.',
-                        },
-                    );
-                })
-                .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'error',
-                            message: 'Something went wrong while removing the management collections.',
-                        },
-                    );
-                    console.error(error);
-                });
+            this.updateManagements({
+                action: 'remove',
+                target: 'selection',
+                managementCollections,
+            });
         },
         addManagementsToResults(managementCollections) {
-            this.openRequests += 1;
-            window.axios.put(
-                this.urls.managements_add,
-                {
-                    filter: this.constructFilterValues(),
-                    managements: managementCollections,
-                },
-            )
-                .then(() => {
-                    // Don't create a new history item
-                    this.noHistory = true;
-                    this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'success',
-                            message: 'Management collections added successfully.',
-                        },
-                    );
-                })
-                .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'error',
-                            message: 'Something went wrong while adding the management collections.',
-                        },
-                    );
-                    console.error(error);
-                });
+            this.updateManagements({
+                action: 'add',
+                target: 'results',
+                managementCollections,
+            });
         },
         removeManagementsFromResults(managementCollections) {
-            this.openRequests += 1;
-            window.axios.put(
-                this.urls.managements_remove,
-                {
-                    filter: this.constructFilterValues(),
-                    managements: managementCollections,
+            this.updateManagements({
+                action: 'remove',
+                target: 'results',
+                managementCollections,
+            });
+        },
+        updateManagements({ action, target, managementCollections }) {
+            const urlMap = {
+                add: this.urls.managements_add,
+                remove: this.urls.managements_remove,
+            };
+
+            const messages = {
+                add: {
+                    success: 'Management collections added successfully.',
+                    error: 'Something went wrong while adding the management collections.',
                 },
-            )
+                remove: {
+                    success: 'Management collections removed successfully.',
+                    error: 'Something went wrong while removing the management collections.',
+                },
+            };
+
+            const payload =
+                target === 'selection'
+                    ? { ids: this.collectionArray, managements: managementCollections }
+                    : { filter: this.constructFilterValues(), managements: managementCollections };
+
+            this.openRequests += 1;
+
+            window.axios
+                .put(urlMap[action], payload)
                 .then(() => {
-                    // Don't create a new history item
                     this.noHistory = true;
                     this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'success',
-                            message: 'Management collections removed successfully.',
-                        },
-                    );
+                    this.alerts.push({
+                        type: 'success',
+                        message: messages[action].success,
+                    });
                 })
                 .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push(
-                        {
-                            type: 'error',
-                            message: 'Something went wrong removing adding the management collections.',
-                        },
-                    );
+                    this.alerts.push({
+                        type: 'error',
+                        message: messages[action].error,
+                    });
                     console.error(error);
+                })
+                .finally(() => {
+                    this.openRequests -= 1;
                 });
         },
-        greekFont(input) {
-            // eslint-disable-next-line max-len
-            return input.replace(/((?:[[.,(|+][[\].,():|+\- ]*)?[\u0370-\u03ff\u1f00-\u1fff]+(?:[[\].,():|+\- ]*[\u0370-\u03ff\u1f00-\u1fff]+)*(?:[[\].,():|+\- ]*[\].,):|])?)/g, '<span class="greek">$1</span>');
-        },
-        formatDate(input) {
-            const date = new Date(input);
-            return [
-                `00${date.getDate()}`.slice(-2),
-                `00${date.getMonth() + 1}`.slice(-2),
-                date.getFullYear(),
-            ].join('/');
-        },
-        removeGreekAccents(input) {
-            const encoded = encodeURIComponent(input.normalize('NFD'));
-            const stripped = encoded.replace(/%C[^EF]%[0-9A-F]{2}/gi, '');
-            return decodeURIComponent(stripped).toLocaleLowerCase();
-        },
+
 
         /**
          * Remove active filter
@@ -935,107 +861,55 @@ export default {
             return show;
         },
     },
-    requestFunction(data) {
-        const params = data;
-        const self = this;
-        // Remove unused parameters
+    async requestFunction(data) {
+        const params = { ...data };
+        const searchApp = this.$parent.$parent;
+
         delete params.query;
         delete params.byColumn;
         if (!('orderBy' in params)) {
             delete params.ascending;
         }
-        const searchApp = this.$parent.$parent;
-        // Add filter values if necessary
+
         params.filters = searchApp.constructFilterValues();
-        if (params.filters == null || params.filters === '') {
+        if (!params.filters) {
             delete params.filters;
         }
+
         searchApp.openRequests += 1;
-        if (!searchApp.initialized) {
-            return new Promise((resolve) => {
-                searchApp.onData(searchApp.data);
-                resolve({
-                    data: {
-                        data: searchApp.data.data,
-                        count: searchApp.data.count,
-                    },
-                });
+        const handleError = (error) => {
+            searchApp.openRequests -= 1;
+            searchApp.alerts.push({
+                type: 'error',
+                message:
+                    'Something went wrong while processing your request. Please verify your input is valid.',
             });
-        }
-        if (!searchApp.actualRequest) {
-            return new Promise((resolve) => {
-                resolve({
-                    data: {
-                        data: this.data,
-                        count: this.count,
-                    },
-                });
-            });
-        }
-        if (searchApp.historyRequest) {
+            console.error(error);
+            return {
+                data: {
+                    data: this.data,
+                    count: this.count,
+                },
+            };
+        };
+
+        const axiosGet = async (url, options = {}) => {
             if (searchApp.openRequests > 1 && searchApp.tableCancel != null) {
                 searchApp.tableCancel('Operation canceled by newer request');
             }
-            let { url } = this;
-            if (searchApp.historyRequest !== 'init') {
-                url = `${url}?${searchApp.historyRequest}`;
-            }
-            return window.axios.get(url, {
-                cancelToken: new window.axios.CancelToken((c) => { searchApp.tableCancel = c; }),
-            })
-                .then((response) => {
-                    searchApp.onData(response.data);
-                    return response;
-                })
-                .catch((error) => {
-                    searchApp.historyRequest = false;
-                    searchApp.openRequests -= 1;
-                    if (window.axios.isCancel(error)) {
-                        // Return the current data if the request is cancelled
-                        return {
-                            data: {
-                                data: self.data,
-                                count: self.count,
-                            },
-                        };
-                    }
-                    searchApp.alerts.push({
-                        type: 'error',
-                        // eslint-disable-next-line max-len
-                        message: 'Something went wrong while processing your request. Please verify your input is valid.',
-                    });
-                    console.error(error);
-                    // Return the current data
-                    return {
-                        data: {
-                            data: self.data,
-                            count: self.count,
-                        },
-                    };
-                });
-        }
-        if (!searchApp.noHistory) {
-            searchApp.pushHistory(params);
-        } else {
-            searchApp.noHistory = false;
-        }
 
-        if (searchApp.openRequests > 1 && searchApp.tableCancel != null) {
-            searchApp.tableCancel('Operation canceled by newer request');
-        }
-        return window.axios.get(this.url, {
-            params,
-            paramsSerializer: qs.stringify,
-            cancelToken: new window.axios.CancelToken((c) => { searchApp.tableCancel = c; }),
-        })
-            .then((response) => {
+            try {
+                const response = await window.axios.get(url, {
+                    cancelToken: new window.axios.CancelToken((c) => {
+                        searchApp.tableCancel = c;
+                    }),
+                    ...options,
+                });
                 searchApp.alerts = [];
                 searchApp.onData(response.data);
                 return response;
-            })
-            .catch((error) => {
+            } catch (error) {
                 if (window.axios.isCancel(error)) {
-                    // Return the current data if the request is cancelled
                     return {
                         data: {
                             data: this.data,
@@ -1043,20 +917,49 @@ export default {
                         },
                     };
                 }
-                searchApp.alerts.push({
-                    type: 'error',
-                    message: 'Something went wrong while processing your request. Please verify your input is valid.',
-                });
-                console.error(error);
-                // Return the current data
-                return {
-                    data: {
-                        data: self.data,
-                        count: self.count,
-                    },
-                };
-            });
+                return handleError(error);
+            }
+        };
+
+        if (!searchApp.initialized) {
+            searchApp.onData(searchApp.data);
+            return {
+                data: {
+                    data: searchApp.data.data,
+                    count: searchApp.data.count,
+                },
+            };
+        }
+
+        if (!searchApp.actualRequest) {
+            return {
+                data: {
+                    data: this.data,
+                    count: this.count,
+                },
+            };
+        }
+
+        if (searchApp.historyRequest) {
+            let url = this.url;
+            if (searchApp.historyRequest !== 'init') {
+                url = `${url}?${searchApp.historyRequest}`;
+            }
+            return await axiosGet(url);
+        }
+
+        if (!searchApp.noHistory) {
+            searchApp.pushHistory(params);
+        } else {
+            searchApp.noHistory = false;
+        }
+
+        return await axiosGet(this.url, {
+            params,
+            paramsSerializer: qs.stringify,
+        });
     },
+
     YEAR_MIN,
     YEAR_MAX,
 };
