@@ -121,23 +121,6 @@ export default {
             }
             return res;
         },
-        showReset() {
-            for (const key of Object.keys(this.model)) {
-                if (
-                    (
-                        this.model[key] != null
-                        && (
-                            !(key in this.originalModel)
-                            || this.model[key] !== this.originalModel[key]
-                        )
-                    )
-                    || (this.model[key] == null && (key in this.originalModel) && this.originalModel[key] != null)
-                ) {
-                    return true;
-                }
-            }
-            return false;
-        },
         notEmptyFields() {
             const show = [];
             if (this.schema.fields !== undefined) {
