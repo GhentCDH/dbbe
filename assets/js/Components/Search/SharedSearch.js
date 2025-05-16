@@ -1,11 +1,8 @@
 import qs from 'qs';
-import SearchSession from './SearchSession';
 import Vue from 'vue/dist/vue.js';
+import {initSearchSession, updateSearchSession} from "@/Components/Search/searchSession";
 
 export default {
-    mixins: [
-        SearchSession,
-    ],
     data() {
         return {
             config: {
@@ -31,7 +28,7 @@ export default {
                 this.onDataExtend(data);
             }
             const params = this.getSearchParams();
-            this.updateSearchSession({
+            updateSearchSession({
                 params,
                 count: data.count,
             });
@@ -55,7 +52,7 @@ export default {
         },
     },
     created() {
-        this.initSearchSession({
+        initSearchSession({
             urls: {
                 paginate: this.getUrl('paginate'),
             },
