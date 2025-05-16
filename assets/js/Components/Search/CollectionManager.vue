@@ -50,8 +50,6 @@
 import {createMultiSelect} from "@/Components/FormFields/formFieldUtils";
 
 export default {
-    mixins: [
-    ],
     props: {
         collectionArray: {
             type: Array,
@@ -92,11 +90,6 @@ export default {
                 validationSuccessClass: 'success',
             },
         };
-    },
-    methods: {
-        addSelection() {
-
-        },
     },
 };
 </script>
