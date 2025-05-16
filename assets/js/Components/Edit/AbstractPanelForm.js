@@ -1,3 +1,5 @@
+import {disableField, enableField} from "@/Components/FormFields/formFieldUtils";
+
 export default {
     props: {
         header: {
@@ -45,7 +47,7 @@ export default {
     methods: {
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model));
-            enableFields();
+            this.enableFields();
         },
         enableFields(enableKeys) {
             for (let key of Object.keys(this.keys)) {
@@ -57,7 +59,7 @@ export default {
                         this.fields[this.keys[key].field].values = this.values[key];
                         this.fields[this.keys[key].field].originalValues = JSON.parse(JSON.stringify(this.values[key]));
                     }
-                    enableField(this.fields[this.keys[key].field]);
+                    enableField(this.fields[this.keys[key].field], null);
                 }
             }
         },
