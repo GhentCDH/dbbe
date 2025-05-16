@@ -6,10 +6,7 @@ const fs = require('fs').promises;
     const username = 'editor@dbbe.ugent.be';
     const password = 'test';
 
-    // Protected app URL to test authentication & start crawling from
     const protectedEditUrl = 'http://dbbe-app-1:8000/book_clusters/edit';
-
-    // Direct Keycloak login URL with proper params for your realm/client
     const keycloakLoginUrl =
         'http://keycloak:8080/realms/dbbe/protocol/openid-connect/auth' +
         '?client_id=dbbe' +
@@ -17,16 +14,13 @@ const fs = require('fs').promises;
         '&response_type=code' +
         '&scope=openid%20profile%20email%20roles';
 
-    const browser = await chromium.launch({ headless: true });
-    let context;
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
 
-    // Perform login on Keycloak directly, save storageState
     async function performKeycloakLogin(context) {
         const page = await context.newPage();
         console.log('Navigating to Keycloak login...');
         await page.goto(keycloakLoginUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-        console.log('Filling in Keycloak login...');
         await page.fill('#username', username);
         await page.fill('#password', password);
 
@@ -40,25 +34,15 @@ const fs = require('fs').promises;
         await page.close();
     }
 
-    // Check if current context/session is authenticated by visiting protected URL
     async function isAuthenticated(context, url) {
         const page = await context.newPage();
-        console.log(`Checking authentication by visiting: ${url}`);
         const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 15000 });
         const currentUrl = page.url();
-        const status = response.status();
-
-        console.log(`Visited URL: ${currentUrl} (status: ${status})`);
         await page.close();
 
-        // If redirected to keycloak or login page => not authenticated
-        if (currentUrl.includes('keycloak') || currentUrl.includes('/login') || status !== 200) {
-            return false;
-        }
-        return true;
+        return !(currentUrl.includes('keycloak') || currentUrl.includes('/login') || response.status() !== 200);
     }
 
-    // Create or reuse authenticated context
     async function getAuthenticatedContext() {
         try {
             await fs.access(STORAGE_STATE_PATH);
@@ -69,7 +53,6 @@ const fs = require('fs').promises;
                 console.log('Existing storage state invalid, removing and re-logging in...');
                 await fs.unlink(STORAGE_STATE_PATH);
                 await ctx.close();
-
                 const freshCtx = await browser.newContext();
                 await performKeycloakLogin(freshCtx);
                 return freshCtx;
@@ -85,14 +68,12 @@ const fs = require('fs').promises;
         }
     }
 
-    context = await getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
 
-    // Crawler setup
     const visited = new Set();
-    const patternsSeen = new Set();
+    const normalizedSeen = new Set();
     const errors = [];
 
-    // Exclude login, keycloak, logout and other admin or profiler paths
     const excludePatterns = [
         /\/_profiler/, /\/_wdt/, /\/_error/, /\/_twig/, /\/admin(\/|$)/,
         /search_api/, /\/login/, /keycloak/i, /\/logout/
@@ -101,33 +82,27 @@ const fs = require('fs').promises;
     function normalizePath(urlStr) {
         try {
             const url = new URL(urlStr);
-            const parts = url.pathname.split('/').filter(Boolean);
-            const normalized = parts.map(part => /^\d+$/.test(part) ? ':id' : part).join('/');
-            return `${url.origin}/${normalized}`;
+            url.hash = '';
+            url.searchParams.sort();
+            const normalizedPath = url.pathname.replace(/\/\d+/g, '/:id').replace(/\/+$/, '');
+            return `${url.origin}${normalizedPath}${url.search}`;
         } catch {
             return urlStr;
         }
     }
 
-    const MAX_CONCURRENT = 5;
-    let activeCrawls = 0;
+    const MAX_CONCURRENT = 10;
     const crawlQueue = [];
 
     async function crawl(url) {
-        if (visited.has(url)) return;
-        if (excludePatterns.some(p => p.test(url))) return;
+        if (visited.has(url) || excludePatterns.some(p => p.test(url))) return;
 
         const normalized = normalizePath(url);
-        if (patternsSeen.has(normalized)) return;
+        if (normalizedSeen.has(normalized)) return;
 
         visited.add(url);
-        patternsSeen.add(normalized);
+        normalizedSeen.add(normalized);
 
-        while (activeCrawls >= MAX_CONCURRENT) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        activeCrawls++;
         const page = await context.newPage();
 
         page.on('console', msg => {
@@ -147,26 +122,24 @@ const fs = require('fs').promises;
         try {
             console.log(`Visiting ${url}`);
             await page.goto(url, { waitUntil: 'networkidle', ignoreHTTPSErrors: true, timeout: 30000 });
-            await page.waitForTimeout(1000);
 
-            const toggles = await page.$$(
-                'button[aria-haspopup="true"], [aria-expanded="false"], .dropdown-toggle, .menu-toggle, [data-toggle="dropdown"], .has-submenu'
+            await page.waitForTimeout(500);
+
+            await page.$$eval(
+                'button[aria-haspopup="true"], [aria-expanded="false"], .dropdown-toggle, .menu-toggle, [data-toggle="dropdown"], .has-submenu',
+                toggles => toggles.forEach(t => t.click())
             );
-            for (const toggle of toggles) {
-                try {
-                    await toggle.click();
-                    await page.waitForTimeout(300);
-                } catch { /* ignore */ }
-            }
 
             const links = await page.$$eval('a[href]', anchors =>
                 anchors
-                    .filter(a => a.offsetParent !== null)
                     .map(a => a.href)
-                    .filter(href => href.startsWith(window.location.origin))
+                    .filter(href =>
+                        href.startsWith(window.location.origin) &&
+                        !href.includes('#') &&
+                        !href.startsWith('javascript:') &&
+                        href.trim() !== ''
+                    )
             );
-
-            await page.close();
 
             for (const link of links) {
                 crawlQueue.push(crawl(link));
@@ -174,18 +147,17 @@ const fs = require('fs').promises;
 
         } catch (e) {
             errors.push({ url, message: `Navigation error: ${e.message}` });
+        } finally {
             await page.close();
         }
-
-        activeCrawls--;
     }
 
-    // Start crawling from authenticated protected page
+    // Kick off crawl
     crawlQueue.push(crawl(protectedEditUrl));
 
     while (crawlQueue.length > 0) {
         const batch = crawlQueue.splice(0, MAX_CONCURRENT);
-        await Promise.all(batch);
+        await Promise.allSettled(batch); // Don’t block on failures
     }
 
     console.log('\n--- Errors ---');
