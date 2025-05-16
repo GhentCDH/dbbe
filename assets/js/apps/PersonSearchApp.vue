@@ -407,7 +407,7 @@ import VueFormGenerator from 'vue-form-generator';
 
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
-import { changeMode } from '../Components/Search/utils';
+import {changeMode, formatDate, greekFont} from '../Components/Search/utils';
 
 // used for deleteDependencies, mergeModal
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
@@ -793,6 +793,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         getMergedIdentification(identifier) {
           const { systemName } = identifier;
           const primary = this.mergeModel.primaryFull?.identifications?.[systemName] || [];

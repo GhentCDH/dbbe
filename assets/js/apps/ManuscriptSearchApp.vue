@@ -252,6 +252,7 @@ import {
   createLanguageToggle
 } from '@/Components/FormFields/formFieldUtils';
 import PersistentConfig from "@/Components/Shared/PersistentConfig";
+import {formatDate, greekFont} from "@/Components/Search/utils";
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
@@ -461,6 +462,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         del(row) {
             this.submitModel.manuscript = row;
             AbstractListEdit.methods.deleteDependencies.call(this);

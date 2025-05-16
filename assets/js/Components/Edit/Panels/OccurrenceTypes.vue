@@ -58,7 +58,7 @@ import AbstractPanelForm from '../AbstractPanelForm';
 import {
   createMultiSelect,
   removeGreekAccents
-} from '@/Components/FormFields/formFieldUtils';;
+} from '@/Components/FormFields/formFieldUtils';
 import Panel from '../Panel.vue';
 
 Vue.use(VueFormGenerator);

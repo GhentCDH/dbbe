@@ -392,6 +392,7 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from "@/Components/Shared/PersistentConfig";
+import {greekFont} from "@/Components/Search/utils";
 
 
 Vue.component('FieldRadio', fieldRadio);
@@ -718,6 +719,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+
         merge(row) {
             this.mergeModel.submitType = this.types[row.type.id];
             this.openRequests += 1;

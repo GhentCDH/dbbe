@@ -287,6 +287,7 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import SharedSearch from '../Components/Search/SharedSearch';
 import PersistentConfig from "@/Components/Shared/PersistentConfig";
+import {formatDate, greekFont} from "../Components/Search/utils";
 
 
 Vue.component('FieldRadio', fieldRadio);
@@ -587,6 +588,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         del(row) {
             this.submitModel.type = {
                 id: row.id,

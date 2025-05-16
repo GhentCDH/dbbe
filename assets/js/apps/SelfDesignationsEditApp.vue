@@ -87,7 +87,7 @@ import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
 import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
+import {createMultiSelect, enableField, removeGreekAccents} from "@/Components/FormFields/formFieldUtils";
 
 export default {
     mixins: [
@@ -313,17 +313,23 @@ export default {
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
         greekSearchPrimary(searchQuery) {
             this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
         greekSearchSecondary(searchQuery) {
             this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
     }

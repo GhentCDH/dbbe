@@ -303,6 +303,9 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/Components/FormFields/formFieldUtils';
+import {
+  formatDate, greekFont
+} from '@/Components/Search/utils';
 
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
@@ -571,6 +574,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         del(row) {
             this.submitModel.occurrence = {
                 id: row.id,
