@@ -72,13 +72,6 @@ export default {
         resetMigrate() {
             this.migrateModel = JSON.parse(JSON.stringify(this.originalMigrateModel))
         },
-        // depUrls format: {
-        //   CategoryName: {
-        //     depUrl: (link to check for dependencies)
-        //     url: (can be used to link the specific dependency)
-        //     urlIdentifier: (can be used to link the specific dependency)
-        //   }
-        // }
         deleteDependencies() {
             this.openRequests++
             // get all dependencies
