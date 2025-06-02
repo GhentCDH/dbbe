@@ -21,17 +21,19 @@ RUN corepack prepare pnpm@10.0.0 --activate
 RUN corepack enable
 
 WORKDIR "/app"
-COPY --link package.json pnpm-lock.yaml webpack.config.js ./
+COPY --link package.json pnpm-lock.yaml ./
 COPY --link config ./config
 COPY --link assets ./assets
+COPY --link public ./public
+COPY --link vite.config.js ./vite.config.js
+
 COPY --link copy_build_files.sh ./copy_build_files.sh
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store set -eux; \
     pnpm install --frozen-lockfile; \
-    # Install website dependencies using bower
     cd assets/websites; \
     ../../node_modules/bower/bin/bower --allow-root install; \
     cd ../..; \
-    pnpm encore production;
+    pnpm run build;
 
 # ----------------------------------------------------------
 # BASE-DEV
@@ -51,7 +53,7 @@ RUN set -eux; \
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.0.0 --activate
 
 # Install Symfony Cli
 RUN set -eux; \
@@ -92,12 +94,12 @@ COPY --chown=1000:1000 --link bin ./bin
 COPY --chown=1000:1000 --link config ./config
 COPY --chown=1000:1000 --link src ./src
 COPY --chown=1000:1000 --link templates ./templates
-COPY --chown=1000:1000 --link public/index.php ./public/index.php
-COPY --chown=1000:1000 --link public/.htaccess ./public/.htaccess
+
 
 # Frontend: copy from frontend_builder
 COPY --chown=1000:1000 --link --from=frontend_builder /app/public/build ./public/build
-
+COPY --chown=1000:1000 --link public/index.php ./public/index.php
+COPY --chown=1000:1000 --link public/.htaccess ./public/.htaccess
 USER root
 
 # ----------------------------------------------------------

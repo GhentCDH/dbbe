@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import OccurrenceEditApp from '../apps/OccurrenceEditApp'
+import Vue from 'vue/dist/vue.js';
+import OccurrenceEditApp from '@/apps/OccurrenceEditApp'
 
 new Vue({
     el: '#occurrence-edit-app',

@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import OfficesEditApp from '../apps/OfficesEditApp'
+import Vue from 'vue/dist/vue.js';
+import OfficesEditApp from '@/apps/OfficesEditApp'
 
 new Vue({
     el: '#offices-edit-app',

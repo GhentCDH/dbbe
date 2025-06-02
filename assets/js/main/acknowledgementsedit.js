@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import AcknowledgementsEditApp from '../apps/AcknowledgementsEditApp'
+import Vue from 'vue/dist/vue.js';
+import AcknowledgementsEditApp from '@/apps/AcknowledgementsEditApp'
 
 new Vue({
     el: '#acknowledgements-edit-app',

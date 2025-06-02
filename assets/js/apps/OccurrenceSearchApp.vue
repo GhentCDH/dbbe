@@ -296,7 +296,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
 import AbstractField from '../Components/FormFields/AbstractField';
@@ -316,13 +316,14 @@ Vue.component('FieldRadio', fieldRadio);
 export default {
     components: { ActiveFilters },
     mixins: [
-        PersistentConfig('OccurenceSearchConfig'),
+        PersistentConfig('OccurrenceSearchConfig'),
         AbstractField,
         AbstractSearch,
         SharedSearch,
     ],
     data() {
         const data = {
+            urls: window.urls || {},
             model: {
                 text_mode: ['greek'],
                 comment_mode: ['latin'],

@@ -1,8 +1,7 @@
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import VueCookies from 'vue-cookies';
 
-const _merge = require('lodash.merge');
-
+import merge from 'lodash.merge';
 Vue.use(VueCookies)
 
 export default function(cookieName) {

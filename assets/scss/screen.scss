@@ -1,77 +1,78 @@
 // overrides
-$fa-font-path: "~/assets/websites/static/fonts/font-awesome/" !default;
-$icon-font-path: "~/assets/websites/static/fonts/bootstrap/" !default;
+$fa-font-path: "/assets/websites/static/fonts/font-awesome/" !default;
+$icon-font-path: "/assets/websites/static/fonts/bootstrap/" !default;
+
 // settings and bootstrap
-@import '../websites/sass/settings';
-@import '../websites/sass/bootstrap-custom';
-@import '../websites/bower_components/bootstrap-sass/assets/stylesheets/bootstrap/badges';
-@import '../websites/bower_components/bootstrap-sass/assets/stylesheets/bootstrap/panels';
+@import '/assets/websites/sass/settings';
+@import '/assets/websites/sass/bootstrap-custom';
+@import '/assets/websites/bower_components/bootstrap-sass/assets/stylesheets/bootstrap/badges';
+@import '/assets/websites/bower_components/bootstrap-sass/assets/stylesheets/bootstrap/panels';
 
 // external
-@import '../websites/bower_components/ekko-lightbox/dist/ekko-lightbox';
-@import '../websites/bower_components/bootstrap-grid-ms/scss/bootstrap-grid-ms';
-@import '../websites/bower_components/font-awesome/scss/font-awesome';
+@import '/assets/websites/bower_components/ekko-lightbox/dist/ekko-lightbox';
+@import '/assets/websites/bower_components/bootstrap-grid-ms/scss/bootstrap-grid-ms';
+@import '/assets/websites/bower_components/font-awesome/scss/font-awesome';
 
 //base
-@import '../websites/sass/base/typography';
-@import '../websites/sass/base/layout';
+@import '/assets/websites/sass/base/typography';
+@import '/assets/websites/sass/base/layout';
 
 // partials
-@import '../websites/sass/partials/baseline';
-@import '../websites/sass/partials/bootstrap-select';
-@import '../websites/sass/partials/bootstrap-checkbox';
-// @import '../websites/sass/partials/datepicker';
+@import '/assets/websites/sass/partials/baseline';
+@import '/assets/websites/sass/partials/bootstrap-select';
+@import '/assets/websites/sass/partials/bootstrap-checkbox';
+// @import '/assets/websites/sass/partials/datepicker';
 // Override font urls
 @import 'partials/fonts';
-@import '../websites/sass/partials/footer';
-@import '../websites/sass/partials/form';
-@import '../websites/sass/partials/table';
-@import '../websites/sass/partials/generic-elements';
+@import '/assets/websites/sass/partials/footer';
+@import '/assets/websites/sass/partials/form';
+@import '/assets/websites/sass/partials/table';
+@import '/assets/websites/sass/partials/generic-elements';
 // Partially override generic-elements
 @import 'partials/generic-elements';
-@import '../websites/sass/partials/icons';
-@import '../websites/sass/partials/pageheader';
-@import '../websites/sass/partials/breadcrumb';
-@import '../websites/sass/partials/linklist';
-@import '../websites/sass/partials/content-header';
-@import '../websites/sass/partials/content-header-home';
-@import '../websites/sass/partials/content-header-subhome';
-@import '../websites/sass/partials/content-text';
-@import '../websites/sass/partials/content-list';
-@import '../websites/sass/partials/content-image';
-@import '../websites/sass/partials/content-text-image';
-@import '../websites/sass/partials/content-contact';
-@import '../websites/sass/partials/content-types';
-@import '../websites/sass/partials/buttons';
-@import '../websites/sass/partials/lightbox';
-@import '../websites/sass/partials/result-item';
-@import '../websites/sass/partials/result-header';
-@import '../websites/sass/partials/pagination';
-@import '../websites/sass/partials/inpage-nav-container';
-@import '../websites/sass/partials/panels';
-@import '../websites/sass/partials/example-layout';
-@import '../websites/sass/partials/quote';
-@import '../websites/sass/partials/news-aside';
-@import '../websites/sass/partials/newsitem';
-@import '../websites/sass/partials/linklist-events';
-@import '../websites/sass/partials/linklist-news';
-@import '../websites/sass/partials/linklist-newsoverview';
-@import '../websites/sass/partials/modal';
-@import '../websites/sass/partials/share';
-@import '../websites/sass/partials/typeahead';
-@import '../websites/sass/partials/banner';
-@import '../websites/sass/partials/image-panel';
-@import '../websites/sass/partials/date';
+@import '/assets/websites/sass/partials/icons';
+@import '/assets/websites/sass/partials/pageheader';
+@import '/assets/websites/sass/partials/breadcrumb';
+@import '/assets/websites/sass/partials/linklist';
+@import '/assets/websites/sass/partials/content-header';
+@import '/assets/websites/sass/partials/content-header-home';
+@import '/assets/websites/sass/partials/content-header-subhome';
+@import '/assets/websites/sass/partials/content-text';
+@import '/assets/websites/sass/partials/content-list';
+@import '/assets/websites/sass/partials/content-image';
+@import '/assets/websites/sass/partials/content-text-image';
+@import '/assets/websites/sass/partials/content-contact';
+@import '/assets/websites/sass/partials/content-types';
+@import '/assets/websites/sass/partials/buttons';
+@import '/assets/websites/sass/partials/lightbox';
+@import '/assets/websites/sass/partials/result-item';
+@import '/assets/websites/sass/partials/result-header';
+@import '/assets/websites/sass/partials/pagination';
+@import '/assets/websites/sass/partials/inpage-nav-container';
+@import '/assets/websites/sass/partials/panels';
+@import '/assets/websites/sass/partials/example-layout';
+@import '/assets/websites/sass/partials/quote';
+@import '/assets/websites/sass/partials/news-aside';
+@import '/assets/websites/sass/partials/newsitem';
+@import '/assets/websites/sass/partials/linklist-events';
+@import '/assets/websites/sass/partials/linklist-news';
+@import '/assets/websites/sass/partials/linklist-newsoverview';
+@import '/assets/websites/sass/partials/modal';
+@import '/assets/websites/sass/partials/share';
+@import '/assets/websites/sass/partials/typeahead';
+@import '/assets/websites/sass/partials/banner';
+@import '/assets/websites/sass/partials/image-panel';
+@import '/assets/websites/sass/partials/date';
 
 // helpers
-@import '../websites/sass/base/helpers';
+@import '/assets/websites/sass/base/helpers';
 
 // Bootstrap overwrites
-@import '../websites/sass/partials/thumbnail';
-@import '../websites/sass/partials/alert';
-@import '../websites/sass/partials/bootstrap-overwrites';
-@import '../websites/sass/partials/print-overwrites';
-@import '../websites/sass/partials/tooltip';
+@import '/assets/websites/sass/partials/thumbnail';
+@import '/assets/websites/sass/partials/alert';
+@import '/assets/websites/sass/partials/bootstrap-overwrites';
+@import '/assets/websites/sass/partials/print-overwrites';
+@import '/assets/websites/sass/partials/tooltip';
 
 // Extra
 // @import 'partials/checkbox';

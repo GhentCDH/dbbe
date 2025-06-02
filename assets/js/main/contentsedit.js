@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import ContentsEditApp from '../apps/ContentsEditApp'
+import Vue from 'vue/dist/vue.js';
+import ContentsEditApp from '@/apps/ContentsEditApp'
 
 new Vue({
     el: '#contents-edit-app',

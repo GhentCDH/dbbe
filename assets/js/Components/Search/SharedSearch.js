@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';;
 import qs from 'qs';
 import SearchSession from './SearchSession';
 import SearchContext from './SearchContext';

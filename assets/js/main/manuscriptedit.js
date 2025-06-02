@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import ManuscriptEditApp from '../apps/ManuscriptEditApp'
+import Vue from 'vue/dist/vue.js';
+import ManuscriptEditApp from '@/apps/ManuscriptEditApp'
 
 new Vue({
     el: '#manuscript-edit-app',
