@@ -2,7 +2,6 @@ import qs from 'qs';
 
 import Vue from 'vue/dist/vue.js';
 import {dependencyField, enableField,removeGreekAccents} from "../FormFields/formFieldUtils";
-import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
@@ -16,8 +15,6 @@ import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
 import axios from 'axios';
 window.axios = axios;
 Vue.use(uiv);
-Vue.use(VueFormGenerator);
-Vue.use(VueTables.ServerTable);
 
 Vue.component('MultiSelect', VueMultiselect);
 Vue.component('FieldMultiselectClear', fieldMultiselectClear);
@@ -232,26 +229,41 @@ export default {
         modelUpdated(value, fieldName) {
             this.lastChangedField = fieldName;
         },
+        handleInvalidState() {
+            let revalidate = false;
+            if ('year_from' in this.model && Number.isNaN(this.model.year_from)) {
+                delete this.model.year_from;
+                revalidate = true;
+            }
+            if ('year_to' in this.model && Number.isNaN(this.model.year_to)) {
+                delete this.model.year_to;
+                revalidate = true;
+            }
+            if (revalidate) {
+                this.$refs.form.validate();
+                return;
+            }
+            this.cancelPendingInputRequest();
+        },
+
+        cancelPendingInputRequest() {
+            if (this.inputCancel !== null) {
+                window.clearTimeout(this.inputCancel);
+                this.inputCancel = null;
+            }
+        },
+        adjustYearBoundaries() {
+            const { year_from, year_to } = this.model;
+
+            if ('year_from' in this.fields && 'year_to' in this.fields) {
+                this.fields.year_to.min = year_from != null ? Math.max(YEAR_MIN, year_from) : YEAR_MIN;
+                this.fields.year_from.max = year_to != null ? Math.min(YEAR_MAX, year_to) : YEAR_MAX;
+            }
+        },
         onValidated(isValid) {
             // do nothin but cancelling requests if invalid
             if (!isValid) {
-                let revalidate = false;
-                if ('year_from' in this.model && Number.isNaN(this.model.year_from)) {
-                    delete this.model.year_from;
-                    revalidate = true;
-                }
-                if ('year_to' in this.model && Number.isNaN(this.model.year_to)) {
-                    delete this.model.year_to;
-                    revalidate = true;
-                }
-                if (revalidate) {
-                    this.$refs.form.validate();
-                    return;
-                }
-                if (this.inputCancel !== null) {
-                    window.clearTimeout(this.inputCancel);
-                    this.inputCancel = null;
-                }
+                this.handleInvalidState();
                 return;
             }
 
@@ -270,25 +282,10 @@ export default {
                 }
             }
 
-            if ('year_from' in this.fields && 'year_to' in this.fields) {
-                // set year min and max values
-                if (this.model.year_from != null) {
-                    this.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from);
-                } else {
-                    this.fields.year_to.min = YEAR_MIN;
-                }
-                if (this.model.year_to != null) {
-                    this.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to);
-                } else {
-                    this.fields.year_from.max = YEAR_MAX;
-                }
-            }
+            this.adjustYearBoundaries();
 
             // Cancel timeouts caused by input requests not long ago
-            if (this.inputCancel != null) {
-                window.clearTimeout(this.inputCancel);
-                this.inputCancel = null;
-            }
+            this.cancelPendingInputRequest();
 
             // Send requests to update filters and result table
             // Add a delay to requests originated from input field changes to limit the number of requests
@@ -346,166 +343,89 @@ export default {
         },
         sortByName(a, b) {
             // Move special filter values to the top
-            if (a.id === -1) {
-                return -1;
-            }
-            if (b.id === -1) {
-                return 1;
-            }
-            // Place true before false
-            if (a.name === 'false' && b.name === 'true') {
-                return 1;
-            }
-            if (a.name === 'true' && b.name === 'false') {
-                return -1;
-            }
-            if (
-                (typeof (a.name) === 'string' || a.name instanceof String)
-                && (typeof (b.name) === 'string' || b.name instanceof String)
-            ) {
-                // Numeric (a.o. shelf number) (e.g., 571A)
-                let first = a.name.match(this.numRegex);
-                let second = b.name.match(this.numRegex);
-                if (first && second) {
-                    if (parseInt(first[1], 10) < parseInt(second[1], 10)) {
-                        return -1;
+            if (a.id === -1) return -1;
+            if (b.id === -1) return 1;
+
+            // Place 'true' before 'false'
+            if (a.name === 'true' && b.name === 'false') return -1;
+            if (a.name === 'false' && b.name === 'true') return 1;
+
+            const isString = (val) => typeof val === 'string' || val instanceof String;
+
+            if (isString(a.name) && isString(b.name)) {
+                const compareByRegex = (regex, parseFn = null, fallback = 0) => {
+                    const first = a.name.match(regex);
+                    const second = b.name.match(regex);
+                    if (!first || !second) return fallback;
+
+                    const valuesA = parseFn ? parseFn(first) : first.slice(1);
+                    const valuesB = parseFn ? parseFn(second) : second.slice(1);
+
+                    for (let i = 0; i < Math.min(valuesA.length, valuesB.length); i++) {
+                        if (valuesA[i] < valuesB[i]) return -1;
+                        if (valuesA[i] > valuesB[i]) return 1;
                     }
-                    if (parseInt(first[1], 10) > parseInt(second[1], 10)) {
-                        return 1;
-                    }
-                    // let the string compare below handle cases where the numeric part is equal, but the rest not
-                }
-                // RGK (e.g., II.513)
-                first = a.name.match(this.rgkRegex);
-                second = b.name.match(this.rgkRegex);
-                if (first && second) {
-                    if (first[1] < second[1]) {
-                        return -1;
-                    }
-                    if (first[1] > second[1]) {
-                        return 1;
-                    }
-                    return first[2] - second[2];
-                }
-                // VGH (e.g., 513.B)
-                first = a.name.match(this.vghRegex);
-                second = b.name.match(this.vghRegex);
-                if (first) {
-                    if (second) {
-                        if (first[1] !== second[1]) {
-                            return first[1] - second[1];
-                        }
-                        if (first[2] < second[2]) {
-                            return -1;
-                        }
-                        if (first[2] > second[2]) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    // place irregular vghs at the end
-                    return -1;
-                }
-                if (second) {
-                    // place irregular vghs at the end
-                    return 1;
-                }
-                // Role with count (e.g., Patron (7))
-                first = a.name.match(this.roleCountRegex);
-                second = b.name.match(this.roleCountRegex);
-                if (first && second) {
-                    return second[1] - first[1];
-                }
-                // Greek
-                first = a.name.match(this.greekRegex);
-                second = b.name.match(this.greekRegex);
-                if (first && second) {
-                    if (removeGreekAccents(a.name) < removeGreekAccents(b.name)) {
-                        return -1;
-                    }
-                    if (removeGreekAccents(a.name) > removeGreekAccents(b.name)) {
-                        return 1;
-                    }
+
+                    return 0;
+                };
+
+                // 1. Numeric (e.g., 571A)
+                let result = compareByRegex(this.numRegex, match => [parseInt(match[1], 10)]);
+                if (result !== 0) return result;
+
+                // 2. RGK (e.g., II.513)
+                result = compareByRegex(this.rgkRegex, match => [match[1], parseInt(match[2], 10)]);
+                if (result !== 0) return result;
+
+                // 3. VGH (e.g., 513.B)
+                const vghA = a.name.match(this.vghRegex);
+                const vghB = b.name.match(this.vghRegex);
+                if (vghA || vghB) {
+                    if (!vghA) return 1;
+                    if (!vghB) return -1;
+
+                    const valA = [parseInt(vghA[1], 10), vghA[2]];
+                    const valB = [parseInt(vghB[1], 10), vghB[2]];
+
+                    if (valA[0] !== valB[0]) return valA[0] - valB[0];
+                    if (valA[1] < valB[1]) return -1;
+                    if (valA[1] > valB[1]) return 1;
                     return 0;
                 }
-                // AlphaNumRest (a.o. shelf number) (e.g., Γ 5 (Eustratiades 245))
-                first = a.name.match(this.alphaNumRestRegex);
-                second = b.name.match(this.alphaNumRestRegex);
-                if (first && second) {
-                    if (first[1] < second[1]) {
-                        return -1;
-                    }
-                    if (first[1] > second[1]) {
-                        return 1;
-                    }
-                    if (first[2] !== second[2]) {
-                        return first[2] - second[2];
-                    }
-                    if (first[3] < second[3]) {
-                        return -1;
-                    }
-                    if (first[3] > second[3]) {
-                        return 1;
-                    }
+
+                // 4. Role with count (e.g., Patron (7))
+                result = compareByRegex(this.roleCountRegex, match => [parseInt(match[1], 10)], 0);
+                if (result !== 0) return -result; // descending order
+
+                // 5. Greek
+                const greekA = a.name.match(this.greekRegex);
+                const greekB = b.name.match(this.greekRegex);
+                if (greekA && greekB) {
+                    const cleanA = removeGreekAccents(a.name);
+                    const cleanB = removeGreekAccents(b.name);
+                    if (cleanA < cleanB) return -1;
+                    if (cleanA > cleanB) return 1;
                     return 0;
-                    // let the string compare below handle cases where the numeric part is equal, but the rest not
                 }
+
+                // 6. AlphaNumRest (e.g., Γ 5 (Eustratiades 245))
+                result = compareByRegex(this.alphaNumRestRegex, match => [
+                    match[1], parseInt(match[2], 10), match[3]
+                ]);
+                if (result !== 0) return result;
             }
-            // Default
-            if (a.name < b.name) {
-                return -1;
-            }
-            if (a.name > b.name) {
-                return 1;
-            }
+
+            // Default string comparison
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
             return 0;
         },
+
         resetAllFilters() {
             this.model = JSON.parse(JSON.stringify(this.originalModel));
             this.onValidated(true);
         },
-        onDataExtend(data) {
-            // Check whether column 'title/text' should be displayed
-            this.textSearch = false;
-            for (const item of data.data) {
-                if (
-                    'text' in item
-                    || 'title' in item
-                    || 'title_GR' in item
-                    || 'title_LA' in item
-                ) {
-                    this.textSearch = true;
-                    break;
-                }
-            }
-
-            // Check whether comment column(s) should be displayed
-            this.commentSearch = false;
-            for (const item of data.data) {
-                if (
-                    'public_comment' in item
-                    || 'private_comment' in item
-                    || 'palaeographical_info' in item
-                    || 'contextual_info' in item
-                ) {
-                    this.commentSearch = true;
-                    break;
-                }
-            }
-
-            // Check whether lemma column should be displayed
-            this.lemmaSearch = false;
-            for (const item of data.data) {
-                if (
-                    'lemma_text' in item
-                ) {
-                    this.lemmaSearch = true;
-                    break;
-                }
-            }
-        },
         onLoaded() {
-            // Update model and ordering if not initialized or history request
             if (!this.initialized) {
                 this.init(true);
                 this.initialized = true;
@@ -542,53 +462,70 @@ export default {
 
             // Update number of records text
             this.updateCountRecords();
-
             this.openRequests -= 1;
         },
         pushHistory(data) {
+            // Deep clone data to avoid mutations
             const filteredData = JSON.parse(JSON.stringify(data));
-            // Remove default values
-            if ('limit' in filteredData && filteredData.limit === 25) {
+
+            const isDefaultLimit = (obj) => obj.limit === 25;
+            const isDefaultPage = (obj) => obj.page === 1;
+            const isDefaultOrdering = (obj) =>
+                obj.orderBy === this.tableOptions.orderBy.column && obj.ascending === 1;
+
+            // Remove default pagination and ordering parameters
+            if ('limit' in filteredData && isDefaultLimit(filteredData)) {
                 delete filteredData.limit;
             }
-            if ('page' in filteredData && filteredData.page === 1) {
+            if ('page' in filteredData && isDefaultPage(filteredData)) {
                 delete filteredData.page;
             }
             if (
                 'orderBy' in filteredData
-                && filteredData.orderBy === this.tableOptions.orderBy.column
                 && 'ascending' in filteredData
-                && filteredData.ascending === 1
+                && isDefaultOrdering(filteredData)
             ) {
                 delete filteredData.orderBy;
                 delete filteredData.ascending;
             }
+
+            // Clean filters by removing default or invalid filter values
             if ('filters' in filteredData) {
                 for (const fieldName of Object.keys(this.fields)) {
-                    if (fieldName in filteredData.filters) {
-                        const field = this.fields[fieldName];
-                        if (fieldName in this.originalModel) {
-                            if (this.model[fieldName] === this.originalModel[fieldName]) {
-                                delete filteredData.filters[fieldName];
-                            }
-                        }
-                        if (field.multiDependency != null) {
-                            if (
-                                this.model[field.multiDependency] == null
-                                || this.model[field.multiDependency].length < 2
-                            ) {
-                                delete filteredData.filters[fieldName];
-                            }
-                        }
+                    if (!(fieldName in filteredData.filters)) continue;
+
+                    const field = this.fields[fieldName];
+                    const filterValue = filteredData.filters[fieldName];
+
+                    // Remove filter if value equals the original model's value
+                    if (
+                        fieldName in this.originalModel &&
+                        this.model[fieldName] === this.originalModel[fieldName]
+                    ) {
+                        delete filteredData.filters[fieldName];
+                        continue;
+                    }
+
+                    // Remove filter if multiDependency is not satisfied
+                    if (
+                        field.multiDependency != null &&
+                        (
+                            this.model[field.multiDependency] == null ||
+                            this.model[field.multiDependency].length < 2
+                        )
+                    ) {
+                        delete filteredData.filters[fieldName];
                     }
                 }
             }
-            window.history.pushState(
-                filteredData,
-                document.title,
-                `${document.location.href.split('?')[0]}?${qs.stringify(filteredData)}`,
-            );
+
+            // Push filtered state to history with updated URL query string
+            const baseUrl = document.location.href.split('?')[0];
+            const queryString = qs.stringify(filteredData);
+
+            window.history.pushState(filteredData, document.title, `${baseUrl}?${queryString}`);
         },
+
         popHistory() {
             // set querystring
             if (window.location.href.split('?', 2).length > 1) {
@@ -599,62 +536,68 @@ export default {
             this.$refs.resultTable.refresh();
         },
         init() {
-            // set model
-            const params = qs.parse(window.location.href.split('?', 2)[1]);
+            // Parse URL parameters after '?'
+            const queryString = window.location.href.split('?', 2)[1] || '';
+            const params = qs.parse(queryString);
+
+            // Deep clone original model
             const model = JSON.parse(JSON.stringify(this.originalModel));
+
+            // Helper: check if a string is non-empty
+            const isNonEmptyString = (str) => typeof str === 'string' && str.trim() !== '';
+
+            // Process filters from params
             if ('filters' in params) {
                 for (const key of Object.keys(params.filters)) {
+                    const value = params.filters[key];
+
                     if (key === 'date') {
-                        if ('from' in params.filters.date) {
-                            model.year_from = Number(params.filters.date.from);
-                        }
-                        if ('to' in params.filters.date) {
-                            model.year_to = Number(params.filters.date.to);
-                        }
-                    } else if (key in this.fields) {
-                        if (
-                            this.fields[key].type === 'multiselectClear'
-                            && this.data.aggregation[key] != null
-                        ) {
-                            if (Array.isArray(params.filters[key])) {
-                                model[key] = this.data.aggregation[key].filter(
-                                    (v) => params.filters[key].includes(String(v.id)),
-                                );
-                            } else {
-                                [model[key]] = this.data.aggregation[key].filter(
-                                    (v) => String(v.id) === params.filters[key],
-                                );
-                            }
-                        } else if (key.endsWith('_mode')) {
-                            // do nothing else special, conversion will hapen in _mode watcher
-                            model[key] = [params.filters[key]];
-                        } else {
-                            model[key] = params.filters[key];
-                        }
+                        if ('from' in value) model.year_from = Number(value.from);
+                        if ('to' in value) model.year_to = Number(value.to);
+                        continue;
                     }
+
+                    if (!(key in this.fields)) continue;
+
+                    const field = this.fields[key];
+
+                    if (field.type === 'multiselectClear' && this.data.aggregation[key] != null) {
+                        if (Array.isArray(value)) {
+                            model[key] = this.data.aggregation[key].filter((v) => value.includes(String(v.id)));
+                        } else {
+                            [model[key]] = this.data.aggregation[key].filter((v) => String(v.id) === value);
+                        }
+                        continue;
+                    }
+
+                    if (key.endsWith('_mode')) {
+                        // _mode watcher will handle conversion
+                        model[key] = [value];
+                        continue;
+                    }
+
+                    model[key] = value;
                 }
             }
-            this.model = model;
 
-            // set oldFilterValues
+            this.model = model;
             this.oldFilterValues = this.constructFilterValues();
 
-            // set table page
+            // Handle pagination
             if ('page' in params) {
                 this.actualRequest = false;
                 this.$refs.resultTable.setPage(params.page);
             }
-            // set table ordering
+
+            // Handle ordering
             this.actualRequest = false;
+
             if ('orderBy' in params) {
-                const asc = ('ascending' in params && params.ascending);
-                this.$refs.resultTable.setOrder(params.orderBy, asc);
+                const ascending = 'ascending' in params ? params.ascending : true;
+                this.$refs.resultTable.setOrder(params.orderBy, ascending);
             } else if (
-                'filters' in params
-                && (
-                    ('text' in params && params.filters.text != null && params.filters.text !== '')
-                    || ('comment' in params && params.filters.comment != null && params.filters.comment !== '')
-                )
+                'filters' in params &&
+                (isNonEmptyString(params.filters.text) || isNonEmptyString(params.filters.comment))
             ) {
                 this.$refs.resultTable.setOrder(null);
             } else {
@@ -689,6 +632,7 @@ export default {
         isLoginError(error) {
             return error.message === 'Network Error';
         },
+
         collectionToggleAll() {
             let allChecked = true;
             for (const row of this.data.data) {
@@ -710,6 +654,7 @@ export default {
         clearCollection() {
             this.collectionArray = [];
         },
+
         addManagementsToSelection(managementCollections) {
             this.updateManagements({
                 action: 'add',
