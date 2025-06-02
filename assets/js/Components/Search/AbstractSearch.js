@@ -1,6 +1,6 @@
 import qs from 'qs';
 
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
@@ -12,9 +12,8 @@ import CollectionManager from './CollectionManager.vue';
 import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
 
 import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
-
-window.axios = require('axios');
-
+import axios from 'axios';
+window.axios = axios;
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
 Vue.use(VueTables.ServerTable);

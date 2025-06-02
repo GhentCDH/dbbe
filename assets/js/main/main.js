@@ -1,7 +1,16 @@
 import $ from 'jquery';
-require('mark.js/dist/jquery.mark.js');
-require('bootstrap-sass');
-require('ekko-lightbox');
+window.jQuery = $;
+window.$ = $;
+Promise.all([
+    import('bootstrap-sass/assets/javascripts/bootstrap'),
+    import('ekko-lightbox')
+])
+    .catch(() => {
+        console.error('Failed to load one or more dependencies:', err);
+    });
+
+import 'mark.js/dist/jquery.mark.js';
+import '../../scss/screen.scss'
 import '@firstandthird/toc/dist/toc.js';
 
 (function() {

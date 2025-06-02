@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import LocationsEditApp from '../apps/LocationsEditApp'
+import Vue from 'vue/dist/vue.js';
+import LocationsEditApp from '@/apps/LocationsEditApp'
 
 new Vue({
     el: '#locations-edit-app',

@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import BookChapterEditApp from '../apps/BookChapterEditApp'
+import Vue from 'vue/dist/vue.js';
+import BookChapterEditApp from '@/apps/BookChapterEditApp'
 
 new Vue({
     el: '#book-chapter-edit-app',

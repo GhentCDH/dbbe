@@ -161,7 +161,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
 import AbstractPanelForm from '../AbstractPanelForm'
@@ -173,7 +173,6 @@ Vue.use(VueFormGenerator);
 Vue.component('panel', Panel);
 Vue.component('autoDate', AutoDate);
 
-const $ = require('jquery');
 
 const YEAR_MIN = -5000;
 const YEAR_MAX = (new Date()).getFullYear();

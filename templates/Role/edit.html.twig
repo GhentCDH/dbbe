@@ -15,6 +15,6 @@
 {% endblock %}
 
 {% block javascript %}
-    <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
-    <script type="text/javascript" src="{{ asset("build/rolesedit.js") }}"></script>
+    {{ vite_entry_script_tags('main') }}
+    {{ vite_entry_script_tags('rolesedit') }}
 {% endblock %}

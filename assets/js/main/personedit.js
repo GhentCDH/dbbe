@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import PersonEditApp from '../apps/PersonEditApp'
+import Vue from 'vue/dist/vue.js';
+import PersonEditApp from '@/apps/PersonEditApp'
 
 new Vue({
     el: '#person-edit-app',

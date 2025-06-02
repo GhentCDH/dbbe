@@ -17,7 +17,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue'
+import Vue from 'vue/dist/vue.js';
 import draggable from 'vuedraggable'
 
 import AbstractPanelForm from '../AbstractPanelForm'

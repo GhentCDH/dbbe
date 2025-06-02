@@ -4,24 +4,24 @@
         <meta charset="UTF-8">
         <title>Database of Byzantine Book Epigrams</title>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <link rel="stylesheet" href="{{ asset('build/screen.css') }}">
-        <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('build/static/icons/apple-icon-57x57.png') }}"/>
-        <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('build/static/icons/apple-icon-60x60.png') }}"/>
-        <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('build/static/icons/apple-icon-72x72.png') }}"/>
-        <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('build/static/icons/apple-icon-76x76.png') }}"/>
-        <link rel="apple-touch-icon" sizes="114x114" href="{{ asset('build/static/icons/apple-icon-114x114.png') }}"/>
-        <link rel="apple-touch-icon" sizes="120x120" href="{{ asset('build/static/icons/apple-icon-120x120.png') }}"/>
-        <link rel="apple-touch-icon" sizes="144x144" href="{{ asset('build/static/icons/apple-icon-144x144.png') }}"/>
-        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('build/static/icons/apple-icon-152x152.png') }}"/>
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('build/static/icons/apple-icon-180x180.png') }}"/>
-        <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('build/static/icons/android-icon-192x192.png') }}"/>
-        <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('build/static/icons/favicon-96x96.png') }}"/>
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('build/static/icons/favicon-32x32.png') }}"/>
-        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('build/static/icons/favicon-16x16.png') }}"/>
-        <link rel="icon" sizes="16x16 32x32" href="{{ asset('build/static/icons/favicon.ico') }}"/>
-        <link rel="manifest" href="{{ asset('build/static/icons/manifest.json') }}"/>
+{#        <link rel="stylesheet" href="{{ asset('build/assets/websites/static/css/screen.css') }}">#}
+        <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('build/assets/websites/static/icons/apple-icon-57x57.png') }}"/>
+        <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('build/assets/websites/static/icons/apple-icon-60x60.png') }}"/>
+        <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('build/assets/websites/static/icons/apple-icon-72x72.png') }}"/>
+        <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('build/assets/websites/static/icons/apple-icon-76x76.png') }}"/>
+        <link rel="apple-touch-icon" sizes="114x114" href="{{ asset('build/assets/websites/static/icons/apple-icon-114x114.png') }}"/>
+        <link rel="apple-touch-icon" sizes="120x120" href="{{ asset('build/assets/websites/static/icons/apple-icon-120x120.png') }}"/>
+        <link rel="apple-touch-icon" sizes="144x144" href="{{ asset('build/assets/websites/static/icons/apple-icon-144x144.png') }}"/>
+        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('build/assets/websites/static/icons/apple-icon-152x152.png') }}"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('build/assets/websites/static/icons/apple-icon-180x180.png') }}"/>
+        <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('build/assets/websites/static/icons/android-icon-192x192.png') }}"/>
+        <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('build/assets/websites/static/icons/favicon-96x96.png') }}"/>
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('build/assets/websites/static/icons/favicon-32x32.png') }}"/>
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('build/assets/websites/static/icons/favicon-16x16.png') }}"/>
+        <link rel="icon" sizes="16x16 32x32" href="{{ asset('build/assets/websites/static/icons/favicon.ico') }}"/>
+        <link rel="manifest" href="{{ asset('build/assets/websites/static/icons/manifest.json') }}"/>
         <meta name="msapplication-TileColor" content="#ffffff"/>
-        <meta name="msapplication-TileImage" content="{{ asset('build/static/icons/ms-icon-144x144.png') }}"/>
+{#        <meta name="msapplication-TileImage" content="{{ asset('build/assets/websites/static/icons/ms-icon-144x144.png') }}"/>#}
         <meta name="theme-color" content="#ffffff"/>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta name="description" content="The Database of Byzantine Book Epigrams (DBBE) project makes available textual and contextual data of book epigrams from medieval Greek manuscripts. We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found." />
@@ -30,8 +30,11 @@
         <meta property="og:title" content="Database of Byzantine Book Epigrams">
         <meta property="og:type" content="website" />
         <meta property="og:description" content="The Database of Byzantine Book Epigrams (DBBE) project makes available textual and contextual data of book epigrams from medieval Greek manuscripts. We define book epigrams as poems in books and on books: their subject is the very manuscript in which they are found.">
-        <meta property="og:image" content="{{ app.request.getSchemeAndHttpHost() ~ asset('build/static/images/logo_square.png') }}">
+{#        <meta property="og:image" content="{{ app.request.getSchemeAndHttpHost() ~ asset('build/assets/websites/static/images/logo_square.png') }}">#}
         <meta property="og:url" content="{{ app.request.uri }}">
+        {%  block stylesheets %}
+            {{ vite_entry_link_tags('main') }}
+        {% endblock %}
     </head>
 
     <!-- Google tag (gtag.js) -->
@@ -53,7 +56,7 @@
                             <div class="navbar-header col-xs-12 col-sm-2">
                                 <div class="page-logo">
                                     <a href="https://www.ugent.be/" class="link">
-                                        <img src="{{ asset('build/static/images/logo_ugent_en.svg') }}" alt="Ghent University">
+                                        <img src="{{ asset('build/assets/websites/static/images/logo_ugent_en.svg') }}" alt="Ghent University">
                                     </a>
                                 </div>
                                 <a href="#" class="toggle-search">
@@ -328,13 +331,13 @@
                             <div class="col-xs-12 col-sm-4 pbottom-small branding-container footer_title faculty">
                                 <h2>
                                     <a href="https://www.ugent.be/lw/en">
-                                        <img class="svg" alt="Logo Faculty of Arts and Philosophy" src="{{ asset('build/static/images/logo_lw_en.svg') }}" />
+                                        <img class="svg" alt="Logo Faculty of Arts and Philosophy" src="{{ asset('build/assets/websites/static/images/logo_lw_en.svg') }}" />
                                     </a>
                                 </h2>
                             </div>
                             <div class="col-xs-12 col-sm-4 branding-container app-logo-container">
                                 <a href="{{ path('homepage') }}">
-                                    <img class="svg app-logo" src="{{ asset('build/static/images/logo.svg') }}" alt="Logo DBBE">
+{#                                    <img class="svg app-logo" src="{{ asset('assets/images/logo.svg') }}" alt="Logo DBBE">#}
                                 </a>
                             </div>
                             <div class="col-xs-12 col-sm-4">
@@ -377,7 +380,7 @@
             </div>
         </footer>
         {% block javascript %}
-            <script type="text/javascript" src="{{ asset("build/main.js") }}"></script>
+            {{ vite_entry_script_tags('main') }}
         {% endblock %}
     </body>
 </html>
