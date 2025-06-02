@@ -23,6 +23,7 @@ class BookSeriesService extends DocumentService
         )->fetchAll();
     }
 
+
     public function getLastModified(): array
     {
         return $this->conn->executeQuery(
@@ -31,6 +32,19 @@ class BookSeriesService extends DocumentService
             from data.entity
             inner join data.book_series on entity.identity = book_series.identity'
         )->fetch();
+    }
+
+
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book_series.identity as book_series_id
+            from data.book_series
+            inner join data.entity_management on book_series.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
     }
 
     /**

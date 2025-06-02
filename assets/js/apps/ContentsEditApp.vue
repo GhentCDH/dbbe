@@ -85,9 +85,7 @@ import qs from "qs";
 import {createMultiSelect, enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
-    mixins: [
-        AbstractListEdit,
-    ],
+
     props: {
         initPersons: {
             type: String,

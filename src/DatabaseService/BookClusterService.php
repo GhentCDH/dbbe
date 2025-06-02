@@ -23,6 +23,19 @@ class BookClusterService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book_cluster.identity as book_cluster_id
+            from data.book_cluster
+            inner join data.entity_management on book_cluster.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
+
+
     public function getLastModified(): array
     {
         return $this->conn->executeQuery(

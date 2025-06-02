@@ -115,7 +115,7 @@ import qs from 'qs'
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import { useListEdit } from '../Components/Edit/AbstractListEdit'
 import Url from '../Components/Edit/Panels/Url'
 import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
 
@@ -123,9 +123,13 @@ export default {
     components: {
         UrlPanel: Url
     },
-    mixins: [
-        AbstractListEdit,
-    ],
+    setup(props) {
+      const listEdit = useListEdit(props.initUrls, props.initData)
+
+      return {
+        ...listEdit,
+      }
+    },
     data() {
         return {
             schema: {

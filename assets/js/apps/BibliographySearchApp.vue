@@ -385,7 +385,7 @@ import {
 import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import { useListEdit } from '../Components/Edit/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
@@ -401,9 +401,15 @@ export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-        AbstractListEdit, // merge functionality
         PersistentConfig('BibliographySearchConfig'),
     ],
+    setup(props) {
+      const listEdit = useListEdit(props.initUrls, props.initData)
+
+      return {
+        ...listEdit,
+      }
+    },
     data() {
         const data = {
             model: {

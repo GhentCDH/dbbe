@@ -120,13 +120,17 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import { useListEdit } from '../Components/Edit/AbstractListEdit'
 import {createMultiSelect, enableField} from "@/Components/FormFields/formFieldUtils";
 
 export default {
-    mixins: [
-        AbstractListEdit,
-    ],
+    setup(props) {
+      const listEdit = useListEdit(props.initUrls, props.initData)
+
+      return {
+        ...listEdit,
+      }
+    },
     data() {
         return {
             regionSchema: {

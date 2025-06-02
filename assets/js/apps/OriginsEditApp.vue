@@ -65,7 +65,7 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import { useListEdit } from '../Components/Edit/AbstractListEdit'
 import {
   createMultiSelect,
   dependencyField,
@@ -74,9 +74,7 @@ import {
 } from "@/Components/FormFields/formFieldUtils";
 
 export default {
-    mixins: [
-        AbstractListEdit,
-    ],
+
     data() {
         return {
             regionSchema: {

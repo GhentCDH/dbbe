@@ -42,6 +42,7 @@ class DocumentService extends EntityService
         )->fetchAll();
     }
 
+
     public function getPersonRoles(array $ids): array
     {
         return $this->conn->executeQuery(

@@ -410,7 +410,6 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 import {changeMode, formatDate, greekFont} from '../Components/Search/utils';
 
 // used for deleteDependencies, mergeModal
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
 import {
   createMultiSelect,
   createMultiMultiSelect,
@@ -424,6 +423,7 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import PersistentConfig from "@/Components/Shared/PersistentConfig";
 import {useSearchSession} from "@/Components/Search/useSearchSession";
 
+import { useListEdit } from '../Components/Edit/AbstractListEdit'
 
 Vue.component('FieldRadio', fieldRadio);
 
@@ -431,7 +431,6 @@ export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-        AbstractListEdit, // merge functionality
         PersistentConfig('PersonSearchConfig'),
     ],
     props: {
@@ -439,6 +438,13 @@ export default {
             type: String,
             default: '',
         },
+    },
+    setup(props) {
+      const listEdit = useListEdit(props.initUrls, props.initData)
+
+      return {
+        ...listEdit,
+      }
     },
     data() {
         const data = {

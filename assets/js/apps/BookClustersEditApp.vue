@@ -123,9 +123,7 @@ export default {
     components: {
         UrlPanel: Url
     },
-    mixins: [
-        AbstractListEdit,
-    ],
+
     data() {
         return {
             schema: {
