@@ -235,6 +235,7 @@
 <script>
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
+import axios from 'axios';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
@@ -465,7 +466,7 @@ export default {
         submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
-            window.axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
+            axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
                 .then((_response) => {
                     // Don't create a new history item
                     this.noHistory = true;

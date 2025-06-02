@@ -404,6 +404,8 @@
 <script>
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
+import axios from 'axios';
+
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
@@ -744,7 +746,7 @@ export default {
             } else {
                 this.mergeModal = false;
                 this.openRequests += 1;
-                window.axios.get(this.urls.person_get.replace('person_id', this.mergeModel.primary.id))
+                axios.get(this.urls.person_get.replace('person_id', this.mergeModel.primary.id))
                     .then((response) => {
                         this.mergeModel.primaryFull = response.data;
                         this.mergeModal = true;
@@ -768,7 +770,7 @@ export default {
             } else {
                 this.mergeModal = false;
                 this.openRequests += 1;
-                window.axios.get(this.urls.person_get.replace('person_id', this.mergeModel.secondary.id))
+                axios.get(this.urls.person_get.replace('person_id', this.mergeModel.secondary.id))
                     .then((response) => {
                         this.mergeModel.secondaryFull = response.data;
                         this.mergeModal = true;
@@ -797,7 +799,7 @@ export default {
         },
         merge(row) {
             this.openRequests += 1;
-            window.axios.get(this.urls.persons_get)
+            axios.get(this.urls.persons_get)
                 .then((response) => {
                     this.persons = response.data;
                     this.openRequests -= 1;
@@ -834,7 +836,7 @@ export default {
         submitMerge() {
             this.mergeModal = false;
             this.openRequests += 1;
-            window.axios.put(
+            axios.put(
                 this.urls.person_merge
                     .replace('primary_id', this.mergeModel.primary.id)
                     .replace('secondary_id', this.mergeModel.secondary.id),
@@ -858,7 +860,7 @@ export default {
         submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
-            window.axios.delete(this.urls.person_delete.replace('person_id', this.submitModel.person.id))
+            axios.delete(this.urls.person_delete.replace('person_id', this.submitModel.person.id))
                 .then((_response) => {
                     // Don't create a new history item
                     this.noHistory = true;
