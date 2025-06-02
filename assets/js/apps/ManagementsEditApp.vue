@@ -33,7 +33,7 @@
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :alerts="editAlerts"
-            @cancel="cancelEdit()"
+            @cancel="cancelEdit"
             @reset="resetEdit()"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
@@ -54,8 +54,9 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import {useListEdit} from '../Components/Edit/AbstractListEdit'
 import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
+import EditModal from '../Components/Edit/Modals/Edit.vue'
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {
@@ -65,9 +66,20 @@ VueFormGenerator.validators.requiredMultiSelect = function (value, field, model)
 }
 
 export default {
-    mixins: [
-        AbstractListEdit,
-    ],
+    props: {
+      initUrls: { type: String, default: '{}' },
+      initData: { type: String, default: '{}' },
+    },
+    setup(props) {
+      const occurrence = useListEdit(props.initUrls, props.initData)
+
+      return {
+        ...occurrence
+      }
+    },
+    components:{
+        editModal: EditModal
+    },
     data() {
         return {
             schema: {
