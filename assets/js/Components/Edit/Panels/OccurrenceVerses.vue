@@ -269,6 +269,7 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
+import axios from 'axios';
 
 import AbstractPanelForm from '../AbstractPanelForm'
 import AbstractField from '../../FormFields/AbstractField'
