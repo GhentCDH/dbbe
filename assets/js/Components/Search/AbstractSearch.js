@@ -1,6 +1,7 @@
 import qs from 'qs';
 
-import Vue from 'vue/dist/vue.js';;
+import Vue from 'vue/dist/vue.js';
+
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
@@ -13,7 +14,6 @@ import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
 
 import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
 import axios from 'axios';
-window.axios = axios;
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
 Vue.use(VueTables.ServerTable);
@@ -731,7 +731,7 @@ export default {
         },
         addManagementsToSelection(managementCollections) {
             this.openRequests += 1;
-            window.axios.put(
+            axios.put(
                 this.urls.managements_add,
                 {
                     ids: this.collectionArray,
@@ -763,7 +763,7 @@ export default {
         },
         removeManagementsFromSelection(managementCollections) {
             this.openRequests += 1;
-            window.axios.put(
+            axios.put(
                 this.urls.managements_remove,
                 {
                     ids: this.collectionArray,
@@ -795,7 +795,7 @@ export default {
         },
         addManagementsToResults(managementCollections) {
             this.openRequests += 1;
-            window.axios.put(
+            axios.put(
                 this.urls.managements_add,
                 {
                     filter: this.constructFilterValues(),
@@ -827,7 +827,7 @@ export default {
         },
         removeManagementsFromResults(managementCollections) {
             this.openRequests += 1;
-            window.axios.put(
+            axios.put(
                 this.urls.managements_remove,
                 {
                     filter: this.constructFilterValues(),
@@ -996,8 +996,8 @@ export default {
             if (searchApp.historyRequest !== 'init') {
                 url = `${url}?${searchApp.historyRequest}`;
             }
-            return window.axios.get(url, {
-                cancelToken: new window.axios.CancelToken((c) => { searchApp.tableCancel = c; }),
+            return axios.get(url, {
+                cancelToken: new axios.CancelToken((c) => { searchApp.tableCancel = c; }),
             })
                 .then((response) => {
                     searchApp.onData(response.data);
@@ -1006,7 +1006,7 @@ export default {
                 .catch((error) => {
                     searchApp.historyRequest = false;
                     searchApp.openRequests -= 1;
-                    if (window.axios.isCancel(error)) {
+                    if (axios.isCancel(error)) {
                         // Return the current data if the request is cancelled
                         return {
                             data: {
@@ -1039,10 +1039,10 @@ export default {
         if (searchApp.openRequests > 1 && searchApp.tableCancel != null) {
             searchApp.tableCancel('Operation canceled by newer request');
         }
-        return window.axios.get(this.url, {
+        return axios.get(this.url, {
             params,
             paramsSerializer: qs.stringify,
-            cancelToken: new window.axios.CancelToken((c) => { searchApp.tableCancel = c; }),
+            cancelToken: new axios.CancelToken((c) => { searchApp.tableCancel = c; }),
         })
             .then((response) => {
                 searchApp.alerts = [];
@@ -1050,7 +1050,7 @@ export default {
                 return response;
             })
             .catch((error) => {
-                if (window.axios.isCancel(error)) {
+                if (axios.isCancel(error)) {
                     // Return the current data if the request is cancelled
                     return {
                         data: {

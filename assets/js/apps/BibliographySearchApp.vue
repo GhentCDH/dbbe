@@ -377,6 +377,7 @@
 <script>
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
+import axios from 'axios';
 
 import AbstractField from '../Components/FormFields/AbstractField';
 import AbstractSearch from '../Components/Search/AbstractSearch';
@@ -662,7 +663,7 @@ export default {
                 } else if (this.mergeModel.submitType === 'journal') {
                     url = this.urls.journal_get.replace('journal_id', this.mergeModel.primary.id);
                 }
-                window.axios.get(url)
+                axios.get(url)
                     .then((response) => {
                         this.mergeModel.primaryFull = response.data;
                         this.mergeModal = true;
@@ -692,7 +693,7 @@ export default {
                 } else if (this.mergeModel.submitType === 'journal') {
                     url = this.urls.journal_get.replace('journal_id', this.mergeModel.secondary.id);
                 }
-                window.axios.get(url)
+                axios.get(url)
                     .then((response) => {
                         this.mergeModel.secondaryFull = response.data;
                         this.mergeModal = true;
@@ -719,7 +720,7 @@ export default {
             this.mergeModel.submitType = this.types[row.type.id];
             this.openRequests += 1;
             if (this.types[row.type.id] === 'book') {
-                window.axios.get(this.urls.books_get)
+                axios.get(this.urls.books_get)
                     .then((response) => {
                         this.books = response.data;
                         this.openRequests -= 1;
@@ -746,7 +747,7 @@ export default {
                         console.error(error);
                     });
             } else if (this.types[row.type.id] === 'journal') {
-                window.axios.get(this.urls.journals_get)
+                axios.get(this.urls.journals_get)
                     .then((response) => {
                         this.journals = response.data;
                         this.openRequests -= 1;
@@ -798,7 +799,7 @@ export default {
                     .replace('primary_id', this.mergeModel.primary.id)
                     .replace('secondary_id', this.mergeModel.secondary.id);
             }
-            window.axios.put(url)
+            axios.put(url)
                 .then((_response) => {
                     this.update();
                     this.mergeAlerts = [];
@@ -822,7 +823,7 @@ export default {
         submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
-            window.axios.delete(
+            axios.delete(
                 this.urls[`${this.submitModel.submitType}_delete`]
                     .replace(`${this.submitModel.submitType}_id`, this.submitModel[this.submitModel.submitType].id),
             )

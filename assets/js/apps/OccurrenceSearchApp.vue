@@ -304,6 +304,7 @@ import AbstractSearch from '../Components/Search/AbstractSearch';
 
 // used for deleteDependencies
 import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import axios from 'axios';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
@@ -578,7 +579,7 @@ export default {
         submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
-            window.axios.delete(this.urls.occurrence_delete.replace('occurrence_id', this.submitModel.occurrence.id))
+            axios.delete(this.urls.occurrence_delete.replace('occurrence_id', this.submitModel.occurrence.id))
                 .then(() => {
                     // Don't create a new history item
                     this.noHistory = true;
