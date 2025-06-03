@@ -115,24 +115,6 @@ class OccurrenceController extends BaseController
         return new JsonResponse($result);
     }
 
-    private function formatRow(array $item, string $verses = ''): array
-    {
-        $manuscript = $item['manuscript'] ?? [];
-
-        return [
-            $item['id'] ?? '',
-            $item['incipit'] ?? '',
-            $verses,
-            !empty($item['genre']) ? implode(' | ', array_column($item['genre'], 'name')) : '',
-            !empty($item['subject']) ? implode(' | ', array_column($item['subject'], 'name')) : '',
-            !empty($item['metre']) ? implode(' | ', array_column($item['metre'], 'name')) : '',
-            $item['date_floor_year'] ?? '',
-            $item['date_ceiling_year'] ?? '',
-            $manuscript['id'] ?? '',
-            $manuscript['name'] ?? '',
-        ];
-    }
-
     #[Route('/occurrences/export_csv', name: 'occurrences_export_csv', methods: ['GET'])]
     public function exportCSV(
         Request $request,
@@ -140,51 +122,16 @@ class OccurrenceController extends BaseController
         ElasticVerseService $elasticVerseService
     ): Response {
         $params = $this->sanitize($request->query->all());
-
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
 
-        $stream = fopen('php://temp', 'r+');
-        fputcsv($stream, [
-            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
-            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
-        ]);
+        $csvStream = $this->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
 
-        $limit = 500;
-        $page = 1;
-        $maxResults = $isAuthorized ? 10000 : 1000;
-        $totalFetched = 0;
-        do {
-            $pagedParams = array_merge($params, [
-                'limit' => $limit,
-                'page' => $page,
-            ]);
-
-            $result = $elasticOccurrenceService->runFullSearch($pagedParams, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
-            $data = $result['data'] ?? [];
-
-            foreach ($data as $item) {
-                if ($totalFetched >= $maxResults) {
-                    break 2;  // exit both foreach and do-while if limit reached
-                }
-                $verses = $elasticVerseService->findVersesByOccurrenceId($item['id']);
-                $versesCombined = implode("\n", array_column($verses, 'verse'));
-                $row = $this->formatRow($item, $versesCombined);
-                fputcsv($stream, $row);
-                $totalFetched++;
-            }
-
-            $page++;
-
-        } while (count($data) === $limit && $totalFetched < $maxResults);
-
-        rewind($stream);
-        return new Response(stream_get_contents($stream), 200, [
+        rewind($csvStream);
+        return new Response(stream_get_contents($csvStream), 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="occurrences.csv"',
         ]);
     }
-
-
 
     /**
      * @param Request $request
@@ -777,4 +724,58 @@ class OccurrenceController extends BaseController
 
         return $esParams;
     }
+
+    private function formatRow(array $item, string $verses = ''): array
+    {
+        $manuscript = $item['manuscript'] ?? [];
+        $implodeNames = fn($key) => !empty($item[$key]) ? implode(' | ', array_column($item[$key], 'name')) : '';
+
+        return [
+            $item['id'] ?? '',
+            $item['incipit'] ?? '',
+            $verses,
+            $implodeNames('genre'),
+            $implodeNames('subject'),
+            $implodeNames('metre'),
+            $item['date_floor_year'] ?? '',
+            $item['date_ceiling_year'] ?? '',
+            $manuscript['id'] ?? '',
+            $manuscript['name'] ?? '',
+        ];
+    }
+
+    private function generateCsvStream(
+        array $params,
+        ElasticOccurrenceService $occurrenceService,
+        ElasticVerseService $verseService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, [
+            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
+            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
+        ]);
+
+        $limit = 500;
+        $maxResults = $isAuthorized ? 10000 : 1000;
+        $totalFetched = 0;
+        $page = 1;
+        while (true) {
+            $pagedParams = $params + ['limit' => $limit, 'page' => $page];
+            $result = $occurrenceService->runFullSearch($pagedParams, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
+            $data = $result['data'] ?? [];
+            if (empty($data)) break;
+            foreach ($data as $item) {
+                if ($totalFetched++ >= $maxResults) break 2;
+                $verses = $verseService->findVersesByOccurrenceId($item['id']);
+                $versesCombined = implode("\n", array_column($verses, 'verse'));
+                fputcsv($stream, $this->formatRow($item, $versesCombined));
+            }
+            if (count($data) < $limit) break;
+            $page++;
+        }
+
+        return $stream;
+    }
+
 }
