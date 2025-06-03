@@ -2,6 +2,10 @@
 
 namespace App\ObjectStorage;
 
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticTypeService;
+use App\ElasticSearchService\ElasticVerseService;
+use App\Security\Roles;
 use Exception;
 use stdClass;
 
@@ -767,4 +771,40 @@ class TypeManager extends PoemManager
         $this->dbs->addCachedLemma($word, $lemma);
         return $lemma;
     }
+
+    private function formatRow(array $item): array
+    {
+        $implodeNames = fn($key) => !empty($item[$key]) ? implode(' | ', array_column($item[$key], 'name')) : '';
+
+        return [
+            $item['id'] ?? '',
+            $implodeNames('genre'),
+            $implodeNames('subject'),
+            $implodeNames('metre'),
+            $item['text_original'] ?? '',
+        ];
+    }
+
+    public function generateCsvStream(
+        array $params,
+        ElasticTypeService $elasticTypeService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, [
+            'id', 'genres', 'subjects', 'metres', 'text'
+        ]);
+        $maxResults = $isAuthorized ? 10000 : 1000;
+        $params['limit'] = $maxResults;
+        $result = $elasticTypeService->runFullSearch($params, $isAuthorized);
+
+        $data = $result['data'] ?? [];
+        $totalFetched = 0;
+        foreach ($data as $item) {
+            if ($totalFetched++ >= $maxResults) break;
+            fputcsv($stream, $this->formatRow($item));
+        }
+        return $stream;
+    }
+
 }
