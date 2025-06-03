@@ -140,20 +140,42 @@ class OccurrenceController extends BaseController
         ElasticVerseService $elasticVerseService
     ): Response {
         $params = $this->sanitize($request->query->all());
-        $result = $elasticOccurrenceService->runFullSearch($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
-        $stream = fopen('php://temp', 'r+');
 
+        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+
+        $stream = fopen('php://temp', 'r+');
         fputcsv($stream, [
             'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
         ]);
 
-        foreach ($result['data'] as $item) {
-            $verses = $elasticVerseService->findVersesByOccurrenceId($item['id']);
-            $versesCombined = implode("\n", array_column($verses, 'verse'));
-            $row = $this->formatRow($item, $versesCombined);
-            fputcsv($stream, $row);
-        }
+        $limit = 500;
+        $page = 1;
+        $maxResults = $isAuthorized ? 10000 : 1000;
+        $totalFetched = 0;
+        do {
+            $pagedParams = array_merge($params, [
+                'limit' => $limit,
+                'page' => $page,
+            ]);
+
+            $result = $elasticOccurrenceService->runFullSearch($pagedParams, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
+            $data = $result['data'] ?? [];
+
+            foreach ($data as $item) {
+                if ($totalFetched >= $maxResults) {
+                    break 2;  // exit both foreach and do-while if limit reached
+                }
+                $verses = $elasticVerseService->findVersesByOccurrenceId($item['id']);
+                $versesCombined = implode("\n", array_column($verses, 'verse'));
+                $row = $this->formatRow($item, $versesCombined);
+                fputcsv($stream, $row);
+                $totalFetched++;
+            }
+
+            $page++;
+
+        } while (count($data) === $limit && $totalFetched < $maxResults);
 
         rewind($stream);
         return new Response(stream_get_contents($stream), 200, [
@@ -161,6 +183,7 @@ class OccurrenceController extends BaseController
             'Content-Disposition' => 'attachment; filename="occurrences.csv"',
         ]);
     }
+
 
 
     /**
