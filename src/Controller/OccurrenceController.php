@@ -123,9 +123,7 @@ class OccurrenceController extends BaseController
     ): Response {
         $params = $this->sanitize($request->query->all());
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
-
         $csvStream = $this->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
-
         rewind($csvStream);
         return new Response(stream_get_contents($csvStream), 200, [
             'Content-Type' => 'text/csv',
@@ -755,26 +753,16 @@ class OccurrenceController extends BaseController
             'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
         ]);
-
-        $limit = 500;
         $maxResults = $isAuthorized ? 10000 : 1000;
+        $params['limit'] = $maxResults;
+        $result = $occurrenceService->runFullSearch($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
+        $data = $result['data'] ?? [];
         $totalFetched = 0;
-        $page = 1;
-        while (true) {
-            $pagedParams = $params + ['limit' => $limit, 'page' => $page];
-            $result = $occurrenceService->runFullSearch($pagedParams, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
-            $data = $result['data'] ?? [];
-            if (empty($data)) break;
-            foreach ($data as $item) {
-                if ($totalFetched++ >= $maxResults) break 2;
-                $verses = $verseService->findVersesByOccurrenceId($item['id']);
-                $versesCombined = implode("\n", array_column($verses, 'verse'));
-                fputcsv($stream, $this->formatRow($item, $versesCombined));
-            }
-            if (count($data) < $limit) break;
-            $page++;
+        foreach ($data as $item) {
+            if ($totalFetched++ >= $maxResults) break;
+            $verses = $verseService->findVersesByOccurrenceId($item['id']);
+            fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
         }
-
         return $stream;
     }
 
