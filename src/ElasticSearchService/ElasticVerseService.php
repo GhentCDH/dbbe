@@ -176,6 +176,7 @@ class ElasticVerseService extends ElasticBaseService
         return $results;
     }
 
+
     public function initVerseGroups(int $offset): array
     {
         // Get all verses
