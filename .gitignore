@@ -51,5 +51,7 @@ docker_data/elasticsearch/data
 /.symfony5/tmp
 /docker-compose.override.yml
 /docker_data/elasticsearch
+/docker_data/dbbe_db/initdb/*
+!/docker_data/dbbe_db/initdb/00.create_postgres_role.sql
 
 public/.vite
