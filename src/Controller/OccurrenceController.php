@@ -123,7 +123,7 @@ class OccurrenceController extends BaseController
     ): Response {
         $params = $this->sanitize($request->query->all());
         $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
-        $csvStream = $this->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
+        $csvStream = $this->manager->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
         rewind($csvStream);
         return new Response(stream_get_contents($csvStream), 200, [
             'Content-Type' => 'text/csv',
@@ -722,48 +722,4 @@ class OccurrenceController extends BaseController
 
         return $esParams;
     }
-
-    private function formatRow(array $item, string $verses = ''): array
-    {
-        $manuscript = $item['manuscript'] ?? [];
-        $implodeNames = fn($key) => !empty($item[$key]) ? implode(' | ', array_column($item[$key], 'name')) : '';
-
-        return [
-            $item['id'] ?? '',
-            $item['incipit'] ?? '',
-            $verses,
-            $implodeNames('genre'),
-            $implodeNames('subject'),
-            $implodeNames('metre'),
-            $item['date_floor_year'] ?? '',
-            $item['date_ceiling_year'] ?? '',
-            $manuscript['id'] ?? '',
-            $manuscript['name'] ?? '',
-        ];
-    }
-
-    private function generateCsvStream(
-        array $params,
-        ElasticOccurrenceService $occurrenceService,
-        ElasticVerseService $verseService,
-        bool $isAuthorized
-    ) {
-        $stream = fopen('php://temp', 'r+');
-        fputcsv($stream, [
-            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
-            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
-        ]);
-        $maxResults = $isAuthorized ? 10000 : 1000;
-        $params['limit'] = $maxResults;
-        $result = $occurrenceService->runFullSearch($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
-        $data = $result['data'] ?? [];
-        $totalFetched = 0;
-        foreach ($data as $item) {
-            if ($totalFetched++ >= $maxResults) break;
-            $verses = $verseService->findVersesByOccurrenceId($item['id']);
-            fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
-        }
-        return $stream;
-    }
-
 }
