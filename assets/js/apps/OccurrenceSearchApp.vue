@@ -266,7 +266,7 @@
             <button @click="downloadCSV"
                     class="btn btn-primary"
                     style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
-              Download as CSV
+              Download results CSV
             </button>
           </div>
           <collectionManager
