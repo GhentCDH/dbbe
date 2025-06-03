@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\ElasticSearchService\ElasticVerseService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +57,7 @@ class OccurrenceController extends BaseController
     public function search(
         Request $request,
         ElasticOccurrenceService $elasticOccurrenceService,
+        ElasticVerseService $elasticVerseService,
         IdentifierManager $identifierManager,
         ManagementManager $managementManager
     ) {
@@ -113,106 +115,54 @@ class OccurrenceController extends BaseController
         return new JsonResponse($result);
     }
 
-    #[Route('/occurrences/export_csv', name: 'occurrences_export_csv', methods: ['GET'])]
-    public function exportCSV(Request $request, ElasticOccurrenceService $elasticOccurrenceService): Response
+    private function formatRow(array $item, string $verses = ''): array
     {
+        $manuscript = $item['manuscript'] ?? [];
+
+        return [
+            $item['id'] ?? '',
+            $item['incipit'] ?? '',
+            $verses,
+            !empty($item['genre']) ? implode(' | ', array_column($item['genre'], 'name')) : '',
+            !empty($item['subject']) ? implode(' | ', array_column($item['subject'], 'name')) : '',
+            !empty($item['metre']) ? implode(' | ', array_column($item['metre'], 'name')) : '',
+            $item['date_floor_year'] ?? '',
+            $item['date_ceiling_year'] ?? '',
+            $manuscript['id'] ?? '',
+            $manuscript['name'] ?? '',
+        ];
+    }
+
+    #[Route('/occurrences/export_csv', name: 'occurrences_export_csv', methods: ['GET'])]
+    public function exportCSV(
+        Request $request,
+        ElasticOccurrenceService $elasticOccurrenceService,
+        ElasticVerseService $elasticVerseService
+    ): Response {
         $params = $this->sanitize($request->query->all());
-        $result = $elasticOccurrenceService->searchAndAggregate($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
+        $result = $elasticOccurrenceService->runFullSearch($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
 
-        $ids = array_column($result['data'], 'id');
-        $shortDataById = [];
-        foreach ($this->manager->getShort($ids) as $entry) {
-            $shortDataById[$entry->getId()] = $entry;
-        }
+        $stream = fopen('php://temp', 'r+');
 
-        $output = fopen('php://temp', 'r+');
-        fputcsv($output, [
-            'id',
-            'incipit',
-            'verses',
-            'genres',
-            'subjects',
-            'metres',
-            'date_floor_year',
-            'date_ceiling_year',
-            'manuscript_id',
-            'manuscript_name',
-            'person'
+        fputcsv($stream, [
+            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
+            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
         ]);
 
         foreach ($result['data'] as $item) {
-            $id = $item['id'] ?? null;
-            $incipit = $item['incipit'] ?? '';
-
-            $verses = $genres = $subjects = $metres = $personData = '';
-            if (isset($shortDataById[$id])) {
-                $entry = $shortDataById[$id];
-
-                $verses = implode("\n", array_map(fn($v) => $v->getVerse(), $entry->getVerses()));
-                $genres = implode(' | ', array_map(fn($g) => $g->getName(), $entry->getGenres()));
-                $subjects = implode(' | ', array_map(fn($s) => $s->getName(), $entry->getSubjects()));
-                $metres = implode(' | ', array_map(fn($m) => $m->getName(), $entry->getMetres()));
-
-                $personRoles = $entry->getPersonRoles();
-                $roleStrings = [];
-                foreach ($personRoles as $rolePair) {
-                    if (!is_array($rolePair) || count($rolePair) !== 2) {
-                        continue; // skip if structure unexpected
-                    }
-                    /** @var \App\Model\Role $roleObj */
-                    $roleObj = $rolePair[0];
-                    $usage = $rolePair[1];
-
-                    $roleName = $roleObj->getName();
-
-                    if (!is_array($usage)) {
-                        continue; // safety check
-                    }
-
-                    foreach ($usage as $person) {
-                        if (!$person instanceof \App\Model\Person) {
-                            continue;
-                        }
-                        $fullName = trim($person->getFirstName() . ' ' . $person->getLastName());
-                        $roleStrings[] = "{$roleName}: {$fullName}";
-                    }
-                }
-
-
-                $personData = implode(' | ', $roleStrings);
-            }
-
-            $dateFloor = $item['date_floor_year'] ?? '';
-            $dateCeiling = $item['date_ceiling_year'] ?? '';
-
-            $manuscript = $item['manuscript'] ?? null;
-            $manuscriptId = $manuscript['id'] ?? '';
-            $manuscriptName = $manuscript['name'] ?? '';
-
-            fputcsv($output, [
-                $id,
-                $incipit,
-                $verses,
-                $genres,
-                $subjects,
-                $metres,
-                $dateFloor,
-                $dateCeiling,
-                $manuscriptId,
-                $manuscriptName,
-                $personData
-            ]);
+            $verses = $elasticVerseService->findVersesByOccurrenceId($item['id']);
+            $versesCombined = implode("\n", array_column($verses, 'verse'));
+            $row = $this->formatRow($item, $versesCombined);
+            fputcsv($stream, $row);
         }
 
-        rewind($output);
-        $csv = stream_get_contents($output);
-        fclose($output);
-
-        return new Response($csv, 200, [
+        rewind($stream);
+        return new Response(stream_get_contents($stream), 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="occurrences.csv"',
         ]);
     }
+
 
     /**
      * @param Request $request
