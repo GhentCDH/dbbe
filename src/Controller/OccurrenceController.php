@@ -110,6 +110,25 @@ class OccurrenceController extends BaseController
             $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
 
+        $ids = array_column($result['data'], 'id');
+        $shortDataById = [];
+        foreach ($this->manager->getShort($ids) as $entry) {
+            $shortDataById[$entry->getId()] = $entry;
+        }
+        foreach ($result['data'] as &$item) {
+            $id = $item['id'] ?? null;
+
+            if ($id && isset($shortDataById[$id])) {
+                $item['verses'] = array_values(array_map(
+                    fn($v) => $v->getVerse(),
+                    $shortDataById[$id]->getVerses()
+                ));
+            } else {
+                $item['verses'] = null;
+            }
+        }
+        unset($item);
+
         return new JsonResponse($result);
     }
 
