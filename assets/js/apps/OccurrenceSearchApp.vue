@@ -262,8 +262,11 @@
                     (un)select all on this page
                 </a>
             </div>
-          <div style="text-align: right;">
-            <button @click="downloadCSV" class="btn btn-primary">Download as CSV
+          <div style="position: relative; height: 100px;">
+            <button @click="downloadCSV"
+                    class="btn btn-primary"
+                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
+              Download as CSV
             </button>
           </div>
           <collectionManager
@@ -602,7 +605,7 @@ export default {
       async downloadCSV() {
         try {
           const params = this.getSearchParams();
-          params.limit = 25000;
+          params.limit = 10000;
           params.page = 1;
 
           const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
