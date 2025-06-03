@@ -63,6 +63,7 @@ class OccurrenceController extends BaseController
             // @codingStandardsIgnoreStart Generic.Files.LineLength
             'urls' => json_encode([
                 'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
+                'occurrences_export_csv' => $this->generateUrl('occurrences_export_csv'),
                 'type_deps_by_occurrence' => $this->generateUrl('type_deps_by_occurrence', ['id' => 'occurrence_id']),
                 'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                 'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
@@ -109,27 +110,108 @@ class OccurrenceController extends BaseController
             $this->sanitize($request->query->all()),
             $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
+        return new JsonResponse($result);
+    }
+
+    #[Route('/occurrences/export_csv', name: 'occurrences_export_csv', methods: ['GET'])]
+    public function exportCSV(Request $request, ElasticOccurrenceService $elasticOccurrenceService): Response
+    {
+        $params = $this->sanitize($request->query->all());
+        $result = $elasticOccurrenceService->searchAndAggregate($params, $this->isGranted(Roles::ROLE_VIEW_INTERNAL));
 
         $ids = array_column($result['data'], 'id');
         $shortDataById = [];
         foreach ($this->manager->getShort($ids) as $entry) {
             $shortDataById[$entry->getId()] = $entry;
         }
-        foreach ($result['data'] as &$item) {
+
+        $output = fopen('php://temp', 'r+');
+        fputcsv($output, [
+            'id',
+            'incipit',
+            'verses',
+            'genres',
+            'subjects',
+            'metres',
+            'date_floor_year',
+            'date_ceiling_year',
+            'manuscript_id',
+            'manuscript_name',
+            'person'
+        ]);
+
+        foreach ($result['data'] as $item) {
             $id = $item['id'] ?? null;
+            $incipit = $item['incipit'] ?? '';
 
-            if ($id && isset($shortDataById[$id])) {
-                $item['verses'] = array_values(array_map(
-                    fn($v) => $v->getVerse(),
-                    $shortDataById[$id]->getVerses()
-                ));
-            } else {
-                $item['verses'] = null;
+            $verses = $genres = $subjects = $metres = $personData = '';
+            if (isset($shortDataById[$id])) {
+                $entry = $shortDataById[$id];
+
+                $verses = implode("\n", array_map(fn($v) => $v->getVerse(), $entry->getVerses()));
+                $genres = implode(' | ', array_map(fn($g) => $g->getName(), $entry->getGenres()));
+                $subjects = implode(' | ', array_map(fn($s) => $s->getName(), $entry->getSubjects()));
+                $metres = implode(' | ', array_map(fn($m) => $m->getName(), $entry->getMetres()));
+
+                $personRoles = $entry->getPersonRoles();
+                $roleStrings = [];
+                foreach ($personRoles as $rolePair) {
+                    if (!is_array($rolePair) || count($rolePair) !== 2) {
+                        continue; // skip if structure unexpected
+                    }
+                    /** @var \App\Model\Role $roleObj */
+                    $roleObj = $rolePair[0];
+                    $usage = $rolePair[1];
+
+                    $roleName = $roleObj->getName();
+
+                    if (!is_array($usage)) {
+                        continue; // safety check
+                    }
+
+                    foreach ($usage as $person) {
+                        if (!$person instanceof \App\Model\Person) {
+                            continue;
+                        }
+                        $fullName = trim($person->getFirstName() . ' ' . $person->getLastName());
+                        $roleStrings[] = "{$roleName}: {$fullName}";
+                    }
+                }
+
+
+                $personData = implode(' | ', $roleStrings);
             }
-        }
-        unset($item);
 
-        return new JsonResponse($result);
+            $dateFloor = $item['date_floor_year'] ?? '';
+            $dateCeiling = $item['date_ceiling_year'] ?? '';
+
+            $manuscript = $item['manuscript'] ?? null;
+            $manuscriptId = $manuscript['id'] ?? '';
+            $manuscriptName = $manuscript['name'] ?? '';
+
+            fputcsv($output, [
+                $id,
+                $incipit,
+                $verses,
+                $genres,
+                $subjects,
+                $metres,
+                $dateFloor,
+                $dateCeiling,
+                $manuscriptId,
+                $manuscriptName,
+                $personData
+            ]);
+        }
+
+        rewind($output);
+        $csv = stream_get_contents($output);
+        fclose($output);
+
+        return new Response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="occurrences.csv"',
+        ]);
     }
 
     /**
