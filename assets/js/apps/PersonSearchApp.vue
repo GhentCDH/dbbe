@@ -425,6 +425,7 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import PersistentConfig from "@/mixins/PersistentConfig";
 import {useSearchSession} from "@/composables/useSearchSession";
+import {isLoginError} from "@/helpers/errorUtil";
 
 
 Vue.component('FieldRadio', fieldRadio);
@@ -771,7 +772,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -795,7 +796,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -836,7 +837,7 @@ export default {
                     this.alerts.push({
                         type: 'error',
                         message: 'Something went wrong while getting the person data.',
-                        login: this.isLoginError(error),
+                        login: isLoginError(error),
                     });
                     console.error(error);
                 });
@@ -867,7 +868,7 @@ export default {
                     this.mergeAlerts.push({
                         type: 'error',
                         message: 'Something went wrong while merging the persons.',
-                        login: this.isLoginError(error),
+                        login: isLoginError(error),
                     });
                     console.error(error);
                 });

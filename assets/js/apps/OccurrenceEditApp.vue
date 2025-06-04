@@ -327,6 +327,7 @@ import Vue from 'vue/dist/vue.js';
 
 import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import axios from 'axios'
+import {isLoginError} from "@/helpers/errorUtil";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{OccurrenceVerses,BasicOccurrence,OccurrenceTypes,Person,Date,Metre,Genre,Subject,Identification,Image,Bibliography,GeneralOccurrence,Management}.vue', { eager: true })
 
@@ -671,7 +672,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -685,7 +686,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the occurrence data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }

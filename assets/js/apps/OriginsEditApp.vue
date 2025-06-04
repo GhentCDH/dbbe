@@ -72,6 +72,7 @@ import {
   enableField,
   loadLocationField
 } from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     mixins: [
@@ -252,7 +253,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -275,7 +276,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -294,7 +295,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -320,7 +321,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

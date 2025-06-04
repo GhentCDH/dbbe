@@ -81,7 +81,8 @@ import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
 import AbstractListEdit from '../mixins/AbstractListEdit'
-import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {createMultiSelect, enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     mixins: [
@@ -235,7 +236,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the office.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the office.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -275,7 +276,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the office.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the office.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -294,7 +295,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the office.', login: this.isLoginError(error)})
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the office.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -312,7 +313,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the office.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the office.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -327,7 +328,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the office data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the office data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

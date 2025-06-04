@@ -182,6 +182,7 @@ import axios from 'axios'
 
 import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import {enableField} from "@/helpers/formFieldUtils";
+import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicPhd,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 
@@ -311,7 +312,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -326,7 +327,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }

@@ -56,6 +56,7 @@ import axios from 'axios'
 
 import AbstractListEdit from '../mixins/AbstractListEdit'
 import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {
@@ -234,7 +235,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the role.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the role.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -258,7 +259,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the role.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the role.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -277,7 +278,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the role.', login: this.isLoginError(error)});
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the role.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -292,7 +293,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the role data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the role data.', login: isLoginError(error)});
                     console.log(error)
                 })
         },

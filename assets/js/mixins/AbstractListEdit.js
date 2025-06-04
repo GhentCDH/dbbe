@@ -9,6 +9,7 @@ import Alerts from '../Components/Alerts.vue'
 import EditListRow from '../Components/Edit/EditListRow.vue'
 import Panel from '../Components/Edit/Panel.vue'
 import axios from 'axios';
+import {isLoginError} from "@/helpers/errorUtil";
 window.axios = axios;
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
@@ -97,7 +98,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

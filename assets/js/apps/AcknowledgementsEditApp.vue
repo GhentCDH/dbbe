@@ -51,6 +51,7 @@ import axios from 'axios'
 
 import AbstractListEdit from '@/mixins/AbstractListEdit'
 import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     mixins: [
@@ -144,7 +145,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the acknowledgement.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the acknowledgement.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -162,7 +163,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the acknowledgement.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the acknowledgement.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -181,7 +182,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the acknowledgement.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the acknowledgement.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -196,7 +197,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the acknowledgement data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the acknowledgement data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

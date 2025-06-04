@@ -60,6 +60,7 @@ import VueFormGenerator from 'vue-form-generator'
 
 import AbstractListEdit from '../mixins/AbstractListEdit'
 import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     mixins: [
@@ -260,7 +261,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal issue.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal issue.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -276,7 +277,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal issue.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal issue.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -295,7 +296,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the journal.', login: this.isLoginError(error)});
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the journal.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -310,7 +311,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: isLoginError(error)});
                     console.log(error)
                 })
         },

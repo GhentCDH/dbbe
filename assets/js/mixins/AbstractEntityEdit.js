@@ -7,6 +7,7 @@ import * as uiv from 'uiv'
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
 import Alerts from '../Components/Alerts.vue'
 import Panel from '../Components/Edit/Panel.vue'
+import {isLoginError} from "@/helpers/errorUtil";
 
 const modalComponents = import.meta.glob('./Modals/*.vue', { eager: true })
 
@@ -185,16 +186,6 @@ export default {
             this.saveModal = false
             this.saveAlerts = []
         },
-        isLoginError(error) {
-            return error.message === 'Network Error'
-        },
-        getErrorMessage(error) {
-            if (error && error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-                return error.response.data.error.message
-
-            }
-            return null
-        },
         reloadSimpleItems(type) {
             this.reloadItems(
                 type,
@@ -244,7 +235,7 @@ export default {
                     }
                 })
                 .catch( (error) => {
-                    this.alerts.push({type: 'error', message: 'Something went wrong while loading data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while loading data.', login: isLoginError(error)});
                     this.$notify({
                         placement: 'top-left',
                         type: 'danger',

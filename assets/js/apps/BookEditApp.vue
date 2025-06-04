@@ -185,6 +185,7 @@ import Vue from 'vue/dist/vue.js';
 
 import AbstractEntityEdit from '@/mixins/AbstractEntityEdit'
 import axios from 'axios'
+import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicBook,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 
@@ -323,7 +324,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -337,7 +338,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }

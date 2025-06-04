@@ -54,6 +54,7 @@ import axios from 'axios'
 
 import AbstractListEdit from '../mixins/AbstractListEdit'
 import {createMultiSelect,enableField,dependencyField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     mixins: [
@@ -177,7 +178,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -195,7 +196,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -214,7 +215,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -229,7 +230,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
