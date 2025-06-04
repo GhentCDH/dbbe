@@ -328,6 +328,12 @@ import Vue from 'vue/dist/vue.js';
 import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import axios from 'axios'
 import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Reset from "@/Components/Edit/Modals/Reset.vue";
+import Invalid from "@/Components/Edit/Modals/Invalid.vue";
+import Save from "@/Components/Edit/Modals/Save.vue";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{OccurrenceVerses,BasicOccurrence,OccurrenceTypes,Person,Date,Metre,Genre,Subject,Identification,Image,Bibliography,GeneralOccurrence,Management}.vue', { eager: true })
 
@@ -340,6 +346,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    components: {
+      resetModal: Reset,
+      invalidModal: Invalid,
+      saveModal: Save
+    },
     data() {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),

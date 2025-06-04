@@ -192,6 +192,9 @@ import axios from 'axios'
 
 import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
+import Reset from "@/Components/Edit/Modals/Reset.vue";
+import Invalid from "@/Components/Edit/Modals/Invalid.vue";
+import Save from "@/Components/Edit/Modals/Save.vue";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{BasicPerson,Date,Identification,Office,Bibliography,GeneralPerson,Management}.vue', { eager: true })
 
@@ -208,6 +211,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    components: {
+      resetModal: Reset,
+      invalidModal: Invalid,
+      saveModal: Save
+    },
     data() {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
