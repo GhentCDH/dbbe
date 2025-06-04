@@ -95,7 +95,6 @@ export default {
     },
     mounted () {
         this.initScroll();
-
         this.setData();
         this.originalModel = JSON.parse(JSON.stringify(this.model));
 

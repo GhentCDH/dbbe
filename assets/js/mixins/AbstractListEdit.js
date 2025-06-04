@@ -74,33 +74,37 @@ export default {
             this.migrateModel = JSON.parse(JSON.stringify(this.originalMigrateModel))
         },
         deleteDependencies() {
-            this.openRequests++
-            // get all dependencies
-            axios.all(Object.values(this.depUrls).map(depUrlCat => axios.get(depUrlCat.depUrl)))
-                .then((results) => {
-                    this.delDependencies = {}
-                    let dependencyCategories = Object.keys(this.depUrls)
-                    for (let dependencyCategoryIndex of Object.keys(dependencyCategories)) {
-                        if (results[dependencyCategoryIndex].data.length > 0) {
-                            let dependencyCategory = dependencyCategories[dependencyCategoryIndex]
-                            this.delDependencies[dependencyCategory] = {}
-                            this.delDependencies[dependencyCategory].list = results[dependencyCategoryIndex].data
-                            if (this.depUrls[dependencyCategory].url) {
-                                this.delDependencies[dependencyCategory].url = this.depUrls[dependencyCategory].url
-                            }
-                            if (this.depUrls[dependencyCategory].urlIdentifier) {
-                                this.delDependencies[dependencyCategory].urlIdentifier = this.depUrls[dependencyCategory].urlIdentifier
-                            }
+            this.openRequests++;
+            const depUrlsEntries = Object.entries(this.depUrls);
+
+            axios.all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+                .then(results => {
+                    this.delDependencies = {};
+
+                    results.forEach((response, index) => {
+                        const data = response.data;
+                        if (data.length > 0) {
+                            const [category, depUrlCat] = depUrlsEntries[index];
+                            this.delDependencies[category] = {
+                                list: data,
+                                ...(depUrlCat.url && { url: depUrlCat.url }),
+                                ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                            };
                         }
-                    }
-                    this.deleteModal = true
-                    this.openRequests--
+                    });
+
+                    this.deleteModal = true;
+                    this.openRequests--;
                 })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while checking for dependencies.', login: isLoginError(error)})
-                    console.log(error)
-                })
+                .catch(error => {
+                    this.openRequests--;
+                    this.alerts.push({
+                        type: 'error',
+                        message: 'Something went wrong while checking for dependencies.',
+                        login: isLoginError(error),
+                    });
+                    console.error(error);
+                });
         },
         cancelEdit() {
             this.editModal = false
@@ -118,20 +122,12 @@ export default {
             this.deleteModal = false
             this.deleteAlerts = []
         },
-        isLoginError(error) {
-            return error.message === 'Network Error'
-        },
         isOrIsChild(valueFromList, value) {
-            if (value == null) {
-                return false
-            }
-            if (valueFromList.id === value.id) {
-                return true
-            }
-            if (valueFromList.parent != null) {
-                return (this.isOrIsChild(this.values.filter((value) => value.id === valueFromList.parent.id)[0], value))
-            }
-            return false
-        },
+            if (!value || !valueFromList) return false;
+            if (valueFromList.id === value.id) return true;
+
+            const parent = this.values.find(v => v.id === valueFromList.parent?.id);
+            return parent ? this.isOrIsChild(parent, value) : false;
+        }
     },
 }
