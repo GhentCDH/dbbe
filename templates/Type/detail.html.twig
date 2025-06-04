@@ -147,7 +147,11 @@
                                     {{ item.getText()|replace({'|':'\n'})|nl2br }}
                                     <dl class="row">
                                         <dt class="col-sm-2">Language</dt>
-                                        <dd class="col-sm-10 ">{{ item.getLanguage() }}</dd>
+                                        <dd class="col-sm-10 ">
+                                                    <a href="/types/search?filters%5Btext_mode%5D=greek&filters%5Bcomment_mode%5D=latin&filters%5Blemma_mode%5D=greek&filters%5Btranslated%5D=1&filters%5Btranslation_language%5D%5B0%5D={{ item.getLanguage().getId() }}">
+                                                        {{ item.getLanguage() }}
+                                                    </a>
+                                        </dd>
                                         {% if item.getBibliographies() %}
                                             <dt class="col-sm-2">Source(s)</dt>
                                             <dd class="col-sm-10">

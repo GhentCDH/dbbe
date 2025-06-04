@@ -276,6 +276,7 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
+import axios from 'axios';
 
 import AbstractSearch from '../mixins/AbstractSearch';
 
@@ -615,7 +616,7 @@ export default {
         submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
-            window.axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
+            axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
                 .then((_response) => {
                     // Don't create a new history item
                     this.noHistory = true;

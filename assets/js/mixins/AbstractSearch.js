@@ -14,7 +14,6 @@ import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
 import { YEAR_MIN, YEAR_MAX, changeMode } from '../helpers/utils';
 import axios from 'axios';
-window.axios = axios;
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
 Vue.use(VueTables.ServerTable);
