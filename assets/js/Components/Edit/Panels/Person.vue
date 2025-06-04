@@ -90,12 +90,12 @@ import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 
 
-import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
   disableField,
   enableField,
-} from '@/Components/FormFields/formFieldUtils';
+} from '@/helpers/formFieldUtils';
 
 import Panel from '../Panel'
 

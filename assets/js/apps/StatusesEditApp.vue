@@ -52,8 +52,8 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import {createMultiSelect,enableField,dependencyField} from "@/Components/FormFields/formFieldUtils";
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField,dependencyField} from "@/helpers/formFieldUtils";
 
 export default {
     mixins: [

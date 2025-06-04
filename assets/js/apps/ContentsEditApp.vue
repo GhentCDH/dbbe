@@ -80,9 +80,9 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
+import AbstractListEdit from '@/mixins/AbstractListEdit'
 import qs from "qs";
-import {createMultiSelect, enableField} from "@/Components/FormFields/formFieldUtils";
+import {createMultiSelect, enableField} from "@/helpers/formFieldUtils";
 
 export default {
     mixins: [

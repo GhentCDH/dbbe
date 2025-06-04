@@ -20,11 +20,11 @@ import VueFormGenerator from 'vue-form-generator'
 
 import VueMultiselect from 'vue-multiselect'
 
-import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
 
-} from '@/Components/FormFields/formFieldUtils';
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)

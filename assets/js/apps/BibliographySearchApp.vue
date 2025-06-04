@@ -381,18 +381,18 @@ import VueFormGenerator from 'vue-form-generator';
 import {
   createMultiSelect,
   createLanguageToggle
-} from '@/Components/FormFields/formFieldUtils';
-import AbstractSearch from '../Components/Search/AbstractSearch';
+} from '@/helpers/formFieldUtils';
+import AbstractSearch from '../mixins/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/Components/Shared/PersistentConfig";
-import {greekFont} from "@/Components/Search/utils";
-import {useSearchSession} from "@/Components/Search/useSearchSession";
+import PersistentConfig from "@/mixins/PersistentConfig";
+import {greekFont} from "@/helpers/utils";
+import {useSearchSession} from "@/composables/useSearchSession";
 
 
 Vue.component('FieldRadio', fieldRadio);

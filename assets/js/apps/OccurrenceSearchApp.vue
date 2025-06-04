@@ -302,20 +302,20 @@ import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle
-} from '@/Components/FormFields/formFieldUtils';
+} from '@/helpers/formFieldUtils';
 import {
   formatDate, greekFont
-} from '@/Components/Search/utils';
+} from '@/helpers/utils';
 
-import AbstractSearch from '../Components/Search/AbstractSearch';
+import AbstractSearch from '../mixins/AbstractSearch';
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import {useSearchSession} from "../Components/Search/useSearchSession";
+import {useSearchSession} from "../composables/useSearchSession";
 
-import PersistentConfig from "@/Components/Shared/PersistentConfig";
+import PersistentConfig from "@/mixins/PersistentConfig";
 
 
 Vue.component('FieldRadio', fieldRadio);

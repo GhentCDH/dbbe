@@ -329,7 +329,7 @@
 <script>
 import Vue from 'vue/dist/vue.js';
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{BasicType,TypeVerses,TypeTypes,Person,Metre,Genre,Subject,Keyword,Identification,Bibliography,Translation,GeneralType,Management}.vue', { eager: true })
 

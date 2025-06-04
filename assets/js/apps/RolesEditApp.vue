@@ -54,8 +54,8 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import {createMultiSelect,enableField} from "@/Components/FormFields/formFieldUtils";
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {

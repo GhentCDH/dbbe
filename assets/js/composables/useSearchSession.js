@@ -1,5 +1,5 @@
 import qs from 'qs';
-import { initSearchSession, updateSearchSession } from "@/Components/Search/searchSessionUtil";
+import { initSearchSession, updateSearchSession } from "@/helpers/searchSessionUtil";
 
 export function useSearchSession(context) {
     const getUrl = (route) => context.urls?.[route] ?? '';

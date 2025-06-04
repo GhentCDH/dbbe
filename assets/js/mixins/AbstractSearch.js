@@ -1,18 +1,18 @@
 import qs from 'qs';
 
 import Vue from 'vue/dist/vue.js';
-import {dependencyField, enableField,removeGreekAccents} from "../FormFields/formFieldUtils";
+import {dependencyField, enableField,removeGreekAccents} from "../helpers/formFieldUtils";
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';
 import VueTables from 'vue-tables-2';
 import * as uiv from 'uiv';
 
-import fieldMultiselectClear from '../FormFields/fieldMultiselectClear.vue';
-import Delete from '../Edit/Modals/Delete.vue';
-import CollectionManager from './CollectionManager.vue';
-import fieldCheckboxes from '../FormFields/fieldCheckboxes.vue';
+import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue';
+import Delete from '../Components/Edit/Modals/Delete.vue';
+import CollectionManager from '../Components/Search/CollectionManager.vue';
+import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
-import { YEAR_MIN, YEAR_MAX, changeMode } from './utils';
+import { YEAR_MIN, YEAR_MAX, changeMode } from '../helpers/utils';
 import axios from 'axios';
 window.axios = axios;
 Vue.use(uiv);

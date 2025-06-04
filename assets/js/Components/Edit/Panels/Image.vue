@@ -213,7 +213,7 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import vue2Dropzone from 'vue2-dropzone'
 
-import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)

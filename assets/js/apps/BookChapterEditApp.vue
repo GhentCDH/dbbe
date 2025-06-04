@@ -184,7 +184,7 @@
 import Vue from 'vue/dist/vue.js';
 import axios from 'axios'
 
-import AbstractEntityEdit from '@/Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '@/mixins/AbstractEntityEdit'
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicBookChapter,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 

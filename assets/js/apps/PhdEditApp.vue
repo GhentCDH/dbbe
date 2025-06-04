@@ -180,8 +180,8 @@
 import Vue from 'vue/dist/vue.js';
 import axios from 'axios'
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
-import {enableField} from "@/Components/FormFields/formFieldUtils";
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
+import {enableField} from "@/helpers/formFieldUtils";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicPhd,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
 

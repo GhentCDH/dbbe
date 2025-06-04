@@ -1,4 +1,4 @@
-import {disableField, enableField} from "@/Components/FormFields/formFieldUtils";
+import {disableField, enableField} from "@/helpers/formFieldUtils";
 
 export default {
     props: {

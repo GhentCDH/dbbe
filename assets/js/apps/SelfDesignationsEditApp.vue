@@ -86,8 +86,8 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-import {createMultiSelect, enableField, removeGreekAccents} from "@/Components/FormFields/formFieldUtils";
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect, enableField, removeGreekAccents} from "@/helpers/formFieldUtils";
 
 export default {
     mixins: [

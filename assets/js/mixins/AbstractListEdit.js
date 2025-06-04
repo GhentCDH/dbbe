@@ -4,10 +4,10 @@ import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
 import VueTables from 'vue-tables-2';
 import { defineAsyncComponent } from 'vue';
-import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
-import Alerts from '../Alerts'
-import EditListRow from './EditListRow'
-import Panel from './Panel'
+import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
+import Alerts from '../Components/Alerts.vue'
+import EditListRow from '../Components/Edit/EditListRow.vue'
+import Panel from '../Components/Edit/Panel.vue'
 import axios from 'axios';
 window.axios = axios;
 Vue.use(uiv);

@@ -325,7 +325,7 @@
 <script>
 import Vue from 'vue/dist/vue.js';
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import axios from 'axios'
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{OccurrenceVerses,BasicOccurrence,OccurrenceTypes,Person,Date,Metre,Genre,Subject,Identification,Image,Bibliography,GeneralOccurrence,Management}.vue', { eager: true })

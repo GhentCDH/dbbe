@@ -47,7 +47,7 @@
 </template>
 <script>
 
-import {createMultiSelect} from "@/Components/FormFields/formFieldUtils";
+import {createMultiSelect} from "@/helpers/formFieldUtils";
 
 export default {
     props: {

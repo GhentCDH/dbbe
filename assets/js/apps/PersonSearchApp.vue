@@ -405,24 +405,24 @@
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractSearch from '../Components/Search/AbstractSearch';
+import AbstractSearch from '../mixins/AbstractSearch';
 
-import {changeMode, formatDate, greekFont} from '../Components/Search/utils';
+import {changeMode, formatDate, greekFont} from '../helpers/utils';
 
 // used for deleteDependencies, mergeModal
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
 import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle,
   removeGreekAccents
-} from '@/Components/FormFields/formFieldUtils';
+} from '@/helpers/formFieldUtils';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/Components/Shared/PersistentConfig";
-import {useSearchSession} from "@/Components/Search/useSearchSession";
+import PersistentConfig from "@/mixins/PersistentConfig";
+import {useSearchSession} from "@/composables/useSearchSession";
 
 
 Vue.component('FieldRadio', fieldRadio);

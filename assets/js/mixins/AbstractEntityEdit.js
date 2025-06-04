@@ -4,9 +4,9 @@ import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
 
-import fieldMultiselectClear from '../FormFields/fieldMultiselectClear'
-import Alerts from '../Alerts'
-import Panel from './Panel'
+import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
+import Alerts from '../Components/Alerts.vue'
+import Panel from '../Components/Edit/Panel.vue'
 
 const modalComponents = import.meta.glob('./Modals/*.vue', { eager: true })
 
