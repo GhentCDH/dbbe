@@ -73,11 +73,19 @@ import {
   loadLocationField
 } from "@/helpers/formFieldUtils";
 import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
     mixins: [
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+    },
     data() {
         return {
             regionSchema: {

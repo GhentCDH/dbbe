@@ -56,6 +56,9 @@ import axios from 'axios'
 
 import AbstractListEdit from '../mixins/AbstractListEdit'
 import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 VueFormGenerator.validators.requiredMultiSelect = function (value, field, model) {
     if (value == null || value.length == 0) {
@@ -102,6 +105,11 @@ export default {
             return {
             }
         },
+    },
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
     },
     mounted () {
         this.schema.fields.management.values = this.values

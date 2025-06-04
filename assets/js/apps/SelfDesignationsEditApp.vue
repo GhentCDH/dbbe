@@ -89,11 +89,19 @@ import axios from 'axios'
 import AbstractListEdit from '../mixins/AbstractListEdit'
 import {createMultiSelect, enableField, removeGreekAccents} from "@/helpers/formFieldUtils";
 import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
 
 export default {
     mixins: [
         AbstractListEdit,
     ],
+  components: {
+    mergeModal: Merge,
+    deleteModal: Delete,
+    editModal: Edit
+  },
     data() {
         return {
             schema: {

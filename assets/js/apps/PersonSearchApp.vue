@@ -417,7 +417,7 @@ import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle,
-  removeGreekAccents
+  removeGreekAccents, enableField
 } from '@/helpers/formFieldUtils';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
@@ -426,12 +426,16 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import PersistentConfig from "@/mixins/PersistentConfig";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
 
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { ActiveFilters },
+    components: {
+      ActiveFilters,
+      mergeModal: Merge
+    },
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality

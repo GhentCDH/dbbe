@@ -395,12 +395,15 @@ import PersistentConfig from "@/mixins/PersistentConfig";
 import {greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
-
+import Merge from '../Components/Edit/Modals/Merge.vue'
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { ActiveFilters },
+    components: {
+      ActiveFilters,
+      mergeModal: Merge
+    },
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
