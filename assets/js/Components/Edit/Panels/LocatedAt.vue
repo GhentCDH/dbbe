@@ -79,7 +79,7 @@ export default {
     methods: {
         enableFields(enableKeys) {
             if (enableKeys != null && enableKeys.includes('locations')) {
-                loadLocationField(this.schema.fields.city, this.model.location);
+                loadLocationField(this.schema.fields.city, this.model.location, this.values);
                 enableField(this.schema.fields.city, this.model.location);
                 this.cityChange();
                 this.libraryChange();
@@ -103,7 +103,7 @@ export default {
                 dependencyField(this.schema.fields.library, this.model.location)
             }
             else {
-                loadLocationField(this.schema.fields.library, this.model.location)
+                loadLocationField(this.schema.fields.library, this.model.location, this.values)
                 enableField(this.schema.fields.library, this.model.location)
             }
             this.$refs.form.validate()
@@ -116,7 +116,7 @@ export default {
                 dependencyField(this.schema.fields.collection, this.model.location)
             }
             else {
-                loadLocationField(this.schema.fields.collection, this.model.location)
+                loadLocationField(this.schema.fields.collection, this.model.location, this.values)
                 enableField(this.schema.fields.collection, this.model.location)
                 if (this.model.location.institution.locationId != null && this.model.location.collection == null) {
                     this.model.location.id = this.model.location.institution.locationId
