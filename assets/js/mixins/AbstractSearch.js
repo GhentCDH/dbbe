@@ -761,7 +761,7 @@ export default {
 
             this.openRequests += 1;
 
-            window.axios
+            axios
                 .put(urlMap[action], payload)
                 .then(() => {
                     this.noHistory = true;
@@ -898,8 +898,8 @@ export default {
             }
 
             try {
-                const response = await window.axios.get(url, {
-                    cancelToken: new window.axios.CancelToken((c) => {
+                const response = await axios.get(url, {
+                    cancelToken: new axios.CancelToken((c) => {
                         searchApp.tableCancel = c;
                     }),
                     ...options,
@@ -908,7 +908,7 @@ export default {
                 searchApp.onData(response.data);
                 return response;
             } catch (error) {
-                if (window.axios.isCancel(error)) {
+                if (axios.isCancel(error)) {
                     return {
                         data: {
                             data: this.data,
