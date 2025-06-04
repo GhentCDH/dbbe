@@ -287,7 +287,7 @@ import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import PersistentConfig from "@/mixins/PersistentConfig";
-import {formatDate, greekFont} from "../helpers/utils";
+import {formatDate, greekFont} from "../helpers/formatUtil";
 import {useSearchSession} from "../composables/useSearchSession";
 
 

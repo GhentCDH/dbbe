@@ -392,7 +392,7 @@ import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 import PersistentConfig from "@/mixins/PersistentConfig";
-import {greekFont} from "@/helpers/utils";
+import {greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 
 

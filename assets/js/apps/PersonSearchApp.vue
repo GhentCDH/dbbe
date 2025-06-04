@@ -409,7 +409,7 @@ import axios from 'axios';
 
 import AbstractSearch from '../mixins/AbstractSearch';
 
-import {changeMode, formatDate, greekFont} from '../helpers/utils';
+import {changeMode, formatDate, greekFont} from '../helpers/formatUtil';
 
 // used for deleteDependencies, mergeModal
 import AbstractListEdit from '../mixins/AbstractListEdit';

@@ -305,7 +305,7 @@ import {
 } from '@/helpers/formFieldUtils';
 import {
   formatDate, greekFont
-} from '@/helpers/utils';
+} from '@/helpers/formatUtil';
 
 import AbstractSearch from '../mixins/AbstractSearch';
 import axios from 'axios';

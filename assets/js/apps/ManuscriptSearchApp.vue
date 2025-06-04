@@ -252,7 +252,7 @@ import {
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
 import PersistentConfig from "@/mixins/PersistentConfig";
-import {formatDate, greekFont} from "@/helpers/utils";
+import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 Vue.component('FieldRadio', fieldRadio);
 
