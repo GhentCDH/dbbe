@@ -120,18 +120,18 @@ export default {
     watch: {
         'model.statusType'() {
             if (this.model.statusType == null) {
-                dependencyField(this.statusSchema.fields.status)
+                dependencyField(this.statusSchema.fields.status, this.model)
             }
             else {
                 this.loadStatusField()
-                enableField(this.statusSchema.fields.status)
+                enableField(this.statusSchema.fields.status, this.model)
             }
         },
     },
     mounted () {
         this.loadStatusTypeField(this.statusTypeSchema.fields.statusType)
-        enableField(this.statusTypeSchema.fields.statusType)
-        dependencyField(this.statusSchema.fields.status)
+        enableField(this.statusTypeSchema.fields.statusType, this.model)
+        dependencyField(this.statusSchema.fields.status, this.model)
     },
     methods: {
         editStatus(add = false) {

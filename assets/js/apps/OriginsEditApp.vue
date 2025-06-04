@@ -150,18 +150,18 @@ export default {
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                dependencyField(this.monasterySchema.fields.monastery)
+                dependencyField(this.monasterySchema.fields.monastery, this.model)
             }
             else {
-                loadLocationField(this.monasterySchema.fields.monastery, this.model)
-                enableField(this.monasterySchema.fields.monastery)
+                loadLocationField(this.monasterySchema.fields.monastery, this.model,this.values)
+                enableField(this.monasterySchema.fields.monastery, this.model)
             }
         },
     },
     mounted () {
-        loadLocationField(this.regionSchema.fields.region)
-        enableField(this.regionSchema.fields.region)
-        dependencyField(this.monasterySchema.fields.monastery)
+        loadLocationField(this.regionSchema.fields.region, this.model,this.values)
+        enableField(this.regionSchema.fields.region, this.model)
+        dependencyField(this.monasterySchema.fields.monastery, this.model)
     },
     methods: {
         editRegion() {
@@ -184,8 +184,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            loadLocationField(this.editMonasterySchema.fields.region, this.submitModel)
-            enableField(this.editMonasterySchema.fields.region, this.submitModel)
+            loadLocationField(this.editMonasterySchema.fields.region, this.model, this.values)
+            enableField(this.editMonasterySchema.fields.region, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -306,14 +306,14 @@ export default {
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        loadLocationField(this.regionSchema.fields.region, this.submitModel)
+                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        loadLocationField(this.regionSchema.fields.region, this.submitModel)
-                        loadLocationField(this.monasterySchema.fields.monastery, this.submitModel)
-                        enableField(this.monasterySchema.fields.monastery, this.submitModel)
+                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
+                        loadLocationField(this.monasterySchema.fields.monastery, this.model, this.values)
+                        enableField(this.monasterySchema.fields.monastery, this.model)
                         break
                     }
                     this.openRequests--

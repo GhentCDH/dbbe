@@ -197,39 +197,39 @@ export default {
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                dependencyField(this.librarySchema.fields.library)
+                dependencyField(this.librarySchema.fields.library, this.model)
             }
             else {
-                loadLocationField(this.librarySchema.fields.library, this.model)
-                enableField(this.librarySchema.fields.library)
+                loadLocationField(this.librarySchema.fields.library, this.model, this.values)
+                enableField(this.librarySchema.fields.library, this.model)
             }
         },
         'submitModel.regionWithParents'() {
             if (this.submitModel.submitType === 'collection') {
                 if (this.submitModel.regionWithParents == null) {
-                    dependencyField(this.editCollectionSchema.fields.library, this.submitModel)
+                    dependencyField(this.editCollectionSchema.fields.library, this.model)
                 }
                 else {
-                    loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-                    enableField(this.editCollectionSchema.fields.library, this.submitModel)
+                    loadLocationField(this.editCollectionSchema.fields.library, this.model, this.values)
+                    enableField(this.editCollectionSchema.fields.library, this.model)
                 }
             }
         },
         'model.institution'() {
             if (this.model.institution == null) {
-                dependencyField(this.collectionSchema.fields.collection)
+                dependencyField(this.collectionSchema.fields.collection, this.model)
             }
             else {
-                loadLocationField(this.collectionSchema.fields.collection)
-                enableField(this.collectionSchema.fields.collection)
+                loadLocationField(this.collectionSchema.fields.collection, this.model, this.values)
+                enableField(this.collectionSchema.fields.collection, this.model)
             }
         },
     },
     mounted () {
-        loadLocationField(this.citySchema.fields.city)
-        enableField(this.citySchema.fields.city)
-        dependencyField(this.librarySchema.fields.library)
-        dependencyField(this.collectionSchema.fields.collection)
+        loadLocationField(this.citySchema.fields.city, this.model, this.values)
+        enableField(this.citySchema.fields.city, this.model)
+        dependencyField(this.librarySchema.fields.library, this.model)
+        dependencyField(this.collectionSchema.fields.collection, this.model)
     },
     methods: {
         editCity() {
@@ -252,8 +252,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
-            enableField(this.editLibrarySchema.fields.city, this.submitModel)
+            loadLocationField(this.editLibrarySchema.fields.city, this.model, this.values)
+            enableField(this.editLibrarySchema.fields.city, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -278,10 +278,10 @@ export default {
                 this.submitModel.collection = JSON.parse(JSON.stringify(this.model.collection))
             }
 
-            loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
-            loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-            enableField(this.editCollectionSchema.fields.city, this.submitModel)
-            enableField(this.editCollectionSchema.fields.library, this.submitModel)
+            loadLocationField(this.editCollectionSchema.fields.city, this.model,this.values)
+            loadLocationField(this.editCollectionSchema.fields.library, this.model,this.values)
+            enableField(this.editCollectionSchema.fields.city, this.model)
+            enableField(this.editCollectionSchema.fields.library, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -444,27 +444,28 @@ export default {
             this.openRequests++
             axios.get(this.urls['locations_get'])
                 .then( (response) => {
+
                     this.values = response.data
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model, this.values)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        enableField(this.librarySchema.fields.library, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model,this.values)
+                        loadLocationField(this.librarySchema.fields.library, this.model,this.values)
+                        enableField(this.librarySchema.fields.library, this.model)
                         break
                     case 'collection':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
                         this.model.collection = JSON.parse(JSON.stringify(this.submitModel.collection))
-                        loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
-                        enableField(this.collectionSchema.fields.collection, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model,this.values)
+                        loadLocationField(this.librarySchema.fields.library, this.model,this.values)
+                        loadLocationField(this.collectionSchema.fields.collection, this.model,this.values)
+                        enableField(this.collectionSchema.fields.collection, this.model)
                         break
                     }
                     this.openRequests--
