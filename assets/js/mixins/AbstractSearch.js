@@ -12,7 +12,7 @@ import Delete from '../Components/Edit/Modals/Delete.vue';
 import CollectionManager from '../Components/Search/CollectionManager.vue';
 import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
-import { YEAR_MIN, YEAR_MAX, changeMode } from '../helpers/utils';
+import { YEAR_MIN, YEAR_MAX, changeMode } from '../helpers/formatUtil';
 import axios from 'axios';
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
@@ -99,46 +99,54 @@ export default {
     computed: {
         fields() {
             const res = {};
-            if (this.schema && this.schema.fields) {
-                Object.keys(this.schema.fields).forEach((key, index) => {
-                    const field = this.schema.fields[key];
-                    if (!field.multiple || field.multi === true) {
-                        res[field.model] = field;
-                    }
-                });
+            const addField = (field) => {
+                if (!field.multiple || field.multi === true) {
+                    res[field.model] = field;
+                }
+            };
+
+            if (this.schema) {
+                if (this.schema.fields) {
+                    Object.values(this.schema.fields).forEach(addField);
+                }
+                if (this.schema.groups) {
+                    this.schema.groups.forEach(group => {
+                        if (group.fields) {
+                            group.fields.forEach(field => {
+                                if (!this.multiple || field.multi === true) {
+                                    res[field.model] = field;
+                                }
+                            });
+                        }
+                    });
+                }
             }
-            if (this.schema && this.schema.groups) {
-                this.schema.groups.forEach((group) => {
-                    if (group.fields !== undefined) {
-                        group.fields.forEach((field) => {
-                            if (!this.multiple || field.multi === true) {
-                                res[field.model] = field;
-                            }
-                        });
-                    }
-                });
-            }
+
             return res;
         },
         notEmptyFields() {
             const show = [];
-            if (this.schema.fields !== undefined) {
-                Object.keys(this.schema.fields).forEach((key) => {
-                    show.push(...this.addActiveFilter(key));
-                });
+            const collectFilters = (field) => {
+                show.push(...this.addActiveFilter(field.model || field));
+            };
+
+            if (this.schema) {
+                if (this.schema.fields) {
+                    Object.values(this.schema.fields).forEach(field => collectFilters(field));
+                }
+                if (this.schema.groups) {
+                    this.schema.groups.forEach(group => {
+                        if (group.fields) {
+                            group.fields.forEach(field => collectFilters(field));
+                        }
+                    });
+                }
             }
-            if (this.schema.groups !== undefined) {
-                this.schema.groups.forEach((group) => {
-                    if (group.fields !== undefined) {
-                        group.fields.forEach((key) => {
-                            show.push(...this.addActiveFilter(key.model));
-                        });
-                    }
-                });
-            }
+
             return show;
         },
     },
+
     mounted() {
         this.originalModel = JSON.parse(JSON.stringify(this.model));
         window.onpopstate = ((event) => { this.popHistory(event); });
@@ -183,128 +191,113 @@ export default {
         },
         constructFilterValues() {
             const result = {};
-            if (this.model != null) {
-                for (const fieldName of Object.keys(this.model)) {
-                    if (this.fields[fieldName] != null && this.fields[fieldName].type === 'multiselectClear') {
-                        if (this.model[fieldName] != null) {
-                            if (Array.isArray(this.model[fieldName])) {
-                                const ids = [];
-                                for (const value of this.model[fieldName]) {
-                                    ids.push(value.id);
-                                }
-                                result[fieldName] = ids;
-                            } else {
-                                result[fieldName] = this.model[fieldName].id;
-                            }
-                        }
-                    } else if (fieldName === 'year_from') {
-                        if (!('date' in result)) {
-                            result.date = {};
-                        }
-                        result.date.from = this.model[fieldName];
-                    } else if (fieldName === 'year_to') {
-                        if (!('date' in result)) {
-                            result.date = {};
-                        }
-                        result.date.to = this.model[fieldName];
-                    } else if (`${fieldName}_mode` in this.model) {
-                        const modeField = `${fieldName}_mode`;
-                        if (this.model[modeField] !== undefined && this.model[modeField][0] === 'betacode') {
-                            result[fieldName] = changeMode('betacode', 'greek', this.model[fieldName].trim());
-                        } else {
-                            result[fieldName] = this.model[fieldName].trim();
-                        }
+            if (this.model == null) return result;
+            for (const fieldName of Object.keys(this.model)) {
+                const fieldValue = this.model[fieldName];
+                const fieldDef = this.fields[fieldName];
+                if (fieldDef?.type === 'multiselectClear' && fieldValue != null) {
+                    if (Array.isArray(fieldValue)) {
+                        result[fieldName] = fieldValue.map(v => v.id);
                     } else {
-                        const value = this.model[fieldName];
-                        // the label-checkboxes return a list with one element inside
-                        if (Array.isArray(value)) {
-                            const [v] = value;
-                            result[fieldName] = v;
-                        } else {
-                            result[fieldName] = this.model[fieldName];
-                        }
+                        result[fieldName] = fieldValue.id;
                     }
+                    continue;
+                }
+                if (fieldName === 'year_from' || fieldName === 'year_to') {
+                    if (!result.date) result.date = {};
+                    result.date[fieldName === 'year_from' ? 'from' : 'to'] = fieldValue;
+                    continue;
+                }
+
+                const modeField = `${fieldName}_mode`;
+                if (modeField in this.model) {
+                    if (this.model[modeField]?.[0] === 'betacode') {
+                        result[fieldName] = changeMode('betacode', 'greek', fieldValue.trim());
+                    } else {
+                        result[fieldName] = fieldValue.trim();
+                    }
+                    continue;
+                }
+                if (Array.isArray(fieldValue)) {
+                    result[fieldName] = fieldValue[0];
+                } else {
+                    result[fieldName] = fieldValue;
                 }
             }
+
             return result;
         },
         modelUpdated(value, fieldName) {
             this.lastChangedField = fieldName;
         },
         onValidated(isValid) {
-            // do nothin but cancelling requests if invalid
+            const clearInvalidYearFields = () => {
+                let revalidateNeeded = false;
+                ['year_from', 'year_to'].forEach(field => {
+                    if (field in this.model && Number.isNaN(this.model[field])) {
+                        delete this.model[field];
+                        revalidateNeeded = true;
+                    }
+                });
+                return revalidateNeeded;
+            };
+
+            const clearEmptyOrDependentFields = () => {
+                if (!this.model) return;
+                for (const [fieldName, value] of Object.entries(this.model)) {
+                    if (value == null || value === '') {
+                        delete this.model[fieldName];
+                        continue;
+                    }
+                    const field = this.fields[fieldName];
+                    if (field?.dependency && this.model[field.dependency] == null) {
+                        delete this.model[fieldName];
+                    }
+                }
+            };
+
+            const updateYearBounds = () => {
+                if ('year_from' in this.fields && 'year_to' in this.fields) {
+                    this.fields.year_to.min = this.model.year_from != null
+                        ? Math.max(YEAR_MIN, this.model.year_from)
+                        : YEAR_MIN;
+                    this.fields.year_from.max = this.model.year_to != null
+                        ? Math.min(YEAR_MAX, this.model.year_to)
+                        : YEAR_MAX;
+                }
+            };
+
+            const clearPendingTimeout = () => {
+                if (this.inputCancel !== null) {
+                    clearTimeout(this.inputCancel);
+                    this.inputCancel = null;
+                }
+            };
+
             if (!isValid) {
-                let revalidate = false;
-                if ('year_from' in this.model && Number.isNaN(this.model.year_from)) {
-                    delete this.model.year_from;
-                    revalidate = true;
-                }
-                if ('year_to' in this.model && Number.isNaN(this.model.year_to)) {
-                    delete this.model.year_to;
-                    revalidate = true;
-                }
-                if (revalidate) {
+                if (clearInvalidYearFields()) {
                     this.$refs.form.validate();
                     return;
                 }
-                if (this.inputCancel !== null) {
-                    window.clearTimeout(this.inputCancel);
-                    this.inputCancel = null;
-                }
+                clearPendingTimeout();
                 return;
             }
 
-            if (this.model != null) {
-                for (const fieldName of Object.keys(this.model)) {
-                    if (
-                        this.model[fieldName] == null
-                        || this.model[fieldName] === ''
-                    ) {
-                        delete this.model[fieldName];
-                    }
-                    const field = this.fields[fieldName];
-                    if (field.dependency != null && this.model[field.dependency] == null) {
-                        delete this.model[fieldName];
-                    }
-                }
-            }
+            clearEmptyOrDependentFields();
+            updateYearBounds();
+            clearPendingTimeout();
 
-            if ('year_from' in this.fields && 'year_to' in this.fields) {
-                // set year min and max values
-                if (this.model.year_from != null) {
-                    this.fields.year_to.min = Math.max(YEAR_MIN, this.model.year_from);
-                } else {
-                    this.fields.year_to.min = YEAR_MIN;
-                }
-                if (this.model.year_to != null) {
-                    this.fields.year_from.max = Math.min(YEAR_MAX, this.model.year_to);
-                } else {
-                    this.fields.year_from.max = YEAR_MAX;
-                }
-            }
+            const isInputField = this.lastChangedField && this.fields[this.lastChangedField]?.type === 'input';
+            const timeoutValue = isInputField ? 1000 : 0;
 
-            // Cancel timeouts caused by input requests not long ago
-            if (this.inputCancel != null) {
-                window.clearTimeout(this.inputCancel);
-                this.inputCancel = null;
-            }
-
-            // Send requests to update filters and result table
-            // Add a delay to requests originated from input field changes to limit the number of requests
-            let timeoutValue = 0;
-            if (this.lastChangedField !== '' && this.fields[this.lastChangedField].type === 'input') {
-                timeoutValue = 1000;
-            }
-
-            // Remove column ordering if text or comment is searched, reset when no value is provided
-            // Do not refresh twice
             if (this.lastChangedField === 'text' || this.lastChangedField === 'comment') {
                 this.actualRequest = false;
-                if (this.model[this.lastChangedField] == null || this.model[this.lastChangedField === '']) {
+                const lastValue = this.model[this.lastChangedField];
+                if (lastValue == null || lastValue === '') {
                     if (this.lastOrder == null) {
                         this.$refs.resultTable.setOrder(this.defaultOrdering, true);
                     } else {
-                        const asc = ('ascending' in this.lastOrder && this.lastOrder.ascending);
+                        const asc = this.lastOrder.ascending ?? false;
                         this.$refs.resultTable.setOrder(this.lastOrder.column, asc);
                     }
                 } else {
@@ -313,10 +306,8 @@ export default {
                 }
             }
 
-            // Don't get new data if last changed field is text_type and text is null or empty
-            // else: remove column ordering
             if (this.lastChangedField === 'text_type') {
-                if (this.model.text == null || this.model.text === '') {
+                if (!this.model.text) {
                     this.actualRequest = false;
                 } else {
                     this.actualRequest = false;
@@ -327,16 +318,14 @@ export default {
                 this.actualRequest = true;
             }
 
-            // Don't get new data if history is being popped
             if (this.historyRequest) {
                 this.actualRequest = false;
             }
 
-            this.inputCancel = window.setTimeout(() => {
+            this.inputCancel = setTimeout(() => {
                 this.inputCancel = null;
                 const filterValues = this.constructFilterValues();
-                // only send request if the filters have changed
-                // filters are always in the same order, so we can compare serialization
+
                 if (JSON.stringify(filterValues) !== JSON.stringify(this.oldFilterValues)) {
                     this.oldFilterValues = filterValues;
                     VueTables.Event.$emit('vue-tables.filter::filters', filterValues);
@@ -344,164 +333,96 @@ export default {
             }, timeoutValue);
         },
         sortByName(a, b) {
-            // Move special filter values to the top
-            if (a.id === -1) {
-                return -1;
-            }
-            if (b.id === -1) {
-                return 1;
-            }
-            // Place true before false
-            if (a.name === 'false' && b.name === 'true') {
-                return 1;
-            }
-            if (a.name === 'true' && b.name === 'false') {
-                return -1;
-            }
+            // Helper to parse integer safely
+            const parseIntSafe = (str) => parseInt(str, 10);
+
+            // Helper to compare numbers
+            const compareNumbers = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+
+            // Handle special id cases
+            if (a.id === -1) return -1;
+            if (b.id === -1) return 1;
+
+            // Handle specific string cases 'false' and 'true'
+            if (a.name === 'false' && b.name === 'true') return 1;
+            if (a.name === 'true' && b.name === 'false') return -1;
+
+            // Ensure both names are strings
             if (
-                (typeof (a.name) === 'string' || a.name instanceof String)
-                && (typeof (b.name) === 'string' || b.name instanceof String)
+                (typeof a.name === 'string' || a.name instanceof String) &&
+                (typeof b.name === 'string' || b.name instanceof String)
             ) {
-                // Numeric (a.o. shelf number) (e.g., 571A)
-                let first = a.name.match(this.numRegex);
-                let second = b.name.match(this.numRegex);
-                if (first && second) {
-                    if (parseInt(first[1], 10) < parseInt(second[1], 10)) {
-                        return -1;
-                    }
-                    if (parseInt(first[1], 10) > parseInt(second[1], 10)) {
-                        return 1;
-                    }
-                    // let the string compare below handle cases where the numeric part is equal, but the rest not
+                // Numeric regex comparison
+                let firstMatch = a.name.match(this.numRegex);
+                let secondMatch = b.name.match(this.numRegex);
+                if (firstMatch && secondMatch) {
+                    const firstNum = parseIntSafe(firstMatch[1]);
+                    const secondNum = parseIntSafe(secondMatch[1]);
+                    const cmp = compareNumbers(firstNum, secondNum);
+                    if (cmp !== 0) return cmp;
                 }
-                // RGK (e.g., II.513)
-                first = a.name.match(this.rgkRegex);
-                second = b.name.match(this.rgkRegex);
-                if (first && second) {
-                    if (first[1] < second[1]) {
-                        return -1;
-                    }
-                    if (first[1] > second[1]) {
-                        return 1;
-                    }
-                    return first[2] - second[2];
+
+                // RGK regex comparison
+                firstMatch = a.name.match(this.rgkRegex);
+                secondMatch = b.name.match(this.rgkRegex);
+                if (firstMatch && secondMatch) {
+                    let cmp = compareNumbers(firstMatch[1], secondMatch[1]);
+                    if (cmp !== 0) return cmp;
+                    return compareNumbers(firstMatch[2], secondMatch[2]);
                 }
-                // VGH (e.g., 513.B)
-                first = a.name.match(this.vghRegex);
-                second = b.name.match(this.vghRegex);
-                if (first) {
-                    if (second) {
-                        if (first[1] !== second[1]) {
-                            return first[1] - second[1];
-                        }
-                        if (first[2] < second[2]) {
-                            return -1;
-                        }
-                        if (first[2] > second[2]) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    // place irregular vghs at the end
-                    return -1;
+
+                // VGH regex comparison
+                firstMatch = a.name.match(this.vghRegex);
+                secondMatch = b.name.match(this.vghRegex);
+                if (firstMatch || secondMatch) {
+                    if (!firstMatch) return 1;  // Irregular vghs go at the end
+                    if (!secondMatch) return -1;
+                    let cmp = compareNumbers(firstMatch[1], secondMatch[1]);
+                    if (cmp !== 0) return cmp;
+                    return compareNumbers(firstMatch[2], secondMatch[2]);
                 }
-                if (second) {
-                    // place irregular vghs at the end
-                    return 1;
+
+                // Role with count regex comparison
+                firstMatch = a.name.match(this.roleCountRegex);
+                secondMatch = b.name.match(this.roleCountRegex);
+                if (firstMatch && secondMatch) {
+                    // Note: reverse numeric order
+                    return parseIntSafe(secondMatch[1]) - parseIntSafe(firstMatch[1]);
                 }
-                // Role with count (e.g., Patron (7))
-                first = a.name.match(this.roleCountRegex);
-                second = b.name.match(this.roleCountRegex);
-                if (first && second) {
-                    return second[1] - first[1];
-                }
-                // Greek
-                first = a.name.match(this.greekRegex);
-                second = b.name.match(this.greekRegex);
-                if (first && second) {
-                    if (removeGreekAccents(a.name) < removeGreekAccents(b.name)) {
-                        return -1;
-                    }
-                    if (removeGreekAccents(a.name) > removeGreekAccents(b.name)) {
-                        return 1;
-                    }
+
+                // Greek regex comparison
+                firstMatch = a.name.match(this.greekRegex);
+                secondMatch = b.name.match(this.greekRegex);
+                if (firstMatch && secondMatch) {
+                    const aName = removeGreekAccents(a.name);
+                    const bName = removeGreekAccents(b.name);
+                    if (aName < bName) return -1;
+                    if (aName > bName) return 1;
                     return 0;
                 }
-                // AlphaNumRest (a.o. shelf number) (e.g., Γ 5 (Eustratiades 245))
-                first = a.name.match(this.alphaNumRestRegex);
-                second = b.name.match(this.alphaNumRestRegex);
-                if (first && second) {
-                    if (first[1] < second[1]) {
-                        return -1;
-                    }
-                    if (first[1] > second[1]) {
-                        return 1;
-                    }
-                    if (first[2] !== second[2]) {
-                        return first[2] - second[2];
-                    }
-                    if (first[3] < second[3]) {
-                        return -1;
-                    }
-                    if (first[3] > second[3]) {
-                        return 1;
-                    }
-                    return 0;
-                    // let the string compare below handle cases where the numeric part is equal, but the rest not
+
+                // AlphaNumRest regex comparison
+                firstMatch = a.name.match(this.alphaNumRestRegex);
+                secondMatch = b.name.match(this.alphaNumRestRegex);
+                if (firstMatch && secondMatch) {
+                    let cmp = compareNumbers(firstMatch[1], secondMatch[1]);
+                    if (cmp !== 0) return cmp;
+
+                    cmp = compareNumbers(firstMatch[2], secondMatch[2]);
+                    if (cmp !== 0) return cmp;
+
+                    return compareNumbers(firstMatch[3], secondMatch[3]);
                 }
             }
-            // Default
-            if (a.name < b.name) {
-                return -1;
-            }
-            if (a.name > b.name) {
-                return 1;
-            }
+
+            // Default string comparison
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
             return 0;
         },
         resetAllFilters() {
             this.model = JSON.parse(JSON.stringify(this.originalModel));
             this.onValidated(true);
-        },
-        onDataExtend(data) {
-            // Check whether column 'title/text' should be displayed
-            this.textSearch = false;
-            for (const item of data.data) {
-                if (
-                    'text' in item
-                    || 'title' in item
-                    || 'title_GR' in item
-                    || 'title_LA' in item
-                ) {
-                    this.textSearch = true;
-                    break;
-                }
-            }
-
-            // Check whether comment column(s) should be displayed
-            this.commentSearch = false;
-            for (const item of data.data) {
-                if (
-                    'public_comment' in item
-                    || 'private_comment' in item
-                    || 'palaeographical_info' in item
-                    || 'contextual_info' in item
-                ) {
-                    this.commentSearch = true;
-                    break;
-                }
-            }
-
-            // Check whether lemma column should be displayed
-            this.lemmaSearch = false;
-            for (const item of data.data) {
-                if (
-                    'lemma_text' in item
-                ) {
-                    this.lemmaSearch = true;
-                    break;
-                }
-            }
         },
         onLoaded() {
             // Update model and ordering if not initialized or history request
@@ -804,61 +725,53 @@ export default {
         },
         addActiveFilter(key) {
             const show = [];
-            const load = this.fields[key];
-            const currentModel = load.model;
-            const modelValue = this.model[currentModel];
-            const filterLabel = load.label;
-            if (modelValue !== undefined
-                && currentModel !== 'text_combination'
-                && currentModel !== 'text_fields'
-                && currentModel !== 'date_search_type'
-                && currentModel !== 'title_type'
-                && !currentModel.endsWith('_mode')) {
-                if (currentModel.endsWith('_op')) {
-                    if (modelValue !== 'or') {
-                        show.push({
-                            key: currentModel,
-                            value: [{ name: '' }],
-                            label: load.switchLabel,
-                            type: 'switch',
-                        });
-                    }
-                } else if (Array.isArray(modelValue)) {
-                    if (modelValue.length) {
-                        show.push({
-                            key: currentModel,
-                            value: modelValue,
-                            label: filterLabel,
-                            type: 'array',
-                        });
-                    }
-                } else if (`${key}_mode` in this.model) {
-                    const languageMode = this.model[`${key}_mode`][0];
+            const field = this.fields[key];
+            const currentKey = field.model;
+            const value = this.model[currentKey];
+            const label = field.label;
+
+            const isIgnored =
+                currentKey === 'text_combination' ||
+                currentKey === 'text_fields' ||
+                currentKey === 'date_search_type' ||
+                currentKey === 'title_type' ||
+                currentKey.endsWith('_mode');
+
+            if (value === undefined || isIgnored) return show;
+
+            if (currentKey.endsWith('_op')) {
+                if (value !== 'or') {
                     show.push({
-                        key: currentModel,
-                        value: [{ name: modelValue }],
-                        label: filterLabel,
-                        type: typeof modelValue,
-                        mode: languageMode,
-                    });
-                } else if (modelValue.name === undefined) {
-                    show.push({
-                        key: currentModel,
-                        value: [{ name: modelValue }],
-                        label: filterLabel,
-                        type: typeof modelValue,
-                    });
-                } else {
-                    show.push({
-                        key: currentModel,
-                        value: [modelValue],
-                        label: filterLabel,
-                        type: typeof modelValue,
+                        key: currentKey,
+                        value: [{ name: '' }],
+                        label: field.switchLabel,
+                        type: 'switch',
                     });
                 }
+            } else if (Array.isArray(value)) {
+                if (value.length) {
+                    show.push({
+                        key: currentKey,
+                        value,
+                        label,
+                        type: 'array',
+                    });
+                }
+            } else {
+                const mode = this.model[`${key}_mode`]?.[0];
+                const normalizedValue = value.name !== undefined ? [value] : [{ name: value }];
+
+                show.push({
+                    key: currentKey,
+                    value: normalizedValue,
+                    label,
+                    type: typeof value,
+                    ...(mode ? { mode } : {}),
+                });
             }
+
             return show;
-        },
+        }
     },
     async requestFunction(data) {
         const params = { ...data };
@@ -958,7 +871,6 @@ export default {
             paramsSerializer: qs.stringify,
         });
     },
-
     YEAR_MIN,
     YEAR_MAX,
 };
