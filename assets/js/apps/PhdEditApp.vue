@@ -197,11 +197,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
-  components: {
-    resetModal: Reset,
-    invalidModal: Invalid,
-    saveModal: Save
-  },
+    components: {
+      resetModal: Reset,
+      invalidModal: Invalid,
+      saveModal: Save
+    },
     data() {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),

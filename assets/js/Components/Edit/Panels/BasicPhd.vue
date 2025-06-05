@@ -106,7 +106,7 @@ export default {
             if (this.model.forthcoming == null) {
                 this.model.forthcoming = false;
             }
-            enableFields();
+            this.enableFields();
             this.calcChanges();
         },
         yearOrForthcoming() {

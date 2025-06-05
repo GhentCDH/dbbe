@@ -1,0 +1,45 @@
+{
+  "cookies": [
+    {
+      "name": "AUTH_SESSION_ID_LEGACY",
+      "value": "57d624cc-a84b-4316-9b6a-0ba1718a6bf1",
+      "domain": "keycloak",
+      "path": "/realms/dbbe/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_IDENTITY_LEGACY",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJhYWVjYjRkOC04ZmZmLTRiOTEtYTA1Zi0xNGJmMmYyODgxMDYifQ.eyJleHAiOjE3NDkxNzUzNjEsImlhdCI6MTc0OTEzOTM2MSwianRpIjoiZTE5ZTY1OTItMDBjOS00MWI3LWEyM2MtOTJiOWFkZDVkYzQ3IiwiaXNzIjoiaHR0cDovL2tleWNsb2FrOjgwODAvcmVhbG1zL2RiYmUiLCJzdWIiOiJmZjEzNzI2NC04NzhiLTRhM2UtYWY4Ny0zZDFhODM2YWNhNWIiLCJ0eXAiOiJTZXJpYWxpemVkLUlEIiwic2Vzc2lvbl9zdGF0ZSI6IjU3ZDYyNGNjLWE4NGItNDMxNi05YjZhLTBiYTE3MThhNmJmMSIsInNpZCI6IjU3ZDYyNGNjLWE4NGItNDMxNi05YjZhLTBiYTE3MThhNmJmMSIsInN0YXRlX2NoZWNrZXIiOiJyLWV5bFFTUzlzU2NNelNVQU43ZGtzSHRlb0R6U21hVFhCdzdXQjZZSGhZIn0.MXYeOf-vwENXDUPwwSUqh8tIwjOWRg5-uOAyOT9vkco",
+      "domain": "keycloak",
+      "path": "/realms/dbbe/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "KEYCLOAK_SESSION_LEGACY",
+      "value": "dbbe/ff137264-878b-4a3e-af87-3d1a836aca5b/57d624cc-a84b-4316-9b6a-0ba1718a6bf1",
+      "domain": "keycloak",
+      "path": "/realms/dbbe/",
+      "expires": 1749175361.927222,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "XDEBUG_SESSION",
+      "value": "docker",
+      "domain": "dbbe-app-1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

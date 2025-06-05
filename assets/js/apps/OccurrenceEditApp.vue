@@ -328,9 +328,6 @@ import Vue from 'vue/dist/vue.js';
 import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import axios from 'axios'
 import {isLoginError} from "@/helpers/errorUtil";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
 import Reset from "@/Components/Edit/Modals/Reset.vue";
 import Invalid from "@/Components/Edit/Modals/Invalid.vue";
 import Save from "@/Components/Edit/Modals/Save.vue";
