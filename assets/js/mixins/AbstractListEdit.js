@@ -9,6 +9,9 @@ import EditListRow from '../Components/Edit/EditListRow.vue'
 import Panel from '../Components/Edit/Panel.vue'
 import axios from 'axios';
 import {isLoginError} from "@/helpers/errorUtil";
+import { defineAsyncComponent } from 'vue';
+window.axios = axios;
+
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
 Vue.use(VueTables.ServerTable);
@@ -19,7 +22,12 @@ Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('alerts', Alerts)
 Vue.component('editListRow', EditListRow)
 Vue.component('panel', Panel)
+const modalComponents = import.meta.glob('./Modals/*{Edit,Merge,Migrate,Delete}.vue');
 
+for (let path in modalComponents) {
+    let compName = path.replace(/^\.\//, '').replace(/\.vue$/, '').split('/').pop();
+    Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal', defineAsyncComponent(modalComponents[path]));
+}
 export default {
     props: {
         initUrls: {

@@ -6,11 +6,27 @@ import * as uiv from 'uiv'
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
 import Alerts from '../Components/Alerts.vue'
 import {isLoginError} from "@/helpers/errorUtil";
+import Panel from '../Components/Edit/Panel.vue'
+
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('alerts', Alerts)
+
+const modalComponents = import.meta.glob('./Modals/*.vue', { eager: true })
+
+for (const path in modalComponents) {
+    const component = modalComponents[path].default
+    const compName = path
+        .replace(/^\.\/Modals\//, '')
+        .replace(/\.vue$/, '')
+
+    if (['Invalid', 'Reset', 'Save'].includes(compName)) {
+        const globalName = compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal'
+        Vue.component(globalName, component)
+    }
+}
 
 
 export default {
