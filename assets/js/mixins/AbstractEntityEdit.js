@@ -3,7 +3,6 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
-
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
 import Alerts from '../Components/Alerts.vue'
 import Panel from '../Components/Edit/Panel.vue'
@@ -25,7 +24,6 @@ for (const path in modalComponents) {
 
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
-
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('alerts', Alerts)
