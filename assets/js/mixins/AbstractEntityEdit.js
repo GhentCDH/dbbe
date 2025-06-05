@@ -5,23 +5,7 @@ import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
 import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
 import Alerts from '../Components/Alerts.vue'
-import Panel from '../Components/Edit/Panel.vue'
 import {isLoginError} from "@/helpers/errorUtil";
-
-const modalComponents = import.meta.glob('./Modals/*.vue', { eager: true })
-
-for (const path in modalComponents) {
-    const component = modalComponents[path].default
-    const compName = path
-        .replace(/^\.\/Modals\//, '')
-        .replace(/\.vue$/, '')
-
-    if (['Invalid', 'Reset', 'Save'].includes(compName)) {
-        const globalName = compName.charAt(0).toLowerCase() + compName.slice(1) + 'Modal'
-        Vue.component(globalName, component)
-    }
-}
-
 Vue.use(VueFormGenerator)
 Vue.use(uiv)
 Vue.component('multiselect', VueMultiselect)
