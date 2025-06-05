@@ -275,7 +275,6 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
 import qs from 'qs';
 
 import Vue from 'vue/dist/vue.js';
