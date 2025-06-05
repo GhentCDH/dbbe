@@ -497,7 +497,7 @@ class ManuscriptManager extends DocumentManager
 
         fputcsv($stream, [
             'id', 'name','diktyon', 'city', 'library', 'content'
-        ]);
+        ],';');
         $maxResults = $isAuthorized ? 10000 : 1000;
         $params['limit'] = $maxResults;
         $result = $elasticManuscriptService->runFullSearch($params, $isAuthorized);
@@ -505,7 +505,7 @@ class ManuscriptManager extends DocumentManager
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;
-            fputcsv($stream, $this->formatRow($item));
+            fputcsv($stream, $this->formatRow($item),';');
         }
         return $stream;
     }

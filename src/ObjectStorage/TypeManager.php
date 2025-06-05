@@ -794,7 +794,7 @@ class TypeManager extends PoemManager
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
             'id', 'genres', 'subjects', 'metres', 'text'
-        ]);
+        ],';');
         $maxResults = $isAuthorized ? 10000 : 1000;
         $params['limit'] = $maxResults;
         $result = $elasticTypeService->runFullSearch($params, $isAuthorized);
@@ -803,7 +803,7 @@ class TypeManager extends PoemManager
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;
-            fputcsv($stream, $this->formatRow($item));
+            fputcsv($stream, $this->formatRow($item),';');
         }
         return $stream;
     }

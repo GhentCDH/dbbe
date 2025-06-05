@@ -1560,7 +1560,7 @@ class PersonManager extends ObjectEntityManager
 
         fputcsv($stream, [
             'id', 'name', 'born_floor','born_ceiling','death_floor','death_ceiling','roles'
-        ]);
+        ],';');
         $maxResults = $isAuthorized ? 10000 : 1000;
         $params['limit'] = $maxResults;
         $result = $elasticPersonService->runFullSearch($params, $isAuthorized);
@@ -1568,7 +1568,7 @@ class PersonManager extends ObjectEntityManager
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;
-            fputcsv($stream, $this->formatRow($item));
+            fputcsv($stream, $this->formatRow($item),';');
         }
         return $stream;
     }

@@ -1064,7 +1064,7 @@ class OccurrenceManager extends PoemManager
         fputcsv($stream, [
             'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
-        ]);
+        ],';');
 
         $params['limit'] = 1000;
         $params['orderBy'] = ['id'];
@@ -1092,7 +1092,7 @@ class OccurrenceManager extends PoemManager
                     break 2;
                 }
                 $verses = $verseService->findVersesByOccurrenceId($item['id']);
-                fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
+                fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))),';');
                 $totalFetched++;
             }
 
