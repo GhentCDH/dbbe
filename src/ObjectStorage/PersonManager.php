@@ -1556,6 +1556,8 @@ class PersonManager extends ObjectEntityManager
         bool $isAuthorized
     ) {
         $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+
         fputcsv($stream, [
             'id', 'name', 'born_floor','born_ceiling','death_floor','death_ceiling','roles'
         ]);

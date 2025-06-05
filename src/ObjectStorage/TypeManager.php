@@ -791,6 +791,7 @@ class TypeManager extends PoemManager
         bool $isAuthorized
     ) {
         $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
             'id', 'genres', 'subjects', 'metres', 'text'
         ]);

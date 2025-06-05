@@ -1060,6 +1060,7 @@ class OccurrenceManager extends PoemManager
         bool $isAuthorized
     ) {
         $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
             'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'

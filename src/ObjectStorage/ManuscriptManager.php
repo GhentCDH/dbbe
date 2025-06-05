@@ -493,6 +493,8 @@ class ManuscriptManager extends DocumentManager
         bool $isAuthorized
     ) {
         $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+
         fputcsv($stream, [
             'id', 'name','diktyon', 'city', 'library', 'content'
         ]);
