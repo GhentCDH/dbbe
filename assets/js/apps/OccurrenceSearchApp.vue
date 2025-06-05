@@ -242,61 +242,69 @@
                         >
                         <label :for="props.row.id" />
                     </span>
-        </template>
-      </v-server-table>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all bottom"
-      >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
-        >
-          clear selection
-        </a>
-        |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
-      </div>
-      <collectionManager
-          v-if="isViewInternal"
-          :collection-array="collectionArray"
-          :managements="managements"
-          @addManagementsToSelection="addManagementsToSelection"
-          @removeManagementsFromSelection="removeManagementsFromSelection"
-          @addManagementsToResults="addManagementsToResults"
-          @removeManagementsFromResults="removeManagementsFromResults"
-      />
-    </article>
-    <div class="col-xs-12">
-      <alerts
-          :alerts="alerts"
-          @dismiss="alerts.splice($event, 1)"
-      />
+                </template>
+            </v-server-table>
+            <div
+                v-if="isViewInternal"
+                class="collection-select-all bottom"
+            >
+                <a
+                    href="#"
+                    @click.prevent="clearCollection()"
+                >
+                    clear selection
+                </a>
+                |
+                <a
+                    href="#"
+                    @click.prevent="collectionToggleAll()"
+                >
+                    (un)select all on this page
+                </a>
+            </div>
+          <div style="position: relative; height: 100px;">
+            <button @click="downloadCSV"
+                    class="btn btn-primary"
+                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
+              Download results CSV
+            </button>
+          </div>
+          <collectionManager
+                v-if="isViewInternal"
+                :collection-array="collectionArray"
+                :managements="managements"
+                @addManagementsToSelection="addManagementsToSelection"
+                @removeManagementsFromSelection="removeManagementsFromSelection"
+                @addManagementsToResults="addManagementsToResults"
+                @removeManagementsFromResults="removeManagementsFromResults"
+            />
+        </article>
+        <div class="col-xs-12">
+            <alerts
+                :alerts="alerts"
+                @dismiss="alerts.splice($event, 1)"
+            />
+        </div>
+        <deleteModal
+            :show="deleteModal"
+            :del-dependencies="delDependencies"
+            :submit-model="submitModel"
+            @cancel="deleteModal=false"
+            @confirm="submitDelete()"
+        />
+        <transition name="fade">
+            <div
+                v-if="openRequests"
+                class="loading-overlay"
+            >
+                <div class="spinner" />
+            </div>
+        </transition>
     </div>
-    <deleteModal
-        :show="deleteModal"
-        :del-dependencies="delDependencies"
-        :submit-model="submitModel"
-        @cancel="deleteModal=false"
-        @confirm="submitDelete()"
-    />
-    <transition name="fade">
-      <div
-          v-if="openRequests"
-          class="loading-overlay"
-      >
-        <div class="spinner" />
-      </div>
-    </transition>
-  </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';;
+import Vue from 'vue/dist/vue.js';
+import qs from 'qs';
 import VueFormGenerator from 'vue-form-generator';
 import {
   createMultiSelect,
@@ -609,6 +617,36 @@ export default {
             console.error(error);
           });
     },
+    async downloadCSV() {
+      try {
+        const params = this.session.getSearchParams();
+        params.limit = 10000;
+        params.page = 1;
+
+        const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
+        const url = `${this.urls['occurrences_export_csv']}?${queryString}`;
+
+        const response = await fetch(url);
+        const blob = await response.blob();
+
+        this.downloadFile(blob, 'occurrences.csv', 'text/csv');
+      } catch (error) {
+        console.error(error);
+        this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
+      }
+    },
+    downloadFile(blob, fileName, mimeType) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('hidden', '');
+      a.setAttribute('href', url);
+      a.setAttribute('download', fileName);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
   },
+
 };
 </script>

@@ -234,6 +234,13 @@
                     (un)select all on this page
                 </a>
             </div>
+          <div style="position: relative; height: 100px;">
+            <button @click="downloadCSV"
+                    class="btn btn-primary"
+                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
+              Download results CSV
+            </button>
+          </div>
             <collectionManager
                 v-if="isViewInternal"
                 :collection-array="collectionArray"
@@ -268,6 +275,9 @@
     </div>
 </template>
 <script>
+import Vue from 'vue/dist/vue.js';
+import qs from 'qs';
+
 import Vue from 'vue/dist/vue.js';
 
 import VueFormGenerator from 'vue-form-generator';
@@ -630,6 +640,36 @@ export default {
                     console.error(error);
                 });
         },
+        async downloadCSV() {
+          try {
+            const params = this.getSearchParams();
+            params.limit = 10000;
+            params.page = 1;
+
+            const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
+            const url = `${this.urls['types_export_csv']}?${queryString}`;
+
+            const response = await fetch(url);
+            const blob = await response.blob();
+
+            this.downloadFile(blob, 'types.csv', 'text/csv');
+          } catch (error) {
+            console.error(error);
+            this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
+          }
+        },
+        downloadFile(blob, fileName, mimeType) {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('hidden', '');
+          a.setAttribute('href', url);
+          a.setAttribute('download', fileName);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
+
     },
 };
 </script>

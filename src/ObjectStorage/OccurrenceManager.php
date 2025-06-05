@@ -2,6 +2,8 @@
 
 namespace App\ObjectStorage;
 
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticVerseService;
 use Exception;
 use stdClass;
 
@@ -1030,4 +1032,82 @@ class OccurrenceManager extends PoemManager
 
         return;
     }
+
+
+    private function formatRow(array $item, string $verses = ''): array
+    {
+        $manuscript = $item['manuscript'] ?? [];
+        $implodeNames = fn($key) => !empty($item[$key]) ? implode(' | ', array_column($item[$key], 'name')) : '';
+
+        return [
+            $item['id'] ?? '',
+            $item['incipit'] ?? '',
+            $verses,
+            $implodeNames('genre'),
+            $implodeNames('subject'),
+            $implodeNames('metre'),
+            $item['date_floor_year'] ?? '',
+            $item['date_ceiling_year'] ?? '',
+            $manuscript['id'] ?? '',
+            $manuscript['name'] ?? '',
+        ];
+    }
+
+    public function generateCsvStream(
+        array $params,
+        ElasticOccurrenceService $occurrenceService,
+        ElasticVerseService $verseService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+        fputcsv($stream, [
+            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
+            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
+        ],';');
+
+        $params['limit'] = 1000;
+        $params['orderBy'] = ['id'];
+        $params['ascending'] = 1;
+        $params['allow_large_results'] = true;
+
+        $totalFetched = 0;
+        $searchAfter = null;
+
+        while (true) {
+            if ($searchAfter !== null) {
+                $params['search_after'] = $searchAfter;
+            }
+
+            $result = $occurrenceService->runFullSearch($params, $isAuthorized);
+            $data = $result['data'] ?? [];
+            $count = count($data);
+
+            if ($count === 0) {
+                break;
+            }
+
+            foreach ($data as $item) {
+                if (!$isAuthorized && $totalFetched >= 1000) {
+                    break 2;
+                }
+                $verses = $verseService->findVersesByOccurrenceId($item['id']);
+                fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))),';');
+                $totalFetched++;
+            }
+
+            $last = end($data);
+            if (!isset($last['_search_after'])) {
+                break;
+            }
+
+            $searchAfter = $last['_search_after'];
+        }
+
+        return $stream;
+    }
+
+
+
+
 }
