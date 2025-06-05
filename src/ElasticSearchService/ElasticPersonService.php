@@ -49,13 +49,19 @@ class ElasticPersonService extends ElasticEntityService
         $this->index->setMapping(new Mapping($properties));
     }
 
-    public function searchAndAggregate(array $params, bool $viewInternal): array
-    {
+    public function runFullSearch(array $params, bool $viewInternal): array {
         if (!empty($params['filters'])) {
             $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
         }
 
-        $result = $this->search($params);
+        $result= $this->search($params);
+        return $result;
+    }
+
+    public function searchAndAggregate(array $params, bool $viewInternal): array
+    {
+        $result = $this->runFullSearch($params, $viewInternal);
+
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
