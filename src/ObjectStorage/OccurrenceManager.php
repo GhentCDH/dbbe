@@ -1065,47 +1065,48 @@ class OccurrenceManager extends PoemManager
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
         ]);
 
-        $maxResults = $isAuthorized ? 30000 : 1000;
-
-        // Batch size per request - smaller than or equal to maxResults
-        $batchSize = 1000;
-
-        $params['limit'] = $batchSize;
-        $params['orderBy'] = ['created'];
+        $params['limit'] = 1000;
+        $params['orderBy'] = ['id'];
         $params['ascending'] = 1;
+        $params['allow_large_results'] = true;
 
-        $allResults = [];
         $totalFetched = 0;
+        $searchAfter = null;
 
-        do {
-            $response = $occurrenceService->runFullSearch($params, $isAuthorized);
-            $dataBatch = $response['data'] ?? [];
-
-            $allResults = array_merge($allResults, $dataBatch);
-            $totalFetched += count($dataBatch);
-
-            $lastDoc = end($dataBatch);
-            if (isset($lastDoc['sort']) && $totalFetched < $maxResults) {
-                $params['search_after'] = $lastDoc['sort'];
-            } else {
-                unset($params['search_after']);
+        while (true) {
+            if ($searchAfter !== null) {
+                $params['search_after'] = $searchAfter;
             }
 
-            // Stop if fewer than batchSize returned OR reached maxResults
-        } while (!empty($params['search_after']) && count($dataBatch) === $batchSize && $totalFetched < $maxResults);
+            $result = $occurrenceService->runFullSearch($params, $isAuthorized);
+            $data = $result['data'] ?? [];
+            $count = count($data);
 
-        // Write out results, but only up to maxResults
-        $count = 0;
-        foreach ($allResults as $item) {
-            if ($count++ >= $maxResults) break;
+            if ($count === 0) {
+                break;
+            }
 
-            $verses = $verseService->findVersesByOccurrenceId($item['id']);
-            fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
+            foreach ($data as $item) {
+                if (!$isAuthorized && $totalFetched >= 1000) {
+                    break 2;
+                }
+                $verses = $verseService->findVersesByOccurrenceId($item['id']);
+                fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
+                $totalFetched++;
+            }
+
+            $last = end($data);
+            if (!isset($last['_search_after'])) {
+                break;
+            }
+
+            $searchAfter = $last['_search_after'];
         }
 
-        rewind($stream);
         return $stream;
     }
+
+
 
 
 }
