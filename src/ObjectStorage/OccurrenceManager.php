@@ -1064,17 +1064,48 @@ class OccurrenceManager extends PoemManager
             'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
             'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
         ]);
-        $maxResults = $isAuthorized ? 10000 : 1000;
-        $params['limit'] = $maxResults;
-        $result = $occurrenceService->runFullSearch($params, $isAuthorized);
-        $data = $result['data'] ?? [];
+
+        $maxResults = $isAuthorized ? 30000 : 1000;
+
+        // Batch size per request - smaller than or equal to maxResults
+        $batchSize = 1000;
+
+        $params['limit'] = $batchSize;
+        $params['orderBy'] = ['created'];
+        $params['ascending'] = 1;
+
+        $allResults = [];
         $totalFetched = 0;
-        foreach ($data as $item) {
-            if ($totalFetched++ >= $maxResults) break;
+
+        do {
+            $response = $occurrenceService->runFullSearch($params, $isAuthorized);
+            $dataBatch = $response['data'] ?? [];
+
+            $allResults = array_merge($allResults, $dataBatch);
+            $totalFetched += count($dataBatch);
+
+            $lastDoc = end($dataBatch);
+            if (isset($lastDoc['sort']) && $totalFetched < $maxResults) {
+                $params['search_after'] = $lastDoc['sort'];
+            } else {
+                unset($params['search_after']);
+            }
+
+            // Stop if fewer than batchSize returned OR reached maxResults
+        } while (!empty($params['search_after']) && count($dataBatch) === $batchSize && $totalFetched < $maxResults);
+
+        // Write out results, but only up to maxResults
+        $count = 0;
+        foreach ($allResults as $item) {
+            if ($count++ >= $maxResults) break;
+
             $verses = $verseService->findVersesByOccurrenceId($item['id']);
             fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))));
         }
+
+        rewind($stream);
         return $stream;
     }
+
 
 }

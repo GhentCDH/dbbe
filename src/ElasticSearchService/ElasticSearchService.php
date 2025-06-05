@@ -50,26 +50,32 @@ class ElasticSearchService implements ElasticSearchServiceInterface
             $query->setSize($params['limit']);
         }
 
-        // Pagination
-        if (isset($params['page']) && is_numeric($params['page']) &&
-            isset($params['limit']) && is_numeric($params['limit'])
-        ) {
-            $query->setFrom(($params['page'] - 1) * $params['limit']);
-        }
+        $sort = [];
+        $order = (isset($params['ascending']) && $params['ascending'] == 0) ? 'desc' : 'asc';
 
-        // Sorting
+        // Define sorting if provided
         if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && $params['ascending'] == 0) {
-                $order = 'desc';
-            } else {
-                $order = 'asc';
-            }
-            $sort = [];
             foreach ($params['orderBy'] as $field) {
                 $sort[] = [$field => $order];
             }
-            $query->setSort($sort);
         }
+
+        // Use search_after if set
+        if (isset($params['search_after']) && is_array($params['search_after'])) {
+            $query->setSearchAfter($params['search_after']);
+
+            // Always add a tie-breaker for search_after
+            $sort[] = ['_id' => 'asc'];
+            $query->setSort($sort);
+
+        // Otherwise fall back to from + size pagination
+        } elseif (isset($params['page'], $params['limit']) && is_numeric($params['page']) && is_numeric($params['limit'])) {
+            $query->setFrom(($params['page'] - 1) * $params['limit']);
+            if (!empty($sort)) {
+                $query->setSort($sort);
+            }
+        }
+
 
         // Track total number of hits
         $query->setTrackTotalHits();
@@ -115,6 +121,10 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                     $part['original_' . $key] = $part[$key];
                     $part[$key] = self::formatHighlight($value[0]);
                 }
+            }
+
+            if (isset($result['sort'])) {
+                $part['_search_after'] = $result['sort'];
             }
             // Remove _stemmer or _original
             foreach ($rename as $key => $value) {
