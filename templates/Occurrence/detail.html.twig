@@ -2,17 +2,63 @@
 
 {% block content %}
     <article class="col-xs-9">
-        <h2 class="h1{% if not occurrence.getPublic() %} text-danger{% endif %}">
-            Occurrence {{ occurrence.getId() }}
-            {% if occurrence.getPrevId() is not empty %}<br /><small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
-            {% if not occurrence.getPublic() %}
-                - Not Public
+        {% set manuscript = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getManuscript() : occurrence.getManuscript()|public %}
+
+        <div class="header-with-buttons" style="position: relative;">
+            <h2 class="h1{% if not occurrence.getPublic() %} text-danger{% endif %}">
+                Occurrence {{ occurrence.getId() }}
+                {% if occurrence.getPrevId() is not empty %}<br /><small>(formerly occ/{{ occurrence.getPrevId() }})</small>{% endif %}
+                {% if not occurrence.getPublic() %}
+                    - Not Public
+                {% endif %}
+            </h2>
+
+            {% if manuscript is not empty and manuscript.getOccurrences() is not empty %}
+                {% set occurrences = manuscript.getOccurrences() %}
+                {% set currentIndex = -1 %}
+                {% for key, occ in occurrences %}
+                    {% if occ.getId() == occurrence.getId() %}
+                        {% set currentIndex = key %}
+                    {% endif %}
+                {% endfor %}
+
+                {% set showEditorButtons = is_granted('ROLE_EDITOR_VIEW') %}
+                <div style="position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 10px;">
+
+                    <div class="btn-group ms-nav-buttons"
+                         style="display: flex; gap: 10px; {% if showEditorButtons %}margin-right: 40px;{% endif %}">
+                        {% if currentIndex > 0 %}
+                            {% set prevOccurrence = occurrences[currentIndex - 1] %}
+                            <a href="{{ path('occurrence_get', {'id': prevOccurrence.getId()}) }}" class="btn btn-primary" title="Previous Occurrence">
+                                &laquo; Previous ms. occ.
+                            </a>
+                        {% endif %}
+                        {% if currentIndex < (occurrences|length - 1) %}
+                            {% set nextOccurrence = occurrences[currentIndex + 1] %}
+                            <a href="{{ path('occurrence_get', {'id': nextOccurrence.getId()}) }}" class="btn btn-primary" title="Next Occurrence">
+                                Next ms. occ. &raquo;
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if showEditorButtons %}
+                        <div class="editor-buttons" style="white-space: nowrap;">
+                            <a href="{{ path('occurrence_edit', {'id': occurrence.getId(), 'clone': 1}) }}"
+                               class="action action-margin-left" title="Duplicate">
+                                <i class="fa fa-files-o"></i>
+                            </a>
+                            <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}"
+                               class="action" title="Edit">
+                                <i class="fa fa-pencil-square-o"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
             {% endif %}
-            {% if is_granted('ROLE_EDITOR_VIEW') %}
-                <a href="{{ path('occurrence_edit', {'id': occurrence.getId(), 'clone': 1}) }}" class="action action-margin-left pull-right" title="Duplicate"><i class="fa fa-files-o"></i></a>
-                <a href="{{ path('occurrence_edit', {'id': occurrence.getId()}) }}" class="action pull-right" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
-            {% endif %}
-        </h2>
+        </div>
+
+
         <div class="row pbottom-default">
             {% set images = is_granted('ROLE_VIEW_INTERNAL') ? occurrence.getImages() : occurrence.getImages()|public %}
             <div class="{% if images is not empty %}col-md-8{% else %}col-md-12{% endif %}">
