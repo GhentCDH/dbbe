@@ -1,0 +1,51 @@
+services:
+  dbbe-app-test:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8002:8000" # Avoid conflict with original app
+    volumes:
+      - ./:/app
+    environment:
+      DATABASE_URL: ${DATABASE_DRIVER}://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT:-5432}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}'
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST}
+      ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
+      ELASTICSEARCH_INDEX_PREFIX: ${ELASTICSEARCH_INDEX_PREFIX}
+      ELASTIC_INDEX_PREFIX: ${ELASTICSEARCH_INDEX_PREFIX}
+      MAILER_DSN: ${MAILER_DSN}
+      PAGE_IMAGE_PATH: ${PAGE_IMAGE_PATH}
+      IMAGE_PATH: ${IMAGE_PATH}
+      SITEKEY: ${RECAPTCHA_SITEKEY}
+      SECRETKEY: ${RECAPTCHA_SECRETKEY}
+      RECAPTCHA_SITEVERIFY_URL: ${RECAPTCHA_SITEVERIFY_URL}
+      MORPH_HOST: ${MORPH_HOST}
+      KEYCLOAK_ADMIN_URL: ${KEYCLOAK_ADMIN_URL}
+      PHP_MEMORY_LIMIT: 1024M
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
+      KEYCLOAK_CLIENT_ID: dbbe
+      KEYCLOAK_CLIENT_SECRET: CTop7KIDgJuGJJ25JdjaA7vCQZGfQhi5
+      KEYCLOAK_REALM: dbbe
+      KEYCLOAK_SERVER_URL: http://keycloak:8080
+      PHP_IDE_CONFIG: serverName=localhost
+    tty: true
+    command: bash -c "cd /app && ./symfony_startup_script.sh"
+    depends_on:
+      - database
+      - elasticsearch
+      - keycloak
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    depends_on:
+      - dbbe-app-test
+      - keycloak
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ["npx", "playwright", "test", "dbbe.spec.js"]
+    environment:
+      - NODE_ENV=development
+      - VITE_DOCKER_PLAYWRIGHT=true
+      - RECAPTCHA_SITEVERIFY_URL=https://www.google.com/recaptcha/api/siteverify

@@ -5,9 +5,8 @@ services:
       context: .
       target: dev
     ports:
-      - "127.0.0.1:${APP_SYMFONY_EXTERNAL_PORT:-8001}:8000"
+      - "${APP_SYMFONY_EXTERNAL_PORT:-8001}:8000"
       - "5173:5173"
-
     volumes:
       - ./:/app
       - ./image_data:/app/data
@@ -133,7 +132,21 @@ services:
       - KC_DB_PASSWORD=$KEYCLOAK_DATABASE_PASSWORD
 
     command: start-dev --import-realm
-
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    depends_on:
+      - app
+      - keycloak
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ["npx", "playwright", "test", "dbbe.spec.js"]
+    environment:
+      - NODE_ENV=development
+      - VITE_DOCKER_PLAYWRIGHT=true
+      - RECAPTCHA_SITEVERIFY_URL=https://www.google.com/recaptcha/api/siteverify
+    networks:
+      - default
 volumes:
   esdata:
     driver: local
