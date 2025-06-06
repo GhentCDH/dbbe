@@ -80,7 +80,7 @@ test('crawl protected pages', async ({ authContext }) => {
 
     const excludePatterns = [
         /\/_profiler/, /\/_wdt/, /\/_error/, /\/_twig/, /\/admin(\/|$)/,
-        /search_api/, /\/login/, /keycloak/i, /\/logout/
+        /search_api/, /\/login/, /keycloak/i, /\/logout/,/\/search-tips-tricks/, /\/pages\/help/
     ];
 
     function normalizePath(urlStr) {
@@ -143,6 +143,12 @@ test('crawl protected pages', async ({ authContext }) => {
                         href.trim() !== ''
                     )
             );
+
+            for (const link of links) {
+                if (link.includes('/types/search') && link.includes('genre')) {
+                    console.log(`[TRACE] Found occurrences/search URL with metre filter on page ${page.url()}: ${link}`);
+                }
+            }
 
             for (const link of links) {
                 crawlQueue.push(crawl(link));
