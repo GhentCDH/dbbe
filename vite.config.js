@@ -4,6 +4,7 @@ import path from 'path';
 import vue from '@vitejs/plugin-vue2';
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
+const isPlaywright = process.env.VITE_DOCKER_PLAYWRIGHT === 'true';
 export default defineConfig({
     plugins: [
         symfonyPlugin(),
@@ -82,6 +83,7 @@ export default defineConfig({
         strictPort: true,
         cors:true,
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
+        // hmr: { host: 'dbbe-app-1' }
     },
     // publicDir: 'assets/websites/static',
     resolve: {
