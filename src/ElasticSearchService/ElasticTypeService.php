@@ -86,8 +86,11 @@ class ElasticTypeService extends ElasticEntityService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $result = $this->runFullSearch($params, $viewInternal);
+        if (!empty($params['filters'])) {
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
+        }
 
+        $result = $this->search($params);
         // Filter out unnecessary results
         // Add additional results
         foreach ($result['data'] as $key => $value) {
