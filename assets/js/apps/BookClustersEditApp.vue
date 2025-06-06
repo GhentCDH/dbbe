@@ -115,23 +115,32 @@ import qs from 'qs'
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '@/Components/FormFields/AbstractField'
-import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
+import AbstractListEdit from '@/mixins/AbstractListEdit'
 import Url from '@/Components/Edit/Panels/Url'
+import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
-    components: {
-        UrlPanel: Url
-    },
+
+
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete,
+      UrlPanel: Url
+
+    },
     data() {
         return {
             schema: {
                 fields: {
-                    bookCluster: this.createMultiSelect('BookCluster', {label: 'Book cluster'}),
+                    bookCluster: createMultiSelect('BookCluster', {label: 'Book cluster'}),
                 },
             },
             editSchema: {
@@ -149,8 +158,8 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -191,7 +200,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.schema.fields.bookCluster);
+        enableField(this.schema.fields.bookCluster);
     },
     methods: {
         edit(add = false) {
@@ -226,8 +235,8 @@ export default {
             this.mergeModel.secondary = null;
             this.mergeSchema.fields.primary.values = this.values;
             this.mergeSchema.fields.secondary.values = this.values;
-            this.enableField(this.mergeSchema.fields.primary);
-            this.enableField(this.mergeSchema.fields.secondary);
+            enableField(this.mergeSchema.fields.primary);
+            enableField(this.mergeSchema.fields.secondary);
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
             this.mergeModal = true
         },
@@ -270,7 +279,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the book cluster.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the book cluster.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -292,7 +301,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the book cluster.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the book cluster.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -317,7 +326,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.mergeModal = true;
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the book clusters.', login: this.isLoginError(error)});
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the book clusters.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -338,7 +347,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the book cluster.', login: this.isLoginError(error)});
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the book cluster.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -353,7 +362,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the book cluster data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the book cluster data.', login: isLoginError(error)});
                     console.log(error)
                 })
         },

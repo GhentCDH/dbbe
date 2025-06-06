@@ -89,11 +89,14 @@ import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+  disableField,
+  enableField,
+} from '@/helpers/formFieldUtils';
+
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -102,7 +105,6 @@ Vue.component('draggable', draggable)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -132,7 +134,7 @@ export default {
         for (let role of this.roles) {
             data.schemas[role.systemName] = {
                 fields: {
-                    [role.systemName]: this.createMultiSelect(
+                    [role.systemName]: createMultiSelect(
                         role.name,
                         {
                             required: role.required,
@@ -168,7 +170,7 @@ export default {
                 if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
                     for (let role of this.roles) {
                         this.schemas[role.systemName]['fields'][role.systemName].values = this.values;
-                        this.enableField(this.schemas[role.systemName]['fields'][role.systemName]);
+                        enableField(this.schemas[role.systemName]['fields'][role.systemName]);
                     }
                 }
             }
@@ -177,7 +179,7 @@ export default {
             for (let key of Object.keys(this.keys)) {
                 if (disableKeys.includes(key)) {
                     for (let role of this.roles) {
-                        this.disableField(this.schemas[role.systemName]['fields'][role.systemName]);
+                        disableField(this.schemas[role.systemName]['fields'][role.systemName]);
                     }
                 }
             }

@@ -1,3 +1,5 @@
+import {disableField, enableField} from "@/helpers/formFieldUtils";
+
 export default {
     props: {
         header: {
@@ -57,14 +59,14 @@ export default {
                         this.fields[this.keys[key].field].values = this.values[key];
                         this.fields[this.keys[key].field].originalValues = JSON.parse(JSON.stringify(this.values[key]));
                     }
-                    this.enableField(this.fields[this.keys[key].field]);
+                    enableField(this.fields[this.keys[key].field], null);
                 }
             }
         },
         disableFields(disableKeys) {
             for (let key of Object.keys(this.keys)) {
                 if (disableKeys.includes(key)) {
-                    this.disableField(this.fields[this.keys[key].field]);
+                    disableField(this.fields[this.keys[key].field]);
                 }
             }
         },

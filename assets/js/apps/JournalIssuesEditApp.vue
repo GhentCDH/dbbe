@@ -58,14 +58,22 @@ import axios from 'axios'
 
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+    },
     data() {
         let data = JSON.parse(this.initData);
         return {
@@ -74,12 +82,12 @@ export default {
             journals: data.journals,
             schema: {
                 fields: {
-                    journalIssue: this.createMultiSelect('JournalIssue', {label: 'Journal issue'}),
+                    journalIssue: createMultiSelect('JournalIssue', {label: 'Journal issue'}),
                 },
             },
             editSchema: {
                 fields: {
-                    journal: this.createMultiSelect(
+                    journal: createMultiSelect(
                         'Journal',
                         {
                             model: 'journal issue.journal',
@@ -157,7 +165,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.schema.fields.journalIssue)
+        enableField(this.schema.fields.journalIssue)
 
         // Use $watch API because 'journal issue' contains a space
         this.$watch(
@@ -226,7 +234,7 @@ export default {
                 this.submitModel['journal issue'] = JSON.parse(JSON.stringify(this.model.journalIssue))
             }
             this.editSchema.fields.journal.values = this.journals;
-            this.enableField(this.editSchema.fields.journal);
+            enableField(this.editSchema.fields.journal);
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
             // Make sure forthcoming is set
             if (this.submitModel['journal issue'].forthcoming == null) {
@@ -261,7 +269,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal issue.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the journal issue.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -277,7 +285,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal issue.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the journal issue.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -296,7 +304,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the journal.', login: this.isLoginError(error)});
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the journal.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -311,7 +319,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the journal issue data.', login: isLoginError(error)});
                     console.log(error)
                 })
         },

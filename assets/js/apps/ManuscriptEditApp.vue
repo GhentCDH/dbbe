@@ -271,8 +271,12 @@
 <script>
 import Vue from 'vue/dist/vue.js';
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
 import axios from 'axios'
+import {isLoginError} from "@/helpers/errorUtil";
+import Reset from "@/Components/Edit/Modals/Reset.vue";
+import Invalid from "@/Components/Edit/Modals/Invalid.vue";
+import Save from "@/Components/Edit/Modals/Save.vue";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{LocatedAt,Content,Person,Date,Origin,OccurrenceOrder,Identification,Bibliography,GeneralManuscript,Management}.vue', { eager: true })
 
@@ -284,6 +288,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    components: {
+      resetModal: Reset,
+      invalidModal: Invalid,
+      saveModal: Save
+    },
     data() {
         let data = {
             identifiers: JSON.parse(this.initIdentifiers),
@@ -510,7 +519,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -524,7 +533,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }

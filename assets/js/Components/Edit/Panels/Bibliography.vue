@@ -521,11 +521,13 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+  disableField,
+  enableField,
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -533,7 +535,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -572,7 +573,7 @@ export default {
         let data = {
             editBookBibSchema: {
                 fields: {
-                    book: this.createMultiSelect(
+                    book: createMultiSelect(
                         'Book',
                         {
                             required: true,
@@ -588,7 +589,7 @@ export default {
             },
             editArticleBibSchema: {
                 fields: {
-                    article: this.createMultiSelect(
+                    article: createMultiSelect(
                         'Article',
                         {
                             required: true,
@@ -604,7 +605,7 @@ export default {
             },
             editBookChapterBibSchema: {
                 fields: {
-                    bookChapter: this.createMultiSelect(
+                    bookChapter: createMultiSelect(
                         'Book Chapter',
                         {
                             required: true,
@@ -620,7 +621,7 @@ export default {
             },
             editOnlineSourceBibSchema: {
                 fields: {
-                    onlineSource: this.createMultiSelect(
+                    onlineSource: createMultiSelect(
                         'Online Source',
                         {
                             required: true,
@@ -652,7 +653,7 @@ export default {
             },
             editBlogPostBibSchema: {
                 fields: {
-                    blogPost: this.createMultiSelect(
+                    blogPost: createMultiSelect(
                         'Blog Post',
                         {
                             required: true,
@@ -668,7 +669,7 @@ export default {
             },
             editPhdBibSchema: {
                 fields: {
-                    phd: this.createMultiSelect(
+                    phd: createMultiSelect(
                         'Phd',
                         {
                             required: true,
@@ -684,7 +685,7 @@ export default {
             },
             editBibVariaBibSchema: {
                 fields: {
-                    bibVaria: this.createMultiSelect(
+                    bibVaria: createMultiSelect(
                         'BibVaria',
                         {
                             required: true,
@@ -744,7 +745,7 @@ export default {
         data.editPhdBibSchema.fields['rawPages'] = rawPagesField
         data.editBibVariaBibSchema.fields['rawPages'] = rawPagesField
         if (this.referenceType) {
-            let referenceTypeField = this.createMultiSelect('Type', {
+            let referenceTypeField = createMultiSelect('Type', {
                 model: 'referenceType',
                 values: this.values.referenceTypes,
                 required: true,
@@ -787,54 +788,54 @@ export default {
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 if (this.referenceType) {
-                    this.enableField(this.editBookBibSchema.fields.referenceType);
-                    this.enableField(this.editArticleBibSchema.fields.referenceType);
-                    this.enableField(this.editBookChapterBibSchema.fields.referenceType);
-                    this.enableField(this.editOnlineSourceBibSchema.fields.referenceType);
-                    this.enableField(this.editBlogPostBibSchema.fields.referenceType);
-                    this.enableField(this.editPhdBibSchema.fields.referenceType);
-                    this.enableField(this.editBibVariaBibSchema.fields.referenceType);
+                    enableField(this.editBookBibSchema.fields.referenceType);
+                    enableField(this.editArticleBibSchema.fields.referenceType);
+                    enableField(this.editBookChapterBibSchema.fields.referenceType);
+                    enableField(this.editOnlineSourceBibSchema.fields.referenceType);
+                    enableField(this.editBlogPostBibSchema.fields.referenceType);
+                    enableField(this.editPhdBibSchema.fields.referenceType);
+                    enableField(this.editBibVariaBibSchema.fields.referenceType);
                 }
             } else {
                 if (enableKeys.includes('books')) {
                     this.editBookBibSchema.fields.book.values = this.values.books;
-                    this.enableField(this.editBookBibSchema.fields.book);
+                    enableField(this.editBookBibSchema.fields.book);
                 } else if (enableKeys.includes('articles')) {
                     this.editArticleBibSchema.fields.article.values = this.values.articles;
-                    this.enableField(this.editArticleBibSchema.fields.article);
+                    enableField(this.editArticleBibSchema.fields.article);
                 } else if (enableKeys.includes('bookChapters')) {
                     this.editBookChapterBibSchema.fields.bookChapter.values = this.values.bookChapters;
-                    this.enableField(this.editBookChapterBibSchema.fields.bookChapter);
+                    enableField(this.editBookChapterBibSchema.fields.bookChapter);
                 } else if (enableKeys.includes('onlineSources')) {
                     this.editOnlineSourceBibSchema.fields.onlineSource.values = this.values.onlineSources;
-                    this.enableField(this.editOnlineSourceBibSchema.fields.onlineSource);
+                    enableField(this.editOnlineSourceBibSchema.fields.onlineSource);
                 } else if (enableKeys.includes('blogPosts')) {
                     this.editBlogPostBibSchema.fields.blogPost.values = this.values.blogPosts;
-                    this.enableField(this.editBlogPostBibSchema.fields.blogPost);
+                    enableField(this.editBlogPostBibSchema.fields.blogPost);
                 } else if (enableKeys.includes('phds')) {
                     this.editPhdBibSchema.fields.phd.values = this.values.phds;
-                    this.enableField(this.editPhdBibSchema.fields.phd);
+                    enableField(this.editPhdBibSchema.fields.phd);
                 } else if (enableKeys.includes('bibVarias')) {
                     this.editBibVariaBibSchema.fields.bibVaria.values = this.values.bibVarias;
-                    this.enableField(this.editBibVariaBibSchema.fields.bibVaria);
+                    enableField(this.editBibVariaBibSchema.fields.bibVaria);
                 }
             }
         },
         disableFields(disableKeys) {
             if (disableKeys.includes('books')) {
-                this.disableField(this.editBookBibSchema.fields.book);
+                disableField(this.editBookBibSchema.fields.book);
             } else if (disableKeys.includes('articles')) {
-                this.disableField(this.editArticleBibSchema.fields.article);
+                disableField(this.editArticleBibSchema.fields.article);
             } else if (disableKeys.includes('bookChapters')) {
-                this.disableField(this.editBookChapterBibSchema.fields.bookChapter);
+                disableField(this.editBookChapterBibSchema.fields.bookChapter);
             } else if (disableKeys.includes('onlineSources')) {
-                this.disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
+                disableField(this.editOnlineSourceBibSchema.fields.onlineSource);
             } else if (disableKeys.includes('blogPosts')) {
-                this.disableField(this.editBlogPostBibSchema.fields.blogPost);
+                disableField(this.editBlogPostBibSchema.fields.blogPost);
             } else if (disableKeys.includes('phds')) {
-                this.disableField(this.editPhdBibSchema.fields.phd);
+                disableField(this.editPhdBibSchema.fields.phd);
             } else if (disableKeys.includes('bibVarias')) {
-                this.disableField(this.editBibVariaBibSchema.fields.bibVaria);
+                disableField(this.editBibVariaBibSchema.fields.bibVaria);
             }
         },
         validate() {},

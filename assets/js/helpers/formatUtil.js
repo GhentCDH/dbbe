@@ -66,3 +66,16 @@ export function changeMode(from, to, input) {
         .replace('- ', '-');
     return result;
 }
+
+export function greekFont(input) {
+    // eslint-disable-next-line max-len
+    return input.replace(/((?:[[.,(|+][[\].,():|+\- ]*)?[\u0370-\u03ff\u1f00-\u1fff]+(?:[[\].,():|+\- ]*[\u0370-\u03ff\u1f00-\u1fff]+)*(?:[[\].,():|+\- ]*[\].,):|])?)/g, '<span class="greek">$1</span>');
+}
+export function formatDate(input) {
+    const date = new Date(input);
+    return [
+        `00${date.getDate()}`.slice(-2),
+        `00${date.getMonth() + 1}`.slice(-2),
+        date.getFullYear(),
+    ].join('/');
+}

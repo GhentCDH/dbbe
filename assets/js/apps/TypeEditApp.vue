@@ -330,7 +330,11 @@
 import Vue from 'vue/dist/vue.js';
 import axios from 'axios'
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
+import {isLoginError} from "@/helpers/errorUtil";
+import Reset from "@/Components/Edit/Modals/Reset.vue";
+import Invalid from "@/Components/Edit/Modals/Invalid.vue";
+import Save from "@/Components/Edit/Modals/Save.vue";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{BasicType,TypeVerses,TypeTypes,Person,Metre,Genre,Subject,Keyword,Identification,Bibliography,Translation,GeneralType,Management}.vue', { eager: true })
 
@@ -348,6 +352,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+    components: {
+      resetModal: Reset,
+      invalidModal: Invalid,
+      saveModal: Save
+    },
     props: {
         initTranslationRoles: {
             type: String,
@@ -702,7 +711,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -716,7 +725,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the type data.', login: isLoginError(error)})
                         this.openRequests--
                     })
             }

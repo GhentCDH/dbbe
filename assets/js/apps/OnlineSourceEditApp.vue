@@ -144,7 +144,11 @@
 import Vue from 'vue/dist/vue.js';
 import axios from 'axios'
 
-import AbstractEntityEdit from '../Components/Edit/AbstractEntityEdit'
+import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
+import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
+import Reset from "@/Components/Edit/Modals/Reset.vue";
+import Invalid from "@/Components/Edit/Modals/Invalid.vue";
+import Save from "@/Components/Edit/Modals/Save.vue";
 
 const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicOnlineSource,Url,GeneralBibItem,Management}.vue', { eager: true })
 
@@ -157,6 +161,11 @@ for (const path in panelComponents) {
 
 export default {
     mixins: [ AbstractEntityEdit ],
+  components: {
+    resetModal: Reset,
+    invalidModal: Invalid,
+    saveModal: Save
+  },
     data() {
         return {
             onlineSource: null,
@@ -230,7 +239,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }
@@ -244,7 +253,7 @@ export default {
                     .catch( (error) => {
                         console.log(error)
                         this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: this.getErrorMessage(error), login: this.isLoginError(error)})
+                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: getErrorMessage(error), login: isLoginError(error)})
                         this.openRequests--
                     })
             }

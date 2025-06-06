@@ -86,19 +86,27 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect, enableField, removeGreekAccents} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+  components: {
+    mergeModal: Merge,
+    deleteModal: Delete,
+    editModal: Edit
+  },
     data() {
         return {
             schema: {
                 fields: {
-                    selfDesignation: this.createMultiSelect(
+                    selfDesignation: createMultiSelect(
                         '(Self) designation',
                         {
                             model: 'selfDesignation',
@@ -130,7 +138,7 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             styleClasses: 'greek',
@@ -143,7 +151,7 @@ export default {
                             onSearch: this.greekSearchPrimary,
                         }
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             styleClasses: 'greek',
@@ -190,7 +198,7 @@ export default {
     mounted () {
         this.schema.fields.selfDesignation.values = this.values;
         this.schema.fields.selfDesignation.originalValues = JSON.parse(JSON.stringify(this.values));
-        this.enableField(this.schema.fields.selfDesignation)
+        enableField(this.schema.fields.selfDesignation)
     },
     methods: {
         edit(add = false) {
@@ -212,8 +220,8 @@ export default {
             this.mergeModel.secondary = null;
             this.mergeSchema.fields.primary.values = this.values;
             this.mergeSchema.fields.secondary.values = this.values;
-            this.enableField(this.mergeSchema.fields.primary);
-            this.enableField(this.mergeSchema.fields.secondary);
+            enableField(this.mergeSchema.fields.primary);
+            enableField(this.mergeSchema.fields.secondary);
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
             this.mergeModal = true
         },
@@ -238,7 +246,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the (self) designation.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the (self) designation.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -256,7 +264,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--;
                         this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the (self) designation.', login: this.isLoginError(error)});
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the (self) designation.', login: isLoginError(error)});
                         console.log(error)
                     })
             }
@@ -275,7 +283,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.mergeModal = true;
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the self designations.', login: this.isLoginError(error)});
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the self designations.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -293,7 +301,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--;
                     this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the (self) designation.', login: this.isLoginError(error)});
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the (self) designation.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
@@ -308,23 +316,29 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the (self) designation data.', login: this.isLoginError(error)});
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the (self) designation data.', login: isLoginError(error)});
                     console.log(error)
                 })
         },
         greekSearch(searchQuery) {
             this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
         greekSearchPrimary(searchQuery) {
             this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
         greekSearchSecondary(searchQuery) {
             this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => this.removeGreekAccents(`${option.id} - ${option.name}`).includes(this.removeGreekAccents(searchQuery))
+                option => {
+                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
+                }
             );
         },
     }

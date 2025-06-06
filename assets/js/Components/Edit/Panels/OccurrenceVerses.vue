@@ -271,8 +271,7 @@ import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 import axios from 'axios';
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
 
@@ -283,7 +282,6 @@ Vue.component('verseTable', VerseTable)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {

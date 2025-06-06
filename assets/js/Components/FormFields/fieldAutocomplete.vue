@@ -57,14 +57,6 @@ export default {
             cancel: null,
         };
     },
-    //
-    // mounted() {
-    //     this.$nextTick(() => {
-    //         if (!window.axios) {
-    //             console.warn('axios is missing. Please download from https://github.com/axios/axios and load the script in the HTML head section!');
-    //         }
-    //     });
-    // },
 
     methods: {
         getSuggestions() {

@@ -49,19 +49,27 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+    },
     data() {
         return {
             schema: {
                 fields: {
-                    metre: this.createMultiSelect('Metre'),
+                    metre: createMultiSelect('Metre'),
                 },
             },
             editSchema: {
@@ -107,7 +115,7 @@ export default {
     },
     mounted () {
         this.schema.fields.metre.values = this.values
-        this.enableField(this.schema.fields.metre)
+        enableField(this.schema.fields.metre)
     },
     methods: {
         edit(add = false) {
@@ -145,7 +153,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the metre.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the metre.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -163,7 +171,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the metre.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the metre.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -182,7 +190,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the metre.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the metre.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -197,7 +205,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the metre data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the metre data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

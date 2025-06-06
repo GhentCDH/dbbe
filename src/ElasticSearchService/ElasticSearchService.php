@@ -42,39 +42,35 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 
     protected function search(array $params = null): array
     {
-        // Construct query
         $query = new Query();
 
-        // Number of results
         if (isset($params['limit']) && is_numeric($params['limit'])) {
             $query->setSize($params['limit']);
         }
 
-        // Pagination
-        if (isset($params['page']) && is_numeric($params['page']) &&
-            isset($params['limit']) && is_numeric($params['limit'])
-        ) {
-            $query->setFrom(($params['page'] - 1) * $params['limit']);
-        }
-
-        // Sorting
+        $sort = [];
         if (isset($params['orderBy'])) {
-            if (isset($params['ascending']) && $params['ascending'] == 0) {
-                $order = 'desc';
-            } else {
-                $order = 'asc';
-            }
-            $sort = [];
+            $order = (isset($params['ascending']) && $params['ascending'] == 0) ? 'desc' : 'asc';
             foreach ($params['orderBy'] as $field) {
                 $sort[] = [$field => $order];
             }
-            $query->setSort($sort);
         }
 
-        // Track total number of hits
+        if (isset($params['allow_large_results']) && $params['allow_large_results']) {
+            $sort[] = ['_id' => 'asc'];
+            $query->setParam('sort', $sort);
+            if (isset($params['search_after']) && is_array($params['search_after'])) {
+                $query->setParam('search_after', $params['search_after']);
+            }
+        } elseif (isset($params['page'], $params['limit']) && is_numeric($params['page']) && is_numeric($params['limit'])) {
+            $query->setFrom(($params['page'] - 1) * $params['limit']);
+            if (!empty($sort)) {
+                $query->setSort($sort);
+            }
+        }
+
         $query->setTrackTotalHits();
 
-        // Filtering
         if (isset($params['filters'])) {
             $query->setQuery(self::createQuery($params['filters']));
             $query->setHighlight(self::createHighlight($params['filters']));
@@ -82,13 +78,11 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 
         $data = $this->index->search($query)->getResponse()->getData();
 
-        // Format response
         $response = [
             'count' => $data['hits']['total']['value'],
             'data' => []
         ];
 
-        // Build array to remove _stemmer or _original blow
         $rename = [];
         if (isset($params['filters']['text'])) {
             foreach ($params['filters']['text'] as $key => $value) {
@@ -106,17 +100,20 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                 }
             }
         }
+
         foreach ($data['hits']['hits'] as $result) {
             $part = $result['_source'];
             if (isset($result['highlight'])) {
                 foreach ($result['highlight'] as $key => $value) {
-                    // remove subfield (e.g., analyzed) from key
                     $key = explode('.', $key)[0];
                     $part['original_' . $key] = $part[$key];
                     $part[$key] = self::formatHighlight($value[0]);
                 }
             }
-            // Remove _stemmer or _original
+            if (isset($result['sort'])) {
+                $part['sort'] = $result['sort'];
+                $part['_search_after'] = $result['sort'];
+            }
             foreach ($rename as $key => $value) {
                 if (isset($part[$key])) {
                     $part[$value] = $part[$key];
@@ -132,6 +129,8 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 
         return $response;
     }
+
+
 
     protected function aggregate(array $fieldTypes, array $filterValues): array
     {

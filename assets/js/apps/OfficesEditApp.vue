@@ -80,14 +80,22 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect, enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+        mergeModal: Merge,
+        deleteModal: Delete,
+        editModal: Edit
+    },
     data() {
         let data = JSON.parse(this.initData)
         return {
@@ -95,7 +103,7 @@ export default {
             regions: data.regions,
             schema: {
                 fields: {
-                    office: this.createMultiSelect('Office'),
+                    office: createMultiSelect('Office'),
                 },
             },
             editSchema: {
@@ -108,20 +116,20 @@ export default {
                         model: 'office.individualName',
                         validator: [VueFormGenerator.validators.string, this.nameOrRegionWithParents, this.uniqueName],
                     },
-                    individualRegionWithParents: this.createMultiSelect(
+                    individualRegionWithParents: createMultiSelect(
                         'Region',
                         {
                             model: 'office.individualRegionWithParents',
                             validator: [this.nameOrRegionWithParents, this.uniqueRegionWithParents]
                         }
                     ),
-                    parent: this.createMultiSelect('Parent', {model: 'office.parent'}),
+                    parent: createMultiSelect('Parent', {model: 'office.parent'}),
                 },
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -171,7 +179,7 @@ export default {
     },
     mounted () {
         this.schema.fields.office.values = this.values
-        this.enableField(this.schema.fields.office)
+        enableField(this.schema.fields.office)
     },
     methods: {
         edit(add = false) {
@@ -192,10 +200,10 @@ export default {
                 this.submitModel.office = JSON.parse(JSON.stringify(this.model.office))
             }
             this.editSchema.fields.individualRegionWithParents.values = this.regions
-            this.enableField(this.editSchema.fields.individualRegionWithParents)
+            enableField(this.editSchema.fields.individualRegionWithParents)
             this.editSchema.fields.parent.values = this.values
                 .filter((office) => !this.isOrIsChild(office, this.model.office)) // Remove values that create cycles
-            this.enableField(this.editSchema.fields.parent)
+            enableField(this.editSchema.fields.parent)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -204,8 +212,8 @@ export default {
             this.mergeModel.secondary = null
             this.mergeSchema.fields.primary.values = this.values
             this.mergeSchema.fields.secondary.values = this.values
-            this.enableField(this.mergeSchema.fields.primary)
-            this.enableField(this.mergeSchema.fields.secondary)
+            enableField(this.mergeSchema.fields.primary)
+            enableField(this.mergeSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },
@@ -236,7 +244,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the office.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the office.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -276,7 +284,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the office.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the office.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -295,7 +303,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the office.', login: this.isLoginError(error)})
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the office.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -313,7 +321,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the office.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the office.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -328,7 +336,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the office data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the office data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
