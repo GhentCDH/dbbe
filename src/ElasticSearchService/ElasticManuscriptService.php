@@ -70,7 +70,12 @@ class ElasticManuscriptService extends ElasticEntityService
 
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
-        $result = $this->runFullSearch($params, $viewInternal);
+        $originalFilters = isset($params['filters']) ? $params['filters'] : [];
+        if (!empty($params['filters'])) {
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
+        }
+
+        $result = $this->search($params);
 
         // Filter out unnecessary results
         foreach ($result['data'] as $key => $value) {
