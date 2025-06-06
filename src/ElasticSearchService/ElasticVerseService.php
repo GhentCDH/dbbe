@@ -45,6 +45,26 @@ class ElasticVerseService extends ElasticBaseService
         $this->index->setMapping(new Mapping($properties));
     }
 
+    public function findVersesByOccurrenceId(int $occurrenceId, int $size = 100): array
+    {
+        $termQuery = new Query\Term(['occurrence.id' => $occurrenceId]);
+
+        $query = new Query();
+        $query->setQuery($termQuery);
+        $query->setSize(100);
+
+        $response = $this->index->search($query);
+
+        $hits = $response->getResponse()->getData()['hits']['hits'];
+
+        $verses = [];
+        foreach ($hits as $hit) {
+            $verses[] = $hit['_source'];
+        }
+
+        return $verses;
+    }
+
     public function searchVerse(string $verse, int $id = null, bool $init = false): array
     {
         $results = [];
@@ -155,6 +175,7 @@ class ElasticVerseService extends ElasticBaseService
 
         return $results;
     }
+
 
     public function initVerseGroups(int $offset): array
     {

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\ElasticSearchService\ElasticVerseService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +57,7 @@ class OccurrenceController extends BaseController
     public function search(
         Request $request,
         ElasticOccurrenceService $elasticOccurrenceService,
+        ElasticVerseService $elasticVerseService,
         IdentifierManager $identifierManager,
         ManagementManager $managementManager
     ) {
@@ -63,6 +65,7 @@ class OccurrenceController extends BaseController
             // @codingStandardsIgnoreStart Generic.Files.LineLength
             'urls' => json_encode([
                 'occurrences_search_api' => $this->generateUrl('occurrences_search_api'),
+                'occurrences_export_csv' => $this->generateUrl('occurrences_export_csv'),
                 'type_deps_by_occurrence' => $this->generateUrl('type_deps_by_occurrence', ['id' => 'occurrence_id']),
                 'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
                 'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
@@ -109,8 +112,23 @@ class OccurrenceController extends BaseController
             $this->sanitize($request->query->all()),
             $this->isGranted(Roles::ROLE_VIEW_INTERNAL)
         );
-
         return new JsonResponse($result);
+    }
+
+    #[Route('/occurrences/export_csv', name: 'occurrences_export_csv', methods: ['GET'])]
+    public function exportCSV(
+        Request $request,
+        ElasticOccurrenceService $elasticOccurrenceService,
+        ElasticVerseService $elasticVerseService
+    ): Response {
+        $params = $this->sanitize($request->query->all());
+        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+        $csvStream = $this->manager->generateCsvStream($params, $elasticOccurrenceService, $elasticVerseService, $isAuthorized);
+        rewind($csvStream);
+        return new Response(stream_get_contents($csvStream), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="occurrences.csv"',
+        ]);
     }
 
     /**

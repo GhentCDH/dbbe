@@ -2,6 +2,8 @@
 
 namespace App\ObjectStorage;
 
+use App\ElasticSearchService\ElasticPersonService;
+use App\ElasticSearchService\ElasticVerseService;
 use DateTime;
 use Exception;
 use stdClass;
@@ -1520,5 +1522,54 @@ class PersonManager extends ObjectEntityManager
         foreach (array_keys($persons) as $personId) {
             $persons[$personId]->sortAcknowledgements();
         }
+    }
+
+    private function formatRow(array $item): array
+    {
+        $role_names = [];
+
+        if (isset($item['role'])) {
+            foreach ($item['role'] as $role_group) {
+                $role_names[] = $role_group['name'];
+            }
+        }
+        $role_names_string = implode('|', $role_names);
+
+
+
+        return [
+            $item['id'] ?? '',
+            $item['name'] ?? '',
+            $item['born_date_floor_year'] ?? '',
+            $item['born_date_ceiling_year'] ?? '',
+            $item['death_date_floor_year'] ?? '',
+            $item['death_date_ceiling_year'] ?? '',
+            $role_names_string
+
+
+        ];
+    }
+
+    public function generateCsvStream(
+        array $params,
+        ElasticPersonService $elasticPersonService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+
+        fputcsv($stream, [
+            'id', 'name', 'born_floor','born_ceiling','death_floor','death_ceiling','roles'
+        ],';');
+        $maxResults = $isAuthorized ? 10000 : 1000;
+        $params['limit'] = $maxResults;
+        $result = $elasticPersonService->runFullSearch($params, $isAuthorized);
+        $data = $result['data'] ?? [];
+        $totalFetched = 0;
+        foreach ($data as $item) {
+            if ($totalFetched++ >= $maxResults) break;
+            fputcsv($stream, $this->formatRow($item),';');
+        }
+        return $stream;
     }
 }
