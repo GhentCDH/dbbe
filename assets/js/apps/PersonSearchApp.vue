@@ -276,13 +276,13 @@
                     (un)select all on this page
                 </a>
             </div>
-          <div style="position: relative; height: 100px;">
-            <button @click="downloadCSV"
-                    class="btn btn-primary"
-                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
-              Download results CSV
-            </button>
-          </div>
+<!--          <div style="position: relative; height: 100px;">-->
+<!--            <button @click="downloadCSV"-->
+<!--                    class="btn btn-primary"-->
+<!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--              Download results CSV-->
+<!--            </button>-->
+<!--          </div>-->
             <collectionManager
                 v-if="isViewInternal"
                 :collection-array="collectionArray"
