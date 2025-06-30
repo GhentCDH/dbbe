@@ -55,3 +55,4 @@ docker_data/elasticsearch/data
 !/docker_data/dbbe_db/initdb/00.create_postgres_role.sql
 storageState.json
 public/.vite
+test-results/*
