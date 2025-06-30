@@ -99,8 +99,8 @@ export default {
     methods: {
         greekSearch(searchQuery) {
             this.schema.fields.types.values = this.schema.fields.types.originalValues.filter(
-                (option) => this
-                    .removeGreekAccents(`${option.id} - ${option.name}`)
+                (option) =>
+                    removeGreekAccents(`${option.id} - ${option.name}`)
                     .includes(removeGreekAccents(searchQuery)),
             );
         },
