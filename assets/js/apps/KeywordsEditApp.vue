@@ -68,14 +68,24 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Migrate from "@/Components/Edit/Modals/Migrate.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete,
+      migrateModal: Migrate
+    },
     props: {
         initPersons: {
             type: String,
@@ -92,7 +102,7 @@ export default {
             isSubject: JSON.parse(this.initIsSubject),
             schema: {
                 fields: {
-                    keyword: this.createMultiSelect(JSON.parse(this.initIsSubject) ? 'Keyword' : 'Tag', {model: 'keyword'}),
+                    keyword: createMultiSelect(JSON.parse(this.initIsSubject) ? 'Keyword' : 'Tag', {model: 'keyword'}),
                 },
             },
             editSchema: {
@@ -110,8 +120,8 @@ export default {
             },
             migrateSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -150,7 +160,7 @@ export default {
     },
     mounted () {
         this.schema.fields.keyword.values = this.values
-        this.enableField(this.schema.fields.keyword)
+        enableField(this.schema.fields.keyword)
     },
     methods: {
         edit(add = false) {
@@ -172,9 +182,9 @@ export default {
             this.migrateModel.secondary = null
             this.migrateSchema.fields.primary.values = this.values
             this.migrateSchema.fields.secondary.values = this.persons
-            this.enableField(this.migrateSchema.fields.primary)
+            enableField(this.migrateSchema.fields.primary)
             this.migrateSchema.fields.primary.disabled = true
-            this.enableField(this.migrateSchema.fields.secondary)
+            enableField(this.migrateSchema.fields.secondary)
             this.originalMigrateModel = JSON.parse(JSON.stringify(this.migrateModel))
             this.migrateModal = true
         },
@@ -200,7 +210,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the keyword.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the keyword.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -218,7 +228,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the keyword.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the keyword.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -237,7 +247,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.migrateModal = true
-                    this.migrateAlerts.push({type: 'error', message: 'Something went wrong while migrating the keyword.', login: this.isLoginError(error)})
+                    this.migrateAlerts.push({type: 'error', message: 'Something went wrong while migrating the keyword.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -255,7 +265,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the keyword.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the keyword.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -270,7 +280,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the keyword data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the keyword data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

@@ -57,6 +57,17 @@ class ElasticManuscriptService extends ElasticEntityService
         $this->index->setMapping(new Mapping($properties));
     }
 
+    public function runFullSearch(array $params, bool $viewInternal): array
+    {
+        $originalFilters = isset($params['filters']) ? $params['filters'] : [];
+
+        if (!empty($params['filters'])) {
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
+        }
+        $result= $this->search($params);
+        return $result;
+    }
+
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         $originalFilters = isset($params['filters']) ? $params['filters'] : [];

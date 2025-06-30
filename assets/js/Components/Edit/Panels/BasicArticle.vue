@@ -18,8 +18,12 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+  dependencyField,
+  enableField,
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator);
@@ -27,7 +31,6 @@ Vue.component('panel', Panel);
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -58,14 +61,14 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
-                    journal: this.createMultiSelect(
+                    journal: createMultiSelect(
                         'Journal',
                         {
                             required: true,
                             validator: VueFormGenerator.validators.required
                         }
                     ),
-                    journalIssue: this.createMultiSelect(
+                    journalIssue: createMultiSelect(
                         'Journal Issue',
                         {
                             model: 'journalIssue',
@@ -113,11 +116,11 @@ export default {
             if (enableKeys != null) {
                 if (enableKeys.includes('journals')) {
                     this.fields.journal.values = this.values.journals;
-                    this.enableField(this.fields.journal);
+                    enableField(this.fields.journal);
                     this.journalChange();
                 } else if (enableKeys.includes('journalIssues')) {
                     this.fields.journalIssue.values = this.values.journalIssues;
-                    this.enableField(this.fields.journalIssue);
+                    enableField(this.fields.journalIssue);
                     this.journalChange();
                 }
             }
@@ -127,10 +130,10 @@ export default {
                 return;
             }
             if (this.model.journal == null) {
-                this.dependencyField(this.schema.fields.journalIssue)
+                dependencyField(this.schema.fields.journalIssue)
             } else {
                 this.schema.fields.journalIssue.values = this.values.journalIssues.filter((journalIssue) => journalIssue.journalId === this.model.journal.id);
-                this.enableField(this.schema.fields.journalIssue)
+                enableField(this.schema.fields.journalIssue)
             }
         },
         startBeforeEndValidator() {

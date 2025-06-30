@@ -156,8 +156,12 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+  enableField,
+
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -165,7 +169,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -205,7 +208,7 @@ export default {
                         required: true,
                         validator: VueFormGenerator.validators.string,
                     },
-                    language: this.createMultiSelect(
+                    language: createMultiSelect(
                         'Language',
                         {
                             values: this.values.languages,
@@ -232,7 +235,7 @@ export default {
     methods: {
         enableFields(enableKeys) {
             if (enableKeys == null) {
-                this.enableField(this.schema.fields.language);
+                enableField(this.schema.fields.language);
                 this.$refs.translators.enableFields('modernPersons');
             } else {
                 if (

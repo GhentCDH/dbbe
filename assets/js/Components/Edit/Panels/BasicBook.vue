@@ -18,8 +18,10 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -27,7 +29,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -50,7 +51,7 @@ export default {
             revalidate: false,
             schema: {
                 fields: {
-                    bookCluster: this.createMultiSelect(
+                    bookCluster: createMultiSelect(
                         'Book cluster',
                         {
                             model: 'bookCluster',
@@ -125,7 +126,7 @@ export default {
                         model: 'publisher',
                         validator: VueFormGenerator.validators.string,
                     },
-                    bookSeries: this.createMultiSelect(
+                    bookSeries: createMultiSelect(
                         'Book series',
                         {
                             model: 'bookSeries',

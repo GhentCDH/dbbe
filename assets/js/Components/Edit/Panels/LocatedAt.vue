@@ -18,11 +18,16 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../FormFields/fieldMultiselectClear'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+  disableField,
+  dependencyField,
+  enableField,
+  loadLocationField,
+
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -30,16 +35,15 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     data() {
         return {
             schema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'location.regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'location.institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
-                    collection: this.createMultiSelect('Collection', {model: 'location.collection', dependency: 'institution', dependencyName: 'library'}),
+                    city: createMultiSelect('City', {model: 'location.regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    library: createMultiSelect('Library', {model: 'location.institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
+                    collection: createMultiSelect('Collection', {model: 'location.collection', dependency: 'institution', dependencyName: 'library'}),
                     shelf: {
                         type: 'input',
                         inputType: 'text',
@@ -75,17 +79,17 @@ export default {
     methods: {
         enableFields(enableKeys) {
             if (enableKeys != null && enableKeys.includes('locations')) {
-                this.loadLocationField(this.schema.fields.city, this.model.location);
-                this.enableField(this.schema.fields.city, this.model.location);
+                loadLocationField(this.schema.fields.city, this.model.location, this.values);
+                enableField(this.schema.fields.city, this.model.location);
                 this.cityChange();
                 this.libraryChange();
             }
         },
         disableFields(disableKeys) {
             if (disableKeys.includes('locations')) {
-                this.disableField(this.schema.fields.city);
-                this.disableField(this.schema.fields.library);
-                this.disableField(this.schema.fields.collection);
+                disableField(this.schema.fields.city);
+                disableField(this.schema.fields.library);
+                disableField(this.schema.fields.collection);
             }
         },
         cityChange() {
@@ -96,11 +100,11 @@ export default {
                 this.model.location.id = null
             }
             if (this.model.location.regionWithParents == null) {
-                this.dependencyField(this.schema.fields.library, this.model.location)
+                dependencyField(this.schema.fields.library, this.model.location)
             }
             else {
-                this.loadLocationField(this.schema.fields.library, this.model.location)
-                this.enableField(this.schema.fields.library, this.model.location)
+                loadLocationField(this.schema.fields.library, this.model.location, this.values)
+                enableField(this.schema.fields.library, this.model.location)
             }
             this.$refs.form.validate()
         },
@@ -109,11 +113,11 @@ export default {
                 return;
             }
             if (this.model.location.institution == null) {
-                this.dependencyField(this.schema.fields.collection, this.model.location)
+                dependencyField(this.schema.fields.collection, this.model.location)
             }
             else {
-                this.loadLocationField(this.schema.fields.collection, this.model.location)
-                this.enableField(this.schema.fields.collection, this.model.location)
+                loadLocationField(this.schema.fields.collection, this.model.location, this.values)
+                enableField(this.schema.fields.collection, this.model.location)
                 if (this.model.location.institution.locationId != null && this.model.location.collection == null) {
                     this.model.location.id = this.model.location.institution.locationId
                 }

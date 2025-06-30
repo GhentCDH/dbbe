@@ -234,6 +234,13 @@
                     (un)select all on this page
                 </a>
             </div>
+<!--          <div style="position: relative; height: 100px;">-->
+<!--            <button @click="downloadCSV"-->
+<!--                    class="btn btn-primary"-->
+<!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--              Download results CSV-->
+<!--            </button>-->
+<!--          </div>-->
             <collectionManager
                 v-if="isViewInternal"
                 :collection-array="collectionArray"
@@ -268,31 +275,38 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';;
+import qs from 'qs';
+
+import Vue from 'vue/dist/vue.js';
+
 import VueFormGenerator from 'vue-form-generator';
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle
+} from '@/helpers/formFieldUtils';
 import axios from 'axios';
 
-import AbstractField from '../Components/FormFields/AbstractField';
-import AbstractSearch from '../Components/Search/AbstractSearch';
+import AbstractSearch from '../mixins/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import SharedSearch from '../Components/Search/SharedSearch';
-import PersistentConfig from '../Components/Shared/PersistentConfig';
+import PersistentConfig from "@/mixins/PersistentConfig";
+import {formatDate, greekFont} from "../helpers/formatUtil";
+import {useSearchSession} from "../composables/useSearchSession";
+
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
     components: { ActiveFilters },
     mixins: [
-        PersistentConfig('TypeSearchConfig'),
-        AbstractField,
         AbstractSearch,
-        SharedSearch,
+        PersistentConfig('TypeSearchConfig'),
     ],
     data() {
         const data = {
@@ -346,10 +360,16 @@ export default {
                 type: {},
             },
             defaultOrdering: 'incipit',
+            config: {
+              groupIsOpen: [],
+            },
+            defaultConfig: {
+              groupIsOpen: [],
+            },
         };
 
         // Add fields
-        data.schema.fields.text_mode = this.createLanguageToggle('text');
+        data.schema.fields.text_mode = createLanguageToggle('text');
         data.schema.fields.text = {
             type: 'input',
             inputType: 'text',
@@ -397,7 +417,7 @@ export default {
             ],
         };
         data.model.lemma_mode = ['greek'];
-        data.schema.fields.lemma_mode = this.createLanguageToggle('lemma');
+        data.schema.fields.lemma_mode = createLanguageToggle('lemma');
         // disable latin
         data.schema.fields.lemma_mode.values[2].disabled = true;
         data.schema.fields.lemma = {
@@ -408,7 +428,7 @@ export default {
             label: 'Lemma',
             model: 'lemma',
         };
-        data.schema.fields.person = this.createMultiSelect(
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -416,7 +436,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -426,11 +446,11 @@ export default {
                 closeOnSelect: false,
             },
         );
-        [data.schema.fields.metre_op, data.schema.fields.metre] = this.createMultiMultiSelect('Metre');
-        [data.schema.fields.genre_op, data.schema.fields.genre] = this.createMultiMultiSelect('Genre');
-        [data.schema.fields.subject_op, data.schema.fields.subject] = this.createMultiMultiSelect('Subject');
-        [data.schema.fields.tag_op, data.schema.fields.tag] = this.createMultiMultiSelect('Tag');
-        data.schema.fields.translated = this.createMultiSelect(
+        [data.schema.fields.metre_op, data.schema.fields.metre] = createMultiMultiSelect('Metre');
+        [data.schema.fields.genre_op, data.schema.fields.genre] = createMultiMultiSelect('Genre');
+        [data.schema.fields.subject_op, data.schema.fields.subject] = createMultiMultiSelect('Subject');
+        [data.schema.fields.tag_op, data.schema.fields.tag] = createMultiMultiSelect('Tag');
+        data.schema.fields.translated = createMultiSelect(
             'Translation(s) available?',
             {
                 model: 'translated',
@@ -442,14 +462,14 @@ export default {
         [
             data.schema.fields.translation_language_op,
             data.schema.fields.translation_language,
-        ] = this.createMultiMultiSelect(
+        ] = createMultiMultiSelect(
             'Translation language',
             {
                 dependency: 'translated',
                 model: 'translation_language',
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -462,7 +482,7 @@ export default {
         // Add identifier fields
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 `${identifier.name} available?`,
                 {
                     model: `${identifier.systemName}_available`,
@@ -471,7 +491,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
                 },
             ));
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 identifier.name,
                 {
                     dependency: `${identifier.systemName}_available`,
@@ -487,10 +507,10 @@ export default {
                 fields: idList,
             },
         ];
-        data.schema.fields.id = this.createMultiSelect('DBBE ID', { model: 'id' });
-        data.schema.fields.prev_id = this.createMultiSelect('Former DBBE ID', { model: 'prev_id' });
+        data.schema.fields.id = createMultiSelect('DBBE ID', { model: 'id' });
+        data.schema.fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 
-        data.schema.fields.dbbe = this.createMultiSelect(
+        data.schema.fields.dbbe = createMultiSelect(
             'Text source DBBE?',
             {
                 model: 'dbbe',
@@ -499,28 +519,28 @@ export default {
                 customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
             },
         );
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
                 model: 'acknowledgement',
             },
         );
         if (this.isViewInternal) {
-            data.schema.fields.text_status = this.createMultiSelect(
+            data.schema.fields.text_status = createMultiSelect(
                 'Text Status',
                 {
                     model: 'text_status',
                     styleClasses: 'has-warning',
                 },
             );
-            data.schema.fields.critical_status = this.createMultiSelect(
+            data.schema.fields.critical_status = createMultiSelect(
                 'Editorial Status',
                 {
                     model: 'critical_status',
                     styleClasses: 'has-warning',
                 },
             );
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -529,7 +549,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
@@ -547,6 +567,16 @@ export default {
 
         return data;
     },
+    created(){
+      this.session = useSearchSession(this);
+      this.onData = this.session.onData;
+      this.session.init();
+    },
+    mounted(){
+      this.session.setupCollapsibleLegends();
+      this.$on('config-changed', this.session.handleConfigChange(this.schema));
+    },
+
     computed: {
         depUrls() {
             return {
@@ -583,6 +613,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         del(row) {
             this.submitModel.type = {
                 id: row.id,
@@ -607,6 +639,36 @@ export default {
                     console.error(error);
                 });
         },
+        async downloadCSV() {
+          try {
+            const params = this.getSearchParams();
+            params.limit = 10000;
+            params.page = 1;
+
+            const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
+            const url = `${this.urls['types_export_csv']}?${queryString}`;
+
+            const response = await fetch(url);
+            const blob = await response.blob();
+
+            this.downloadFile(blob, 'types.csv', 'text/csv');
+          } catch (error) {
+            console.error(error);
+            this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
+          }
+        },
+        downloadFile(blob, fileName, mimeType) {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('hidden', '');
+          a.setAttribute('href', url);
+          a.setAttribute('download', fileName);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
+
     },
 };
 </script>

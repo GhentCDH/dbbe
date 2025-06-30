@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticVerseService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,6 +62,23 @@ class PersonController extends BaseController
         return $this->redirectToRoute('persons_search', ['request' =>  $request], 301);
     }
 
+    #[Route('/persons/export_csv', name: 'persons_export_csv', methods: ['GET'])]
+    public function exportCSV(
+        Request $request,
+        IdentifierManager $identifierManager,
+        ElasticPersonService $elasticPersonService
+    ): Response {
+        $params = $this->sanitize($request->query->all(),$identifierManager);
+        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+        $csvStream = $this->manager->generateCsvStream($params, $elasticPersonService, $isAuthorized);
+        rewind($csvStream);
+        return new Response(stream_get_contents($csvStream), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="persons.csv"',
+        ]);
+    }
+
+
     /**
      * @param Request $request
      * @param ElasticPersonService $elasticPersonService
@@ -80,6 +99,7 @@ class PersonController extends BaseController
                 'urls' => json_encode([
                     // @codingStandardsIgnoreStart Generic.Files.LineLength
                     'persons_search_api' => $this->generateUrl('persons_search_api'),
+                    'persons_export_csv' => $this->generateUrl('persons_export_csv'),
                     'manuscript_deps_by_person' => $this->generateUrl('manuscript_deps_by_person', ['id' => 'person_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
                     'occurrence_deps_by_person' => $this->generateUrl('occurrence_deps_by_person', ['id' => 'person_id']),

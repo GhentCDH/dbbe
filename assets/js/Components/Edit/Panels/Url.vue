@@ -100,7 +100,7 @@
 import Vue from 'vue/dist/vue.js';
 import draggable from 'vuedraggable'
 
-import AbstractPanelForm from '../AbstractPanelForm'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
 import VueFormGenerator from "vue-form-generator";
 
