@@ -89,6 +89,23 @@ Install "Xdebug helper" in your browser, go to its settings and set the IDE key 
 
 Launch the debugger in PHPStorm by clicking the green bug icon in the top right corner. Set breakpoints in your code and start a request to your application. PHPStorm should now stop at the breakpoints and you can inspect the state of your application.
 
+### 5. Running tests
+
+You can find a basic testing script in tests/dbbe.spec.js . This script logs in to the application via keycloak and clicks on all links it can find, thereby limiting itself to three hits on the /search pages. 
+
+You can run the script **after** launching the application via the docker-compose.yml by running 
+
+```
+docker-compose -f docker-compose.test.yml --env-file .env.dev up playwright
+```
+
+Note that, at this point, the script does not run tests on inserts. It just navigates to every page without filling in forms. 
+
+Further improvements planned:
+- Add a small database to allow Playwright to store data
+- Integrate testing in the CI
+
+
 ## Contributing
 
 Please see our [contributing guidelines](CONTRIBUTING.md).
