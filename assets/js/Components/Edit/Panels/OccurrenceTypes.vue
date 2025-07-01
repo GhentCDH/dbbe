@@ -54,8 +54,11 @@
 import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 
-import AbstractPanelForm from '../AbstractPanelForm';
-import AbstractField from '../../FormFields/AbstractField';
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm';
+import {
+  createMultiSelect,
+  removeGreekAccents
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel.vue';
 
 Vue.use(VueFormGenerator);
@@ -63,7 +66,6 @@ Vue.component('panel', Panel);
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -77,7 +79,7 @@ export default {
             displayOrder: false,
             schema: {
                 fields: {
-                    types: this.createMultiSelect(
+                    types: createMultiSelect(
                         'Types',
                         {
                             styleClasses: 'greek',
@@ -97,9 +99,9 @@ export default {
     methods: {
         greekSearch(searchQuery) {
             this.schema.fields.types.values = this.schema.fields.types.originalValues.filter(
-                (option) => this
-                    .removeGreekAccents(`${option.id} - ${option.name}`)
-                    .includes(this.removeGreekAccents(searchQuery)),
+                (option) =>
+                    removeGreekAccents(`${option.id} - ${option.name}`)
+                    .includes(removeGreekAccents(searchQuery)),
             );
         },
         onChange() {

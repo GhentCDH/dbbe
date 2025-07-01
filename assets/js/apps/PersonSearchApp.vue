@@ -276,6 +276,13 @@
                     (un)select all on this page
                 </a>
             </div>
+<!--          <div style="position: relative; height: 100px;">-->
+<!--            <button @click="downloadCSV"-->
+<!--                    class="btn btn-primary"-->
+<!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--              Download results CSV-->
+<!--            </button>-->
+<!--          </div>-->
             <collectionManager
                 v-if="isViewInternal"
                 :collection-array="collectionArray"
@@ -402,35 +409,45 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';;
+import Vue from 'vue/dist/vue.js';
+import qs from 'qs';
 import VueFormGenerator from 'vue-form-generator';
 import axios from 'axios';
 
 
-import AbstractField from '../Components/FormFields/AbstractField';
-import AbstractSearch from '../Components/Search/AbstractSearch';
+import AbstractSearch from '../mixins/AbstractSearch';
 
-import { changeMode } from '../Components/Search/utils';
+import {changeMode, formatDate, greekFont} from '../helpers/formatUtil';
 
 // used for deleteDependencies, mergeModal
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle,
+  removeGreekAccents, enableField
+} from '@/helpers/formFieldUtils';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import SharedSearch from '../Components/Search/SharedSearch';
-import PersistentConfig from '../Components/Shared/PersistentConfig';
+import PersistentConfig from "@/mixins/PersistentConfig";
+import {useSearchSession} from "@/composables/useSearchSession";
+import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { ActiveFilters },
+    components: {
+      ActiveFilters,
+      mergeModal: Merge
+    },
     mixins: [
-        PersistentConfig('PersonSearchConfig'),
-        AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
-        SharedSearch,
+        PersistentConfig('PersonSearchConfig'),
     ],
     props: {
         initPersons: {
@@ -481,7 +498,7 @@ export default {
             },
             mergePersonSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             required: true,
@@ -491,7 +508,7 @@ export default {
                             customLabel: ({ id, name }) => `[${id}] ${name}`,
                         },
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             required: true,
@@ -553,9 +570,9 @@ export default {
                 { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
             ],
         };
-        [data.schema.fields.role_op, data.schema.fields.role] = this.createMultiMultiSelect('Role');
-        [data.schema.fields.office_op, data.schema.fields.office] = this.createMultiMultiSelect('Office');
-        data.schema.fields.self_designation_mode = this.createLanguageToggle(
+        [data.schema.fields.role_op, data.schema.fields.role] = createMultiMultiSelect('Role');
+        [data.schema.fields.office_op, data.schema.fields.office] = createMultiMultiSelect('Office');
+        data.schema.fields.self_designation_mode = createLanguageToggle(
             'self_designation',
             {
                 styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm two-line',
@@ -563,7 +580,7 @@ export default {
         );
         // disable latin
         data.schema.fields.self_designation_mode.values[2].disabled = true;
-        [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = this.createMultiMultiSelect(
+        [data.schema.fields.self_designation_op, data.schema.fields.self_designation] = createMultiMultiSelect(
             '(Self) designation',
             {
                 styleClasses: 'greek',
@@ -574,13 +591,13 @@ export default {
                 onSearch: this.greekBetaSearch,
             },
         );
-        [data.schema.fields.origin_op, data.schema.fields.origin] = this.createMultiMultiSelect(
+        [data.schema.fields.origin_op, data.schema.fields.origin] = createMultiMultiSelect(
             'Provenance',
             {
                 model: 'origin',
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -588,7 +605,7 @@ export default {
             model: 'comment',
             validator: VueFormGenerator.validators.string,
         };
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = this.createMultiMultiSelect(
+        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
             'Acknowledgements',
             {
               model: 'acknowledgement',
@@ -597,7 +614,7 @@ export default {
 
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 `${identifier.name} available?`,
                 {
                     model: `${identifier.systemName}_available`,
@@ -606,7 +623,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
                 },
             ));
-            idList.push(this.createMultiSelect(
+            idList.push(createMultiSelect(
                 identifier.name,
                 {
                     dependency: `${identifier.systemName}_available`,
@@ -625,7 +642,7 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields.historical = this.createMultiSelect(
+            data.schema.fields.historical = createMultiSelect(
                 'Historical',
                 {
                     styleClasses: 'has-warning',
@@ -634,7 +651,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Historical only' : 'Non-historical only'),
                 },
             );
-            data.schema.fields.modern = this.createMultiSelect(
+            data.schema.fields.modern = createMultiSelect(
                 'Modern',
                 {
                     styleClasses: 'has-warning',
@@ -643,7 +660,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Modern only' : 'Non-modern only'),
                 },
             );
-            data.schema.fields.public = this.createMultiSelect(
+            data.schema.fields.public = createMultiSelect(
                 'Public',
                 {
                     styleClasses: 'has-warning',
@@ -652,7 +669,7 @@ export default {
                     customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
                 },
             );
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
@@ -669,6 +686,15 @@ export default {
         }
 
         return data;
+    },
+    created(){
+      this.session = useSearchSession(this);
+      this.onData = this.session.onData;
+      this.session.init();
+    },
+    mounted(){
+      this.session.setupCollapsibleLegends();
+      this.$on('config-changed', this.session.handleConfigChange(this.schema));
     },
     computed: {
         depUrls() {
@@ -758,7 +784,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -782,7 +808,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -790,6 +816,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+      formatDate,
         getMergedIdentification(identifier) {
           const { systemName } = identifier;
           const primary = this.mergeModel.primaryFull?.identifications?.[systemName] || [];
@@ -811,8 +839,8 @@ export default {
                     this.mergeModel.secondary = null;
                     this.mergePersonSchema.fields.primary.values = this.persons;
                     this.mergePersonSchema.fields.secondary.values = this.persons;
-                    this.enableField(this.mergePersonSchema.fields.primary);
-                    this.enableField(this.mergePersonSchema.fields.secondary);
+                    enableField(this.mergePersonSchema.fields.primary);
+                    enableField(this.mergePersonSchema.fields.secondary);
                     this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                     this.mergeModal = true;
                 })
@@ -821,7 +849,7 @@ export default {
                     this.alerts.push({
                         type: 'error',
                         message: 'Something went wrong while getting the person data.',
-                        login: this.isLoginError(error),
+                        login: isLoginError(error),
                     });
                     console.error(error);
                 });
@@ -852,7 +880,7 @@ export default {
                     this.mergeAlerts.push({
                         type: 'error',
                         message: 'Something went wrong while merging the persons.',
-                        login: this.isLoginError(error),
+                        login: isLoginError(error),
                     });
                     console.error(error);
                 });
@@ -917,13 +945,13 @@ export default {
         greekBetaSearch(searchQuery) {
             if (this.model.self_designation_mode[0] === 'greek') {
                 this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                    (option) => this.removeGreekAccents(option.name).includes(this.removeGreekAccents(searchQuery)),
+                    (option) => removeGreekAccents(option.name).includes(removeGreekAccents(searchQuery)),
                 );
                 return;
             }
             if (this.model.self_designation_mode[0] === 'betacode') {
                 this.schema.fields.self_designation.values = this.schema.fields.self_designation.originalValues.filter(
-                    (option) => this.removeGreekAccents(option.name).includes(
+                    (option) => removeGreekAccents(option.name).includes(
                         changeMode('betacode', 'greek', searchQuery),
                     ),
                 );
@@ -937,6 +965,36 @@ export default {
                 );
             }
         },
+
+      async downloadCSV() {
+        try {
+          const params = this.getSearchParams();
+          params.limit = 10000;
+          params.page = 1;
+
+          const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
+          const url = `${this.urls['persons_export_csv']}?${queryString}`;
+
+          const response = await fetch(url);
+          const blob = await response.blob();
+
+          this.downloadFile(blob, 'persons.csv', 'text/csv');
+        } catch (error) {
+          console.error(error);
+          this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
+        }
+      },
+      downloadFile(blob, fileName, mimeType) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', fileName);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
     },
 };
 </script>

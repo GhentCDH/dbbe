@@ -379,28 +379,35 @@ import Vue from 'vue/dist/vue.js';;
 import VueFormGenerator from 'vue-form-generator';
 import axios from 'axios';
 
-import AbstractField from '../Components/FormFields/AbstractField';
-import AbstractSearch from '../Components/Search/AbstractSearch';
+import {
+  createMultiSelect,
+  createLanguageToggle
+} from '@/helpers/formFieldUtils';
+import AbstractSearch from '../mixins/AbstractSearch';
 
 // used for deleteDependencies
-import AbstractListEdit from '../Components/Edit/AbstractListEdit';
+import AbstractListEdit from '../mixins/AbstractListEdit';
 
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import SharedSearch from '../Components/Search/SharedSearch';
-import PersistentConfig from '../Components/Shared/PersistentConfig';
+import PersistentConfig from "@/mixins/PersistentConfig";
+import {greekFont} from "@/helpers/formatUtil";
+import {useSearchSession} from "@/composables/useSearchSession";
+import {isLoginError} from "@/helpers/errorUtil";
+import Merge from '../Components/Edit/Modals/Merge.vue'
 
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
-    components: { ActiveFilters },
+    components: {
+      ActiveFilters,
+      mergeModal: Merge
+    },
     mixins: [
-        PersistentConfig('BibliographySearchConfig'),
-        AbstractField,
         AbstractSearch,
         AbstractListEdit, // merge functionality
-        SharedSearch,
+        PersistentConfig('BibliographySearchConfig'),
     ],
     data() {
         const data = {
@@ -439,7 +446,7 @@ export default {
             },
             mergeSchema: {
                 fields: {
-                    primary: this.createMultiSelect(
+                    primary: createMultiSelect(
                         'Primary',
                         {
                             required: true,
@@ -449,7 +456,7 @@ export default {
                             customLabel: ({ id, name }) => `[${id}] ${name}`,
                         },
                     ),
-                    secondary: this.createMultiSelect(
+                    secondary: createMultiSelect(
                         'Secondary',
                         {
                             required: true,
@@ -495,8 +502,8 @@ export default {
         };
 
         // Add fields
-        data.schema.fields.type = this.createMultiSelect('Type');
-        data.schema.fields.title_mode = this.createLanguageToggle('title');
+        data.schema.fields.type = createMultiSelect('Type');
+        data.schema.fields.title_mode = createLanguageToggle('title');
         data.schema.fields.title = {
             type: 'input',
             inputType: 'text',
@@ -515,7 +522,7 @@ export default {
                 { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
             ],
         };
-        data.schema.fields.person = this.createMultiSelect(
+        data.schema.fields.person = createMultiSelect(
             'Person',
             {},
             {
@@ -523,7 +530,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.role = this.createMultiSelect(
+        data.schema.fields.role = createMultiSelect(
             'Role',
             {
                 dependency: 'person',
@@ -533,7 +540,7 @@ export default {
                 closeOnSelect: false,
             },
         );
-        data.schema.fields.comment_mode = this.createLanguageToggle('comment');
+        data.schema.fields.comment_mode = createLanguageToggle('comment');
         data.schema.fields.comment = {
             type: 'input',
             inputType: 'text',
@@ -544,7 +551,7 @@ export default {
 
         // Add identifier fields
         for (const identifier of JSON.parse(this.initIdentifiers)) {
-            data.schema.fields[identifier.systemName] = this.createMultiSelect(
+            data.schema.fields[identifier.systemName] = createMultiSelect(
                 identifier.name,
                 {
                     model: identifier.systemName,
@@ -554,7 +561,7 @@ export default {
 
         // Add view internal only fields
         if (this.isViewInternal) {
-            data.schema.fields.management = this.createMultiSelect(
+            data.schema.fields.management = createMultiSelect(
                 'Management collection',
                 {
                     model: 'management',
@@ -571,6 +578,15 @@ export default {
         }
 
         return data;
+    },
+    created(){
+      this.session = useSearchSession(this);
+      this.onData = this.session.onData;
+      this.session.init();
+    },
+    mounted(){
+      this.session.setupCollapsibleLegends();
+      this.$on('config-changed', this.session.handleConfigChange(this.schema));
     },
     computed: {
         identificationValue() {
@@ -675,7 +691,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -705,7 +721,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the person data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -716,6 +732,8 @@ export default {
         },
     },
     methods: {
+      greekFont,
+
         merge(row) {
             this.mergeModel.submitType = this.types[row.type.id];
             this.openRequests += 1;
@@ -732,8 +750,8 @@ export default {
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.books;
                         this.mergeSchema.fields.secondary.values = this.books;
-                        this.enableField(this.mergeSchema.fields.primary);
-                        this.enableField(this.mergeSchema.fields.secondary);
+                        enableField(this.mergeSchema.fields.primary);
+                        enableField(this.mergeSchema.fields.secondary);
                         this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                         this.mergeModal = true;
                     })
@@ -742,7 +760,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the book data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -759,8 +777,8 @@ export default {
                         this.mergeModel.secondary = null;
                         this.mergeSchema.fields.primary.values = this.journals;
                         this.mergeSchema.fields.secondary.values = this.journals;
-                        this.enableField(this.mergeSchema.fields.primary);
-                        this.enableField(this.mergeSchema.fields.secondary);
+                        enableField(this.mergeSchema.fields.primary);
+                        enableField(this.mergeSchema.fields.secondary);
                         this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
                         this.mergeModal = true;
                     })
@@ -769,7 +787,7 @@ export default {
                         this.alerts.push({
                             type: 'error',
                             message: 'Something went wrong while getting the journal data.',
-                            login: this.isLoginError(error),
+                            login: isLoginError(error),
                         });
                         console.error(error);
                     });
@@ -815,7 +833,7 @@ export default {
                     this.mergeAlerts.push({
                         type: 'error',
                         message: `Something went wrong while merging the ${this.mergeModel.submitType}s.`,
-                        login: this.isLoginError(error),
+                        login: isLoginError(error),
                     });
                     console.error(error);
                 });

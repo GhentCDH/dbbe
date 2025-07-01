@@ -76,6 +76,14 @@ class ElasticTypeService extends ElasticEntityService
         $this->index->setMapping(new Mapping($properties));
     }
 
+    public function runFullSearch(array $params, bool $viewInternal): array
+    {
+        if (!empty($params['filters'])) {
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
+        }
+        return $this->search($params);
+    }
+
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
@@ -83,7 +91,6 @@ class ElasticTypeService extends ElasticEntityService
         }
 
         $result = $this->search($params);
-
         // Filter out unnecessary results
         // Add additional results
         foreach ($result['data'] as $key => $value) {
@@ -109,9 +116,6 @@ class ElasticTypeService extends ElasticEntityService
             }
 
             unset($result['data'][$key]['prevId']);
-            unset($result['data'][$key]['genre']);
-            unset($result['data'][$key]['metre']);
-            unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['tag']);
             unset($result['data'][$key]['translated']);
             unset($result['data'][$key]['translation_language']);

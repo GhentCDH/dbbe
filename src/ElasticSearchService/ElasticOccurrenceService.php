@@ -76,6 +76,14 @@ class ElasticOccurrenceService extends ElasticEntityService
         $this->index->setMapping(new Mapping($properties));
     }
 
+    public function runFullSearch(array $params, bool $viewInternal): array
+    {
+        if (!empty($params['filters'])) {
+            $params['filters'] = $this->classifySearchFilters($params['filters'], $viewInternal);
+        }
+        return $this->search($params);
+    }
+
     public function searchAndAggregate(array $params, bool $viewInternal): array
     {
         if (!empty($params['filters'])) {
@@ -90,7 +98,6 @@ class ElasticOccurrenceService extends ElasticEntityService
             unset($result['data'][$key]['manuscript_content']);
             unset($result['data'][$key]['manuscript_content_public']);
             unset($result['data'][$key]['genre']);
-            unset($result['data'][$key]['metre']);
             unset($result['data'][$key]['subject']);
             unset($result['data'][$key]['dbbe']);
             unset($result['data'][$key]['text_status']);

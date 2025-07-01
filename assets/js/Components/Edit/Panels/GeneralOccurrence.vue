@@ -18,8 +18,10 @@
 import Vue from 'vue/dist/vue.js';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../AbstractPanelForm'
-import AbstractField from '../../FormFields/AbstractField'
+import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
+import {
+  createMultiSelect,
+} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 
 Vue.use(VueFormGenerator)
@@ -27,7 +29,6 @@ Vue.component('panel', Panel)
 
 export default {
     mixins: [
-        AbstractField,
         AbstractPanelForm,
     ],
     props: {
@@ -68,7 +69,7 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    acknowledgements: this.createMultiSelect(
+                    acknowledgements: createMultiSelect(
                         'Acknowledgements',
                         {
                             model: 'acknowledgements',
@@ -95,10 +96,10 @@ export default {
                         rows: 4,
                         validator: VueFormGenerator.validators.string,
                     },
-                    textStatus: this.createMultiSelect('Text Status', {model: 'textStatus'}),
-                    recordStatus: this.createMultiSelect('Record Status', {model: 'recordStatus'}),
-                    dividedStatus: this.createMultiSelect('Verses correctly divided', {model: 'dividedStatus'}),
-                    sourceStatus: this.createMultiSelect('Source', {model: 'sourceStatus'}),
+                    textStatus: createMultiSelect('Text Status', {model: 'textStatus'}),
+                    recordStatus: createMultiSelect('Record Status', {model: 'recordStatus'}),
+                    dividedStatus: createMultiSelect('Verses correctly divided', {model: 'dividedStatus'}),
+                    sourceStatus: createMultiSelect('Source', {model: 'sourceStatus'}),
                     public: {
                         type: 'checkbox',
                         styleClasses: 'has-error',

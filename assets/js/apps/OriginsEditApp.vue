@@ -65,24 +65,37 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {
+  createMultiSelect,
+  dependencyField,
+  enableField,
+  loadLocationField
+} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+    },
     data() {
         return {
             regionSchema: {
                 fields: {
-                    region: this.createMultiSelect('Region', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
+                    region: createMultiSelect('Region', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
                 }
             },
             monasterySchema: {
                 fields: {
-                    monastery: this.createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'region'}),
+                    monastery: createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'region'}),
                 }
             },
             editRegionSchema: {
@@ -100,7 +113,7 @@ export default {
             },
             editMonasterySchema: {
                 fields: {
-                    region: this.createMultiSelect('Region', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
+                    region: createMultiSelect('Region', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -146,18 +159,18 @@ export default {
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                this.dependencyField(this.monasterySchema.fields.monastery)
+                dependencyField(this.monasterySchema.fields.monastery, this.model)
             }
             else {
-                this.loadLocationField(this.monasterySchema.fields.monastery, this.model)
-                this.enableField(this.monasterySchema.fields.monastery)
+                loadLocationField(this.monasterySchema.fields.monastery, this.model,this.values)
+                enableField(this.monasterySchema.fields.monastery, this.model)
             }
         },
     },
     mounted () {
-        this.loadLocationField(this.regionSchema.fields.region)
-        this.enableField(this.regionSchema.fields.region)
-        this.dependencyField(this.monasterySchema.fields.monastery)
+        loadLocationField(this.regionSchema.fields.region, this.model,this.values)
+        enableField(this.regionSchema.fields.region, this.model)
+        dependencyField(this.monasterySchema.fields.monastery, this.model)
     },
     methods: {
         editRegion() {
@@ -180,8 +193,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            this.loadLocationField(this.editMonasterySchema.fields.region, this.submitModel)
-            this.enableField(this.editMonasterySchema.fields.region, this.submitModel)
+            loadLocationField(this.editMonasterySchema.fields.region, this.model, this.values)
+            enableField(this.editMonasterySchema.fields.region, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -248,7 +261,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -271,7 +284,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -290,7 +303,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -302,21 +315,21 @@ export default {
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        this.loadLocationField(this.regionSchema.fields.region, this.submitModel)
+                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        this.loadLocationField(this.regionSchema.fields.region, this.submitModel)
-                        this.loadLocationField(this.monasterySchema.fields.monastery, this.submitModel)
-                        this.enableField(this.monasterySchema.fields.monastery, this.submitModel)
+                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
+                        loadLocationField(this.monasterySchema.fields.monastery, this.model, this.values)
+                        enableField(this.monasterySchema.fields.monastery, this.model)
                         break
                     }
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

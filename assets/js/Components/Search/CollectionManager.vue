@@ -46,12 +46,10 @@
     </div>
 </template>
 <script>
-import AbstractField from '../FormFields/AbstractField';
+
+import {createMultiSelect} from "@/helpers/formFieldUtils";
 
 export default {
-    mixins: [
-        AbstractField,
-    ],
     props: {
         collectionArray: {
             type: Array,
@@ -69,7 +67,7 @@ export default {
             },
             collectionSchema: {
                 fields: {
-                    managements: this.createMultiSelect(
+                    managements: createMultiSelect(
                         'Management collection(s)',
                         {
                             model: 'managementCollection',
@@ -92,11 +90,6 @@ export default {
                 validationSuccessClass: 'success',
             },
         };
-    },
-    methods: {
-        addSelection() {
-
-        },
     },
 };
 </script>

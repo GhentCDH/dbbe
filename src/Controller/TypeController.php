@@ -67,6 +67,7 @@ class TypeController extends BaseController
                 // @codingStandardsIgnoreStart Generic.Files.LineLength
                 'urls' => json_encode([
                     'types_search_api' => $this->generateUrl('types_search_api'),
+                    'types_export_csv' => $this->generateUrl('types_export_csv'),
                     'occurrence_deps_by_type' => $this->generateUrl('occurrence_deps_by_type', ['id' => 'type_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'type_get' => $this->generateUrl('type_get', ['id' => 'type_id']),
@@ -114,6 +115,22 @@ class TypeController extends BaseController
         return new JsonResponse($result);
     }
 
+    #[Route('/types/export_csv', name: 'types_export_csv', methods: ['GET'])]
+    public function exportCSV(
+        Request $request,
+        ElasticTypeService $elasticTypeService,
+    ): Response {
+        $params = $this->sanitize($request->query->all());
+        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+        $csvStream = $this->manager->generateCsvStream($params, $elasticTypeService, $isAuthorized);
+        rewind($csvStream);
+        return new Response(stream_get_contents($csvStream), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="types.csv"',
+        ]);
+    }
+
+    /**
     /**
      * @param TypeRelationTypeManager $typeRelationTypeManager
      * @param PersonManager $personManager

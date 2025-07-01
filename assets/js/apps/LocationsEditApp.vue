@@ -79,29 +79,39 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
-
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {
+  createMultiSelect, dependencyField,
+  enableField, loadLocationField
+} from '@/helpers/formFieldUtils';
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+    },
     data() {
         return {
             citySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents'}),
+                    city: createMultiSelect('City', {model: 'regionWithParents'}),
                 }
             },
             librarySchema: {
                 fields: {
-                    library: this.createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
+                    library: createMultiSelect('Library', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'city'}),
                 }
             },
             collectionSchema: {
                 fields: {
-                    collection: this.createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
+                    collection: createMultiSelect('Collection', {model: 'collection', dependency: 'institution', dependencyName: 'library'}),
                 }
             },
             editCitySchema: {
@@ -119,7 +129,7 @@ export default {
             },
             editLibrarySchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    city: createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -133,8 +143,8 @@ export default {
             },
             editCollectionSchema: {
                 fields: {
-                    city: this.createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
-                    library: this.createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
+                    city: createMultiSelect('City', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}),
+                    library: createMultiSelect('Library', {model: 'institution', required: true, validator: VueFormGenerator.validators.required, dependency: 'regionWithParents', dependencyName: 'city'}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -196,39 +206,39 @@ export default {
     watch: {
         'model.regionWithParents'() {
             if (this.model.regionWithParents == null) {
-                this.dependencyField(this.librarySchema.fields.library)
+                dependencyField(this.librarySchema.fields.library, this.model)
             }
             else {
-                this.loadLocationField(this.librarySchema.fields.library, this.model)
-                this.enableField(this.librarySchema.fields.library)
+                loadLocationField(this.librarySchema.fields.library, this.model, this.values)
+                enableField(this.librarySchema.fields.library, this.model)
             }
         },
         'submitModel.regionWithParents'() {
             if (this.submitModel.submitType === 'collection') {
                 if (this.submitModel.regionWithParents == null) {
-                    this.dependencyField(this.editCollectionSchema.fields.library, this.submitModel)
+                    dependencyField(this.editCollectionSchema.fields.library, this.model)
                 }
                 else {
-                    this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-                    this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
+                    loadLocationField(this.editCollectionSchema.fields.library, this.model, this.values)
+                    enableField(this.editCollectionSchema.fields.library, this.model)
                 }
             }
         },
         'model.institution'() {
             if (this.model.institution == null) {
-                this.dependencyField(this.collectionSchema.fields.collection)
+                dependencyField(this.collectionSchema.fields.collection, this.model)
             }
             else {
-                this.loadLocationField(this.collectionSchema.fields.collection)
-                this.enableField(this.collectionSchema.fields.collection)
+                loadLocationField(this.collectionSchema.fields.collection, this.model, this.values)
+                enableField(this.collectionSchema.fields.collection, this.model)
             }
         },
     },
     mounted () {
-        this.loadLocationField(this.citySchema.fields.city)
-        this.enableField(this.citySchema.fields.city)
-        this.dependencyField(this.librarySchema.fields.library)
-        this.dependencyField(this.collectionSchema.fields.collection)
+        loadLocationField(this.citySchema.fields.city, this.model, this.values)
+        enableField(this.citySchema.fields.city, this.model)
+        dependencyField(this.librarySchema.fields.library, this.model)
+        dependencyField(this.collectionSchema.fields.collection, this.model)
     },
     methods: {
         editCity() {
@@ -251,8 +261,8 @@ export default {
                 this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
             }
 
-            this.loadLocationField(this.editLibrarySchema.fields.city, this.submitModel)
-            this.enableField(this.editLibrarySchema.fields.city, this.submitModel)
+            loadLocationField(this.editLibrarySchema.fields.city, this.model, this.values)
+            enableField(this.editLibrarySchema.fields.city, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -277,10 +287,10 @@ export default {
                 this.submitModel.collection = JSON.parse(JSON.stringify(this.model.collection))
             }
 
-            this.loadLocationField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.loadLocationField(this.editCollectionSchema.fields.library, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.city, this.submitModel)
-            this.enableField(this.editCollectionSchema.fields.library, this.submitModel)
+            loadLocationField(this.editCollectionSchema.fields.city, this.model,this.values)
+            loadLocationField(this.editCollectionSchema.fields.library, this.model,this.values)
+            enableField(this.editCollectionSchema.fields.city, this.model)
+            enableField(this.editCollectionSchema.fields.library, this.model)
 
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
@@ -374,7 +384,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -400,7 +410,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -435,7 +445,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -443,34 +453,35 @@ export default {
             this.openRequests++
             axios.get(this.urls['locations_get'])
                 .then( (response) => {
+
                     this.values = response.data
                     switch(this.submitModel.submitType) {
                     case 'regionWithParents':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model, this.values)
                         break
                     case 'institution':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.enableField(this.librarySchema.fields.library, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model,this.values)
+                        loadLocationField(this.librarySchema.fields.library, this.model,this.values)
+                        enableField(this.librarySchema.fields.library, this.model)
                         break
                     case 'collection':
                         this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
                         this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
                         this.model.collection = JSON.parse(JSON.stringify(this.submitModel.collection))
-                        this.loadLocationField(this.citySchema.fields.city, this.submitModel)
-                        this.loadLocationField(this.librarySchema.fields.library, this.submitModel)
-                        this.loadLocationField(this.collectionSchema.fields.collection, this.submitModel)
-                        this.enableField(this.collectionSchema.fields.collection, this.submitModel)
+                        loadLocationField(this.citySchema.fields.city, this.model,this.values)
+                        loadLocationField(this.librarySchema.fields.library, this.model,this.values)
+                        loadLocationField(this.collectionSchema.fields.collection, this.model,this.values)
+                        enableField(this.collectionSchema.fields.collection, this.model)
                         break
                     }
                     this.openRequests--
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the location data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the location data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

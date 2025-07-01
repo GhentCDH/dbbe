@@ -80,13 +80,16 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '@/Components/FormFields/AbstractField'
-import AbstractListEdit from '@/Components/Edit/AbstractListEdit'
+import AbstractListEdit from '@/mixins/AbstractListEdit'
 import qs from "qs";
+import {createMultiSelect, enableField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
     props: {
@@ -95,17 +98,22 @@ export default {
             default: '',
         },
     },
+  components: {
+      editModal: Edit,
+      mergeModal: Merge,
+      deleteModal: Delete
+  },
     data() {
         return {
             persons: JSON.parse(this.initPersons),
             contentSchema: {
                 fields: {
-                    content: this.createMultiSelect('Content'),
+                    content: createMultiSelect('Content'),
                 },
             },
             editContentSchema: {
                 fields: {
-                    parent: this.createMultiSelect('Parent', {model: 'content.parent'}),
+                    parent: createMultiSelect('Parent', {model: 'content.parent'}),
                     individualName: {
                         type: 'input',
                         inputType: 'text',
@@ -114,13 +122,13 @@ export default {
                         model: 'content.individualName',
                         validator: [VueFormGenerator.validators.string, this.validateIndividualNameOrPerson],
                     },
-                    individualPerson: this.createMultiSelect('Person', {model: 'content.individualPerson', validator: this.validateIndividualNameOrPerson}),
+                    individualPerson: createMultiSelect('Person', {model: 'content.individualPerson', validator: this.validateIndividualNameOrPerson}),
                 },
             },
             mergeContentSchema: {
                 fields: {
-                    primary: this.createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: this.createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
+                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
+                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
                 },
             },
             model: {
@@ -181,7 +189,7 @@ export default {
             }
         }
         window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        this.enableField(this.contentSchema.fields.content)
+        enableField(this.contentSchema.fields.content)
     },
     methods: {
         editContent(add = false) {
@@ -200,9 +208,9 @@ export default {
             }
             this.editContentSchema.fields.parent.values = this.values
                 .filter((content) => !this.isOrIsChild(content, this.model.content)) // Remove values that create cycles
-            this.enableField(this.editContentSchema.fields.parent)
+            enableField(this.editContentSchema.fields.parent)
             this.editContentSchema.fields.individualPerson.values = this.persons
-            this.enableField(this.editContentSchema.fields.individualPerson)
+            enableField(this.editContentSchema.fields.individualPerson)
             this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
             this.editModal = true
         },
@@ -211,8 +219,8 @@ export default {
             this.mergeModel.secondary = null
             this.mergeContentSchema.fields.primary.values = this.values
             this.mergeContentSchema.fields.secondary.values = this.values
-            this.enableField(this.mergeContentSchema.fields.primary)
-            this.enableField(this.mergeContentSchema.fields.secondary)
+            enableField(this.mergeContentSchema.fields.primary)
+            enableField(this.mergeContentSchema.fields.secondary)
             this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel))
             this.mergeModal = true
         },
@@ -243,7 +251,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the content.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the content.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -283,7 +291,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the content.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the content.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -302,7 +310,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.mergeModal = true
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the content.', login: this.isLoginError(error)})
+                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the content.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -320,7 +328,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the content.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the content.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -335,7 +343,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the content data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

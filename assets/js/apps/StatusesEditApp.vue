@@ -52,29 +52,37 @@
 import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 
-import AbstractField from '../Components/FormFields/AbstractField'
-import AbstractListEdit from '../Components/Edit/AbstractListEdit'
+import AbstractListEdit from '../mixins/AbstractListEdit'
+import {createMultiSelect,enableField,dependencyField} from "@/helpers/formFieldUtils";
+import {isLoginError} from "@/helpers/errorUtil";
+import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from "@/Components/Edit/Modals/Edit.vue";
 
 export default {
     mixins: [
-        AbstractField,
         AbstractListEdit,
     ],
+    components: {
+      mergeModal: Merge,
+      deleteModal: Delete,
+      editModal: Edit
+    },
     data() {
         return {
             statusTypeSchema: {
                 fields: {
-                    statusType: this.createMultiSelect('Status Type', {model: 'statusType'}),
+                    statusType: createMultiSelect('Status Type', {model: 'statusType'}),
                 },
             },
             statusSchema: {
                 fields: {
-                    status: this.createMultiSelect('Status', {dependency: 'statusType', dependencyName: 'status type'}),
+                    status: createMultiSelect('Status', {dependency: 'statusType', dependencyName: 'status type'}),
                 },
             },
             editStatusSchema: {
                 fields: {
-                    statusType: this.createMultiSelect('Status Type', {model: 'statusType'}, {loading: false}),
+                    statusType: createMultiSelect('Status Type', {model: 'statusType'}, {loading: false}),
                     name: {
                         type: 'input',
                         inputType: 'text',
@@ -121,18 +129,18 @@ export default {
     watch: {
         'model.statusType'() {
             if (this.model.statusType == null) {
-                this.dependencyField(this.statusSchema.fields.status)
+                dependencyField(this.statusSchema.fields.status, this.model)
             }
             else {
                 this.loadStatusField()
-                this.enableField(this.statusSchema.fields.status)
+                enableField(this.statusSchema.fields.status, this.model)
             }
         },
     },
     mounted () {
         this.loadStatusTypeField(this.statusTypeSchema.fields.statusType)
-        this.enableField(this.statusTypeSchema.fields.statusType)
-        this.dependencyField(this.statusSchema.fields.status)
+        enableField(this.statusTypeSchema.fields.statusType, this.model)
+        dependencyField(this.statusSchema.fields.status, this.model)
     },
     methods: {
         editStatus(add = false) {
@@ -178,7 +186,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -196,7 +204,7 @@ export default {
                     .catch( (error) => {
                         this.openRequests--
                         this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: this.isLoginError(error)})
+                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: isLoginError(error)})
                         console.log(error)
                     })
             }
@@ -215,7 +223,7 @@ export default {
                 .catch( (error) => {
                     this.openRequests--
                     this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: this.isLoginError(error)})
+                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: isLoginError(error)})
                     console.log(error)
                 })
         },
@@ -230,7 +238,7 @@ export default {
                 })
                 .catch( (error) => {
                     this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: this.isLoginError(error)})
+                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: isLoginError(error)})
                     console.log(error)
                 })
         },

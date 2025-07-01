@@ -2,6 +2,9 @@
 
 namespace App\ObjectStorage;
 
+use App\ElasticSearchService\ElasticManuscriptService;
+use App\ElasticSearchService\ElasticOccurrenceService;
+use App\ElasticSearchService\ElasticVerseService;
 use Exception;
 use stdClass;
 
@@ -464,5 +467,46 @@ class ManuscriptManager extends DocumentManager
     private function updateIllustrated(Manuscript $manuscript, bool $illustrated): void
     {
         $this->dbs->updateIllustrated($manuscript->getId(), $illustrated);
+    }
+
+    private function formatRow(array $item, string $verses = ''): array
+    {
+        return [
+            $item['id'] ?? '',
+            $item['name'] ?? '',
+            $item['diktyon'][0] ?? '',
+            $item['city']['name'] ?? '',
+            $item['library']['name'] ?? '',
+            isset($item['content']) && is_array($item['content'])
+                ? implode('|', array_column($item['content'], 'name'))
+                : '',
+            isset($item['person_content']) && is_array($item['person_content'])
+                ? implode('|', array_column($item['person_content'], 'name'))
+                : '',
+            $item['origin'][0]['name'] ?? '',
+        ];
+    }
+
+    public function generateCsvStream(
+        array $params,
+        ElasticManuscriptService $elasticManuscriptService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+
+        fputcsv($stream, [
+            'id', 'name','diktyon', 'city', 'library', 'content'
+        ],';');
+        $maxResults = $isAuthorized ? 10000 : 1000;
+        $params['limit'] = $maxResults;
+        $result = $elasticManuscriptService->runFullSearch($params, $isAuthorized);
+        $data = $result['data'] ?? [];
+        $totalFetched = 0;
+        foreach ($data as $item) {
+            if ($totalFetched++ >= $maxResults) break;
+            fputcsv($stream, $this->formatRow($item),';');
+        }
+        return $stream;
     }
 }
