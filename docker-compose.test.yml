@@ -1,0 +1,13 @@
+
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ["npx", "playwright", "test", "dbbe.spec.js"]
+    environment:
+      - NODE_ENV=development
+      - RECAPTCHA_SITEVERIFY_URL=https://www.google.com/recaptcha/api/siteverify
+    networks:
+      - default
