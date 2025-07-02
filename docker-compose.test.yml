@@ -8,7 +8,6 @@ services:
     command: ["npx", "playwright", "test", "dbbe.spec.js"]
     environment:
       - NODE_ENV=development
-      - VITE_DOCKER_PLAYWRIGHT=true
       - RECAPTCHA_SITEVERIFY_URL=https://www.google.com/recaptcha/api/siteverify
     networks:
       - default

@@ -4,7 +4,6 @@ import path from 'path';
 import vue from '@vitejs/plugin-vue2';
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
-const isPlaywright = process.env.VITE_DOCKER_PLAYWRIGHT === 'true';
 export default defineConfig({
     plugins: [
         symfonyPlugin(),
@@ -74,7 +73,7 @@ export default defineConfig({
                 typeedit: './assets/js/main/typeedit.js',
                 typesearch: './assets/js/main/typesearch.js',
                 screen: 'assets/scss/screen.scss',
-            },
+            },g
         },
     },
     server: {
