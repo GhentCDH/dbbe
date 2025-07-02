@@ -73,7 +73,7 @@ export default defineConfig({
                 typeedit: './assets/js/main/typeedit.js',
                 typesearch: './assets/js/main/typesearch.js',
                 screen: 'assets/scss/screen.scss',
-            },g
+            },
         },
     },
     server: {
