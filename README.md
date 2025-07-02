@@ -93,12 +93,17 @@ Launch the debugger in PHPStorm by clicking the green bug icon in the top right 
 
 You can find a basic testing script in tests/dbbe.spec.js . This script logs in to the application via keycloak and clicks on all links it can find, thereby limiting itself to three hits on the /search pages. 
 
-You can run the script **after** launching the application via the docker-compose.yml by running 
+Required changes to keycloak:
+- the script assumes a local keycloak user 'editor@dbbe.ugent.be' with a password 'test'. Make sure you either add this user or modify the script to use a different user. 
+- Add http://dbbe-app-1:8000/* as a valid redirect url and 'enable direct access grants'
+
+You can run the script **after** launching the application via the docker-compose.yml by running
 
 ```
 docker-compose -f docker-compose.test.yml --env-file .env.dev up playwright
 ```
 
+#### Planned improvements
 Note that, at this point, the script does not run tests on inserts. It just navigates to every page without filling in forms. 
 
 Further improvements planned:
