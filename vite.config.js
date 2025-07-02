@@ -82,8 +82,7 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
         cors:true,
-        extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
-        // hmr: { host: 'dbbe-app-1' }
+        extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue']
     },
     // publicDir: 'assets/websites/static',
     resolve: {
