@@ -32,7 +32,7 @@
         :original-submit-model="originalSubmitModel"
         :alerts="editAlerts"
         @cancel="cancelEdit"
-        @reset="resetEdit"
+        @reset="resetEdit(submitModel)"
         @confirm="submitEdit"
         @dismiss-alert="editAlerts.splice($event, 1)"
     />

@@ -32,8 +32,8 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
 
     const openRequests = ref(0);
 
-    function resetEdit() {
-        Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(originalSubmitModel)));
+    function resetEdit(submitModel) {
+        Object.assign(submitModel, JSON.parse(JSON.stringify(originalSubmitModel)));
     }
     function resetMerge() {
         Object.assign(originalMergeModel, JSON.parse(JSON.stringify(originalMergeModel)));
