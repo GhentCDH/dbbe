@@ -409,7 +409,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import qs from 'qs';
 import VueFormGenerator from 'vue-form-generator';
 import axios from 'axios';

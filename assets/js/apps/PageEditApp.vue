@@ -34,7 +34,7 @@
 <script>
 import axios from 'axios'
 
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
 import VueCkeditor from 'vue-ckeditor2'

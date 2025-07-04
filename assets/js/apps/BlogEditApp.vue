@@ -141,7 +141,7 @@
 </template>
 
 <script>
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 
 import AbstractEntityEdit from '@/mixins/AbstractEntityEdit'
 import axios from 'axios'

@@ -209,7 +209,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 import vue2Dropzone from 'vue2-dropzone'
 

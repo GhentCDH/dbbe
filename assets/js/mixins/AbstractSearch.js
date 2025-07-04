@@ -1,6 +1,6 @@
 import qs from 'qs';
 
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import {dependencyField, enableField,removeGreekAccents} from "../helpers/formFieldUtils";
 import VueFormGenerator from 'vue-form-generator';
 import VueMultiselect from 'vue-multiselect';

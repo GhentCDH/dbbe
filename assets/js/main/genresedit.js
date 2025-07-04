@@ -6,10 +6,8 @@ import fieldMultiselectClear from '@/Components/FormFields/fieldMultiselectClear
 import * as uiv from 'uiv';
 
 Vue.use(uiv);
-Vue.use(VueFormGenerator)
 Vue.component('multiselect', VueMultiselect);
 Vue.component('field-multiselect', fieldMultiselectClear);
-
 Vue.use(VueFormGenerator);
 // Patch Vue.prototype.$emit to log all emitted events with their arguments
 const originalEmit = Vue.prototype.$emit;

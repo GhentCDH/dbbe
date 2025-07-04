@@ -4,8 +4,8 @@
             <alerts
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)" />
-            <panel header="Edit acknowledgements">
-                <editListRow
+            <Panel header="Edit acknowledgements">
+                <EditListRow
                     :schema="schema"
                     :model="model"
                     name="acknowledgement"
@@ -17,7 +17,7 @@
                     @add="edit(true)"
                     @edit="edit()"
                     @del="del()" />
-            </panel>
+            </Panel>
             <div
                 class="loading-overlay"
                 v-if="openRequests">
@@ -45,170 +45,167 @@
     </div>
 </template>
 
-<script>
-import VueFormGenerator from 'vue-form-generator'
+<script setup>
+import { ref, reactive, watch, computed } from 'vue'
 import axios from 'axios'
+import VueFormGenerator from 'vue-form-generator'
+import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
+import Edit from '@/Components/Edit/Modals/Edit.vue'
+import Merge from '@/Components/Edit/Modals/Merge.vue'
+import Delete from '@/Components/Edit/Modals/Delete.vue'
+import Panel from '@/Components/Edit/Panel.vue'
+import EditListRow from "@/Components/Edit/EditListRow.vue";
 
-import AbstractListEdit from '@/mixins/AbstractListEdit'
-import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
-import {isLoginError} from "@/helpers/errorUtil";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
+const props = defineProps({
+  initUrls: String,
+  initData: String
+})
 
-export default {
-    mixins: [
-        AbstractListEdit,
-    ],
-    components: {
-      editModal: Edit,
-      mergeModal: Merge,
-      deleteModal: Delete
+const {
+  urls,
+  values,
+  alerts,
+  editAlerts,
+  deleteAlerts,
+  delDependencies,
+  deleteModal,
+  editModalValue,
+  originalSubmitModel,
+  openRequests,
+  deleteDependencies,
+  cancelEdit,
+  cancelDelete
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, {})
+
+const schema = reactive({
+  fields: {
+    acknowledgement: createMultiSelect('Acknowledgement')
+  }
+})
+
+const editSchema = reactive({
+  fields: {
+    name: {
+      type: 'input',
+      inputType: 'text',
+      label: 'Name',
+      labelClasses: 'control-label',
+      model: 'acknowledgement.name',
+      required: true,
+      validator: VueFormGenerator.validators.string,
     },
-    data() {
-        return {
-            schema: {
-                fields: {
-                    acknowledgement: createMultiSelect('Acknowledgement'),
-                },
-            },
-            editSchema: {
-                fields: {
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Name',
-                        labelClasses: 'control-label',
-                        model: 'acknowledgement.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
-                },
-            },
-            model: {
-                acknowledgement: null,
-            },
-            submitModel: {
-                submitType: 'acknowledgement',
-                acknowledgement: {
-                    id: null,
-                    name: null,
-                }
-            },
-        }
-    },
-    computed: {
-        depUrls: function () {
-            return {
-                'Occurrences': {
-                    depUrl: this.urls['occurrence_deps_by_acknowledgement'].replace('acknowledgement_id', this.submitModel.acknowledgement.id),
-                    url: this.urls['occurrence_get'],
-                    urlIdentifier: 'occurrence_id',
-                },
-                'Types': {
-                    depUrl: this.urls['type_deps_by_acknowledgement'].replace('acknowledgement_id', this.submitModel.acknowledgement.id),
-                    url: this.urls['type_get'],
-                    urlIdentifier: 'type_id',
-                },
-            }
-        },
-    },
-    mounted () {
-        this.schema.fields.acknowledgement.values = this.values
-        enableField(this.schema.fields.acknowledgement)
-    },
-    methods: {
-        edit(add = false) {
-            // TODO: check if name already exists
-            if (add) {
-                this.submitModel.acknowledgement =  {
-                    id: null,
-                    name: null,
-                }
-            }
-            else {
-                this.submitModel.acknowledgement = JSON.parse(JSON.stringify(this.model.acknowledgement))
-            }
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
-            this.editModal = true
-        },
-        del() {
-            this.submitModel.acknowledgement = this.model.acknowledgement
-            this.deleteDependencies()
-        },
-        submitEdit() {
-            this.editModal = false
-            this.openRequests++
-            if (this.submitModel.acknowledgement.id == null) {
-                axios.post(this.urls['acknowledgement_post'], {
-                    name: this.submitModel.acknowledgement.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.acknowledgement = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Addition successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the acknowledgement.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-            else {
-                axios.put(this.urls['acknowledgement_put'].replace('acknowledgement_id', this.submitModel.acknowledgement.id), {
-                    name: this.submitModel.acknowledgement.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.acknowledgement = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Update successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the acknowledgement.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-        },
-        submitDelete() {
-            this.deleteModal = false
-            this.openRequests++
-            axios.delete(this.urls['acknowledgement_delete'].replace('acknowledgement_id', this.submitModel.acknowledgement.id))
-                .then( (response) => {
-                    this.submitModel.acknowledgement = null
-                    this.update()
-                    this.deleteAlerts = []
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the acknowledgement.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        update() {
-            this.openRequests++
-            axios.get(this.urls['acknowledgements_get'])
-                .then( (response) => {
-                    this.values = response.data
-                    this.schema.fields.acknowledgement.values = this.values
-                    this.model.acknowledgement = JSON.parse(JSON.stringify(this.submitModel.acknowledgement))
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the acknowledgement data.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-    }
+  }
+})
+
+const model = reactive({
+  acknowledgement: null
+})
+
+const submitModel = reactive({
+  submitType: 'acknowledgement',
+  acknowledgement: {
+    id: null,
+    name: null
+  }
+})
+
+const editModal = computed({
+  get: () => editModalValue.value,
+  set: (val) => editModalValue.value = val
+})
+
+const formatType = (type) => type
+
+function edit(add = false) {
+  if (add) {
+    submitModel.acknowledgement = { id: null, name: null }
+  } else {
+    submitModel.acknowledgement = JSON.parse(JSON.stringify(model.acknowledgement))
+  }
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+  editModal.value = true
 }
+
+function del() {
+  submitModel.acknowledgement = model.acknowledgement
+  deleteDependencies()
+}
+
+function submitEdit() {
+  editModal.value = false
+  openRequests.value++
+  const ack = submitModel.acknowledgement
+
+  const successHandler = (response, message) => {
+    submitModel.acknowledgement = response.data
+    update()
+    editAlerts.value = []
+    alerts.value.push({ type: 'success', message })
+    openRequests.value--
+  }
+
+  const errorHandler = (error, message) => {
+    openRequests.value--
+    editModal.value = true
+    editAlerts.value.push({
+      type: 'error',
+      message,
+      login: isLoginError(error)
+    })
+    console.error(error)
+  }
+
+  if (ack.id == null) {
+    axios.post(urls.acknowledgement_post, { name: ack.name })
+        .then(res => successHandler(res, 'Addition successful.'))
+        .catch(err => errorHandler(err, 'Something went wrong while adding the acknowledgement.'))
+  } else {
+    axios.put(urls.acknowledgement_put.replace('acknowledgement_id', ack.id), { name: ack.name })
+        .then(res => successHandler(res, 'Update successful.'))
+        .catch(err => errorHandler(err, 'Something went wrong while updating the acknowledgement.'))
+  }
+}
+
+function submitDelete() {
+  deleteModal.value = false
+  openRequests.value++
+  axios.delete(urls.acknowledgement_delete.replace('acknowledgement_id', submitModel.acknowledgement.id))
+      .then(() => {
+        submitModel.acknowledgement = null
+        update()
+        deleteAlerts.value = []
+        alerts.value.push({ type: 'success', message: 'Deletion successful.' })
+        openRequests.value--
+      })
+      .catch(error => {
+        openRequests.value--
+        deleteModal.value = true
+        deleteAlerts.value.push({
+          type: 'error',
+          message: 'Something went wrong while deleting the acknowledgement.',
+          login: isLoginError(error)
+        })
+        console.error(error)
+      })
+}
+
+function update() {
+  openRequests.value++
+  axios.get(urls.acknowledgements_get)
+      .then((response) => {
+        values.value = response.data
+        schema.fields.acknowledgement.values = response.data
+        model.acknowledgement = JSON.parse(JSON.stringify(submitModel.acknowledgement))
+        openRequests.value--
+      })
+      .catch((error) => {
+        openRequests.value--
+        alerts.value.push({ type: 'error', message: 'Something went wrong while renewing the acknowledgement data.', login: isLoginError(error) })
+        console.error(error)
+      })
+}
+
+schema.fields.acknowledgement.values = values.value
+enableField(schema.fields.acknowledgement)
 </script>

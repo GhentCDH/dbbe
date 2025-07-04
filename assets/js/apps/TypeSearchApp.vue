@@ -277,7 +277,7 @@
 <script>
 import qs from 'qs';
 
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 
 import VueFormGenerator from 'vue-form-generator';
 import {

@@ -97,7 +97,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import draggable from 'vuedraggable'
 
 import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
