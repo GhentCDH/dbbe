@@ -1,369 +1,370 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
-            />
-            <panel header="Edit book clusters">
-                <editListRow
-                    :schema="schema"
-                    :model="model"
-                    name="origin"
-                    :conditions="{
-                        add: true,
-                        edit: model.bookCluster,
-                        merge: model.bookCluster,
-                        del: model.bookCluster,
-                    }"
-                    @add="edit(true)"
-                    @edit="edit()"
-                    @merge="merge()"
-                    @del="del()"
-                />
-            </panel>
-            <div
-                v-if="openRequests"
-                class="loading-overlay"
-            >
-                <div class="spinner" />
-            </div>
-        </article>
-        <editModal
-            :show="editModal"
-            :schema="editSchema"
-            :submit-model="submitModel"
-            :original-submit-model="originalSubmitModel"
-            :alerts="editAlerts"
-            @cancel="cancelEdit()"
-            @reset="resetEdit()"
-            @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)"
-        >
-            <urlPanel
-                id="urls"
-                ref="urls"
-                header="Urls"
-                slot="extra"
-                :model="submitModel.bookCluster"
-                :as-slot="true"
-            />
-        </editModal>
-        <mergeModal
-            :show="mergeModal"
-            :schema="mergeSchema"
-            :merge-model="mergeModel"
-            :original-merge-model="originalMergeModel"
-            :alerts="mergeAlerts"
-            @cancel="cancelMerge()"
-            @reset="resetMerge()"
-            @confirm="submitMerge()"
-            @dismiss-alert="mergeAlerts.splice($event, 1)"
-        >
-            <table
-                v-if="mergeModel.primary && mergeModel.secondary"
-                slot="preview"
-                class="table table-striped table-hover"
-            >
-                <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Title</td>
-                        <td>{{ mergeModel.primary.name }}</td>
-                    </tr>
-                    <tr>
-                        <td>Urls</td>
-                        <td>
-                            <div
-                                v-if="mergeModel.primary.urls && mergeModel.primary.urls.length"
-                                v-for="(url, index) in mergeModel.primary.urls"
-                                :key="index"
-                                class="panel"
-                            >
-                                <div class="panel-body">
-                                    <strong>Url</strong> {{ url.url }}
-                                    <br />
-                                    <strong>Title</strong> {{ url.title }}
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </mergeModal>
-        <deleteModal
-            :show="deleteModal"
-            :del-dependencies="delDependencies"
-            :submit-model="submitModel"
-            :alerts="deleteAlerts"
-            @cancel="cancelDelete()"
-            @confirm="submitDelete()"
-            @dismiss-alert="deleteAlerts.splice($event, 1)"
-        />
+  <div>
+    <Alerts
+        :alerts="alerts"
+        @dismiss="alerts.splice($event, 1)"
+    />
+    <Panel header="Edit book clusters">
+      <EditListRow
+          :schema="schema"
+          :model="model"
+          name="bookCluster"
+          :conditions="{
+          add: true,
+          edit: model.bookCluster,
+          merge: model.bookCluster,
+          del: model.bookCluster,
+        }"
+          @add="edit(true)"
+          @edit="edit()"
+          @merge="merge()"
+          @del="del()"
+      />
+    </Panel>
+
+    <div v-if="openRequests" class="loading-overlay">
+      <div class="spinner" />
     </div>
+
+    <Edit
+        :show="editModalValue"
+        :schema="editSchema"
+        :submit-model="submitModel"
+        :original-submit-model="originalSubmitModel"
+        :alerts="editAlerts"
+        @cancel="cancelEdit"
+        @reset="resetEdit(submitModel)"
+        @confirm="submitEdit"
+        @dismiss-alert="editAlerts.splice($event, 1)"
+    >
+      <UrlPanel
+          id="urls"
+          ref="urls"
+          header="Urls"
+          slot="extra"
+          :model="submitModel.bookCluster"
+          :as-slot="true"
+      />
+    </Edit>
+
+    <Merge
+        :show="mergeModal"
+        :schema="mergeSchema"
+        :merge-model="mergeModel"
+        :original-merge-model="originalMergeModel"
+        :alerts="mergeAlerts"
+        @cancel="cancelMerge"
+        @reset="resetMerge"
+        @confirm="submitMerge"
+        @dismiss-alert="mergeAlerts.splice($event, 1)"
+    >
+      <table
+          v-if="mergeModel.primary && mergeModel.secondary"
+          slot="preview"
+          class="table table-striped table-hover"
+      >
+        <thead>
+        <tr><th>Field</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+        <tr><td>Title</td><td>{{ mergeModel.primary.name }}</td></tr>
+        <tr>
+          <td>Urls</td>
+          <td>
+            <div
+                v-if="mergeModel.primary.urls?.length"
+                v-for="(url, index) in mergeModel.primary.urls"
+                :key="index"
+                class="panel"
+            >
+              <div class="panel-body">
+                <strong>Url</strong> {{ url.url }}<br />
+                <strong>Title</strong> {{ url.title }}
+              </div>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </Merge>
+
+    <Delete
+        :show="deleteModal"
+        :del-dependencies="delDependencies"
+        :submit-model="submitModel"
+        :alerts="deleteAlerts"
+        @cancel="cancelDelete"
+        @confirm="submitDelete"
+        @dismiss-alert="deleteAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-
-import qs from 'qs'
-
-import VueFormGenerator from 'vue-form-generator'
+<script setup>
+import { reactive, ref, watch, onMounted } from 'vue'
 import axios from 'axios'
+import VueFormGenerator from 'vue-form-generator'
 
-import AbstractListEdit from '@/mixins/AbstractListEdit'
-import Url from '@/Components/Edit/Panels/Url'
-import {createMultiSelect,enableField} from "@/helpers/formFieldUtils";
-import {isLoginError} from "@/helpers/errorUtil";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Edit from '@/Components/Edit/Modals/Edit.vue'
+import Merge from '@/Components/Edit/Modals/Merge.vue'
+import Delete from '@/Components/Edit/Modals/Delete.vue'
+import Panel from '@/Components/Edit/Panel.vue'
+import Alerts from '@/Components/Alerts.vue'
+import EditListRow from '@/Components/Edit/EditListRow.vue'
+import UrlPanel from '@/Components/Edit/Panels/Url.vue'
+import { isLoginError } from '@/helpers/errorUtil'
+import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
-export default {
-    mixins: [
-        AbstractListEdit,
-    ],
-    components: {
-      editModal: Edit,
-      mergeModal: Merge,
-      deleteModal: Delete,
-      UrlPanel: Url
+const props = defineProps({
+  initUrls: { type: String, required: true },
+  initData: { type: String, required: true }
+})
 
+const {
+  urls,
+  values,
+  alerts,
+  editAlerts,
+  deleteAlerts,
+  mergeAlerts,
+  delDependencies,
+  deleteModal,
+  editModalValue,
+  mergeModal,
+  originalSubmitModel,
+  originalMergeModel,
+  openRequests,
+  deleteDependencies,
+  cancelEdit,
+  cancelDelete,
+  cancelMerge,
+  resetEdit,
+  resetMerge,
+} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+
+const schema = reactive({
+  fields: {
+    bookCluster: createMultiSelect('BookCluster', { label: 'Book cluster' }),
+  },
+})
+
+const editSchema = reactive({
+  fields: [
+    {
+      type: 'input',
+      inputType: 'text',
+      label: 'Title',
+      labelClasses: 'control-label',
+      model: 'bookCluster.name',
+      required: true,
+      validator: VueFormGenerator.validators.string,
     },
-    data() {
-        return {
-            schema: {
-                fields: {
-                    bookCluster: createMultiSelect('BookCluster', {label: 'Book cluster'}),
-                },
-            },
-            editSchema: {
-                fields: {
-                    title: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Title',
-                        labelClasses: 'control-label',
-                        model: 'bookCluster.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
-                },
-            },
-            mergeSchema: {
-                fields: {
-                    primary: createMultiSelect('Primary', {required: true, validator: VueFormGenerator.validators.required}),
-                    secondary: createMultiSelect('Secondary', {required: true, validator: VueFormGenerator.validators.required}),
-                },
-            },
-            model: {
-                bookCluster: null,
-            },
-            submitModel: {
-                submitType: 'bookCluster',
-                bookCluster: {
-                    name: null,
-                    urls: null,
-                },
-            },
-            mergeModel: {
-                submitType: 'bookClusters',
-                primary: null,
-                secondary: null,
-            },
-        }
-    },
-    computed: {
-        depUrls: function() {
-            return {
-                'Books': {
-                    depUrl: this.urls['book_deps_by_book_cluster'].replace('book_cluster_id', this.submitModel.bookCluster.id),
-                    url: this.urls['book_get'],
-                    urlIdentifier: 'book_id',
-                }
-            }
-        },
-    },
-    mounted () {
-        this.schema.fields.bookCluster.values = this.values;
-        const params = qs.parse(window.location.href.split('?', 2)[1]);
-        if (!isNaN(params['id'])) {
-            const filteredValues = this.values.filter(v => v.id === parseInt(params['id']));
-            if (filteredValues.length === 1) {
-                this.model.bookCluster = JSON.parse(JSON.stringify(filteredValues[0]));
-            }
-        }
-        window.history.pushState({}, null, window.location.href.split('?', 2)[0]);
-        enableField(this.schema.fields.bookCluster);
-    },
-    methods: {
-        edit(add = false) {
-            // TODO: check if title already exists
-            this.submitModel = {
-                submitType: 'bookCluster',
-                bookCluster: {
-                    name: null,
-                    urls: null,
-                },
-            };
-            if (add) {
-                this.submitModel.bookCluster = {
-                    name: null,
-                    urls: null,
-                }
-            }
-            else {
-                this.submitModel.bookCluster = JSON.parse(JSON.stringify(this.model.bookCluster))
-                this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
-                    function(url, index) {
-                        url.tgIndex = index + 1
-                        return url
-                    }
-                )
-            }
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
-            this.editModal = true
-        },
-        merge() {
-            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.bookCluster));
-            this.mergeModel.secondary = null;
-            this.mergeSchema.fields.primary.values = this.values;
-            this.mergeSchema.fields.secondary.values = this.values;
-            enableField(this.mergeSchema.fields.primary);
-            enableField(this.mergeSchema.fields.secondary);
-            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
-            this.mergeModal = true
-        },
-        del() {
-            this.submitModel.bookCluster = JSON.parse(JSON.stringify(this.model.bookCluster));
-            this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
-                function(url, index) {
-                    url.tgIndex = index + 1
-                    return url
-                }
-            )
-            this.deleteDependencies()
-        },
-        submitEdit() {
-            this.editModal = false;
-            this.openRequests++;
+  ],
+})
 
-            let data = {};
-            for (let key of Object.keys(this.submitModel.bookCluster)) {
-                if ((key === 'id' && this.submitModel.bookCluster.id == null) || this.submitModel.bookCluster[key] !== this.originalSubmitModel.bookCluster[key]) {
-                    data[key] = this.submitModel.bookCluster[key]
-                }
-            }
+const mergeSchema = reactive({
+  fields: {
+    primary: createMultiSelect('Primary', { required: true, validator: VueFormGenerator.validators.required }),
+    secondary: createMultiSelect('Secondary', { required: true, validator: VueFormGenerator.validators.required }),
+  },
+})
 
-            if (this.submitModel.bookCluster.id == null) {
-                axios.post(this.urls['book_cluster_post'], data)
-                    .then( (response) => {
-                        this.submitModel.bookCluster = response.data;
-                        this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
-                            function(url, index) {
-                                url.tgIndex = index + 1
-                                return url
-                            }
-                        )
-                        this.update();
-                        this.editAlerts = [];
-                        this.alerts.push({type: 'success', message: 'Addition successful.'});
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--;
-                        this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the book cluster.', login: isLoginError(error)});
-                        console.log(error)
-                    })
-            }
-            else {
-                axios.put(this.urls['book_cluster_put'].replace('book_cluster_id', this.submitModel.bookCluster.id), data)
-                    .then( (response) => {
-                        this.submitModel.bookCluster = response.data;
-                        this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
-                            function(url, index) {
-                                url.tgIndex = index + 1
-                                return url
-                            }
-                        )
-                        this.update();
-                        this.editAlerts = [];
-                        this.alerts.push({type: 'success', message: 'Update successful.'});
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--;
-                        this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the book cluster.', login: isLoginError(error)});
-                        console.log(error)
-                    })
-            }
-        },
-        submitMerge() {
-            this.mergeModal = false;
-            this.openRequests++;
-            axios.put(this.urls['book_cluster_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
-                .then( (response) => {
-                    this.submitModel.bookCluster = response.data;
-                    this.submitModel.bookCluster.urls = this.submitModel.bookCluster.urls == null ? null : this.submitModel.bookCluster.urls.map(
-                        function(url, index) {
-                            url.tgIndex = index + 1
-                            return url
-                        }
-                    )
-                    this.update();
-                    this.mergeAlerts = [];
-                    this.alerts.push({type: 'success', message: 'Merge successful.'});
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.mergeModal = true;
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the book clusters.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
-        submitDelete() {
-            this.deleteModal = false;
-            this.openRequests++;
-            axios.delete(this.urls['book_cluster_delete'].replace('book_cluster_id', this.submitModel.bookCluster.id))
-                .then( (response) => {
-                    this.submitModel.bookCluster = {
-                        name: null,
-                        urls: null,
-                    };
-                    this.update();
-                    this.deleteAlerts = [];
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'});
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the book cluster.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
-        update() {
-            this.openRequests++;
-            axios.get(this.urls['book_clusters_get'])
-                .then( (response) => {
-                    this.values = response.data;
-                    this.schema.fields.bookCluster.values = this.values;
-                    this.model.bookCluster = JSON.parse(JSON.stringify(this.submitModel.bookCluster));
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the book cluster data.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
+const model = reactive({
+  bookCluster: null,
+})
+
+const submitModel = reactive({
+  submitType: 'bookCluster',
+  bookCluster: {
+    id: null,
+    name: null,
+    urls: null,
+  },
+})
+
+const mergeModel = reactive({
+  submitType: 'bookClusters',
+  primary: null,
+  secondary: null,
+})
+
+watch(values, (newValues) => {
+  schema.fields.bookCluster.values = Array.isArray(newValues) ? newValues : []
+}, { immediate: true })
+
+watch(originalSubmitModel, (newVal) => {
+  Object.assign(submitModel.bookCluster, newVal.bookCluster)
+})
+
+watch(values, () => {
+  enableField(schema.fields.bookCluster)
+})
+
+onMounted(() => {
+  schema.fields.bookCluster.values = values.value || []
+  enableField(schema.fields.bookCluster, model)
+})
+
+function edit(add = false) {
+  if (add) {
+    submitModel.bookCluster = {
+      id: null,
+      name: null,
+      urls: null,
     }
+  } else {
+    submitModel.bookCluster = JSON.parse(JSON.stringify(model.bookCluster))
+    if (submitModel.bookCluster.urls) {
+      submitModel.bookCluster.urls = submitModel.bookCluster.urls.map((url, i) => ({
+        ...url,
+        tgIndex: i + 1,
+      }))
+    }
+  }
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+  editModalValue.value = true
+}
+
+function merge() {
+  mergeModel.primary = JSON.parse(JSON.stringify(model.bookCluster))
+  mergeModel.secondary = null
+  mergeSchema.fields.primary.values = values.value
+  mergeSchema.fields.secondary.values = values.value
+  enableField(mergeSchema.fields.primary)
+  enableField(mergeSchema.fields.secondary)
+  Object.assign(originalMergeModel, JSON.parse(JSON.stringify(mergeModel)))
+  mergeModal.value = true
+}
+
+function del() {
+  submitModel.bookCluster = JSON.parse(JSON.stringify(model.bookCluster))
+  if (submitModel.bookCluster.urls) {
+    submitModel.bookCluster.urls = submitModel.bookCluster.urls.map((url, i) => ({
+      ...url,
+      tgIndex: i + 1,
+    }))
+  }
+  deleteDependencies()
+}
+
+async function update() {
+  openRequests.value++
+  try {
+    const response = await axios.get(urls.book_clusters_get)
+    if (Array.isArray(values.value)) {
+      values.value.splice(0, values.value.length, ...response.data)
+    }
+    schema.fields.bookCluster.values = values.value
+    model.bookCluster = JSON.parse(JSON.stringify(submitModel.bookCluster))
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while renewing the book cluster data.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitEdit() {
+  editModalValue.value = false
+  openRequests.value++
+
+  try {
+    const data = {}
+    for (const key in submitModel.bookCluster) {
+      if (
+          (key === 'id' && submitModel.bookCluster.id == null) ||
+          submitModel.bookCluster[key] !== originalSubmitModel.bookCluster[key]
+      ) {
+        data[key] = submitModel.bookCluster[key]
+      }
+    }
+
+    let response
+    if (submitModel.bookCluster.id == null) {
+      response = await axios.post(urls.book_cluster_post, data)
+      alerts.value.push({ type: 'success', message: 'Addition successful.' })
+    } else {
+      response = await axios.put(
+          urls.book_cluster_put.replace('book_cluster_id', submitModel.bookCluster.id),
+          data
+      )
+      alerts.value.push({ type: 'success', message: 'Update successful.' })
+    }
+
+    submitModel.bookCluster = response.data
+    if (submitModel.bookCluster.urls) {
+      submitModel.bookCluster.urls = submitModel.bookCluster.urls.map((url, i) => ({
+        ...url,
+        tgIndex: i + 1,
+      }))
+    }
+
+    await update()
+    editAlerts.value.splice(0)
+  } catch (error) {
+    editModalValue.value = true
+    editAlerts.value.push({
+      type: 'error',
+      message: 'Error saving book cluster.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitMerge() {
+  mergeModal.value = false
+  openRequests.value++
+  try {
+    const { primary, secondary } = mergeModel
+    if (!primary || !secondary) return
+
+    await axios.put(
+        urls.book_cluster_merge.replace('primary_book_cluster_id', primary.id).replace('secondary_book_cluster_id', secondary.id)
+    )
+    alerts.value.push({ type: 'success', message: 'Merge successful.' })
+    await update()
+    mergeAlerts.value.splice(0)
+  } catch (error) {
+    mergeModal.value = true
+    mergeAlerts.value.push({
+      type: 'error',
+      message: 'Error merging book clusters.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitDelete() {
+  deleteModal.value = false
+  openRequests.value++
+  try {
+    await axios.delete(
+        urls.book_cluster_delete.replace('book_cluster_id', submitModel.bookCluster.id)
+    )
+    alerts.value.push({ type: 'success', message: 'Deletion successful.' })
+    await update()
+    deleteAlerts.value.splice(0)
+  } catch (error) {
+    deleteModal.value = true
+    deleteAlerts.value.push({
+      type: 'error',
+      message: 'Error deleting book cluster.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
 }
 </script>

@@ -1,8 +1,14 @@
 import Vue from 'vue';
 import BookClustersEditApp from '@/apps/BookClustersEditApp'
 import VueFormGenerator from 'vue-form-generator'
-Vue.use(VueFormGenerator);
+import VueMultiselect from 'vue-multiselect';
+import fieldMultiselectClear from '@/Components/FormFields/fieldMultiselectClear.vue';
+import * as uiv from 'uiv';
 
+Vue.use(uiv);
+Vue.component('multiselect', VueMultiselect);
+Vue.component('field-multiselect', fieldMultiselectClear);
+Vue.use(VueFormGenerator);
 new Vue({
     el: '#book-clusters-edit-app',
     components: {
