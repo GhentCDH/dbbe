@@ -1,273 +1,280 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
-            <panel header="Edit statuses">
-                <editListRow
-                    :schema="statusTypeSchema"
-                    :model="model" />
-                <editListRow
-                    :schema="statusSchema"
-                    :model="model"
-                    name="origin"
-                    :conditions="{
-                        add: model.statusType,
-                        edit: model.status,
-                        del: model.status,
-                    }"
-                    @add="editStatus(true)"
-                    @edit="editStatus()"
-                    @del="delStatus()" />
-            </panel>
-            <div
-                class="loading-overlay"
-                v-if="openRequests">
-                <div class="spinner" />
-            </div>
-        </article>
-        <editModal
-            :show="editModal"
-            :schema="editStatusSchema"
-            :submit-model="submitModel"
-            :original-submit-model="originalSubmitModel"
-            :alerts="editAlerts"
-            @cancel="cancelEdit()"
-            @reset="resetEdit()"
-            @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)" />
-        <deleteModal
-            :show="deleteModal"
-            :del-dependencies="delDependencies"
-            :submit-model="submitModel"
-            :alerts="deleteAlerts"
-            @cancel="cancelDelete()"
-            @confirm="submitDelete()"
-            @dismiss-alert="deleteAlerts.splice($event, 1)" />
-    </div>
+  <div>
+    <article class="col-sm-9 mbottom-large">
+      <Alerts
+          :alerts="alerts"
+          @dismiss="alerts.splice($event, 1)"
+      />
+      <Panel header="Edit statuses">
+        <EditListRow
+            :schema="statusSchema"
+            :model="model"
+            name="origin"
+            :conditions="{
+            add: model.statusType,
+            edit: model.status,
+            del: model.status
+          }"
+            @add="editStatus(true)"
+            @edit="editStatus()"
+            @del="delStatus()"
+        />
+      </Panel>
+      <div v-if="openRequests" class="loading-overlay">
+        <div class="spinner" />
+      </div>
+    </article>
+
+    <Edit
+        :show="editModalValue"
+        :schema="editStatusSchema"
+        :submit-model="submitModel"
+        :original-submit-model="originalSubmitModel"
+        :alerts="editAlerts"
+        @cancel="cancelEdit"
+        @reset="resetEdit(submitModel)"
+        @confirm="submitEdit"
+        @dismiss-alert="editAlerts.splice($event, 1)"
+    />
+
+    <Delete
+        :show="deleteModal"
+        :del-dependencies="delDependencies"
+        :submit-model="submitModel"
+        :alerts="deleteAlerts"
+        @cancel="cancelDelete"
+        @confirm="submitDelete"
+        @dismiss-alert="deleteAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-import VueFormGenerator from 'vue-form-generator'
+<script setup>
+import { reactive, ref, watch, onMounted } from 'vue'
 import axios from 'axios'
+import VueFormGenerator from 'vue-form-generator'
 
-import AbstractListEdit from '../mixins/AbstractListEdit'
-import {createMultiSelect,enableField,dependencyField} from "@/helpers/formFieldUtils";
-import {isLoginError} from "@/helpers/errorUtil";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Edit from '@/Components/Edit/Modals/Edit.vue'
+import Delete from '@/Components/Edit/Modals/Delete.vue'
+import Panel from '@/Components/Edit/Panel.vue'
+import Alerts from '@/Components/Alerts.vue'
+import EditListRow from '@/Components/Edit/EditListRow.vue'
 
-export default {
-    mixins: [
-        AbstractListEdit,
-    ],
-    components: {
-      mergeModal: Merge,
-      deleteModal: Delete,
-      editModal: Edit
-    },
-    data() {
-        return {
-            statusTypeSchema: {
-                fields: {
-                    statusType: createMultiSelect('Status Type', {model: 'statusType'}),
-                },
-            },
-            statusSchema: {
-                fields: {
-                    status: createMultiSelect('Status', {dependency: 'statusType', dependencyName: 'status type'}),
-                },
-            },
-            editStatusSchema: {
-                fields: {
-                    statusType: createMultiSelect('Status Type', {model: 'statusType'}, {loading: false}),
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Status name',
-                        labelClasses: 'control-label',
-                        model: 'status.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    },
-                },
-            },
-            model: {
-                statusType: null,
-                status: null,
-            },
-            submitModel: {
-                submitType: 'status',
-                statusType: null,
-                status: null,
-            },
-        }
-    },
-    computed: {
-        depUrls: function() {
-            return {
-                'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_status'].replace('status_id', this.submitModel.status.id),
-                    url: this.urls['manuscript_get'],
-                    urlIdentifier: 'manuscript_id',
-                },
-                'Occurrences': {
-                    depUrl: this.urls['occurrence_deps_by_status'].replace('status_id', this.submitModel.status.id),
-                    url: this.urls['occurrence_get'],
-                    urlIdentifier: 'occurrence_id',
-                },
-                'Types': {
-                    depUrl: this.urls['type_deps_by_status'].replace('status_id', this.submitModel.status.id),
-                    url: this.urls['type_get'],
-                    urlIdentifier: 'type_id',
-                },
-            }
-        },
-    },
-    watch: {
-        'model.statusType'() {
-            if (this.model.statusType == null) {
-                dependencyField(this.statusSchema.fields.status, this.model)
-            }
-            else {
-                this.loadStatusField()
-                enableField(this.statusSchema.fields.status, this.model)
-            }
-        },
-    },
-    mounted () {
-        this.loadStatusTypeField(this.statusTypeSchema.fields.statusType)
-        enableField(this.statusTypeSchema.fields.statusType, this.model)
-        dependencyField(this.statusSchema.fields.status, this.model)
-    },
-    methods: {
-        editStatus(add = false) {
-            // TODO: check if name already exists
-            this.submitModel = {
-                submitType: 'status',
-                statusType: null,
-                status: null,
-            }
-            this.submitModel.statusType = this.model.statusType
-            this.loadStatusTypeField(this.editStatusSchema.fields.statusType)
-            if (add) {
-                this.submitModel.status =  {
-                    name: null,
-                    type: this.model.statusType.id,
-                }
-            }
-            else {
-                this.submitModel.status = JSON.parse(JSON.stringify(this.model.status))
-            }
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
-            this.editModal = true
-        },
-        delStatus() {
-            this.submitModel.status = JSON.parse(JSON.stringify(this.model.status))
-            this.deleteDependencies()
-        },
-        submitEdit() {
-            this.editModal = false
-            this.openRequests++
-            if (this.submitModel.status.id == null) {
-                axios.post(this.urls['status_post'], {
-                    type: this.submitModel.status.type,
-                    name: this.submitModel.status.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.status = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Addition successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the status.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-            else {
-                axios.put(this.urls['status_put'].replace('status_id', this.submitModel.status.id), {
-                    name: this.submitModel.status.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.status = response.data
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Update successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the status.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-        },
-        submitDelete() {
-            this.deleteModal = false
-            this.openRequests++
-            axios.delete(this.urls['status_delete'].replace('status_id', this.submitModel.status.id))
-                .then( (response) => {
-                    this.submitModel.status = null
-                    this.update()
-                    this.deleteAlerts = []
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the status.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        update() {
-            this.openRequests++
-            axios.get(this.urls['statuses_get'])
-                .then( (response) => {
-                    this.values = response.data
-                    this.loadStatusField()
-                    this.model.status = JSON.parse(JSON.stringify(this.submitModel.status))
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the status data.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        loadStatusTypeField(field) {
-            let statusTypes = [
-                'manuscript',
-                'occurrence_record',
-                'occurrence_text',
-                'occurrence_divided',
-                'occurrence_source',
-                'type_text',
-                'type_critical'
-            ]
-            field.values = statusTypes
-                .map((statusType) => {
-                    return {
-                        id: statusType,
-                        name: this.formatStatusType(statusType)
-                    }
-                })
-        },
-        loadStatusField() {
-            this.statusSchema.fields.status.values = this.values
-                .filter((status) => status.type === this.model.statusType.id)
-        },
-        formatStatusType(statusType) {
-            // Capitalize and replace underscores by spaces
-            return (statusType.charAt(0).toUpperCase() + statusType.substr(1)).replace('_', ' ')
-        },
+import { isLoginError } from '@/helpers/errorUtil'
+import { createMultiSelect, enableField, dependencyField } from '@/helpers/formFieldUtils'
+import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+
+// Props
+const props = defineProps({
+  initUrls: {
+    type: String,
+    required: true
+  },
+  initData: {
+    type: String,
+    required: true
+  }
+})
+
+const {
+  urls,
+  values,
+  alerts,
+  editAlerts,
+  deleteAlerts,
+  delDependencies,
+  deleteModal,
+  editModalValue,
+  originalSubmitModel,
+  openRequests,
+  deleteDependencies,
+  cancelEdit,
+  cancelDelete,
+  resetEdit
+} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+
+// Schemas
+const statusSchema = reactive({
+  fields: {
+    statusType: createMultiSelect('Status Type', { model: 'statusType' }),
+    status: createMultiSelect('Status', { dependency: 'statusType', dependencyName: 'status type' })
+  }
+})
+
+const editStatusSchema = reactive({
+  fields: {
+    statusType: createMultiSelect('Status Type', { model: 'statusType' }, { loading: false }),
+    name: {
+      type: 'input',
+      inputType: 'text',
+      label: 'Status name',
+      labelClasses: 'control-label',
+      model: 'status.name',
+      required: true,
+      validator: VueFormGenerator.validators.string
     }
+  }
+})
+
+const model = reactive({
+  statusType: null,
+  status: null
+})
+
+const submitModel = reactive({
+  submitType: 'status',
+  statusType: null,
+  status: null
+})
+
+// Watchers
+watch(() => model.statusType, (newVal) => {
+  if (!newVal) {
+    dependencyField(statusSchema.fields.status, model)
+  } else {
+    loadStatusField()
+    enableField(statusSchema.fields.status, model)
+  }
+})
+
+watch(values, (newValues) => {
+  statusSchema.fields.status.values = newValues.filter(s => s.type === model.statusType?.id)
+}, { immediate: true })
+
+// Methods
+function loadStatusField() {
+  statusSchema.fields.status.values = values.value.filter(
+      status => status.type === model.statusType?.id
+  )
+}
+
+function loadStatusTypeField(field) {
+  const statusTypes = [
+    'manuscript',
+    'occurrence_record',
+    'occurrence_text',
+    'occurrence_divided',
+    'occurrence_source',
+    'type_text',
+    'type_critical'
+  ]
+  field.values = statusTypes.map(type => ({
+    id: type,
+    name: formatStatusType(type)
+  }))
+}
+
+function formatStatusType(type) {
+  return type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')
+}
+
+onMounted(() => {
+  loadStatusTypeField(statusSchema.fields.statusType)
+  enableField(statusSchema.fields.statusType, model)
+  dependencyField(statusSchema.fields.status, model)
+})
+
+// Edit status modal handlers
+function editStatus(add = false) {
+  submitModel.statusType = model.statusType
+  loadStatusTypeField(editStatusSchema.fields.statusType)
+
+  if (add) {
+    submitModel.status = {
+      name: null,
+      type: model.statusType.id
+    }
+  } else {
+    submitModel.status = JSON.parse(JSON.stringify(model.status))
+  }
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+  editModalValue.value = true
+}
+
+function delStatus() {
+  submitModel.status = JSON.parse(JSON.stringify(model.status))
+  deleteDependencies()
+}
+
+async function update() {
+  openRequests.value++
+  try {
+    const response = await axios.get(urls.statuses_get)
+    if (Array.isArray(values.value)) {
+      values.value.splice(0, values.value.length, ...response.data)
+    }
+    loadStatusField()
+    model.status = JSON.parse(JSON.stringify(submitModel.status))
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while renewing the status data.',
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitEdit() {
+  editModalValue.value = false
+  openRequests.value++
+
+  try {
+    let response
+    if (!submitModel.status.id) {
+      response = await axios.post(urls.status_post, {
+        type: submitModel.status.type,
+        name: submitModel.status.name
+      })
+      submitModel.status = response.data
+      alerts.value.push({ type: 'success', message: 'Addition successful.' })
+    } else {
+      response = await axios.put(
+          urls.status_put.replace('status_id', submitModel.status.id),
+          { name: submitModel.status.name }
+      )
+      submitModel.status = response.data
+      alerts.value.push({ type: 'success', message: 'Update successful.' })
+    }
+    await update()
+    editAlerts.value.splice(0)
+  } catch (error) {
+    editModalValue.value = true
+    editAlerts.value.push({
+      type: 'error',
+      message: !submitModel.status.id
+          ? 'Something went wrong while adding the status.'
+          : 'Something went wrong while updating the status.',
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitDelete() {
+  deleteModal.value = false
+  openRequests.value++
+
+  try {
+    await axios.delete(urls.status_delete.replace('status_id', submitModel.status.id))
+    submitModel.status = null
+    await update()
+    deleteAlerts.value.splice(0)
+    alerts.value.push({ type: 'success', message: 'Deletion successful.' })
+  } catch (error) {
+    deleteModal.value = true
+    deleteAlerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while deleting the status.',
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
 }
 </script>
