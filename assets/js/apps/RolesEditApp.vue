@@ -89,13 +89,6 @@ const {
 VueFormGenerator.validators.requiredMultiSelect = function (value) {
   return value && value.length > 0 ? [] : ['This field is required!']
 }
-//
-// const schema = reactive({
-//   fields: [
-//     createMultiSelect('Role', {}, { multiple: false })
-//   ]
-// })
-
 
 const schema = reactive({
   fields: [
