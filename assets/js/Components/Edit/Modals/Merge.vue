@@ -44,7 +44,12 @@
     </modal>
 </template>
 <script>
+import Alert from "@/Components/Alerts.vue";
+
 export default {
+  components: {
+    alerts: Alert
+  },
     props: {
         show: {
             type: Boolean,
