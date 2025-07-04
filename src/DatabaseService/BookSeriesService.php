@@ -51,6 +51,17 @@ class BookSeriesService extends DocumentService
         )->fetchAll();
     }
 
+    public function getDepIdsByManagementId(int $managementId): array
+    {
+        return $this->conn->executeQuery(
+            'SELECT
+                book_series.identity as book_series_id
+            from data.book_series
+            inner join data.entity_management on book_series.identity = entity_management.identity
+            where entity_management.idmanagement = ?',
+            [$managementId]
+        )->fetchAll();
+    }
     public function getAll(): array
     {
         return $this->conn->executeQuery(
