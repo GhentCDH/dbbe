@@ -128,10 +128,7 @@ importers:
         version: 2.1.5(ckeditor@4.12.1)(vue@2.7.16)
       vue-loader:
         specifier: ^15.11.1
-        version: 15.11.1(@vue/compiler-sfc@3.5.13)(css-loader@6.10.0(webpack@5.90.3))(lodash@4.17.21)(prettier@3.2.5)(pug@3.0.2)(vue-template-compiler@2.7.16)(webpack@5.90.3)
-      vue-template-compiler:
-        specifier: ^2.7.16
-        version: 2.7.16
+        version: 15.11.1(@vue/compiler-sfc@3.5.13)(css-loader@6.10.0(webpack@5.90.3))(lodash@4.17.21)(prettier@3.2.5)(pug@3.0.2)(webpack@5.90.3)
       vue2-dropzone:
         specifier: ^3.6.0
         version: 3.6.0
@@ -1052,9 +1049,6 @@ packages:
   damerau-levenshtein@1.0.8:
     resolution: {integrity: sha512-sdQSFB7+llfUcQHUQO3+B8ERRj0Oa4w9POWMI/puGtuf7gFywGmkaLCElnudfTiKZV+NvHqL0ifzdrI8Ro7ESA==}
 
-  de-indent@1.0.2:
-    resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}
-
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
 
@@ -1490,10 +1484,6 @@ packages:
   hasown@2.0.1:
     resolution: {integrity: sha512-1/th4MHjnwncwXsIW6QMzlvYL9kG5e/CpVvLRZe4XPa8TOUNbCELqmvhDmnkNsAjwaG4+I8gJJL0JBvTTLO9qA==}
     engines: {node: '>= 0.4'}
-
-  he@1.2.0:
-    resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
-    hasBin: true
 
   icss-utils@5.1.0:
     resolution: {integrity: sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==}
@@ -2443,9 +2433,6 @@ packages:
   vue-tables-2@2.3.5:
     resolution: {integrity: sha512-Oq1Nrq6EkjEbSTEvqTKPFInrTrav34KBZARNDFtvu8nDItw9D+S/y/lTbmNapPiNxaGuXPYef10lqOJp02hONg==}
 
-  vue-template-compiler@2.7.16:
-    resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
-
   vue-template-es2015-compiler@1.9.1:
     resolution: {integrity: sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==}
 
@@ -3293,8 +3280,6 @@ snapshots:
 
   damerau-levenshtein@1.0.8: {}
 
-  de-indent@1.0.2: {}
-
   debounce@1.2.1: {}
 
   debug@3.2.7:
@@ -3846,8 +3831,6 @@ snapshots:
   hasown@2.0.1:
     dependencies:
       function-bind: 1.1.2
-
-  he@1.2.0: {}
 
   icss-utils@5.1.0(postcss@8.5.3):
     dependencies:
@@ -4803,7 +4786,7 @@ snapshots:
 
   vue-hot-reload-api@2.3.4: {}
 
-  vue-loader@15.11.1(@vue/compiler-sfc@3.5.13)(css-loader@6.10.0(webpack@5.90.3))(lodash@4.17.21)(prettier@3.2.5)(pug@3.0.2)(vue-template-compiler@2.7.16)(webpack@5.90.3):
+  vue-loader@15.11.1(@vue/compiler-sfc@3.5.13)(css-loader@6.10.0(webpack@5.90.3))(lodash@4.17.21)(prettier@3.2.5)(pug@3.0.2)(webpack@5.90.3):
     dependencies:
       '@vue/component-compiler-utils': 3.3.0(lodash@4.17.21)(pug@3.0.2)
       css-loader: 6.10.0(webpack@5.90.3)
@@ -4815,7 +4798,6 @@ snapshots:
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.13
       prettier: 3.2.5
-      vue-template-compiler: 2.7.16
     transitivePeerDependencies:
       - arc-templates
       - atpl
@@ -4894,11 +4876,6 @@ snapshots:
       merge: 2.1.1
       vue: 2.7.16
       vue-pagination-2: 3.1.0
-
-  vue-template-compiler@2.7.16:
-    dependencies:
-      de-indent: 1.0.2
-      he: 1.2.0
 
   vue-template-es2015-compiler@1.9.1: {}
 
