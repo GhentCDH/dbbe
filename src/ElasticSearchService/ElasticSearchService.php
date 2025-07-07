@@ -6,6 +6,8 @@ use Elastica\Aggregation;
 use Elastica\Client;
 use Elastica\Query;
 use Elastica\Query\AbstractQuery;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ElasticSearchService implements ElasticSearchServiceInterface
 {
@@ -134,330 +136,272 @@ class ElasticSearchService implements ElasticSearchServiceInterface
 
     protected function aggregate(array $fieldTypes, array $filterValues): array
     {
-        $query = (new Query())
-            ->setQuery(self::createQuery($filterValues, 'global'))
-            // Only aggregation will be used
-            ->setSize(0);
+        try {
+            $query = (new Query())
+                ->setQuery(self::createQuery($filterValues, 'global'))
+                // Only aggregation will be used
+                ->setSize(0);
 
-        foreach ($fieldTypes as $fieldType => $fieldNames) {
-            switch ($fieldType) {
-                case 'numeric':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Terms($fieldName))
-                                    ->setMinimumDocumentCount(0)
-                                    ->setSize(self::MAX_AGG)
-                                    ->setField($fieldName)
-                            )
-                        );
-                    }
-                    break;
-                case 'object':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Terms($fieldName))
-                                    ->setMinimumDocumentCount(0)
-                                    ->setSize(self::MAX_AGG)
-                                    ->setField($fieldName . '.id_name.keyword')
-                            )
-                        );
-                    }
-                    break;
-                case 'exact_text':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Terms($fieldName))
-                                    ->setMinimumDocumentCount(0)
-                                    ->setSize(self::MAX_AGG)
-                                    ->setField($fieldName . '.keyword')
-                            )
-                        );
-                    }
-                    break;
-                case 'nested':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Nested($fieldName, $fieldName))
+            foreach ($fieldTypes as $fieldType => $fieldNames) {
+                switch ($fieldType) {
+                    case 'numeric':
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
+                            $query->addAggregation(
+                                (new Aggregation\Filter($fieldName))
+                                    ->setFilter($filterQuery)
                                     ->addAggregation(
-                                        (new Aggregation\Terms('id_name'))
+                                        (new Aggregation\Terms($fieldName))
+                                            ->setMinimumDocumentCount(0)
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($fieldName)
+                                    )
+                            );
+                        }
+                        break;
+                    case 'object':
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
+                            $query->addAggregation(
+                                (new Aggregation\Filter($fieldName))
+                                    ->setFilter($filterQuery)
+                                    ->addAggregation(
+                                        (new Aggregation\Terms($fieldName))
                                             ->setMinimumDocumentCount(0)
                                             ->setSize(self::MAX_AGG)
                                             ->setField($fieldName . '.id_name.keyword')
                                     )
-                            )
-                        );
-                    }
-                    break;
-                case 'nested_multi':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Nested($fieldName, $fieldName))
-                                    ->addAggregation(
-                                        (new Aggregation\Terms('id_name'))
-                                            ->setMinimumDocumentCount(0)
-                                            ->setSize(self::MAX_AGG)
-                                            ->setField($fieldName . '.id_name.keyword')
-                                            ->addAggregation(
-                                                (new Aggregation\ReverseNested('reverse_nested'))
-                                            )
-                                )
-                            )
-                        );
-                    }
-                    break;
-                case 'boolean':
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName);
-                        $query->addAggregation(
-                            (new Aggregation\Filter($fieldName))
-                            ->setFilter($filterQuery)
-                            ->addAggregation(
-                                (new Aggregation\Terms($fieldName))
-                                    ->setSize(self::MAX_AGG)
-                                    ->setField($fieldName)
-                            )
-                        );
-                    }
-                    break;
-                case 'multiple_fields_object':
-                    // fieldName = [
-                    //     [multiple_names] (e.g., [patron, scribe, related]),
-                    //      'actual field name' (e.g. 'person'),
-                    //      'dependend field name' (e.g. 'role')
-                    //  ]
-                    foreach ($fieldNames as $fieldName) {
-                        foreach ($fieldName[0] as $key) {
+                            );
+                        }
+                        break;
+                    case 'exact_text':
+                        foreach ($fieldNames as $fieldName) {
                             $filterQuery = self::createQuery($filterValues, $fieldName);
                             $query->addAggregation(
                                 (new Aggregation\Filter($fieldName))
-                                ->setFilter($filterQuery)
-                                ->addAggregation(
-                                    (new Aggregation\Nested($key, $key))
-                                        ->addAggregation(
-                                            (new Aggregation\Terms('id_name'))
-                                                ->setMinimumDocumentCount(0)
-                                                ->setSize(self::MAX_AGG)
-                                                ->setField($key . '.id_name.keyword')
-                                        )
-                                )
-                            );
-                        }
-                    }
-                    break;
-                case 'multiple_fields_object_multi':
-                    // fieldName = [
-                    //     [multiple_names] (e.g., [patron, scribe, related]),
-                    //      'actual field name' (e.g. 'person'),
-                    //      'dependend field name' (e.g. 'role')
-                    //  ]
-                    foreach ($fieldNames as $fieldName) {
-                        $filterQuery = self::createQuery($filterValues, $fieldName[1]);
-                        foreach ($fieldName[0] as $key) {
-                            $query->addAggregation(
-                                (new Aggregation\Filter($key))
                                     ->setFilter($filterQuery)
                                     ->addAggregation(
-                                        (new Aggregation\Nested($key, $key))
+                                        (new Aggregation\Terms($fieldName))
+                                            ->setMinimumDocumentCount(0)
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($fieldName . '.keyword')
+                                    )
+                            );
+                        }
+                        break;
+                    case 'nested':
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
+                            $query->addAggregation(
+                                (new Aggregation\Filter($fieldName))
+                                    ->setFilter($filterQuery)
+                                    ->addAggregation(
+                                        (new Aggregation\Nested($fieldName, $fieldName))
                                             ->addAggregation(
                                                 (new Aggregation\Terms('id_name'))
                                                     ->setMinimumDocumentCount(0)
                                                     ->setSize(self::MAX_AGG)
-                                                    ->setField($key . '.id_name.keyword')
+                                                    ->setField($fieldName . '.id_name.keyword')
                                             )
                                     )
                             );
                         }
-                    }
-                    break;
+                        break;
+                    case 'nested_multi':
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
+                            $query->addAggregation(
+                                (new Aggregation\Filter($fieldName))
+                                    ->setFilter($filterQuery)
+                                    ->addAggregation(
+                                        (new Aggregation\Nested($fieldName, $fieldName))
+                                            ->addAggregation(
+                                                (new Aggregation\Terms('id_name'))
+                                                    ->setMinimumDocumentCount(0)
+                                                    ->setSize(self::MAX_AGG)
+                                                    ->setField($fieldName . '.id_name.keyword')
+                                                    ->addAggregation(
+                                                        (new Aggregation\ReverseNested('reverse_nested'))
+                                                    )
+                                            )
+                                    )
+                            );
+                        }
+                        break;
+                    case 'boolean':
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName);
+                            $query->addAggregation(
+                                (new Aggregation\Filter($fieldName))
+                                    ->setFilter($filterQuery)
+                                    ->addAggregation(
+                                        (new Aggregation\Terms($fieldName))
+                                            ->setSize(self::MAX_AGG)
+                                            ->setField($fieldName)
+                                    )
+                            );
+                        }
+                        break;
+                    case 'multiple_fields_object':
+                        // fieldName = [
+                        //     [multiple_names] (e.g., [patron, scribe, related]),
+                        //      'actual field name' (e.g. 'person'),
+                        //      'dependend field name' (e.g. 'role')
+                        //  ]
+                        foreach ($fieldNames as $fieldName) {
+                            foreach ($fieldName[0] as $key) {
+                                $filterQuery = self::createQuery($filterValues, $fieldName);
+                                $query->addAggregation(
+                                    (new Aggregation\Filter($fieldName))
+                                        ->setFilter($filterQuery)
+                                        ->addAggregation(
+                                            (new Aggregation\Nested($key, $key))
+                                                ->addAggregation(
+                                                    (new Aggregation\Terms('id_name'))
+                                                        ->setMinimumDocumentCount(0)
+                                                        ->setSize(self::MAX_AGG)
+                                                        ->setField($key . '.id_name.keyword')
+                                                )
+                                        )
+                                );
+                            }
+                        }
+                        break;
+                    case 'multiple_fields_object_multi':
+                        // fieldName = [
+                        //     [multiple_names] (e.g., [patron, scribe, related]),
+                        //      'actual field name' (e.g. 'person'),
+                        //      'dependend field name' (e.g. 'role')
+                        //  ]
+                        foreach ($fieldNames as $fieldName) {
+                            $filterQuery = self::createQuery($filterValues, $fieldName[1]);
+                            foreach ($fieldName[0] as $key) {
+                                $query->addAggregation(
+                                    (new Aggregation\Filter($key))
+                                        ->setFilter($filterQuery)
+                                        ->addAggregation(
+                                            (new Aggregation\Nested($key, $key))
+                                                ->addAggregation(
+                                                    (new Aggregation\Terms('id_name'))
+                                                        ->setMinimumDocumentCount(0)
+                                                        ->setSize(self::MAX_AGG)
+                                                        ->setField($key . '.id_name.keyword')
+                                                )
+                                        )
+                                );
+                            }
+                        }
+                        break;
+                }
             }
-        }
 
-        $searchResult = $this->index->search($query);
-        $results = [];
-        foreach ($fieldTypes as $fieldType => $fieldNames) {
-            switch ($fieldType) {
-                case 'numeric':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['buckets'] as $result) {
-                            if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && ($result['key'] == $filterValues[$fieldType][$fieldName]))) {
-                                $results[$fieldName][] = [
-                                    'id' => $result['key'],
-                                    'name' => $result['key'],
-                                ];
-                            }
-                        }
-                    }
-                    break;
-                case 'object':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['buckets'] as $result) {
-                            if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && (explode('_', $result['key'])[0] == $filterValues[$fieldType][$fieldName]))) {
-                                $results[$fieldName][] = [
-                                    'id' => explode('_', $result['key'])[0],
-                                    'name' => explode('_', $result['key'])[1],
-                                ];
-                            }
-                        }
-                    }
-                    break;
-                case 'exact_text':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['buckets'] as $result) {
-                            if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && ($result['key'] == $filterValues[$fieldType][$fieldName]))) {
-                                $results[$fieldName][] = [
-                                    'id' => $result['key'],
-                                    'name' => $result['key'],
-                                ];
-                            }
-                        }
-                    }
-                    break;
-                case 'nested':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['id_name']['buckets'] as $result) {
-                            $results[$fieldName][] = [
-                                'id' => explode('_', $result['key'])[0],
-                                'name' => explode('_', $result['key'])[1],
-                                'count' => $result['doc_count'],
-                            ];
-                        }
-                    }
-                    break;
-                case 'nested_multi':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['id_name']['buckets'] as $result) {
-                            if ($result['reverse_nested']['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName]))) {
-                                $results[$fieldName][] = [
-                                    'id' => explode('_', $result['key'])[0],
-                                    'name' => explode('_', $result['key'])[1],
-                                    'count' => $result['reverse_nested']['doc_count'],
-                                ];
-                            }
-                        }
-                    }
-                    break;
-                case 'boolean':
-                    foreach ($fieldNames as $fieldName) {
-                        $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
-                        foreach ($aggregation['buckets'] as $result) {
-                            $results[$fieldName][] = [
-                                'id' => $result['key'],
-                                'name' => $result['key_as_string'],
-                            ];
-                        }
-                    }
-                    break;
-                case 'multiple_fields_object':
-                    foreach ($fieldNames as $fieldName) {
-                        // fieldName = [
-                        //     [multiple_names] (e.g., [patron, scribe, related]),
-                        //      'actual field name' (e.g. 'person'),
-                        //      'dependent field name' (e.g. 'role')
-                        //  ]
-
-                        //  a filter is set for the actual field name
-                        if (isset($filterValues[$fieldType][$fieldName[1]])) {
-                            $ids = [];
-                            foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key)[$key];
-                                foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if ($result['doc_count'] != 0) {
-                                        if (!in_array($result['key'], $ids)) {
-                                            $ids[] = $result['key'];
-                                            $results[$fieldName[1]][] = [
-                                                'id' => explode('_', $result['key'])[0],
-                                                'name' => explode('_', $result['key'])[1],
-                                            ];
-                                        }
-                                    }
-
-                                    // check if this result is a result of the actual field filter
-                                    if ($result['key'] == $filterValues[$fieldType][$fieldName[1]][1]) {
-                                        $results[$fieldName[2]][] = [
-                                            'id' => $key,
-                                            'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
-                                            'count' => $result['doc_count'],
-                                        ];
-                                    }
-                                }
-                            }
-                        } else {
-                            // prevent duplicate entries
-                            $ids = [];
-                            foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key)[$key];
-                                foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if ($result['doc_count'] != 0) {
-                                        if (!in_array($result['key'], $ids)) {
-                                            $ids[] = $result['key'];
-                                            $results[$fieldName[1]][] = [
-                                                'id' => explode('_', $result['key'])[0],
-                                                'name' => explode('_', $result['key'])[1],
-                                            ];
-                                        }
-                                    }
+            $searchResult = $this->index->search($query);
+            $results = [];
+            foreach ($fieldTypes as $fieldType => $fieldNames) {
+                switch ($fieldType) {
+                    case 'numeric':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['buckets'] as $result) {
+                                if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && ($result['key'] == $filterValues[$fieldType][$fieldName]))) {
+                                    $results[$fieldName][] = [
+                                        'id' => $result['key'],
+                                        'name' => $result['key'],
+                                    ];
                                 }
                             }
                         }
-                    }
-                    break;
-                case 'multiple_fields_object_multi':
-                    foreach ($fieldNames as $fieldName) {
-                        // fieldName = [
-                        //     [multiple_names] (e.g., [patron, scribe, related]),
-                        //      'actual field name' (e.g. 'person'),
-                        //      'dependent field name' (e.g. 'role')
-                        //  ]
+                        break;
+                    case 'object':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['buckets'] as $result) {
+                                if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && (explode('_', $result['key'])[0] == $filterValues[$fieldType][$fieldName]))) {
+                                    $results[$fieldName][] = [
+                                        'id' => explode('_', $result['key'])[0],
+                                        'name' => explode('_', $result['key'])[1],
+                                    ];
+                                }
+                            }
+                        }
+                        break;
+                    case 'exact_text':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['buckets'] as $result) {
+                                if ($result['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && ($result['key'] == $filterValues[$fieldType][$fieldName]))) {
+                                    $results[$fieldName][] = [
+                                        'id' => $result['key'],
+                                        'name' => $result['key'],
+                                    ];
+                                }
+                            }
+                        }
+                        break;
+                    case 'nested':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['id_name']['buckets'] as $result) {
+                                $results[$fieldName][] = [
+                                    'id' => explode('_', $result['key'])[0],
+                                    'name' => explode('_', $result['key'])[1],
+                                    'count' => $result['doc_count'],
+                                ];
+                            }
+                        }
+                        break;
+                    case 'nested_multi':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['id_name']['buckets'] as $result) {
+                                if ($result['reverse_nested']['doc_count'] != 0 || (isset($filterValues[$fieldType][$fieldName]) && in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName]))) {
+                                    $results[$fieldName][] = [
+                                        'id' => explode('_', $result['key'])[0],
+                                        'name' => explode('_', $result['key'])[1],
+                                        'count' => $result['reverse_nested']['doc_count'],
+                                    ];
+                                }
+                            }
+                        }
+                        break;
+                    case 'boolean':
+                        foreach ($fieldNames as $fieldName) {
+                            $aggregation = $searchResult->getAggregation($fieldName)[$fieldName];
+                            foreach ($aggregation['buckets'] as $result) {
+                                $results[$fieldName][] = [
+                                    'id' => $result['key'],
+                                    'name' => $result['key_as_string'],
+                                ];
+                            }
+                        }
+                        break;
+                    case 'multiple_fields_object':
+                        foreach ($fieldNames as $fieldName) {
+                            // fieldName = [
+                            //     [multiple_names] (e.g., [patron, scribe, related]),
+                            //      'actual field name' (e.g. 'person'),
+                            //      'dependent field name' (e.g. 'role')
+                            //  ]
 
-                        //  a filter is set for the actual field name
-                        if (isset($filterValues[$fieldType][$fieldName[1]])) {
-                            $ids = [];
-                            $depAggs = [];
-                            foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key)[$key];
-                                foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if ($result['doc_count'] != 0 || in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
-                                        if (!in_array($result['key'], $ids)) {
-                                            $ids[] = $result['key'];
-                                            $results[$fieldName[1]][] = [
-                                                'id' => explode('_', $result['key'])[0],
-                                                'name' => explode('_', $result['key'])[1],
-                                                'count' => $result['doc_count'],
-                                            ];
+                            //  a filter is set for the actual field name
+                            if (isset($filterValues[$fieldType][$fieldName[1]])) {
+                                $ids = [];
+                                foreach ($fieldName[0] as $key) {
+                                    $aggregation = $searchResult->getAggregation($key)[$key];
+                                    foreach ($aggregation['id_name']['buckets'] as $result) {
+                                        if ($result['doc_count'] != 0) {
+                                            if (!in_array($result['key'], $ids)) {
+                                                $ids[] = $result['key'];
+                                                $results[$fieldName[1]][] = [
+                                                    'id' => explode('_', $result['key'])[0],
+                                                    'name' => explode('_', $result['key'])[1],
+                                                ];
+                                            }
                                         }
-                                    }
 
-                                    // check if this result is a result of the actual field filter
-                                    if (in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
-                                        if (array_key_exists($key, $depAggs)) {
-                                            $depAggs[$key]['count'] += $result['doc_count'];
-                                        } else {
-                                            $depAggs[$key] = [
+                                        // check if this result is a result of the actual field filter
+                                        if ($result['key'] == $filterValues[$fieldType][$fieldName[1]][1]) {
+                                            $results[$fieldName[2]][] = [
                                                 'id' => $key,
                                                 'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
                                                 'count' => $result['doc_count'],
@@ -465,33 +409,103 @@ class ElasticSearchService implements ElasticSearchServiceInterface
                                         }
                                     }
                                 }
-                            }
-                            $results[$fieldName[2]] = array_values($depAggs);
-                        } else {
-                            // prevent duplicate entries
-                            $ids = [];
-                            foreach ($fieldName[0] as $key) {
-                                $aggregation = $searchResult->getAggregation($key)[$key];
-                                foreach ($aggregation['id_name']['buckets'] as $result) {
-                                    if ($result['doc_count'] != 0) {
-                                        if (!in_array($result['key'], $ids)) {
-                                            $ids[] = $result['key'];
-                                            $results[$fieldName[1]][] = [
-                                                'id' => explode('_', $result['key'])[0],
-                                                'name' => explode('_', $result['key'])[1],
-                                                'count' => $result['doc_count'],
-                                            ];
+                            } else {
+                                // prevent duplicate entries
+                                $ids = [];
+                                foreach ($fieldName[0] as $key) {
+                                    $aggregation = $searchResult->getAggregation($key)[$key];
+                                    foreach ($aggregation['id_name']['buckets'] as $result) {
+                                        if ($result['doc_count'] != 0) {
+                                            if (!in_array($result['key'], $ids)) {
+                                                $ids[] = $result['key'];
+                                                $results[$fieldName[1]][] = [
+                                                    'id' => explode('_', $result['key'])[0],
+                                                    'name' => explode('_', $result['key'])[1],
+                                                ];
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    break;
+                        break;
+                    case 'multiple_fields_object_multi':
+                        foreach ($fieldNames as $fieldName) {
+                            // fieldName = [
+                            //     [multiple_names] (e.g., [patron, scribe, related]),
+                            //      'actual field name' (e.g. 'person'),
+                            //      'dependent field name' (e.g. 'role')
+                            //  ]
+
+                            //  a filter is set for the actual field name
+                            if (isset($filterValues[$fieldType][$fieldName[1]])) {
+                                $ids = [];
+                                $depAggs = [];
+                                foreach ($fieldName[0] as $key) {
+                                    $aggregation = $searchResult->getAggregation($key)[$key];
+                                    foreach ($aggregation['id_name']['buckets'] as $result) {
+                                        if ($result['doc_count'] != 0 || in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
+                                            if (!in_array($result['key'], $ids)) {
+                                                $ids[] = $result['key'];
+                                                $results[$fieldName[1]][] = [
+                                                    'id' => explode('_', $result['key'])[0],
+                                                    'name' => explode('_', $result['key'])[1],
+                                                    'count' => $result['doc_count'],
+                                                ];
+                                            }
+                                        }
+
+                                        // check if this result is a result of the actual field filter
+                                        if (in_array(explode('_', $result['key'])[0], $filterValues[$fieldType][$fieldName[1]][1])) {
+                                            if (array_key_exists($key, $depAggs)) {
+                                                $depAggs[$key]['count'] += $result['doc_count'];
+                                            } else {
+                                                $depAggs[$key] = [
+                                                    'id' => $key,
+                                                    'name' => $this->roles[str_replace('_public', '', $key)]->getName(),
+                                                    'count' => $result['doc_count'],
+                                                ];
+                                            }
+                                        }
+                                    }
+                                }
+                                $results[$fieldName[2]] = array_values($depAggs);
+                            } else {
+                                // prevent duplicate entries
+                                $ids = [];
+                                foreach ($fieldName[0] as $key) {
+                                    $aggregation = $searchResult->getAggregation($key)[$key];
+                                    foreach ($aggregation['id_name']['buckets'] as $result) {
+                                        if ($result['doc_count'] != 0) {
+                                            if (!in_array($result['key'], $ids)) {
+                                                $ids[] = $result['key'];
+                                                $results[$fieldName[1]][] = [
+                                                    'id' => explode('_', $result['key'])[0],
+                                                    'name' => explode('_', $result['key'])[1],
+                                                    'count' => $result['doc_count'],
+                                                ];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                }
             }
+            return $results;
+            }
+        catch (\Exception $e) {
+            return [
+                'error' => [
+                    'code' => Response::HTTP_BAD_REQUEST,
+                    'message' => $e->getMessage()
+                ],
+            ];
         }
-        return $results;
+
     }
+
 
     protected static function createQuery(array $filterTypes, string $aggregateKey = null): Query\BoolQuery
     {
