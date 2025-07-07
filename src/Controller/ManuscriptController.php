@@ -65,7 +65,7 @@ class ManuscriptController extends BaseController
             [
                 'urls' => json_encode([
                     'manuscripts_search_api' => $this->generateUrl('manuscripts_search_api'),
-                    'manuscripts_export_csv' => $this->generateUrl('manuscripts_export_csv'),
+//                    'manuscripts_export_csv' => $this->generateUrl('manuscripts_export_csv'),
                     'occurrence_deps_by_manuscript' => $this->generateUrl('occurrence_deps_by_manuscript', ['id' => 'manuscript_id']),
                     'occurrence_get' => $this->generateUrl('occurrence_get', ['id' => 'occurrence_id']),
                     'manuscript_get' => $this->generateUrl('manuscript_get', ['id' => 'manuscript_id']),
@@ -113,22 +113,22 @@ class ManuscriptController extends BaseController
         return new JsonResponse($result);
     }
 
-    #[Route('/manuscripts/export_csv', name: 'manuscripts_export_csv', methods: ['GET'])]
-    public function exportCSV(
-        Request $request,
-        IdentifierManager $identifierManager,
-        ElasticManuscriptService $elasticManuscriptService
-    ): Response {
-        $params = $this->sanitize($request->query->all(),$identifierManager);
-        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
-        $csvStream = $this->manager->generateCsvStream($params, $elasticManuscriptService, $isAuthorized);
-        rewind($csvStream);
-        return new Response(stream_get_contents($csvStream), 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="persons.csv"',
-        ]);
-    }
-
+//    #[Route('/manuscripts/export_csv', name: 'manuscripts_export_csv', methods: ['GET'])]
+//    public function exportCSV(
+//        Request $request,
+//        IdentifierManager $identifierManager,
+//        ElasticManuscriptService $elasticManuscriptService
+//    ): Response {
+//        $params = $this->sanitize($request->query->all(),$identifierManager);
+//        $isAuthorized = $this->isGranted(Roles::ROLE_EDITOR_VIEW);
+//        $csvStream = $this->manager->generateCsvStream($params, $elasticManuscriptService, $isAuthorized);
+//        rewind($csvStream);
+//        return new Response(stream_get_contents($csvStream), 200, [
+//            'Content-Type' => 'text/csv',
+//            'Content-Disposition' => 'attachment; filename="persons.csv"',
+//        ]);
+//    }
+//
 
     /**
      * @param ContentManager $contentManager
