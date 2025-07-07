@@ -124,6 +124,9 @@ class ElasticManuscriptService extends ElasticEntityService
             $this->classifyAggregationFilters(array_merge($this->getIdentifierSystemNames(), $aggregationFilters), $viewInternal),
             !empty($params['filters']) ? $params['filters'] : []
         );
+        if (!isset($result['aggregation']['diktyon_available'])) {
+            $result['aggregation']['diktyon_available'] = [];
+        }
 
         // Add 'No collection' when necessary
         // When a library has been selected and no collection has been selected
