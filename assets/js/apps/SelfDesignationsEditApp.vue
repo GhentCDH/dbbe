@@ -1,11 +1,11 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alerts
+            <Alerts
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
             />
-            <panel header="Edit (self) designations">
+            <Panel header="Edit (self) designations">
                 <editListRow
                     :schema="schema"
                     :model="model"
@@ -21,7 +21,7 @@
                     @merge="merge()"
                     @del="del()"
                 />
-            </panel>
+            </Panel>
             <div
                 v-if="openRequests"
                 class="loading-overlay"
@@ -29,18 +29,18 @@
                 <div class="spinner" />
             </div>
         </article>
-        <editModal
-            :show="editModal"
+        <Edit
+            :show="editModalValue"
             :schema="editSchema"
             :submit-model="submitModel"
             :original-submit-model="originalSubmitModel"
             :alerts="editAlerts"
             @cancel="cancelEdit()"
-            @reset="resetEdit()"
+            @reset="resetEdit(submitModel)"
             @confirm="submitEdit()"
             @dismiss-alert="editAlerts.splice($event, 1)"
         />
-        <mergeModal
+        <Merge
             :show="mergeModal"
             :schema="mergeSchema"
             :merge-model="mergeModel"
@@ -69,8 +69,8 @@
                     </tr>
                 </tbody>
             </table>
-        </mergeModal>
-        <deleteModal
+        </Merge>
+        <Delete
             :show="deleteModal"
             :del-dependencies="delDependencies"
             :submit-model="submitModel"
@@ -82,265 +82,315 @@
     </div>
 </template>
 
-<script>
-import VueFormGenerator from 'vue-form-generator'
+<script setup>
+import { reactive, ref, watch, onMounted } from 'vue'
 import axios from 'axios'
 
-import AbstractListEdit from '../mixins/AbstractListEdit'
-import {createMultiSelect, enableField, removeGreekAccents} from "@/helpers/formFieldUtils";
-import {isLoginError} from "@/helpers/errorUtil";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
+import Edit from '@/Components/Edit/Modals/Edit.vue'
+import Delete from '@/Components/Edit/Modals/Delete.vue'
+import Merge from '@/Components/Edit/Modals/Merge.vue'
+import Panel from '@/Components/Edit/Panel.vue'
+import Alerts from '@/Components/Alerts.vue'
+import EditListRow from '@/Components/Edit/EditListRow.vue'
+import { isLoginError } from '@/helpers/errorUtil'
+import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
+import VueFormGenerator from 'vue-form-generator'
+import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { removeGreekAccents } from '@/helpers/formFieldUtils'
 
-export default {
-    mixins: [
-        AbstractListEdit,
-    ],
-  components: {
-    mergeModal: Merge,
-    deleteModal: Delete,
-    editModal: Edit
+const props = defineProps({
+  initUrls: {
+    type: String,
+    required: true,
   },
-    data() {
-        return {
-            schema: {
-                fields: {
-                    selfDesignation: createMultiSelect(
-                        '(Self) designation',
-                        {
-                            model: 'selfDesignation',
-                            styleClasses: 'greek',
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                            internalSearch: false,
-                            onSearch: this.greekSearch,
-                        }
-                    ),
-                },
-            },
-            editSchema: {
-                fields: {
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Name',
-                        labelClasses: 'control-label',
-                        model: 'selfDesignation.name',
-                        required: true,
-                        validator: [VueFormGenerator.validators.regexp],
-                        pattern: '^[\\u0370-\\u03ff\\u1f00-\\u1fff ]+$',
-                    },
-                },
-            },
-            mergeSchema: {
-                fields: {
-                    primary: createMultiSelect(
-                        'Primary',
-                        {
-                            styleClasses: 'greek',
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                            internalSearch: false,
-                            onSearch: this.greekSearchPrimary,
-                        }
-                    ),
-                    secondary: createMultiSelect(
-                        'Secondary',
-                        {
-                            styleClasses: 'greek',
-                        },
-                        {
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                            internalSearch: false,
-                            onSearch: this.greekSearchSecondary,
-                        }
-                    ),
-                },
-            },
-            model: {
-                selfDesignation: null,
-            },
-            submitModel: {
-                submitType: 'selfDesignation',
-                selfDesignation: {
-                    id: null,
-                    name: null,
-                }
-            },
-            mergeModel: {
-                submitType: 'selfDesignations',
-                primary: null,
-                secondary: null,
-            },
-            originalValues: [],
-        }
-    },
-    computed: {
-        depUrls: function () {
-            return {
-                'Persons': {
-                    depUrl: this.urls['person_deps_by_self_designation'].replace('self_designation_id', this.submitModel.selfDesignation.id),
-                    url: this.urls['person_get'],
-                    urlIdentifier: 'person_id',
-                },
-            }
-        },
-    },
-    mounted () {
-        this.schema.fields.selfDesignation.values = this.values;
-        this.schema.fields.selfDesignation.originalValues = JSON.parse(JSON.stringify(this.values));
-        enableField(this.schema.fields.selfDesignation)
-    },
-    methods: {
-        edit(add = false) {
-            // TODO: check if name already exists
-            if (add) {
-                this.submitModel.selfDesignation =  {
-                    id: null,
-                    name: null,
-                }
-            }
-            else {
-                this.submitModel.selfDesignation = JSON.parse(JSON.stringify(this.model.selfDesignation))
-            }
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel));
-            this.editModal = true
-        },
-        merge() {
-            this.mergeModel.primary = JSON.parse(JSON.stringify(this.model.selfDesignation));
-            this.mergeModel.secondary = null;
-            this.mergeSchema.fields.primary.values = this.values;
-            this.mergeSchema.fields.secondary.values = this.values;
-            enableField(this.mergeSchema.fields.primary);
-            enableField(this.mergeSchema.fields.secondary);
-            this.originalMergeModel = JSON.parse(JSON.stringify(this.mergeModel));
-            this.mergeModal = true
-        },
-        del() {
-            this.submitModel.selfDesignation = this.model.selfDesignation;
-            this.deleteDependencies()
-        },
-        submitEdit() {
-            this.editModal = false;
-            this.openRequests++;
-            if (this.submitModel.selfDesignation.id == null) {
-                axios.post(this.urls['self_designation_post'], {
-                    name: this.submitModel.selfDesignation.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.selfDesignation = response.data;
-                        this.update();
-                        this.editAlerts = [];
-                        this.alerts.push({type: 'success', message: 'Addition successful.'});
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--;
-                        this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding the (self) designation.', login: isLoginError(error)});
-                        console.log(error)
-                    })
-            }
-            else {
-                axios.put(this.urls['self_designation_put'].replace('self_designation_id', this.submitModel.selfDesignation.id), {
-                    name: this.submitModel.selfDesignation.name,
-                })
-                    .then( (response) => {
-                        this.submitModel.selfDesignation = response.data;
-                        this.update();
-                        this.editAlerts = [];
-                        this.alerts.push({type: 'success', message: 'Update successful.'});
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--;
-                        this.editModal = true;
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the (self) designation.', login: isLoginError(error)});
-                        console.log(error)
-                    })
-            }
-        },
-        submitMerge() {
-            this.mergeModal = false;
-            this.openRequests++;
-            axios.put(this.urls['self_designation_merge'].replace('primary_id', this.mergeModel.primary.id).replace('secondary_id', this.mergeModel.secondary.id))
-                .then( (response) => {
-                    this.submitModel.selfDesignation = response.data;
-                    this.update();
-                    this.mergeAlerts = [];
-                    this.alerts.push({type: 'success', message: 'Merge successful.'});
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.mergeModal = true;
-                    this.mergeAlerts.push({type: 'error', message: 'Something went wrong while merging the self designations.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
-        submitDelete() {
-            this.deleteModal = false;
-            this.openRequests++;
-            axios.delete(this.urls['self_designation_delete'].replace('self_designation_id', this.submitModel.selfDesignation.id))
-                .then( (response) => {
-                    this.submitModel.selfDesignation = null;
-                    this.update();
-                    this.deleteAlerts = [];
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'});
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.deleteModal = true;
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the (self) designation.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
-        update() {
-            this.openRequests++;
-            axios.get(this.urls['self_designations_get'])
-                .then( (response) => {
-                    this.values = response.data;
-                    this.schema.fields.selfDesignation.values = this.values;
-                    this.model.selfDesignation = JSON.parse(JSON.stringify(this.submitModel.selfDesignation));
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--;
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the (self) designation data.', login: isLoginError(error)});
-                    console.log(error)
-                })
-        },
-        greekSearch(searchQuery) {
-            this.schema.fields.selfDesignation.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => {
-                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
-                }
-            );
-        },
-        greekSearchPrimary(searchQuery) {
-            this.mergeSchema.fields.primary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => {
-                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
-                }
-            );
-        },
-        greekSearchSecondary(searchQuery) {
-            this.mergeSchema.fields.secondary.values = this.schema.fields.selfDesignation.originalValues.filter(
-                option => {
-                  return removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery));
-                }
-            );
-        },
-    }
+  initData: {
+    type: String,
+    required: true,
+  },
+})
+
+const depUrls = {
+  Persons: {
+    depUrl: '',
+    url: '',
+    urlIdentifier: '',
+  }
 }
+
+const {
+  urls,
+  values,
+  alerts,
+  editAlerts,
+  mergeAlerts,
+  deleteAlerts,
+  delDependencies,
+  deleteModal,
+  editModalValue,
+  mergeModal,
+  originalSubmitModel,
+  originalMergeModel,
+  openRequests,
+  deleteDependencies,
+  cancelEdit,
+  cancelMerge,
+  cancelDelete,
+  resetEdit,
+  resetMerge,
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
+
+const schema = reactive({
+  fields: {
+    selfDesignation: createMultiSelect(
+        '(Self) designation',
+        {
+          model: 'selfDesignation',
+          styleClasses: 'greek',
+        },
+        {
+          customLabel: ({ id, name }) => `${id} - ${name}`,
+          internalSearch: false,
+          onSearch: greekSearch,
+        }
+    ),
+  },
+})
+
+const editSchema = reactive({
+  fields: [
+    {
+      type: 'input',
+      inputType: 'text',
+      label: 'Name',
+      labelClasses: 'control-label',
+      model: 'selfDesignation.name',
+      required: true,
+      validator: VueFormGenerator.validators.regexp,
+      pattern: '^[\\u0370-\\u03ff\\u1f00-\\u1fff ]+$',
+    },
+  ],
+})
+
+const mergeSchema = reactive({
+  fields: {
+    primary: createMultiSelect(
+        'Primary',
+        {
+          styleClasses: 'greek',
+        },
+        {
+          customLabel: ({ id, name }) => `${id} - ${name}`,
+          internalSearch: false,
+          onSearch: greekSearchPrimary,
+        }
+    ),
+    secondary: createMultiSelect(
+        'Secondary',
+        {
+          styleClasses: 'greek',
+        },
+        {
+          customLabel: ({ id, name }) => `${id} - ${name}`,
+          internalSearch: false,
+          onSearch: greekSearchSecondary,
+        }
+    ),
+  },
+})
+
+const model = reactive({
+  selfDesignation: null,
+})
+
+const submitModel = reactive({
+  submitType: 'selfDesignation',
+  selfDesignation: {
+    id: null,
+    name: null,
+  },
+})
+
+const mergeModel = reactive({
+  submitType: 'selfDesignations',
+  primary: null,
+  secondary: null,
+})
+
+watch(values, (newValues) => {
+  schema.fields.selfDesignation.values = Array.isArray(newValues) ? newValues : []
+  mergeSchema.fields.primary.values = schema.fields.selfDesignation.values
+  mergeSchema.fields.secondary.values = schema.fields.selfDesignation.values
+}, { immediate: true })
+
+watch(originalSubmitModel, (newVal) => {
+  Object.assign(submitModel.selfDesignation, newVal.selfDesignation)
+})
+
+watch(values, () => {
+  enableField(schema.fields.selfDesignation)
+  enableField(mergeSchema.fields.primary)
+  enableField(mergeSchema.fields.secondary)
+})
+
+onMounted(() => {
+  schema.fields.selfDesignation.values = values.value || []
+  mergeSchema.fields.primary.values = values.value || []
+  mergeSchema.fields.secondary.values = values.value || []
+  enableField(schema.fields.selfDesignation, model)
+  enableField(mergeSchema.fields.primary)
+  enableField(mergeSchema.fields.secondary)
+})
+
+function edit(add = false) {
+  if (add) {
+    submitModel.selfDesignation = { id: null, name: null }
+  } else {
+    submitModel.selfDesignation = JSON.parse(JSON.stringify(model.selfDesignation))
+  }
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+  editModalValue.value = true
+}
+
+function merge() {
+  mergeModel.primary = JSON.parse(JSON.stringify(model.selfDesignation))
+  mergeModel.secondary = null
+  mergeSchema.fields.primary.values = schema.fields.selfDesignation.values
+  mergeSchema.fields.secondary.values = schema.fields.selfDesignation.values
+  enableField(mergeSchema.fields.primary)
+  enableField(mergeSchema.fields.secondary)
+  Object.assign(originalMergeModel, JSON.parse(JSON.stringify(mergeModel)))
+  mergeModal.value = true
+}
+
+function del() {
+  submitModel.selfDesignation = model.selfDesignation
+  depUrls.Persons.depUrl = urls.person_deps_by_self_designation.replace('self_designation_id', submitModel.selfDesignation.id)
+  deleteDependencies()
+}
+
+async function update() {
+  openRequests.value++
+  try {
+    const response = await axios.get(urls.self_designations_get)
+    if (Array.isArray(values.value)) {
+      values.value.splice(0, values.value.length, ...response.data)
+    }
+    schema.fields.selfDesignation.values = values.value
+    model.selfDesignation = JSON.parse(JSON.stringify(submitModel.selfDesignation))
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while renewing the (self) designation data.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitEdit() {
+  editModalValue.value = false
+  openRequests.value++
+
+  try {
+    let response
+    if (submitModel.selfDesignation.id == null) {
+      response = await axios.post(urls.self_designation_post, {
+        name: submitModel.selfDesignation.name,
+      })
+      submitModel.selfDesignation = response.data
+      alerts.value.push({ type: 'success', message: 'Addition successful.' })
+    } else {
+      response = await axios.put(
+          urls.self_designation_put.replace('self_designation_id', submitModel.selfDesignation.id),
+          { name: submitModel.selfDesignation.name }
+      )
+      submitModel.selfDesignation = response.data
+      alerts.value.push({ type: 'success', message: 'Update successful.' })
+    }
+    await update()
+    editAlerts.value.splice(0)
+  } catch (error) {
+    editModalValue.value = true
+    editAlerts.value.push({
+      type: 'error',
+      message:
+          submitModel.selfDesignation.id == null
+              ? 'Something went wrong while adding the (self) designation.'
+              : 'Something went wrong while updating the (self) designation.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitMerge() {
+  mergeModal.value = false
+  openRequests.value++
+
+  try {
+    const response = await axios.put(
+        urls.self_designation_merge
+            .replace('primary_id', mergeModel.primary.id)
+            .replace('secondary_id', mergeModel.secondary.id)
+    )
+    submitModel.selfDesignation = response.data
+    await update()
+    mergeAlerts.value.splice(0)
+    alerts.value.push({ type: 'success', message: 'Merge successful.' })
+  } catch (error) {
+    mergeModal.value = true
+    mergeAlerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while merging the self designations.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitDelete() {
+  deleteModal.value = false
+  openRequests.value++
+
+  try {
+    await axios.delete(urls.self_designation_delete.replace('self_designation_id', submitModel.selfDesignation.id))
+    submitModel.selfDesignation = null
+    await update()
+    deleteAlerts.value.splice(0)
+    alerts.value.push({ type: 'success', message: 'Deletion successful.' })
+  } catch (error) {
+    deleteModal.value = true
+    deleteAlerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while deleting the (self) designation.',
+      login: isLoginError(error),
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+function greekSearch(searchQuery) {
+  schema.fields.selfDesignation.values = schema.fields.selfDesignation.originalValues.filter(
+      option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+  )
+}
+function greekSearchPrimary(searchQuery) {
+  mergeSchema.fields.primary.values = schema.fields.selfDesignation.originalValues.filter(
+      option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+  )
+}
+function greekSearchSecondary(searchQuery) {
+  mergeSchema.fields.secondary.values = schema.fields.selfDesignation.originalValues.filter(
+      option => removeGreekAccents(`${option.id} - ${option.name}`).includes(removeGreekAccents(searchQuery))
+  )
+}
+
 </script>
