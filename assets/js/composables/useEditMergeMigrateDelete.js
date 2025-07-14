@@ -91,12 +91,11 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
         deleteModal.value = false;
         deleteAlerts.value = [];
     }
-
     function isOrIsChild(valueFromList, value) {
         if (!value || !valueFromList) return false;
         if (valueFromList.id === value.id) return true;
-
-        const parent = values.find(v => v.id === valueFromList.parent?.id);
+        const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {});
+        const parent = safeValues.find(v => v.id === valueFromList.parent?.id);
         return parent ? isOrIsChild(parent, value) : false;
     }
 
