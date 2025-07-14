@@ -120,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 import { isLoginError } from '@/helpers/errorUtil'

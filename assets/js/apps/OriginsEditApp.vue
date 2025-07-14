@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, computed } from 'vue'
+import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
