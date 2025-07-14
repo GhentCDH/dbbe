@@ -65,15 +65,12 @@ import EditListRow from '@/Components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
 
-// Props
 const props = defineProps({
   initUrls: {
-    type: String,
-    required: true
+    type: String
   },
   initData: {
-    type: String,
-    required: true
+    type: String
   }
 })
 

@@ -100,12 +100,10 @@ import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDele
 // Props
 const props = defineProps({
   initUrls: {
-    type: String,
-    required: true
+    type: String
   },
   initData: {
-    type: String,
-    required: true
+    type: String
   },
   initPersons: {
     type: String,

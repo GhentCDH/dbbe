@@ -110,15 +110,12 @@ import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
-// Props
 const props = defineProps({
   initUrls: {
-    type: String,
-    required: true
+    type: String
   },
   initData: {
-    type: String,
-    required: true
+    type: String
   }
 })
 

@@ -117,8 +117,8 @@ import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDele
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
 const props = defineProps({
-  initUrls: { type: String, required: true },
-  initData: { type: String, required: true }
+  initUrls: { type: String},
+  initData: { type: String }
 })
 
 const {
