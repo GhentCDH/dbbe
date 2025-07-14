@@ -41,6 +41,7 @@
     </modal>
 </template>
 <script>
+import Vue from 'vue';
 import Alert from "@/Components/Alerts.vue";
 import * as uiv from 'uiv';
 import VueFormGenerator from 'vue-form-generator'
