@@ -1,352 +1,322 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)" />
-            <panel
-                header="Edit origins"
-                :links="[{
-                    url: urls['regions_edit'],
-                    text: 'Add, edit or delete regions',
-                }]"
-            >
-                <editListRow
-                    :schema="regionSchema"
-                    :model="model"
-                    name="origin"
-                    :conditions="{
-                        edit: model.regionWithParents,
-                    }"
-                    @edit="editRegion()" />
-                <editListRow
-                    :schema="monasterySchema"
-                    :model="model"
-                    name="origin"
-                    :conditions="{
-                        add: model.regionWithParents,
-                        edit: model.institution,
-                        del: model.institution,
-                    }"
-                    @add="editMonastery(true)"
-                    @edit="editMonastery()"
-                    @del="delMonastery()" />
-            </panel>
-            <div
-                class="loading-overlay"
-                v-if="openRequests">
-                <div class="spinner" />
-            </div>
-        </article>
-        <editModal
-            :show="editModal"
-            :schema="editSchema"
-            :submit-model="submitModel"
-            :original-submit-model="originalSubmitModel"
-            :format-type="formatType"
-            :alerts="editAlerts"
-            @cancel="cancelEdit()"
-            @reset="resetEdit()"
-            @confirm="submitEdit()"
-            @dismiss-alert="editAlerts.splice($event, 1)" />
-        <deleteModal
-            :show="deleteModal"
-            :del-dependencies="delDependencies"
-            :submit-model="submitModel"
-            :format-type="formatType"
-            :alerts="deleteAlerts"
-            @cancel="cancelDelete()"
-            @confirm="submitDelete()"
-            @dismiss-alert="deleteAlerts.splice($event, 1)" />
-    </div>
+  <div>
+    <article class="col-sm-9 mbottom-large">
+      <Alerts :alerts="alerts" @dismiss="alerts.splice($event, 1)" />
+
+      <Panel
+          header="Edit origins"
+          :links="[{ url: urls.regions_edit, text: 'Add, edit or delete regions' }]"
+      >
+        <EditListRow
+            :schema="regionSchema"
+            :model="model"
+            name="origin"
+            :conditions="{ edit: model.regionWithParents }"
+            @edit="editRegion"
+        />
+
+        <EditListRow
+            :schema="monasterySchema"
+            :model="model"
+            name="origin"
+            :conditions="{
+            add: model.regionWithParents,
+            edit: model.institution,
+            del: model.institution
+          }"
+            @add="editMonastery(true)"
+            @edit="editMonastery()"
+            @del="delMonastery"
+        />
+      </Panel>
+      <div v-if="openRequests"
+           class="loading-overlay">
+        <div class="spinner" />
+      </div>
+    </article>
+    <Edit
+        :show="editModalValue"
+        :schema="editSchema"
+        :submit-model="submitModel"
+        :original-submit-model="originalSubmitModel"
+        :format-type="formatType"
+        :alerts="editAlerts"
+        @cancel="cancelEdit"
+        @reset="resetEdit(submitModel)"
+        @confirm="submitEdit"
+        @dismiss-alert="editAlerts.splice($event, 1)"
+    />
+    <Delete
+        :show="deleteModal"
+        :del-dependencies="delDependencies"
+        :submit-model="submitModel"
+        :format-type="formatType"
+        :alerts="deleteAlerts"
+        @cancel="cancelDelete"
+        @confirm="submitDelete"
+        @dismiss-alert="deleteAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-import VueFormGenerator from 'vue-form-generator'
+<script setup>
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
+import VueFormGenerator from 'vue-form-generator'
 
-import AbstractListEdit from '../mixins/AbstractListEdit'
+import Edit from '@/Components/Edit/Modals/Edit.vue'
+import Delete from '@/Components/Edit/Modals/Delete.vue'
+import Panel from '@/Components/Edit/Panel.vue'
+import Alerts from '@/Components/Alerts.vue'
+import EditListRow from '@/Components/Edit/EditListRow.vue'
+
 import {
   createMultiSelect,
-  dependencyField,
   enableField,
+  dependencyField,
   loadLocationField
-} from "@/helpers/formFieldUtils";
-import {isLoginError} from "@/helpers/errorUtil";
-import Edit from "@/Components/Edit/Modals/Edit.vue";
-import Merge from "@/Components/Edit/Modals/Merge.vue";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
+} from '@/helpers/formFieldUtils'
+import { isLoginError } from '@/helpers/errorUtil'
+import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
 
-export default {
-    mixins: [
-        AbstractListEdit,
-    ],
-    components: {
-      editModal: Edit,
-      mergeModal: Merge,
-      deleteModal: Delete
-    },
-    data() {
-        return {
-            regionSchema: {
-                fields: {
-                    region: createMultiSelect('Region', {model: 'regionWithParents'}, {customLabel: this.formatHistoricalName}),
-                }
-            },
-            monasterySchema: {
-                fields: {
-                    monastery: createMultiSelect('Monastery', {model: 'institution', dependency: 'regionWithParents', dependencyName: 'region'}),
-                }
-            },
-            editRegionSchema: {
-                fields: {
-                    individualHistoricalName: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Region name',
-                        labelClasses: 'control-label',
-                        model: 'regionWithParents.individualHistoricalName',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    }
-                }
-            },
-            editMonasterySchema: {
-                fields: {
-                    region: createMultiSelect('Region', {model: 'regionWithParents', required: true, validator: VueFormGenerator.validators.required}, {customLabel: this.formatHistoricalName}),
-                    name: {
-                        type: 'input',
-                        inputType: 'text',
-                        label: 'Monastery name',
-                        labelClasses: 'control-label',
-                        model: 'institution.name',
-                        required: true,
-                        validator: VueFormGenerator.validators.string,
-                    }
-                }
-            },
-            model: {
-                regionWithParents: null,
-                institution: null,
-            },
-            submitModel: {
-                submitType: null,
-                regionWithParents: null,
-                institution: null,
-            },
-        }
-    },
-    computed: {
-        editSchema: function() {
-            switch (this.submitModel.submitType) {
-            case 'regionWithParents':
-                return this.editRegionSchema
-                break;
-            default:
-                return this.editMonasterySchema
-            }
-        },
-        depUrls: function() {
-            return {
-                'Manuscripts': {
-                    depUrl: this.urls['manuscript_deps_by_institution'].replace('institution_id', this.submitModel.institution.id),
-                    url: this.urls['manuscript_get'],
-                    urlIdentifier: 'manuscript_id',
-                }
-            }
-        },
-    },
-    watch: {
-        'model.regionWithParents'() {
-            if (this.model.regionWithParents == null) {
-                dependencyField(this.monasterySchema.fields.monastery, this.model)
-            }
-            else {
-                loadLocationField(this.monasterySchema.fields.monastery, this.model,this.values)
-                enableField(this.monasterySchema.fields.monastery, this.model)
-            }
-        },
-    },
-    mounted () {
-        loadLocationField(this.regionSchema.fields.region, this.model,this.values)
-        enableField(this.regionSchema.fields.region, this.model)
-        dependencyField(this.monasterySchema.fields.monastery, this.model)
-    },
-    methods: {
-        editRegion() {
-            this.submitModel.submitType = 'regionWithParents'
-            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
-            this.editModal = true
-        },
-        editMonastery(add = false) {
-            // TODO: check if name already exists
-            this.submitModel.submitType = 'institution'
-            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
-            if (add) {
-                this.submitModel.institution =  {
-                    id: null,
-                    name: '',
-                }
-            }
-            else {
-                this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
-            }
+const props = defineProps({
+  initUrls: {
+    type: String
+  },
+  initData: {
+    type: String
+  }
+})
 
-            loadLocationField(this.editMonasterySchema.fields.region, this.model, this.values)
-            enableField(this.editMonasterySchema.fields.region, this.model)
+const {
+  urls,
+  values,
+  alerts,
+  editAlerts,
+  deleteAlerts,
+  delDependencies,
+  deleteModal,
+  editModalValue,
+  originalSubmitModel,
+  openRequests,
+  deleteDependencies,
+  cancelEdit,
+  cancelDelete,
+  resetEdit
+} = useEditMergeMigrateDelete(props.initUrls, props.initData)
 
-            this.originalSubmitModel = JSON.parse(JSON.stringify(this.submitModel))
-            this.editModal = true
-        },
-        delMonastery() {
-            this.submitModel.submitType = 'institution'
-            this.submitModel.regionWithParents = JSON.parse(JSON.stringify(this.model.regionWithParents))
-            this.submitModel.institution = JSON.parse(JSON.stringify(this.model.institution))
-            this.deleteDependencies()
-        },
-        submitEdit() {
-            this.editModal = false
-            this.openRequests++
-            let url = ''
-            let data = {}
-            switch(this.submitModel.submitType) {
-            case 'regionWithParents':
-                // Not possible to add cities
-                url = this.urls['region_put'].replace('region_id', this.submitModel.regionWithParents.id)
-                data = {
-                    individualHistoricalName: this.submitModel.regionWithParents.individualHistoricalName,
-                }
-                break
-            case 'institution':
-                if (this.submitModel.institution.id == null) {
-                    url = this.urls['monastery_post']
-                    data = {
-                        name: this.submitModel.institution.name,
-                        regionWithParents: {
-                            id: this.submitModel.regionWithParents.id
-                        }
-                    }
-                }
-                else {
-                    url = this.urls['monastery_put'].replace('monastery_id', this.submitModel.institution.id)
-                    data = {}
-                    if (this.submitModel.institution.name !== this.originalSubmitModel.institution.name) {
-                        data.name = this.submitModel.institution.name
-                    }
-                    if (this.submitModel.regionWithParents.id !== this.originalSubmitModel.regionWithParents.id) {
-                        data.regionWithParents = {
-                            id: this.submitModel.regionWithParents.id
-                        }
-                    }
-                }
-                break
-            }
-            if (this.submitModel[this.submitModel.submitType].id == null) {
-                axios.post(url, data)
-                    .then( (response) => {
-                        switch(this.submitModel.submitType) {
-                        case 'regionWithParents':
-                            this.submitModel.regionWithParents = response.data
-                            break
-                        case 'institution':
-                            this.submitModel.institution = response.data
-                            break
-                        }
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Addition successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while adding a ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-            else {
-                axios.put(url, data)
-                    .then( (response) => {
-                        switch(this.submitModel.submitType) {
-                        case 'regionWithParents':
-                            this.submitModel.regionWithParents = response.data
-                            break
-                        case 'institution':
-                            this.submitModel.institution = response.data
-                            break
-                        }
-                        this.update()
-                        this.editAlerts = []
-                        this.alerts.push({type: 'success', message: 'Update successful.'})
-                        this.openRequests--
-                    })
-                    .catch( (error) => {
-                        this.openRequests--
-                        this.editModal = true
-                        this.editAlerts.push({type: 'error', message: 'Something went wrong while updating the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
-                        console.log(error)
-                    })
-            }
-        },
-        submitDelete() {
-            this.deleteModal = false
-            this.openRequests++
-            axios.delete(this.urls['monastery_delete'].replace('monastery_id', this.submitModel.institution.id))
-                .then( (response) => {
-                    this.submitModel.institution = null
-                    this.update()
-                    this.deleteAlerts = []
-                    this.alerts.push({type: 'success', message: 'Deletion successful.'})
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.deleteModal = true
-                    this.deleteAlerts.push({type: 'error', message: 'Something went wrong while deleting the ' + this.formatType(this.submitModel.submitType) + '.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        update() {
-            this.openRequests++
-            axios.get(this.urls['origins_get'])
-                .then( (response) => {
-                    this.values = response.data
-                    switch(this.submitModel.submitType) {
-                    case 'regionWithParents':
-                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
-                        break
-                    case 'institution':
-                        this.model.regionWithParents = JSON.parse(JSON.stringify(this.submitModel.regionWithParents))
-                        this.model.institution = JSON.parse(JSON.stringify(this.submitModel.institution))
-                        loadLocationField(this.regionSchema.fields.region, this.model, this.values)
-                        loadLocationField(this.monasterySchema.fields.monastery, this.model, this.values)
-                        enableField(this.monasterySchema.fields.monastery, this.model)
-                        break
-                    }
-                    this.openRequests--
-                })
-                .catch( (error) => {
-                    this.openRequests--
-                    this.alerts.push({type: 'error', message: 'Something went wrong while renewing the origin data.', login: isLoginError(error)})
-                    console.log(error)
-                })
-        },
-        formatType(type) {
-            if (type === 'regionWithParents') {
-                return 'region'
-            }
-            if (type === 'institution') {
-                return 'monastery'
-            }
-            else {
-                return type
-            }
-        },
-        formatHistoricalName(regionWithParents) {
-            return regionWithParents.historicalName
-        },
+const model = reactive({
+  regionWithParents: null,
+  institution: null
+})
+
+const submitModel = reactive({
+  submitType: null,
+  regionWithParents: null,
+  institution: null
+})
+
+const regionSchema = reactive({
+  fields: {
+    region: createMultiSelect('Region', { model: 'regionWithParents' }, { customLabel: formatHistoricalName })
+  }
+})
+
+const monasterySchema = reactive({
+  fields: {
+    monastery: createMultiSelect('Monastery', {
+      model: 'institution',
+      dependency: 'regionWithParents',
+      dependencyName: 'region'
+    })
+  }
+})
+
+const editRegionSchema = reactive({
+  fields: {
+    individualHistoricalName: {
+      type: 'input',
+      inputType: 'text',
+      label: 'Region name',
+      labelClasses: 'control-label',
+      model: 'regionWithParents.individualHistoricalName',
+      required: true,
+      validator: VueFormGenerator.validators.string
     }
+  }
+})
+
+const editMonasterySchema = reactive({
+  fields: {
+    region: createMultiSelect('Region', { model: 'regionWithParents', required: true }, { customLabel: formatHistoricalName }),
+    name: {
+      type: 'input',
+      inputType: 'text',
+      label: 'Monastery name',
+      labelClasses: 'control-label',
+      model: 'institution.name',
+      required: true,
+      validator: VueFormGenerator.validators.string
+    }
+  }
+})
+
+const editSchema = computed(() => {
+  return submitModel.submitType === 'regionWithParents' ? editRegionSchema : editMonasterySchema
+})
+
+watch(() => model.regionWithParents, () => {
+  if (!model.regionWithParents) {
+    dependencyField(monasterySchema.fields.monastery, model)
+  } else {
+    loadLocationField(monasterySchema.fields.monastery, model, values.value)
+    enableField(monasterySchema.fields.monastery, model)
+  }
+})
+
+onMounted(() => {
+  loadLocationField(regionSchema.fields.region, model, values.value)
+  enableField(regionSchema.fields.region, model)
+  dependencyField(monasterySchema.fields.monastery, model)
+})
+
+function editRegion() {
+  submitModel.submitType = 'regionWithParents'
+  submitModel.regionWithParents = JSON.parse(JSON.stringify(model.regionWithParents))
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+
+  editModalValue.value = true
+}
+
+function editMonastery(add = false) {
+  submitModel.submitType = 'institution'
+  submitModel.regionWithParents = JSON.parse(JSON.stringify(model.regionWithParents))
+  submitModel.institution = add
+      ? { id: null, name: '' }
+      : JSON.parse(JSON.stringify(model.institution))
+
+  loadLocationField(editMonasterySchema.fields.region, model, values.value)
+  enableField(editMonasterySchema.fields.region, model)
+  Object.assign(originalSubmitModel, JSON.parse(JSON.stringify(submitModel)))
+
+  editModalValue.value = true
+}
+
+function delMonastery() {
+  submitModel.submitType = 'institution'
+  submitModel.regionWithParents = JSON.parse(JSON.stringify(model.regionWithParents))
+  submitModel.institution = JSON.parse(JSON.stringify(model.institution))
+  deleteDependencies()
+}
+
+async function submitEdit() {
+  editModalValue.value = false
+  openRequests.value++
+
+  let url = ''
+  let data = {}
+
+  try {
+    if (submitModel.submitType === 'regionWithParents') {
+      url = urls.region_put.replace('region_id', submitModel.regionWithParents.id)
+      data = {
+        individualHistoricalName: submitModel.regionWithParents.individualHistoricalName
+      }
+    } else if (submitModel.submitType === 'institution') {
+      const { id, name } = submitModel.institution
+      const regionId = submitModel.regionWithParents.id
+
+      if (id == null) {
+        url = urls.monastery_post
+        data = { name, regionWithParents: { id: regionId } }
+      } else {
+        url = urls.monastery_put.replace('monastery_id', id)
+        if (name !== originalSubmitModel.institution.name) {
+          data.name = name
+        }
+        if (regionId !== originalSubmitModel.regionWithParents.id) {
+          data.regionWithParents = { id: regionId }
+        }
+      }
+    }
+
+    const response = submitModel[submitModel.submitType].id == null
+        ? await axios.post(url, data)
+        : await axios.put(url, data)
+
+    submitModel[submitModel.submitType] = response.data
+
+    alerts.value.push({ type: 'success', message: submitModel[submitModel.submitType].id == null ? 'Addition successful.' : 'Update successful.' })
+    await update()
+    editAlerts.value = []
+  } catch (error) {
+    editModalValue.value = true
+    editAlerts.value.push({
+      type: 'error',
+      message: `Something went wrong while ${submitModel[submitModel.submitType].id == null ? 'adding' : 'updating'} the ${formatType(submitModel.submitType)}.`,
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function submitDelete() {
+  deleteModal.value = false
+  openRequests.value++
+
+  try {
+    await axios.delete(urls.monastery_delete.replace('monastery_id', submitModel.institution.id))
+    submitModel.institution = null
+    await update()
+    deleteAlerts.value = []
+    alerts.value.push({ type: 'success', message: 'Deletion successful.' })
+  } catch (error) {
+    deleteModal.value = true
+    deleteAlerts.value.push({
+      type: 'error',
+      message: `Something went wrong while deleting the ${formatType(submitModel.submitType)}.`,
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+async function update() {
+  openRequests.value++
+  try {
+    const response = await axios.get(urls.origins_get)
+    values.value = response.data
+    if (submitModel.submitType === 'regionWithParents') {
+      model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+      loadLocationField(regionSchema.fields.region, model, values.value)
+    } else {
+      model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+      model.institution = JSON.parse(JSON.stringify(submitModel.institution))
+      loadLocationField(regionSchema.fields.region, model, values.value)
+      loadLocationField(monasterySchema.fields.monastery, model, values.value)
+      enableField(monasterySchema.fields.monastery, model)
+    }
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while renewing the origin data.',
+      login: isLoginError(error)
+    })
+    console.error(error)
+  } finally {
+    openRequests.value--
+  }
+}
+
+function formatType(type) {
+  return type === 'regionWithParents' ? 'region' : type === 'institution' ? 'monastery' : type
+}
+
+function formatHistoricalName(regionWithParents) {
+  return regionWithParents.historicalName
 }
 </script>
