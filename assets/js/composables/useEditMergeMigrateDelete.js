@@ -44,8 +44,7 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
 
     function deleteDependencies() {
         openRequests.value++;
-        const depUrlsEntries = Object.entries(depUrls);
-
+        const depUrlsEntries = Object.entries(depUrls.value);
         axios
             .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
             .then(results => {
