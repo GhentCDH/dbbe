@@ -91,7 +91,6 @@ const props = defineProps({
 const persons = JSON.parse(props.initPersons)
 const isSubject = JSON.parse(props.initIsSubject)
 
-// Initialize composable with urls and data props
 const {
   urls,
   values,
@@ -114,7 +113,6 @@ const {
   resetMigrate,
 } = useEditMergeMigrateDelete(props.initUrls, props.initData)
 
-// Reactive schema with dynamic field based on isSubject
 const schema = reactive({
   fields: {
     keyword: createMultiSelect(isSubject ? 'Keyword' : 'Tag', { model: 'keyword' }),
@@ -142,12 +140,10 @@ const migrateSchema = reactive({
   },
 })
 
-// The current selected model keyword
 const model = reactive({
   keyword: null,
 })
 
-// Model used for submit operations (edit, migrate, delete)
 const submitModel = reactive({
   submitType: 'keyword',
   keyword: {
@@ -163,28 +159,23 @@ const migrateModel = reactive({
   secondary: null,
 })
 
-// Watch to update keyword values in schema whenever `values` change
 watch(values, (newValues) => {
   schema.fields.keyword.values = Array.isArray(newValues) ? newValues : []
 }, { immediate: true })
 
-// Watch original submit model changes to keep submitModel synced
 watch(originalSubmitModel, (newVal) => {
   Object.assign(submitModel.keyword, newVal.keyword || {})
 })
 
-// Enable field whenever values change
 watch(values, () => {
   enableField(schema.fields.keyword)
 })
 
-// On mounted, initialize schema field values and enable it
 onMounted(() => {
   schema.fields.keyword.values = values.value || []
   enableField(schema.fields.keyword)
 })
 
-// Edit modal logic
 function edit(add = false) {
   if (add) {
     submitModel.keyword = { id: null, name: null }
@@ -195,7 +186,6 @@ function edit(add = false) {
   editModalValue.value = true
 }
 
-// Migrate modal logic
 function migrate() {
   migrateModel.primary = JSON.parse(JSON.stringify(model.keyword))
   migrateModel.secondary = null
@@ -207,14 +197,11 @@ function migrate() {
   Object.assign(originalMigrateModel, JSON.parse(JSON.stringify(migrateModel)))
   migrateModal.value = true
 }
-
-// Delete modal logic
 function del() {
   submitModel.keyword = model.keyword
   deleteDependencies()
 }
 
-// Update keywords list after changes
 async function update() {
   openRequests.value++
   try {
@@ -236,7 +223,6 @@ async function update() {
   }
 }
 
-// Submit editing (add/update)
 async function submitEdit() {
   editModalValue.value = false
   openRequests.value++
@@ -303,7 +289,6 @@ async function submitMigrate() {
   }
 }
 
-// Submit delete
 async function submitDelete() {
   deleteModal.value = false
   openRequests.value++
