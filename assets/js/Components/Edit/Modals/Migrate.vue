@@ -42,6 +42,12 @@
 </template>
 <script>
 import Alert from "@/Components/Alerts.vue";
+import * as uiv from 'uiv';
+import VueFormGenerator from 'vue-form-generator'
+
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
+
 
 export default {
   components: {

@@ -57,7 +57,6 @@ import VueFormGenerator from 'vue-form-generator'
 import Panel from '@/Components/Edit/Panel.vue'
 import Edit from '@/Components/Edit/Modals/Edit.vue'
 import Delete from '@/Components/Edit/Modals/Delete.vue'
-import Merge from '@/Components/Edit/Modals/Merge.vue'
 import Alerts from '@/Components/Alerts.vue'
 
 
