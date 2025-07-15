@@ -260,7 +260,6 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import PersistentConfig from "@/mixins/PersistentConfig";
 import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 Vue.component('FieldRadio', fieldRadio);
@@ -269,7 +268,6 @@ export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-      PersistentConfig('ManuscriptSearchConfig'),
     ],
     data() {
         const data = {
@@ -310,6 +308,10 @@ export default {
                 manuscript: {},
             },
             defaultOrdering: 'name',
+            defaultConfig: {
+              groupIsOpen: [],
+            },
+            config: { groupIsOpen: [] },
         };
 
         // Add fields
@@ -446,6 +448,7 @@ export default {
       this.session = useSearchSession(this);
       this.onData = this.session.onData;
       this.session.init();
+      this.session = useSearchSession(this, 'ManuscriptSearchConfig');
     },
     mounted(){
       this.session.setupCollapsibleLegends();

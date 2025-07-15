@@ -1,7 +1,8 @@
 import qs from 'qs';
+import merge from 'lodash.merge';
 import { initSearchSession, updateSearchSession } from "@/helpers/searchSessionUtil";
 
-export function useSearchSession(context) {
+export function useSearchSession(context, cookieName = null) {
     const getUrl = (route) => context.urls?.[route] ?? '';
 
     const getSearchParams = () => {
@@ -19,7 +20,6 @@ export function useSearchSession(context) {
         }
 
         const params = getSearchParams();
-
         updateSearchSession({
             params,
             count: data.count,
@@ -41,16 +41,7 @@ export function useSearchSession(context) {
                 ? !context.config.groupIsOpen[index]
                 : true
         );
-    };
-
-    const init = () => {
-        initSearchSession({
-            urls: {
-                paginate: getUrl('paginate'),
-            },
-            count: context.data?.count,
-            params: getSearchParams(),
-        });
+        context.$emit('config-changed', context.config);
     };
 
     const setupCollapsibleLegends = () => {
@@ -65,6 +56,40 @@ export function useSearchSession(context) {
                 group.styleClasses = group.styleClasses.replace(' collapsed', '') + (isOpen ? '' : ' collapsed');
             });
         }
+    };
+
+    const setCookie = (name, value) => {
+        context.$cookies.set(name, value, '30d');
+    };
+
+    const getCookie = (name, defaultValue = {}) => {
+        try {
+            const stored = context.$cookies.get(name);
+            if (stored) {
+                return merge({}, defaultValue, stored);
+            }
+        } catch (err) {
+            return defaultValue;
+        }
+        return defaultValue;
+    };
+
+    const init = () => {
+        // Handle config cookie
+        if (cookieName && context.defaultConfig) {
+            if (!context.$cookies.isKey(cookieName)) {
+                setCookie(cookieName, context.defaultConfig);
+            }
+            context.config = getCookie(cookieName, context.defaultConfig);
+        }
+
+        initSearchSession({
+            urls: {
+                paginate: getUrl('paginate'),
+            },
+            count: context.data?.count,
+            params: getSearchParams(),
+        });
     };
 
     return {

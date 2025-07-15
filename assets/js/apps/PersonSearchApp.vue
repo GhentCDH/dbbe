@@ -431,7 +431,6 @@ import {
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/mixins/PersistentConfig";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import Merge from "@/Components/Edit/Modals/Merge.vue";
@@ -447,7 +446,6 @@ export default {
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
-        PersistentConfig('PersonSearchConfig'),
     ],
     props: {
         initPersons: {
@@ -532,6 +530,10 @@ export default {
                 person: {},
             },
             defaultOrdering: 'name',
+            defaultConfig: {
+              groupIsOpen: [],
+            },
+            config: { groupIsOpen: [] },
         };
 
         // Add fields
@@ -687,15 +689,16 @@ export default {
 
         return data;
     },
-    created(){
-      this.session = useSearchSession(this);
-      this.onData = this.session.onData;
-      this.session.init();
-    },
-    mounted(){
-      this.session.setupCollapsibleLegends();
-      this.$on('config-changed', this.session.handleConfigChange(this.schema));
-    },
+      created(){
+        this.session = useSearchSession(this);
+        this.onData = this.session.onData;
+        this.session.init();
+        this.session = useSearchSession(this, 'PersonSearchConfig');
+      },
+      mounted(){
+        this.session.setupCollapsibleLegends();
+        this.$on('config-changed', this.session.handleConfigChange(this.schema));
+      },
     computed: {
         depUrls() {
             return {

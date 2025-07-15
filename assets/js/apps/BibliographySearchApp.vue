@@ -391,7 +391,6 @@ import AbstractListEdit from '../mixins/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/mixins/PersistentConfig";
 import {greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
@@ -407,7 +406,6 @@ export default {
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
-        PersistentConfig('BibliographySearchConfig'),
     ],
     data() {
         const data = {
@@ -579,15 +577,16 @@ export default {
 
         return data;
     },
-    created(){
-      this.session = useSearchSession(this);
-      this.onData = this.session.onData;
-      this.session.init();
-    },
-    mounted(){
-      this.session.setupCollapsibleLegends();
-      this.$on('config-changed', this.session.handleConfigChange(this.schema));
-    },
+  created(){
+    this.session = useSearchSession(this);
+    this.onData = this.session.onData;
+    this.session.init();
+    this.session = useSearchSession(this, 'BibliographySearchConfig');
+  },
+  mounted(){
+    this.session.setupCollapsibleLegends();
+    this.$on('config-changed', this.session.handleConfigChange(this.schema));
+  },
     computed: {
         identificationValue() {
           const { mergeModel, identifier } = this;

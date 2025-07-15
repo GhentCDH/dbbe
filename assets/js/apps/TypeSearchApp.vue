@@ -295,7 +295,6 @@ import AbstractListEdit from '../mixins/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/mixins/PersistentConfig";
 import {formatDate, greekFont} from "../helpers/formatUtil";
 import {useSearchSession} from "../composables/useSearchSession";
 
@@ -305,8 +304,7 @@ Vue.component('FieldRadio', fieldRadio);
 export default {
     components: { ActiveFilters },
     mixins: [
-        AbstractSearch,
-        PersistentConfig('TypeSearchConfig'),
+        AbstractSearch
     ],
     data() {
         const data = {
@@ -571,12 +569,12 @@ export default {
       this.session = useSearchSession(this);
       this.onData = this.session.onData;
       this.session.init();
+      this.session = useSearchSession(this, 'TypeSearchConfig');
     },
     mounted(){
       this.session.setupCollapsibleLegends();
       this.$on('config-changed', this.session.handleConfigChange(this.schema));
     },
-
     computed: {
         depUrls() {
             return {

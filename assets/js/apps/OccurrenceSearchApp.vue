@@ -324,16 +324,12 @@ import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import {useSearchSession} from "../composables/useSearchSession";
 
-import PersistentConfig from "@/mixins/PersistentConfig";
-
-
 Vue.component('FieldRadio', fieldRadio);
 
 export default {
   components: { ActiveFilters },
   mixins: [
     AbstractSearch,
-    PersistentConfig('OccurrenceSearchConfig'),
   ],
   data() {
     const data = {
@@ -558,6 +554,7 @@ export default {
     this.session = useSearchSession(this);
     this.onData = this.session.onData;
     this.session.init();
+    this.session = useSearchSession(this, 'OccurrenceSearchConfig');
   },
   mounted(){
     this.session.setupCollapsibleLegends();
