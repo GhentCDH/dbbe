@@ -241,20 +241,9 @@
 </template>
 <script>
 import Vue from 'vue';
-import qs from 'qs';
-
-import VueFormGenerator from 'vue-form-generator';
-import axios from 'axios';
-
 import AbstractSearch from '../mixins/AbstractSearch';
-
-// used for deleteDependencies
-import AbstractListEdit from '../mixins/AbstractListEdit';
-
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import qs from 'qs';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-
-
 import {
   createMultiSelect,
   createMultiMultiSelect,
@@ -262,7 +251,9 @@ import {
 } from '@/helpers/formFieldUtils';
 import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
-Vue.component('FieldRadio', fieldRadio);
+import {isLoginError} from "@/helpers/errorUtil";
+import VueFormGenerator from 'vue-form-generator'
+Vue.use(VueFormGenerator);
 
 export default {
     components: { ActiveFilters },
@@ -485,27 +476,59 @@ export default {
     methods: {
       greekFont,
       formatDate,
-        del(row) {
-            this.submitModel.manuscript = row;
-            AbstractListEdit.methods.deleteDependencies.call(this);
-        },
-        submitDelete() {
-            this.openRequests += 1;
-            this.deleteModal = false;
-            axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
-                .then((_response) => {
-                    // Don't create a new history item
-                    this.noHistory = true;
-                    this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push({ type: 'success', message: 'Manuscript deleted successfully.' });
-                })
-                .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
-                    console.error(error);
-                });
-        },
+      submitDelete() {
+          this.openRequests += 1;
+          this.deleteModal = false;
+          axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
+              .then((_response) => {
+                  // Don't create a new history item
+                  this.noHistory = true;
+                  this.$refs.resultTable.refresh();
+                  this.openRequests -= 1;
+                  this.alerts.push({ type: 'success', message: 'Manuscript deleted successfully.' });
+              })
+              .catch((error) => {
+                  this.openRequests -= 1;
+                  this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
+                  console.error(error);
+              });
+      },
+
+      del(row) {
+        this.submitModel.manuscript = row;
+        this.openRequests += 1;
+        const depUrlsEntries = Object.entries(this.depUrls);
+
+        axios
+            .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+            .then(results => {
+              this.delDependencies = {};
+
+              results.forEach((response, index) => {
+                const data = response.data;
+                if (data.length > 0) {
+                  const [category, depUrlCat] = depUrlsEntries[index];
+                  this.delDependencies[category] = {
+                    list: data,
+                    ...(depUrlCat.url && { url: depUrlCat.url }),
+                    ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                  };
+                }
+              });
+
+              this.deleteModal = true;
+              this.openRequests -= 1;
+            })
+            .catch(error => {
+              this.openRequests -= 1;
+              this.alerts.push({
+                type: 'error',
+                message: 'Something went wrong while checking for dependencies.',
+                login: isLoginError(error),
+              });
+              console.error(error);
+            });
+      },
       async downloadCSV() {
         try {
           const params = this.getSearchParams();

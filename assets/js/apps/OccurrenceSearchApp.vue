@@ -303,7 +303,6 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
 import qs from 'qs';
 import VueFormGenerator from 'vue-form-generator';
 import {
@@ -311,20 +310,15 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import {
-  formatDate, greekFont
-} from '@/helpers/formatUtil';
-
-import AbstractSearch from '../mixins/AbstractSearch';
 import axios from 'axios';
-
-import AbstractListEdit from '../mixins/AbstractListEdit';
-
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import AbstractSearch from '../mixins/AbstractSearch'
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import {useSearchSession} from "../composables/useSearchSession";
 
-Vue.component('FieldRadio', fieldRadio);
+import {formatDate, greekFont} from "@/helpers/formatUtil";
+import {useSearchSession} from "../composables/useSearchSession";
+import {isLoginError} from "@/helpers/errorUtil";
+
+window.axios = axios;
 
 export default {
   components: { ActiveFilters },
@@ -591,12 +585,45 @@ export default {
     greekFont,
     formatDate,
     del(row) {
+
       this.submitModel.occurrence = {
         id: row.id,
         name: row.incipit,
       };
-      AbstractListEdit.methods.deleteDependencies.call(this);
+      this.openRequests += 1;
+      const depUrlsEntries = Object.entries(this.depUrls);
+
+      axios
+          .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+          .then(results => {
+            this.delDependencies = {};
+
+            results.forEach((response, index) => {
+              const data = response.data;
+              if (data.length > 0) {
+                const [category, depUrlCat] = depUrlsEntries[index];
+                this.delDependencies[category] = {
+                  list: data,
+                  ...(depUrlCat.url && { url: depUrlCat.url }),
+                  ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                };
+              }
+            });
+
+            this.deleteModal = true;
+            this.openRequests -= 1;
+          })
+          .catch(error => {
+            this.openRequests -= 1;
+            this.alerts.push({
+              type: 'error',
+              message: 'Something went wrong while checking for dependencies.',
+              login: isLoginError(error),
+            });
+            console.error(error);
+          });
     },
+
     submitDelete() {
       this.openRequests += 1;
       this.deleteModal = false;

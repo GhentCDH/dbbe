@@ -276,30 +276,17 @@
 </template>
 <script>
 import qs from 'qs';
-
-import Vue from 'vue';
-
 import VueFormGenerator from 'vue-form-generator';
 import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import axios from 'axios';
-
-import AbstractSearch from '../mixins/AbstractSearch';
-
-// used for deleteDependencies
-import AbstractListEdit from '../mixins/AbstractListEdit';
-
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import AbstractSearch from '../mixins/AbstractSearch'
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-
-import {formatDate, greekFont} from "../helpers/formatUtil";
+import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "../composables/useSearchSession";
-
-
-Vue.component('FieldRadio', fieldRadio);
+import {isLoginError} from "@/helpers/errorUtil";
 
 export default {
     components: { ActiveFilters },
@@ -613,14 +600,45 @@ export default {
     methods: {
       greekFont,
       formatDate,
-        del(row) {
-            this.submitModel.type = {
-                id: row.id,
-                name: row.incipit,
-            };
-            AbstractListEdit.methods.deleteDependencies.call(this);
-        },
-        submitDelete() {
+      del(row) {
+        this.submitModel.type = {
+          id: row.id,
+          name: row.incipit,
+        };        this.openRequests += 1;
+        const depUrlsEntries = Object.entries(this.depUrls);
+
+        axios
+            .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+            .then(results => {
+              this.delDependencies = {};
+
+              results.forEach((response, index) => {
+                const data = response.data;
+                if (data.length > 0) {
+                  const [category, depUrlCat] = depUrlsEntries[index];
+                  this.delDependencies[category] = {
+                    list: data,
+                    ...(depUrlCat.url && { url: depUrlCat.url }),
+                    ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                  };
+                }
+              });
+
+              this.deleteModal = true;
+              this.openRequests -= 1;
+            })
+            .catch(error => {
+              this.openRequests -= 1;
+              this.alerts.push({
+                type: 'error',
+                message: 'Something went wrong while checking for dependencies.',
+                login: isLoginError(error),
+              });
+              console.error(error);
+            });
+      },
+
+      submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
             axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
