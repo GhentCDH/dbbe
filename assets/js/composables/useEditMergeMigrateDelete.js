@@ -90,12 +90,14 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
         deleteModal.value = false;
         deleteAlerts.value = [];
     }
-    function isOrIsChild(valueFromList, value) {
+    function isOrIsChild(valueFromList, value, visited = new Set()) {
         if (!value || !valueFromList) return false;
         if (valueFromList.id === value.id) return true;
+        if (visited.has(valueFromList.id)) return false;
+        visited.add(valueFromList.id);
         const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {});
         const parent = safeValues.find(v => v.id === valueFromList.parent?.id);
-        return parent ? isOrIsChild(parent, value) : false;
+        return parent ? isOrIsChild(parent, value, visited) : false;
     }
 
     return {
