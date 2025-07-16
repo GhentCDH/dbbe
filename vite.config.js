@@ -76,6 +76,9 @@ export default defineConfig({
         strictPort: true,
         cors:true,
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
+        hmr: {
+            host: 'localhost' // or your dev host
+        }
     },
     // publicDir: 'assets/websites/static',
     resolve: {

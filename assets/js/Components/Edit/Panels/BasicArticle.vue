@@ -130,7 +130,7 @@ export default {
                 return;
             }
             if (this.model.journal == null) {
-                dependencyField(this.schema.fields.journalIssue)
+                dependencyField(this.schema.fields.journalIssue, this.model)
             } else {
                 this.schema.fields.journalIssue.values = this.values.journalIssues.filter((journalIssue) => journalIssue.journalId === this.model.journal.id);
                 enableField(this.schema.fields.journalIssue)

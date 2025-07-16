@@ -553,10 +553,9 @@ export default {
         return data;
     },
     created(){
-      this.session = useSearchSession(this);
-      this.onData = this.session.onData;
-      this.session.init();
       this.session = useSearchSession(this, 'TypeSearchConfig');
+      this.onData = (data) => this.session.onData(data, this.onDataExtend);
+      this.session.init();
     },
     mounted(){
       this.session.setupCollapsibleLegends();

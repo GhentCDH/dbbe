@@ -424,6 +424,47 @@ export default {
             this.model = JSON.parse(JSON.stringify(this.originalModel));
             this.onValidated(true);
         },
+        onDataExtend(data) {
+            console.log('here')
+            // Check whether column 'title/text' should be displayed
+            this.textSearch = false;
+            for (const item of data.data) {
+                if (
+                    'text' in item
+                    || 'title' in item
+                    || 'title_GR' in item
+                    || 'title_LA' in item
+                ) {
+                    this.textSearch = true;
+                    break;
+                }
+            }
+
+            // Check whether comment column(s) should be displayed
+            this.commentSearch = false;
+            for (const item of data.data) {
+                if (
+                    'public_comment' in item
+                    || 'private_comment' in item
+                    || 'palaeographical_info' in item
+                    || 'contextual_info' in item
+                ) {
+                    this.commentSearch = true;
+                    break;
+                }
+            }
+
+            // Check whether lemma column should be displayed
+            this.lemmaSearch = false;
+            for (const item of data.data) {
+                if (
+                    'lemma_text' in item
+                ) {
+                    this.lemmaSearch = true;
+                    break;
+                }
+            }
+        },
         onLoaded() {
             // Update model and ordering if not initialized or history request
             if (!this.initialized) {
