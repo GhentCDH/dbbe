@@ -314,16 +314,17 @@ import axios from 'axios';
 import AbstractSearch from '../mixins/AbstractSearch'
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import {formatDate, greekFont} from "@/helpers/formatUtil";
-import {useSearchSession} from "../composables/useSearchSession";
+import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
+import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
+import {getSearchParams} from "@/helpers/searchParamUtil";
 
 window.axios = axios;
 
 export default {
   components: { ActiveFilters },
   mixins: [
-    AbstractSearch,
+    AbstractSearch
   ],
   data() {
     const data = {
@@ -431,8 +432,8 @@ export default {
       label: 'Year from',
       labelClasses: 'control-label',
       model: 'year_from',
-      min: AbstractSearch.YEAR_MIN,
-      max: AbstractSearch.YEAR_MAX,
+      min: YEAR_MIN,
+      max: YEAR_MAX,
       validator: VueFormGenerator.validators.number,
     };
     data.schema.fields.year_to = {
@@ -441,8 +442,8 @@ export default {
       label: 'Year to',
       labelClasses: 'control-label',
       model: 'year_to',
-      min: AbstractSearch.YEAR_MIN,
-      max: AbstractSearch.YEAR_MAX,
+      min: YEAR_MIN,
+      max: YEAR_MAX,
       validator: VueFormGenerator.validators.number,
     };
     data.schema.fields.date_search_type = {
@@ -642,7 +643,7 @@ export default {
     },
     async downloadCSV() {
       try {
-        const params = this.session.getSearchParams();
+        const params = getSearchParams();
         params.limit = 10000;
         params.page = 1;
 

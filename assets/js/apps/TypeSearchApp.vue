@@ -287,6 +287,7 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "../composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
+import {getSearchParams} from "@/helpers/searchParamUtil";
 
 export default {
     components: { ActiveFilters },
@@ -656,7 +657,7 @@ export default {
         },
         async downloadCSV() {
           try {
-            const params = this.getSearchParams();
+            const params = getSearchParams();
             params.limit = 10000;
             params.page = 1;
 

@@ -249,16 +249,17 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import {formatDate, greekFont} from "@/helpers/formatUtil";
+import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import VueFormGenerator from 'vue-form-generator'
+import {getSearchParams} from "@/helpers/searchParamUtil";
 Vue.use(VueFormGenerator);
 
 export default {
     components: { ActiveFilters },
     mixins: [
-        AbstractSearch,
+        AbstractSearch
     ],
     data() {
         const data = {
@@ -315,8 +316,8 @@ export default {
             inputType: 'number',
             label: 'Year from',
             model: 'year_from',
-            min: AbstractSearch.YEAR_MIN,
-            max: AbstractSearch.YEAR_MAX,
+            min: YEAR_MIN,
+            max: YEAR_MAX,
             validator: VueFormGenerator.validators.number,
         };
         data.schema.fields.year_to = {
@@ -324,8 +325,8 @@ export default {
             inputType: 'number',
             label: 'Year to',
             model: 'year_to',
-            min: AbstractSearch.YEAR_MIN,
-            max: AbstractSearch.YEAR_MAX,
+            min: YEAR_MIN,
+            max: YEAR_MAX,
             validator: VueFormGenerator.validators.number,
         };
         data.schema.fields.date_search_type = {
@@ -436,7 +437,7 @@ export default {
         return data;
     },
     created(){
-      this.session = useSearchSession(this, 'ManuscriptSearchConfig');
+      this.session = useSearchSession(this, 'ManuscriptSearchConfig')
       this.onData = (data) => this.session.onData(data, this.onDataExtend);
       this.session.init();
     },
@@ -530,7 +531,7 @@ export default {
       },
       async downloadCSV() {
         try {
-          const params = this.getSearchParams();
+          const params = getSearchParams();
           params.limit = 10000;
           params.page = 1;
 
