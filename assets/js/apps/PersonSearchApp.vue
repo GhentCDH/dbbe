@@ -435,6 +435,7 @@ import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import Merge from "@/Components/Edit/Modals/Merge.vue";
 import {getSearchParams} from "@/helpers/searchParamUtil";
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
 
 
 Vue.component('FieldRadio', fieldRadio);
@@ -447,6 +448,7 @@ export default {
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
+        CollectionManagementMixin
     ],
     props: {
         initPersons: {
@@ -968,36 +970,14 @@ export default {
                 );
             }
         },
-
       async downloadCSV() {
         try {
-          const params = getSearchParams();
-          params.limit = 10000;
-          params.page = 1;
-
-          const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-          const url = `${this.urls['persons_export_csv']}?${queryString}`;
-
-          const response = await fetch(url);
-          const blob = await response.blob();
-
-          this.downloadFile(blob, 'persons.csv', 'text/csv');
+          await downloadCSV(this.urls);
         } catch (error) {
           console.error(error);
           this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
         }
       },
-      downloadFile(blob, fileName, mimeType) {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', fileName);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
     },
 };
 </script>

@@ -395,6 +395,7 @@ import {greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import Merge from '../Components/Edit/Modals/Merge.vue'
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
 
 Vue.component('FieldRadio', fieldRadio);
 
@@ -406,6 +407,7 @@ export default {
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
+        CollectionManagementMixin
     ],
     data() {
         const data = {

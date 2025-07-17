@@ -253,13 +253,17 @@ import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import VueFormGenerator from 'vue-form-generator'
-import {getSearchParams} from "@/helpers/searchParamUtil";
+
+import VueCookies from 'vue-cookies';
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
+Vue.use(VueCookies);
 Vue.use(VueFormGenerator);
 
 export default {
     components: { ActiveFilters },
     mixins: [
-        AbstractSearch
+        AbstractSearch,
+        CollectionManagementMixin
     ],
     data() {
         const data = {
@@ -306,7 +310,6 @@ export default {
             config: { groupIsOpen: [] },
         };
 
-        // Add fields
         data.schema.fields.city = createMultiSelect('City');
         data.schema.fields.library = createMultiSelect('Library', { dependency: 'city' });
         data.schema.fields.collection = createMultiSelect('Collection', { dependency: 'library' });
@@ -375,7 +378,6 @@ export default {
             },
         );
 
-        // Add identifier fields
         const idList = [];
         for (const identifier of JSON.parse(this.initIdentifiers)) {
             idList.push(createMultiSelect(
@@ -407,7 +409,6 @@ export default {
             },
         ];
 
-        // Add view internal only fields
         if (this.isViewInternal) {
             data.schema.fields.public = createMultiSelect(
                 'Public',
@@ -440,10 +441,12 @@ export default {
       this.session = useSearchSession(this, 'ManuscriptSearchConfig')
       this.onData = (data) => this.session.onData(data, this.onDataExtend);
       this.session.init();
+
     },
     mounted(){
       this.session.setupCollapsibleLegends();
       this.$on('config-changed', this.session.handleConfigChange(this.schema));
+
     },
     computed: {
         depUrls() {
@@ -476,12 +479,13 @@ export default {
     methods: {
       greekFont,
       formatDate,
+
+
       submitDelete() {
           this.openRequests += 1;
           this.deleteModal = false;
           axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
               .then((_response) => {
-                  // Don't create a new history item
                   this.noHistory = true;
                   this.$refs.resultTable.refresh();
                   this.openRequests -= 1;
@@ -531,34 +535,12 @@ export default {
       },
       async downloadCSV() {
         try {
-          const params = getSearchParams();
-          params.limit = 10000;
-          params.page = 1;
-
-          const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-          const url = `${this.urls['manuscripts_export_csv']}?${queryString}`;
-
-          const response = await fetch(url);
-          const blob = await response.blob();
-
-          this.downloadFile(blob, 'manuscripts.csv', 'text/csv');
+          await downloadCSV(this.urls);
         } catch (error) {
           console.error(error);
           this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
         }
       },
-      downloadFile(blob, fileName, mimeType) {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', fileName);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
-
     },
 };
 </script>
