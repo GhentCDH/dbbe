@@ -375,7 +375,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';;
+import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator';
 import axios from 'axios';
 
@@ -391,11 +391,11 @@ import AbstractListEdit from '../mixins/AbstractListEdit';
 import fieldRadio from '../Components/FormFields/fieldRadio.vue';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-import PersistentConfig from "@/mixins/PersistentConfig";
 import {greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "@/composables/useSearchSession";
 import {isLoginError} from "@/helpers/errorUtil";
 import Merge from '../Components/Edit/Modals/Merge.vue'
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
 
 Vue.component('FieldRadio', fieldRadio);
 
@@ -407,7 +407,7 @@ export default {
     mixins: [
         AbstractSearch,
         AbstractListEdit, // merge functionality
-        PersistentConfig('BibliographySearchConfig'),
+        CollectionManagementMixin
     ],
     data() {
         const data = {
@@ -580,7 +580,7 @@ export default {
         return data;
     },
     created(){
-      this.session = useSearchSession(this);
+      this.session = useSearchSession(this, 'BibliographySearchConfig');
       this.onData = (data) => this.session.onData(data, this.onDataExtend);
       this.session.init();
     },

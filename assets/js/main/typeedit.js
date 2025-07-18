@@ -1,4 +1,4 @@
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import TypeEditApp from '@/apps/TypeEditApp'
 
 new Vue({

@@ -276,37 +276,25 @@
 </template>
 <script>
 import qs from 'qs';
-
-import Vue from 'vue/dist/vue.js';
-
 import VueFormGenerator from 'vue-form-generator';
 import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import axios from 'axios';
-
-import AbstractSearch from '../mixins/AbstractSearch';
-
-// used for deleteDependencies
-import AbstractListEdit from '../mixins/AbstractListEdit';
-
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import AbstractSearch from '../mixins/AbstractSearch'
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-
-import PersistentConfig from "@/mixins/PersistentConfig";
-import {formatDate, greekFont} from "../helpers/formatUtil";
+import {formatDate, greekFont} from "@/helpers/formatUtil";
 import {useSearchSession} from "../composables/useSearchSession";
-
-
-Vue.component('FieldRadio', fieldRadio);
+import {isLoginError} from "@/helpers/errorUtil";
+import {getSearchParams} from "@/helpers/searchParamUtil";
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
 
 export default {
     components: { ActiveFilters },
     mixins: [
         AbstractSearch,
-        PersistentConfig('TypeSearchConfig'),
+        CollectionManagementMixin
     ],
     data() {
         const data = {
@@ -368,7 +356,6 @@ export default {
             },
         };
 
-        // Add fields
         data.schema.fields.text_mode = createLanguageToggle('text');
         data.schema.fields.text = {
             type: 'input',
@@ -568,7 +555,7 @@ export default {
         return data;
     },
     created(){
-      this.session = useSearchSession(this);
+      this.session = useSearchSession(this, 'TypeSearchConfig');
       this.onData = (data) => this.session.onData(data, this.onDataExtend);
       this.session.init();
     },
@@ -576,7 +563,6 @@ export default {
       this.session.setupCollapsibleLegends();
       this.$on('config-changed', this.session.handleConfigChange(this.schema));
     },
-
     computed: {
         depUrls() {
             return {
@@ -615,14 +601,45 @@ export default {
     methods: {
       greekFont,
       formatDate,
-        del(row) {
-            this.submitModel.type = {
-                id: row.id,
-                name: row.incipit,
-            };
-            AbstractListEdit.methods.deleteDependencies.call(this);
-        },
-        submitDelete() {
+      del(row) {
+        this.submitModel.type = {
+          id: row.id,
+          name: row.incipit,
+        };        this.openRequests += 1;
+        const depUrlsEntries = Object.entries(this.depUrls);
+
+        axios
+            .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+            .then(results => {
+              this.delDependencies = {};
+
+              results.forEach((response, index) => {
+                const data = response.data;
+                if (data.length > 0) {
+                  const [category, depUrlCat] = depUrlsEntries[index];
+                  this.delDependencies[category] = {
+                    list: data,
+                    ...(depUrlCat.url && { url: depUrlCat.url }),
+                    ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                  };
+                }
+              });
+
+              this.deleteModal = true;
+              this.openRequests -= 1;
+            })
+            .catch(error => {
+              this.openRequests -= 1;
+              this.alerts.push({
+                type: 'error',
+                message: 'Something went wrong while checking for dependencies.',
+                login: isLoginError(error),
+              });
+              console.error(error);
+            });
+      },
+
+      submitDelete() {
             this.openRequests += 1;
             this.deleteModal = false;
             axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
@@ -639,35 +656,14 @@ export default {
                     console.error(error);
                 });
         },
-        async downloadCSV() {
-          try {
-            const params = this.getSearchParams();
-            params.limit = 10000;
-            params.page = 1;
-
-            const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-            const url = `${this.urls['types_export_csv']}?${queryString}`;
-
-            const response = await fetch(url);
-            const blob = await response.blob();
-
-            this.downloadFile(blob, 'types.csv', 'text/csv');
-          } catch (error) {
-            console.error(error);
-            this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
-          }
-        },
-        downloadFile(blob, fileName, mimeType) {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.setAttribute('hidden', '');
-          a.setAttribute('href', url);
-          a.setAttribute('download', fileName);
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
+      async downloadCSV() {
+        try {
+          await downloadCSV(this.urls);
+        } catch (error) {
+          console.error(error);
+          this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
         }
+      },
 
     },
 };

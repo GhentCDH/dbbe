@@ -303,7 +303,6 @@
     </div>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
 import qs from 'qs';
 import VueFormGenerator from 'vue-form-generator';
 import {
@@ -311,29 +310,23 @@ import {
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import {
-  formatDate, greekFont
-} from '@/helpers/formatUtil';
-
-import AbstractSearch from '../mixins/AbstractSearch';
 import axios from 'axios';
-
-import AbstractListEdit from '../mixins/AbstractListEdit';
-
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import AbstractSearch from '../mixins/AbstractSearch'
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import {useSearchSession} from "../composables/useSearchSession";
 
-import PersistentConfig from "@/mixins/PersistentConfig";
+import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
+import {useSearchSession} from "@/composables/useSearchSession";
+import {isLoginError} from "@/helpers/errorUtil";
+import {getSearchParams} from "@/helpers/searchParamUtil";
+import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
 
-
-Vue.component('FieldRadio', fieldRadio);
+window.axios = axios;
 
 export default {
   components: { ActiveFilters },
   mixins: [
     AbstractSearch,
-    PersistentConfig('OccurrenceSearchConfig'),
+    CollectionManagementMixin
   ],
   data() {
     const data = {
@@ -441,8 +434,8 @@ export default {
       label: 'Year from',
       labelClasses: 'control-label',
       model: 'year_from',
-      min: AbstractSearch.YEAR_MIN,
-      max: AbstractSearch.YEAR_MAX,
+      min: YEAR_MIN,
+      max: YEAR_MAX,
       validator: VueFormGenerator.validators.number,
     };
     data.schema.fields.year_to = {
@@ -451,8 +444,8 @@ export default {
       label: 'Year to',
       labelClasses: 'control-label',
       model: 'year_to',
-      min: AbstractSearch.YEAR_MIN,
-      max: AbstractSearch.YEAR_MAX,
+      min: YEAR_MIN,
+      max: YEAR_MAX,
       validator: VueFormGenerator.validators.number,
     };
     data.schema.fields.date_search_type = {
@@ -555,7 +548,7 @@ export default {
     return data;
   },
   created(){
-    this.session = useSearchSession(this);
+    this.session = useSearchSession(this, 'OccurrenceSearchConfig');
     this.onData = (data) => this.session.onData(data, this.onDataExtend);
     this.session.init();
   },
@@ -594,12 +587,45 @@ export default {
     greekFont,
     formatDate,
     del(row) {
+
       this.submitModel.occurrence = {
         id: row.id,
         name: row.incipit,
       };
-      AbstractListEdit.methods.deleteDependencies.call(this);
+      this.openRequests += 1;
+      const depUrlsEntries = Object.entries(this.depUrls);
+
+      axios
+          .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+          .then(results => {
+            this.delDependencies = {};
+
+            results.forEach((response, index) => {
+              const data = response.data;
+              if (data.length > 0) {
+                const [category, depUrlCat] = depUrlsEntries[index];
+                this.delDependencies[category] = {
+                  list: data,
+                  ...(depUrlCat.url && { url: depUrlCat.url }),
+                  ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
+                };
+              }
+            });
+
+            this.deleteModal = true;
+            this.openRequests -= 1;
+          })
+          .catch(error => {
+            this.openRequests -= 1;
+            this.alerts.push({
+              type: 'error',
+              message: 'Something went wrong while checking for dependencies.',
+              login: isLoginError(error),
+            });
+            console.error(error);
+          });
     },
+
     submitDelete() {
       this.openRequests += 1;
       this.deleteModal = false;
@@ -619,33 +645,12 @@ export default {
     },
     async downloadCSV() {
       try {
-        const params = this.session.getSearchParams();
-        params.limit = 10000;
-        params.page = 1;
-
-        const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-        const url = `${this.urls['occurrences_export_csv']}?${queryString}`;
-
-        const response = await fetch(url);
-        const blob = await response.blob();
-
-        this.downloadFile(blob, 'occurrences.csv', 'text/csv');
+        await downloadCSV(this.urls);
       } catch (error) {
         console.error(error);
         this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
       }
     },
-    downloadFile(blob, fileName, mimeType) {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.setAttribute('hidden', '');
-      a.setAttribute('href', url);
-      a.setAttribute('download', fileName);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }
   },
 
 };

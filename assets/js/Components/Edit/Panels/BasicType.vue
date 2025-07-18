@@ -10,7 +10,7 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 
 

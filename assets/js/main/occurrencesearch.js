@@ -1,4 +1,4 @@
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'; // Root component
 import * as uiv from 'uiv'; // UI library
 import fieldMultiselectClear from "../Components/FormFields/fieldMultiselectClear.vue"; // Custom component
@@ -9,6 +9,10 @@ import VueCookies from "vue-cookies"; // Cookies library
 import VueFormGenerator from "vue-form-generator"; // Form generator library
 import Alerts from "../Components/Alerts.vue"; // Custom component
 
+import VueMultiselect from 'vue-multiselect'
+import VueTables from 'vue-tables-2';
+Vue.use(VueTables.ServerTable);
+Vue.component('multiselect', VueMultiselect)
 Vue.component('FieldRadio', fieldRadio);
 Vue.component('FieldMultiselectClear', fieldMultiselectClear);
 Vue.component('Alerts', Alerts);

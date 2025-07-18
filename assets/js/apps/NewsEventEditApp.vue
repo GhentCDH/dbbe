@@ -148,7 +148,7 @@
 <script>
 import axios from 'axios';
 
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import draggable from 'vuedraggable'
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'

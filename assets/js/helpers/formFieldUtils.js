@@ -72,8 +72,7 @@ export function dependencyField(field, model) {
 
 export function enableField(field, model, search = false) {
     const modelName = field.model?.split('.').pop() || '';
-
-    if (field.values.length === 0) {
+    if (!field.values || field.values.length === 0) {
         noValuesField(field, model, search);
         return;
     }

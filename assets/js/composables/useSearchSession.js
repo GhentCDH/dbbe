@@ -1,78 +1,103 @@
 import qs from 'qs';
-import { initSearchSession, updateSearchSession } from "@/helpers/searchSessionUtil";
+import merge from 'lodash.merge';
+import {getSearchParams} from "@/helpers/searchParamUtil";
+import VueCookies from 'vue-cookies';
 
-export function useSearchSession(context) {
+const STORAGE_KEY = 'search_session';
+
+export function useSearchSession(context, cookieName = null) {
     const getUrl = (route) => context.urls?.[route] ?? '';
 
-    const getSearchParams = () => {
-        const params = qs.parse(window.location.href.split('?', 2)[1], { plainObjects: true }) ?? {};
-        params.orderBy = params.orderBy ?? context.tableOptions?.orderBy?.column ?? null;
-        params.ascending = params.ascending ?? 1;
-        params.page = params.page ?? 1;
-        params.limit = params.limit ?? context.tableOptions?.perPage ?? 25;
-        return params;
-    };
-
-    const onData = (data, onDataExtend = null) => {
-        if (typeof onDataExtend === 'function') {
-            onDataExtend(data);
+    const onData = (data, extend = null) => {
+        if (typeof extend === 'function') extend(data);
+        let session;
+        try {
+            session = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY)) ?? {};
+        } catch {
+            session = {};
         }
-
-        const params = getSearchParams();
-
-        updateSearchSession({
-            params,
+        session = {
+            ...session,
+            params: getSearchParams(),
+            count: data.count,
+            hash: Date.now(),
+        };
+        window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        Object.assign(context.data, {
+            search: data.search,
+            filters: data.filters,
             count: data.count,
         });
-
         context.aggregation = data.aggregation;
-        context.data.search = data.search;
-        context.data.filters = data.filters;
-        context.data.count = data.count;
-    };
-
-    const collapseGroup = (e) => {
-        const group = e.target.parentElement;
-        const index = Array.from(group.parentNode.children).indexOf(group) - 1;
-        context.$set(
-            context.config.groupIsOpen,
-            index,
-            context.config.groupIsOpen[index] !== undefined
-                ? !context.config.groupIsOpen[index]
-                : true
-        );
-    };
-
-    const init = () => {
-        initSearchSession({
-            urls: {
-                paginate: getUrl('paginate'),
-            },
-            count: context.data?.count,
-            params: getSearchParams(),
-        });
     };
 
     const setupCollapsibleLegends = () => {
+
         const legends = context.$el.querySelectorAll('.vue-form-generator .collapsible legend');
-        legends.forEach((legend) => (legend.onclick = collapseGroup));
+        legends.forEach((legend) => {
+            legend.onclick = (e) => {
+                const group = e.target.parentElement;
+                const index = Array.from(group?.parentNode?.children || []).indexOf(group) - 1;
+
+                context.$set(
+                    context.config.groupIsOpen,
+                    index,
+                    !context.config.groupIsOpen[index]
+                );
+
+                context.$emit('config-changed', context.config);
+            };
+        });
     };
 
     const handleConfigChange = (schema) => (config) => {
-        if (config && schema.groups) {
-            schema.groups.forEach((group, index) => {
-                const isOpen = config.groupIsOpen[index];
-                group.styleClasses = group.styleClasses.replace(' collapsed', '') + (isOpen ? '' : ' collapsed');
-            });
+        if (!config || !schema.groups) return;
+        schema.groups.forEach((group, i) => {
+            const open = config.groupIsOpen[i];
+            group.styleClasses = group.styleClasses.replace(' collapsed', '') + (open ? '' : ' collapsed');
+        });
+        console.log(config.groupIsOpen)
+    };
+
+
+    const setCookie = (name, value) => {
+        VueCookies.set(name, value, '30d');
+    };
+
+
+    const getCookie = (name, fallback = {}) => {
+        try {
+            const value = VueCookies.get(name);
+            return value ? merge({}, fallback, value) : fallback;
+        } catch {
+            return fallback;
         }
     };
+    const init = () => {
+        if (cookieName && context.defaultConfig) {
+            if (!VueCookies.get(cookieName)) {
+                setCookie(cookieName, context.defaultConfig);
+            }
+            context.config = getCookie(cookieName, context.defaultConfig);
+        }
+        const session = merge(
+            {},
+            {
+                urls: { paginate: getUrl('paginate') },
+                count: context.data?.count,
+                params: getSearchParams(),
+            },
+            {},
+            { hash: Date.now() }
+        );
+        window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    };
+
 
     return {
         init,
         onData,
-        collapseGroup,
         setupCollapsibleLegends,
-        handleConfigChange,
-        getSearchParams,
+        handleConfigChange
     };
 }

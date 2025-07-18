@@ -1,4 +1,4 @@
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import OnlineSourceEditApp from '@/apps/OnlineSourceEditApp'
 
 new Vue({

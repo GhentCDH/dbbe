@@ -41,7 +41,19 @@
     </modal>
 </template>
 <script>
+import Vue from 'vue';
+import Alert from "@/Components/Alerts.vue";
+import * as uiv from 'uiv';
+import VueFormGenerator from 'vue-form-generator'
+
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
+
+
 export default {
+  components: {
+    alerts: Alert
+  },
     props: {
         show: {
             type: Boolean,

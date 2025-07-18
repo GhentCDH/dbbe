@@ -7,13 +7,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 export default defineConfig({
     plugins: [
         symfonyPlugin(),
-        vue({
-            template: {
-                compilerOptions: {
-                    isCustomElement: tag => tag.startsWith('custom-')
-                }
-            }
-        }),
+        vue(),
         viteStaticCopy({
             targets: [
                 {
@@ -25,7 +19,7 @@ export default defineConfig({
     ],
 
     optimizeDeps: {
-        include: ['jquery'],
+        include: ['jquery']
     },
     build: {
         manifest: true,
@@ -82,14 +76,18 @@ export default defineConfig({
         strictPort: true,
         cors:true,
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
+        hmr: {
+            host: 'localhost' // or your dev host
+        }
     },
     // publicDir: 'assets/websites/static',
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
-            'vue$': 'vue/dist/vue.esm.js',
+            'vue': 'vue/dist/vue.esm.js',
         },
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
+        dedupe: ['vue']
 
     },
 });
