@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="col-xs-12">
-            <alerts
+            <Alerts
                 :alerts="alerts"
                 @dismiss="alerts.splice($event, 1)"
             />
@@ -50,7 +50,7 @@
                 </a>
             </div>
             <v-server-table
-                ref="resultTable"
+                ref="resultTableRef"
                 :url="urls['manuscripts_search_api']"
                 :columns="tableColumns"
                 :options="tableOptions"
@@ -200,7 +200,7 @@
                 </a>
             </div>
 <!--          <div style="position: relative; height: 100px;">-->
-<!--            <button @click="downloadCSV"-->
+<!--            <button @click="downloadCSVHandler"-->
 <!--                    class="btn btn-primary"-->
 <!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
 <!--              Download results CSV-->
@@ -241,306 +241,552 @@
 </template>
 <script>
 import Vue from 'vue';
-import AbstractSearch from '../mixins/AbstractSearch';
+import { ref, onMounted, getCurrentInstance,computed, watch} from 'vue';
+import Delete from '../Components/Edit/Modals/Delete.vue';
+import Alerts from "@/Components/Alerts.vue";
 import qs from 'qs';
+import VueTables from 'vue-tables-2';
+import VueFormGenerator from 'vue-form-generator';
+import VueCookies from 'vue-cookies';
+
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
+
+
 import {
   createMultiSelect,
-  createMultiMultiSelect,
-  createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
-import {useSearchSession} from "@/composables/useSearchSession";
-import {isLoginError} from "@/helpers/errorUtil";
-import VueFormGenerator from 'vue-form-generator'
 
-import VueCookies from 'vue-cookies';
-import CollectionManagementMixin from "@/mixins/CollectionManagementMixin";
+import {
+  formatDate,
+  greekFont,
+} from "@/helpers/formatUtil";
+
+import { isLoginError } from "@/helpers/errorUtil";
+import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
+
+import { useRequestTracker } from "@/composables/abstractSearchComposables/useRequestTracker";
+import { usePaginationCount } from "@/composables/abstractSearchComposables/usePaginationCount";
+import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
+import { useSearchSession } from "@/composables/useSearchSession";
+import {useManuscriptSearchSchema} from "@/composables/useManuscriptSearch/useManuscriptSearchSchema";
+import {useEditMergeMigrateDelete} from "@/composables/useEditMergeMigrateDelete";
+import {useSearchFields} from "@/composables/abstractSearchComposables/useSearchFields";
+import {useCollectionManagement} from "@/composables/abstractSearchComposables/useCollectionManagement";
+import CollectionManager from '../Components/Search/CollectionManager.vue';
+import {constructFilterValues} from "@/helpers/abstractSearchHelpers/filterUtil";
+import {popHistory, pushHistory} from "@/helpers/abstractSearchHelpers/historyUtil";
 Vue.use(VueCookies);
 Vue.use(VueFormGenerator);
+Vue.component('DeleteModal', Delete);
+Vue.component('CollectionManager', CollectionManager);
+Vue.component('FieldCheckboxes', fieldCheckboxes);
 
 export default {
-    components: { ActiveFilters },
-    mixins: [
-        AbstractSearch,
-        CollectionManagementMixin
-    ],
-    data() {
-        const data = {
-            model: {
-                date_search_type: 'exact',
-                person: [],
-                role: [],
-                content: [],
-                content_op: 'or',
-                origin: [],
-                origin_op: 'or',
-                comment_mode: ['latin'],
-                acknowledgement: [],
-                acknowledgement_op: 'or',
-            },
-            schema: {
-                fields: {},
-            },
-            tableOptions: {
-                headings: {
-                    comment: 'Comment (matching lines only)',
-                },
-                filterable: false,
-                orderBy: {
-                    column: 'name',
-                },
-                perPage: 25,
-                perPageValues: [25, 50, 100],
-                sortable: ['name', 'date', 'occ', 'created', 'modified'],
-                customFilters: ['filters'],
-                requestFunction: AbstractSearch.requestFunction,
-                rowClassCallback(row) {
-                    return (row.public == null || row.public) ? '' : 'warning';
-                },
-            },
-            submitModel: {
-                submitType: 'manuscript',
-                manuscript: {},
-            },
-            defaultOrdering: 'name',
-            defaultConfig: {
-              groupIsOpen: [],
-            },
-            config: { groupIsOpen: [] },
-        };
-
-        data.schema.fields.city = createMultiSelect('City');
-        data.schema.fields.library = createMultiSelect('Library', { dependency: 'city' });
-        data.schema.fields.collection = createMultiSelect('Collection', { dependency: 'library' });
-        data.schema.fields.shelf = createMultiSelect('Shelf number', { model: 'shelf', dependency: 'collection' });
-        data.schema.fields.year_from = {
-            type: 'input',
-            inputType: 'number',
-            label: 'Year from',
-            model: 'year_from',
-            min: YEAR_MIN,
-            max: YEAR_MAX,
-            validator: VueFormGenerator.validators.number,
-        };
-        data.schema.fields.year_to = {
-            type: 'input',
-            inputType: 'number',
-            label: 'Year to',
-            model: 'year_to',
-            min: YEAR_MIN,
-            max: YEAR_MAX,
-            validator: VueFormGenerator.validators.number,
-        };
-        data.schema.fields.date_search_type = {
-            type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
-            label: 'The occurrence date interval must ... the search date interval:',
-            model: 'date_search_type',
-            values: [
-                { value: 'exact', name: 'exact', toggleGroup: 'exact_included_overlap' },
-                { value: 'included', name: 'include', toggleGroup: 'exact_included_overlap' },
-                { value: 'overlap', name: 'overlap', toggleGroup: 'exact_included_overlap' },
-            ],
-        };
-        [data.schema.fields.content_op, data.schema.fields.content] = createMultiMultiSelect('Content');
-        data.schema.fields.person = createMultiSelect(
-            'Person',
-            {},
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        data.schema.fields.role = createMultiSelect(
-            'Role',
-            {
-                dependency: 'person',
-            },
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        [data.schema.fields.origin_op, data.schema.fields.origin] = createMultiMultiSelect('Origin');
-        data.schema.fields.comment_mode = createLanguageToggle('comment');
-        data.schema.fields.comment = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Comment',
-            model: 'comment',
-            validator: VueFormGenerator.validators.string,
-        };
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
-            'Acknowledgements',
-            {
-                model: 'acknowledgement',
-            },
-        );
-
-        const idList = [];
-        for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(createMultiSelect(
-                `${identifier.name} available?`,
-                {
-                    model: `${identifier.systemName}_available`,
-                },
-                {
-                    customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
-                },
-            ));
-            idList.push(createMultiSelect(
-                identifier.name,
-                {
-                    dependency: `${identifier.systemName}_available`,
-                    model: identifier.systemName,
-                },
-                {
-                  optionsLimit: 7000
-                }
-            ));
-        }
-
-        data.schema.groups = [
-            {
-                styleClasses: 'collapsible collapsed',
-                legend: 'External identifiers',
-                fields: idList,
-            },
-        ];
-
-        if (this.isViewInternal) {
-            data.schema.fields.public = createMultiSelect(
-                'Public',
-                {
-                    styleClasses: 'has-warning',
-                },
-                {
-                    customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
-                },
-            );
-            data.schema.fields.management = createMultiSelect(
-                'Management collection',
-                {
-                    model: 'management',
-                    styleClasses: 'has-warning',
-                },
-            );
-            data.schema.fields.management_inverse = {
-                type: 'checkbox',
-                styleClasses: 'has-warning',
-                label: 'Inverse management collection selection',
-                labelClasses: 'control-label',
-                model: 'management_inverse',
-            };
-        }
-
-        return data;
+  components: { ActiveFilters, Alerts},
+  props: {
+    isEditor: {
+      type: Boolean,
+      default: false,
     },
-    created(){
-      this.session = useSearchSession(this, 'ManuscriptSearchConfig')
-      this.onData = (data) => this.session.onData(data, this.onDataExtend);
-      this.session.init();
-
+    isViewInternal: {
+      type: Boolean,
+      default: false,
     },
-    mounted(){
-      this.session.setupCollapsibleLegends();
-      this.$on('config-changed', this.session.handleConfigChange(this.schema));
-
+    initUrls: {
+      type: String,
+      default: '',
     },
-    computed: {
-        depUrls() {
-            return {
-                Occurrences: {
-                    depUrl: this.urls.occurrence_deps_by_manuscript.replace(
-                        'manuscript_id',
-                        this.submitModel.manuscript.id,
-                    ),
-                    url: this.urls.occurrence_get,
-                    urlIdentifier: 'occurrence_id',
-                },
-            };
-        },
-        tableColumns() {
-            const columns = ['name', 'date', 'content'];
-            if (this.commentSearch) {
-                columns.unshift('comment');
-            }
-            if (this.isViewInternal) {
-                columns.push('occ');
-                columns.push('created');
-                columns.push('modified');
-                columns.push('actions');
-                columns.push('c');
-            }
-            return columns;
-        },
+    initData: {
+      type: String,
+      default: '',
     },
-    methods: {
-      greekFont,
-      formatDate,
+    initIdentifiers: {
+      type: String,
+      default: '',
+    },
+    initManagements: {
+      type: String,
+      default: '',
+    },
+  },
 
-
-      submitDelete() {
-          this.openRequests += 1;
-          this.deleteModal = false;
-          axios.delete(this.urls.manuscript_delete.replace('manuscript_id', this.submitModel.manuscript.id))
-              .then((_response) => {
-                  this.noHistory = true;
-                  this.$refs.resultTable.refresh();
-                  this.openRequests -= 1;
-                  this.alerts.push({ type: 'success', message: 'Manuscript deleted successfully.' });
-              })
-              .catch((error) => {
-                  this.openRequests -= 1;
-                  this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
-                  console.error(error);
-              });
+  setup(props) {
+    const urls = JSON.parse(props.initUrls);
+    const data= JSON.parse(props.initData);
+    const identifiers= JSON.parse(props.initIdentifiers);
+    const managements=JSON.parse(props.initManagements);
+    const formOptions = ref({
+      validateAfterLoad: true,
+          validateAfterChanged: true,
+        validationErrorClass: 'has-error',
+        validationSuccessClass: 'success',
+    })
+    const model = ref({
+      date_search_type: 'exact',
+      person: [],
+      role: [],
+      content: [],
+      content_op: 'or',
+      origin: [],
+      origin_op: 'or',
+      comment_mode: ['latin'],
+      acknowledgement: [],
+      acknowledgement_op: 'or',
+    });
+    const originalModel=ref({})
+    const tableOptions = ref({
+      headings: {
+        comment: 'Comment (matching lines only)',
       },
+      filterable: false,
+      orderBy: {
+        column: 'name',
+      },
+      perPage: 25,
+      perPageValues: [25, 50, 100],
+      sortable: ['name', 'date', 'occ', 'created', 'modified'],
+      customFilters: ['filters'],
+      rowClassCallback(row) {
+        return row.public == null || row.public ? '' : 'warning';
+      },
+    });
+    const submitModel = ref({
+      submitType: 'manuscript',
+      manuscript: {},
+    });
+    const defaultOrdering = ref('name');
+    const defaultConfig = ref({ groupIsOpen: [] });
+    const config = ref({ groupIsOpen: [] });
+    const initialized = ref(false)
+    const noHistory = ref(false)
+    const tableCancel = ref(false)
+    const resultTableRef = ref(null);
+    const aggregation = ref({});
+    const instance = getCurrentInstance();
+    const vm = instance?.proxy;
+    const idList = [];
+    const historyRequest = ref(false);
 
-      del(row) {
-        this.submitModel.manuscript = row;
-        this.openRequests += 1;
-        const depUrlsEntries = Object.entries(this.depUrls);
 
-        axios
-            .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
-            .then(results => {
-              this.delDependencies = {};
+    for (const identifier of JSON.parse(props.initIdentifiers)) {
+      idList.push(createMultiSelect(
+          `${identifier.name} available?`,
+          { model: `${identifier.systemName}_available` },
+          {
+            customLabel: ({ name }) => name === 'true' ? 'Yes' : 'No',
+          }
+      ));
 
-              results.forEach((response, index) => {
-                const data = response.data;
-                if (data.length > 0) {
-                  const [category, depUrlCat] = depUrlsEntries[index];
-                  this.delDependencies[category] = {
-                    list: data,
-                    ...(depUrlCat.url && { url: depUrlCat.url }),
-                    ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
-                  };
+      idList.push(createMultiSelect(
+          identifier.name,
+          {
+            dependency: `${identifier.systemName}_available`,
+            model: identifier.systemName,
+          },
+          {
+            optionsLimit: 7000,
+          }
+      ));
+    }
+    const { schema } = useManuscriptSearchSchema(idList);
+
+    const fields = computed(() => {
+      const res = {};
+      const addField = (field) => {
+        if (!field.multiple || field.multi === true) {
+          res[field.model] = field;
+        }
+      };
+
+      if (vm.schema) {
+        if (vm.schema.fields) {
+          Object.values(vm.schema.fields).forEach(addField);
+        }
+        if (vm.schema.groups) {
+          vm.schema.groups.forEach(group => {
+            if (group.fields) {
+              group.fields.forEach(field => {
+                if (!vm.multiple || field.multi === true) {
+                  res[field.model] = field;
                 }
               });
+            }
+          });
+        }
+      }
 
-              this.deleteModal = true;
-              this.openRequests -= 1;
-            })
-            .catch(error => {
-              this.openRequests -= 1;
-              this.alerts.push({
-                type: 'error',
-                message: 'Something went wrong while checking for dependencies.',
-                login: isLoginError(error),
-              });
-              console.error(error);
-            });
+      if (props.isViewInternal) {
+        res.public = createMultiSelect('Public', {
+          styleClasses: 'has-warning',
+        }, {
+          customLabel: ({ name }) => name === 'true' ? 'Public only' : 'Internal only',
+        });
+
+        res.management = createMultiSelect('Management collection', {
+          model: 'management',
+          styleClasses: 'has-warning',
+        });
+
+        res.management_inverse = {
+          type: 'checkbox',
+          styleClasses: 'has-warning',
+          label: 'Inverse management collection selection',
+          labelClasses: 'control-label',
+          model: 'management_inverse',
+        };
+      }
+
+      return res;
+    });
+
+    const depUrls = computed(() => ({
+      Occurrences: {
+        depUrl: urls.occurrence_deps_by_manuscript.replace(
+            'manuscript_id',
+            submitModel.value.manuscript.id
+        ),
+        url: urls.occurrence_get,
+        urlIdentifier: 'occurrence_id',
       },
-      async downloadCSV() {
+    }));
+
+    const tableColumns = computed(() => {
+      const columns = ['name', 'date', 'content'];
+      if (vm.commentSearch) {
+        columns.unshift('comment');
+      }
+      if (props.isViewInternal) {
+        columns.push('occ', 'created', 'modified', 'actions', 'c');
+      }
+      return columns;
+    });
+
+    const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
+
+    const {
+      openRequests,
+      alerts,
+      startRequest,
+      endRequest,
+    } = useRequestTracker();
+
+
+
+    const session = useSearchSession(vm, 'ManuscriptSearchConfig');
+    vm.session = session;
+
+    const onData = (data) => session.onData(data, vm.onDataExtend);
+    watch(() => model.value.text_mode, (val, oldVal) => {
+      changeTextMode(val, oldVal, 'text');
+    });
+    watch(() => model.value.comment_mode, (val, oldVal) => {
+      changeTextMode(val, oldVal, 'comment');
+    });
+
+    const requestFunction= async (data) => {
+      const params = { ...data };
+      delete params.query;
+      delete params.byColumn;
+      if (!('orderBy' in params)) {
+        delete params.ascending;
+      }
+      if (!params.filters) {
+        delete params.filters;
+      }
+
+      startRequest();
+      const handleError = (error) => {
+        endRequest();
+        alerts.push({
+          type: 'error',
+          message:
+              'Something went wrong while processing your request. Please verify your input is valid.',
+        });
+        console.error(error);
+        return {
+          data: {
+            data: data,
+            count: count,
+          },
+        };
+      };
+
+      const axiosGet = async (url, options = {}) => {
+        if (openRequests > 1 && tableCancel != null) {
+          tableCancel('Operation canceled by newer request');
+        }
+
         try {
-          await downloadCSV(this.urls);
+          const response = await axios.get(url, {
+            cancelToken: new axios.CancelToken((c) => {
+              tableCancel.value = c;
+            }),
+            ...options,
+          });
+          alerts.value = [];
+          onData(response.data);
+          return response;
         } catch (error) {
-          console.error(error);
-          this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
+          if (axios.isCancel(error)) {
+            return {
+              data: {
+                data: data,
+                count: count,
+              },
+            };
+          }
+          return handleError(error);
         }
-      },
-    },
+      };
+      let url = urls['manuscripts_search_api'];
+
+      if (!initialized) {
+        onData(data);
+        return {
+          data: {
+            data: data.data,
+            count: data.count,
+          },
+        };
+      }
+
+      if (!actualRequest) {
+        return {
+          data: {
+            data: data,
+            count: count,
+          },
+        };
+      }
+
+      if (historyRequest.value) {
+        if (historyRequest !== 'init') {
+          url = `${url}?${historyRequest}`;
+        }
+        return await axiosGet(url);
+      }
+
+      if (!noHistory) {
+        pushHistory(params, model, originalModel, fields, tableOptions);
+      } else {
+        noHistory.value = false;
+      }
+
+      return await axiosGet(url, {
+        params,
+        paramsSerializer: qs.stringify,
+      });
+    }
+
+    tableOptions.value.requestFunction = requestFunction;
+    const {
+      delDependencies,
+      deleteModal,
+    } = useEditMergeMigrateDelete(props.initUrls, props.initData)
+
+    const {
+      collectionArray,
+      collectionToggleAll,
+      clearCollection,
+      addManagementsToSelection,
+      removeManagementsFromSelection,
+      addManagementsToResults,
+      removeManagementsFromResults,
+    } = useCollectionManagement({
+      data,
+      urls,
+      constructFilterValues,
+      resultTableRef,
+      alerts,
+      startRequest,
+      endRequest,
+      noHistory
+    });
+
+    onMounted(() => {
+      session.setupCollapsibleLegends();
+      vm.$on('config-changed', session.handleConfigChange(vm.schema));
+      updateCountRecords();
+      initFromURL(aggregation.value);
+      originalModel.value = JSON.parse(JSON.stringify(model));
+      window.onpopstate = (event) => {
+        console.log('popping!')
+        vm.historyRequest = popHistory();
+        vm.resultTableRef.refresh();
+      };
+      updateCountRecords();
+    });
+
+    function submitDelete() {
+      startRequest();
+      deleteModal.value = false;
+      axios
+          .delete(
+              urls.manuscript_delete.replace(
+                  'manuscript_id',
+                  submitModel.value.manuscript.id
+              )
+          )
+          .then(() => {
+            vm.noHistory = true;
+            if (resultTableRef.value) {
+              resultTableRef.value.refresh();
+            }
+            endRequest();
+            alerts.value.push({
+              type: 'success',
+              message: 'Manuscript deleted successfully.',
+            });
+          })
+          .catch((error) => {
+            endRequest();
+            alerts.value.push({
+              type: 'error',
+              message: 'Something went wrong while deleting the manuscript.',
+            });
+            console.error(error);
+          });
+    }
+
+    function del(row) {
+      submitModel.value.manuscript = row;
+      startRequest();
+
+      const depUrlsEntries = Object.entries(depUrls.value);
+      axios
+          .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
+          .then((results) => {
+            const deps = {};
+            results.forEach((response, index) => {
+              const data = response.data;
+              if (data.length > 0) {
+                const [category, depUrlCat] = depUrlsEntries[index];
+                deps[category] = {
+                  list: data,
+                  ...(depUrlCat.url && { url: depUrlCat.url }),
+                  ...(depUrlCat.urlIdentifier && {
+                    urlIdentifier: depUrlCat.urlIdentifier,
+                  }),
+                };
+              }
+            });
+            delDependencies.value = deps;
+            deleteModal.value = true;
+            endRequest();
+          })
+          .catch((error) => {
+            endRequest();
+            alerts.value.push({
+              type: 'error',
+              message: 'Something went wrong while checking for dependencies.',
+              login: isLoginError(error),
+            });
+            console.error(error);
+          });
+    }
+
+
+    function modelUpdated(value, fieldName) {
+      lastChangedField.value = fieldName;
+    }
+
+    function resetAllFilters() {
+      model.value = JSON.parse(JSON.stringify(originalModel));
+      onValidated(true);
+    }
+
+    async function downloadCSVHandler() {
+      try {
+        await downloadCSV(urls);
+      } catch (error) {
+        console.error(error);
+        alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
+      }
+    }
+
+    const {
+      onValidated,
+      lastChangedField,
+      actualRequest,
+      initFromURL
+    } = useFormValidation({
+      model,
+      fields,
+      resultTableRef,
+      defaultOrdering: ref('name'),
+      emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
+      historyRequest
+    });
+
+    const {
+      notEmptyFields,
+      changeTextMode,
+      setUpOperatorWatchers,
+      onLoaded,
+      deleteActiveFilter,
+    } = useSearchFields(model, schema, fields, aggregation, {
+      multiple: true,
+      updateCountRecords,
+      initFromURL,
+      endRequest,
+      historyRequest
+    });
+    setUpOperatorWatchers();
+    return {
+      formOptions,
+      model,
+      initialized,
+      fields,
+      data,
+      urls,
+      identifiers,
+      managements,
+      schema,
+      tableOptions,
+      submitModel,
+      defaultOrdering,
+      defaultConfig,
+      config,
+      resultTableRef,
+      aggregation,
+      tableColumns,
+
+      del,
+      submitDelete,
+      deleteModal,
+      delDependencies,
+      resetAllFilters,
+      modelUpdated,
+      depUrls,
+      collectionToggleAll,
+      clearCollection,
+      addManagementsToSelection,
+      removeManagementsFromSelection,
+      addManagementsToResults,
+      removeManagementsFromResults,
+
+      downloadCSVHandler,
+
+      openRequests,
+      startRequest,
+      endRequest,
+      alerts,
+      formatDate,
+      greekFont,
+      session,
+      onData,
+      countRecords,
+      updateCountRecords,
+      onValidated,
+      lastChangedField,
+      initFromURL,
+      historyRequest,
+      notEmptyFields,
+      deleteActiveFilter,
+      onLoaded,
+      collectionArray
+    };
+  },
+
 };
 </script>
