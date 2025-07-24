@@ -224,7 +224,7 @@
         </div>
         <deleteModal
             :show="deleteModal"
-            :del-dependencies="delDependencies"
+            :del-dependencies="delDependencies.value"
             :submit-model="submitModel"
             @cancel="deleteModal=false"
             @confirm="submitDelete()"
@@ -241,7 +241,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { ref, onMounted, getCurrentInstance,computed, watch} from 'vue';
+import { ref, reactive, onMounted, getCurrentInstance,computed, watch} from 'vue';
 import Delete from '../Components/Edit/Modals/Delete.vue';
 import Alerts from "@/Components/Alerts.vue";
 import qs from 'qs';
@@ -350,7 +350,7 @@ export default {
         return row.public == null || row.public ? '' : 'warning';
       },
     });
-    const submitModel = ref({
+    const submitModel = reactive({
       submitType: 'manuscript',
       manuscript: {},
     });
@@ -443,7 +443,7 @@ export default {
       Occurrences: {
         depUrl: urls.occurrence_deps_by_manuscript.replace(
             'manuscript_id',
-            submitModel.value.manuscript.id
+            submitModel.manuscript.id
         ),
         url: urls.occurrence_get,
         urlIdentifier: 'occurrence_id',
@@ -624,7 +624,7 @@ export default {
           .delete(
               urls.manuscript_delete.replace(
                   'manuscript_id',
-                  submitModel.value.manuscript.id
+                  submitModel.manuscript.id
               )
           )
           .then(() => {
@@ -649,7 +649,7 @@ export default {
     }
 
     function del(row) {
-      submitModel.value.manuscript = row;
+      submitModel.manuscript = row;
       startRequest();
 
       const depUrlsEntries = Object.entries(depUrls.value);
