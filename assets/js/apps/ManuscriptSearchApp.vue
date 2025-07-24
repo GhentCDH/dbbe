@@ -612,35 +612,23 @@ export default {
       updateCountRecords();
     });
 
-    function submitDelete() {
+    async function submitDelete() {
       startRequest();
       deleteModal.value = false;
-      axios
-          .delete(
-              urls.manuscript_delete.replace(
-                  'manuscript_id',
-                  submitModel.manuscript.id
-              )
-          )
-          .then(() => {
-            noHistory.value = true;
-            if (resultTableRef.value) {
-              resultTableRef.value.refresh();
-            }
-            endRequest();
-            alerts.value.push({
-              type: 'success',
-              message: 'Manuscript deleted successfully.',
-            });
-          })
-          .catch((error) => {
-            endRequest();
-            alerts.value.push({
-              type: 'error',
-              message: 'Something went wrong while deleting the manuscript.',
-            });
-            console.error(error);
-          });
+
+      try {
+        await axios.delete(
+            urls.manuscript_delete.replace('manuscript_id', submitModel.manuscript.id)
+        );
+        noHistory.value = true;
+        resultTableRef.value?.refresh();
+        alerts.value.push({ type: 'success', message: 'Manuscript deleted successfully.' });
+      } catch (error) {
+        alerts.value.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
+        console.error(error);
+      } finally {
+        endRequest();
+      }
     }
 
     async function del(row) {
