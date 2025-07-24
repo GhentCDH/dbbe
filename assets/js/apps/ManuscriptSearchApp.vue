@@ -446,16 +446,6 @@ export default {
       },
     }));
 
-    const tableColumns = computed(() => {
-      const columns = ['name', 'date', 'content'];
-      if (vm.commentSearch) {
-        columns.unshift('comment');
-      }
-      if (props.isViewInternal) {
-        columns.push('occ', 'created', 'modified', 'actions', 'c');
-      }
-      return columns;
-    });
 
     const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
 
@@ -623,13 +613,26 @@ export default {
       setUpOperatorWatchers,
       onLoaded,
       deleteActiveFilter,
-        onDataExtend
+      onDataExtend,
+      commentSearch
     } = useSearchFields(model, schema, fields, aggregation, {
       multiple: true,
       updateCountRecords,
       initFromURL,
       endRequest,
       historyRequest
+    });
+
+
+    const tableColumns = computed(() => {
+      const columns = ['name', 'date', 'content'];
+      if (commentSearch.value===true) {
+        columns.unshift('comment');
+      }
+      if (props.isViewInternal) {
+        columns.push('occ', 'created', 'modified', 'actions', 'c');
+      }
+      return columns;
     });
     setUpOperatorWatchers();
     return {
