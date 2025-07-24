@@ -240,8 +240,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
-import { ref, reactive, onMounted, getCurrentInstance,computed, watch} from 'vue';
+import Vue, {computed, getCurrentInstance, onMounted, reactive, ref, watch} from 'vue';
 import Delete from '../Components/Edit/Modals/Delete.vue';
 import Alerts from "@/Components/Alerts.vue";
 import qs from 'qs';
@@ -252,22 +251,17 @@ import VueCookies from 'vue-cookies';
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
 
-import {
-  createMultiSelect,
-} from '@/helpers/formFieldUtils';
+import {createMultiSelect,} from '@/helpers/formFieldUtils';
 
-import {
-  formatDate,
-  greekFont,
-} from "@/helpers/formatUtil";
+import {formatDate, greekFont,} from "@/helpers/formatUtil";
 
-import { isLoginError } from "@/helpers/errorUtil";
+import {isLoginError} from "@/helpers/errorUtil";
 import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
 
-import { useRequestTracker } from "@/composables/abstractSearchComposables/useRequestTracker";
-import { usePaginationCount } from "@/composables/abstractSearchComposables/usePaginationCount";
-import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
-import { useSearchSession } from "@/composables/useSearchSession";
+import {useRequestTracker} from "@/composables/abstractSearchComposables/useRequestTracker";
+import {usePaginationCount} from "@/composables/abstractSearchComposables/usePaginationCount";
+import {useFormValidation} from "@/composables/abstractSearchComposables/useFormValidation";
+import {useSearchSession} from "@/composables/useSearchSession";
 import {useManuscriptSearchSchema} from "@/composables/useManuscriptSearch/useManuscriptSearchSchema";
 import {useEditMergeMigrateDelete} from "@/composables/useEditMergeMigrateDelete";
 import {useSearchFields} from "@/composables/abstractSearchComposables/useSearchFields";
@@ -275,6 +269,9 @@ import {useCollectionManagement} from "@/composables/abstractSearchComposables/u
 import CollectionManager from '../Components/Search/CollectionManager.vue';
 import {constructFilterValues} from "@/helpers/abstractSearchHelpers/filterUtil";
 import {popHistory, pushHistory} from "@/helpers/abstractSearchHelpers/historyUtil";
+import {fetchDependencies} from "@/helpers/fetchDependencies";
+import {downloadCSV} from "@/helpers/downloadUtil";
+
 Vue.use(VueCookies);
 Vue.use(VueFormGenerator);
 Vue.component('DeleteModal', Delete);
@@ -398,12 +395,12 @@ export default {
         }
       };
 
-      if (vm.schema) {
-        if (vm.schema.fields) {
-          Object.values(vm.schema.fields).forEach(addField);
+      if (schema.value) {
+        if (schema.value.fields) {
+          Object.values(schema.value.fields).forEach(addField);
         }
-        if (vm.schema.groups) {
-          vm.schema.groups.forEach(group => {
+        if (schema.value.groups) {
+          schema.value.groups.forEach(group => {
             if (group.fields) {
               group.fields.forEach(field => {
                 if (!vm.multiple || field.multi === true) {
@@ -473,9 +470,8 @@ export default {
 
 
     const session = useSearchSession(vm, 'ManuscriptSearchConfig');
-    vm.session = session;
 
-    const onData = (data) => session.onData(data, vm.onDataExtend);
+    const onData = (data) => session.onData(data, onDataExtend);
     watch(() => model.value.text_mode, (val, oldVal) => {
       changeTextMode(val, oldVal, 'text');
     });
@@ -605,14 +601,13 @@ export default {
 
     onMounted(() => {
       session.setupCollapsibleLegends();
-      vm.$on('config-changed', session.handleConfigChange(vm.schema));
+      vm.$on('config-changed', session.handleConfigChange(schema.value));
       updateCountRecords();
       initFromURL(aggregation.value);
       originalModel.value = JSON.parse(JSON.stringify(model));
       window.onpopstate = (event) => {
-        console.log('popping!')
-        vm.historyRequest = popHistory();
-        vm.resultTableRef.refresh();
+        historyRequest.value = popHistory();
+        resultTableRef.value?.refresh();
       };
       updateCountRecords();
     });
@@ -628,7 +623,7 @@ export default {
               )
           )
           .then(() => {
-            vm.noHistory = true;
+            noHistory.value = true;
             if (resultTableRef.value) {
               resultTableRef.value.refresh();
             }
@@ -648,43 +643,24 @@ export default {
           });
     }
 
-    function del(row) {
+    async function del(row) {
       submitModel.manuscript = row;
       startRequest();
-
       const depUrlsEntries = Object.entries(depUrls.value);
-      axios
-          .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
-          .then((results) => {
-            const deps = {};
-            results.forEach((response, index) => {
-              const data = response.data;
-              if (data.length > 0) {
-                const [category, depUrlCat] = depUrlsEntries[index];
-                deps[category] = {
-                  list: data,
-                  ...(depUrlCat.url && { url: depUrlCat.url }),
-                  ...(depUrlCat.urlIdentifier && {
-                    urlIdentifier: depUrlCat.urlIdentifier,
-                  }),
-                };
-              }
-            });
-            delDependencies.value = deps;
-            deleteModal.value = true;
-            endRequest();
-          })
-          .catch((error) => {
-            endRequest();
-            alerts.value.push({
-              type: 'error',
-              message: 'Something went wrong while checking for dependencies.',
-              login: isLoginError(error),
-            });
-            console.error(error);
-          });
+      try {
+        delDependencies.value = await fetchDependencies(depUrlsEntries);
+        deleteModal.value = true;
+      } catch (error) {
+        alerts.value.push({
+          type: 'error',
+          message: 'Something went wrong while checking for dependencies.',
+          login: isLoginError(error),
+        });
+        console.error(error);
+      } finally {
+        endRequest();
+      }
     }
-
 
     function modelUpdated(value, fieldName) {
       lastChangedField.value = fieldName;
@@ -724,6 +700,7 @@ export default {
       setUpOperatorWatchers,
       onLoaded,
       deleteActiveFilter,
+        onDataExtend
     } = useSearchFields(model, schema, fields, aggregation, {
       multiple: true,
       updateCountRecords,
