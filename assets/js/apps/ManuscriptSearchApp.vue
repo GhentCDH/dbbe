@@ -250,7 +250,6 @@ import VueCookies from 'vue-cookies';
 
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 
-
 import {createMultiSelect,} from '@/helpers/formFieldUtils';
 
 import {formatDate, greekFont,} from "@/helpers/formatUtil";
@@ -271,6 +270,7 @@ import {constructFilterValues} from "@/helpers/abstractSearchHelpers/filterUtil"
 import {popHistory, pushHistory} from "@/helpers/abstractSearchHelpers/historyUtil";
 import {fetchDependencies} from "@/helpers/fetchDependencies";
 import {downloadCSV} from "@/helpers/downloadUtil";
+import {axiosGet, cleanParams} from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
 
 Vue.use(VueCookies);
 Vue.use(VueFormGenerator);
@@ -363,7 +363,6 @@ export default {
     const vm = instance?.proxy;
     const idList = [];
     const historyRequest = ref(false);
-
 
     for (const identifier of JSON.parse(props.initIdentifiers)) {
       idList.push(createMultiSelect(
@@ -467,8 +466,6 @@ export default {
       endRequest,
     } = useRequestTracker();
 
-
-
     const session = useSearchSession(vm, 'ManuscriptSearchConfig');
 
     const onData = (data) => session.onData(data, onDataExtend);
@@ -480,77 +477,18 @@ export default {
     });
 
     const requestFunction= async (data) => {
-      const params = { ...data };
-      delete params.query;
-      delete params.byColumn;
-      if (!('orderBy' in params)) {
-        delete params.ascending;
-      }
-      if (!params.filters) {
-        delete params.filters;
-      }
-
+      const params = cleanParams(data);
       startRequest();
-      const handleError = (error) => {
-        endRequest();
-        alerts.push({
-          type: 'error',
-          message:
-              'Something went wrong while processing your request. Please verify your input is valid.',
-        });
-        console.error(error);
-        return {
-          data: {
-            data: data,
-            count: count,
-          },
-        };
-      };
-
-      const axiosGet = async (url, options = {}) => {
-        if (openRequests > 1 && tableCancel != null) {
-          tableCancel('Operation canceled by newer request');
-        }
-
-        try {
-          const response = await axios.get(url, {
-            cancelToken: new axios.CancelToken((c) => {
-              tableCancel.value = c;
-            }),
-            ...options,
-          });
-          alerts.value = [];
-          onData(response.data);
-          return response;
-        } catch (error) {
-          if (axios.isCancel(error)) {
-            return {
-              data: {
-                data: data,
-                count: count,
-              },
-            };
-          }
-          return handleError(error);
-        }
-      };
       let url = urls['manuscripts_search_api'];
 
-      if (!initialized) {
-        onData(data);
+      if (!initialized || !actualRequest) {
+        if (!initialized) {
+          onData(data);
+        }
         return {
           data: {
-            data: data.data,
-            count: data.count,
-          },
-        };
-      }
-
-      if (!actualRequest) {
-        return {
-          data: {
-            data: data,
-            count: count,
+            data: initialized ? data : data.data,
+            count: initialized ? count : data.count,
           },
         };
       }
@@ -568,10 +506,7 @@ export default {
         noHistory.value = false;
       }
 
-      return await axiosGet(url, {
-        params,
-        paramsSerializer: qs.stringify,
-      });
+      return await axiosGet(url, { params, paramsSerializer: qs.stringify }, tableCancel, openRequests, alerts, onData, data);
     }
 
     tableOptions.value.requestFunction = requestFunction;
