@@ -1,7 +1,7 @@
 import { ref } from 'vue';
-import VueFormGenerator from 'vue-form-generator'; // Ensure this is imported correctly
+import VueFormGenerator from 'vue-form-generator';
 import {createLanguageToggle, createMultiMultiSelect, createMultiSelect} from "@/helpers/formFieldUtils";
-import {YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil"; // Adjust path accordingly
+import {YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
 
 export function useManuscriptSearchSchema(idList = []) {
     const schema = ref({
