@@ -23,7 +23,7 @@
                 :filters="notEmptyFields"
                 class="active-filters"
                 @resetFilters="resetAllFilters"
-                @deletedActiveFilter="deleteActiveFilter"
+                @deletedActiveFilter="handleDeletedActiveFilter"
             />
             <div
                 v-if="countRecords"
@@ -308,6 +308,11 @@ export default {
   },
 
   setup(props) {
+    const handleDeletedActiveFilter = (field) => {
+      deleteActiveFilter(field);
+      onValidated(true);
+    };
+
     const urls = JSON.parse(props.initUrls);
     const data= JSON.parse(props.initData);
     const identifiers= JSON.parse(props.initIdentifiers);
@@ -328,8 +333,7 @@ export default {
       origin_op: 'or',
       comment_mode: ['latin'],
       acknowledgement: [],
-      acknowledgement_op: 'or',
-    });
+      acknowledgement_op: 'or'});
     const originalModel=ref({})
     const tableOptions = ref({
       headings: {
@@ -401,10 +405,8 @@ export default {
         if (schema.value.groups) {
           schema.value.groups.forEach(group => {
             if (group.fields) {
-              group.fields.forEach(field => {
-                if (!vm.multiple || field.multi === true) {
+              group.fields.forEach(field => {console.log(field)
                   res[field.model] = field;
-                }
               });
             }
           });
@@ -445,7 +447,6 @@ export default {
         urlIdentifier: 'occurrence_id',
       },
     }));
-
 
     const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
 
@@ -575,7 +576,7 @@ export default {
       }
     }
 
-    function modelUpdated(value, fieldName) {
+    function modelUpdated(fieldName) {
       lastChangedField.value = fieldName;
     }
 
@@ -687,7 +688,8 @@ export default {
       notEmptyFields,
       deleteActiveFilter,
       onLoaded,
-      collectionArray
+      collectionArray,
+      handleDeletedActiveFilter
     };
   },
 
