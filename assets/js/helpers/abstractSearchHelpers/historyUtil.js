@@ -11,7 +11,7 @@ export function pushHistory(data, model, originalModel, fields, tableOptions) {
     }
     if (
         'orderBy' in filteredData &&
-        filteredData.orderBy === tableOptions.orderBy.column &&
+        filteredData.orderBy === tableOptions.value.orderBy.column &&
         'ascending' in filteredData &&
         filteredData.ascending === 1
     ) {
