@@ -90,7 +90,6 @@ import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
   disableField,
@@ -98,20 +97,15 @@ import {
 } from '@/helpers/formFieldUtils';
 
 import Panel from '../Panel'
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 Vue.component('draggable', draggable)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
     props: {
-        header: {
-            type: String,
-            default: '',
-        },
+
         roles: {
             type: Array,
             default: () => {return []}
@@ -123,6 +117,30 @@ export default {
         occurrencePersonRoles: {
             type: Object,
             default: () => {return {}}
+        },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
         },
     },
     data() {
@@ -153,7 +171,17 @@ export default {
             data.refs[role.systemName] = role.systemName + 'Form'
             data.displayOrder[role.systemName] = false
         }
-        return data
+        return {
+          ...data,
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {}
+        }
     },
     computed: {
         fields() {
@@ -165,6 +193,15 @@ export default {
         }
     },
     methods: {
+      init() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+        this.enableFields();
+      },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
         enableFields(enableKeys) {
             for (let key of Object.keys(this.keys)) {
                 if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
@@ -186,13 +223,19 @@ export default {
         },
         validate() {
             for (let form of this.$refs.forms) {
-                form.validate()
+              form.validate()
             }
         },
         onChange() {
-            this.calcChanges()
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
             this.$emit('validated')
-        }
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
     }
 }
 </script>
+

@@ -62,6 +62,14 @@ export function disableField(field) {
     field.values = [];
 }
 
+export function disableFields(keys, fields, disableKeys) {
+    for (const key of Object.keys(keys)) {
+        if (disableKeys.includes(key)) {
+            console.log(fields)
+            disableField(fields[keys[key].field]);
+        }
+    }
+}
 export function dependencyField(field, model) {
     const modelName = field.model.split('.').pop();
     delete model[modelName];
@@ -100,6 +108,22 @@ export function enableField(field, model, search = false) {
     }
 }
 
+export function enableFields(keys, fields, values, enableKeys = null) {
+    for (const key of Object.keys(keys)) {
+        const { field, init } = keys[key];
+
+        if ((init && enableKeys == null) || (enableKeys && enableKeys.includes(key))) {
+            if (!fields[field]) continue;
+
+            const fieldValues = Array.isArray(values) ? values : values?.[key];
+
+            fields[field].values = fieldValues;
+            fields[field].originalValues = JSON.parse(JSON.stringify(fieldValues));
+
+            enableField(fields[field], null);
+        }
+    }
+}
 export function loadLocationField(field, model, values) {
     const modelName = field.model.split('.').pop();
 

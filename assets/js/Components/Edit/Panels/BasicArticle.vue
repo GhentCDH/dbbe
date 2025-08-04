@@ -18,21 +18,19 @@
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
-  dependencyField,
+  dependencyField, disableFields,
   enableField,
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
 Vue.use(VueFormGenerator);
 Vue.component('panel', Panel);
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
         values: {
             type: Object,
@@ -46,6 +44,22 @@ export default {
                     journalIssues: {field: 'journalIssue', init: false},
                 };
             },
+        },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
         },
     },
     data() {
@@ -104,6 +118,14 @@ export default {
                     },
                 }
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     watch: {
@@ -111,7 +133,19 @@ export default {
             this.journalChange();
         },
     },
+  computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
     methods: {
+      init() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+        this.enableFields();
+      },
+      validate() {
+        this.$refs.form.validate()
+      },
         enableFields(enableKeys) {
             if (enableKeys != null) {
                 if (enableKeys.includes('journals')) {
@@ -124,6 +158,9 @@ export default {
                     this.journalChange();
                 }
             }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
         },
         journalChange() {
             if (this.values.journalIssues.length === 0) {
@@ -149,6 +186,16 @@ export default {
                 return ['If an end page is defined, a start page must be defined as well.'];
             }
             return [];
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
         },
     },
 }
