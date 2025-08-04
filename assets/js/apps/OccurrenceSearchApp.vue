@@ -312,6 +312,7 @@ import Delete from '../Components/Edit/Modals/Delete.vue';
 import Alerts from "@/Components/Alerts.vue";
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import CollectionManager from '../Components/Search/CollectionManager.vue';
+import { nextTick } from 'vue';
 
 import {
   createMultiSelect,
@@ -331,9 +332,8 @@ import { usePaginationCount } from "@/composables/abstractSearchComposables/useP
 import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
 import { useSearchFields } from "@/composables/abstractSearchComposables/useSearchFields";
 import { useCollectionManagement } from "@/composables/abstractSearchComposables/useCollectionManagement";
-import { useTempMigrationSearchSession} from "@/composables/useTempMigrationSearchSession";
+import { useSearchSession} from "@/composables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
-// Define props
 const props = defineProps({
   isEditor: {
     type: Boolean,
@@ -692,12 +692,12 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useTempMigrationSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
   emit,
-  occRef,
+  elRef: occRef,
   onDataExtend
 }, 'OccurrenceSearchConfig');
 
@@ -828,11 +828,19 @@ watch(() => model.value.text_mode, (val, oldVal) => {
 watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
+watch(
+    () => schema.value?.groups,
+    async (groups) => {
+      if (!groups || !Array.isArray(groups)) return;
+      await nextTick();
+      const legends = occRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+      if (legends.length > 0) {
+        setupCollapsibleLegends(schema);
+      }
+    },
+    { immediate: true }
+);
 
-watch(occRef, (el) => {
-  console.log('occRef changed');
-  if (el) setupCollapsibleLegends(schema);
-});
 
 // Setup table options request function
 tableOptions.value.requestFunction = requestFunction;

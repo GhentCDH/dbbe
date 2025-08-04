@@ -421,8 +421,9 @@ import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/history
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
-import { useTempMigrationSearchSession } from "@/composables/useTempMigrationSearchSession";
+import { useSearchSession } from "@/composables/useSearchSession";
 import validatorUtil from '@/helpers/validatorUtil';
+import { nextTick } from 'vue';
 
 const props = defineProps({
   isEditor: {
@@ -849,12 +850,12 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useTempMigrationSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
   emit,
-  personElRef,
+  elRef: personElRef,
   onDataExtend
 }, 'PersonSearchConfig');
 
@@ -1179,10 +1180,19 @@ watch(() => mergeModel.secondary, async (newSecondary) => {
 watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
+watch(
+    () => schema.value?.groups,
+    async (groups) => {
+      if (!groups || !Array.isArray(groups)) return;
+      await nextTick();
+      const legends = personElRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+      if (legends.length > 0) {
+        setupCollapsibleLegends(schema);
+      }
+    },
+    { immediate: true }
+);
 
-watch(personElRef, (el) => {
-  if (el) setupCollapsibleLegends(schema);
-});
 
 tableOptions.value.requestFunction = requestFunction;
 

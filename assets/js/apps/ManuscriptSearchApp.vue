@@ -265,7 +265,7 @@ import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/history
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
-import { useTempMigrationSearchSession } from "@/composables/useTempMigrationSearchSession";
+import { useSearchSession } from "@/composables/useSearchSession";
 
 const props = defineProps({
   isEditor: {
@@ -475,7 +475,7 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useTempMigrationSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,

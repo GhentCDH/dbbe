@@ -364,6 +364,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import VueTables from 'vue-tables-2';
 import qs from 'qs';
+import { nextTick } from 'vue';
 
 import {
   createMultiSelect,
@@ -383,7 +384,7 @@ import { useFormValidation } from "@/composables/abstractSearchComposables/useFo
 import { useEditMergeMigrateDelete } from "@/composables/useEditMergeMigrateDelete";
 import { useSearchFields } from "@/composables/abstractSearchComposables/useSearchFields";
 import { useCollectionManagement } from "@/composables/abstractSearchComposables/useCollectionManagement";
-import { useTempMigrationSearchSession } from "@/composables/useTempMigrationSearchSession";
+import { useSearchSession } from "@/composables/useSearchSession";
 
 import { constructFilterValues } from "@/helpers/abstractSearchHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/historyUtil";
@@ -755,12 +756,12 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useTempMigrationSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
   emit,
-  biblioElRef,
+  elRef: biblioElRef,
   onDataExtend
 }, 'BibliographySearchConfig');
 
@@ -1098,9 +1099,19 @@ watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
 
-watch(biblioElRef, (el) => {
-  if (el) setupCollapsibleLegends(schema);
-});
+watch(
+    () => schema.value?.groups,
+    async (groups) => {
+      if (!groups || !Array.isArray(groups)) return;
+      await nextTick();
+      const legends = biblioElRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+      if (legends.length > 0) {
+        setupCollapsibleLegends(schema);
+      }
+    },
+    { immediate: true }
+);
+
 
 tableOptions.value.requestFunction = requestFunction;
 

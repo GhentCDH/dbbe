@@ -270,7 +270,7 @@ import Delete from '../Components/Edit/Modals/Delete.vue';
 import Alerts from "@/Components/Alerts.vue";
 import qs from 'qs';
 import VueTables from 'vue-tables-2';
-// import VueFormGenerator from 'vue-form-generator';
+import { nextTick } from 'vue';
 
 import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import {
@@ -293,7 +293,7 @@ import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/history
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
-import { useTempMigrationSearchSession } from "@/composables/useTempMigrationSearchSession";
+import { useSearchSession } from "@/composables/useSearchSession";
 import validatorUtil from '@/helpers/validatorUtil';
 const props = defineProps({
   isViewInternal: {
@@ -693,12 +693,12 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useTempMigrationSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
   emit,
-  typeSearchRef,
+  elRef: typeSearchRef,
   onDataExtend
 }, 'TypeSearchConfig');
 
@@ -850,9 +850,18 @@ watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
 
-watch(typeSearchRef, (el) => {
-  if (el) setupCollapsibleLegends(schema);
-});
+watch(
+    () => schema.value?.groups,
+    async (groups) => {
+      if (!groups || !Array.isArray(groups)) return;
+      await nextTick();
+      const legends = typeSearchRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+      if (legends.length > 0) {
+        setupCollapsibleLegends(schema);
+      }
+    },
+    { immediate: true }
+);
 
 tableOptions.value.requestFunction = requestFunction;
 
