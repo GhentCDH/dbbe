@@ -11,21 +11,42 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
-
-
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
-
 import Panel from '../Panel'
+import validatorUtil from "@/helpers/validatorUtil";
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
-    data() {
+  props: {
+    header: {
+      type: String,
+      default: '',
+    },
+    links: {
+      type: Array,
+      default: () => {return []},
+    },
+    model: {
+      type: Object,
+      default: () => {return {}},
+    },
+    keys: {
+      type: Object,
+      default: () => {return {}},
+    },
+    reloads: {
+      type: Array,
+      default: () => {return []},
+    },
+    values: {
+      type: Array,
+      default: () => {return []},
+    },
+  },
+
+  data() {
         return {
             schema: {
                 fields: {
@@ -37,7 +58,7 @@ export default {
                         styleClasses: 'greek',
                         model: 'incipit',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     title_GR: {
                         type: 'input',
@@ -46,7 +67,7 @@ export default {
                         labelClasses: 'control-label',
                         styleClasses: 'greek',
                         model: 'title_GR',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     title_LA: {
                         type: 'input',
@@ -54,11 +75,45 @@ export default {
                         label: 'Latin title',
                         labelClasses: 'control-label',
                         model: 'title_LA',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 },
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
+  methods: {
+    init() {
+      this.originalModel = JSON.parse(JSON.stringify(this.model));
+      this.enableFields();
+
+    },
+    reload(type) {
+      if (!this.reloads.includes(type)) {
+        this.$emit('reload', type);
+      }
+    },
+    disableFields(disableKeys) {
+      disableFields(this.keys, this.fields, disableKeys);
+    },
+    enableFields(enableKeys) {
+      enableFields(this.keys, this.fields, this.values, enableKeys);
+    },
+    validated(isValid, errors) {
+      this.isValid = isValid
+      this.changes = calcChanges(this.model, this.originalModel, this.fields);
+      this.$emit('validated', isValid, this.errors, this)
+    },
+    validate() {
+      this.$refs.form.validate()
+    },
+  }
 }
 </script>

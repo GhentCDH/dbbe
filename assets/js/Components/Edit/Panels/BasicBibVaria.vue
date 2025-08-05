@@ -40,10 +40,6 @@ export default {
       type: Object,
       default: () => {return {}},
     },
-    keys: {
-      type: Object,
-      default: () => {return {}},
-    },
     reloads: {
       type: Array,
       default: () => {return []},
@@ -51,6 +47,10 @@ export default {
     values: {
       type: Array,
       default: () => {return []},
+    },
+    keys: {
+      type: Object,
+      default: () => {return {}},
     },
   },
 
