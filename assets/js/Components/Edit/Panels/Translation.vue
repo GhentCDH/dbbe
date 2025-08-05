@@ -154,24 +154,37 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
   enableField,
 
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import {calcChanges} from "@/helpers/modelChangeUtil";
+import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
         values: {
             type: Object,
             default: () => ({}),
@@ -181,6 +194,12 @@ export default {
             default: () => ({}),
         },
     },
+    computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
+
     data() {
         let data = {
             editModal: false,
@@ -206,14 +225,14 @@ export default {
                         model: 'text',
                         rows: 10,
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     language: createMultiSelect(
                         'Language',
                         {
                             values: this.values.languages,
                             required: true,
-                            validator: VueFormGenerator.validators.required,
+                            validator: validatorUtil.required,
                         },
                     ),
                     publicComment: {
@@ -222,7 +241,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'publicComment',
                         rows: 4,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 },
             },
@@ -230,9 +249,28 @@ export default {
         for (const role of this.values.personRoles) {
             this.$set(data.editModel.personRoles, role.systemName, []);
         }
-        return data;
+        return {
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {},
+          ...data
+        };
     },
     methods: {
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields();
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 enableField(this.schema.fields.language);
@@ -418,6 +456,12 @@ export default {
             }
             return prefix + startPage + '-' + endPage
         },
+        validated(isValid, errors) {
+        this.isValid = isValid
+        this.changes = calcChanges(this.model, this.originalModel, this.fields);
+        this.$emit('validated', isValid, this.errors, this)
+      },
+
     }
 }
 </script>

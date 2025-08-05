@@ -519,9 +519,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
   createMultiSelect,
   disableField,
@@ -529,14 +527,11 @@ import {
 
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
     props: {
         referenceType: {
             type: Boolean,
@@ -568,6 +563,22 @@ export default {
                 };
             },
         },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
     },
     data() {
         let data = {
@@ -577,7 +588,7 @@ export default {
                         'Book',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -593,7 +604,7 @@ export default {
                         'Article',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -609,7 +620,7 @@ export default {
                         'Book Chapter',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -625,7 +636,7 @@ export default {
                         'Online Source',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -647,7 +658,7 @@ export default {
                         label: 'Relative link',
                         labelClasses: 'control-label',
                         model: 'relUrl',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     }
                 }
             },
@@ -657,7 +668,7 @@ export default {
                         'Blog Post',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -673,7 +684,7 @@ export default {
                         'Phd',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -689,7 +700,7 @@ export default {
                         'BibVaria',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                         {
                             customLabel: ({id, name}) => {
@@ -710,7 +721,7 @@ export default {
             label: 'Start page',
             labelClasses: 'control-label',
             model: 'startPage',
-            validator: VueFormGenerator.validators.string,
+            validator: validatorUtil.string,
         }
         data.editBookBibSchema.fields['startPage'] = startPageField
         data.editArticleBibSchema.fields['startPage'] = startPageField
@@ -723,7 +734,7 @@ export default {
             label: 'End page',
             labelClasses: 'control-label',
             model: 'endPage',
-            validator: VueFormGenerator.validators.string,
+            validator: validatorUtil.string,
         }
         data.editBookBibSchema.fields['endPage'] = endPageField
         data.editArticleBibSchema.fields['endPage'] = endPageField
@@ -737,7 +748,7 @@ export default {
             labelClasses: 'control-label',
             model: 'rawPages',
             disabled: true,
-            validator: VueFormGenerator.validators.string,
+            validator: validatorUtil.string,
         }
         data.editBookBibSchema.fields['rawPages'] = rawPagesField
         data.editArticleBibSchema.fields['rawPages'] = rawPagesField
@@ -749,7 +760,7 @@ export default {
                 model: 'referenceType',
                 values: this.values.referenceTypes,
                 required: true,
-                validator: VueFormGenerator.validators.required,
+                validator: validatorUtil.required,
             })
             data.editBookBibSchema.fields['referenceType'] = referenceTypeField
             data.editArticleBibSchema.fields['referenceType'] = referenceTypeField
@@ -766,7 +777,7 @@ export default {
                 label: 'Plate',
                 labelClasses: 'control-label',
                 model: 'image',
-                validator: VueFormGenerator.validators.string,
+                validator: validatorUtil.string,
             }
             data.editBookBibSchema.fields['image'] = imageField
             data.editArticleBibSchema.fields['image'] = imageField
@@ -776,7 +787,17 @@ export default {
             data.editPhdBibSchema.fields['image'] = imageField
             data.editBibVariaBibSchema.fields['image'] = imageField
         }
-        return data
+        return {
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {},
+          ...data
+        }
     },
     computed: {
         // Fields is not used in this panel
@@ -785,6 +806,15 @@ export default {
         }
     },
     methods: {
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields();
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 if (this.referenceType) {

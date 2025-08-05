@@ -267,28 +267,50 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 import draggable from 'vuedraggable'
 import axios from 'axios';
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('draggable', draggable)
 Vue.component('panel', Panel)
 Vue.component('verseTable', VerseTable)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
         urls: {
             type: Object,
             default: () => {return {}}
         },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
+        },
+
     },
     data() {
         return {
@@ -302,7 +324,7 @@ export default {
                         styleClasses: 'greek',
                         model: 'incipit',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     title: {
                         type: 'input',
@@ -311,7 +333,7 @@ export default {
                         labelClasses: 'control-label',
                         styleClasses: 'greek',
                         model: 'title',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     numberOfVerses: {
                         type: 'input',
@@ -319,7 +341,7 @@ export default {
                         label: 'Number of verses',
                         labelClasses: 'control-label',
                         model: 'numberOfVerses',
-                        validator: VueFormGenerator.validators.number,
+                        validator: validatorUtil.number,
                         hint: 'Should be left blank if equal to the number of verses listed below. A "0" (without quotes) should be input when the number of verses is unknown.',
                     },
                 },
@@ -333,7 +355,7 @@ export default {
                         styleClasses: 'greek',
                         model: 'text',
                         rows: 10,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 },
             },
@@ -348,8 +370,8 @@ export default {
                         model: 'verse',
                         required: true,
                         validator: [
-                            VueFormGenerator.validators.string,
-                            VueFormGenerator.validators.required,
+                            validatorUtil.string,
+                            validatorUtil.required,
                         ],
                     },
                 },
@@ -363,7 +385,7 @@ export default {
                         labelClasses: 'control-label',
                         styleClasses: 'greek',
                         model: 'search',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 },
             },
@@ -378,6 +400,15 @@ export default {
             linkableVerses: null,
             alerts: [],
             oldGroups: [],
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
+
         }
     },
     computed: {
@@ -453,7 +484,8 @@ export default {
                 return 0;
             }
             return Math.max.apply(Math, this.model.verses.map(function(v) { return v.order; }));
-        },
+        }
+
     },
     watch: {
         'model.numberOfVerses'() {
@@ -472,6 +504,9 @@ export default {
     },
     methods: {
         // validated (inherited) is only called on generalForm
+        init() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+      },
         validate() {
             this.$refs.generalForm.validate()
         },
@@ -806,6 +841,17 @@ export default {
                 result.push(display)
             }
             return result
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
         },
     }
 }

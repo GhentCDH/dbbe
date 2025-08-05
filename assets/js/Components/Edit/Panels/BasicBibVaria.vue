@@ -103,7 +103,7 @@ export default {
             originalModel: {}
         }
     },
-    watch: {
+  watch: {
         'model.year' () {
             if (isNaN(this.model.year)) {
                 this.model.year = null;
@@ -113,7 +113,6 @@ export default {
             }
         },
     },
-
   computed: {
     fields() {
       return this.schema.fields
