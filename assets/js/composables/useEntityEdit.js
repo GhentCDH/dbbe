@@ -34,14 +34,10 @@ export function useEntityEdit(props) {
         })
     }
 
-    const loadAsync = () => {
-        // Override in component if needed
-    }
 
     const validateForms = (panelRefs, panels) => {
         for (let panel of panels) {
             if (panelRefs[panel] && panelRefs[panel].validate) {
-                console.log('validating',panel)
                 panelRefs[panel].validate()
             }
         }
@@ -149,7 +145,6 @@ export function useEntityEdit(props) {
                 }
             }
         }
-
         reloads.value.push(type)
 
         axios.get(url)
@@ -172,7 +167,9 @@ export function useEntityEdit(props) {
 
                 if (panelRefs && panels) {
                     for (let panel of panels) {
+
                         if (panelRefs[panel] && panelRefs[panel].enableFields) {
+
                             panelRefs[panel].enableFields(keys)
                         }
                     }
@@ -215,7 +212,6 @@ export function useEntityEdit(props) {
 
         // Methods
         initScroll,
-        loadAsync,
         validateForms,
         calcAllChanges,
         validated,
