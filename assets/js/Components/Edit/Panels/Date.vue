@@ -162,13 +162,12 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
 import AutoDate from './Components/AutoDate'
-
-Vue.use(VueFormGenerator);
+import validatorUtil from "@/helpers/validatorUtil";
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 Vue.component('panel', Panel);
 Vue.component('autoDate', AutoDate);
 
@@ -177,9 +176,7 @@ const YEAR_MIN = -5000;
 const YEAR_MAX = (new Date()).getFullYear();
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+    
     props: {
         model: {
             type: Array,
@@ -188,6 +185,27 @@ export default {
         config: {
             type: Object,
             default: () => {return {};},
+        },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
         },
     },
     data() {
@@ -232,7 +250,7 @@ export default {
                         model: 'type',
                         values: [],
                         required: true,
-                        validator: VueFormGenerator.validators.required,
+                        validator: validatorUtil.required,
                     },
                     isInterval: {
                         type: 'checkbox',
@@ -260,7 +278,7 @@ export default {
                         label: 'Day from',
                         labelClasses: 'control-label floor-day-month',
                         model: 'floorDayMonth',
-                        pattern: '^\\d{2}[/]\\d{2}$',
+                        pattern: '^\\d{2}/\\d{2}$',
                         help: 'Please use the format "DD/MM", e.g. 24/03.',
                     },
                     ceilingYear: {
@@ -279,7 +297,7 @@ export default {
                         labelClasses: 'control-label ceiling-day-month',
                         model: 'ceilingDayMonth',
                         required: this.ceilingYear != null,
-                        pattern: '^\\d{2}[/]\\d{2}$',
+                        pattern: '^\\d{2}/\\d{2}$',
                         help: 'Please use the format "DD/MM", e.g. 24/03.',
                     },
                 },
@@ -287,15 +305,25 @@ export default {
         };
         data.startSchema = JSON.parse(JSON.stringify(data.schema));
         data.endSchema = JSON.parse(JSON.stringify(data.schema));
-        data.startSchema.fields.floorYear.validator = [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.validateFloorYear, this.validateIntervalFloorYear];
-        data.startSchema.fields.floorDayMonth.validator = [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.validateFloorDayMonth, this.validateIntervalFloorDayMonth];
-        data.startSchema.fields.ceilingYear.validator = [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.validateCeilingYear, this.validateIntervalCeilingYear];
-        data.startSchema.fields.ceilingDayMonth.validator = [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.validateCeilingDayMonth, this.validateIntervalCeilingDayMonth];
-        data.endSchema.fields.floorYear.validator = [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.validateFloorYear, this.validateIntervalFloorYear];
-        data.endSchema.fields.floorDayMonth.validator = [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.validateFloorDayMonth, this.validateIntervalFloorDayMonth];
-        data.endSchema.fields.ceilingYear.validator = [VueFormGenerator.validators.number, VueFormGenerator.validators.required, this.validateCeilingYear, this.validateIntervalCeilingYear];
-        data.endSchema.fields.ceilingDayMonth.validator = [VueFormGenerator.validators.regexp, VueFormGenerator.validators.required, this.validateCeilingDayMonth, this.validateIntervalCeilingDayMonth];
-        return data;
+        data.startSchema.fields.floorYear.validator = [validatorUtil.number, validatorUtil.required, this.validateFloorYear, this.validateIntervalFloorYear];
+        data.startSchema.fields.floorDayMonth.validator = [validatorUtil.regexp, validatorUtil.required, this.validateFloorDayMonth, this.validateIntervalFloorDayMonth];
+        data.startSchema.fields.ceilingYear.validator = [validatorUtil.number, validatorUtil.required, this.validateCeilingYear, this.validateIntervalCeilingYear];
+        data.startSchema.fields.ceilingDayMonth.validator = [validatorUtil.regexp, validatorUtil.required, this.validateCeilingDayMonth, this.validateIntervalCeilingDayMonth];
+        data.endSchema.fields.floorYear.validator = [validatorUtil.number, validatorUtil.required, this.validateFloorYear, this.validateIntervalFloorYear];
+        data.endSchema.fields.floorDayMonth.validator = [validatorUtil.regexp, validatorUtil.required, this.validateFloorDayMonth, this.validateIntervalFloorDayMonth];
+        data.endSchema.fields.ceilingYear.validator = [validatorUtil.number, validatorUtil.required, this.validateCeilingYear, this.validateIntervalCeilingYear];
+        data.endSchema.fields.ceilingDayMonth.validator = [validatorUtil.regexp, validatorUtil.required, this.validateCeilingDayMonth, this.validateIntervalCeilingDayMonth];
+        return {
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {},
+          ...data
+        };
     },
     watch: {
         'editModel' () {
@@ -306,6 +334,22 @@ export default {
         },
     },
     methods: {
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
         enableFields(enableKeys) {
             if (enableKeys == null) {
                 this.recalculateTypeValues();

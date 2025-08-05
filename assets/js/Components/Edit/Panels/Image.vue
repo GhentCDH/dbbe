@@ -210,24 +210,43 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 import vue2Dropzone from 'vue2-dropzone'
-
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
-
-Vue.use(VueFormGenerator)
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import validatorUtil from "@/helpers/validatorUtil";
 Vue.component('panel', Panel)
 Vue.component('vueDropzone', vue2Dropzone)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
         urls: {
             type: Object,
             default: () => {return {}}
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
         },
     },
     data() {
@@ -256,7 +275,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'url',
                         required: true,
-                        validator: VueFormGenerator.validators.regexp,
+                        validator: validatorUtil.regexp,
                         pattern: '^https?:\\/\\/(www\\.)?.*$',
                     },
                     public: {
@@ -272,6 +291,14 @@ export default {
             submitUpdateLinkDisabled: false,
             submitDeleteImageDisabled: false,
             submitDeleteLinkDisabled: false,
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     mounted() {
@@ -281,6 +308,7 @@ export default {
             self.pageLoaded = true;
         });
     },
+
     methods: {
         validate() {},
         calcChanges() {
@@ -429,6 +457,21 @@ export default {
             this.loadedImages.push(id);
             this.erroredImages.push(id);
         },
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+
     }
 }
 </script>

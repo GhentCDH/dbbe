@@ -19,17 +19,40 @@
 <script>
 import Vue from 'vue';
 import draggable from 'vuedraggable'
-
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
 Vue.component('panel', Panel)
 Vue.component('draggable', draggable)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+    props: {
+    header: {
+      type: String,
+      default: '',
+    },
+    links: {
+      type: Array,
+      default: () => {return []},
+    },
+    model: {
+      type: Object,
+      default: () => {return {}},
+    },
+    reloads: {
+      type: Array,
+      default: () => {return []},
+    },
+    values: {
+      type: Array,
+      default: () => {return []},
+    },
+    keys: {
+      type: Object,
+      default: () => {return {}},
+    },
+  },
     computed: {
         fields() {
             return {
@@ -39,14 +62,47 @@ export default {
             }
         }
     },
+    data() {
+      return {
+        changes: [],
+        formOptions: {
+          validateAfterChanged: true,
+          validationErrorClass: 'has-error',
+          validationSuccessClass: 'success',
+        },
+        isValid: true,
+        originalModel: {}
+      }
+    },
     methods: {
         validate() {
-            this.calcChanges()
+            calcChanges();
         },
         onChange() {
-            this.calcChanges()
+            calcChanges();
             this.$emit('validated')
-        }
+        },
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields();
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
+
     }
 }
 </script>

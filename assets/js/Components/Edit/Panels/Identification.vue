@@ -106,22 +106,18 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
-  createMultiSelect,
-  enableField,
+  createMultiSelect, disableFields,
+  enableField, enableFields,
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import {calcChanges} from "@/helpers/modelChangeUtil";
+import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.use(VueFormGenerator);
 Vue.component('panel', Panel);
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
     props: {
         identifiers: {
             type: Array,
@@ -130,6 +126,26 @@ export default {
         values: {
             type: Object,
             default: () => {return {}}
+        },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
         },
     },
     data() {
@@ -151,7 +167,7 @@ export default {
                 label: 'Identification',
                 labelClasses: 'control-label',
                 model: 'identification',
-                validator: VueFormGenerator.validators.regexp,
+                validator: validatorUtil.regexp,
                 required: true,
             },
             extraSchema: {
@@ -160,12 +176,24 @@ export default {
                 label: 'Extra',
                 labelClasses: 'control-label',
                 model: 'extra',
-                validator: VueFormGenerator.validators.string,
+                validator: validatorUtil.string,
                 required: false,
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         };
     },
     methods: {
+        init() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+        this.enableFields();
+      },
         add(identifier) {
             this.editModel.index = null;
             this.editModel.identifier = identifier;
@@ -195,7 +223,7 @@ export default {
                 this.editSchema.fields.volume = createMultiSelect(
                     'Volume',
                     {
-                        validator: VueFormGenerator.validators.required,
+                        validator: validatorUtil.required,
                         required: true,
                         // Values = [{id: 1, name: 'I'}, {id: 2, name: 'II'}, ...]
                         values: Array.from({length: this.editModel.identifier.volumes}, (x,i) => {return {id: i + 1, name: this.numberToRoman(i + 1),}}),
@@ -210,7 +238,7 @@ export default {
                 this.editSchema.fields.identification.pattern = this.editModel.identifier.regex;
             }
             else {
-                this.editSchema.fields.identification.validator = VueFormGenerator.validators.string;
+                this.editSchema.fields.identification.validator = validatorUtil.string;
             }
             if (this.editModel.identifier.description) {
                 this.editSchema.fields.identification.hint = this.editModel.identifier.description;
@@ -321,6 +349,22 @@ export default {
                 }
             }
             return roman;
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
         },
     },
 }

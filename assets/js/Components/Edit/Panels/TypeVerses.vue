@@ -11,24 +11,41 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
-
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
-
-Vue.use(VueFormGenerator)
+import validatorUtil from "@/helpers/validatorUtil";
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+   
     props: {
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
         values: {
             type: Object,
             default: () => {return {}}
         },
+        keys: {
+          type: Object,
+          default: () => {return {}},
+        },
     },
+
     data() {
         return {
             schema: {
@@ -39,7 +56,7 @@ export default {
                         label: 'Number of verses',
                         labelClasses: 'control-label',
                         model: 'numberOfVerses',
-                        validator: VueFormGenerator.validators.number,
+                        validator: validatorUtil.number,
                         hint: 'Should be left blank if equal to the number of verses listed below. A "0" (without quotes) should be input when the number of verses is unknown.',
                     },
                     verses: {
@@ -50,10 +67,18 @@ export default {
                         model: 'verses',
                         rows: 12,
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 }
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     watch: {
@@ -66,7 +91,31 @@ export default {
             }
         },
     },
+    computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
+
     methods: {
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields();
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validate() {
+          this.$refs.form.validate()
+        },
         calcChanges() {
             this.changes = []
             for (let key of Object.keys(this.model)) {
