@@ -16,19 +16,43 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
+import validatorUtil from "@/helpers/validatorUtil";
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
-    data() {
+  props: {
+    header: {
+      type: String,
+      default: '',
+    },
+    links: {
+      type: Array,
+      default: () => {return []},
+    },
+    model: {
+      type: Object,
+      default: () => {return {}},
+    },
+    keys: {
+      type: Object,
+      default: () => {return {}},
+    },
+    reloads: {
+      type: Array,
+      default: () => {return []},
+    },
+    values: {
+      type: Array,
+      default: () => {return []},
+    },
+  },
+
+  data() {
         return {
             revalidate: false,
             schema: {
@@ -40,7 +64,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'title',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     year: {
                         type: 'input',
@@ -49,7 +73,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'year',
                         validator: [
-                            VueFormGenerator.validators.number,
+                            validatorUtil.number,
                             this.yearOrForthcoming,
                         ],
                     },
@@ -67,7 +91,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'city',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     institution: {
                         type: 'input',
@@ -75,7 +99,7 @@ export default {
                         label: 'Institution',
                         labelClasses: 'control-label',
                         model: 'institution',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     volume: {
                         type: 'input',
@@ -83,10 +107,18 @@ export default {
                         label: 'Volume',
                         labelClasses: 'control-label',
                         model: 'volume',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                 }
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     watch: {
@@ -99,7 +131,12 @@ export default {
             }
         },
     },
-    methods: {
+  computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
+  methods: {
         // Override to make sure forthcoming is set
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model));
@@ -107,7 +144,8 @@ export default {
                 this.model.forthcoming = false;
             }
             this.enableFields();
-            this.calcChanges();
+            this.changes = calcChanges(this.model, this.originalModel, this.fields);
+
         },
         yearOrForthcoming() {
             if (!this.revalidate) {
@@ -128,6 +166,25 @@ export default {
                 return ['Exactly one of the fields "Year", "Forthcoming" is required.'];
             }
             return [];
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
+        validate() {
+          this.$refs.form.validate()
         },
     },
 }

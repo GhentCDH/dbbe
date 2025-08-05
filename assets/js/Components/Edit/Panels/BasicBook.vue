@@ -18,19 +18,18 @@
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
-  createMultiSelect,
+  createMultiSelect, disableFields, enableFields,
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import {calcChanges} from "@/helpers/modelChangeUtil";
+import validatorUtil from "@/helpers/validatorUtil";
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
         keys: {
             type: Object,
@@ -45,6 +44,22 @@ export default {
             type: Object,
             default: () => {return {}}
         },
+      header: {
+        type: String,
+        default: '',
+      },
+      links: {
+        type: Array,
+        default: () => {return []},
+      },
+      model: {
+        type: Object,
+        default: () => {return {}},
+      },
+      reloads: {
+        type: Array,
+        default: () => {return []},
+      },
     },
     data() {
         return {
@@ -64,7 +79,7 @@ export default {
                         label: 'Book cluster volume',
                         labelClasses: 'control-label',
                         model: 'volume',
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     totalVolumes: {
                         type: 'input',
@@ -72,7 +87,7 @@ export default {
                         label: 'Book cluster total Volumes',
                         labelClasses: 'control-label',
                         model: 'totalVolumes',
-                        validator: VueFormGenerator.validators.number,
+                        validator: validatorUtil.number,
                     },
                     title: {
                         type: 'input',
@@ -142,6 +157,14 @@ export default {
                     },
                 }
             },
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {}
         }
     },
     watch: {
@@ -171,7 +194,13 @@ export default {
             this.revalidate = false;
         },
     },
-    methods: {
+  computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
+
+  methods: {
         // Override to make sure forthcoming is set
         init() {
             this.originalModel = JSON.parse(JSON.stringify(this.model));
@@ -179,7 +208,7 @@ export default {
                 this.model.forthcoming = false;
             }
             this.enableFields();
-            this.calcChanges();
+            calcChanges();
         },
         validateClusterOrTitle() {
             if (!this.revalidate) {
@@ -212,6 +241,25 @@ export default {
             }
             return [];
         },
+      validated(isValid, errors) {
+        this.isValid = isValid
+        this.changes = calcChanges(this.model, this.originalModel, this.fields);
+        this.$emit('validated', isValid, this.errors, this)
+      },
+      reload(type) {
+        if (!this.reloads.includes(type)) {
+          this.$emit('reload', type);
+        }
+      },
+      disableFields(disableKeys) {
+        disableFields(this.keys, this.fields, disableKeys);
+      },
+      enableFields(enableKeys) {
+        enableFields(this.keys, this.fields, this.values, enableKeys);
+      },
+      validate() {
+        this.$refs.form.validate()
+      },
     },
 }
 </script>

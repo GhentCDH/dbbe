@@ -18,19 +18,18 @@
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
-  createMultiSelect,
+  createMultiSelect, disableFields, enableFields,
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import validatorUtil from "@/helpers/validatorUtil";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
 Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+
     props: {
         keys: {
             type: Object,
@@ -39,6 +38,26 @@ export default {
                     blogs: {field: 'blog', init: false},
                 };
             },
+        },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
         },
     },
     data() {
@@ -49,7 +68,7 @@ export default {
                         'Blog',
                         {
                             required: true,
-                            validator: VueFormGenerator.validators.required
+                            validator: validatorUtil.required
                         },
                     ),
                     url: {
@@ -59,7 +78,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'url',
                         required: true,
-                        validator: VueFormGenerator.validators.url,
+                        validator: validatorUtil.url,
                     },
                     title: {
                         type: 'input',
@@ -68,7 +87,7 @@ export default {
                         labelClasses: 'control-label',
                         model: 'title',
                         required: true,
-                        validator: VueFormGenerator.validators.string,
+                        validator: validatorUtil.string,
                     },
                     postDate: {
                         type: 'input',
@@ -76,15 +95,29 @@ export default {
                         label: 'Post date',
                         labelClasses: 'control-label',
                         model: 'postDate',
-                        validator: VueFormGenerator.validators.regexp,
-                        pattern: '^\\d{2}[/]\\d{2}[/]\\d{4}$',
+                        validator: validatorUtil.regexp,
+                        pattern: '^\\d{2}/\\d{2}/\\d{4}$',
                         help: 'Please use the format "DD/MM/YYYY", e.g. 24/03/2018.',
                     },
                 }
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
-    methods: {
+  computed: {
+    fields() {
+      return this.schema.fields
+    }
+  },
+
+  methods: {
         calcChanges() {
             this.changes = []
             if (this.originalModel == null) {
@@ -109,6 +142,29 @@ export default {
                     this.changes.push(change)
                 }
             }
+        },
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields();
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validate() {
+          this.$refs.form.validate()
         },
     },
 }

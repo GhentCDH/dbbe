@@ -100,22 +100,45 @@
 import Vue from 'vue';
 import draggable from 'vuedraggable'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import Panel from '../Panel'
-import VueFormGenerator from "vue-form-generator";
+import {disableFields, enableFields} from "@/helpers/formFieldUtils";
+import {calcChanges} from "@/helpers/modelChangeUtil";
+import validatorUtil from "@/helpers/validatorUtil";
 
 Vue.component('panel', Panel)
 Vue.component('draggable', draggable)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
     props: {
         asSlot: {
             type: Boolean,
             default: false,
         },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        keys: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+      },
+
     },
     computed: {
         fields() {
@@ -146,8 +169,8 @@ export default {
                         model: 'url',
                         required: true,
                         validator: [
-                            VueFormGenerator.validators.url,
-                            VueFormGenerator.validators.required,
+                            validatorUtil.url,
+                            validatorUtil.required,
                         ],
                     },
                     title: {
@@ -157,14 +180,26 @@ export default {
                         labelClasses: 'control-label',
                         model: 'title',
                         validator: [
-                            VueFormGenerator.validators.string,
+                            validatorUtil.string,
                         ],
                     },
                 },
             },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     methods: {
+        init() {
+          this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.enableFields()
+        },
         add() {
             this.editModel.id = null
             this.editModel.url = null
@@ -270,6 +305,23 @@ export default {
                 return 0;
             }
             return Math.max.apply(Math, this.model.urls.map(u => u.tgIndex));
+        },
+
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
         },
     }
 }

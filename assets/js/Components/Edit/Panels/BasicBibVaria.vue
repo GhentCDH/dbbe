@@ -18,7 +18,6 @@
 import Vue from 'vue';
 import VueFormGenerator from 'vue-form-generator'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 
 import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
@@ -46,6 +45,10 @@ export default {
       default: () => {return {}},
     },
     reloads: {
+      type: Array,
+      default: () => {return []},
+    },
+    values: {
       type: Array,
       default: () => {return []},
     },
@@ -90,14 +93,14 @@ export default {
                     },
                 }
             },
-          changes: [],
-          formOptions: {
-            validateAfterChanged: true,
-            validationErrorClass: 'has-error',
-            validationSuccessClass: 'success',
-          },
-          isValid: true,
-          originalModel: {}
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     watch: {
@@ -120,11 +123,6 @@ export default {
     init() {
       this.originalModel = JSON.parse(JSON.stringify(this.model));
     },
-    validated(isValid, errors) {
-      this.isValid = isValid
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
-      this.$emit('validated', isValid, this.errors, this)
-    },
     reload(type) {
       if (!this.reloads.includes(type)) {
         this.$emit('reload', type);
@@ -135,6 +133,11 @@ export default {
     },
     enableFields(enableKeys) {
       enableFields(this.keys, this.fields, this.values, enableKeys);
+    },
+    validated(isValid, errors) {
+      this.isValid = isValid
+      this.changes = calcChanges(this.model, this.originalModel, this.fields);
+      this.$emit('validated', isValid, this.errors, this)
     },
     validate() {
       this.$refs.form.validate()

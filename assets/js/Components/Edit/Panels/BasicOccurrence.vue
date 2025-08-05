@@ -16,24 +16,21 @@
 </template>
 <script>
 import Vue from 'vue';
-import VueFormGenerator from 'vue-form-generator'
 
 import VueMultiselect from 'vue-multiselect'
 
-import AbstractPanelForm from '../../../mixins/AbstractPanelForm'
 import {
-  createMultiSelect,
+  createMultiSelect, disableFields, enableFields,
 
 } from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
+import validatorUtil from "@/helpers/validatorUtil";
+import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.use(VueFormGenerator)
 Vue.component('panel', Panel)
 
 export default {
-    mixins: [
-        AbstractPanelForm,
-    ],
+   
     props: {
         keys: {
             type: Object,
@@ -41,6 +38,27 @@ export default {
                 return {manuscripts: {field: 'manuscript', init: false}};
             },
         },
+        header: {
+          type: String,
+          default: '',
+        },
+        links: {
+          type: Array,
+          default: () => {return []},
+        },
+        model: {
+          type: Object,
+          default: () => {return {}},
+        },
+        reloads: {
+          type: Array,
+          default: () => {return []},
+        },
+        values: {
+          type: Array,
+          default: () => {return []},
+        },
+
     },
     data() {
         return {
@@ -53,7 +71,7 @@ export default {
                                 'Manuscript',
                                 {
                                     required: true,
-                                    validator: VueFormGenerator.validators.required,
+                                    validator: validatorUtil.required,
                                 },
                                 {
                                     customLabel: ({id, name}) => {
@@ -72,7 +90,7 @@ export default {
                                 label: 'Folium start',
                                 labelClasses: 'control-label',
                                 model: 'foliumStart',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             foliumStartRecto: this.createRectoRadio('foliumStartRecto', 'Folium start recto'),
                             foliumEnd: {
@@ -81,7 +99,7 @@ export default {
                                 label: 'Folium end',
                                 labelClasses: 'control-label',
                                 model: 'foliumEnd',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateFoliumAndRecto, this.validateFoliumEndWithoutStart, this.validateFoliumOrPages],
                             },
                             foliumEndRecto: this.createRectoRadio('foliumEndRecto', 'Folium end recto'),
                             unsure: {
@@ -95,7 +113,7 @@ export default {
                                 label: 'Page start',
                                 labelClasses: 'control-label',
                                 model: 'pageStart',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateFoliumOrPages],
                             },
                             pageEnd: {
                                 type: 'input',
@@ -103,7 +121,7 @@ export default {
                                 label: 'Page end',
                                 labelClasses: 'control-label',
                                 model: 'pageEnd',
-                                validator: [VueFormGenerator.validators.string, this.validateFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateFoliumOrPages],
                             },
                             generalLocation: {
                                 type: 'input',
@@ -111,7 +129,7 @@ export default {
                                 label: 'General location',
                                 labelClasses: 'control-label',
                                 model: 'generalLocation',
-                                validator: VueFormGenerator.validators.string,
+                                validator: validatorUtil.string,
                             },
                             oldLocation: {
                                 type: 'input',
@@ -132,7 +150,7 @@ export default {
                                 label: 'Alternative folium start',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumStart',
-                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
+                                validator:[validatorUtil.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
                             },
                             alternativeFoliumStartRecto: this.createRectoRadio('alternativeFoliumStartRecto', 'Alternative folium start recto'),
                             alternativeFoliumEnd: {
@@ -141,7 +159,7 @@ export default {
                                 label: 'Alternative folium end',
                                 labelClasses: 'control-label',
                                 model: 'alternativeFoliumEnd',
-                                validator:[VueFormGenerator.validators.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
+                                validator:[validatorUtil.string, this.validateFoliumAndRecto, this.validateAlternativeFoliumEndWithoutStart, this.validateAternativeFoliumOrPages],
                             },
                             alternativeFoliumEndRecto: this.createRectoRadio('alternativeFoliumEndRecto', 'Alternative folium end recto'),
                             alternativePageStart: {
@@ -150,7 +168,7 @@ export default {
                                 label: 'Alternative page start',
                                 labelClasses: 'control-label',
                                 model: 'alternativePageStart',
-                                validator: [VueFormGenerator.validators.string, this.validateAternativeFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateAternativeFoliumOrPages],
                             },
                             alternativePageEnd: {
                                 type: 'input',
@@ -158,12 +176,20 @@ export default {
                                 label: 'Alternative page end',
                                 labelClasses: 'control-label',
                                 model: 'alternativePageEnd',
-                                validator: [VueFormGenerator.validators.string, this.validateAternativeFoliumOrPages],
+                                validator: [validatorUtil.string, this.validateAternativeFoliumOrPages],
                             },
                         },
                     },
                 ]
-            }
+            },
+            changes: [],
+            formOptions: {
+              validateAfterChanged: true,
+              validationErrorClass: 'has-error',
+              validationSuccessClass: 'success',
+            },
+            isValid: true,
+            originalModel: {}
         }
     },
     computed: {
@@ -243,12 +269,10 @@ export default {
         },
     },
     methods: {
-        enableFields(enableKeys) {
-            AbstractPanelForm.methods.enableFields.call(this, enableKeys);
-
-            // Validate after input is set
-            this.validate();
-        },
+        init() {
+        this.originalModel = JSON.parse(JSON.stringify(this.model));
+        this.calcChanges()
+      },
         calcChanges() {
             this.changes = []
             if (this.originalModel == null) {
@@ -338,6 +362,28 @@ export default {
             }
             return [];
         },
+
+        reload(type) {
+          if (!this.reloads.includes(type)) {
+            this.$emit('reload', type);
+          }
+        },
+        disableFields(disableKeys) {
+          disableFields(this.keys, this.fields, disableKeys);
+        },
+        validated(isValid, errors) {
+          this.isValid = isValid
+          this.changes = calcChanges(this.model, this.originalModel, this.fields);
+          this.$emit('validated', isValid, this.errors, this)
+        },
+        validate() {
+          this.$refs.form.validate()
+        },
+        enableFields(enableKeys) {
+          enableFields(this.keys, this.fields, this.values, enableKeys);
+          this.validate();
+      },
+
     }
 }
 </script>
