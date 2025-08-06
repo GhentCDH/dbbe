@@ -197,7 +197,6 @@ const {
   stickyStyle,
   reloads,
   initScroll,
-  loadAsync,
   toSave,
   validateForms,
   reset,
@@ -332,7 +331,6 @@ onMounted(() => {
       }}
   })
 
-  loadAsync()
 })
 
 watch(scrollY, () => {
