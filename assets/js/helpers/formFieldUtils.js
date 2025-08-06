@@ -65,7 +65,6 @@ export function disableField(field) {
 export function disableFields(keys, fields, disableKeys) {
     for (const key of Object.keys(keys)) {
         if (disableKeys.includes(key)) {
-            console.log(fields)
             disableField(fields[keys[key].field]);
         }
     }
@@ -108,7 +107,7 @@ export function enableField(field, model, search = false) {
     }
 }
 
-export function enableFields(keys, fields, values, enableKeys = null) {
+export function enableFields(keys, fields, values, enableKeys = null,model=null) {
     for (const key of Object.keys(keys)) {
         const { field, init } = keys[key];
 
@@ -120,7 +119,7 @@ export function enableFields(keys, fields, values, enableKeys = null) {
             fields[field].values = fieldValues;
             fields[field].originalValues = JSON.parse(JSON.stringify(fieldValues));
 
-            enableField(fields[field], null);
+            enableField(fields[field], model);
         }
     }
 }
