@@ -1,6 +1,5 @@
 import { ref, reactive, nextTick } from 'vue'
-import axios from 'axios'
-import { isLoginError } from "@/helpers/errorUtil"
+import {reloadItems} from "@/helpers/dataLoader";
 
 export function useEntityEdit(props) {
     // Reactive state
@@ -136,60 +135,6 @@ export function useEntityEdit(props) {
         )
     }
 
-    const reloadItems = (type, keys, items, url, filters, panelRefs, panels) => {
-        // Be careful to mutate the existing array and not create a new one
-        if (panelRefs && panels) {
-            for (let panel of panels) {
-                if (panelRefs[panel] && panelRefs[panel].disableFields) {
-                    panelRefs[panel].disableFields(keys)
-                }
-            }
-        }
-        reloads.value.push(type)
-
-        axios.get(url)
-            .then((response) => {
-                for (let i = 0; i < items.length; i++) {
-                    let responseData = []
-                    if (filters == null || filters[i] == null) {
-                        // Copy data
-                        responseData = response.data.filter(() => true)
-                    } else {
-                        responseData = response.data.filter(filters[i])
-                    }
-                    while (items[i].length) {
-                        items[i].splice(0, 1)
-                    }
-                    while (responseData.length) {
-                        items[i].push(responseData.shift())
-                    }
-                }
-
-                if (panelRefs && panels) {
-                    for (let panel of panels) {
-
-                        if (panelRefs[panel] && panelRefs[panel].enableFields) {
-
-                            panelRefs[panel].enableFields(keys)
-                        }
-                    }
-                }
-
-                let typeIndex = reloads.value.indexOf(type)
-                if (typeIndex > -1) {
-                    reloads.value.splice(typeIndex, 1)
-                }
-            })
-            .catch((error) => {
-                alerts.value.push({
-                    type: 'error',
-                    message: 'Something went wrong while loading data.',
-                    login: isLoginError(error)
-                })
-
-                console.log(error)
-            })
-    }
 
     return {
         // Reactive refs
