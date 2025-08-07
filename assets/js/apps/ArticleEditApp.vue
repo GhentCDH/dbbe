@@ -1,4 +1,4 @@
-<<template>
+<template>
     <div>
         <article class="col-sm-9 mbottom-large">
             <Alerts
@@ -260,7 +260,6 @@ const model = reactive({
 const panels = ['persons', 'basic', 'urls', 'general', 'managements']
 
 const alerts = ref([])
-const handleError = useErrorAlert(alerts)
 const article = ref(null)
 const journals = ref([])
 const journalsAndIssues = reactive({ journals: [], journalIssues: [] })
@@ -354,25 +353,11 @@ const toSave = () => {
 const save = () => {
   openRequests.value++
   saveModal.value = false
-  const method = article.value === null ? axios.post : axios.put
-  const url = article.value === null ? urls['article_post'] : urls['article_put']
-
-  method(url, toSave())
-      .then(response => {
-        window.onbeforeunload = null
-        window.location = article.value === null ? urls['article_get'].replace('article_id', response.data.id) : urls['article_get']
-      })
-      .catch(error => {
-        console.log(error)
-        saveModal.value = true
-        saveAlerts.value.push({
-          type: 'error',
-          message: 'Something went wrong while saving the article data.',
-          extra: getErrorMessage(error),
-          login: isLoginError(error)
-        })
-        openRequests.value--
-      })
+  if (article.value == null) {
+    postUpdatedModel('article',toSave());
+  } else {
+    putUpdatedModel('article',toSave());
+  }
 }
 
 const validated = () => {
