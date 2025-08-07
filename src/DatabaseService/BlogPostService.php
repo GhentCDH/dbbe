@@ -181,7 +181,6 @@ class BlogPostService extends DocumentService
         return $this->conn->executeUpdate(
             'UPDATE data.document_contains
             set idcontainer = ?
-            from data.blog_post
             where blog_post.identity = ?',
             [
                 $blogId,
