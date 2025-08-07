@@ -10,26 +10,23 @@
       >
         {{ item.message }}
       </Alerts>
-
       <BasicBlog
           id="basic"
-          ref="basic"
+          ref="basicRef"
           header="Basic Information"
           :model="model.basic"
           @validated="validated"
       />
-
       <Url
           id="urls"
-          ref="urls_ref"
+          ref="urlsRef"
           header="Additional urls"
           :model="model.urls"
           @validated="validated"
       />
-
       <GeneralBibItem
           id="general"
-          ref="general"
+          ref="generalRef"
           header="General"
           :model="model.general"
           @validated="validated"
@@ -37,7 +34,7 @@
 
       <Management
           id="managements"
-          ref="managements_ref"
+          ref="managementsRef"
           header="Management collections"
           :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
           :model="model.managements"
@@ -59,7 +56,7 @@
           v-if="blog"
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveAllChanges()"
+          @click="saveButton()"
       >
         Save changes
       </btn>
@@ -67,7 +64,7 @@
           v-else
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveAllChanges()"
+          @click="saveButton()"
       >
         Save
       </btn>
@@ -141,18 +138,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick, watch} from 'vue'
+import { ref, reactive, onMounted, nextTick, watch,computed} from 'vue'
 import axios from 'axios'
 import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
 import Reset from "@/Components/Edit/Modals/Reset.vue"
 import Invalid from "@/Components/Edit/Modals/Invalid.vue"
 import Save from "@/Components/Edit/Modals/Save.vue"
-import { useEntityEdit } from '@/composables/useEntityEdit'
 import BasicBlog from "@/Components/Edit/Panels/BasicBlog.vue";
 import Url from "@/Components/Edit/Panels/Url.vue";
 import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue";
 import Alerts from "@/Components/Alerts.vue";
 import Management from "@/Components/Edit/Panels/Management.vue";
+import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
+import {useErrorAlert} from "@/composables/useErrorAlert";
+import {usePanelValidation} from "@/composables/usePanelValidation";
+import {useModelDiff} from "@/composables/useModelDiff";
+import {useStickyNav} from "@/composables/useStickyNav";
 
 // Props
 const props = defineProps({
@@ -164,49 +165,21 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  initIdentifiers: {
-    type: String,
-    default: '',
-  },
   initRoles: {
     type: String,
     default: '',
-  },
-  initContributorRoles: {
-    type: String,
-    default: '',
-  },
+  }
 })
 
-// Use the entity edit composable
-const {
-  urls,
-  data,
-  openRequests,
-  alerts,
-  saveAlerts,
-  originalModel,
-  diff,
-  resetModal,
-  invalidModal,
-  calcDiff,
-  saveModal,
-  invalidPanels,
-  scrollY,
-  isSticky,
-  stickyStyle,
-  reloads,
-  initScroll,
-  toSave,
-  validateForms,
-  reset,
-  saveButton,
-  cancelSave,
-  reloadSimpleItems
-  } = useEntityEdit(props)
+const basicRef=ref(null)
+const urlsRef=ref(null)
+const generalRef=ref(null)
+const managementsRef=ref(null)
+
+const urls = JSON.parse(props.initUrls)
+const data = JSON.parse(props.initData)
 
 const blog = ref(null)
-const modernPersons = ref(null)
 const managements = ref(null)
 
 const model = reactive({
@@ -221,21 +194,55 @@ const model = reactive({
   },
 })
 
-const activePanels = ref([
+const panels = [
   'basic',
   'urls',
   'general',
   'managements',
-])
+]
 
-// Template refs
-const basic = ref(null)
-const urls_ref = ref(null)
-const general = ref(null)
-const managements_ref = ref(null)
+const openRequests = ref(0)
+const alerts = ref([])
+const saveAlerts = ref([])
+const originalModel = ref({})
+const resetModal = ref(false)
+const invalidModal = ref(false)
+const saveModal = ref(false)
+const reloads = ref([])
 const anchor = ref(null)
+const handleError = useErrorAlert(alerts)
+
+const panelRefs = computed(() => ({
+  basic: basicRef.value,
+  urls: urlsRef.value,
+  general: generalRef.value,
+  managements: managementsRef.value,
+}))
+
+const {
+  invalidPanels,
+  validateForms,
+  checkInvalidPanels,
+} = usePanelValidation(panelRefs, panels)
+
+const {
+  diff,
+  calcDiff,
+} = useModelDiff(panelRefs, panels)
+
+const {
+  scrollY,
+  isSticky,
+  stickyStyle,
+  initScrollListener,
+} = useStickyNav(anchor)
+
+
+
 
 const setData = () => {
+  blog.value = data.blog
+  managements.value = data.managements
   if (blog.value != null) {
     model.basic = {
       url: blog.value.url,
@@ -267,10 +274,10 @@ const save = () => {
   openRequests.value++
   saveModal.value = false
   if (blog.value == null) {
-    axios.post(urls.value['blog_post'], toSave())
+    axios.post(urls['blog_post'], toSave())
         .then((response) => {
           window.onbeforeunload = function () {}
-          window.location = urls.value['blog_get'].replace('blog_id', response.data.id)
+          window.location = urls['blog_get'].replace('blog_id', response.data.id)
         })
         .catch((error) => {
           console.log(error)
@@ -284,10 +291,10 @@ const save = () => {
           openRequests.value--
         })
   } else {
-    axios.put(urls.value['blog_put'], toSave())
+    axios.put(urls['blog_put'], toSave())
         .then((response) => {
           window.onbeforeunload = function () {}
-          window.location = urls.value['blog_get']
+          window.location = urls['blog_get']
         })
         .catch((error) => {
           console.log(error)
@@ -303,80 +310,86 @@ const save = () => {
   }
 }
 
+const validated = (isValid, errors) => {
+  checkInvalidPanels()
+  calcDiff(panelRefs, panels)
+}
+
+const toSave = () => {
+  let result = {}
+  for (let diffItem of diff.value) {
+    if ('keyGroup' in diffItem) {
+      if (!(diffItem.keyGroup in result)) {
+        result[diffItem.keyGroup] = {}
+      }
+      result[diffItem.keyGroup][diffItem.key] = diffItem.value
+    } else {
+      result[diffItem.key] = diffItem.value
+    }
+  }
+  return result
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(() => {
+    validateForms()
+  })
+}
+
+const saveButton = () => {
+  validateForms()
+  if (invalidPanels.value) {
+    invalidModal.value = true
+  } else {
+    saveModal.value = true
+  }
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
 const reload = (type) => {
-  reloadSimpleItems(type)
+  reloadItems(
+      type,
+      [type],
+      [data[type]],
+      urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+  )
+}
+const reloadItems = (type, keys, items, url, filters) => {
+  disablePanels(panelRefs, panels,keys)
+  reloads.value.push(type)
+  axios.get(url)
+      .then((response) => {
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels,keys)
+        let typeIndex = reloads.value.indexOf(type)
+        if (typeIndex > -1) {
+          reloads.value.splice(typeIndex, 1)
+        }
+      })
+      .catch(handleError('Something went wrong while loading data.'))
 }
 
 onMounted(() => {
-  blog.value = data.value.blog
-  managements.value = data.value.managements
-
-  initScroll(anchor)
+  initScrollListener()
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
 
   nextTick(() => {
-    if (!data.value.clone) {
-      const refs = {
-        basic: basic.value,
-        urls: urls_ref.value,
-        general: general.value,
-        managements: managements_ref.value
-      }
-
-      for (let panel of activePanels.value) {
-        if (refs[panel] && refs[panel].init) {
-          refs[panel].init()
+    if (!data.clone) {
+      for (let panel of panels) {
+        const panelRef = panelRefs.value[panel]
+        if (panelRef) {
+          panelRef.init()
         }
-      }}
-  })
-
-})
-
-watch(scrollY, () => {
-  if (anchor.value) {
-    let anchorRect = anchor.value.getBoundingClientRect()
-    if (anchorRect.top < 30) {
-      isSticky.value = true
-      stickyStyle.value = {
-        width: anchorRect.width + 'px',
       }
-    } else {
-      isSticky.value = false
-      stickyStyle.value = {}
     }
-  }
+  })
 })
-
-const validated = (isValid, errors) => {
-  invalidPanels.value = false
-  const refs = {
-    basic: basic.value,
-    urls: urls_ref.value,
-    general: general.value,
-    managements: managements_ref.value
-  }
-
-  for (let panel of activePanels.value) {
-    if (refs[panel] && !refs[panel].isValid) {
-      invalidPanels.value = true
-      break
-    }
-  }
-
-  calcDiff(refs, activePanels.value)
-}
-
-
-const saveAllChanges = () => {
-  const refs = {
-    basic: basic.value,
-    urls: urls_ref.value,
-    general: general.value,
-    managements: managements_ref.value
-  }
-  saveButton(refs, activePanels.value)
-}
-
 
 </script>

@@ -1,266 +1,403 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)"
-            >
-                {{ item.message }}
-            </alert>
+  <div>
+    <article class="col-sm-9 mbottom-large">
+      <Alerts
+          v-for="(item, index) in alerts"
+          :key="index"
+          :type="item.type"
+          dismissible
+          @dismissed="alerts.splice(index, 1)"
+      >
+        {{ item.message }}
+      </Alerts>
 
-            <basicOnlineSourcePanel
-                id="basic"
-                ref="basic"
-                header="Basic Information"
-                :model="model.basic"
-                @validated="validated"
-            />
+      <BasicOnlineSource
+          id="basic"
+          ref="basicRef"
+          header="Basic Information"
+          :model="model.basic"
+          @validated="validated"
+      />
 
-            <urlPanel
-                id="urls"
-                ref="urls"
-                header="Additional urls"
-                :model="model.urls"
-                @validated="validated"
-            />
+      <Url
+          id="urls"
+          ref="urlRef"
+          header="Additional urls"
+          :model="model.urls"
+          @validated="validated"
+      />
 
-            <generalBibItemPanel
-                id="general"
-                ref="general"
-                header="General"
-                :model="model.general"
-                @validated="validated"
-            />
+      <GeneralBibItem
+          id="general"
+          ref="generalRef"
+          header="General"
+          :model="model.general"
+          @validated="validated"
+      />
 
-            <managementPanel
-                id="managements"
-                ref="managements"
-                header="Management collections"
-                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
-                :model="model.managements"
-                :values="managements"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <Management
+          id="managements"
+          ref="managementsRef"
+          header="Management collections"
+          :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
+          :model="model.managements"
+          :values="managements"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <btn
-                id="actions"
-                type="warning"
-                :disabled="diff.length === 0"
-                @click="resetModal=true"
-            >
-                Reset
-            </btn>
-            <btn
-                v-if="onlineSource"
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save changes
-            </btn>
-            <btn
-                v-else
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save
-            </btn>
-            <div
-                v-if="openRequests"
-                class="loading-overlay"
-            >
-                <div class="spinner" />
-            </div>
-        </article>
-        <aside class="col-sm-3 inpage-nav-container xs-hide">
-            <div ref="anchor" />
-            <nav
-                v-scrollspy
-                role="navigation"
-                class="padding-default bg-tertiary"
-                :class="{stick: isSticky}"
-                :style="stickyStyle"
-            >
-                <h2>Quick navigation</h2>
-                <ul class="linklist linklist-dark">
-                    <li>
-                        <a
-                            href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
-                        >Basic information</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#urls"
-                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
-                        >Urls</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
-                        >General</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
-                        >Management collections</a>
-                    </li>
-                    <li><a href="#actions">Actions</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <resetModal
-            title="online source"
-            :show="resetModal"
-            @cancel="resetModal=false"
-            @confirm="reset()"
-        />
-        <invalidModal
-            :show="invalidModal"
-            @cancel="invalidModal=false"
-            @confirm="invalidModal=false"
-        />
-        <saveModal
-            title="online source"
-            :show="saveModal"
-            :diff="diff"
-            :alerts="saveAlerts"
-            @cancel="cancelSave()"
-            @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)"
-        />
-    </div>
+      <btn
+          id="actions"
+          type="warning"
+          :disabled="diff.length === 0"
+          @click="resetModal = true"
+      >
+        Reset
+      </btn>
+      <btn
+          v-if="onlineSource"
+          type="success"
+          :disabled="(diff.length === 0)"
+          @click="saveButton()"
+      >
+        Save changes
+      </btn>
+      <btn
+          v-else
+          type="success"
+          :disabled="(diff.length === 0)"
+          @click="saveButton()"
+      >
+        Save
+      </btn>
+      <div
+          v-if="openRequests"
+          class="loading-overlay"
+      >
+        <div class="spinner" />
+      </div>
+    </article>
+    <aside class="col-sm-3 inpage-nav-container xs-hide">
+      <div ref="anchor" />
+      <nav
+          v-scrollspy
+          role="navigation"
+          class="padding-default bg-tertiary"
+          :class="{stick: isSticky}"
+          :style="stickyStyle"
+      >
+        <h2>Quick navigation</h2>
+        <ul class="linklist linklist-dark">
+          <li>
+            <a
+                href="#basic"
+                :class="{'bg-danger': !(basicRef && basicRef.isValid)}"
+            >Basic information</a>
+          </li>
+          <li>
+            <a
+                href="#urls"
+                :class="{'bg-danger': !(urlRef && urlRef.isValid)}"
+            >Urls</a>
+          </li>
+          <li>
+            <a
+                href="#general"
+                :class="{'bg-danger': !(generalRef && generalRef.isValid)}"
+            >General</a>
+          </li>
+          <li>
+            <a
+                href="#managements"
+                :class="{'bg-danger': !(managementsRef && managementsRef.isValid)}"
+            >Management collections</a>
+          </li>
+          <li><a href="#actions">Actions</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <Reset
+        title="online source"
+        :show="resetModal"
+        @cancel="resetModal = false"
+        @confirm="reset()"
+    />
+    <Invalid
+        :show="invalidModal"
+        @cancel="invalidModal = false"
+        @confirm="invalidModal = false"
+    />
+    <Save
+        title="online source"
+        :show="saveModal"
+        :diff="diff"
+        :alerts="saveAlerts"
+        @cancel="cancelSave()"
+        @confirm="save()"
+        @dismiss-alert="saveAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-import Vue from 'vue';
+<script setup>
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
+import Vue from 'vue'
 import axios from 'axios'
 
-import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
-import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
-import Reset from "@/Components/Edit/Modals/Reset.vue";
-import Invalid from "@/Components/Edit/Modals/Invalid.vue";
-import Save from "@/Components/Edit/Modals/Save.vue";
+import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
+import Reset from "@/Components/Edit/Modals/Reset.vue"
+import Invalid from "@/Components/Edit/Modals/Invalid.vue"
+import Save from "@/Components/Edit/Modals/Save.vue"
+import BasicOnlineSource from "@/Components/Edit/Panels/BasicOnlineSource.vue";
+import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue";
+import Management from "@/Components/Edit/Panels/Management.vue";
+import Url from "@/Components/Edit/Panels/Url.vue";
+import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
+import {usePanelValidation} from "@/composables/usePanelValidation";
+import {useModelDiff} from "@/composables/useModelDiff";
+import {useStickyNav} from "@/composables/useStickyNav";
+import {handleError} from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
 
-const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicOnlineSource,Url,GeneralBibItem,Management}.vue', { eager: true })
-
-for (const path in panelComponents) {
-  const component = panelComponents[path].default
-  const compName = path.split('/').pop().replace(/\.vue$/, '')
-  Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', component)
-}
-
-
-export default {
-    mixins: [ AbstractEntityEdit ],
-  components: {
-    resetModal: Reset,
-    invalidModal: Invalid,
-    saveModal: Save
+// Props
+const props = defineProps({
+  initUrls: {
+    type: String,
+    default: '',
   },
-    data() {
-        return {
-            onlineSource: null,
-            modernPersons: null,
-            model: {
-                basic: {
-                    url: null,
-                    name: null,
-                    lastAccessed: null,
-                },
-                urls: {urls: []},
-                managements: {
-                    managements: [],
-                },
-            },
-            panels: [
-                'basic',
-                'urls',
-                'general',
-                'managements',
-            ],
-        }
-    },
-    created () {
-        this.onlineSource = this.data.onlineSource;
+  initData: {
+    type: String,
+    default: '',
+  },
+  initRoles: {
+    type: String,
+    default: '',
+  },
+})
 
-        this.managements = this.data.managements;
-    },
-    methods: {
-        setData() {
-            if (this.onlineSource != null) {
-                // Basic info
-                this.model.basic = {
-                    url: this.onlineSource.url,
-                    name: this.onlineSource.name,
-                    lastAccessed: this.onlineSource.lastAccessed,
-                }
+const basicRef = ref(null)
+const urlRef = ref(null)
+const generalRef = ref(null)
+const managementsRef = ref(null)
 
-                // Urls
-                this.model.urls = {
-                    urls: this.onlineSource.urls == null ? null : this.onlineSource.urls.map(
-                        function(url, index) {
-                            url.tgIndex = index + 1
-                            return url
-                        }
-                    )
-                }
+const panelRefs = computed(() => ({
+  basic: basicRef.value,
+  urls: urlRef.value,
+  general: generalRef.value,
+  managements: managementsRef.value,
+}))
 
-                // General
-                this.model.general = {
-                    publicComment: this.onlineSource.publicComment,
-                    privateComment: this.onlineSource.privateComment,
-                }
 
-                // Management
-                this.model.managements = {
-                    managements: this.onlineSource.managements,
-                }
-            }
-        },
-        save() {
-            this.openRequests++
-            this.saveModal = false
-            if (this.onlineSource == null) {
-                axios.post(this.urls['online_source_post'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['online_source_get'].replace('online_source_id', response.data.id)
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-            else {
-                axios.put(this.urls['online_source_put'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['online_source_get']
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the online source data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-        },
-        reload(type) {
-            this.reloadSimpleItems(type);
-        },
+const anchor = ref(null)
+
+const onlineSource = ref(null)
+const managements = ref(null)
+
+const model = reactive({
+  basic: {
+    url: null,
+    name: null,
+    lastAccessed: null,
+  },
+  urls: { urls: [] },
+  managements: {
+    managements: [],
+  },
+  general: {
+    publicComment: null,
+    privateComment: null,
+  }
+})
+
+const panels = ['basic', 'urls', 'general', 'managements']
+const urls = JSON.parse(props.initUrls)
+const data = JSON.parse(props.initData)
+
+const {
+  invalidPanels,
+  validateForms,
+  checkInvalidPanels,
+} = usePanelValidation(panelRefs, panels)
+
+const {
+  diff,
+  calcDiff,
+} = useModelDiff(panelRefs, panels)
+
+const {
+  scrollY,
+  isSticky,
+  stickyStyle,
+  initScrollListener,
+} = useStickyNav(anchor)
+
+const openRequests = ref(0)
+const alerts = ref([])
+const saveAlerts = ref([])
+const originalModel = ref({})
+const resetModal = ref(false)
+const invalidModal = ref(false)
+const saveModal = ref(false)
+const reloads = ref([])
+
+
+const setData = () => {
+  onlineSource.value = data.onlineSource
+  managements.value = data.managements
+
+  if (onlineSource.value != null) {
+    model.basic = {
+      url: onlineSource.value.url,
+      name: onlineSource.value.name,
+      lastAccessed: onlineSource.value.lastAccessed,
     }
+
+    model.urls = {
+      urls: onlineSource.value.urls == null ? null : onlineSource.value.urls.map(
+          function(url, index) {
+            url.tgIndex = index + 1
+            return url
+          }
+      )
+    }
+
+    model.general = {
+      publicComment: onlineSource.value.publicComment,
+      privateComment: onlineSource.value.privateComment,
+    }
+
+    model.managements = {
+      managements: onlineSource.value.managements,
+    }
+  }
 }
+
+const save = () => {
+  openRequests.value++
+  saveModal.value = false
+
+  if (onlineSource.value == null) {
+    axios.post(urls['online_source_post'], toSave())
+        .then((response) => {
+          window.onbeforeunload = function () {}
+          // redirect to the detail page
+          window.location = urls['online_source_get'].replace('online_source_id', response.data.id)
+        })
+        .catch((error) => {
+          console.log(error)
+          saveModal.value = true
+          saveAlerts.value.push({
+            type: 'error',
+            message: 'Something went wrong while saving the online source data.',
+            extra: getErrorMessage(error),
+            login: isLoginError(error)
+          })
+          openRequests.value--
+        })
+  } else {
+    axios.put(urls['online_source_put'], toSave())
+        .then((response) => {
+          window.onbeforeunload = function () {}
+          // redirect to the detail page
+          window.location = urls['online_source_get']
+        })
+        .catch((error) => {
+          console.log(error)
+          saveModal.value = true
+          saveAlerts.value.push({
+            type: 'error',
+            message: 'Something went wrong while saving the online source data.',
+            extra: getErrorMessage(error),
+            login: isLoginError(error)
+          })
+          openRequests.value--
+        })
+  }
+}
+
+const reload = (type) => {
+  reloadSimpleItems(type)
+}
+
+
+const validated = (isValid, errors) => {
+  checkInvalidPanels()
+  calcDiff()
+}
+
+const toSave = () => {
+  let result = {}
+  for (let diffItem of diff.value) {
+    if ('keyGroup' in diffItem) {
+      if (!(diffItem.keyGroup in result)) {
+        result[diffItem.keyGroup] = {}
+      }
+      result[diffItem.keyGroup][diffItem.key] = diffItem.value
+    } else {
+      result[diffItem.key] = diffItem.value
+    }
+  }
+  return result
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(() => { validateForms() })
+}
+
+const saveButton = () => {
+  validateForms()
+  if (invalidPanels.value) {
+    invalidModal.value = true
+  } else {
+    saveModal.value = true
+  }
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
+const reloadSimpleItems = (type) => {
+  reloadItems(
+      type,
+      [type],
+      [data[type]],
+      urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+  )
+}
+
+const reloadItems = (type, keys, items, url, filters) => {
+  disablePanels(panelRefs, panels,keys)
+  reloads.value.push(type)
+  axios.get(url)
+      .then((response) => {
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels,keys)
+        let typeIndex = reloads.value.indexOf(type)
+        if (typeIndex > -1) {
+          reloads.value.splice(typeIndex, 1)
+        }
+      })
+      .catch(handleError('Something went wrong while loading data.'))
+}
+
+onMounted(() => {
+  initScrollListener()
+  setData()
+  originalModel.value = JSON.parse(JSON.stringify(model))
+  nextTick(() => {
+    if (!data.clone) {
+      for (let panel of panels) {
+        const panelRef = panelRefs.value[panel]
+        if (panelRef) {
+          panelRef.init()
+        }
+      }
+    }
+  })
+
+})
 </script>

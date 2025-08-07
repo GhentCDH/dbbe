@@ -1,7 +1,7 @@
 <template>
   <div>
     <article class="col-sm-9 mbottom-large">
-      <alert
+      <Alerts
           v-for="(item, index) in alerts"
           :key="index"
           :type="item.type"
@@ -9,7 +9,7 @@
           @dismissed="alerts.splice(index, 1)"
       >
         {{ item.message }}
-      </alert>
+      </Alerts>
 
       <Person
           id="persons"
@@ -97,7 +97,7 @@
       </div>
     </article>
     <aside class="col-sm-3 inpage-nav-container xs-hide">
-      <div ref="anchorRef" />
+      <div ref="anchor" />
       <nav
           v-scrollspy
           role="navigation"
@@ -166,9 +166,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
-import Vue from 'vue'
 import axios from 'axios'
-
 import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
 import Reset from "@/Components/Edit/Modals/Reset.vue"
 import Invalid from "@/Components/Edit/Modals/Invalid.vue"
@@ -178,9 +176,12 @@ import BasicBlogPost from "@/Components/Edit/Panels/BasicBlogPost.vue";
 import Url from "@/Components/Edit/Panels/Url.vue";
 import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue";
 import Management from "@/Components/Edit/Panels/Management.vue";
-
-
-// Props
+import Alerts from "@/Components/Alerts.vue";
+import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
+import {useErrorAlert} from "@/composables/useErrorAlert";
+import {usePanelValidation} from "@/composables/usePanelValidation";
+import {useModelDiff} from "@/composables/useModelDiff";
+import {useStickyNav} from "@/composables/useStickyNav";
 const props = defineProps({
   initUrls: {
     type: String,
@@ -190,29 +191,19 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  initIdentifiers: {
-    type: String,
-    default: '',
-  },
   initRoles: {
-    type: String,
-    default: '',
-  },
-  initContributorRoles: {
     type: String,
     default: '',
   },
 })
 
-// Template refs
 const personsRef = ref(null)
 const basicRef = ref(null)
 const urlsRef = ref(null)
 const generalRef = ref(null)
 const managementsRef = ref(null)
-const anchorRef = ref(null)
+const anchor = ref(null)
 
-// Reactive data
 const roles = JSON.parse(props.initRoles)
 const urls = JSON.parse(props.initUrls)
 const data = JSON.parse(props.initData)
@@ -224,7 +215,6 @@ const managements = ref([])
 
 const personRoles = {}
 for (let role of roles) {
-  // Make author a required field
   if (role.systemName === 'author') {
     role.required = true
   }
@@ -250,15 +240,11 @@ const openRequests = ref(0)
 const alerts = ref([])
 const saveAlerts = ref([])
 const originalModel = ref({})
-const diff = ref([])
 const resetModal = ref(false)
 const invalidModal = ref(false)
 const saveModal = ref(false)
-const invalidPanels = ref(false)
-const scrollY = ref(null)
-const isSticky = ref(false)
-const stickyStyle = ref({})
 const reloads = ref([])
+const handleError = useErrorAlert(alerts)
 
 const panelRefs = computed(() => ({
   persons: personsRef.value,
@@ -268,20 +254,24 @@ const panelRefs = computed(() => ({
   managements: managementsRef.value,
 }))
 
-watch(scrollY, () => {
-  if (anchorRef.value) {
-    let anchor = anchorRef.value.getBoundingClientRect()
-    if (anchor.top < 30) {
-      isSticky.value = true
-      stickyStyle.value = {
-        width: anchor.width + 'px',
-      }
-    } else {
-      isSticky.value = false
-      stickyStyle.value = {}
-    }
-  }
-})
+const {
+  invalidPanels,
+  validateForms,
+  checkInvalidPanels,
+} = usePanelValidation(panelRefs, panels)
+
+const {
+  diff,
+  calcDiff,
+} = useModelDiff(panelRefs, panels)
+
+const {
+  scrollY,
+  isSticky,
+  stickyStyle,
+  initScrollListener,
+} = useStickyNav(anchor)
+
 
 const setData = () => {
   blogPost.value = data.blogPost
@@ -292,14 +282,12 @@ const setData = () => {
     for (let role of roles) {
       model.personRoles[role.systemName] = blogPost.value.personRoles == null ? [] : blogPost.value.personRoles[role.systemName]
     }
-
     model.basic = {
       blog: blogPost.value.blog,
       url: blogPost.value.url,
       title: blogPost.value.title,
       postDate: blogPost.value.postDate,
     }
-
     model.urls = {
       urls: blogPost.value.urls == null ? null : blogPost.value.urls.map(
           function(url, index) {
@@ -308,12 +296,10 @@ const setData = () => {
           }
       )
     }
-
     model.general = {
       publicComment: blogPost.value.publicComment,
       privateComment: blogPost.value.privateComment,
     }
-
     model.managements = {
       managements: blogPost.value.managements,
     }
@@ -361,53 +347,9 @@ const save = () => {
   }
 }
 
-const reload = (type,items) => {
-  reloadSimpleItems(type,items)
-}
-
-const initScroll = () => {
-  window.addEventListener('scroll', () => {
-    scrollY.value = Math.round(window.scrollY)
-  })
-}
-
-const validateForms = () => {
-  for (let panel of panels) {
-    const panelRef = panelRefs.value[panel]
-    if (panelRef) {
-      panelRef.validate()
-    }
-  }
-}
-
 const validated = (isValid, errors) => {
-  invalidPanels.value = false
-  for (let panel of panels) {
-    const panelRef = panelRefs.value[panel]
-    if (panelRef && !panelRef.isValid) {
-      invalidPanels.value = true
-      break
-    }
-  }
+  checkInvalidPanels()
   calcDiff()
-}
-
-const calcDiff = () => {
-  diff.value = []
-  for (let panel of panels) {
-    const panelRef = panelRefs.value[panel]
-    if (panelRef) {
-      diff.value = diff.value.concat(panelRef.changes)
-    }
-  }
-
-  if (diff.value.length !== 0) {
-    window.onbeforeunload = function(e) {
-      let dialogText = 'There are unsaved changes.'
-      e.returnValue = dialogText
-      return dialogText
-    }
-  }
 }
 
 const toSave = () => {
@@ -447,7 +389,7 @@ const cancelSave = () => {
   saveAlerts.value = []
 }
 
-const reloadSimpleItems = (type, items) => {
+const reload = (type, items) => {
   reloadItems(
       type,
       [type],
@@ -455,62 +397,25 @@ const reloadSimpleItems = (type, items) => {
       urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
   )
 }
-
 const reloadItems = (type, keys, items, url, filters) => {
-  for (let panel of panels) {
-    const panelRef = panelRefs.value[panel]
-    if (panelRef) {
-      panelRef.disableFields(keys)
-    }
-  }
-
+  disablePanels(panelRefs, panels,keys)
   reloads.value.push(type)
-
   axios.get(url)
       .then((response) => {
-        for (let i = 0; i < items.length; i++) {
-          let data = []
-          if (filters == null || filters[i] == null) {
-            // Copy data
-            data = response.data.filter(() => true)
-          } else {
-            data = response.data.filter(filters[i])
-          }
-          while (items[i].length) {
-            items[i].splice(0, 1)
-          }
-          while (data.length) {
-            items[i].push(data.shift())
-          }
-        }
-
-        for (let panel of panels) {
-          const panelRef = panelRefs.value[panel]
-          if (panelRef) {
-            panelRef.enableFields(keys)
-          }
-        }
-
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels,keys)
         let typeIndex = reloads.value.indexOf(type)
         if (typeIndex > -1) {
           reloads.value.splice(typeIndex, 1)
         }
       })
-      .catch((error) => {
-        alerts.value.push({
-          type: 'error',
-          message: 'Something went wrong while loading data.',
-          login: isLoginError(error)
-        })
-        console.log(error)
-      })
+      .catch(handleError('Something went wrong while loading data.'))
 }
 
 onMounted(() => {
-  initScroll()
+  initScrollListener()
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
-
   nextTick(() => {
     if (!data.clone) {
       for (let panel of panels) {
