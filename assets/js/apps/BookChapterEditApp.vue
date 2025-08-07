@@ -1,342 +1,332 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alert
-                v-for="(item, index) in alerts"
-                :key="index"
-                :type="item.type"
-                dismissible
-                @dismissed="alerts.splice(index, 1)"
-            >
-                {{ item.message }}
-            </alert>
+  <div>
+    <article class="col-sm-9 mbottom-large">
+      <Alerts
+          v-for="(item, index) in alerts"
+          :key="index"
+          :type="item.type"
+          dismissible
+          @dismissed="alerts.splice(index, 1)"
+      >
+        {{ item.message }}
+      </Alerts>
 
-            <personPanel
-                id="persons"
-                ref="persons"
-                header="Persons"
-                :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
-                :roles="roles"
-                :model="model.personRoles"
-                :values="modernPersons"
-                :keys="{modernPersons: {init: false}}"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <Person
+          id="persons"
+          ref="personsRef"
+          header="Persons"
+          :links="[{ title: 'Persons', reload: 'modernPersons', edit: urls['persons_search'] }]"
+          :roles="roles"
+          :model="model.personRoles"
+          :values="modernPersons"
+          :keys="{ modernPersons: { init: false } }"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <basicBookChapterPanel
-                id="basic"
-                ref="basic"
-                header="Basic Information"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']}]"
-                :model="model.basic"
-                :values="books"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <BasicBookChapter
+          id="basic"
+          ref="basicRef"
+          header="Basic Information"
+          :links="[{ title: 'Books', reload: 'books', edit: urls['bibliographies_search'] }]"
+          :model="model.basic"
+          :values="books"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <urlPanel
-                id="urls"
-                ref="urls"
-                header="Urls"
-                :model="model.urls"
-                @validated="validated"
-            />
+      <Url
+          id="urls"
+          ref="urlsRef"
+          header="Urls"
+          :model="model.urls"
+          @validated="validated"
+      />
 
-            <identificationPanel
-                v-if="identifiers.length > 0"
-                id="identification"
-                ref="identification"
-                header="Identification"
-                :identifiers="identifiers"
-                :model="model.identification"
-                @validated="validated"
-            />
+      <Identification
+          v-if="identifiers.length > 0"
+          id="identification"
+          ref="identificationRef"
+          header="Identification"
+          :identifiers="identifiers"
+          :model="model.identification"
+          @validated="validated"
+      />
 
-            <generalBibItemPanel
-                id="general"
-                ref="general"
-                header="General"
-                :model="model.general"
-                @validated="validated"
-            />
+      <GeneralBibItem
+          id="general"
+          ref="generalRef"
+          header="General"
+          :model="model.general"
+          @validated="validated"
+      />
 
-            <managementPanel
-                id="managements"
-                ref="managements"
-                header="Management collections"
-                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
-                :model="model.managements"
-                :values="managements"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <Management
+          id="managements"
+          ref="managementsRef"
+          header="Management collections"
+          :links="[{ title: 'Management collections', reload: 'managements', edit: urls['managements_edit'] }]"
+          :model="model.managements"
+          :values="managements"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <btn
-                id="actions"
-                type="warning"
-                :disabled="diff.length === 0"
-                @click="resetModal=true"
-            >
-                Reset
-            </btn>
-            <btn
-                v-if="bookChapter"
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save changes
-            </btn>
-            <btn
-                v-else
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save
-            </btn>
-            <div
-                v-if="openRequests"
-                class="loading-overlay"
-            >
-                <div class="spinner" />
-            </div>
-        </article>
-        <aside class="col-sm-3 inpage-nav-container xs-hide">
-            <div ref="anchor" />
-            <nav
-                v-scrollspy
-                role="navigation"
-                class="padding-default bg-tertiary"
-                :class="{stick: isSticky}"
-                :style="stickyStyle"
-            >
-                <h2>Quick navigation</h2>
-                <ul class="linklist linklist-dark">
-                    <li>
-                        <a
-                            href="#persons"
-                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
-                        >Persons</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
-                        >Basic information</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#urls"
-                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
-                        >Urls</a>
-                    </li>
-                    <li v-if="identifiers.length > 0">
-                        <a
-                            href="#identification"
-                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
-                        >Identification</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
-                        >General</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
-                        >Management collections</a>
-                    </li>
-                    <li><a href="#actions">Actions</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <resetModal
-            title="book chapter"
-            :show="resetModal"
-            @cancel="resetModal=false"
-            @confirm="reset()"
-        />
-        <invalidModal
-            :show="invalidModal"
-            @cancel="invalidModal=false"
-            @confirm="invalidModal=false"
-        />
-        <saveModal
-            title="book chapter"
-            :show="saveModal"
-            :diff="diff"
-            :alerts="saveAlerts"
-            @cancel="cancelSave()"
-            @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)"
-        />
-    </div>
+      <btn id="actions" type="warning" :disabled="diff.length === 0" @click="resetModal = true">
+        Reset
+      </btn>
+      <btn
+          type="success"
+          :disabled="diff.length === 0"
+          @click="saveButton()"
+      >
+        {{ bookChapter ? 'Save changes' : 'Save' }}
+      </btn>
+
+      <div v-if="openRequests" class="loading-overlay">
+        <div class="spinner" />
+      </div>
+    </article>
+
+    <aside class="col-sm-3 inpage-nav-container xs-hide">
+      <div ref="anchor" />
+      <nav
+          v-scrollspy
+          role="navigation"
+          class="padding-default bg-tertiary"
+          :class="{ stick: isSticky }"
+          :style="stickyStyle"
+      >
+        <h2>Quick navigation</h2>
+        <ul class="linklist linklist-dark">
+          <li><a href="#persons" :class="{'bg-danger': !(panelRefs.persons && panelRefs.persons.isValid)}">Persons</a></li>
+          <li><a href="#basic" :class="{'bg-danger': !(panelRefs.basic && panelRefs.basic.isValid)}">Basic Information</a></li>
+          <li><a href="#urls" :class="{'bg-danger': !(panelRefs.urls && panelRefs.urls.isValid)}">Urls</a></li>
+          <li v-if="identifiers.length > 0">
+            <a href="#identification" :class="{'bg-danger': !(panelRefs.identification && panelRefs.identification.isValid)}">Identification</a>
+          </li>
+          <li><a href="#general" :class="{'bg-danger': !(panelRefs.general && panelRefs.general.isValid)}">General</a></li>
+          <li><a href="#managements" :class="{'bg-danger': !(panelRefs.managements && panelRefs.managements.isValid)}">Management collections</a></li>
+          <li><a href="#actions">Actions</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <Reset title="book chapter" :show="resetModal" @cancel="resetModal = false" @confirm="reset()" />
+    <Invalid :show="invalidModal" @cancel="invalidModal = false" @confirm="invalidModal = false" />
+    <Save
+        title="book chapter"
+        :show="saveModal"
+        :diff="diff"
+        :alerts="saveAlerts"
+        @cancel="cancelSave()"
+        @confirm="save()"
+        @dismiss-alert="saveAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-import Vue from 'vue';
+<script setup>
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
-import AbstractEntityEdit from '@/mixins/AbstractEntityEdit'
-import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
-import Reset from "@/Components/Edit/Modals/Reset.vue";
-import Invalid from "@/Components/Edit/Modals/Invalid.vue";
-import Save from "@/Components/Edit/Modals/Save.vue";
+import Alerts from '@/Components/Alerts.vue'
+import Reset from '@/Components/Edit/Modals/Reset.vue'
+import Invalid from '@/Components/Edit/Modals/Invalid.vue'
+import Save from '@/Components/Edit/Modals/Save.vue'
 
-const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicBookChapter,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
+import Person from '@/Components/Edit/Panels/Person.vue'
+import BasicBookChapter from '@/Components/Edit/Panels/BasicBookChapter.vue'
+import Url from '@/Components/Edit/Panels/Url.vue'
+import Identification from '@/Components/Edit/Panels/Identification.vue'
+import GeneralBibItem from '@/Components/Edit/Panels/GeneralBibItem.vue'
+import Management from '@/Components/Edit/Panels/Management.vue'
 
-for (const path in panelComponents) {
-  const component = panelComponents[path].default
-  const compName = path.split('/').pop().replace(/\.vue$/, '')
-  Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', component)
+import { useErrorAlert } from '@/composables/useErrorAlert'
+import { usePanelValidation } from '@/composables/usePanelValidation'
+import { useModelDiff } from '@/composables/useModelDiff'
+import { useStickyNav } from '@/composables/useStickyNav'
+import { useSaveModel } from '@/composables/useSaveModel'
+import { disablePanels, enablePanels, updateItems } from '@/helpers/panelUtil'
+
+const props = defineProps({
+
+  initUrls: {
+    type: String,
+    default: '',
+  },
+  initData: {
+    type: String,
+    default: '',
+  },
+  initRoles: {
+    type: String,
+    default: '',
+  },
+  initIdentifiers: {
+    type: String,
+    default: '',
+  },
+})
+
+const basicRef = ref(null)
+const urlsRef = ref(null)
+const generalRef = ref(null)
+const managementsRef = ref(null)
+const personsRef = ref(null)
+const identificationRef = ref(null)
+const anchor = ref(null)
+
+const data = JSON.parse(props.initData)
+const urls = JSON.parse(props.initUrls)
+const roles = JSON.parse(props.initRoles)
+const identifiers = JSON.parse(props.initIdentifiers)
+
+const managements = ref(null)
+const modernPersons = ref(null)
+
+const personRoles = {}
+for (let role of roles) {
+  personRoles[role.systemName] = []
 }
 
-export default {
-    mixins: [ AbstractEntityEdit ],
-    components: {
-      resetModal: Reset,
-      invalidModal: Invalid,
-      saveModal: Save
-    },
-    data() {
-        let data = {
-            identifiers: JSON.parse(this.initIdentifiers),
-            roles: JSON.parse(this.initRoles),
-            bookChapter: null,
-            modernPersons: null,
-            books: null,
-            model: {
-                personRoles: {},
-                basic: {
-                    title: null,
-                    book: null,
-                    startPage: null,
-                    endPage: null,
-                    rawPages: null,
-                },
-                urls: {urls: []},
-                identification: {},
-                managements: {
-                    managements: [],
-                },
-            },
-            panels: [
-                'persons',
-                'basic',
-                'urls',
-                'general',
-                'managements',
-            ],
-        };
-        for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null;
-        }
-        if (data.identifiers.length > 0) {
-            data.panels.push('identification')
-        }
-        for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = [];
-        }
-        return data
-    },
-    created () {
-        this.bookChapter = this.data.bookChapter;
+const model = reactive({
+  basic: {},
+  urls: {},
+  general: {},
+  personRoles: {},
+  identification: {},
+  managements: {},
+})
 
-        this.modernPersons = [];
-        this.books = [];
-        this.managements = this.data.managements;
-    },
-    methods: {
-        loadAsync() {
-            this.reload('modernPersons');
-            this.reload('books');
-        },
-        setData() {
-            if (this.bookChapter != null) {
-                // PersonRoles
-                for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.bookChapter.personRoles == null ? [] : this.bookChapter.personRoles[role.systemName];
-                }
+const panels = ['basic','urls','general','persons','identification','managements']
 
-                // Basic info
-                this.model.basic = {
-                    title: this.bookChapter.title,
-                    book: this.bookChapter.book,
-                    startPage: this.bookChapter.startPage,
-                    endPage: this.bookChapter.endPage,
-                    rawPages: this.bookChapter.rawPages,
-                };
+const alerts = ref([])
+const handleError = useErrorAlert(alerts)
+const bookChapter = ref(null)
+const books = ref(null)
 
-                // Urls
-                this.model.urls = {
-                    urls: this.bookChapter.urls == null ? null : this.bookChapter.urls.map(
-                        function(url, index) {
-                            url.tgIndex = index + 1
-                            return url
-                        }
-                    )
-                }
+const reloads = ref([])
+const resetModal = ref(false)
+const invalidModal = ref(false)
+const originalModel = ref({})
 
-                // Identification
-                this.model.identification = {};
-                for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.bookChapter.identifications == null ? [] : this.bookChapter.identifications[identifier.systemName];
-                }
+const panelRefs = computed(() => ({
+  basic: basicRef.value,
+  urls: urlsRef.value,
+  general: generalRef.value,
+  persons: personsRef.value,
+  identification: identificationRef.value,
+  managements: managementsRef.value,
+}))
 
-                // General
-                this.model.general = {
-                    publicComment: this.bookChapter.publicComment,
-                    privateComment: this.bookChapter.privateComment,
-                };
 
-                // Management
-                this.model.managements = {
-                    managements: this.bookChapter.managements,
-                }
-            }
-        },
-        save() {
-            this.openRequests++;
-            this.saveModal = false;
-            if (this.bookChapter == null) {
-                axios.post(this.urls['book_chapter_post'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {};
-                        // redirect to the detail page
-                        window.location = this.urls['book_chapter_get'].replace('book_chapter_id', response.data.id)
-                    })
-                    .catch( (error) => {
-                        console.log(error);
-                        this.saveModal = true;
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: getErrorMessage(error), login: isLoginError(error)});
-                        this.openRequests--
-                    })
-            }
-            else {
-                axios.put(this.urls['book_chapter_put'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {};
-                        // redirect to the detail page
-                        window.location = this.urls['book_chapter_get']
-                    })
-                    .catch( (error) => {
-                        console.log(error);
-                        this.saveModal = true;
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the book chapter data.', extra: getErrorMessage(error), login: isLoginError(error)});
-                        this.openRequests--
-                    })
-            }
-        },
-        reload(type) {
-            this.reloadSimpleItems(type);
-        },
+const { invalidPanels, validateForms, checkInvalidPanels } = usePanelValidation(panelRefs, panels)
+const { diff, calcDiff } = useModelDiff(panelRefs, panels)
+const { scrollY, isSticky, stickyStyle, initScrollListener } = useStickyNav(anchor)
+const { saveModal, saveAlerts, openRequests, postUpdatedModel, putUpdatedModel } = useSaveModel(urls)
+
+const setData = () => {
+  bookChapter.value = data.bookChapter
+  books.value = []
+  managements.value = data.managements
+  modernPersons.value = []
+  identifiers.value = data.identifiers
+
+  if (bookChapter.value != null) {
+    model.basic = { ...bookChapter.value.basic }
+    model.urls = { ...bookChapter.value.urls }
+    model.general = { ...bookChapter.value.general }
+    model.personRoles = { ...bookChapter.value.personRoles }
+    model.identification = { ...bookChapter.value.identification }
+    model.managements = { ...bookChapter.value.managements }
+  }
+}
+
+const toSave = () => {
+  const result = {}
+  for (const diffItem of diff.value) {
+    if ('keyGroup' in diffItem) {
+      result[diffItem.keyGroup] ||= {}
+      result[diffItem.keyGroup][diffItem.key] = diffItem.value
+    } else {
+      result[diffItem.key] = diffItem.value
     }
+  }
+  return result
 }
+
+const save = () => {
+  openRequests.value++
+  saveModal.value = false
+  if (!bookChapter.value) {
+    postUpdatedModel('book_chapter', toSave())
+  } else {
+    putUpdatedModel('book_chapter', toSave())
+  }
+}
+
+const validated = () => {
+  checkInvalidPanels()
+  calcDiff(panelRefs, panels)
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(() => validateForms())
+}
+
+const saveButton = () => {
+  validateForms()
+  if (invalidPanels.value) {
+    invalidModal.value = true
+  } else {
+    saveModal.value = true
+  }
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
+const reload = (type, items) => {
+  const keys = [type]
+  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+  reloadItems(type, keys, [items], url)
+}
+
+const reloadItems = (type, keys, items, url, filters) => {
+  disablePanels(panelRefs, panels, keys)
+  reloads.value.push(type)
+  axios.get(url)
+      .then(response => {
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels, keys)
+        reloads.value.splice(reloads.value.indexOf(type), 1)
+      })
+      .catch(handleError('Something went wrong while loading data.'))
+}
+
+onMounted(() => {
+  initScrollListener()
+  setData()
+  originalModel.value = JSON.parse(JSON.stringify(model))
+
+  nextTick(() => {
+    if (!data.clone) {
+      for (const panel of panels) {
+        panelRefs.value[panel]?.init?.()
+      }
+    }
+  })
+  reload('modernPersons',modernPersons.value)
+  reload('books',books.value)
+
+
+})
 </script>
