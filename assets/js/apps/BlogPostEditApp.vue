@@ -167,7 +167,6 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import axios from 'axios'
-import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
 import Reset from "@/Components/Edit/Modals/Reset.vue"
 import Invalid from "@/Components/Edit/Modals/Invalid.vue"
 import Save from "@/Components/Edit/Modals/Save.vue"
@@ -182,6 +181,8 @@ import {useErrorAlert} from "@/composables/useErrorAlert";
 import {usePanelValidation} from "@/composables/usePanelValidation";
 import {useModelDiff} from "@/composables/useModelDiff";
 import {useStickyNav} from "@/composables/useStickyNav";
+import {useSaveModel} from "@/composables/useSaveModel";
+
 const props = defineProps({
   initUrls: {
     type: String,
@@ -236,13 +237,10 @@ const model = reactive({
 
 const panels = ['persons', 'basic', 'urls', 'general', 'managements']
 
-const openRequests = ref(0)
 const alerts = ref([])
-const saveAlerts = ref([])
 const originalModel = ref({})
 const resetModal = ref(false)
 const invalidModal = ref(false)
-const saveModal = ref(false)
 const reloads = ref([])
 const handleError = useErrorAlert(alerts)
 
@@ -272,6 +270,13 @@ const {
   initScrollListener,
 } = useStickyNav(anchor)
 
+const {
+  saveModal,
+  saveAlerts,
+  openRequests,
+  postUpdatedModel,
+  putUpdatedModel
+} = useSaveModel(urls)
 
 const setData = () => {
   blogPost.value = data.blogPost
@@ -309,41 +314,10 @@ const setData = () => {
 const save = () => {
   openRequests.value++
   saveModal.value = false
-
   if (blogPost.value == null) {
-    axios.post(urls['blog_post_post'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          window.location = urls['blog_post_get'].replace('blog_post_id', response.data.id)
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the blog post data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    postUpdatedModel('blog_post',toSave());
   } else {
-    axios.put(urls['blog_post_put'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          window.location = urls['blog_post_get']
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the blog post data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    putUpdatedModel('blog_post',toSave());
   }
 }
 

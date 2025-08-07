@@ -158,6 +158,7 @@ import {usePanelValidation} from "@/composables/usePanelValidation";
 import {useModelDiff} from "@/composables/useModelDiff";
 import {useStickyNav} from "@/composables/useStickyNav";
 import {handleError} from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
+import {useSaveModel} from "@/composables/useSaveModel";
 
 // Props
 const props = defineProps({
@@ -225,19 +226,24 @@ const {
 } = useModelDiff(panelRefs, panels)
 
 const {
+  saveModal,
+  saveAlerts,
+  openRequests,
+  postUpdatedModel,
+  putUpdatedModel
+} = useSaveModel(urls)
+
+const {
   scrollY,
   isSticky,
   stickyStyle,
   initScrollListener,
 } = useStickyNav(anchor)
 
-const openRequests = ref(0)
 const alerts = ref([])
-const saveAlerts = ref([])
 const originalModel = ref({})
 const resetModal = ref(false)
 const invalidModal = ref(false)
-const saveModal = ref(false)
 const reloads = ref([])
 
 
@@ -275,50 +281,17 @@ const setData = () => {
 const save = () => {
   openRequests.value++
   saveModal.value = false
-
   if (onlineSource.value == null) {
     axios.post(urls['online_source_post'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          // redirect to the detail page
-          window.location = urls['online_source_get'].replace('online_source_id', response.data.id)
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the online source data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    postUpdatedModel('online_source',toSave());
   } else {
-    axios.put(urls['online_source_put'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          // redirect to the detail page
-          window.location = urls['online_source_get']
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the online source data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    putUpdatedModel('online_source',toSave());
   }
 }
 
 const reload = (type) => {
   reloadSimpleItems(type)
 }
-
 
 const validated = (isValid, errors) => {
   checkInvalidPanels()

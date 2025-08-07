@@ -2,62 +2,57 @@
 import axios from 'axios'
 import { isLoginError, getErrorMessage } from '@/helpers/errorUtil'
 import { ref } from 'vue'
-export function useSaveModel({ diff, urls, modelName }) {
+export function useSaveModel(urls ) {
+
     const openRequests = ref(0)
     const saveAlerts = ref([])
     const saveModal = ref(false)
 
-    const toSave = () => {
-        const result = {}
-        for (const item of diff.value) {
-            if ('keyGroup' in item) {
-                result[item.keyGroup] ||= {}
-                result[item.keyGroup][item.key] = item.value
-            } else {
-                result[item.key] = item.value
-            }
-        }
-        return result
-    }
-
-    const save = (existingRecord) => {
-        openRequests.value++
-        saveModal.value = false
-
-        const url = urls[modelName]
-        const itemsToSave= toSave()
-        console.log(itemsToSave)
-        console.log(url)
-
-        const request = existingRecord
-            ? axios.put(url, itemsToSave)
-            : axios.post(url, itemsToSave)
-        request
+    const postUpdatedModel = (modelType, itemsToSave) => {
+        axios.post(urls[$`${modelType}_post`], itemsToSave)
             .then((response) => {
-                console.log(response)
-                window.onbeforeunload = null
-                window.location = urls[`${modelName}_get`]
-                    .replace(`${modelName}_id`, response.data.id)
-
+                window.onbeforeunload = function () {}
+                window.location = urls[`${modelType}_get`].replace(`${modelType}_id`, response.data.id)
             })
             .catch((error) => {
                 console.log(error)
                 saveModal.value = true
                 saveAlerts.value.push({
                     type: 'error',
-                    message: `Something went wrong while saving the ${modelName.replace('_', ' ')}.`,
+                    message: 'Something went wrong while saving the blog post data.',
                     extra: getErrorMessage(error),
-                    login: isLoginError(error),
+                    login: isLoginError(error)
+                })
+                openRequests.value--
+            })
+    }
+
+    const putUpdatedModel = (modelType, itemsToSave) => {
+        console.log(urls[`${modelType}_put`], 'urls',urls)
+        axios.put(urls[`${modelType}_put`], itemsToSave)
+            .then((response) => {
+                window.onbeforeunload = function () {}
+                window.location = urls[`${modelType}_get`]
+            })
+            .catch((error) => {
+                console.log(error)
+                saveModal.value = true
+                saveAlerts.value.push({
+                    type: 'error',
+                    message: 'Something went wrong while saving the blog post data.',
+                    extra: getErrorMessage(error),
+                    login: isLoginError(error)
                 })
                 openRequests.value--
             })
     }
 
     return {
-        save,
         saveModal,
         saveAlerts,
         openRequests,
-        toSave,
+        postUpdatedModel,
+        putUpdatedModel
+
     }
 }

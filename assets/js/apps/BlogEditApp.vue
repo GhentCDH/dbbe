@@ -154,6 +154,7 @@ import {useErrorAlert} from "@/composables/useErrorAlert";
 import {usePanelValidation} from "@/composables/usePanelValidation";
 import {useModelDiff} from "@/composables/useModelDiff";
 import {useStickyNav} from "@/composables/useStickyNav";
+import {useSaveModel} from "@/composables/useSaveModel";
 
 // Props
 const props = defineProps({
@@ -201,13 +202,10 @@ const panels = [
   'managements',
 ]
 
-const openRequests = ref(0)
 const alerts = ref([])
-const saveAlerts = ref([])
 const originalModel = ref({})
 const resetModal = ref(false)
 const invalidModal = ref(false)
-const saveModal = ref(false)
 const reloads = ref([])
 const anchor = ref(null)
 const handleError = useErrorAlert(alerts)
@@ -237,7 +235,13 @@ const {
   initScrollListener,
 } = useStickyNav(anchor)
 
-
+const {
+  saveModal,
+  saveAlerts,
+  openRequests,
+  postUpdatedModel,
+  putUpdatedModel
+} = useSaveModel(urls)
 
 
 const setData = () => {
@@ -274,39 +278,10 @@ const save = () => {
   openRequests.value++
   saveModal.value = false
   if (blog.value == null) {
-    axios.post(urls['blog_post'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          window.location = urls['blog_get'].replace('blog_id', response.data.id)
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the blog data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    postUpdatedModel('blog',toSave());
   } else {
-    axios.put(urls['blog_put'], toSave())
-        .then((response) => {
-          window.onbeforeunload = function () {}
-          window.location = urls['blog_get']
-        })
-        .catch((error) => {
-          console.log(error)
-          saveModal.value = true
-          saveAlerts.value.push({
-            type: 'error',
-            message: 'Something went wrong while saving the blog data.',
-            extra: getErrorMessage(error),
-            login: isLoginError(error)
-          })
-          openRequests.value--
-        })
+    putUpdatedModel('blog',toSave());
+
   }
 }
 
