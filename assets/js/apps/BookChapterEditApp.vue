@@ -153,7 +153,6 @@ import { useSaveModel } from '@/composables/useSaveModel'
 import { disablePanels, enablePanels, updateItems } from '@/helpers/panelUtil'
 
 const props = defineProps({
-
   initUrls: {
     type: String,
     default: '',
@@ -194,7 +193,13 @@ for (let role of roles) {
 }
 
 const model = reactive({
-  basic: {},
+  basic: {
+    title: null,
+    book: null,
+    startPage: null,
+    endPage: null,
+    rawPages: null,
+  },
   urls: {},
   general: {},
   personRoles: {},
@@ -244,6 +249,14 @@ const setData = () => {
     model.identification = { ...bookChapter.value.identification }
     model.managements = { ...bookChapter.value.managements }
   }
+  Object.assign(model.basic, {
+    title: bookChapter.value.title,
+    book: bookChapter.value.book,
+    startPage: bookChapter.value.startPage,
+    endPage: bookChapter.value.endPage,
+    rawPages: bookChapter.value.rawPages,
+  })
+
 }
 
 const toSave = () => {
