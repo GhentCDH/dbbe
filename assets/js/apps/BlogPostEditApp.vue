@@ -246,14 +246,6 @@ const model = reactive({
 
 const panels = ['persons', 'basic', 'urls', 'general', 'managements']
 
-
-
-const formOptions = reactive({
-  validateAfterChanged: true,
-  validationErrorClass: "has-error",
-  validationSuccessClass: "success"
-})
-
 const openRequests = ref(0)
 const alerts = ref([])
 const saveAlerts = ref([])
@@ -291,12 +283,11 @@ watch(scrollY, () => {
   }
 })
 
-const loadAsync = () => {
-  reload('modernPersons',modernPersons.value)
-  reload('blogs',blogs.value)
-}
-
 const setData = () => {
+  blogPost.value = data.blogPost
+  modernPersons.value = []
+  blogs.value = []
+  managements.value = data.managements
   if (blogPost.value != null) {
     for (let role of roles) {
       model.personRoles[role.systemName] = blogPost.value.personRoles == null ? [] : blogPost.value.personRoles[role.systemName]
@@ -466,8 +457,6 @@ const reloadSimpleItems = (type, items) => {
 }
 
 const reloadItems = (type, keys, items, url, filters) => {
-  console.log(type,items)
-  // Be careful to mutate the existing array and not create a new one
   for (let panel of panels) {
     const panelRef = panelRefs.value[panel]
     if (panelRef) {
@@ -518,11 +507,6 @@ const reloadItems = (type, keys, items, url, filters) => {
 }
 
 onMounted(() => {
-  blogPost.value = data.blogPost
-  modernPersons.value = []
-  blogs.value = []
-  managements.value = data.managements
-
   initScroll()
   setData()
   originalModel.value = JSON.parse(JSON.stringify(model))
@@ -537,7 +521,7 @@ onMounted(() => {
       }
     }
   })
-
-  loadAsync()
+  reload('modernPersons',modernPersons.value)
+  reload('blogs',blogs.value)
 })
 </script>
