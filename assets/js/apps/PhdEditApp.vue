@@ -1,7 +1,7 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alert
+            <Alerts
                 v-for="(item, index) in alerts"
                 :key="index"
                 :type="item.type"
@@ -9,11 +9,11 @@
                 @dismissed="alerts.splice(index, 1)"
             >
                 {{ item.message }}
-            </alert>
+            </Alerts>
 
-            <personPanel
+            <Person
                 id="persons"
-                ref="persons"
+                ref="personsRef"
                 header="Persons"
                 :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
                 :roles="roles"
@@ -25,43 +25,43 @@
                 @reload="reload"
             />
 
-            <basicPhdPanel
+            <BasicPhd
                 id="basic"
-                ref="basic"
+                ref="basicRef"
                 header="Basic Information"
                 :model="model.basic"
                 @validated="validated"
             />
 
-            <urlPanel
+            <Url
                 id="urls"
-                ref="urls"
+                ref="urlsRef"
                 header="Urls"
                 :model="model.urls"
                 @validated="validated"
             />
 
-            <identificationPanel
+            <Identification
                 v-if="identifiers.length > 0"
                 id="identification"
-                ref="identification"
+                ref="identificationRef"
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
                 @validated="validated"
             />
 
-            <generalBibItemPanel
+            <GeneralBibItem
                 id="general"
-                ref="general"
+                ref="generalRef"
                 header="General"
                 :model="model.general"
                 @validated="validated"
             />
 
-            <managementPanel
+            <Management
                 id="managements"
-                ref="managements"
+                ref="managementsRef"
                 header="Management collections"
                 :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
@@ -116,55 +116,55 @@
                     <li>
                         <a
                             href="#persons"
-                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.persons && panelRefs.persons.isValid)}"
                         >Persons</a>
                     </li>
                     <li>
                         <a
                             href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.basic && panelRefs.basic.isValid)}"
                         >Basic information</a>
                     </li>
                     <li>
                         <a
                             href="#urls"
-                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.urls && panelRefs.urls.isValid)}"
                         >Urls</a>
                     </li>
                     <li v-if="identifiers.length > 0">
                         <a
                             href="#identification"
-                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.identification && panelRefs.identification.isValid)}"
                         >Identification</a>
                     </li>
                     <li>
                         <a
                             href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.general && panelRefs.general.isValid)}"
                         >General</a>
                     </li>
                     <li>
                         <a
                             href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.managements && panelRefs.managements.isValid)}"
                         >Management collections</a>
                     </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
-        <resetModal
+        <Reset
             title="PhD thesis"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()"
         />
-        <invalidModal
+        <Invalid
             :show="invalidModal"
             @cancel="invalidModal=false"
             @confirm="invalidModal=false"
         />
-        <saveModal
+        <Save
             title="PhD thesis"
             :show="saveModal"
             :diff="diff"
@@ -176,173 +176,227 @@
     </div>
 </template>
 
-<script>
-import Vue from 'vue/dist/vue.js';
+<script setup>
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
-import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
-import {enableField} from "@/helpers/formFieldUtils";
-import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
-import Reset from "@/Components/Edit/Modals/Reset.vue";
-import Invalid from "@/Components/Edit/Modals/Invalid.vue";
-import Save from "@/Components/Edit/Modals/Save.vue";
+import Reset from "@/components/Edit/Modals/Reset.vue"
+import Invalid from "@/components/Edit/Modals/Invalid.vue"
+import Save from "@/components/Edit/Modals/Save.vue"
+import Person from "@/components/Edit/Panels/Person.vue"
+import BasicPhd from "@/components/Edit/Panels/BasicPhd.vue"
+import Url from "@/components/Edit/Panels/Url.vue"
+import Identification from "@/components/Edit/Panels/Identification.vue"
+import GeneralBibItem from "@/components/Edit/Panels/GeneralBibItem.vue"
+import Management from "@/components/Edit/Panels/Management.vue"
+import Alerts from "@/components/Alerts.vue"
 
-const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicPhd,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
+import { useStickyNav } from '@/composables/editAppComposables/useStickyNav'
+import { useModelDiff } from '@/composables/editAppComposables/useModelDiff'
+import { usePanelValidation } from '@/composables/editAppComposables/usePanelValidation'
+import { useSaveModel } from '@/composables/editAppComposables/useSaveModel'
+import { updateItems, disablePanels, enablePanels } from '@/helpers/panelUtil'
+import { useErrorAlert } from '@/composables/useErrorAlert'
 
-for (const path in panelComponents) {
-  const component = panelComponents[path].default
-  const compName = path.split('/').pop().replace(/\.vue$/, '')
-  Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', component)
+const props = defineProps({
+  initUrls: {
+    type: String,
+    default: '',
+  },
+  initData: {
+    type: String,
+    default: '',
+  },
+  initRoles: {
+    type: String,
+    default: '',
+  },
+  initIdentifiers: {
+    type: String,
+    default: '',
+  },
+})
+
+const personsRef = ref(null)
+const basicRef = ref(null)
+const urlsRef = ref(null)
+const identificationRef = ref(null)
+const generalRef = ref(null)
+const managementsRef = ref(null)
+const anchor = ref(null)
+
+const urls = JSON.parse(props.initUrls)
+const data = JSON.parse(props.initData)
+const roles = JSON.parse(props.initRoles)
+const identifiers = JSON.parse(props.initIdentifiers)
+
+const phd = ref(data.phd)
+const modernPersons = ref([])
+const managements = ref([])
+
+const personRoles = {}
+for (let role of roles) {
+  personRoles[role.systemName] = []
 }
 
-export default {
-    mixins: [ AbstractEntityEdit ],
-    components: {
-      resetModal: Reset,
-      invalidModal: Invalid,
-      saveModal: Save
-    },
-    data() {
-        let data = {
-            identifiers: JSON.parse(this.initIdentifiers),
-            roles: JSON.parse(this.initRoles),
-            phd: null,
-            modernPersons: null,
-            clustersAndSeries: null,
-            model: {
-                personRoles: {},
-                basic: {
-                    title: null,
-                    year: null,
-                    forthcoming: null,
-                    city: null,
-                    institution: null,
-                    volume: null,
-                },
-                urls: {urls: []},
-                identification: {},
-                managements: {
-                    managements: [],
-                },
-            },
-            panels: [
-                'persons',
-                'basic',
-                'urls',
-                'general',
-                'managements',
-            ],
-        }
-        for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
-        }
-        if (data.identifiers.length > 0) {
-            data.panels.push('identification')
-        }
-        for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = [];
-        }
-        return data
-    },
-    created () {
-        this.phd = this.data.phd;
+const model = reactive({
+  personRoles: personRoles,
+  basic: {
+    title: null,
+    year: null,
+    forthcoming: null,
+    city: null,
+    institution: null,
+    volume: null,
+  },
+  urls: { urls: [] },
+  identification: {},
+  general: {
+    publicComment: null,
+    privateComment: null,
+  },
+  managements: {
+    managements: [],
+  }
+})
 
-        this.modernPersons = [];
-        this.managements = this.data.managements;
-    },
-    methods: {
-        // Override to make sure forthcoming is set
-        init() {
-            this.originalModel = JSON.parse(JSON.stringify(this.model));
-            if (this.model.forthcoming == null) {
-                this.model.forthcoming = false;
-            }
-            enableField();
-        },
-        loadAsync() {
-            this.reload('modernPersons');
-        },
-        setData() {
-            if (this.phd != null) {
-                // PersonRoles
-                for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.phd.personRoles == null ? [] : this.phd.personRoles[role.systemName];
-                }
+identifiers.forEach(identifier => model.identification[identifier.systemName] = null)
 
-                // Basic info
-                this.model.basic = {
-                    title: this.phd.title,
-                    year: this.phd.year,
-                    forthcoming: this.phd.forthcoming,
-                    city: this.phd.city,
-                    institution: this.phd.institution,
-                    volume: this.phd.volume,
-                }
+const panels = [
+  'persons',
+  'basic',
+  'urls',
+  'general',
+  'managements',
+  ...(identifiers.length > 0 ? ['identification'] : [])
+]
 
-                // Urls
-                this.model.urls = {
-                    urls: this.phd.urls == null ? null : this.phd.urls.map(
-                        function(url, index) {
-                            url.tgIndex = index + 1
-                            return url
-                        }
-                    )
-                }
+const alerts = ref([])
+const originalModel = ref({})
+const reloads = ref([])
+const resetModal = ref(false)
+const invalidModal = ref(false)
 
-                // Identification
-                this.model.identification = {}
-                for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.phd.identifications == null ? [] : this.phd.identifications[identifier.systemName];
-                }
+const panelRefs = computed(() => ({
+  persons: personsRef.value,
+  basic: basicRef.value,
+  urls: urlsRef.value,
+  identification: identificationRef.value,
+  general: generalRef.value,
+  managements: managementsRef.value,
+}))
 
-                // General
-                this.model.general = {
-                    publicComment: this.phd.publicComment,
-                    privateComment: this.phd.privateComment,
-                }
 
-                // Management
-                this.model.managements = {
-                    managements: this.phd.managements,
-                }
-            }
-        },
-        save() {
-            this.openRequests++
-            this.saveModal = false
-            if (this.phd == null) {
-                axios.post(this.urls['phd_post'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['phd_get'].replace('phd_id', response.data.id)
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-            else {
-                console.log('putting');
-                axios.put(this.urls['phd_put'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['phd_get']
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the PhD thesis data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-        },
-        reload(type) {
-            this.reloadSimpleItems(type);
-        },
+const { invalidPanels, validateForms, checkInvalidPanels } = usePanelValidation(panelRefs, panels)
+
+const { diff, calcDiff } = useModelDiff(panelRefs, panels)
+
+const { isSticky, stickyStyle, initScrollListener } = useStickyNav(anchor)
+const {
+  saveModal,
+  saveAlerts,
+  openRequests,
+  postUpdatedModel,
+  putUpdatedModel
+} = useSaveModel(urls)
+
+
+const setData = () => {
+  managements.value=data.managements
+  modernPersons.value=[]
+  if (!phd.value) return
+  model.basic = { ...phd.value }
+  model.urls.urls = phd.value.urls?.map((url, i) => ({ ...url, tgIndex: i + 1 })) ?? []
+  model.identification = {}
+  identifiers.forEach(identifier => {
+    model.identification[identifier.systemName] = phd.value.identifications?.[identifier.systemName] ?? []
+  })
+  model.general = {
+    publicComment: phd.value.publicComment,
+    privateComment: phd.value.privateComment,
+  }
+  model.managements = { managements: phd.value.managements }
+  roles.forEach(role => {
+    model.personRoles[role.systemName] = phd.value.personRoles == null? [] : phd.value.personRoles[role.systemName]
+  })
+
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(validateForms)
+}
+
+const save = () => {
+  openRequests.value++
+  saveModal.value = false
+  const data = toSave()
+  if (!phd.value) {
+    postUpdatedModel('phd', data)
+  } else {
+    putUpdatedModel('phd', data)
+  }
+}
+
+const validated = () => {
+  checkInvalidPanels()
+  calcDiff(panelRefs, panels)
+}
+
+const toSave = () => {
+  const result = {}
+  for (const change of diff.value) {
+    if (change.keyGroup) {
+      result[change.keyGroup] ??= {}
+      result[change.keyGroup][change.key] = change.value
+    } else {
+      result[change.key] = change.value
     }
+  }
+  return result
 }
+
+const saveButton = () => {
+  validateForms()
+  invalidPanels.value ? invalidModal.value = true : saveModal.value = true
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
+const handleError = useErrorAlert(alerts)
+
+const reload = (type, items) => {
+  reloadItems(type, [type], [items], urls[type.replace(/([A-Z])/g, '_$1').toLowerCase() + '_get'])
+}
+
+const reloadItems = (type, keys, items, url, filters) => {
+  disablePanels(panelRefs, panels, keys)
+  reloads.value.push(type)
+  axios.get(url).then(response => {
+    updateItems(items, response.data, filters)
+    enablePanels(panelRefs, panels, keys)
+    reloads.value = reloads.value.filter(r => r !== type)
+  }).catch(handleError('Something went wrong while loading data.'))
+}
+
+onMounted(() => {
+  initScrollListener()
+  setData()
+  originalModel.value = JSON.parse(JSON.stringify(model))
+  nextTick(() => {
+    if (!data.clone) {
+      for (let panel of panels) {
+        const panelRef = panelRefs.value[panel]
+        if (panelRef) {
+          panelRef.init()
+        }
+      }
+    }
+  })
+  reload('modernPersons',modernPersons.value)
+})
 </script>

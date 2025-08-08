@@ -34,12 +34,12 @@
 <script>
 import axios from 'axios'
 
-import Vue from 'vue/dist/vue.js';
+import Vue from 'vue';
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
 import VueCkeditor from 'vue-ckeditor2'
 
-import Alerts from '../Components/Alerts'
+import Alerts from '../components/Alerts'
 
 Vue.use(uiv)
 Vue.use(VueFormGenerator)

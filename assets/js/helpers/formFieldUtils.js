@@ -62,6 +62,13 @@ export function disableField(field) {
     field.values = [];
 }
 
+export function disableFields(keys, fields, disableKeys) {
+    for (const key of Object.keys(keys)) {
+        if (disableKeys.includes(key)) {
+            disableField(fields[keys[key].field]);
+        }
+    }
+}
 export function dependencyField(field, model) {
     const modelName = field.model.split('.').pop();
     delete model[modelName];
@@ -72,12 +79,10 @@ export function dependencyField(field, model) {
 
 export function enableField(field, model, search = false) {
     const modelName = field.model?.split('.').pop() || '';
-
-    if (field.values.length === 0) {
+    if (!field.values || field.values.length === 0) {
         noValuesField(field, model, search);
         return;
     }
-
     if (model  != null && model[modelName] != null) {
         if (Array.isArray(model[modelName])) {
             model[modelName] = model[modelName].filter((item) =>
@@ -101,6 +106,22 @@ export function enableField(field, model, search = false) {
     }
 }
 
+export function enableFields(keys, fields, values, enableKeys = null,model=null) {
+    for (const key of Object.keys(keys)) {
+        const { field, init } = keys[key];
+
+        if ((init && enableKeys == null) || (enableKeys && enableKeys.includes(key))) {
+            if (!fields[field]) continue;
+
+            const fieldValues = Array.isArray(values) ? values : values?.[key];
+
+            fields[field].values = fieldValues;
+            fields[field].originalValues = JSON.parse(JSON.stringify(fieldValues));
+
+            enableField(fields[field], model);
+        }
+    }
+}
 export function loadLocationField(field, model, values) {
     const modelName = field.model.split('.').pop();
 
