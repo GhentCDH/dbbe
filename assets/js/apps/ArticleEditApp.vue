@@ -437,4 +437,3 @@ onMounted(() => {
   reload('journalIssues',journalsAndIssues.value)
 })
 </script>
->
