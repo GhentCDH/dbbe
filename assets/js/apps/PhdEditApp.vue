@@ -116,37 +116,37 @@
                     <li>
                         <a
                             href="#persons"
-                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.persons && panelRefs.persons.isValid)}"
                         >Persons</a>
                     </li>
                     <li>
                         <a
                             href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.basic && panelRefs.basic.isValid)}"
                         >Basic information</a>
                     </li>
                     <li>
                         <a
                             href="#urls"
-                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.urls && panelRefs.urls.isValid)}"
                         >Urls</a>
                     </li>
                     <li v-if="identifiers.length > 0">
                         <a
                             href="#identification"
-                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.identification && panelRefs.identification.isValid)}"
                         >Identification</a>
                     </li>
                     <li>
                         <a
                             href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.general && panelRefs.general.isValid)}"
                         >General</a>
                     </li>
                     <li>
                         <a
                             href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.managements && panelRefs.managements.isValid)}"
                         >Management collections</a>
                     </li>
                     <li><a href="#actions">Actions</a></li>
