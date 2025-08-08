@@ -17,9 +17,7 @@
 <script>
 import Vue from 'vue';
 
-import {
-  createMultiSelect, disableFields, enableFields,
-} from '@/helpers/formFieldUtils';
+import {createMultiSelect, disableFields, enableFields,} from '@/helpers/formFieldUtils';
 import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
@@ -65,20 +63,10 @@ export default {
     }
   },
     data() {
-        return {
+        let data =  {
             schema: {
                 fields: {
-                    acknowledgements: createMultiSelect(
-                        'Acknowledgements',
-                        {
-                            model: 'acknowledgements',
-                            values: this.values.acknowledgements,
-                        },
-                        {
-                            multiple: true,
-                            closeOnSelect: false,
-                        }
-                    ),
+
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -122,7 +110,6 @@ export default {
                         rows: 4,
                         validator: validatorUtil.string,
                     },
-                    status: createMultiSelect('Status', {values: this.values.statuses}, {}),
                     illustrated: {
                         type: 'checkbox',
                         styleClasses: 'has-warning',
@@ -139,16 +126,47 @@ export default {
                     },
                 }
             },
-            changes: [],
-            formOptions: {
-              validateAfterChanged: true,
-              validationErrorClass: 'has-error',
-              validationSuccessClass: 'success',
-            },
-            isValid: true,
-            originalModel: {}
+
         }
+        if(this.values){
+          data.schema.fields.acknowledgements = createMultiSelect(
+              'Acknowledgements',
+              {
+                model: 'acknowledgements',
+                values: this.values.acknowledgements,
+              },
+              {
+                multiple: true,
+                closeOnSelect: false,
+              }
+          )
+          data.schema.fields.statuses = createMultiSelect(createMultiSelect('Status', {values: this.values.statuses}, {}),)
+        }
+        return {
+          changes: [],
+          formOptions: {
+            validateAfterChanged: true,
+            validationErrorClass: 'has-error',
+            validationSuccessClass: 'success',
+          },
+          isValid: true,
+          originalModel: {},
+          ...data
+        }
+
     },
+  watch: {
+    'values.acknowledgements'(newVal) {
+      if (newVal && newVal.length > 0 && this.schema.fields.acknowledgements) {
+        this.schema.fields.acknowledgements.values = newVal;
+      }
+    },
+    'values.statuses'(newVal) {
+      if (newVal && newVal.length > 0 && this.schema.fields.statuses) {
+        this.schema.fields.statuses.values = newVal;
+      }
+    }
+  },
     methods: {
       init() {
         this.originalModel = JSON.parse(JSON.stringify(this.model));

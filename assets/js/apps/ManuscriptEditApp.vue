@@ -1,562 +1,768 @@
 <template>
-    <div>
-        <article class="col-sm-9 mbottom-large">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
-            />
+  <div>
+    <article class="col-sm-9 mbottom-large">
+      <Alerts
+          v-for="(item, index) in alerts"
+          :key="index"
+          :type="item.type"
+          dismissible
+          @dismissed="alerts.splice(index, 1)"
+      >
+        {{ item.message }}
+      </Alerts>
 
-            <locatedAtPanel
-                id="location"
-                ref="location"
-                header="Location"
-                :links="[{title: 'Locations', reload: 'locations', edit: urls['locations_edit']}]"
-                :model="model.locatedAt"
-                :values="locations"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <LocatedAtPanel
+          id="location"
+          ref="locationRef"
+          header="Location"
+          :links="[{title: 'Locations', reload: 'locations', edit: urls['locations_edit']}]"
+          :model="model.locatedAt"
+          :values="locations"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <contentPanel
-                id="contents"
-                ref="contents"
-                header="Contents"
-                :links="[{title: 'Contents', reload: 'contents', edit: urls['contents_edit']}]"
-                :model="model.contents"
-                :values="contents"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <ContentPanel
+          id="contents"
+          ref="contentsRef"
+          header="Contents"
+          :links="[{title: 'Contents', reload: 'contents', edit: urls['contents_edit']}]"
+          :model="model.contents"
+          :values="contents"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <personPanel
-                id="persons"
-                ref="persons"
-                header="Persons"
-                :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}]"
-                :roles="roles"
-                :model="model.personRoles"
-                :values="historicalPersons"
-                :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : {}"
-                :keys="{historicalPersons: {init: false}}"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <PersonPanel
+          id="persons"
+          ref="personsRef"
+          header="Persons"
+          :links="[{title: 'Persons', reload: 'historicalPersons', edit: urls['persons_search']}]"
+          :roles="roles"
+          :model="model.personRoles"
+          :values="historicalPersons"
+          :occurrence-person-roles="manuscript ? manuscript.occurrencePersonRoles : {}"
+          :keys="{historicalPersons: {init: false}}"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <datePanel
-                id="dates"
-                ref="dates"
-                header="Dates"
-                :model="model.dates"
-                :config="{'completed at': {limit: 1, type: 'date'}}"
-                @validated="validated"
-            />
+      <DatePanel
+          id="dates"
+          ref="datesRef"
+          header="Dates"
+          :model="model.dates"
+          :config="{'completed at': {limit: 1, type: 'date'}}"
+          @validated="validated"
+      />
 
-            <originPanel
-                id="origin"
-                ref="origin"
-                header="Origin"
-                :links="[{title: 'Origins', reload: 'origins', edit: urls['origins_edit']}]"
-                :model="model.origin"
-                :values="origins"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <OriginPanel
+          id="origin"
+          ref="originRef"
+          header="Origin"
+          :links="[{title: 'Origins', reload: 'origins', edit: urls['origins_edit']}]"
+          :model="model.origin"
+          :values="origins"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <occurrenceOrderPanel
-                id="occurrenceOrder"
-                ref="occurrenceOrder"
-                header="Occurrence Order"
-                :model="model.occurrenceOrder"
-                @validated="validated"
-            />
+      <OccurrenceOrderPanel
+          id="occurrenceOrder"
+          ref="occurrenceOrderRef"
+          header="Occurrence Order"
+          :model="model.occurrenceOrder"
+          @validated="validated"
+      />
 
-            <identificationPanel
-                id="identification"
-                ref="identification"
-                header="Identification"
-                :identifiers="identifiers"
-                :model="model.identification"
-                @validated="validated"
-            />
+      <IdentificationPanel
+          id="identification"
+          ref="identificationRef"
+          header="Identification"
+          :identifiers="identifiers"
+          :model="model.identification"
+          @validated="validated"
+      />
 
-            <bibliographyPanel
-                id="bibliography"
-                ref="bibliography"
-                header="Bibliography"
-                :links="[{title: 'Books', reload: 'books', edit: urls['bibliographies_search']},{title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},{title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},{title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},{title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},{title: 'Phd theses', reload: 'phds', edit: urls['bibliographies_search']},{title: 'Bib varia', reload: 'bibVarias', edit: urls['bibliographies_search']}]"
-                :model="model.bibliography"
-                :values="bibliographies"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <BibliographyPanel
+          id="bibliography"
+          ref="bibliographyRef"
+          header="Bibliography"
+          :links="[
+            {title: 'Books', reload: 'books', edit: urls['bibliographies_search']},
+            {title: 'Articles', reload: 'articles', edit: urls['bibliographies_search']},
+            {title: 'Book chapters', reload: 'bookChapters', edit: urls['bibliographies_search']},
+            {title: 'Online sources', reload: 'onlineSources', edit: urls['bibliographies_search']},
+            {title: 'Blog Posts', reload: 'blogPosts', edit: urls['bibliographies_search']},
+            {title: 'Phd theses', reload: 'phds', edit: urls['bibliographies_search']},
+            {title: 'Bib varia', reload: 'bibVarias', edit: urls['bibliographies_search']}
+          ]"
+          :model="model.bibliography"
+          :values="bibliographies"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <generalManuscriptPanel
-                id="general"
-                ref="general"
-                header="General"
-                :links="[{title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']}, {title: 'Statuses', reload: 'statuses', edit: urls['statuses_edit']}]"
-                :model="model.general"
-                :values="generals"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <GeneralManuscriptPanel
+          id="general"
+          ref="generalRef"
+          header="General"
+          :links="[
+            {title: 'Acknowledgements', reload: 'acknowledgements', edit: urls['acknowledgements_edit']},
+            {title: 'Statuses', reload: 'statuses', edit: urls['statuses_edit']}
+          ]"
+          :model="model.general"
+          :values="generals"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <personPanel
-                id="contributors"
-                ref="contributors"
-                header="Contributors"
-                :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
-                :roles="contributorRoles"
-                :model="model.contributorRoles"
-                :values="dbbePersons"
-                :keys="{dbbePersons: {init: true}}"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <PersonPanel
+          id="contributors"
+          ref="contributorsRef"
+          header="Contributors"
+          :links="[{title: 'Persons', reload: 'dbbePersons', edit: urls['persons_search']}]"
+          :roles="contributorRoles"
+          :model="model.contributorRoles"
+          :values="dbbePersons"
+          :keys="{dbbePersons: {init: true}}"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <managementPanel
-                id="managements"
-                ref="managements"
-                header="Management collections"
-                :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
-                :model="model.managements"
-                :values="managements"
-                :reloads="reloads"
-                @validated="validated"
-                @reload="reload"
-            />
+      <ManagementPanel
+          id="managements"
+          ref="managementsRef"
+          header="Management collections"
+          :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
+          :model="model.managements"
+          :values="managements"
+          :reloads="reloads"
+          @validated="validated"
+          @reload="reload"
+      />
 
-            <btn
-                id="actions"
-                type="warning"
-                :disabled="diff.length === 0"
-                @click="resetModal=true"
-            >
-                Reset
-            </btn>
-            <btn
-                v-if="manuscript"
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save changes
-            </btn>
-            <btn
-                v-else
-                type="success"
-                :disabled="(diff.length === 0)"
-                @click="saveButton()"
-            >
-                Save
-            </btn>
-            <div
-                v-if="openRequests"
-                class="loading-overlay"
-            >
-                <div class="spinner" />
-            </div>
-        </article>
-        <aside class="col-sm-3 inpage-nav-container xs-hide">
-            <div ref="anchor" />
-            <nav
-                v-scrollspy
-                role="navigation"
-                class="padding-default bg-tertiary"
-                :class="{stick: isSticky}"
-                :style="stickyStyle"
-            >
-                <h2>Quick navigation</h2>
-                <ul class="linklist linklist-dark">
-                    <li>
-                        <a
-                            href="#location"
-                            :class="{'bg-danger': !($refs.location && $refs.location.isValid)}"
-                        >Location</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#contents"
-                            :class="{'bg-danger': !($refs.contents && $refs.contents.isValid)}"
-                        >Contents</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#persons"
-                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
-                        >Persons</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#dates"
-                            :class="{'bg-danger': !($refs.dates && $refs.dates.isValid)}"
-                        >Dates</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#origin"
-                            :class="{'bg-danger': !($refs.origin && $refs.origin.isValid)}"
-                        >Origin</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#occurrenceOrder"
-                            :class="{'bg-danger': !($refs.occurrenceOrder && $refs.occurrenceOrder.isValid)}"
-                        >Occurrence Order</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#identification"
-                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
-                        >Identification</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#bibliography"
-                            :class="{'bg-danger': !($refs.bibliography && $refs.bibliography.isValid)}"
-                        >Bibliography</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
-                        >General</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#contributors"
-                            :class="{'bg-danger': !($refs.contributors && $refs.contributors.isValid)}"
-                        >Contributors</a>
-                    </li>
-                    <li>
-                        <a
-                            href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
-                        >Management collections</a>
-                    </li>
-                    <li><a href="#actions">Actions</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <resetModal
-            title="manuscript"
-            :show="resetModal"
-            @cancel="resetModal=false"
-            @confirm="reset()"
-        />
-        <invalidModal
-            :show="invalidModal"
-            @cancel="invalidModal=false"
-            @confirm="invalidModal=false"
-        />
-        <saveModal
-            title="manuscript"
-            :show="saveModal"
-            :diff="diff"
-            :alerts="saveAlerts"
-            @cancel="cancelSave()"
-            @confirm="save()"
-            @dismiss-alert="saveAlerts.splice($event, 1)"
-        />
-    </div>
+      <btn
+          id="actions"
+          type="warning"
+          :disabled="data.clone ? JSON.stringify(originalModel) !== JSON.stringify(model) : diff.length === 0"
+          @click="resetModal = true"
+      >
+        Reset
+      </btn>
+      <btn
+          v-if="manuscript"
+          type="success"
+          :disabled="(diff.length === 0)"
+          @click="saveButton()"
+      >
+        Save changes
+      </btn>
+      <btn
+          v-else
+          type="success"
+          :disabled="(diff.length === 0)"
+          @click="saveButton()"
+      >
+        Save
+      </btn>
+      <div
+          v-if="openRequests"
+          class="loading-overlay"
+      >
+        <div class="spinner" />
+      </div>
+    </article>
+    <aside class="col-sm-3 inpage-nav-container xs-hide">
+      <div ref="anchor" />
+      <nav
+          v-scrollspy
+          role="navigation"
+          class="padding-default bg-tertiary"
+          :class="{stick: isSticky}"
+          :style="stickyStyle"
+      >
+        <h2>Quick navigation</h2>
+        <ul class="linklist linklist-dark">
+          <li>
+            <a
+                href="#location"
+                :class="{'bg-danger': !(locationRef && locationRef.isValid)}"
+            >Location</a>
+          </li>
+          <li>
+            <a
+                href="#contents"
+                :class="{'bg-danger': !(contentsRef && contentsRef.isValid)}"
+            >Contents</a>
+          </li>
+          <li>
+            <a
+                href="#persons"
+                :class="{'bg-danger': !(personsRef && personsRef.isValid)}"
+            >Persons</a>
+          </li>
+          <li>
+            <a
+                href="#dates"
+                :class="{'bg-danger': !(datesRef && datesRef.isValid)}"
+            >Dates</a>
+          </li>
+          <li>
+            <a
+                href="#origin"
+                :class="{'bg-danger': !(originRef && originRef.isValid)}"
+            >Origin</a>
+          </li>
+          <li>
+            <a
+                href="#occurrenceOrder"
+                :class="{'bg-danger': !(occurrenceOrderRef && occurrenceOrderRef.isValid)}"
+            >Occurrence Order</a>
+          </li>
+          <li>
+            <a
+                href="#identification"
+                :class="{'bg-danger': !(identificationRef && identificationRef.isValid)}"
+            >Identification</a>
+          </li>
+          <li>
+            <a
+                href="#bibliography"
+                :class="{'bg-danger': !(bibliographyRef && bibliographyRef.isValid)}"
+            >Bibliography</a>
+          </li>
+          <li>
+            <a
+                href="#general"
+                :class="{'bg-danger': !(generalRef && generalRef.isValid)}"
+            >General</a>
+          </li>
+          <li>
+            <a
+                href="#contributors"
+                :class="{'bg-danger': !(contributorsRef && contributorsRef.isValid)}"
+            >Contributors</a>
+          </li>
+          <li>
+            <a
+                href="#managements"
+                :class="{'bg-danger': !(managementsRef && managementsRef.isValid)}"
+            >Management collections</a>
+          </li>
+          <li><a href="#actions">Actions</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <Reset
+        title="manuscript"
+        :show="resetModal"
+        @cancel="resetModal = false"
+        @confirm="reset()"
+    />
+    <Invalid
+        :show="invalidModal"
+        @cancel="invalidModal = false"
+        @confirm="invalidModal = false"
+    />
+    <Save
+        title="manuscript"
+        :show="saveModal"
+        :diff="diff"
+        :alerts="saveAlerts"
+        @cancel="cancelSave()"
+        @confirm="save()"
+        @dismiss-alert="saveAlerts.splice($event, 1)"
+    />
+  </div>
 </template>
 
-<script>
-import Vue from 'vue';
-
-import AbstractEntityEdit from '../mixins/AbstractEntityEdit'
+<script setup>
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import axios from 'axios'
-import {isLoginError} from "@/helpers/errorUtil";
-import Reset from "@/Components/Edit/Modals/Reset.vue";
-import Invalid from "@/Components/Edit/Modals/Invalid.vue";
-import Save from "@/Components/Edit/Modals/Save.vue";
+import Reset from "@/Components/Edit/Modals/Reset.vue"
+import Invalid from "@/Components/Edit/Modals/Invalid.vue"
+import Save from "@/Components/Edit/Modals/Save.vue"
+import LocatedAtPanel from "@/Components/Edit/Panels/LocatedAt.vue"
+import ContentPanel from "@/Components/Edit/Panels/Content.vue"
+import PersonPanel from "@/Components/Edit/Panels/Person.vue"
+import DatePanel from "@/Components/Edit/Panels/Date.vue"
+import OriginPanel from "@/Components/Edit/Panels/Origin.vue"
+import OccurrenceOrderPanel from "@/Components/Edit/Panels/OccurrenceOrder.vue"
+import IdentificationPanel from "@/Components/Edit/Panels/Identification.vue"
+import BibliographyPanel from "@/Components/Edit/Panels/Bibliography.vue"
+import GeneralManuscriptPanel from "@/Components/Edit/Panels/GeneralManuscript.vue"
+import ManagementPanel from "@/Components/Edit/Panels/Management.vue"
+import Alerts from "@/Components/Alerts.vue"
+import { disablePanels, enablePanels, updateItems } from "@/helpers/panelUtil"
+import { useErrorAlert } from "@/composables/useErrorAlert"
+import { usePanelValidation } from "@/composables/usePanelValidation"
+import { useModelDiff } from "@/composables/useModelDiff"
+import { useStickyNav } from "@/composables/useStickyNav"
+import { useSaveModel } from "@/composables/useSaveModel"
+import { isLoginError } from "@/helpers/errorUtil"
 
-const panelComponents = import.meta.glob('../Components/Edit/Panels/{LocatedAt,Content,Person,Date,Origin,OccurrenceOrder,Identification,Bibliography,GeneralManuscript,Management}.vue', { eager: true })
+const props = defineProps({
+  initUrls: {
+    type: String,
+    default: '',
+  },
+  initData: {
+    type: String,
+    default: '',
+  },
+  initIdentifiers: {
+    type: String,
+    default: '',
+  },
+  initRoles: {
+    type: String,
+    default: '',
+  },
+  initContributorRoles: {
+    type: String,
+    default: '',
+  },
+})
 
-for (const path in panelComponents) {
-  const component = panelComponents[path].default
-  const compName = path.split('/').pop().replace(/\.vue$/, '')
-  Vue.component(compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel', component)
+// Template refs
+const locationRef = ref(null)
+const contentsRef = ref(null)
+const personsRef = ref(null)
+const datesRef = ref(null)
+const originRef = ref(null)
+const occurrenceOrderRef = ref(null)
+const identificationRef = ref(null)
+const bibliographyRef = ref(null)
+const generalRef = ref(null)
+const contributorsRef = ref(null)
+const managementsRef = ref(null)
+const anchor = ref(null)
+
+// Parse initial props
+const identifiers = JSON.parse(props.initIdentifiers)
+const roles = JSON.parse(props.initRoles)
+const contributorRoles = JSON.parse(props.initContributorRoles)
+const urls = JSON.parse(props.initUrls)
+const data = JSON.parse(props.initData)
+
+// Data refs
+const manuscript = ref(null)
+const locations = ref([])
+const contents = ref(null)
+const historicalPersons = ref([])
+const origins = ref(null)
+const bibliographies = ref({
+  articles: [],
+  blogPosts: [],
+  books: [],
+  bookChapters: [],
+  onlineSources: [],
+  phds: [],
+  bibVarias: [],
+})
+const generals = ref(null)
+const dbbePersons = ref([])
+const managements = ref([])
+
+// Helper functions for model creation
+const createPersonRolesModel = () => {
+  const personRolesModel = {}
+  for (let role of roles) {
+    personRolesModel[role.systemName] = []
+  }
+  return personRolesModel
 }
 
-export default {
-    mixins: [ AbstractEntityEdit ],
-    components: {
-      resetModal: Reset,
-      invalidModal: Invalid,
-      saveModal: Save
+const createContributorRolesModel = () => {
+  const contributorRolesModel = {}
+  for (let role of contributorRoles) {
+    contributorRolesModel[role.systemName] = []
+  }
+  return contributorRolesModel
+}
+
+const createIdentificationModel = () => {
+  const identificationModel = {}
+  for (let identifier of identifiers) {
+    identificationModel[identifier.systemName] = null
+  }
+  return identificationModel
+}
+
+// Reactive model
+const model = reactive({
+  locatedAt: {
+    location: {
+      id: null,
+      regionWithParents: null,
+      institution: null,
+      collection: null,
     },
-    data() {
-        let data = {
-            identifiers: JSON.parse(this.initIdentifiers),
-            roles: JSON.parse(this.initRoles),
-            contributorRoles: JSON.parse(this.initContributorRoles),
-            manuscript: null,
-            locations: null,
-            contents: null,
-            historicalPersons: null,
-            origins: null,
-            bibliographies: null,
-            statuses: null,
-            model: {
-                locatedAt: {
-                    location: {
-                        id: null,
-                        regionWithParents: null,
-                        institution: null,
-                        collection: null,
-                    },
-                    shelf: null,
-                    extra: null,
-                },
-                contents: {
-                    contents: [],
-                },
-                personRoles: {},
-                contributorRoles: {},
-                dates: [],
-                origin: {origin: null},
-                occurrenceOrder: {occurrenceOrder: []},
-                identification: {},
-                bibliography: {
-                    articles: [],
-                    blogPosts: [],
-                    books: [],
-                    bookChapters: [],
-                    onlineSources: [],
-                    phds: [],
-                    bibVarias: [],
-                },
-                general: {
-                    acknowledgements: [],
-                    publicComment: null,
-                    privateComment: null,
-                    illustrated: null,
-                    status: null,
-                    public: null,
-                },
-                managements: {
-                    managements: [],
-                },
-            },
-            panels: [
-                'location',
-                'contents',
-                'persons',
-                'dates',
-                'origin',
-                'occurrenceOrder',
-                'identification',
-                'bibliography',
-                'general',
-                'contributors',
-                'managements',
-            ],
-        }
-        for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
-        }
-        for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = [];
-        }
-        for (let role of data.contributorRoles) {
-            data.model.contributorRoles[role.systemName] = [];
-        }
-        return data
-    },
-    created () {
-        this.manuscript = this.data.manuscript;
+    shelf: null,
+    extra: null,
+  },
+  contents: {
+    contents: [],
+  },
+  personRoles: createPersonRolesModel(),
+  contributorRoles: createContributorRolesModel(),
+  dates: [],
+  origin: { origin: null },
+  occurrenceOrder: { occurrenceOrder: [] },
+  identification: createIdentificationModel(),
+  bibliography: {
+    articles: [],
+    blogPosts: [],
+    books: [],
+    bookChapters: [],
+    onlineSources: [],
+    phds: [],
+    bibVarias: [],
+  },
+  general: {
+    acknowledgements: [],
+    publicComment: null,
+    privateComment: null,
+    illustrated: null,
+    status: null,
+    public: null,
+  },
+  managements: {
+    managements: [],
+  },
+})
 
-        this.locations = [];
-        this.contents = this.data.contents;
-        this.historicalPersons = [];
-        this.origins = this.data.origins;
-        this.bibliographies = {
-            articles: [],
-            blogPosts: [],
-            books: [],
-            bookChapters: [],
-            onlineSources: [],
-            phds: [],
-            bibVarias: [],
-        };
-        this.generals = {
-            acknowledgements: this.data.acknowledgements,
-            statuses: this.data.statuses,
-        };
-        this.dbbePersons = this.data.dbbePersons;
-        this.managements = this.data.managements;
-    },
-    methods: {
-        loadAsync() {
-            this.reload('locations');
-            this.reload('historicalPersons');
-            this.reload('books');
-            this.reload('articles');
-            this.reload('bookChapters');
-            this.reload('onlineSources');
-            this.reload('blogPosts');
-            this.reload('phds');
-            this.reload('bibVarias');
-        },
-        setData() {
-            if (this.manuscript != null) {
-                // Located At
-                this.model.locatedAt = this.manuscript.locatedAt
+const panels = [
+  'location',
+  'contents',
+  'persons',
+  'dates',
+  'origin',
+  'occurrenceOrder',
+  'identification',
+  'bibliography',
+  'general',
+  'contributors',
+  'managements',
+]
 
-                // Contents
-                this.model.contents = {
-                    contents: this.manuscript.contents,
-                }
+// State refs
+const alerts = ref([])
+const originalModel = ref({})
+const resetModal = ref(false)
+const invalidModal = ref(false)
+const reloads = ref([])
 
-                // PersonRoles
-                for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.manuscript.personRoles == null ? [] : this.manuscript.personRoles[role.systemName];
-                }
+// Composables
+const handleError = useErrorAlert(alerts)
 
-                // Dates
-                if (this.manuscript.dates != null) {
-                    this.model.dates = this.manuscript.dates;
-                }
+const panelRefs = computed(() => ({
+  location: locationRef.value,
+  contents: contentsRef.value,
+  persons: personsRef.value,
+  dates: datesRef.value,
+  origin: originRef.value,
+  occurrenceOrder: occurrenceOrderRef.value,
+  identification: identificationRef.value,
+  bibliography: bibliographyRef.value,
+  general: generalRef.value,
+  contributors: contributorsRef.value,
+  managements: managementsRef.value,
+}))
 
-                // Origin
-                this.model.origin = {
-                    origin: this.manuscript.origin,
-                }
 
-                // Occurrence order
-                this.model.occurrenceOrder = {
-                    occurrenceOrder: this.manuscript.occurrences,
-                }
+const {
+  invalidPanels,
+  validateForms,
+  checkInvalidPanels,
+} = usePanelValidation(panelRefs, panels)
 
-                // Bibliography
-                this.model.bibliography = {
-                    articles: [],
-                    blogPosts: [],
-                    books: [],
-                    bookChapters: [],
-                    onlineSources: [],
-                    phds: [],
-                    bibVarias: [],
-                }
-                if (this.manuscript.bibliography != null) {
-                    for (let bib of this.manuscript.bibliography) {
-                        switch (bib['type']) {
-                        case 'article':
-                            this.model.bibliography.articles.push(bib)
-                            break
-                        case 'blogPost':
-                            this.model.bibliography.blogPosts.push(bib)
-                            break
-                        case 'book':
-                            this.model.bibliography.books.push(bib)
-                            break
-                        case 'bookChapter':
-                            this.model.bibliography.bookChapters.push(bib)
-                            break
-                        case 'onlineSource':
-                            this.model.bibliography.onlineSources.push(bib)
-                            break
-                        case 'phd':
-                            this.model.bibliography.phds.push(bib)
-                            break
-                        case 'bibVaria':
-                            this.model.bibliography.bibVarias.push(bib)
-                            break
-                        }
-                    }
-                }
+const {
+  diff,
+  calcDiff,
+} = useModelDiff(panelRefs, panels)
 
-                // Identification
-                this.model.identification = {}
-                for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.manuscript.identifications == null ? [] : this.manuscript.identifications[identifier.systemName];
-                }
+const {
+  scrollY,
+  isSticky,
+  stickyStyle,
+  initScrollListener,
+} = useStickyNav(anchor)
 
-                // General
-                this.model.general = {
-                    acknowledgements: this.manuscript.acknowledgements,
-                    publicComment: this.manuscript.publicComment,
-                    privateComment: this.manuscript.privateComment,
-                    status: this.manuscript.status,
-                    illustrated: this.manuscript.illustrated,
-                    public: this.manuscript.public,
-                }
+const {
+  saveModal,
+  saveAlerts,
+  openRequests,
+  postUpdatedModel,
+  putUpdatedModel
+} = useSaveModel(urls)
 
-                // ContributorRoles
-                for (let role of this.contributorRoles) {
-                    this.model.contributorRoles[role.systemName] = this.manuscript.contributorRoles == null ? [] : this.manuscript.contributorRoles[role.systemName];
-                }
+// Methods
+const setData = () => {
+  manuscript.value = data.manuscript
+  locations.value = []
+  contents.value = data.contents
+  historicalPersons.value = []
+  origins.value = data.origins
+  bibliographies.value = {
+    articles: [],
+    blogPosts: [],
+    books: [],
+    bookChapters: [],
+    onlineSources: [],
+    phds: [],
+    bibVarias: [],
+  }
+  generals.value = {
+    acknowledgements: data.acknowledgements,
+    statuses: data.statuses,
+  }
+  dbbePersons.value = data.dbbePersons
+  managements.value = data.managements
 
-                // Management
-                this.model.managements = {
-                    managements: this.manuscript.managements,
-                }
-            }
-            else {
-                // Set defaults
-                this.model.general.illustrated = false;
-                this.model.general.public = true;
-            }
-        },
-        save() {
-            this.openRequests++
-            this.saveModal = false
-            if (this.manuscript == null) {
-                axios.post(this.urls['manuscript_post'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['manuscript_get'].replace('manuscript_id', response.data.id)
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-            else {
-                axios.put(this.urls['manuscript_put'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['manuscript_get']
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the manuscript data.', login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-        },
-        reload(type) {
-            switch (type) {
-            case 'articles':
-            case 'blogPosts':
-            case 'books':
-            case 'bookChapters':
-            case 'onlineSources':
-            case 'phds':
-            case 'bibVarias':
-                this.reloadNestedItems(type, this.bibliographies);
-                break;
-            case 'acknowledgements':
-            case 'statuses':
-                this.reloadNestedItems(type, this.generals);
-                break;
-            default:
-                this.reloadSimpleItems(type);
-            }
-        },
+  if (manuscript.value != null) {
+    // Located At
+    model.locatedAt = manuscript.value.locatedAt
+
+    // Contents
+    model.contents = {
+      contents: manuscript.value.contents,
     }
+
+    // PersonRoles
+    for (let role of roles) {
+      model.personRoles[role.systemName] = manuscript.value.personRoles == null ? [] : manuscript.value.personRoles[role.systemName]
+    }
+
+    // Dates
+    if (manuscript.value.dates != null) {
+      model.dates = manuscript.value.dates
+    }
+
+    // Origin
+    model.origin = {
+      origin: manuscript.value.origin,
+    }
+
+    // Occurrence order
+    model.occurrenceOrder = {
+      occurrenceOrder: manuscript.value.occurrences,
+    }
+
+    // Bibliography
+    model.bibliography = {
+      articles: [],
+      blogPosts: [],
+      books: [],
+      bookChapters: [],
+      onlineSources: [],
+      phds: [],
+      bibVarias: [],
+    }
+    if (manuscript.value.bibliography != null) {
+      for (let bib of manuscript.value.bibliography) {
+        switch (bib['type']) {
+          case 'article':
+            model.bibliography.articles.push(bib)
+            break
+          case 'blogPost':
+            model.bibliography.blogPosts.push(bib)
+            break
+          case 'book':
+            model.bibliography.books.push(bib)
+            break
+          case 'bookChapter':
+            model.bibliography.bookChapters.push(bib)
+            break
+          case 'onlineSource':
+            model.bibliography.onlineSources.push(bib)
+            break
+          case 'phd':
+            model.bibliography.phds.push(bib)
+            break
+          case 'bibVaria':
+            model.bibliography.bibVarias.push(bib)
+            break
+        }
+      }
+    }
+
+    // Identification
+    model.identification = {}
+    for (let identifier of identifiers) {
+      model.identification[identifier.systemName] = manuscript.value.identifications == null ? [] : manuscript.value.identifications[identifier.systemName]
+    }
+
+    // General
+    model.general = {
+      acknowledgements: manuscript.value.acknowledgements,
+      publicComment: manuscript.value.publicComment,
+      privateComment: manuscript.value.privateComment,
+      status: manuscript.value.status,
+      illustrated: manuscript.value.illustrated,
+      public: manuscript.value.public,
+    }
+
+    // ContributorRoles
+    for (let role of contributorRoles) {
+      model.contributorRoles[role.systemName] = manuscript.value.contributorRoles == null ? [] : manuscript.value.contributorRoles[role.systemName]
+    }
+
+    // Management
+    model.managements = {
+      managements: manuscript.value.managements,
+    }
+  } else {
+    // Set defaults
+    model.general.illustrated = false
+    model.general.public = true
+  }
 }
+
+const loadAsync = () => {
+  reload('locations',locations.value)
+  reload('historicalPersons',historicalPersons.value)
+  reload('books',bibliographies.value)
+  reload('articles',bibliographies.value)
+  reload('bookChapters',bibliographies.value)
+  reload('onlineSources',bibliographies.value)
+  reload('blogPosts',bibliographies.value)
+  reload('phds',bibliographies.value)
+  reload('bibVarias',bibliographies.value)
+}
+
+const save = () => {
+  openRequests.value++
+  saveModal.value = false
+  if (manuscript.value == null) {
+    postUpdatedModel('manuscript', toSave())
+  } else {
+    putUpdatedModel('manuscript', toSave())
+  }
+}
+
+const reload = (type,items) => {
+  switch (type) {
+    case 'articles':
+    case 'blogPosts':
+    case 'books':
+    case 'bookChapters':
+    case 'onlineSources':
+    case 'phds':
+    case 'bibVarias':
+      reloadNestedItems(type, bibliographies.value)
+      break
+    case 'acknowledgements':
+    case 'statuses':
+      reloadNestedItems(type, generals.value)
+      break
+    default:
+      reloadSimpleItems(type,items)
+  }
+}
+
+const validated = (isValid, errors) => {
+  checkInvalidPanels()
+  calcDiff()
+}
+
+const toSave = () => {
+  let result = {}
+  for (let diffItem of diff.value) {
+    if ('keyGroup' in diffItem) {
+      if (!(diffItem.keyGroup in result)) {
+        result[diffItem.keyGroup] = {}
+      }
+      result[diffItem.keyGroup][diffItem.key] = diffItem.value
+    } else {
+      result[diffItem.key] = diffItem.value
+    }
+  }
+  return result
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(() => {
+    validateForms()
+  })
+}
+
+const saveButton = () => {
+  validateForms()
+  if (invalidPanels.value) {
+    invalidModal.value = true
+  } else {
+    saveModal.value = true
+  }
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
+const reloadSimpleItems = (type,items) => {
+  if (items) {
+    reloadItems(
+        type,
+        [type],
+        [items],
+        urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+    )
+  }
+}
+
+const reloadNestedItems = (type, parent) => {
+  reloadItems(
+      type,
+      [type],
+      Array.isArray(parent) ? parent.map(p => p[type]) : [parent[type]],
+      urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+  )
+}
+
+const reloadItems = (type, keys, items, url, filters) => {
+  disablePanels(panelRefs, panels, keys)
+  reloads.value.push(type)
+  axios.get(url)
+      .then((response) => {
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels, keys)
+        let typeIndex = reloads.value.indexOf(type)
+        if (typeIndex > -1) {
+          reloads.value.splice(typeIndex, 1)
+        }
+      })
+      .catch(handleError('Something went wrong while loading the data'))
+}
+
+// Lifecycle
+onMounted(() => {
+  initScrollListener()
+  setData()
+  originalModel.value = JSON.parse(JSON.stringify(model))
+
+  nextTick(() => {
+    if (!data.clone) {
+      for (let panel of panels) {
+        const panelRef = panelRefs.value[panel]
+        if (panelRef) {
+          panelRef.init()
+        }
+      }
+    }
+  })
+
+  loadAsync()
+})
 </script>
