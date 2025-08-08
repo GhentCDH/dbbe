@@ -685,7 +685,15 @@ export default {
             };
         }
 
-        return data;
+        return {
+          ...data,
+          config: {
+            groupIsOpen: [],
+          },
+          defaultConfig: {
+            groupIsOpen: [],
+          },
+        };
     },
     created(){
       this.session = useSearchSession(this);
