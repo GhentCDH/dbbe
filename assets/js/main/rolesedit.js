@@ -2,7 +2,7 @@ import RolesEditApp from '@/apps/RolesEditApp'
 import VueFormGenerator from 'vue-form-generator'
 import Vue from 'vue';
 import VueMultiselect from 'vue-multiselect';
-import fieldMultiselectClear from '@/Components/FormFields/fieldMultiselectClear.vue';
+import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import * as uiv from 'uiv';
 
 Vue.use(uiv);

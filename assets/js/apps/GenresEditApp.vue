@@ -54,13 +54,13 @@ import { reactive, watch } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
-import Panel from '@/Components/Edit/Panel.vue'
-import Edit from '@/Components/Edit/Modals/Edit.vue'
-import Delete from '@/Components/Edit/Modals/Delete.vue'
-import Alerts from '@/Components/Alerts.vue'
+import Panel from '@/components/Edit/Panel.vue'
+import Edit from '@/components/Edit/Modals/Edit.vue'
+import Delete from '@/components/Edit/Modals/Delete.vue'
+import Alerts from '@/components/Alerts.vue'
 
 
-import EditListRow from '@/Components/Edit/EditListRow.vue'
+import EditListRow from '@/components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 

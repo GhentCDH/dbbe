@@ -163,8 +163,8 @@ import {
 import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
-import Bibliography from "@/Components/Edit/Panels/Bibliography.vue";
-import Person from "@/Components/Edit/Panels/Person.vue";
+import Bibliography from "@/components/Edit/Panels/Bibliography.vue";
+import Person from "@/components/Edit/Panels/Person.vue";
 
 Vue.component('panel', Panel)
 

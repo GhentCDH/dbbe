@@ -266,13 +266,13 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import Delete from '../Components/Edit/Modals/Delete.vue';
-import Alerts from "@/Components/Alerts.vue";
+import Delete from '../components/Edit/Modals/Delete.vue';
+import Alerts from "@/components/Alerts.vue";
 import qs from 'qs';
 import VueTables from 'vue-tables-2';
 import { nextTick } from 'vue';
 
-import ActiveFilters from '../Components/Search/ActiveFilters.vue';
+import ActiveFilters from '../components/Search/ActiveFilters.vue';
 import {
   createMultiSelect,
   createMultiMultiSelect,
@@ -287,7 +287,7 @@ import { useFormValidation } from "@/composables/searchAppComposables/useFormVal
 import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
-import CollectionManager from '../Components/Search/CollectionManager.vue';
+import CollectionManager from '../components/Search/CollectionManager.vue';
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";

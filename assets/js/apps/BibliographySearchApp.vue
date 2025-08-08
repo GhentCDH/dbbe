@@ -373,10 +373,10 @@ import {
 import { greekFont } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 
-import Alerts from "@/Components/Alerts.vue";
-import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import Merge from '../Components/Edit/Modals/Merge.vue';
-import CollectionManager from '../Components/Search/CollectionManager.vue';
+import Alerts from "@/components/Alerts.vue";
+import ActiveFilters from '../components/Search/ActiveFilters.vue';
+import Merge from '../components/Edit/Modals/Merge.vue';
+import CollectionManager from '../components/Search/CollectionManager.vue';
 
 import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
 import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
@@ -391,7 +391,7 @@ import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil"
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import validatorUtil from "@/helpers/validatorUtil";
-import Delete from "@/Components/Edit/Modals/Delete.vue";
+import Delete from "@/components/Edit/Modals/Delete.vue";
 
 const props = defineProps({
   isEditor: {

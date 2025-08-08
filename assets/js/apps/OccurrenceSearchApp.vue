@@ -308,10 +308,10 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import qs from 'qs';
 import VueTables from 'vue-tables-2';
 
-import Delete from '../Components/Edit/Modals/Delete.vue';
-import Alerts from "@/Components/Alerts.vue";
-import ActiveFilters from '../Components/Search/ActiveFilters.vue';
-import CollectionManager from '../Components/Search/CollectionManager.vue';
+import Delete from '../components/Edit/Modals/Delete.vue';
+import Alerts from "@/components/Alerts.vue";
+import ActiveFilters from '../components/Search/ActiveFilters.vue';
+import CollectionManager from '../components/Search/CollectionManager.vue';
 import { nextTick } from 'vue';
 
 import {

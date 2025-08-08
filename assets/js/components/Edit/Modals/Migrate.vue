@@ -4,47 +4,51 @@
         size="lg"
         auto-focus
         :backdrop="false"
-        @input="$emit('cancel')">
+        @input="$emit('cancel')"
+    >
         <alerts
             :alerts="alerts"
-            @dismiss="$emit('dismiss-alert', $event)" />
+            @dismiss="$emit('dismiss-alert', $event)"
+        />
         <vue-form-generator
             :schema="schema"
-            :model="mergeModel"
+            :model="migrateModel"
             :options="formOptions"
-            @validated="mergeFormValidated" />
-        <div
-            v-if="mergeModel.primary && mergeModel.secondary"
-            class="panel panel-default">
-            <div class="panel-heading">Preview of the merge</div>
-            <div class="panel-body">
-                <slot name="preview" />
-            </div>
-        </div>
+            @validated="validated"
+        />
         <div slot="header">
             <h4 class="modal-title">
-                Merge {{ formatType(mergeModel.submitType) }}
+                Migrate {{ formatType(migrateModel.submitType) }} to {{ formatType(migrateModel.toType) }}
             </h4>
         </div>
         <div slot="footer">
             <btn @click="$emit('cancel')">Cancel</btn>
             <btn
-                :disabled="JSON.stringify(mergeModel) === JSON.stringify(originalMergeModel)"
+                :disabled="JSON.stringify(migrateModel) === JSON.stringify(originalMigrateModel)"
                 type="warning"
-                @click="$emit('reset')">
+                @click="$emit('reset')"
+            >
                 Reset
             </btn>
             <btn
                 type="success"
-                :disabled="invalidMergeForm"
-                @click="$emit('confirm')">
-                Merge
+                :disabled="invalidForm"
+                @click="$emit('confirm')"
+            >
+                Migrate
             </btn>
         </div>
     </modal>
 </template>
 <script>
-import Alert from "@/Components/Alerts.vue";
+import Vue from 'vue';
+import Alert from "@/components/Alerts.vue";
+import * as uiv from 'uiv';
+import VueFormGenerator from 'vue-form-generator'
+
+Vue.use(uiv);
+Vue.use(VueFormGenerator);
+
 
 export default {
   components: {
@@ -59,11 +63,11 @@ export default {
             type: Object,
             default: () => {return {}},
         },
-        mergeModel: {
+        migrateModel: {
             type: Object,
             default: () => {return {}},
         },
-        originalMergeModel: {
+        originalMigrateModel: {
             type: Object,
             default: () => {return {}},
         },
@@ -83,12 +87,16 @@ export default {
                 validationErrorClass: "has-error",
                 validationSuccessClass: "success"
             },
-            invalidMergeForm: true,
+            invalidForm: true,
         }
     },
     methods: {
-        mergeFormValidated(isValid, errors) {
-            this.invalidMergeForm = !(isValid && this.mergeModel.primary && this.mergeModel.secondary && this.mergeModel.primary.id != this.mergeModel.secondary.id)
+        validated(isValid, errors) {
+            this.invalidForm = !(
+                isValid
+                && this.migrateModel.primary
+                && this.migrateModel.secondary
+            )
         },
     }
 }

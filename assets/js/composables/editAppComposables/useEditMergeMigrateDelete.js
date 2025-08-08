@@ -3,7 +3,7 @@ import axios from 'axios';
 import { isLoginError } from '@/helpers/errorUtil';
 import Vue from 'vue';
 import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../Components/FormFields/fieldMultiselectClear.vue'
+import fieldMultiselectClear from '../../components/FormFields/fieldMultiselectClear.vue'
 
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)

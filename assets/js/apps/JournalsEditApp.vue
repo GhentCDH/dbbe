@@ -117,13 +117,13 @@ import axios from 'axios'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
-import Edit from '@/Components/Edit/Modals/Edit.vue'
-import Delete from '@/Components/Edit/Modals/Delete.vue'
-import Panel from '@/Components/Edit/Panel.vue'
-import Alerts from '@/Components/Alerts.vue'
-import EditListRow from '@/Components/Edit/EditListRow.vue'
-import UrlPanel from '@/Components/Edit/Panels/Url.vue'
-import Merge from "@/Components/Edit/Modals/Merge.vue";
+import Edit from '@/components/Edit/Modals/Edit.vue'
+import Delete from '@/components/Edit/Modals/Delete.vue'
+import Panel from '@/components/Edit/Panel.vue'
+import Alerts from '@/components/Alerts.vue'
+import EditListRow from '@/components/Edit/EditListRow.vue'
+import UrlPanel from '@/components/Edit/Panels/Url.vue'
+import Merge from "@/components/Edit/Modals/Merge.vue";
 
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 

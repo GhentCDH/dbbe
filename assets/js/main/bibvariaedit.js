@@ -2,7 +2,7 @@ import Vue from 'vue';
 import BibVariaEditApp from '@/apps/BibVariaEditApp'
 import * as uiv from 'uiv'
 import VueFormGenerator from 'vue-form-generator'
-import fieldMultiselectClear from '@/Components/FormFields/fieldMultiselectClear.vue';
+import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import VueMultiselect from 'vue-multiselect';
 
 Vue.use(uiv);

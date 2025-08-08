@@ -1,13 +1,13 @@
 import Vue from 'vue';
 import BibliographySearchApp from '@/apps/BibliographySearchApp'
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import fieldRadio from '../components/FormFields/fieldRadio.vue';
 import VueTables from 'vue-tables-2';
-import Alerts from '../Components/Alerts.vue'
+import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
 import VueFormGenerator from 'vue-form-generator'
 import VueMultiselect from 'vue-multiselect';
-import fieldMultiselectClear from '@/Components/FormFields/fieldMultiselectClear.vue';
-import fieldCheckboxes from '../Components/FormFields/fieldCheckboxes.vue';
+import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
+import fieldCheckboxes from '../components/FormFields/fieldCheckboxes.vue';
 import * as uiv from 'uiv'
 
 Vue.use(uiv);

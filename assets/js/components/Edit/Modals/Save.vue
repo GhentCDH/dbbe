@@ -71,7 +71,7 @@
 <script>
 
 import axios from 'axios'
-import Alert from "@/Components/Alerts.vue";
+import Alert from "@/components/Alerts.vue";
 
 export default {
     components: {

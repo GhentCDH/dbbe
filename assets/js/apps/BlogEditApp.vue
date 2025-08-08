@@ -141,14 +141,14 @@
 import { ref, reactive, onMounted, nextTick, watch,computed} from 'vue'
 import axios from 'axios'
 import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
-import Reset from "@/Components/Edit/Modals/Reset.vue"
-import Invalid from "@/Components/Edit/Modals/Invalid.vue"
-import Save from "@/Components/Edit/Modals/Save.vue"
-import BasicBlog from "@/Components/Edit/Panels/BasicBlog.vue";
-import Url from "@/Components/Edit/Panels/Url.vue";
-import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue";
-import Alerts from "@/Components/Alerts.vue";
-import Management from "@/Components/Edit/Panels/Management.vue";
+import Reset from "@/components/Edit/Modals/Reset.vue"
+import Invalid from "@/components/Edit/Modals/Invalid.vue"
+import Save from "@/components/Edit/Modals/Save.vue"
+import BasicBlog from "@/components/Edit/Panels/BasicBlog.vue";
+import Url from "@/components/Edit/Panels/Url.vue";
+import GeneralBibItem from "@/components/Edit/Panels/GeneralBibItem.vue";
+import Alerts from "@/components/Alerts.vue";
+import Management from "@/components/Edit/Panels/Management.vue";
 import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
 import {useErrorAlert} from "@/composables/useErrorAlert";
 import {usePanelValidation} from "@/composables/editAppComposables/usePanelValidation";

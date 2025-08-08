@@ -146,13 +146,13 @@ import Vue from 'vue'
 import axios from 'axios'
 
 import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
-import Reset from "@/Components/Edit/Modals/Reset.vue"
-import Invalid from "@/Components/Edit/Modals/Invalid.vue"
-import Save from "@/Components/Edit/Modals/Save.vue"
-import BasicOnlineSource from "@/Components/Edit/Panels/BasicOnlineSource.vue";
-import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue";
-import Management from "@/Components/Edit/Panels/Management.vue";
-import Url from "@/Components/Edit/Panels/Url.vue";
+import Reset from "@/components/Edit/Modals/Reset.vue"
+import Invalid from "@/components/Edit/Modals/Invalid.vue"
+import Save from "@/components/Edit/Modals/Save.vue"
+import BasicOnlineSource from "@/components/Edit/Panels/BasicOnlineSource.vue";
+import GeneralBibItem from "@/components/Edit/Panels/GeneralBibItem.vue";
+import Management from "@/components/Edit/Panels/Management.vue";
+import Url from "@/components/Edit/Panels/Url.vue";
 import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
 import {usePanelValidation} from "@/composables/editAppComposables/usePanelValidation";
 import {useModelDiff} from "@/composables/editAppComposables/useModelDiff";

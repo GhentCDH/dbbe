@@ -180,16 +180,16 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
-import Reset from "@/Components/Edit/Modals/Reset.vue"
-import Invalid from "@/Components/Edit/Modals/Invalid.vue"
-import Save from "@/Components/Edit/Modals/Save.vue"
-import Person from "@/Components/Edit/Panels/Person.vue"
-import BasicPhd from "@/Components/Edit/Panels/BasicPhd.vue"
-import Url from "@/Components/Edit/Panels/Url.vue"
-import Identification from "@/Components/Edit/Panels/Identification.vue"
-import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue"
-import Management from "@/Components/Edit/Panels/Management.vue"
-import Alerts from "@/Components/Alerts.vue"
+import Reset from "@/components/Edit/Modals/Reset.vue"
+import Invalid from "@/components/Edit/Modals/Invalid.vue"
+import Save from "@/components/Edit/Modals/Save.vue"
+import Person from "@/components/Edit/Panels/Person.vue"
+import BasicPhd from "@/components/Edit/Panels/BasicPhd.vue"
+import Url from "@/components/Edit/Panels/Url.vue"
+import Identification from "@/components/Edit/Panels/Identification.vue"
+import GeneralBibItem from "@/components/Edit/Panels/GeneralBibItem.vue"
+import Management from "@/components/Edit/Panels/Management.vue"
+import Alerts from "@/components/Alerts.vue"
 
 import { useStickyNav } from '@/composables/editAppComposables/useStickyNav'
 import { useModelDiff } from '@/composables/editAppComposables/useModelDiff'

@@ -1,17 +1,17 @@
 import Vue from 'vue';
 import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'; // Root component
-import Delete from "../Components/Edit/Modals/Delete.vue"; // Custom component
-import CollectionManager from "../Components/Search/CollectionManager.vue"; // Custom component
+import Delete from "../components/Edit/Modals/Delete.vue"; // Custom component
+import CollectionManager from "../components/Search/CollectionManager.vue"; // Custom component
 import VueCookies from "vue-cookies"; // Cookies library
 import VueFormGenerator from "vue-form-generator"; // Form generator library
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
+import fieldRadio from '../components/FormFields/fieldRadio.vue';
 import VueTables from 'vue-tables-2';
-import fieldMultiselectClear from '../Components/FormFields/fieldMultiselectClear.vue'
-import Alerts from '../Components/Alerts.vue'
+import fieldMultiselectClear from '../components/FormFields/fieldMultiselectClear.vue'
+import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
 import VueMultiselect from 'vue-multiselect'
 import * as uiv from 'uiv'
-import fieldCheckboxes from "@/Components/FormFields/fieldCheckboxes.vue";
+import fieldCheckboxes from "@/components/FormFields/fieldCheckboxes.vue";
 
 window.axios = axios;
 
