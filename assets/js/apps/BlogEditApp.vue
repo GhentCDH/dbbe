@@ -151,10 +151,10 @@ import Alerts from "@/Components/Alerts.vue";
 import Management from "@/Components/Edit/Panels/Management.vue";
 import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
 import {useErrorAlert} from "@/composables/useErrorAlert";
-import {usePanelValidation} from "@/composables/usePanelValidation";
-import {useModelDiff} from "@/composables/useModelDiff";
-import {useStickyNav} from "@/composables/useStickyNav";
-import {useSaveModel} from "@/composables/useSaveModel";
+import {usePanelValidation} from "@/composables/editAppComposables/usePanelValidation";
+import {useModelDiff} from "@/composables/editAppComposables/useModelDiff";
+import {useStickyNav} from "@/composables/editAppComposables/useStickyNav";
+import {useSaveModel} from "@/composables/editAppComposables/useSaveModel";
 
 // Props
 const props = defineProps({

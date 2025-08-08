@@ -66,7 +66,6 @@ export default {
         let data =  {
             schema: {
                 fields: {
-
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',

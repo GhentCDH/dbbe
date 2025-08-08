@@ -62,7 +62,7 @@ import EditListRow from '@/Components/Edit/EditListRow.vue'
 
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField, dependencyField } from '@/helpers/formFieldUtils'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initUrls: {

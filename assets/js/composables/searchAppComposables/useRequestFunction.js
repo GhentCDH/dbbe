@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import qs from 'qs';
-import { pushHistory } from '@/helpers/abstractSearchHelpers/historyUtil';
+import { pushHistory } from '@/helpers/searchAppHelpers/historyUtil';
 
 export function useRequestFunction({
                                          urls,

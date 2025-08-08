@@ -81,7 +81,7 @@ import VueFormGenerator from 'vue-form-generator'
 import axios from 'axios'
 import Panel from '@/Components/Edit/Panel.vue'
 
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import {
   createMultiSelect, dependencyField,
   enableField, loadLocationField

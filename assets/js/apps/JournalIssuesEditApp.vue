@@ -53,7 +53,7 @@ import axios from 'axios';
 import VueFormGenerator from 'vue-form-generator';
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils';
 import { isLoginError } from '@/helpers/errorUtil';
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete';
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete';
 import Alerts from '@/Components/Alerts.vue';
 import EditListRow from '@/Components/Edit/EditListRow.vue';
 import Edit from '@/Components/Edit/Modals/Edit.vue';

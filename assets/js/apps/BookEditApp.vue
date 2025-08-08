@@ -188,10 +188,10 @@ import Save from '@/Components/Edit/Modals/Save.vue'
 
 import { getErrorMessage, isLoginError } from '@/helpers/errorUtil'
 import { disablePanels, enablePanels, updateItems } from '@/helpers/panelUtil'
-import { usePanelValidation } from '@/composables/usePanelValidation'
-import { useModelDiff } from '@/composables/useModelDiff'
-import { useStickyNav } from '@/composables/useStickyNav'
-import { useSaveModel } from '@/composables/useSaveModel'
+import { usePanelValidation } from '@/composables/editAppComposables/usePanelValidation'
+import { useModelDiff } from '@/composables/editAppComposables/useModelDiff'
+import { useStickyNav } from '@/composables/editAppComposables/useStickyNav'
+import { useSaveModel } from '@/composables/editAppComposables/useSaveModel'
 import Person from "@/Components/Edit/Panels/Person.vue";
 import BasicBook from "@/Components/Edit/Panels/BasicBook.vue";
 import Url from "@/Components/Edit/Panels/Url.vue";

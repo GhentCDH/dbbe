@@ -60,7 +60,7 @@ import Edit from '@/Components/Edit/Modals/Edit.vue'
 import Delete from '@/Components/Edit/Modals/Delete.vue'
 import EditListRow from '@/Components/Edit/EditListRow.vue'
 
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 

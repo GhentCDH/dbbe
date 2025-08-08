@@ -1,5 +1,5 @@
 import { ref, computed, watch } from 'vue';
-import { sortByName } from "@/helpers/abstractSearchHelpers/sortUtil";
+import { sortByName } from "@/helpers/searchAppHelpers/sortUtil";
 import {dependencyField, enableField} from "@/helpers/formFieldUtils";
 
 export function useSearchFields(model, schema, fields, aggregation, {

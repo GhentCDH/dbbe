@@ -378,18 +378,18 @@ import ActiveFilters from '../Components/Search/ActiveFilters.vue';
 import Merge from '../Components/Edit/Modals/Merge.vue';
 import CollectionManager from '../Components/Search/CollectionManager.vue';
 
-import { useRequestTracker } from "@/composables/abstractSearchComposables/useRequestTracker";
-import { usePaginationCount } from "@/composables/abstractSearchComposables/usePaginationCount";
-import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
-import { useEditMergeMigrateDelete } from "@/composables/useEditMergeMigrateDelete";
-import { useSearchFields } from "@/composables/abstractSearchComposables/useSearchFields";
-import { useCollectionManagement } from "@/composables/abstractSearchComposables/useCollectionManagement";
-import { useSearchSession } from "@/composables/useSearchSession";
+import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
+import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
+import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
+import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
+import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
+import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
+import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 
-import { constructFilterValues } from "@/helpers/abstractSearchHelpers/filterUtil";
-import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/historyUtil";
+import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
+import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
-import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
+import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import validatorUtil from "@/helpers/validatorUtil";
 import Delete from "@/Components/Edit/Modals/Delete.vue";
 

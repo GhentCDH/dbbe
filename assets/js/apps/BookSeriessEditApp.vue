@@ -113,7 +113,7 @@ import UrlPanel from '@/Components/Edit/Panels/Url.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import VueFormGenerator from 'vue-form-generator'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initUrls: String,

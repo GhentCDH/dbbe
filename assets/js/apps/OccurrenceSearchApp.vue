@@ -322,17 +322,17 @@ import {
 import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
-import { constructFilterValues } from "@/helpers/abstractSearchHelpers/filterUtil";
-import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/historyUtil";
+import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
+import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
+import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 
-import { useRequestTracker } from "@/composables/abstractSearchComposables/useRequestTracker";
-import { usePaginationCount } from "@/composables/abstractSearchComposables/usePaginationCount";
-import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
-import { useSearchFields } from "@/composables/abstractSearchComposables/useSearchFields";
-import { useCollectionManagement } from "@/composables/abstractSearchComposables/useCollectionManagement";
-import { useSearchSession} from "@/composables/useSearchSession";
+import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
+import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
+import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
+import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
+import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
+import { useSearchSession} from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
 const props = defineProps({
   isEditor: {

@@ -77,7 +77,7 @@ import {
   loadLocationField
 } from '@/helpers/formFieldUtils'
 import { isLoginError } from '@/helpers/errorUtil'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initUrls: {

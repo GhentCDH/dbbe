@@ -149,28 +149,6 @@ export default {
             refs: {},
             displayOrder: {},
         }
-        for (let role of this.roles) {
-            data.schemas[role.systemName] = {
-                fields: {
-                    [role.systemName]: createMultiSelect(
-                        role.name,
-                        {
-                            required: role.required,
-                            model: role.systemName,
-                        },
-                        {
-                            multiple: true,
-                            closeOnSelect: false,
-                            customLabel: ({id, name}) => {
-                                return `${id} - ${name}`
-                            },
-                        }
-                    )
-                },
-            }
-            data.refs[role.systemName] = role.systemName + 'Form'
-            data.displayOrder[role.systemName] = false
-        }
         return {
           ...data,
           changes: [],
@@ -183,6 +161,14 @@ export default {
           originalModel: {}
         }
     },
+    watch: {
+      roles: {
+        immediate: true,
+        handler(newRoles) {
+          this.buildSchemas(newRoles);
+        }
+      }
+    },
     computed: {
         fields() {
             let fields = {}
@@ -192,7 +178,36 @@ export default {
             return fields
         }
     },
+
     methods: {
+      buildSchemas(roles) {
+        let schemas = {};
+        let refs = {};
+        let displayOrder = {};
+        for (let role of roles) {
+          schemas[role.systemName] = {
+            fields: {
+              [role.systemName]: createMultiSelect(
+                  role.name,
+                  {
+                    required: role.required,
+                    model: role.systemName,
+                  },
+                  {
+                    multiple: true,
+                    closeOnSelect: false,
+                    customLabel: ({id, name}) => `${id} - ${name}`,
+                  }
+              )
+            }
+          }
+          refs[role.systemName] = role.systemName + 'Form';
+          displayOrder[role.systemName] = false;
+        }
+        this.schemas = schemas;
+        this.refs = refs;
+        this.displayOrder = displayOrder;
+      },
       init() {
         this.originalModel = JSON.parse(JSON.stringify(this.model));
         this.enableFields();
@@ -206,6 +221,7 @@ export default {
             for (let key of Object.keys(this.keys)) {
                 if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
                     for (let role of this.roles) {
+                        console.log(role.systemName, 'schemas in person')
                         this.schemas[role.systemName]['fields'][role.systemName].values = this.values;
                         enableField(this.schemas[role.systemName]['fields'][role.systemName]);
                     }

@@ -252,20 +252,20 @@ import { createMultiSelect } from '@/helpers/formFieldUtils';
 import { formatDate, greekFont } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 
-import { useRequestTracker } from "@/composables/abstractSearchComposables/useRequestTracker";
-import { usePaginationCount } from "@/composables/abstractSearchComposables/usePaginationCount";
-import { useFormValidation } from "@/composables/abstractSearchComposables/useFormValidation";
+import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
+import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
+import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
 import { useManuscriptSearchSchema } from "@/composables/useManuscriptSearch/useManuscriptSearchSchema";
-import { useEditMergeMigrateDelete } from "@/composables/useEditMergeMigrateDelete";
-import { useSearchFields } from "@/composables/abstractSearchComposables/useSearchFields";
-import { useCollectionManagement } from "@/composables/abstractSearchComposables/useCollectionManagement";
+import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
+import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
+import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import CollectionManager from '../Components/Search/CollectionManager.vue';
-import { constructFilterValues } from "@/helpers/abstractSearchHelpers/filterUtil";
-import { popHistory, pushHistory } from "@/helpers/abstractSearchHelpers/historyUtil";
+import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
+import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { axiosGet, cleanParams } from "@/helpers/abstractSearchHelpers/requestFunctionUtil";
-import { useSearchSession } from "@/composables/useSearchSession";
+import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
+import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 
 const props = defineProps({
   isEditor: {

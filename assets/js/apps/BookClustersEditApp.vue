@@ -113,7 +113,7 @@ import Alerts from '@/Components/Alerts.vue'
 import EditListRow from '@/Components/Edit/EditListRow.vue'
 import UrlPanel from '@/Components/Edit/Panels/Url.vue'
 import { isLoginError } from '@/helpers/errorUtil'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
 const props = defineProps({

@@ -83,7 +83,6 @@ export function enableField(field, model, search = false) {
         noValuesField(field, model, search);
         return;
     }
-
     if (model  != null && model[modelName] != null) {
         if (Array.isArray(model[modelName])) {
             model[modelName] = model[modelName].filter((item) =>

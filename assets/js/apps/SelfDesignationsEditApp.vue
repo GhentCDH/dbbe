@@ -95,7 +95,7 @@ import EditListRow from '@/Components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import VueFormGenerator from 'vue-form-generator'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { removeGreekAccents } from '@/helpers/formFieldUtils'
 
 const props = defineProps({

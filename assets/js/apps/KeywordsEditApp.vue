@@ -79,7 +79,7 @@ import Delete from '@/Components/Edit/Modals/Delete.vue'
 
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initPersons: { type: String, default: '[]' },

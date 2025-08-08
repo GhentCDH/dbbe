@@ -59,7 +59,7 @@ import EditListRow from "@/Components/Edit/EditListRow.vue";
 import Alert from "@/Components/Alerts.vue";
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import { isLoginError } from '@/helpers/errorUtil'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 const depUrls = {}
 
 const props = defineProps({

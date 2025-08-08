@@ -125,7 +125,7 @@ import EditListRow from '@/Components/Edit/EditListRow.vue'
 import UrlPanel from '@/Components/Edit/Panels/Url.vue'
 import Merge from "@/Components/Edit/Modals/Merge.vue";
 
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initUrls: { type: String, default: '{}' },

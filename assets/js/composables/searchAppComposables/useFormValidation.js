@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import qs from 'qs';
-import { constructFilterValues } from '@/helpers/abstractSearchHelpers/filterUtil';
+import { constructFilterValues } from '@/helpers/searchAppHelpers/filterUtil';
 
 export function useFormValidation({ model, fields, resultTableRef, defaultOrdering, emitFilter, historyRequest }) {
     const lastChangedField = ref('');

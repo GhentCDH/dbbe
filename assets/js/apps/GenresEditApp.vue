@@ -62,7 +62,7 @@ import Alerts from '@/Components/Alerts.vue'
 
 import EditListRow from '@/Components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 
 const props = defineProps({
   initUrls: {

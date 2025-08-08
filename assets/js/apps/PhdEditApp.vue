@@ -191,10 +191,10 @@ import GeneralBibItem from "@/Components/Edit/Panels/GeneralBibItem.vue"
 import Management from "@/Components/Edit/Panels/Management.vue"
 import Alerts from "@/Components/Alerts.vue"
 
-import { useStickyNav } from '@/composables/useStickyNav'
-import { useModelDiff } from '@/composables/useModelDiff'
-import { usePanelValidation } from '@/composables/usePanelValidation'
-import { useSaveModel } from '@/composables/useSaveModel'
+import { useStickyNav } from '@/composables/editAppComposables/useStickyNav'
+import { useModelDiff } from '@/composables/editAppComposables/useModelDiff'
+import { usePanelValidation } from '@/composables/editAppComposables/usePanelValidation'
+import { useSaveModel } from '@/composables/editAppComposables/useSaveModel'
 import { updateItems, disablePanels, enablePanels } from '@/helpers/panelUtil'
 import { useErrorAlert } from '@/composables/useErrorAlert'
 

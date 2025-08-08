@@ -60,7 +60,7 @@ import Panel from '@/Components/Edit/Panel.vue'
 import Alerts from '@/Components/Alerts.vue'
 import EditListRow from '@/Components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
-import { useEditMergeMigrateDelete } from '@/composables/useEditMergeMigrateDelete'
+import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
 const props = defineProps({
