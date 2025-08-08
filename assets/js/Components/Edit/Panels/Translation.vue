@@ -35,7 +35,7 @@
                         </template>
                     </td>
                     <td>
-                        <ul v-if="item.personRoles.translator.length > 1">
+                        <ul v-if="item.personRoles?.translator?.length > 1">
                             <li
                                 v-for="(translator, trIndex) in item.personRoles.translator"
                                 :key="trIndex"
@@ -83,7 +83,7 @@
                 :options="formOptions"
                 @validated="validated"
             />
-            <bibliographyPanel
+            <Bibliography
                 id="translationBibliography"
                 ref="translationBibliography"
                 header="Bibliography"
@@ -95,14 +95,14 @@
                 @validated="calcChanges"
                 @reload="reload"
             />
-            <personPanel
+            <Person
                 id="translators"
                 ref="translators"
                 header="Translators"
                 :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
-                :roles="values.personRoles"
+                :roles="values?.personRoles"
                 :model="editModel.personRoles"
-                :values="values.modernPersons"
+                :values="values?.modernPersons"
                 :keys="{modernPersons: {init: true}}"
                 :reloads="reloads"
                 @validated="calcChanges"
@@ -163,10 +163,13 @@ import {
 import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
+import Bibliography from "@/Components/Edit/Panels/Bibliography.vue";
+import Person from "@/Components/Edit/Panels/Person.vue";
 
 Vue.component('panel', Panel)
 
 export default {
+  components: {Person, Bibliography},
 
     props: {
         header: {
@@ -218,6 +221,14 @@ export default {
             delModal: false,
             schema: {
                 fields: {
+                    language: createMultiSelect(
+                        'Language',
+                        {
+                          values: [],
+                          required: true,
+                          validator: validatorUtil.required,
+                        },
+                    ),
                     text: {
                         type: 'textArea',
                         label: 'Text',
@@ -227,14 +238,6 @@ export default {
                         required: true,
                         validator: validatorUtil.string,
                     },
-                    language: createMultiSelect(
-                        'Language',
-                        {
-                            values: this.values.languages,
-                            required: true,
-                            validator: validatorUtil.required,
-                        },
-                    ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
@@ -246,9 +249,20 @@ export default {
                 },
             },
         };
-        for (const role of this.values.personRoles) {
+        if(this.values){
+          data.schema.fields.language = createMultiSelect(
+              'Language',
+              {
+                values: this.values.languages,
+                required: true,
+                validator: validatorUtil.required,
+              },
+          )
+          for (const role of this.values.personRoles) {
             this.$set(data.editModel.personRoles, role.systemName, []);
+          }
         }
+
         return {
           changes: [],
           formOptions: {
@@ -261,6 +275,13 @@ export default {
           ...data
         };
     },
+    watch: {
+      'values.languages'(newVal){
+        if (this.schema.fields.language) {
+          this.schema.fields.language.values = newVal || [];
+        }
+      }
+    },
     methods: {
         init() {
           this.originalModel = JSON.parse(JSON.stringify(this.model));
@@ -272,7 +293,8 @@ export default {
           }
         },
         enableFields(enableKeys) {
-            if (enableKeys == null) {
+          if (enableKeys == null) {
+                console.log('enableFields called without enableKeys', this.schema.fields.language)
                 enableField(this.schema.fields.language);
                 this.$refs.translators.enableFields('modernPersons');
             } else {
@@ -307,11 +329,12 @@ export default {
                 this.$refs.translators.disableFields(disableKeys);
             }
         },
-        validate() {},
-        calcChanges() {
+      validate() {},
+      calcChanges() {
             this.changes = []
             for (let key of Object.keys(this.model)) {
-                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key]) && !(this.model[key] == null && this.originalModel[key] == null)) {
+                if (JSON.stringify(this.model[key]) !== JSON.stringify(this.originalModel[key])
+                    && !(this.model[key] == null && this.originalModel[key] == null)) {
                     // translations is regarded as a single item
                     this.changes.push({
                         'key': 'translations',
