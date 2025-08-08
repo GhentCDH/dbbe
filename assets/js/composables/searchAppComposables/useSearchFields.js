@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { sortByName } from "@/helpers/searchAppHelpers/sortUtil";
 import {dependencyField, enableField} from "@/helpers/formFieldUtils";
+import {changeMode} from "@/helpers/formatUtil";
 
 export function useSearchFields(model, schema, fields, aggregation, {
     multiple = false,

@@ -15,16 +15,15 @@ export function useCollectionManagement({
     const collectionArray = ref([]);
 
     const allRowsSelected = computed(() =>
-        data.value?.data?.every(row => collectionArray.value.includes(row.id))
+        data.data?.every(row => collectionArray.value.includes(row.id))
     );
 
     function collectionToggleAll() {
-        if (!data.value || !data.value.data) return;
-
+        if (!data || !data.data) return;
         if (allRowsSelected.value) {
             clearCollection();
         } else {
-            for (const row of data.value.data) {
+            for (const row of data.data) {
                 if (!collectionArray.value.includes(row.id)) {
                     collectionArray.value.push(row.id);
                 }
