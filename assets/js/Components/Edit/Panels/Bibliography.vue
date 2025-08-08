@@ -800,10 +800,22 @@ export default {
         }
     },
     computed: {
-        // Fields is not used in this panel
         fields() {
             return {};
         }
+    },
+    watch: {
+      'values.referenceTypes'(newVal) {
+        if (this.referenceType && newVal && newVal.length > 0) {
+          this.editBookBibSchema.fields.referenceType.values = newVal;
+          this.editArticleBibSchema.fields.referenceType.values = newVal;
+          this.editBookChapterBibSchema.fields.referenceType.values = newVal;
+          this.editOnlineSourceBibSchema.fields.referenceType.values = newVal;
+          this.editBlogPostBibSchema.fields.referenceType.values = newVal;
+          this.editPhdBibSchema.fields.referenceType.values = newVal;
+          this.editBibVariaBibSchema.fields.referenceType.values = newVal;
+        }
+      }
     },
     methods: {
         init() {
@@ -817,7 +829,7 @@ export default {
         },
         enableFields(enableKeys) {
             if (enableKeys == null) {
-                if (this.referenceType) {
+                if (this.referenceType && this.values.referenceTypes.length > 0) {
                     enableField(this.editBookBibSchema.fields.referenceType);
                     enableField(this.editArticleBibSchema.fields.referenceType);
                     enableField(this.editBookChapterBibSchema.fields.referenceType);
