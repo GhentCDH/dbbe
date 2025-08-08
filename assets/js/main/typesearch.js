@@ -14,7 +14,6 @@ import fieldCheckboxes from "@/Components/FormFields/fieldCheckboxes.vue";
 Vue.use(uiv)
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
-Vue.component('FieldRadio', fieldRadio);
 Vue.use(uiv);
 Vue.use(VueTables.ServerTable);
 Vue.component('FieldCheckboxes', fieldCheckboxes);
