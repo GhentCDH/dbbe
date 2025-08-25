@@ -15,11 +15,12 @@ export function constructFilterValues(model, fields) {
             continue;
         }
         if (fieldName === 'year_from' || fieldName === 'year_to') {
-            if (!result.date) result.date = {};
-            result.date[fieldName === 'year_from' ? 'from' : 'to'] = fieldValue;
+            if (fieldValue != null && !Number.isNaN(fieldValue) && fieldValue !== '') {
+                if (!result.date) result.date = {};
+                result.date[fieldName === 'year_from' ? 'from' : 'to'] = fieldValue;
+            }
             continue;
         }
-
         const modeField = `${fieldName}_mode`;
         if (modeField in model) {
             if (model[modeField]?.[0] === 'betacode') {

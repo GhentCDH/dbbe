@@ -125,8 +125,13 @@ export function useSearchFields(model, schema, fields, aggregation, {
             currentKey === 'title_type' ||
             currentKey.endsWith('_mode');
 
-        if (value === undefined || isIgnored) return show;
-
+        if (value === undefined ||
+            value === null ||
+            value === '' ||
+            (typeof value === 'number' && isNaN(value)) ||
+            isIgnored) {
+            return show;
+        }
         if (currentKey.endsWith('_op')) {
             if (value !== 'or') {
                 show.push({

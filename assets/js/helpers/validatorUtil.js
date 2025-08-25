@@ -33,7 +33,7 @@ let resources = {
 };
 
 function checkEmpty(value, required, messages = resources) {
-    if (isNil(value) || value === "") {
+    if (isNil(value) || value === "" || (typeof value === 'number' && isNaN(value))) {
         if (required) {
             return [msg(messages.fieldIsRequired)];
         } else {
