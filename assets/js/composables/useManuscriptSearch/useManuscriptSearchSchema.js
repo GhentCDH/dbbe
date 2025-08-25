@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import VueFormGenerator from 'vue-form-generator';
 import {createLanguageToggle, createMultiMultiSelect, createMultiSelect} from "@/helpers/formFieldUtils";
 import {YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
+import validatorUtil from "@/helpers/validatorUtil";
 
 export function useManuscriptSearchSchema(idList = []) {
     const schema = ref({
@@ -24,7 +25,7 @@ export function useManuscriptSearchSchema(idList = []) {
             model: 'year_from',
             min: YEAR_MIN,
             max: YEAR_MAX,
-            validator: VueFormGenerator.validators.number,
+            validator: validatorUtil.number,
         };
 
         schemaFields.year_to = {
@@ -34,7 +35,7 @@ export function useManuscriptSearchSchema(idList = []) {
             model: 'year_to',
             min: YEAR_MIN,
             max: YEAR_MAX,
-            validator: VueFormGenerator.validators.number,
+            validator: validatorUtil.number,
         };
 
         schemaFields.date_search_type = {
