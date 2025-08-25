@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted, defineProps} from 'vue'
+import { reactive, watch, onMounted, defineProps,computed} from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 import Edit from '@/components/Edit/Modals/Edit.vue'
@@ -60,8 +60,7 @@ import Alert from "@/components/Alerts.vue";
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
-const depUrls = {}
-
+const depUrls = computed(() => ({}))
 const props = defineProps({
   initUrls: {
     type: String
