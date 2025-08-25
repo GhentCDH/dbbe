@@ -861,6 +861,14 @@ watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
 
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
 watch(
     () => schema.value?.groups,
     async (groups) => {

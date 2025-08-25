@@ -1038,6 +1038,14 @@ const formatPersonRoles = (personRoles) => {
   return result.join('<br />');
 };
 
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
 watch(() => mergeModel.primary, async (newVal) => {
   if (newVal == null) {
     mergeModel.primaryFull = null;

@@ -635,6 +635,14 @@ watch(elRef, (el) => {
   if (el) setupCollapsibleLegends(schema);
 });
 
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
 tableOptions.value.requestFunction = requestFunction;
 
 setUpOperatorWatchers();

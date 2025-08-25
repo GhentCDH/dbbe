@@ -1140,6 +1140,14 @@ const greekBetaSearch = (searchQuery) => {
   }
 };
 
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
 watch(() => mergeModel.primary, async (newPrimary) => {
   if (newPrimary == null) {
     mergeModel.primaryFull = null;
