@@ -157,7 +157,7 @@ export default {
             );
         },
         onChange() {
-            this.calcChanges();
+            calcChanges();
             this.$emit('validated');
         },
     },
