@@ -841,6 +841,22 @@ watch(
     { immediate: true }
 );
 
+watch(() => model.value.text, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    textSearch.value = true;
+  } else {
+    textSearch.value = false;
+  }
+}, { immediate: true });
+
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
 
 // Setup table options request function
 tableOptions.value.requestFunction = requestFunction;
