@@ -269,7 +269,7 @@
 import Vue from 'vue';
 import draggable from 'vuedraggable'
 import axios from 'axios';
-
+import Alerts from "@/components/Alerts.vue";
 import Panel from '../Panel'
 import VerseTable from './Components/VerseTable'
 import {disableFields, enableFields} from "@/helpers/formFieldUtils";
@@ -280,7 +280,9 @@ Vue.component('panel', Panel)
 Vue.component('verseTable', VerseTable)
 
 export default {
-
+    components: {
+      alerts: Alerts
+    },
     props: {
         urls: {
             type: Object,
