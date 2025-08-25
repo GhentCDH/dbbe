@@ -145,7 +145,6 @@ import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import Vue from 'vue'
 import axios from 'axios'
 
-import { getErrorMessage, isLoginError } from "@/helpers/errorUtil"
 import Reset from "@/components/Edit/Modals/Reset.vue"
 import Invalid from "@/components/Edit/Modals/Invalid.vue"
 import Save from "@/components/Edit/Modals/Save.vue"
@@ -157,7 +156,6 @@ import {disablePanels, enablePanels, updateItems} from "@/helpers/panelUtil";
 import {usePanelValidation} from "@/composables/editAppComposables/usePanelValidation";
 import {useModelDiff} from "@/composables/editAppComposables/useModelDiff";
 import {useStickyNav} from "@/composables/editAppComposables/useStickyNav";
-import {handleError} from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import {useSaveModel} from "@/composables/editAppComposables/useSaveModel";
 
 // Props
@@ -278,6 +276,7 @@ const setData = () => {
   }
 }
 
+
 const save = () => {
   openRequests.value++
   saveModal.value = false
@@ -354,7 +353,7 @@ const reloadItems = (type, keys, items, url, filters) => {
           reloads.value.splice(typeIndex, 1)
         }
       })
-      .catch(handleError('Something went wrong while loading data.'))
+      .catch((err)=>{console.log('Something went wrong while loading data.')});
 }
 
 onMounted(() => {

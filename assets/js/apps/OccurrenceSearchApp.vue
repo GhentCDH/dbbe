@@ -322,7 +322,6 @@ import {
 import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
@@ -659,6 +658,9 @@ const {
   alerts,
   startRequest,
   endRequest,
+  cleanParams,
+  handleError,
+  axiosGet
 } = useRequestTracker();
 
 const {
@@ -726,8 +728,8 @@ const handleDeletedActiveFilter = (field) => {
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const requestFunction = async (requestData) => {
+  const params = cleanParams(requestData);
   startRequest();
   let url = urls['occurrences_search_api'];
 
@@ -735,6 +737,7 @@ const requestFunction = async (data) => {
     if (!initialized) {
       onData(data);
     }
+    endRequest();
     return {
       data: {
         data: initialized ? data : data.data,
@@ -744,19 +747,28 @@ const requestFunction = async (data) => {
   }
 
   if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
+    if (historyRequest.value !== 'init') {
+      url = `${url}?${historyRequest.value}`;
     }
-    return await axiosGet(url);
+    return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
-  if (!noHistory) {
+  if (!noHistory.value) {
     pushHistory(params, model, originalModel, fields, tableOptions);
   } else {
     noHistory.value = false;
   }
 
-  return await axiosGet(url, { params, paramsSerializer: qs.stringify }, tableCancel, openRequests, alerts, onData, data);
+  return await axiosGet(
+      url,
+      {
+        params,
+        paramsSerializer: qs.stringify
+      },
+      tableCancel,
+      onData,
+      data
+  );
 };
 
 const del = async (row) => {

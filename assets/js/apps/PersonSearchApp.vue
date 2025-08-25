@@ -420,7 +420,6 @@ import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from '@/helpers/validatorUtil';
 import { nextTick } from 'vue';
@@ -818,6 +817,9 @@ const {
   alerts,
   startRequest,
   endRequest,
+  cleanParams,
+  handleError,
+  axiosGet
 } = useRequestTracker();
 
 const {
@@ -908,6 +910,7 @@ const requestFunction = async (data) => {
     if (!initialized) {
       onData(data);
     }
+    endRequest();
     return {
       data: {
         data: initialized ? data : data.data,
@@ -920,7 +923,7 @@ const requestFunction = async (data) => {
     if (historyRequest !== 'init') {
       url = `${url}?${historyRequest}`;
     }
-    return await axiosGet(url);
+    return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
   if (!noHistory) {
@@ -929,8 +932,16 @@ const requestFunction = async (data) => {
     noHistory.value = false;
   }
 
-  return await axiosGet(url, { params, paramsSerializer: qs.stringify }, tableCancel, openRequests, alerts, onData, data);
-};
+  return await axiosGet(
+      url,
+      {
+        params,
+        paramsSerializer: qs.stringify
+      },
+      tableCancel,
+      onData,
+      data
+  );};
 
 const getMergedIdentification = (identifier) => {
   const { systemName } = identifier;

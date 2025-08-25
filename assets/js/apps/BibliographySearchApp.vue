@@ -389,7 +389,6 @@ import { useSearchSession } from "@/composables/searchAppComposables/useSearchSe
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/fetchDependencies";
-import { axiosGet, cleanParams } from "@/helpers/searchAppHelpers/requestFunctionUtil";
 import validatorUtil from "@/helpers/validatorUtil";
 import Delete from "@/components/Edit/Modals/Delete.vue";
 
@@ -724,6 +723,9 @@ const {
   alerts,
   startRequest,
   endRequest,
+  cleanParams,
+  handleError,
+  axiosGet
 } = useRequestTracker();
 
 const {
@@ -822,6 +824,7 @@ const requestFunction = async (data) => {
     if (!initialized) {
       onData(data);
     }
+    endRequest();
     return {
       data: {
         data: initialized ? data : data.data,
@@ -834,7 +837,7 @@ const requestFunction = async (data) => {
     if (historyRequest.value !== 'init') {
       url = `${url}?${historyRequest.value}`;
     }
-    return await axiosGet(url);
+    return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
   if (!noHistory.value) {
@@ -843,8 +846,16 @@ const requestFunction = async (data) => {
     noHistory.value = false;
   }
 
-  return await axiosGet(url, { params, paramsSerializer: qs.stringify }, tableCancel, openRequests, alerts, onData, data);
-};
+  return await axiosGet(
+      url,
+      {
+        params,
+        paramsSerializer: qs.stringify
+      },
+      tableCancel,
+      onData,
+      data
+  );};
 
 const merge = async (row) => {
   mergeModel.submitType = types.value[row.type.id];
