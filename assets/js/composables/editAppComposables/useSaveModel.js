@@ -9,7 +9,7 @@ export function useSaveModel(urls ) {
     const saveModal = ref(false)
 
     const postUpdatedModel = (modelType, itemsToSave) => {
-        axios.post(urls[$`${modelType}_post`], itemsToSave)
+        axios.post(urls[`${modelType}_post`], itemsToSave)
             .then((response) => {
                 window.onbeforeunload = function () {}
                 window.location = urls[`${modelType}_get`].replace(`${modelType}_id`, response.data.id)
