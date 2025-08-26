@@ -137,9 +137,52 @@ import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 
 const props = defineProps({
   initUrls: String,
-  initData: String,
-  depUrls: Object,
-  values: Array
+  initData: String
+})
+
+const model = reactive({ region: null })
+const submitModel = reactive({
+  submitType: 'region',
+  region: {
+    id: null,
+    parent: null,
+    individualName: null,
+    individualHistoricalName: null,
+    pleiades: null,
+    isCity: null,
+  }
+})
+const mergeModel = reactive({
+  submitType: 'regions',
+  primary: null,
+  secondary: null,
+})
+
+const depUrls = computed(() => {
+  const regionId = submitModel.region?.id;
+  if (!regionId) return {};
+
+  return {
+    'Manuscripts': {
+      depUrl: urls['manuscript_deps_by_region']?.replace('region_id', regionId) || '',
+      url: urls['manuscript_get'],
+      urlIdentifier: 'manuscript_id',
+    },
+    'Institutions': {
+      depUrl: urls['institution_deps_by_region']?.replace('region_id', regionId) || '',
+    },
+    'Offices': {
+      depUrl: urls['office_deps_by_region']?.replace('region_id', regionId) || '',
+    },
+    'Persons': {
+      depUrl: urls['person_deps_by_region']?.replace('region_id', regionId) || '',
+      url: urls['person_get'],
+      urlIdentifier: 'person_id',
+    },
+    'Regions': {
+      depUrl: urls['region_deps_by_region']?.replace('region_id', regionId) || '',
+    }
+  }
 })
 
 const {
@@ -163,25 +206,7 @@ const {
   cancelMerge,
   cancelDelete,
   isOrIsChild,
-} = useEditMergeMigrateDelete(props.initUrls, props.initData, props.depUrls)
-
-const model = reactive({ region: null })
-const submitModel = reactive({
-  submitType: 'region',
-  region: {
-    id: null,
-    parent: null,
-    individualName: null,
-    individualHistoricalName: null,
-    pleiades: null,
-    isCity: null,
-  }
-})
-const mergeModel = reactive({
-  submitType: 'regions',
-  primary: null,
-  secondary: null,
-})
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
 const regionSchema = reactive({
   fields: {
@@ -294,6 +319,11 @@ function mergeRegion() {
 }
 
 function delRegion() {
+  if (!model.region) {
+    alerts.value.push({ type: 'error', message: 'No region selected for deletion.' });
+    return;
+  }
+
   submitModel.region = JSON.parse(JSON.stringify(model.region))
   deleteDependencies()
 }
@@ -364,7 +394,17 @@ async function submitDelete() {
   openRequests.value++
   try {
     await axios.delete(urls.region_delete.replace('region_id', submitModel.region.id))
-    submitModel.region = null
+
+    submitModel.region = {
+      id: null,
+      parent: null,
+      individualName: null,
+      individualHistoricalName: null,
+      pleiades: null,
+      isCity: null,
+    }
+    model.region = null
+
     await update()
     deleteAlerts.value = []
     alerts.value.push({ type: 'success', message: 'Deletion successful.' })
@@ -383,7 +423,9 @@ async function update() {
     const response = await axios.get(urls.regions_get)
     values.value = response.data
     regionSchema.fields.region.values = values.value
-    model.region = JSON.parse(JSON.stringify(submitModel.region))
+    if (submitModel.region?.id) {
+      model.region = JSON.parse(JSON.stringify(submitModel.region))
+    }
   } catch (error) {
     alerts.value.push({ type: 'error', message: 'Something went wrong while renewing the region data.', login: isLoginError(error) })
     console.error(error)
