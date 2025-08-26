@@ -784,7 +784,7 @@ const loadAsync = () => {
 const save = () => {
   openRequests.value++
   saveModal.value = false
-  if (occurrence.value == null) {
+  if (occurrence.value == null || data.clone) {
     postUpdatedModel('occurrence', toSave())
   } else {
     putUpdatedModel('occurrence', toSave())
