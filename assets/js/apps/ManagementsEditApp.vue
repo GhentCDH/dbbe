@@ -119,7 +119,6 @@ const submitModel = reactive({
 })
 
 watch(values, (newValues) => {
-  console.log(newValues)
   schema.fields.management.values = newValues
 }, { immediate: true })
 

@@ -1,5 +1,6 @@
 <template>
   <div>
+  <article class="col-sm-9 mbottom-large">
     <Alerts
         :alerts="alerts"
         @dismiss="alerts.splice($event, 1)"
@@ -25,6 +26,7 @@
     <div v-if="openRequests" class="loading-overlay">
       <div class="spinner" />
     </div>
+  </article>
 
     <Edit
         :show="editModalValue"
@@ -101,7 +103,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted } from 'vue'
+import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -120,6 +122,7 @@ const props = defineProps({
   initUrls: { type: String},
   initData: { type: String }
 })
+const depUrls = computed(() => ({}))
 
 const {
   urls,
@@ -141,7 +144,7 @@ const {
   cancelMerge,
   resetEdit,
   resetMerge,
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
 
 const schema = reactive({
   fields: {

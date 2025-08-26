@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -73,6 +73,9 @@ const props = defineProps({
   }
 })
 
+const depUrls = computed(() => ({}))
+
+
 const {
   urls,
   values,
@@ -88,7 +91,7 @@ const {
   cancelEdit,
   cancelDelete,
   resetEdit
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
 const schema = reactive({
   fields: [
@@ -136,9 +139,6 @@ watch(originalSubmitModel, (newVal) => {
   Object.assign(submitModel.genre, newVal.genre)
 })
 
-watch(editModalValue, (newVal) => {
-  console.log('editmodalvalue', newVal)
-})
 function edit(add = false) {
   if (add) {
     submitModel.genre = { id: null, name: null }

@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted } from 'vue'
+import { reactive, ref, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -96,6 +96,7 @@ import EditListRow from '@/components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
+import validatorUtil from "@/helpers/validatorUtil";
 
 // Props
 const props = defineProps({
@@ -112,6 +113,8 @@ const props = defineProps({
 })
 
 const persons = ref(JSON.parse(props.initPersons))
+
+const depUrls = computed(() => ({}))
 
 // Use composable for common logic (you may want to adapt or create your own)
 const {
@@ -135,7 +138,7 @@ const {
   resetEdit,
   resetMerge,
   deleteDependencies,
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
 // Main schema for the list selector
 const schema = reactive({
@@ -154,7 +157,7 @@ const editSchema = reactive({
       label: 'Content name',
       labelClasses: 'control-label',
       model: 'content.individualName',
-      validator: [VueFormGenerator.validators.string, validateIndividualNameOrPerson]
+      validator: [validatorUtil.string, validateIndividualNameOrPerson]
     },
     createMultiSelect('Person', { model: 'content.individualPerson', validator: validateIndividualNameOrPerson })
   ]
@@ -163,8 +166,8 @@ const editSchema = reactive({
 // Schema for merge modal
 const mergeSchema = reactive({
   fields: [
-    createMultiSelect('Primary', { required: true, validator: VueFormGenerator.validators.required }),
-    createMultiSelect('Secondary', { required: true, validator: VueFormGenerator.validators.required })
+    createMultiSelect('Primary', { required: true, validator: validatorUtil.required }),
+    createMultiSelect('Secondary', { required: true, validator: validatorUtil.required })
   ]
 })
 
@@ -202,7 +205,7 @@ watch(() => model.content, (newContent) => {
   }
 })
 
-watch(() => submitModel.content.individualName, (val) => {
+watch(() => submitModel.content?.individualName, (val) => {
   if (val === '') submitModel.content.individualName = null
 })
 

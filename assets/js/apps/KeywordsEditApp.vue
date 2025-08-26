@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted } from 'vue'
+import { reactive, watch, onMounted,computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -87,6 +87,7 @@ const props = defineProps({
   initUrls: { type: String, required: true },
   initData: { type: String, required: true },
 })
+const depUrls = computed(() => ({}))
 
 const persons = JSON.parse(props.initPersons)
 const isSubject = JSON.parse(props.initIsSubject)
@@ -111,7 +112,7 @@ const {
   cancelDelete,
   resetEdit,
   resetMigrate,
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
 
 const schema = reactive({
   fields: {

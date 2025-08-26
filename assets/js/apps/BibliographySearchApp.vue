@@ -711,7 +711,7 @@ const depUrls = computed(() => {
       };
       break;
     default:
-      throw new Error('Unknown submit type');
+      throw new Error('Unknown submit type '+submitModel.submitType);
   }
   return depUrls;
 });
@@ -970,7 +970,8 @@ const submitDelete = async () => {
 };
 
 const del = async (row) => {
-  submitModel.person = {
+  submitModel.submitType = types.value[row.type.id];
+  submitModel[submitModel.submitType]  = {
     id: row.id,
     name: row.original_name == null ? row.name : row.original_name,
   };

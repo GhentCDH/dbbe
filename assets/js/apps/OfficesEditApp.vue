@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch, onMounted, ref } from 'vue'
+import { reactive, computed, watch, onMounted, ref, nextTick } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -97,6 +97,7 @@ import EditListRow from '@/components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
+import validatorUtil from "@/helpers/validatorUtil";
 
 const props = defineProps({
   initUrls: {
@@ -107,13 +108,12 @@ const props = defineProps({
   }
 })
 
-
 const depUrls = computed(() => ({
   'Offices': {
-    depUrl: urls.office_deps_by_office.replace('office_id', submitModel.office.id),
+    depUrl: urls.office_deps_by_office.replace('office_id', submitModel.office?.id || ''),
   },
   'Persons': {
-    depUrl: urls.person_deps_by_office.replace('office_id', submitModel.office.id),
+    depUrl: urls.person_deps_by_office.replace('office_id', submitModel.office?.id || ''),
     url: urls.person_get,
     urlIdentifier: 'person_id',
   }
@@ -157,7 +157,7 @@ const editSchema = reactive({
       label: 'Office name',
       labelClasses: 'control-label',
       model: 'office.individualName',
-      validator: [VueFormGenerator.validators.string, nameOrRegionWithParents, uniqueName],
+      validator: [validatorUtil.string, nameOrRegionWithParents, uniqueName],
     },
     individualRegionWithParents: createMultiSelect(
         'Region',
@@ -172,8 +172,8 @@ const editSchema = reactive({
 
 const mergeSchema = reactive({
   fields: {
-    primary: createMultiSelect('Primary', { required: true, validator: VueFormGenerator.validators.required }),
-    secondary: createMultiSelect('Secondary', { required: true, validator: VueFormGenerator.validators.required }),
+    primary: createMultiSelect('Primary', { required: true, validator: validatorUtil.required }),
+    secondary: createMultiSelect('Secondary', { required: true, validator: validatorUtil.required }),
   }
 })
 
@@ -196,35 +196,68 @@ const mergeModel = reactive({
 // Refs
 const editRef = ref(null)
 const revalidate = ref(false)
+const isUpdating = ref(false) // Prevent recursive updates
 
 const data = JSON.parse(props.initData)
 const regions = ref(data.regions)
 const offices = ref(data.offices)
-values.value=offices
 
-// Watchers
-watch(() => model.office, (newOffice) => {
-  // set full parent, so the name can be formatted correctly
+// Ensure values is properly initialized
+if (!values.value) {
+  values.value = offices.value
+}
+
+// Watchers with guards to prevent infinite loops
+watch(() => model.office, (newOffice, oldOffice) => {
+  // Prevent unnecessary updates if values are the same
+  if (JSON.stringify(newOffice) === JSON.stringify(oldOffice)) {
+    return
+  }
+
+  // Set full parent, so the name can be formatted correctly
   if (newOffice != null && newOffice.parent != null) {
     const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
-    model.office.parent = safeValues.filter((officeWithParents) => officeWithParents.id === newOffice.parent.id)[0]
+    const fullParent = safeValues.find((officeWithParents) => officeWithParents.id === newOffice.parent.id)
+    if (fullParent && JSON.stringify(newOffice.parent) !== JSON.stringify(fullParent)) {
+      model.office.parent = fullParent
+    }
   }
 })
 
-watch(() => submitModel.office?.individualName, (newName) => {
+watch(() => submitModel.office?.individualName, (newName, oldName) => {
+  // Prevent unnecessary updates
+  if (newName === oldName) return
+
   if (newName === '' && originalSubmitModel.office?.individualName == null) {
     submitModel.office.individualName = null
   }
 })
 
-watch(values, (newValues) => {
-  schema.fields.office.values = Array.isArray(newValues) ? newValues : []
+watch(values, (newValues, oldValues) => {
+  // Prevent update during our own update process
+  if (isUpdating.value) return
 
-}, { immediate: true })
+  // Only update if values actually changed
+  if (JSON.stringify(newValues) === JSON.stringify(oldValues)) return
+
+  const safeValues = Array.isArray(newValues) ? newValues : Object.values(newValues || {})
+  schema.fields.office.values = safeValues
+}, { immediate: true, deep: true })
 
 onMounted(() => {
-  schema.fields.office.values = values.value || []
+  // Ensure values are set and schema is initialized
+  if (!values.value || values.value.length === 0) {
+    values.value = offices.value
+  }
+
+  const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
+  schema.fields.office.values = safeValues
   enableField(schema.fields.office, model)
+
+  // Force reactivity update if needed
+  if (schema.fields.office.values.length === 0 && offices.value.length > 0) {
+    schema.fields.office.values = [...offices.value]
+  }
 })
 
 function edit(add = false) {
@@ -269,11 +302,14 @@ function merge() {
 }
 
 function del() {
+  if (!submitModel.office) return
   submitModel.office = JSON.parse(JSON.stringify(model.office))
   deleteDependencies()
 }
 
 async function submitEdit() {
+  if (openRequests.value > 0) return // Prevent duplicate submissions
+
   editModalValue.value = false
   openRequests.value++
 
@@ -331,6 +367,8 @@ async function submitEdit() {
 }
 
 async function submitMerge() {
+  if (openRequests.value > 0) return // Prevent duplicate submissions
+
   mergeModal.value = false
   openRequests.value++
 
@@ -358,6 +396,8 @@ async function submitMerge() {
 }
 
 async function submitDelete() {
+  if (openRequests.value > 0) return // Prevent duplicate submissions
+
   deleteModal.value = false
   openRequests.value++
 
@@ -381,17 +421,35 @@ async function submitDelete() {
 }
 
 async function update() {
+  if (isUpdating.value) return // Prevent recursive updates
+
+  isUpdating.value = true
   openRequests.value++
+
   try {
     const response = await axios.get(urls.offices_get)
-    if (Array.isArray(values.value)) {
-      values.value.splice(0, values.value.length, ...response.data)
-    } else {
-      Object.assign(values.value, response.data)
+    const newData = response.data
+
+    // Only update if data actually changed
+    const currentData = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
+    if (JSON.stringify(currentData) !== JSON.stringify(newData)) {
+      if (Array.isArray(values.value)) {
+        values.value.splice(0, values.value.length, ...newData)
+      } else {
+        Object.assign(values.value, newData)
+      }
+
+      const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
+      schema.fields.office.values = safeValues
+
+      // Only update model.office if submitModel.office exists and changed
+      if (submitModel.office) {
+        const updatedOffice = safeValues.find(office => office.id === submitModel.office.id)
+        if (updatedOffice && JSON.stringify(model.office) !== JSON.stringify(updatedOffice)) {
+          model.office = JSON.parse(JSON.stringify(updatedOffice))
+        }
+      }
     }
-    const safeValues = Array.isArray(values.value) ? values.value : Object.values(values.value || {})
-    schema.fields.office.values = safeValues
-    model.office = JSON.parse(JSON.stringify(submitModel.office))
   } catch (error) {
     alerts.value.push({
       type: 'error',
@@ -401,8 +459,10 @@ async function update() {
     console.error(error)
   } finally {
     openRequests.value--
+    isUpdating.value = false
   }
 }
+
 function nameOrRegionWithParents(value, field, model) {
   const name = model.office?.individualName
   const region = model.office?.individualRegionWithParents
@@ -417,15 +477,14 @@ function nameOrRegionWithParents(value, field, model) {
   return []
 }
 
-
 function uniqueName(value, field, model) {
   if (value == null) {
     return []
   }
 
-  let id = model.office.id
+  let id = model.office?.id
   let name = value
-  if (model.office.parent != null) {
+  if (model.office?.parent != null) {
     name = model.office.parent.name + ' > ' + name
   }
 
@@ -442,9 +501,9 @@ function uniqueRegionWithParents(value, field, model) {
     return []
   }
 
-  let id = model.office.id
+  let id = model.office?.id
   let name = ' of ' + value.name.split(' > ').reverse().join(' < ')
-  if (model.office.parent != null) {
+  if (model.office?.parent != null) {
     name = model.office.parent.name + name
   }
 

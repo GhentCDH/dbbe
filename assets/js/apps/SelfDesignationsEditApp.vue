@@ -97,6 +97,7 @@ import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import VueFormGenerator from 'vue-form-generator'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { removeGreekAccents } from '@/helpers/formFieldUtils'
+import validatorUtil from "@/helpers/validatorUtil";
 
 const props = defineProps({
   initUrls: {
@@ -165,7 +166,7 @@ const editSchema = reactive({
       labelClasses: 'control-label',
       model: 'selfDesignation.name',
       required: true,
-      validator: VueFormGenerator.validators.regexp,
+      validator: validatorUtil.regexp,
       pattern: '^[\\u0370-\\u03ff\\u1f00-\\u1fff ]+$',
     },
   ],

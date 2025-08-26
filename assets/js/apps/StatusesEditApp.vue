@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted } from 'vue'
+import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -72,6 +72,7 @@ const props = defineProps({
     type: String
   }
 })
+const depUrls = computed(() => ({}))
 
 const {
   urls,
@@ -88,7 +89,7 @@ const {
   cancelEdit,
   cancelDelete,
   resetEdit
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
 
 // Schemas
 const statusSchema = reactive({

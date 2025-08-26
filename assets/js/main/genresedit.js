@@ -13,7 +13,6 @@ Vue.use(VueFormGenerator);
 const originalEmit = Vue.prototype.$emit;
 
 Vue.prototype.$emit = function(event, ...args) {
-    console.log(`[Event emitted] ${event}`, ...args);
     return originalEmit.apply(this, [event, ...args]);
 };
 

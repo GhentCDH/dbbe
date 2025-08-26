@@ -50,7 +50,6 @@
 import { onMounted, ref, reactive, watch } from 'vue';
 import qs from 'qs';
 import axios from 'axios';
-import VueFormGenerator from 'vue-form-generator';
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils';
 import { isLoginError } from '@/helpers/errorUtil';
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete';
@@ -60,6 +59,7 @@ import Edit from '@/components/Edit/Modals/Edit.vue';
 import Merge from '@/components/Edit/Modals/Merge.vue';
 import Delete from '@/components/Edit/Modals/Delete.vue';
 import Panel from '@/components/Edit/Panel.vue';
+import validatorUtil from "@/helpers/validatorUtil";
 
 const props = defineProps({
   initUrls: String,
@@ -99,7 +99,7 @@ const schema = reactive({
       model: 'journalIssue',
       dependency: 'journal',
       required: true,
-      validator: VueFormGenerator.validators.required,
+      validator: validatorUtil.required,
       values: journalIssues,
     }),
   },
@@ -124,7 +124,7 @@ const editSchema = reactive({
     journal: createMultiSelect('Journal', {
       model: 'journal issue.journal',
       required: true,
-      validator: VueFormGenerator.validators.required,
+      validator: validatorUtil.required,
       values: journals,
     }),
     year: {

@@ -132,6 +132,14 @@ const props = defineProps({
   initData: { type: String, default: '[]' },
 })
 
+
+const depUrls = reactive({
+  get 'Journal issues'() {
+    return {
+      depUrl: urls['journal_issue_deps_by_journal']?.replace('journal_id', submitModel.journal?.id ?? ''),
+    }
+  }
+})
 const {
   urls,
   values,
@@ -158,7 +166,7 @@ const {
   cancelMigrate,
   cancelDelete,
   isOrIsChild
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
 
 const schema = reactive({
   fields: {
@@ -207,13 +215,6 @@ const mergeModel = reactive({
 
 const urlsReactive = toRefs(urls)
 
-const depUrls = reactive({
-  get 'Journal issues'() {
-    return {
-      depUrl: urls['journal_issue_deps_by_journal']?.replace('journal_id', submitModel.journal?.id ?? ''),
-    }
-  }
-})
 
 onMounted(() => {
   schema.fields.journal.values = values.value

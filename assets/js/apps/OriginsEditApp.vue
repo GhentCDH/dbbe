@@ -87,6 +87,7 @@ const props = defineProps({
     type: String
   }
 })
+const depUrls = computed(() => ({}))
 
 const {
   urls,
@@ -103,7 +104,7 @@ const {
   cancelEdit,
   cancelDelete,
   resetEdit
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
 
 const model = reactive({
   regionWithParents: null,

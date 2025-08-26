@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted } from 'vue'
+import { reactive, watch, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 import Edit from '@/components/Edit/Modals/Edit.vue'
@@ -114,6 +114,8 @@ import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
 import VueFormGenerator from 'vue-form-generator'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
+
+const depUrls = computed(() => ({}))
 
 const props = defineProps({
   initUrls: String,
@@ -140,7 +142,7 @@ const {
   cancelDelete,
   resetEdit,
   resetMerge
-} = useEditMergeMigrateDelete(props.initUrls, props.initData)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
 const schema = reactive({
   fields: {
