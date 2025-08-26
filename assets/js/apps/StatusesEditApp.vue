@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, onMounted, computed } from 'vue'
+import { reactive, watch, onMounted } from 'vue'
 import axios from 'axios'
 import VueFormGenerator from 'vue-form-generator'
 
@@ -72,7 +72,40 @@ const props = defineProps({
     type: String
   }
 })
-const depUrls = computed(() => ({}))
+
+// Define reactive dependency URLs like in your journals app
+const depUrls = reactive({
+  get 'Manuscripts'() {
+    const statusId = submitModel.status?.id;
+    if (!statusId) return { depUrl: '' };
+
+    return {
+      depUrl: urls['manuscript_deps_by_status']?.replace('status_id', statusId) || '',
+      url: urls['manuscript_get'],
+      urlIdentifier: 'manuscript_id',
+    }
+  },
+  get 'Occurrences'() {
+    const statusId = submitModel.status?.id;
+    if (!statusId) return { depUrl: '' };
+
+    return {
+      depUrl: urls['occurrence_deps_by_status']?.replace('status_id', statusId) || '',
+      url: urls['occurrence_get'],
+      urlIdentifier: 'occurrence_id',
+    }
+  },
+  get 'Types'() {
+    const statusId = submitModel.status?.id;
+    if (!statusId) return { depUrl: '' };
+
+    return {
+      depUrl: urls['type_deps_by_status']?.replace('status_id', statusId) || '',
+      url: urls['type_get'],
+      urlIdentifier: 'type_id',
+    }
+  }
+})
 
 const {
   urls,
@@ -89,7 +122,7 @@ const {
   cancelEdit,
   cancelDelete,
   resetEdit
-} = useEditMergeMigrateDelete(props.initUrls, props.initData,depUrls)
+} = useEditMergeMigrateDelete(props.initUrls, props.initData, depUrls)
 
 // Schemas
 const statusSchema = reactive({
@@ -190,6 +223,11 @@ function editStatus(add = false) {
 }
 
 function delStatus() {
+  if (!model.status) {
+    alerts.value.push({ type: 'error', message: 'No status selected for deletion.' });
+    return;
+  }
+
   submitModel.status = JSON.parse(JSON.stringify(model.status))
   deleteDependencies()
 }
@@ -202,7 +240,9 @@ async function update() {
       values.value.splice(0, values.value.length, ...response.data)
     }
     loadStatusField()
-    model.status = JSON.parse(JSON.stringify(submitModel.status))
+    if (submitModel.status) {
+      model.status = JSON.parse(JSON.stringify(submitModel.status))
+    }
   } catch (error) {
     alerts.value.push({
       type: 'error',
@@ -259,7 +299,14 @@ async function submitDelete() {
 
   try {
     await axios.delete(urls.status_delete.replace('status_id', submitModel.status.id))
-    submitModel.status = null
+
+    // Reset submitModel properly like in journals app
+    submitModel.status = {
+      name: null,
+      type: null
+    }
+    model.status = null
+
     await update()
     deleteAlerts.value.splice(0)
     alerts.value.push({ type: 'success', message: 'Deletion successful.' })
