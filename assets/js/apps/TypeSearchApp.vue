@@ -1,674 +1,900 @@
 <template>
-    <div>
-        <div class="col-xs-12">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
-            />
-        </div>
-        <aside class="col-sm-3">
-            <div class="bg-tertiary padding-default">
-                <div class="form-group">
-                    <a
-                        :href="urls['help']"
-                        class="action"
-                        target="_blank"
-                    >
-                        <i class="fa fa-info-circle" /> More information about the text search options.</a>
-                </div>
-                <vue-form-generator
-                    ref="form"
-                    :schema="schema"
-                    :model="model"
-                    :options="formOptions"
-                    @model-updated="modelUpdated"
-                    @validated="onValidated"
-                />
-            </div>
-        </aside>
-        <article class="col-sm-9 search-page">
-            <active-filters
-                :filters="notEmptyFields"
-                class="active-filters"
-                @resetFilters="resetAllFilters"
-                @deletedActiveFilter="deleteActiveFilter"
-            />
-            <div
-                v-if="countRecords"
-                class="count-records"
-            >
-                <h6>{{ countRecords }}</h6>
-            </div>
-            <div
-                v-if="isViewInternal"
-                class="collection-select-all top"
-            >
-                <a
-                    href="#"
-                    @click.prevent="clearCollection()"
-                >
-                    clear selection
-                </a>
-                |
-                <a
-                    href="#"
-                    @click.prevent="collectionToggleAll()"
-                >
-                    (un)select all on this page
-                </a>
-            </div>
-            <v-server-table
-                ref="resultTable"
-                :url="urls['types_search_api']"
-                :columns="tableColumns"
-                :options="tableOptions"
-                @data="onData"
-                @loaded="onLoaded"
-            >
-                <span
-                    slot="text"
-                    slot-scope="props"
-                >
-                    <template v-if="props.row.title">
-                        <!-- T for title: T is the 20th letter in the alphabet -->
-                        <ol
-                            type="A"
-                            class="greek"
-                        >
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.title"
-                                :key="index"
-                                value="20"
-                                v-html="item"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                    <template v-if="props.row.text">
-                        <ol class="greek">
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.text"
-                                :key="index"
-                                :value="Number(index) + 1"
-                                v-html="item"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                </span>
-                <template
-                    slot="comment"
-                    slot-scope="props"
-                >
-                    <template v-if="props.row.public_comment">
-                        <em v-if="isViewInternal">Public</em>
-                        <ol>
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.public_comment"
-                                :key="index"
-                                :value="Number(index) + 1"
-                                v-html="greekFont(item)"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                    <template v-if="props.row.private_comment">
-                        <em>Private</em>
-                        <ol>
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.private_comment"
-                                :key="index"
-                                :value="Number(index) + 1"
-                                v-html="greekFont(item)"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                </template>
-                <template
-                    slot="lemma"
-                    slot-scope="props"
-                >
-                    <template v-if="props.row.lemma_text">
-                        <ol>
-                            <!-- eslint-disable vue/no-v-html -->
-                            <li
-                                v-for="(item, index) in props.row.lemma_text"
-                                :key="index"
-                                :value="Number(index) + 1"
-                                v-html="greekFont(item)"
-                            />
-                            <!-- eslint-enable -->
-                        </ol>
-                    </template>
-                </template>
-                <!-- eslint-disable vue/no-v-html -->
-                <a
-                    slot="id"
-                    slot-scope="props"
-                    :href="urls['type_get'].replace('type_id', props.row.id)"
-                >
-                    {{ props.row.id }}
-                </a>
-                <a
-                    slot="incipit"
-                    slot-scope="props"
-                    :href="urls['type_get'].replace('type_id', props.row.id)"
-                    class="greek"
-                    v-html="props.row.incipit"
-                />
-                <!-- eslint-enable -->
-                <template
-                    slot="numberOfOccurrences"
-                    slot-scope="props"
-                >
-                    {{ props.row.number_of_occurrences }}
-                </template>
-                <template
-                    slot="created"
-                    slot-scope="props"
-                >
-                    {{ formatDate(props.row.created) }}
-                </template>
-                <template
-                    slot="modified"
-                    slot-scope="props"
-                >
-                    {{ formatDate(props.row.modified) }}
-                </template>
-                <template
-                    slot="actions"
-                    slot-scope="props"
-                >
-                    <a
-                        :href="urls['type_edit'].replace('type_id', props.row.id)"
-                        class="action"
-                        title="Edit"
-                    >
-                        <i class="fa fa-pencil-square-o" />
-                    </a>
-                    <a
-                        href="#"
-                        class="action"
-                        title="Delete"
-                        @click.prevent="del(props.row)"
-                    >
-                        <i class="fa fa-trash-o" />
-                    </a>
-                </template>
-                <template
-                    slot="c"
-                    slot-scope="props"
-                >
-                    <span class="checkbox checkbox-primary">
-                        <input
-                            :id="props.row.id"
-                            v-model="collectionArray"
-                            :name="props.row.id"
-                            :value="props.row.id"
-                            type="checkbox"
-                        >
-                        <label :for="props.row.id" />
-                    </span>
-                </template>
-            </v-server-table>
-            <div
-                v-if="isViewInternal"
-                class="collection-select-all bottom"
-            >
-                <a
-                    href="#"
-                    @click.prevent="clearCollection()"
-                >
-                    clear selection
-                </a>
-                |
-                <a
-                    href="#"
-                    @click.prevent="collectionToggleAll()"
-                >
-                    (un)select all on this page
-                </a>
-            </div>
-<!--          <div style="position: relative; height: 100px;">-->
-<!--            <button @click="downloadCSV"-->
-<!--                    class="btn btn-primary"-->
-<!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-<!--              Download results CSV-->
-<!--            </button>-->
-<!--          </div>-->
-            <collectionManager
-                v-if="isViewInternal"
-                :collection-array="collectionArray"
-                :managements="managements"
-                @addManagementsToSelection="addManagementsToSelection"
-                @removeManagementsFromSelection="removeManagementsFromSelection"
-                @addManagementsToResults="addManagementsToResults"
-                @removeManagementsFromResults="removeManagementsFromResults"
-            />
-        </article>
-        <div class="col-xs-12">
-            <alerts
-                :alerts="alerts"
-                @dismiss="alerts.splice($event, 1)"
-            />
-        </div>
-        <deleteModal
-            :show="deleteModal"
-            :del-dependencies="delDependencies"
-            :submit-model="submitModel"
-            @cancel="deleteModal=false"
-            @confirm="submitDelete()"
-        />
-        <transition name="fade">
-            <div
-                v-if="openRequests"
-                class="loading-overlay"
-            >
-                <div class="spinner" />
-            </div>
-        </transition>
+  <div>
+    <div class="col-xs-12">
+      <Alerts
+          :alerts="alerts"
+          @dismiss="alerts.splice($event, 1)"
+      />
     </div>
+    <aside class="col-sm-3">
+      <div class="bg-tertiary padding-default">
+        <div class="form-group">
+          <a
+              :href="urls['help']"
+              class="action"
+              target="_blank"
+          >
+            <i class="fa fa-info-circle" /> More information about the text search options.;
+          </a>
+        </div>
+        <vue-form-generator
+            ref="typeSearchRef"
+            :schema="schema"
+            :model="model"
+            :options="formOptions"
+            @model-updated="modelUpdated"
+            @validated="onValidated"
+        />
+      </div>
+    </aside>
+    <article class="col-sm-9 search-page">
+      <active-filters
+          :filters="notEmptyFields"
+          class="active-filters"
+          @resetFilters="resetAllFilters"
+          @deletedActiveFilter="handleDeletedActiveFilter"
+      />
+      <div
+          v-if="countRecords"
+          class="count-records"
+      >
+        <h6>{{ countRecords }}</h6>
+      </div>
+      <div
+          v-if="isViewInternal"
+          class="collection-select-all top"
+      >
+        <a
+            href="#"
+            @click.prevent="clearCollection()"
+        >
+          clear selection
+        </a>
+        |
+        <a
+            href="#"
+            @click.prevent="collectionToggleAll()"
+        >
+          (un)select all on this page
+        </a>
+      </div>
+      <v-server-table
+          ref="resultTableRef"
+          :url="urls['types_search_api']"
+          :columns="tableColumns"
+          :options="tableOptions"
+          @data="onData"
+          @loaded="onLoaded"
+      >
+        <span
+            slot="text"
+            slot-scope="props"
+        >
+          <template v-if="props.row.title">
+            <!-- T for title: T is the 20th letter in the alphabet -->
+            <ol
+                type="A"
+                class="greek"
+            >
+              <li
+                  v-for="(item, index) in props.row.title"
+                  :key="index"
+                  value="20"
+                  v-html="item"
+              />
+            </ol>
+          </template>
+          <template v-if="props.row.text">
+            <ol class="greek">
+              <li
+                  v-for="(item, index) in props.row.text"
+                  :key="index"
+                  :value="Number(index) + 1"
+                  v-html="item"
+              />
+            </ol>
+          </template>
+        </span>
+        <template
+            slot="comment"
+            slot-scope="props"
+        >
+          <template v-if="props.row.public_comment">
+            <em v-if="isViewInternal">Public</em>
+            <ol>
+              <li
+                  v-for="(item, index) in props.row.public_comment"
+                  :key="index"
+                  :value="Number(index) + 1"
+                  v-html="greekFont(item)"
+              />
+            </ol>
+          </template>
+          <template v-if="props.row.private_comment">
+            <em>Private</em>
+            <ol>
+              <li
+                  v-for="(item, index) in props.row.private_comment"
+                  :key="index"
+                  :value="Number(index) + 1"
+                  v-html="greekFont(item)"
+              />
+            </ol>
+          </template>
+        </template>
+        <template
+            slot="lemma"
+            slot-scope="props"
+        >
+          <template v-if="props.row.lemma_text">
+            <ol>
+              <li
+                  v-for="(item, index) in props.row.lemma_text"
+                  :key="index"
+                  :value="Number(index) + 1"
+                  v-html="greekFont(item)"
+              />
+            </ol>
+          </template>
+        </template>
+        <a
+            slot="id"
+            slot-scope="props"
+            :href="urls['type_get'].replace('type_id', props.row.id)"
+        >
+          {{ props.row.id }}
+        </a>
+        <a
+            slot="incipit"
+            slot-scope="props"
+            :href="urls['type_get'].replace('type_id', props.row.id)"
+            class="greek"
+            v-html="props.row.incipit"
+        />
+        <template
+            slot="numberOfOccurrences"
+            slot-scope="props"
+        >
+          {{ props.row.number_of_occurrences }}
+        </template>
+        <template
+            slot="created"
+            slot-scope="props"
+        >
+          {{ formatDate(props.row.created) }}
+        </template>
+        <template
+            slot="modified"
+            slot-scope="props"
+        >
+          {{ formatDate(props.row.modified) }}
+        </template>
+        <template
+            slot="actions"
+            slot-scope="props"
+        >
+          <a
+              :href="urls['type_edit'].replace('type_id', props.row.id)"
+              class="action"
+              title="Edit"
+          >
+            <i class="fa fa-pencil-square-o" />
+          </a>
+          <a
+              href="#"
+              class="action"
+              title="Delete"
+              @click.prevent="del(props.row)"
+          >
+            <i class="fa fa-trash-o" />
+          </a>
+        </template>
+        <template
+            slot="c"
+            slot-scope="props"
+        >
+          <span class="checkbox checkbox-primary">
+            <input
+                :id="props.row.id"
+                v-model="collectionArray"
+                :name="props.row.id"
+                :value="props.row.id"
+                type="checkbox"
+            >
+            <label :for="props.row.id" />
+          </span>
+        </template>
+      </v-server-table>
+      <div
+          v-if="isViewInternal"
+          class="collection-select-all bottom"
+      >
+        <a
+            href="#"
+            @click.prevent="clearCollection()"
+        >
+          clear selection
+        </a>
+        |
+        <a
+            href="#"
+            @click.prevent="collectionToggleAll()"
+        >
+          (un)select all on this page
+        </a>
+      </div>
+      <!--      <div style="position: relative; height: 100px;">-->
+      <!--        <button @click="downloadCSVHandler"-->
+      <!--                class="btn btn-primary"-->
+      <!--                style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+      <!--          Download results CSV-->
+      <!--        </button>-->
+      <!--      </div>-->
+      <collectionManager
+          v-if="isViewInternal"
+          :collection-array="collectionArray"
+          :managements="managements"
+          @addManagementsToSelection="addManagementsToSelection"
+          @removeManagementsFromSelection="removeManagementsFromSelection"
+          @addManagementsToResults="addManagementsToResults"
+          @removeManagementsFromResults="removeManagementsFromResults"
+      />
+    </article>
+    <div class="col-xs-12">
+      <Alerts
+          :alerts="alerts"
+          @dismiss="alerts.splice($event, 1)"
+      />
+    </div>
+    <Delete
+        :show="deleteModal"
+        :del-dependencies="delDependencies.value"
+        :submit-model="submitModel"
+        @cancel="deleteModal=false"
+        @confirm="submitDelete()"
+    />
+    <transition name="fade">
+      <div
+          v-if="openRequests"
+          class="loading-overlay"
+      >
+        <div class="spinner" />
+      </div>
+    </transition>
+  </div>
 </template>
-<script>
+
+<script setup>
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import Delete from '../components/Edit/Modals/Delete.vue';
+import Alerts from "@/components/Alerts.vue";
 import qs from 'qs';
+import VueTables from 'vue-tables-2';
+import { nextTick } from 'vue';
 
-import Vue from 'vue/dist/vue.js';
-
-import VueFormGenerator from 'vue-form-generator';
+import ActiveFilters from '../components/Search/ActiveFilters.vue';
 import {
   createMultiSelect,
   createMultiMultiSelect,
   createLanguageToggle
 } from '@/helpers/formFieldUtils';
-import axios from 'axios';
+import { formatDate, greekFont } from "@/helpers/formatUtil";
+import { isLoginError } from "@/helpers/errorUtil";
 
-import AbstractSearch from '../mixins/AbstractSearch';
+import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
+import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
+import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
+import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
+import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
+import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
+import CollectionManager from '../components/Search/CollectionManager.vue';
+import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
+import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
+import { fetchDependencies } from "@/helpers/fetchDependencies";
+import { downloadCSV } from "@/helpers/downloadUtil";
+import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
+import validatorUtil from '@/helpers/validatorUtil';
+const props = defineProps({
+  isViewInternal: {
+    type: Boolean,
+    default: false,
+  },
+  initUrls: {
+    type: String,
+    default: '',
+  },
+  initData: {
+    type: String,
+    default: '',
+  },
+  initIdentifiers: {
+    type: String,
+    default: '',
+  },
+  initManagements: {
+    type: String,
+    default: '',
+  },
+});
 
-// used for deleteDependencies
-import AbstractListEdit from '../mixins/AbstractListEdit';
+const emit = defineEmits();
 
-import fieldRadio from '../Components/FormFields/fieldRadio.vue';
-import ActiveFilters from '../Components/Search/ActiveFilters.vue';
+const urls = JSON.parse(props.initUrls);
+const data = JSON.parse(props.initData);
+const identifiers = JSON.parse(props.initIdentifiers);
+const managements = JSON.parse(props.initManagements);
 
-import PersistentConfig from "@/mixins/PersistentConfig";
-import {formatDate, greekFont} from "../helpers/formatUtil";
-import {useSearchSession} from "../composables/useSearchSession";
+const formOptions = ref({
+  validateAfterLoad: true,
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+});
 
+const model = ref({
+  text_mode: ['greek'],
+  comment_mode: ['latin'],
+  text_fields: 'text',
+  text_combination: 'all',
+  person: [],
+  role: [],
+  metre: [],
+  metre_op: 'or',
+  genre: [],
+  genre_op: 'or',
+  subject: [],
+  subject_op: 'or',
+  tag: [],
+  tag_op: 'or',
+  translation_language: [],
+  translation_language_op: 'or',
+  acknowledgement: [],
+  acknowledgement_op: 'or',
+  lemma_mode: ['greek'],
+});
 
-Vue.component('FieldRadio', fieldRadio);
+if (props.isViewInternal) {
+  model.value.text_stem = 'original';
+}
 
-export default {
-    components: { ActiveFilters },
-    mixins: [
-        AbstractSearch,
-        PersistentConfig('TypeSearchConfig'),
+const originalModel = ref({});
+
+const tableOptions = ref({
+  headings: {
+    text: 'Title (T.) / text (matching verses only)',
+    comment: 'Comment (matching lines only)',
+    lemma: 'Lemma (matching lines in original text only)',
+  },
+  columnsClasses: {
+    id: 'no-wrap',
+  },
+  filterable: false,
+  orderBy: {
+    column: 'incipit',
+  },
+  perPage: 25,
+  perPageValues: [25, 50, 100],
+  sortable: ['id', 'incipit', 'number_of_occurrences', 'created', 'modified'],
+  customFilters: ['filters'],
+  rowClassCallback(row) {
+    return (row.public == null || row.public) ? '' : 'warning';
+  },
+});
+
+const submitModel = reactive({
+  submitType: 'type',
+  type: {},
+});
+
+const defaultOrdering = ref('incipit');
+const initialized = ref(false);
+const noHistory = ref(false);
+const tableCancel = ref(false);
+const resultTableRef = ref(null);
+const aggregation = ref({});
+const historyRequest = ref(false);
+const typeSearchRef = ref(null);
+
+const schema = ref({
+  fields: {},
+  groups: [],
+});
+
+const buildSchema = () => {
+  const fields = {};
+
+  fields.text_mode = createLanguageToggle('text');
+  fields.text = {
+    type: 'input',
+    inputType: 'text',
+    styleClasses: 'greek',
+    labelClasses: 'control-label',
+    label: 'Text',
+    model: 'text',
+  };
+
+  if (props.isViewInternal) {
+    fields.text_stem = {
+      type: 'radio',
+      styleClasses: 'has-warning',
+      label: 'Stemmer options:',
+      labelClasses: 'control-label',
+      model: 'text_stem',
+      values: [
+        { value: 'original', name: 'Original text' },
+        { value: 'stemmer', name: 'Stemmed text' },
+      ],
+    };
+  }
+
+  fields.text_combination = {
+    type: 'checkboxes',
+    styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
+    label: 'Word combination options:',
+    model: 'text_combination',
+    parentModel: 'text',
+    values: [
+      { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
+      { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
+      { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
     ],
-    data() {
-        const data = {
-            model: {
-                text_mode: ['greek'],
-                comment_mode: ['latin'],
-                text_fields: 'text',
-                text_combination: 'all',
-                person: [],
-                role: [],
-                metre: [],
-                metre_op: 'or',
-                genre: [],
-                genre_op: 'or',
-                subject: [],
-                subject_op: 'or',
-                tag: [],
-                tag_op: 'or',
-                translation_language: [],
-                translation_language_op: 'or',
-                acknowledgement: [],
-                acknowledgement_op: 'or',
-            },
-            schema: {
-                fields: {},
-            },
-            tableOptions: {
-                headings: {
-                    text: 'Title (T.) / text (matching verses only)',
-                    comment: 'Comment (matching lines only)',
-                    lemma: 'Lemma (matching lines in original text only)',
-                },
-                columnsClasses: {
-                    id: 'no-wrap',
-                },
-                filterable: false,
-                orderBy: {
-                    column: 'incipit',
-                },
-                perPage: 25,
-                perPageValues: [25, 50, 100],
-                sortable: ['id', 'incipit', 'number_of_occurrences', 'created', 'modified'],
-                customFilters: ['filters'],
-                requestFunction: AbstractSearch.requestFunction,
-                rowClassCallback(row) {
-                    return (row.public == null || row.public) ? '' : 'warning';
-                },
-            },
-            submitModel: {
-                submitType: 'type',
-                type: {},
-            },
-            defaultOrdering: 'incipit',
-            config: {
-              groupIsOpen: [],
-            },
-            defaultConfig: {
-              groupIsOpen: [],
-            },
-        };
+  };
 
-        // Add fields
-        data.schema.fields.text_mode = createLanguageToggle('text');
-        data.schema.fields.text = {
-            type: 'input',
-            inputType: 'text',
-            styleClasses: 'greek',
-            labelClasses: 'control-label',
-            label: 'Text',
-            model: 'text',
-        };
-        if (this.isViewInternal) {
-            data.model.text_stem = 'original';
-            data.schema.fields.text_stem = {
-                type: 'radio',
-                styleClasses: 'has-warning',
-                label: 'Stemmer options:',
-                labelClasses: 'control-label',
-                model: 'text_stem',
-                values: [
-                    { value: 'original', name: 'Original text' },
-                    { value: 'stemmer', name: 'Stemmed text' },
-                ],
-            };
-        }
-        data.schema.fields.text_combination = {
-            type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
-            label: 'Word combination options:',
-            model: 'text_combination',
-            parentModel: 'text',
-            values: [
-                { value: 'all', name: 'all', toggleGroup: 'all_any_phrase' },
-                { value: 'any', name: 'any', toggleGroup: 'all_any_phrase' },
-                { value: 'phrase', name: 'consecutive words', toggleGroup: 'all_any_phrase' },
-            ],
-        };
-        data.schema.fields.text_fields = {
-            type: 'checkboxes',
-            styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
-            label: 'Which fields should be searched:',
-            model: 'text_fields',
-            parentModel: 'text',
-            values: [
-                { value: 'text', name: 'Text', toggleGroup: 'text_title_all' },
-                { value: 'title', name: 'Title', toggleGroup: 'text_title_all' },
-                { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
-            ],
-        };
-        data.model.lemma_mode = ['greek'];
-        data.schema.fields.lemma_mode = createLanguageToggle('lemma');
-        // disable latin
-        data.schema.fields.lemma_mode.values[2].disabled = true;
-        data.schema.fields.lemma = {
-            type: 'input',
-            inputType: 'text',
-            styleClasses: 'greek',
-            labelClasses: 'control-label',
-            label: 'Lemma',
-            model: 'lemma',
-        };
-        data.schema.fields.person = createMultiSelect(
-            'Person',
-            {},
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        data.schema.fields.role = createMultiSelect(
-            'Role',
-            {
-                dependency: 'person',
-            },
-            {
-                multiple: true,
-                closeOnSelect: false,
-            },
-        );
-        [data.schema.fields.metre_op, data.schema.fields.metre] = createMultiMultiSelect('Metre');
-        [data.schema.fields.genre_op, data.schema.fields.genre] = createMultiMultiSelect('Genre');
-        [data.schema.fields.subject_op, data.schema.fields.subject] = createMultiMultiSelect('Subject');
-        [data.schema.fields.tag_op, data.schema.fields.tag] = createMultiMultiSelect('Tag');
-        data.schema.fields.translated = createMultiSelect(
-            'Translation(s) available?',
-            {
-                model: 'translated',
-            },
-            {
-                customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
-            },
-        );
-        [
-            data.schema.fields.translation_language_op,
-            data.schema.fields.translation_language,
-        ] = createMultiMultiSelect(
-            'Translation language',
-            {
-                dependency: 'translated',
-                model: 'translation_language',
-            },
-        );
-        data.schema.fields.comment_mode = createLanguageToggle('comment');
-        data.schema.fields.comment = {
-            type: 'input',
-            inputType: 'text',
-            label: 'Comment',
-            labelClasses: 'control-label',
-            model: 'comment',
-            validator: VueFormGenerator.validators.string,
-        };
+  fields.text_fields = {
+    type: 'checkboxes',
+    styleClasses: 'field-checkboxes-labels-only field-checkboxes-lg',
+    label: 'Which fields should be searched:',
+    model: 'text_fields',
+    parentModel: 'text',
+    values: [
+      { value: 'text', name: 'Text', toggleGroup: 'text_title_all' },
+      { value: 'title', name: 'Title', toggleGroup: 'text_title_all' },
+      { value: 'all', name: 'Text and title', toggleGroup: 'text_title_all' },
+    ],
+  };
 
-        // Add identifier fields
-        const idList = [];
-        for (const identifier of JSON.parse(this.initIdentifiers)) {
-            idList.push(createMultiSelect(
-                `${identifier.name} available?`,
-                {
-                    model: `${identifier.systemName}_available`,
-                },
-                {
-                    customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
-                },
-            ));
-            idList.push(createMultiSelect(
-                identifier.name,
-                {
-                    dependency: `${identifier.systemName}_available`,
-                    model: identifier.systemName,
-                },
-            ));
-        }
+  fields.lemma_mode = createLanguageToggle('lemma');
+  // disable latin
+  fields.lemma_mode.values[2].disabled = true;
 
-        data.schema.groups = [
-            {
-                styleClasses: 'collapsible collapsed',
-                legend: 'External identifiers',
-                fields: idList,
-            },
-        ];
-        data.schema.fields.id = createMultiSelect('DBBE ID', { model: 'id' });
-        data.schema.fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
+  fields.lemma = {
+    type: 'input',
+    inputType: 'text',
+    styleClasses: 'greek',
+    labelClasses: 'control-label',
+    label: 'Lemma',
+    model: 'lemma',
+  };
 
-        data.schema.fields.dbbe = createMultiSelect(
-            'Text source DBBE?',
-            {
-                model: 'dbbe',
-            },
-            {
-                customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
-            },
-        );
-        [data.schema.fields.acknowledgement_op, data.schema.fields.acknowledgement] = createMultiMultiSelect(
-            'Acknowledgements',
-            {
-                model: 'acknowledgement',
-            },
-        );
-        if (this.isViewInternal) {
-            data.schema.fields.text_status = createMultiSelect(
-                'Text Status',
-                {
-                    model: 'text_status',
-                    styleClasses: 'has-warning',
-                },
-            );
-            data.schema.fields.critical_status = createMultiSelect(
-                'Editorial Status',
-                {
-                    model: 'critical_status',
-                    styleClasses: 'has-warning',
-                },
-            );
-            data.schema.fields.public = createMultiSelect(
-                'Public',
-                {
-                    styleClasses: 'has-warning',
-                },
-                {
-                    customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
-                },
-            );
-            data.schema.fields.management = createMultiSelect(
-                'Management collection',
-                {
-                    model: 'management',
-                    styleClasses: 'has-warning',
-                },
-            );
-            data.schema.fields.management_inverse = {
-                type: 'checkbox',
-                styleClasses: 'has-warning',
-                label: 'Inverse management collection selection',
-                labelClasses: 'control-label',
-                model: 'management_inverse',
-            };
-        }
+  fields.person = createMultiSelect(
+      'Person',
+      {},
+      {
+        multiple: true,
+        closeOnSelect: false,
+      },
+  );
 
-        return data;
-    },
-    created(){
-      this.session = useSearchSession(this);
-      this.onData = (data) => this.session.onData(data, this.onDataExtend);
-      this.session.init();
-    },
-    mounted(){
-      this.session.setupCollapsibleLegends();
-      this.$on('config-changed', this.session.handleConfigChange(this.schema));
-    },
+  fields.role = createMultiSelect(
+      'Role',
+      {
+        dependency: 'person',
+      },
+      {
+        multiple: true,
+        closeOnSelect: false,
+      },
+  );
 
-    computed: {
-        depUrls() {
-            return {
-                Occurrences: {
-                    depUrl: this.urls.occurrence_deps_by_type.replace('type_id', this.submitModel.type.id),
-                    url: this.urls.occurrence_get,
-                    urlIdentifier: 'occurrence_id',
-                },
-            };
+  [fields.metre_op, fields.metre] = createMultiMultiSelect('Metre');
+  [fields.genre_op, fields.genre] = createMultiMultiSelect('Genre');
+  [fields.subject_op, fields.subject] = createMultiMultiSelect('Subject');
+  [fields.tag_op, fields.tag] = createMultiMultiSelect('Tag');
+
+  fields.translated = createMultiSelect(
+      'Translation(s) available?',
+      {
+        model: 'translated',
+      },
+      {
+        customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+      },
+  );
+
+  [
+    fields.translation_language_op,
+    fields.translation_language,
+  ] = createMultiMultiSelect(
+      'Translation language',
+      {
+        dependency: 'translated',
+        model: 'translation_language',
+      },
+  );
+
+  fields.comment_mode = createLanguageToggle('comment');
+  fields.comment = {
+    type: 'input',
+    inputType: 'text',
+    label: 'Comment',
+    labelClasses: 'control-label',
+    model: 'comment',
+    validator:validatorUtil.string,
+  };
+
+  // Add identifier fields
+  const idList = [];
+  for (const identifier of identifiers) {
+    idList.push(createMultiSelect(
+        `${identifier.name} available?`,
+        {
+          model: `${identifier.systemName}_available`,
         },
-        tableColumns() {
-            const columns = ['id', 'incipit', 'number_of_occurrences'];
-            if (this.textSearch) {
-                columns.unshift('text');
-            }
-            if (this.commentSearch) {
-                columns.unshift('comment');
-            }
-            if (this.lemmaSearch) {
-                columns.unshift('lemma');
-            }
-            if (this.isViewInternal) {
-                columns.push('created');
-                columns.push('modified');
-                columns.push('actions');
-                columns.push('c');
-            }
-            return columns;
+        {
+          customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
         },
+    ));
+    idList.push(createMultiSelect(
+        identifier.name,
+        {
+          dependency: `${identifier.systemName}_available`,
+          model: identifier.systemName,
+        },
+    ));
+  }
+
+  const groups = [
+    {
+      styleClasses: 'collapsible collapsed',
+      legend: 'External identifiers',
+      fields: idList,
     },
-    watch: {
-        'model.lemma_mode': function (value, oldValue) {
-            this.changeTextMode(value, oldValue, 'lemma');
-        },
-    },
-    methods: {
-      greekFont,
-      formatDate,
-        del(row) {
-            this.submitModel.type = {
-                id: row.id,
-                name: row.incipit,
-            };
-            AbstractListEdit.methods.deleteDependencies.call(this);
-        },
-        submitDelete() {
-            this.openRequests += 1;
-            this.deleteModal = false;
-            axios.delete(this.urls.type_delete.replace('type_id', this.submitModel.type.id))
-                .then((_response) => {
-                    // Don't create a new history item
-                    this.noHistory = true;
-                    this.$refs.resultTable.refresh();
-                    this.openRequests -= 1;
-                    this.alerts.push({ type: 'success', message: 'Type deleted successfully.' });
-                })
-                .catch((error) => {
-                    this.openRequests -= 1;
-                    this.alerts.push({ type: 'error', message: 'Something went wrong while deleting the type.' });
-                    console.error(error);
-                });
-        },
-        async downloadCSV() {
-          try {
-            const params = this.getSearchParams();
-            params.limit = 10000;
-            params.page = 1;
+  ];
 
-            const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-            const url = `${this.urls['types_export_csv']}?${queryString}`;
+  fields.id = createMultiSelect('DBBE ID', { model: 'id' });
+  fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 
-            const response = await fetch(url);
-            const blob = await response.blob();
+  fields.dbbe = createMultiSelect(
+      'Text source DBBE?',
+      {
+        model: 'dbbe',
+      },
+      {
+        customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No'),
+      },
+  );
 
-            this.downloadFile(blob, 'types.csv', 'text/csv');
-          } catch (error) {
-            console.error(error);
-            this.alerts.push({ type: 'error', message: 'Error downloading CSV.' });
-          }
+  [fields.acknowledgement_op, fields.acknowledgement] = createMultiMultiSelect(
+      'Acknowledgements',
+      {
+        model: 'acknowledgement',
+      },
+  );
+
+  if (props.isViewInternal) {
+    fields.text_status = createMultiSelect(
+        'Text Status',
+        {
+          model: 'text_status',
+          styleClasses: 'has-warning',
         },
-        downloadFile(blob, fileName, mimeType) {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.setAttribute('hidden', '');
-          a.setAttribute('href', url);
-          a.setAttribute('download', fileName);
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }
+    );
+    fields.critical_status = createMultiSelect(
+        'Editorial Status',
+        {
+          model: 'critical_status',
+          styleClasses: 'has-warning',
+        },
+    );
+    fields.public = createMultiSelect(
+        'Public',
+        {
+          styleClasses: 'has-warning',
+        },
+        {
+          customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only'),
+        },
+    );
+    fields.management = createMultiSelect(
+        'Management collection',
+        {
+          model: 'management',
+          styleClasses: 'has-warning',
+        },
+    );
+    fields.management_inverse = {
+      type: 'checkbox',
+      styleClasses: 'has-warning',
+      label: 'Inverse management collection selection',
+      labelClasses: 'control-label',
+      model: 'management_inverse',
+    };
+  }
 
-    },
+  schema.value = {
+    fields,
+    groups,
+  };
 };
+
+const fields = computed(() => {
+  const res = {};
+  const addField = (field) => {
+    if (!field.multiple || field.multi === true) {
+      res[field.model] = field;
+    }
+  };
+
+  if (schema.value) {
+    if (schema.value.fields) {
+      Object.values(schema.value.fields).forEach(addField);
+    }
+    if (schema.value.groups) {
+      schema.value.groups.forEach(group => {
+        if (group.fields) {
+          group.fields.forEach(field => {
+            res[field.model] = field;
+          });
+        }
+      });
+    }
+  }
+
+  return res;
+});
+
+const depUrls = computed(() => ({
+  Occurrences: {
+    depUrl: urls.occurrence_deps_by_type.replace('type_id', submitModel.type.id),
+    url: urls.occurrence_get,
+    urlIdentifier: 'occurrence_id',
+  },
+}));
+
+const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
+
+const {
+  openRequests,
+  alerts,
+  startRequest,
+  endRequest,
+  cleanParams,
+  handleError,
+  axiosGet
+} = useRequestTracker();
+
+const {
+  onValidated,
+  lastChangedField,
+  actualRequest,
+  initFromURL
+} = useFormValidation({
+  model,
+  fields,
+  resultTableRef,
+  defaultOrdering: ref('incipit'),
+  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
+  historyRequest
+});
+
+const {
+  notEmptyFields,
+  changeTextMode,
+  setUpOperatorWatchers,
+  onLoaded,
+  deleteActiveFilter,
+  onDataExtend,
+  textSearch,
+  commentSearch,
+  lemmaSearch
+} = useSearchFields(model, schema, fields, aggregation, {
+  multiple: true,
+  updateCountRecords,
+  initFromURL,
+  endRequest,
+  historyRequest
+});
+
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
+  urls,
+  data,
+  aggregation,
+  emit,
+  elRef: typeSearchRef,
+  onDataExtend
+}, 'TypeSearchConfig');
+
+const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
+
+const {
+  collectionArray,
+  collectionToggleAll,
+  clearCollection,
+  addManagementsToSelection,
+  removeManagementsFromSelection,
+  addManagementsToResults,
+  removeManagementsFromResults,
+} = useCollectionManagement({
+  data,
+  urls,
+  constructFilterValues,
+  resultTableRef,
+  alerts,
+  startRequest,
+  endRequest,
+  noHistory
+});
+
+const tableColumns = computed(() => {
+  const columns = ['id', 'incipit', 'numberOfOccurrences'];
+  if (textSearch.value) {
+    columns.unshift('text');
+  }
+  if (commentSearch.value) {
+    columns.unshift('comment');
+  }
+  if (lemmaSearch.value) {
+    columns.unshift('lemma');
+  }
+  if (props.isViewInternal) {
+    columns.push('created');
+    columns.push('modified');
+    columns.push('actions');
+    columns.push('c');
+  }
+  return columns;
+});
+
+const handleDeletedActiveFilter = (field) => {
+  deleteActiveFilter(field);
+  onValidated(true);
+};
+
+const requestFunction = async (data) => {
+  const params = cleanParams(data);
+  startRequest();
+  let url = urls['types_search_api'];
+
+  if (!initialized || !actualRequest) {
+    if (!initialized) {
+      onData(data);
+    }
+    return {
+      data: {
+        data: initialized ? data : data.data,
+        count: initialized ? count : data.count,
+      },
+    };
+  }
+
+  if (historyRequest.value) {
+    if (historyRequest !== 'init') {
+      url = `${url}?${historyRequest}`;
+    }
+    return await axiosGet(url, {}, tableCancel, onData, data);
+  }
+
+  if (!noHistory) {
+    pushHistory(params, model, originalModel, fields, tableOptions);
+  } else {
+    noHistory.value = false;
+  }
+
+  return await axiosGet(
+      url,
+      {
+        params,
+        paramsSerializer: qs.stringify
+      },
+      tableCancel,
+      onData,
+      data
+  );
+};
+
+const submitDelete = async () => {
+  startRequest();
+  deleteModal.value = false;
+
+  try {
+    await axios.delete(urls.type_delete.replace('type_id', submitModel.type.id));
+    noHistory.value = true;
+    resultTableRef.value?.refresh();
+    alerts.value.push({ type: 'success', message: 'Type deleted successfully.' });
+  } catch (error) {
+    alerts.value.push({ type: 'error', message: 'Something went wrong while deleting the type.' });
+    console.error(error);
+  } finally {
+    endRequest();
+  }
+};
+
+const del = async (row) => {
+  submitModel.type = {
+    id: row.id,
+    name: row.incipit,
+  };
+  startRequest();
+  const depUrlsEntries = Object.entries(depUrls.value);
+  try {
+    delDependencies.value = await fetchDependencies(depUrlsEntries);
+    deleteModal.value = true;
+  } catch (error) {
+    alerts.value.push({
+      type: 'error',
+      message: 'Something went wrong while checking for dependencies.',
+      login: isLoginError(error),
+    });
+    console.error(error);
+  } finally {
+    endRequest();
+  }
+};
+
+const modelUpdated = (fieldName) => {
+  lastChangedField.value = fieldName;
+};
+
+const resetAllFilters = () => {
+  model.value = JSON.parse(JSON.stringify(originalModel));
+  onValidated(true);
+};
+
+const downloadCSVHandler = async () => {
+  try {
+    await downloadCSV(urls);
+  } catch (error) {
+    console.error(error);
+    alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
+  }
+};
+
+watch(() => model.value.lemma_mode, (val, oldVal) => {
+  changeTextMode(val, oldVal, 'lemma');
+});
+
+watch(() => model.value.text_mode, (val, oldVal) => {
+  changeTextMode(val, oldVal, 'text');
+});
+
+watch(() => model.value.comment_mode, (val, oldVal) => {
+  changeTextMode(val, oldVal, 'comment');
+});
+
+watch(() => model.value.comment, (newValue) => {
+  if (newValue && newValue.trim().length > 0) {
+    commentSearch.value = true;
+  } else {
+    commentSearch.value = false;
+  }
+}, { immediate: true });
+
+watch(
+    () => schema.value?.groups,
+    async (groups) => {
+      if (!groups || !Array.isArray(groups)) return;
+      await nextTick();
+      const legends = typeSearchRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+      if (legends.length > 0) {
+        setupCollapsibleLegends(schema);
+      }
+    },
+    { immediate: true }
+);
+
+tableOptions.value.requestFunction = requestFunction;
+
+setUpOperatorWatchers();
+
+onMounted(() => {
+  buildSchema();
+  updateCountRecords();
+  initFromURL(aggregation.value);
+  originalModel.value = JSON.parse(JSON.stringify(model));
+  window.onpopstate = (event) => {
+    historyRequest.value = popHistory();
+    resultTableRef.value?.refresh();
+  };
+  updateCountRecords();
+});
 </script>

@@ -176,7 +176,7 @@ class ElasticBibliographyService extends ElasticEntityService
             switch ($key) {
             case 'person':
                 if (isset($filters['role'])) {
-                    $result['multiple_fields_object_multi'][$key] = [[$filters['role']], $value, 'role'];
+                    $result['multiple_fields_object_multi'][$key] = [$filters['role'], $value, 'role'];
                 } else {
                     $result['multiple_fields_object_multi'][$key] = [$this->getRoleSystemNames($viewInternal), $value, 'role'];
                 }

@@ -1,7 +1,7 @@
 <template>
     <div>
         <article class="col-sm-9 mbottom-large">
-            <alert
+            <Alerts
                 v-for="(item, index) in alerts"
                 :key="index"
                 :type="item.type"
@@ -9,11 +9,11 @@
                 @dismissed="alerts.splice(index, 1)"
             >
                 {{ item.message }}
-            </alert>
+            </Alerts>
 
-            <personPanel
+            <Person
                 id="persons"
-                ref="persons"
+                ref="personsRef"
                 header="Persons"
                 :links="[{title: 'Persons', reload: 'modernPersons', edit: urls['persons_search']}]"
                 :roles="roles"
@@ -25,9 +25,9 @@
                 @reload="reload"
             />
 
-            <basicArticlePanel
+            <BasicArticle
                 id="basic"
-                ref="basic"
+                ref="basicRef"
                 header="Basic Information"
                 :links="[{title: 'Journals', reload: 'journals', edit: urls['journals_edit']}, {title: 'Journal issues', reload: 'journalIssues', edit: urls['journal_issues_edit']}]"
                 :model="model.basic"
@@ -37,35 +37,35 @@
                 @reload="reload"
             />
 
-            <urlPanel
+            <Url
                 id="urls"
-                ref="urls"
+                ref="urlsRef"
                 header="Urls"
                 :model="model.urls"
                 @validated="validated"
             />
 
-            <identificationPanel
+            <Identification
                 v-if="identifiers.length > 0"
                 id="identification"
-                ref="identification"
+                ref="identificationRef"
                 header="Identification"
                 :identifiers="identifiers"
                 :model="model.identification"
                 @validated="validated"
             />
 
-            <generalBibItemPanel
+            <GeneralBibItem
                 id="general"
-                ref="general"
+                ref="generalRef"
                 header="General"
                 :model="model.general"
                 @validated="validated"
             />
 
-            <managementPanel
+            <Management
                 id="managements"
-                ref="managements"
+                ref="managementsRef"
                 header="Management collections"
                 :links="[{title: 'Management collections', reload: 'managements', edit: urls['managements_edit']}]"
                 :model="model.managements"
@@ -120,55 +120,55 @@
                     <li>
                         <a
                             href="#persons"
-                            :class="{'bg-danger': !($refs.persons && $refs.persons.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.persons && panelRefs.persons.isValid)}"
                         >Persons</a>
                     </li>
                     <li>
                         <a
                             href="#basic"
-                            :class="{'bg-danger': !($refs.basic && $refs.basic.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.basic && panelRefs.basic.isValid)}"
                         >Basic information</a>
                     </li>
                     <li>
                         <a
                             href="#urls"
-                            :class="{'bg-danger': !($refs.urls && $refs.urls.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.urls && panelRefs.urls.isValid)}"
                         >Urls</a>
                     </li>
                     <li v-if="identifiers.length > 0">
                         <a
                             href="#identification"
-                            :class="{'bg-danger': !($refs.identification && $refs.identification.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.identification && panelRefs.identification.isValid)}"
                         >Identification</a>
                     </li>
                     <li>
                         <a
                             href="#general"
-                            :class="{'bg-danger': !($refs.general && $refs.general.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.general && panelRefs.general.isValid)}"
                         >General</a>
                     </li>
                     <li>
                         <a
                             href="#managements"
-                            :class="{'bg-danger': !($refs.managements && $refs.managements.isValid)}"
+                            :class="{'bg-danger': !(panelRefs.managements && panelRefs.managements.isValid)}"
                         >Management collections</a>
                     </li>
                     <li><a href="#actions">Actions</a></li>
                 </ul>
             </nav>
         </aside>
-        <resetModal
+        <Reset
             title="article"
             :show="resetModal"
             @cancel="resetModal=false"
             @confirm="reset()"
         />
-        <invalidModal
+        <Invalid
             :show="invalidModal"
             @cancel="invalidModal=false"
             @confirm="invalidModal=false"
         />
-        <saveModal
+        <Save
             title="article"
             :show="saveModal"
             :diff="diff"
@@ -179,181 +179,261 @@
         />
     </div>
 </template>
-
-<script>
-import Vue from 'vue/dist/vue.js';
+<script setup>
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
-import AbstractEntityEdit from '@/mixins/AbstractEntityEdit'
-import {getErrorMessage, isLoginError} from "@/helpers/errorUtil";
-import Reset from "@/Components/Edit/Modals/Reset.vue";
-import Invalid from "@/Components/Edit/Modals/Invalid.vue";
-import Save from "@/Components/Edit/Modals/Save.vue";
+import Reset from '@/components/Edit/Modals/Reset.vue'
+import Invalid from '@/components/Edit/Modals/Invalid.vue'
+import Save from '@/components/Edit/Modals/Save.vue'
 
-const panelComponents = import.meta.glob('../Components/Edit/Panels/{Person,BasicArticle,Url,Identification,GeneralBibItem,Management}.vue', { eager: true })
+import { getErrorMessage, isLoginError } from '@/helpers/errorUtil'
+import { disablePanels, enablePanels, updateItems } from '@/helpers/panelUtil'
+import { usePanelValidation } from '@/composables/editAppComposables/usePanelValidation'
+import { useModelDiff } from '@/composables/editAppComposables/useModelDiff'
+import { useStickyNav } from '@/composables/editAppComposables/useStickyNav'
+import Person from "@/components/Edit/Panels/Person.vue";
+import BasicArticle from "@/components/Edit/Panels/BasicArticle.vue";
+import Url from "@/components/Edit/Panels/Url.vue";
+import Identification from "@/components/Edit/Panels/Identification.vue";
+import GeneralBibItem from "@/components/Edit/Panels/GeneralBibItem.vue";
+import Management from "@/components/Edit/Panels/Management.vue";
+import Alerts from "@/components/Alerts.vue";
+import {useSaveModel} from "@/composables/editAppComposables/useSaveModel";
+import {useErrorAlert} from "@/composables/useErrorAlert";
 
-for (const path in panelComponents) {
-  const component = panelComponents[path].default
-  const compName = path
-      .split('/')
-      .pop()
-      .replace(/\.vue$/, '')
+const props = defineProps({
+  initUrls: {
+    type: String,
+    default: '',
+  },
+  initData: {
+    type: String,
+    default: '',
+  },
+  initRoles: {
+    type: String,
+    default: '',
+  },
+  initIdentifiers: {
+    type: String,
+    default: '',
+  },
+})
 
-  const globalName = compName.charAt(0).toLowerCase() + compName.slice(1) + 'Panel'
-  Vue.component(globalName, component)
+const basicRef = ref(null)
+const urlsRef = ref(null)
+const generalRef = ref(null)
+const managementsRef = ref(null)
+const personsRef = ref(null)
+const identificationRef = ref(null)
+const anchor = ref(null)
+
+const urls = JSON.parse(props.initUrls)
+const data = JSON.parse(props.initData)
+const identifiers = JSON.parse(props.initIdentifiers)
+const roles = JSON.parse(props.initRoles)
+
+const managements = ref(null)
+const modernPersons = ref(null)
+
+const personRoles = {}
+for (let role of roles) {
+  personRoles[role.systemName] = []
 }
-export default {
-    mixins: [ AbstractEntityEdit ],
-    components: {
-      resetModal: Reset,
-      invalidModal: Invalid,
-      saveModal: Save
-    },
-    data() {
-        let data = {
-            identifiers: JSON.parse(this.initIdentifiers),
-            roles: JSON.parse(this.initRoles),
-            article: null,
-            modernPersons: null,
-            journals: null,
-            model: {
-                personRoles: {},
-                basic: {
-                    title: null,
-                    journal: null,
-                    journalIssue: null,
-                    startPage: null,
-                    endPage: null,
-                    rawPages: null,
-                },
-                urls: {urls: []},
-                identification: {},
-                managements: {
-                    managements: [],
-                },
-            },
-            panels: [
-                'persons',
-                'basic',
-                'urls',
-                'general',
-                'managements',
-            ],
-        }
-        for (let identifier of data.identifiers) {
-            data.model.identification[identifier.systemName] = null
-        }
-        if (data.identifiers.length > 0) {
-            data.panels.push('identification')
-        }
-        for (let role of data.roles) {
-            data.model.personRoles[role.systemName] = [];
-        }
-        return data
-    },
-    created () {
-        this.article = this.data.article;
+const model = reactive({
+  personRoles: personRoles,
+  basic: {
+    title: null,
+    journal: null,
+    journalIssue: null,
+    startPage: null,
+    endPage: null,
+    rawPages: null,
+  },
+  urls: { urls: [] },
+  identification: {},
+  managements: {},
+  general: {},
+})
 
-        this.modernPersons = [];
-        this.journalsAndIssues = {
-            journals: [],
-            journalIssues: [],
-        };
-        this.managements = this.data.managements;
-    },
-    methods: {
-        loadAsync() {
-            this.reload('modernPersons');
-            this.reload('journals');
-            this.reload('journalIssues');
-        },
-        setData() {
-            if (this.article != null) {
-                // PersonRoles
-                for (let role of this.roles) {
-                    this.model.personRoles[role.systemName] = this.article.personRoles == null ? [] : this.article.personRoles[role.systemName];
-                }
+const panels = ['persons', 'basic', 'urls', 'general', 'managements']
 
-                // Basic info
-                this.model.basic = {
-                    title: this.article.title,
-                    journal: this.article.journal,
-                    journalIssue: this.article.journalIssue,
-                    startPage: this.article.startPage,
-                    endPage: this.article.endPage,
-                    rawPages: this.article.rawPages,
-                }
+const alerts = ref([])
+const article = ref(null)
+const journals = ref([])
+const journalsAndIssues = reactive({ journals: [], journalIssues: [] })
 
-                // Urls
-                this.model.urls = {
-                    urls: this.article.urls == null ? null : this.article.urls.map(
-                        function(url, index) {
-                            url.tgIndex = index + 1
-                            return url
-                        }
-                    )
-                }
+const reloads = ref([])
+const resetModal = ref(false)
+const invalidModal = ref(false)
+const originalModel = ref({})
 
-                // Identification
-                this.model.identification = {}
-                for (let identifier of this.identifiers) {
-                    this.model.identification[identifier.systemName] = this.article.identifications == null ? [] : this.article.identifications[identifier.systemName];
-                }
+const panelRefs = computed(() => ({
+  basic: basicRef.value,
+  urls: urlsRef.value,
+  general: generalRef.value,
+  persons: personsRef.value,
+  identification: identificationRef.value,
+  managements: managementsRef.value,
+}))
 
-                // General
-                this.model.general = {
-                    publicComment: this.article.publicComment,
-                    privateComment: this.article.privateComment,
-                }
 
-                // Management
-                this.model.managements = {
-                    managements: this.article.managements,
-                }
-            }
-        },
-        save() {
-            this.openRequests++
-            this.saveModal = false
-            if (this.article == null) {
-                axios.post(this.urls['article_post'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['article_get'].replace('article_id', response.data.id)
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the article data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-            else {
-                axios.put(this.urls['article_put'], this.toSave())
-                    .then( (response) => {
-                        window.onbeforeunload = function () {}
-                        // redirect to the detail page
-                        window.location = this.urls['article_get']
-                    })
-                    .catch( (error) => {
-                        console.log(error)
-                        this.saveModal = true
-                        this.saveAlerts.push({type: 'error', message: 'Something went wrong while saving the article data.', extra: getErrorMessage(error), login: isLoginError(error)})
-                        this.openRequests--
-                    })
-            }
-        },
-        reload(type) {
-            switch (type) {
-            case 'journals':
-            case 'journalIssues':
-                this.reloadNestedItems(type, this.journalsAndIssues);
-                break;
-            default:
-                this.reloadSimpleItems(type);
-            }
-        },
+for (const identifier of identifiers) {
+  model.identification[identifier.systemName] = null
+}
+
+if (identifiers.length > 0) {
+  panels.push('identification')
+}
+//
+// for (const role of roles) {
+//   model.personRoles[role.systemName] = []
+// }
+
+
+const { invalidPanels, validateForms, checkInvalidPanels } = usePanelValidation(panelRefs, panels)
+const { diff, calcDiff } = useModelDiff(panelRefs, panels)
+const { saveModal, saveAlerts, openRequests, postUpdatedModel, putUpdatedModel } = useSaveModel(urls)
+const { scrollY, isSticky, stickyStyle, initScrollListener } = useStickyNav(anchor)
+
+const setData = () => {
+  article.value = data.article
+  modernPersons.value = []
+  journalsAndIssues.journals = []
+  journalsAndIssues.journalIssues = []
+  managements.value = data.managements
+
+  if (article.value !== null) {
+
+    for (let role of roles) {
+      model.personRoles[role.systemName] = article.value.personRoles == null ? [] : article.value.personRoles[role.systemName]
     }
+
+    Object.assign(model.basic, {
+      title: article.value.title,
+      journal: article.value.journal,
+      journalIssue: article.value.journalIssue,
+      startPage: article.value.startPage,
+      endPage: article.value.endPage,
+      rawPages: article.value.rawPages,
+    })
+
+    model.urls.urls = article.value.urls?.map((url, index) => {
+      url.tgIndex = index + 1
+      return url
+    }) ?? []
+
+    for (const identifier of identifiers) {
+      model.identification[identifier.systemName] = article.value.identifications?.[identifier.systemName] ?? []
+    }
+
+    model.general = {
+      publicComment: article.value.publicComment,
+      privateComment: article.value.privateComment,
+    }
+
+    model.managements.managements = article.value.managements
+  }
 }
+
+const toSave = () => {
+  const result = {}
+  for (const change of diff.value) {
+    if ('keyGroup' in change) {
+      result[change.keyGroup] ||= {}
+      result[change.keyGroup][change.key] = change.value
+    } else {
+      result[change.key] = change.value
+    }
+  }
+  return result
+}
+
+const save = () => {
+  openRequests.value++
+  saveModal.value = false
+  if (article.value == null) {
+    postUpdatedModel('article',toSave());
+  } else {
+    putUpdatedModel('article',toSave());
+  }
+}
+
+const validated = () => {
+  checkInvalidPanels()
+  calcDiff()
+}
+
+const reset = () => {
+  resetModal.value = false
+  Object.assign(model, JSON.parse(JSON.stringify(originalModel.value)))
+  nextTick(() => validateForms())
+}
+
+const saveButton = () => {
+  validateForms()
+  if (invalidPanels.value) {
+    invalidModal.value = true
+  } else {
+    saveModal.value = true
+  }
+}
+
+const cancelSave = () => {
+  saveModal.value = false
+  saveAlerts.value = []
+}
+
+const reload = (type,items) => {
+  if (type === 'journals' || type === 'journalIssues') {
+    reloadNestedItems(type, journalsAndIssues)
+  } else {
+    reloadSimpleItems(type,items)
+  }
+}
+
+const reloadSimpleItems = (type,items) => {
+  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+  reloadItems(type, [type], [items], url)
+}
+
+const reloadNestedItems = (type, parent) => {
+  const items = Array.isArray(parent) ? parent.map(p => p[type]) : [parent[type]]
+  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+  reloadItems(type, [type], items, url)
+}
+
+const reloadItems = (type, keys, items, url, filters = null) => {
+  disablePanels(panelRefs, panels, keys)
+  reloads.value.push(type)
+  axios.get(url)
+      .then(response => {
+        updateItems(items, response.data, filters)
+        enablePanels(panelRefs, panels, keys)
+        reloads.value.splice(reloads.value.indexOf(type), 1)
+      })
+      .catch(error => {
+        alerts.value.push({ type: 'error', message: 'Something went wrong while loading data.', login: isLoginError(error) })
+        console.log(error)
+      })
+}
+
+onMounted(() => {
+  initScrollListener()
+  setData()
+  originalModel.value = JSON.parse(JSON.stringify(model))
+
+  nextTick(() => {
+    if (!data.clone) {
+      for (const panel of panels) {
+        panelRefs.value[panel]?.init?.()
+      }
+    }
+  })
+
+  reload('modernPersons',modernPersons.value)
+  reload('journals',journals.value)
+  reload('journalIssues',journalsAndIssues.value)
+})
 </script>
