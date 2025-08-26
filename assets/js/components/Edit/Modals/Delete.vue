@@ -29,7 +29,9 @@
             </template>
         </div>
         <div v-else-if="submitModel[submitModel.submitType] != null">
-            <p>Are you sure you want to delete {{ formatType(submitModel.submitType) }} "<span :class="{greek: ['occurrence', 'type'].includes(submitModel.submitType)}">{{ submitModel[submitModel.submitType].name }}</span>"?</p>
+            <p>Are you sure you want to delete {{ formatType(submitModel.submitType) }} "
+              <span :class="{greek: ['occurrence', 'type'].includes(submitModel.submitType)}">
+                {{ submitModel[submitModel.submitType].name }}</span>"?</p>
         </div>
         <div slot="header">
             <h4

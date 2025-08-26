@@ -119,25 +119,31 @@ const submitModel = reactive({
   collection: null,
 })
 
+// Fixed depUrls - don't overwrite objects, create separate dependency categories
 const depUrls = computed(() => {
-  let depUrls = {
-    'Manuscripts': {
-      url: urls['manuscript_get'],
-      urlIdentifier: 'manuscript_id',
+  if (submitModel.submitType === 'institution' && submitModel.institution?.id) {
+    return {
+      'Manuscripts': {
+        url: urls['manuscript_get'],
+        urlIdentifier: 'manuscript_id',
+        depUrl: urls['manuscript_deps_by_institution'].replace('institution_id', submitModel.institution.id)
+      },
+      'Online Sources': {
+        url: urls['online_source_get'],
+        urlIdentifier: 'online_source_id',
+        depUrl: urls['online_source_deps_by_institution'].replace('institution_id', submitModel.institution.id)
+      }
+    }
+  } else if (submitModel.submitType === 'collection' && submitModel.collection?.id) {
+    return {
+      'Manuscripts': {
+        url: urls['manuscript_get'],
+        urlIdentifier: 'manuscript_id',
+        depUrl: urls['manuscript_deps_by_collection'].replace('collection_id', submitModel.collection.id)
+      }
     }
   }
-  if (submitModel.submitType === 'institution') {
-    depUrls['Manuscripts']['depUrl'] = urls['manuscript_deps_by_institution'].replace('institution_id', submitModel.institution.id)
-    depUrls['Manuscripts'] = {
-      url: urls['online_source_get'],
-      urlIdentifier: 'online_source_id',
-      depUrl: urls['online_source_deps_by_institution'].replace('institution_id', submitModel.institution.id)
-    }
-  }
-  else {
-    depUrls['Manuscripts']['depUrl'] = urls['manuscript_deps_by_collection'].replace('collection_id', submitModel.collection.id)
-  }
-  return depUrls
+  return {}
 })
 
 const {
@@ -287,9 +293,14 @@ function editLibrary(add = false) {
 }
 
 function delLibrary() {
+  if (!model.institution) {
+    alerts.value.push({ type: 'error', message: 'No library selected for deletion.' });
+    return;
+  }
+
   submitModel.submitType = 'institution'
   submitModel.regionWithParents = JSON.parse(JSON.stringify(model.regionWithParents))
-  submitModel.institution = model.institution
+  submitModel.institution = JSON.parse(JSON.stringify(model.institution)) // Create deep copy
   deleteDependencies()
 }
 
@@ -316,6 +327,11 @@ function editCollection(add = false) {
 }
 
 function delCollection() {
+  if (!model.collection) {
+    alerts.value.push({ type: 'error', message: 'No collection selected for deletion.' });
+    return;
+  }
+
   submitModel.submitType = 'collection'
   submitModel.regionWithParents = JSON.parse(JSON.stringify(model.regionWithParents))
   submitModel.institution = JSON.parse(JSON.stringify(model.institution))
@@ -436,10 +452,18 @@ function submitDelete() {
       .then((response) => {
         switch(submitModel.submitType) {
           case 'institution':
-            submitModel.institution = null
+            submitModel.institution = {
+              id: null,
+              name: '',
+            }
+            model.institution = null
             break
           case 'collection':
-            submitModel.collection = null
+            submitModel.collection = {
+              id: null,
+              name: '',
+            }
+            model.collection = null
             break
         }
         update()
@@ -467,20 +491,32 @@ function update() {
 
         switch(submitModel.submitType) {
           case 'regionWithParents':
-            model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+            if (submitModel.regionWithParents?.id) {
+              model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+            }
             loadLocationField(citySchema.fields.city, model, values.value)
             break
           case 'institution':
-            model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
-            model.institution = JSON.parse(JSON.stringify(submitModel.institution))
+            if (submitModel.regionWithParents?.id) {
+              model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+            }
+            if (submitModel.institution?.id) {
+              model.institution = JSON.parse(JSON.stringify(submitModel.institution))
+            }
             loadLocationField(citySchema.fields.city, model, values.value)
             loadLocationField(librarySchema.fields.library, model, values.value)
             enableField(librarySchema.fields.library, model)
             break
           case 'collection':
-            model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
-            model.institution = JSON.parse(JSON.stringify(submitModel.institution))
-            model.collection = JSON.parse(JSON.stringify(submitModel.collection))
+            if (submitModel.regionWithParents?.id) {
+              model.regionWithParents = JSON.parse(JSON.stringify(submitModel.regionWithParents))
+            }
+            if (submitModel.institution?.id) {
+              model.institution = JSON.parse(JSON.stringify(submitModel.institution))
+            }
+            if (submitModel.collection?.id) {
+              model.collection = JSON.parse(JSON.stringify(submitModel.collection))
+            }
             loadLocationField(citySchema.fields.city, model, values.value)
             loadLocationField(librarySchema.fields.library, model, values.value)
             loadLocationField(collectionSchema.fields.collection, model, values.value)
