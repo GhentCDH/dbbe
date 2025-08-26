@@ -441,7 +441,7 @@ const buildSchemaFields = () => {
     inputType: 'text',
     label: 'Comment',
     model: 'comment',
-    validator: VueFormGenerator.validators.string,
+    validator: validatorUtil.string,
   };
 
   [schemaFields.acknowledgement_op, schemaFields.acknowledgement] = createMultiMultiSelect('Acknowledgements', {
