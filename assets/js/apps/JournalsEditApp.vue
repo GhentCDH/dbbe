@@ -40,6 +40,7 @@
     >
       <template #extra>
       <UrlPanel
+          v-if="submitModel.journal"
           id="urls"
           ref="urls"
           header="Urls"
@@ -135,11 +136,15 @@ const props = defineProps({
 
 const depUrls = reactive({
   get 'Journal issues'() {
+    const journalId = submitModel.journal?.id;
+    if (!journalId) return { depUrl: '' }; // Return empty string or handle undefined case
+
     return {
-      depUrl: urls['journal_issue_deps_by_journal']?.replace('journal_id', submitModel.journal?.id ?? ''),
+      depUrl: urls['journal_issue_deps_by_journal']?.replace('journal_id', journalId) || '',
     }
   }
 })
+
 const {
   urls,
   values,
