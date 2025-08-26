@@ -324,7 +324,7 @@ import { isLoginError } from "@/helpers/errorUtil";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
-import { fetchDependencies } from "@/helpers/fetchDependencies";
+import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 
 import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
 import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";

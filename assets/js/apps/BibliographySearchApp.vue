@@ -388,7 +388,7 @@ import { useSearchSession } from "@/composables/searchAppComposables/useSearchSe
 
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
-import { fetchDependencies } from "@/helpers/fetchDependencies";
+import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 import validatorUtil from "@/helpers/validatorUtil";
 import Delete from "@/components/Edit/Modals/Delete.vue";
 
@@ -971,10 +971,13 @@ const submitDelete = async () => {
 
 const del = async (row) => {
   submitModel.submitType = types.value[row.type.id];
-  submitModel[submitModel.submitType]  = {
-    id: row.id,
-    name: row.original_name == null ? row.name : row.original_name,
-  };
+  submitModel[submitModel.submitType] = { ...row };
+  if (Array.isArray(submitModel[submitModel.submitType].title)) {
+    submitModel[submitModel.submitType].name = submitModel[submitModel.submitType].original_title;
+  } else {
+    submitModel[submitModel.submitType].name = submitModel[submitModel.submitType].title;
+  }
+
   startRequest();
   const depUrlsEntries = Object.entries(depUrls.value);
   try {
@@ -991,7 +994,6 @@ const del = async (row) => {
     endRequest();
   }
 };
-
 const cancelMerge = () => {
   mergeModal.value = false;
   mergeModel.primary = originalMergeModel.value.primary;

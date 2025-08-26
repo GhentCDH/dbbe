@@ -290,7 +290,7 @@ import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useE
 import CollectionManager from '../components/Search/CollectionManager.vue';
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
-import { fetchDependencies } from "@/helpers/fetchDependencies";
+import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from '@/helpers/validatorUtil';
