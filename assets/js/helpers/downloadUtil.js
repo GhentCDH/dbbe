@@ -2,21 +2,19 @@
 import qs from 'qs';
 import { getSearchParams } from '@/helpers/searchParamUtil';
 
-export async function downloadCSV(urls) {
+export async function downloadCSV(urls, type) {
     const params = getSearchParams();
     params.limit = 10000;
     params.page = 1;
-
     const queryString = qs.stringify(params, { encode: true, arrayFormat: 'brackets' });
-    const url = `${urls['manuscripts_export_csv']}?${queryString}`;
-
+    const urlIdentifier=`${type}_export_csv`
+    const url = `${urls[urlIdentifier]}?${queryString}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Network error: ${response.statusText}`);
     }
     const blob = await response.blob();
-
-    downloadFile(blob, 'manuscripts.csv', 'text/csv');
+    downloadFile(blob, `${type}.csv`, 'text/csv');
 }
 
 export function downloadFile(blob, fileName, mimeType) {
