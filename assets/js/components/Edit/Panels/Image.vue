@@ -291,7 +291,7 @@ export default {
             submitUpdateLinkDisabled: false,
             submitDeleteImageDisabled: false,
             submitDeleteLinkDisabled: false,
-            changes: [],
+            internalChanges: [],
             formOptions: {
               validateAfterChanged: true,
               validationErrorClass: 'has-error',
@@ -309,16 +309,22 @@ export default {
         });
     },
 
-    methods: {
+  computed: {
+    changes() {
+      return this.internalChanges
+    }
+  },
+
+  methods: {
         validate() {},
         calcChanges() {
-            this.changes = []
+            this.internalChanges = []
             // images
             if (
                 JSON.stringify(this.model.images) !== JSON.stringify(this.originalModel.images)
                 && !(this.model.images == null && this.originalModel.images == null)
             ) {
-                this.changes.push({
+                this.internalChanges.push({
                     'key': 'images',
                     'label': 'Images',
                     'old': this.displayImages(this.originalModel.images),
@@ -331,7 +337,7 @@ export default {
                 JSON.stringify(this.model.imageLinks) !== JSON.stringify(this.originalModel.imageLinks)
                 && !(this.model.imageLinks == null && this.originalModel.imageLinks == null)
             ) {
-                this.changes.push({
+                this.internalChanges.push({
                     'key': 'imageLinks',
                     'label': 'Image links',
                     'old': this.displayLinks(this.originalModel.imageLinks),
