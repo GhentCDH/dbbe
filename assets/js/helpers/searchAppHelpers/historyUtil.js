@@ -1,9 +1,9 @@
 import qs from 'qs';
 
-export function pushHistory(data, model, originalModel, fields, tableOptions) {
+export function pushHistory(data, model, originalModel, fields, defaultOrderBy = 'incipit', defaultPerPage = 25) {
     const filteredData = JSON.parse(JSON.stringify(data));
 
-    if ('limit' in filteredData && filteredData.limit === 25) {
+    if ('limit' in filteredData && filteredData.limit === defaultPerPage) {
         delete filteredData.limit;
     }
     if ('page' in filteredData && filteredData.page === 1) {
@@ -11,7 +11,7 @@ export function pushHistory(data, model, originalModel, fields, tableOptions) {
     }
     if (
         'orderBy' in filteredData &&
-        filteredData.orderBy === tableOptions.value.orderBy.column &&
+        filteredData.orderBy === defaultOrderBy &&
         'ascending' in filteredData &&
         filteredData.ascending === 1
     ) {

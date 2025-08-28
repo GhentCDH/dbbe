@@ -79,16 +79,16 @@ export function dependencyField(field, model) {
 
 export function enableField(field, model, search = false) {
     const modelName = field.model?.split('.').pop() || '';
-    if (!field.values || field.values.length === 0) {
+    if (!field || field.length === 0) {
         noValuesField(field, model, search);
         return;
     }
     if (model  != null && model[modelName] != null) {
         if (Array.isArray(model[modelName])) {
             model[modelName] = model[modelName].filter((item) =>
-                field.values.some((v) => v.id === item.id)
+                field.some((v) => v.id === item.id)
             );
-        } else if (!field.values.some((v) => v.id === model[modelName].id)) {
+        } else if (!field.some((v) => v.id === model[modelName].id)) {
             model[modelName] = null;
         }
     }

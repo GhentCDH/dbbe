@@ -39,8 +39,8 @@ importers:
         specifier: ^2.3.4
         version: 2.3.4
       vue-multiselect:
-        specifier: ^2.1.9
-        version: 2.1.9
+        specifier: ^3.3.1
+        version: 3.3.1
       vue-tables-2:
         specifier: ^2.3.5
         version: 2.3.5
@@ -63,6 +63,9 @@ importers:
       '@vue/compiler-sfc':
         specifier: ^3.1.0
         version: 3.5.13
+      bootstrap:
+        specifier: ^5.3.3
+        version: 5.3.8(@popperjs/core@2.11.8)
       bootstrap-sass:
         specifier: ^3.4.3
         version: 3.4.3
@@ -414,6 +417,9 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
+
+  '@popperjs/core@2.11.8':
+    resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
     resolution: {integrity: sha512-+Fbls/diZ0RDerhE8kyC6hjADCXA1K4yVNlH0EYfd2XjyH0UGgzaQ8MlT0pCXAThfxv3QUAczHaL+qSv1E4/Cg==}
@@ -775,6 +781,11 @@ packages:
 
   bootstrap-sass@3.4.3:
     resolution: {integrity: sha512-vPgFnGMp1jWZZupOND65WS6mkR8rxhJxndT/AcMbqcq1hHMdkcH4sMPhznLzzoHOHkSCrd6J9F8pWBriPCKP2Q==}
+
+  bootstrap@5.3.8:
+    resolution: {integrity: sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==}
+    peerDependencies:
+      '@popperjs/core': ^2.11.8
 
   bower@1.8.14:
     resolution: {integrity: sha512-8Rq058FD91q9Nwthyhw0la9fzpBz0iwZTrt51LWl+w+PnJgZk9J+5wp3nibsJcIUPglMYXr4NRBaR+TUj0OkBQ==}
@@ -2420,9 +2431,9 @@ packages:
       vue-template-compiler:
         optional: true
 
-  vue-multiselect@2.1.9:
-    resolution: {integrity: sha512-nGEppmzhQQT2iDz4cl+ZCX3BpeNhygK50zWFTIRS+r7K7i61uWXJWSioMuf+V/161EPQjexI8NaEBdUlF3dp+g==}
-    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
+  vue-multiselect@3.3.1:
+    resolution: {integrity: sha512-QZPxG60HK4HCeBNq4rkpzHSzh3ow8blipZbKmYdRvN65If/aFWO/Bzz6eUCED4LQNYlvXG7UJuiFlbqFkAeKXg==}
+    engines: {node: '>= 14.18.1', npm: '>= 6.14.15'}
 
   vue-pagination-2@3.1.0:
     resolution: {integrity: sha512-gySZMsQq7DQ++tQ3FinQ8jr4n/lwJx1Qo5T5BXwacdYwDui9bH1tmx29Ob1sZ/gq3BTFwfuJasLLKg6BRDxpYg==}
@@ -2705,6 +2716,8 @@ snapshots:
       playwright: 1.52.0
 
   '@polka/url@1.0.0-next.29': {}
+
+  '@popperjs/core@2.11.8': {}
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
     optional: true
@@ -3163,6 +3176,10 @@ snapshots:
   boolbase@1.0.0: {}
 
   bootstrap-sass@3.4.3: {}
+
+  bootstrap@5.3.8(@popperjs/core@2.11.8):
+    dependencies:
+      '@popperjs/core': 2.11.8
 
   bower@1.8.14: {}
 
@@ -4853,7 +4870,7 @@ snapshots:
       - walrus
       - whiskers
 
-  vue-multiselect@2.1.9: {}
+  vue-multiselect@3.3.1: {}
 
   vue-pagination-2@3.1.0:
     dependencies:

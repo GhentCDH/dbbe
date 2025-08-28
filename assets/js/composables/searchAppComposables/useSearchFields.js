@@ -5,9 +5,7 @@ import {changeMode} from "@/helpers/formatUtil";
 
 export function useSearchFields(model, schema, fields, aggregation, {
     multiple = false,
-    updateCountRecords,
     initFromURL,
-    initFromUrl,
     endRequest,
     historyRequest
 } = {}) {
@@ -76,22 +74,11 @@ export function useSearchFields(model, schema, fields, aggregation, {
     }
 
     function onLoaded() {
-        updateCountRecords();
-
-        if (!initialized.value) {
-            initFromURL(aggregation.value);
-            initialized.value = true;
-        }
-
-        if (historyRequest.value) {
-            initFromUrl(aggregation.value);
-            historyRequest.value = false;
-        }
-
         for (const fieldName of Object.keys(fields.value)) {
             const field = fields.value[fieldName];
 
             if (field.type === 'multiselectClear') {
+                console.log('should b here')
                 field.values = aggregation.value[fieldName]?.sort(sortByName) ?? [];
                 field.originalValues = JSON.parse(JSON.stringify(field.values));
 
@@ -107,7 +94,7 @@ export function useSearchFields(model, schema, fields, aggregation, {
             }
         }
 
-        updateCountRecords();
+        // updateCountRecords();
         endRequest();
     }
 

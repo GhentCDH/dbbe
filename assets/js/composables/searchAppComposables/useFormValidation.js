@@ -2,7 +2,16 @@ import { ref } from 'vue';
 import qs from 'qs';
 import { constructFilterValues } from '@/helpers/searchAppHelpers/filterUtil';
 
-export function useFormValidation({ model, fields, resultTableRef, defaultOrdering, emitFilter, historyRequest }) {
+export function useFormValidation({
+                                      model,
+                                      fields,
+                                      defaultOrdering,
+                                      historyRequest,
+                                      currentPage = ref(1),
+                                      sortBy = ref('incipit'),
+                                      sortAscending = ref(true),
+                                      onDataRefresh = () => {}
+                                  }) {
     const lastChangedField = ref('');
     const inputCancel = ref(null);
     const lastOrder = ref(null);
@@ -40,9 +49,32 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
         }
     };
 
+    // Helper functions to replace resultTableRef methods
+    const setPage = (page) => {
+        currentPage.value = page;
+        onDataRefresh(true); // Force refresh for pagination
+    };
+
+    const setOrder = (column, ascending = true) => {
+        if (column === null) {
+            // Clear sorting - use default or keep current
+            return;
+        }
+        sortBy.value = column;
+        sortAscending.value = ascending;
+        currentPage.value = 1; // Reset to first page when sorting changes
+        onDataRefresh(true); // Force refresh for sorting
+    };
+
+    const getCurrentOrder = () => {
+        return {
+            column: sortBy.value,
+            ascending: sortAscending.value
+        };
+    };
+
     const initFromURL = (aggregation) => {
         const params = qs.parse(window.location.href.split('?', 2)[1]);
-
         if ('filters' in params) {
             for (const key of Object.keys(params.filters)) {
                 if (key === 'date') {
@@ -76,12 +108,12 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
 
         if ('page' in params) {
             actualRequest.value = false;
-            resultTableRef.value?.setPage(params.page);
+            setPage(params.page);
         }
 
         if ('orderBy' in params) {
             const asc = 'ascending' in params && params.ascending;
-            resultTableRef.value?.setOrder(params.orderBy, asc);
+            setOrder(params.orderBy, asc);
         } else if (
             'filters' in params &&
             (
@@ -89,13 +121,15 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
                 (params.filters.comment != null && params.filters.comment !== '')
             )
         ) {
-            resultTableRef.value?.setOrder(null);
+            setOrder(null);
         } else {
-            resultTableRef.value?.setOrder(defaultOrdering.value, true);
+            setOrder(defaultOrdering.value, true);
         }
     };
 
     const onValidated = (isValid) => {
+        console.log('onValidated called with isValid:', isValid, 'lastChangedField:', lastChangedField.value);
+
         if (!isValid) {
             if (clearInvalidYearFields()) return 'revalidate';
             clearPendingTimeout();
@@ -109,40 +143,61 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
         const isInput = lastChangedField.value && fields.value[lastChangedField.value]?.type === 'input';
         const timeoutValue = isInput ? 1000 : 0;
 
+        // Handle text/comment fields specially for sorting
         if (['text', 'comment'].includes(lastChangedField.value)) {
-            actualRequest.value = false;
             const lastValue = model.value[lastChangedField.value];
             if (!lastValue) {
                 if (!lastOrder.value) {
-                    resultTableRef.value?.setOrder(defaultOrdering.value, true);
+                    setOrder(defaultOrdering.value, true);
                 } else {
-                    resultTableRef.value?.setOrder(lastOrder.value.column, lastOrder.value.ascending ?? false);
+                    setOrder(lastOrder.value.column, lastOrder.value.ascending ?? false);
                 }
             } else {
-                lastOrder.value = structuredClone(resultTableRef.value?.options.orderBy);
-                resultTableRef.value?.setOrder(null);
+                lastOrder.value = structuredClone(getCurrentOrder());
+                setOrder(null);
             }
         }
 
+        // Set actualRequest to true for most field changes
         if (lastChangedField.value === 'text_type') {
             actualRequest.value = !!model.value.text;
             if (actualRequest.value) {
-                resultTableRef.value?.setOrder(null);
+                setOrder(null);
             }
         } else {
+            // Always set to true for filtering - this was the main issue
             actualRequest.value = true;
         }
 
+        // Don't trigger request if this is from history navigation
         if (historyRequest.value) {
             actualRequest.value = false;
+            console.log('Skipping request due to historyRequest');
+            return;
         }
 
+        console.log('Setting up timeout with actualRequest:', actualRequest.value, 'timeout:', timeoutValue);
+
         inputCancel.value = setTimeout(() => {
+            console.log('Timeout executing, actualRequest:', actualRequest.value);
             inputCancel.value = null;
+
             const filterValues = constructFilterValues(model.value, fields.value);
-            if (JSON.stringify(filterValues) !== JSON.stringify(oldFilterValues.value)) {
+            const hasFilterChanges = JSON.stringify(filterValues) !== JSON.stringify(oldFilterValues.value);
+
+            console.log('Filter values changed:', hasFilterChanges);
+            console.log('Old filters:', oldFilterValues.value);
+            console.log('New filters:', filterValues);
+
+            if (hasFilterChanges) {
                 oldFilterValues.value = filterValues;
-                emitFilter(filterValues);
+                currentPage.value = 1; // Reset to first page for new searches
+
+                // Force the data refresh regardless of actualRequest value
+                console.log('Calling onDataRefresh with force=true');
+                onDataRefresh(true); // Pass true to force the request
+            } else {
+                console.log('No filter changes detected, skipping refresh');
             }
         }, timeoutValue);
     };
@@ -159,5 +214,8 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
         lastChangedField,
         actualRequest,
         initFromURL,
+        setPage,
+        setOrder,
+        getCurrentOrder
     };
 }
