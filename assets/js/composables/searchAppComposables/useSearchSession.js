@@ -51,15 +51,11 @@ export function useSearchSession({
     };
 
     const setupCollapsibleLegends = (schema) => {
-        console.log('setting up')
-        console.log(elRef?.value?.$el)
         const legends = elRef?.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
-        console.log(legends)
         const updateSchemaStyles = handleConfigChange(schema);
 
         legends.forEach((legend) => {
             legend.onclick = (e) => {
-                console.log('on click triggers')
                 const group = e.target.parentElement;
                 const index = Array.from(group?.parentNode?.children || []).indexOf(group) - 1;
                 setConfig(index, !config.groupIsOpen[index]);
