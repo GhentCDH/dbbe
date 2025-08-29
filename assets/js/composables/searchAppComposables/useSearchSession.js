@@ -1,6 +1,6 @@
 import qs from 'qs';
 import merge from 'lodash.merge';
-import { getSearchParams } from "@/helpers/searchParamUtil";
+import { buildRequestParams } from "@/helpers/requestParamUtil";
 import VueCookies from 'vue-cookies';
 import {reactive} from 'vue';
 const STORAGE_KEY = 'search_session';
@@ -35,7 +35,7 @@ export function useSearchSession({
 
         session = {
             ...session,
-            params: getSearchParams(),
+            params: buildRequestParams(),
             count: response.count,
             hash: Date.now(),
         };
@@ -51,15 +51,11 @@ export function useSearchSession({
     };
 
     const setupCollapsibleLegends = (schema) => {
-        console.log('setting up')
-        console.log(elRef?.value?.$el)
         const legends = elRef?.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
-        console.log(legends)
         const updateSchemaStyles = handleConfigChange(schema);
 
         legends.forEach((legend) => {
             legend.onclick = (e) => {
-                console.log('on click triggers')
                 const group = e.target.parentElement;
                 const index = Array.from(group?.parentNode?.children || []).indexOf(group) - 1;
                 setConfig(index, !config.groupIsOpen[index]);
@@ -103,7 +99,7 @@ export function useSearchSession({
             {
                 urls: { paginate: getUrl('paginate') },
                 count: data?.count,
-                params: getSearchParams(),
+                params: buildRequestParams(),
             },
             { hash: Date.now() }
         );
