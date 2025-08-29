@@ -1,11 +1,11 @@
 // composables/useCollectionManagement.js
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import {buildHistoryValues} from "@/helpers/searchAppHelpers/historyUtil";
 
 export function useCollectionManagement({
                                             data,
                                             urls,
-                                            constructFilterValues,
                                             resultTableRef,
                                             alerts,
                                             startRequest,
@@ -58,7 +58,7 @@ export function useCollectionManagement({
         const payload =
             target === 'selection'
                 ? { ids: collectionArray.value, managements: managementCollections }
-                : { filter: constructFilterValues(), managements: managementCollections };
+                : { filter: buildHistoryValues(), managements: managementCollections };
 
         const messages = {
             add: {

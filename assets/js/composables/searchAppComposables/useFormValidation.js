@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import qs from 'qs';
-import { constructFilterValues } from '@/helpers/searchAppHelpers/filterUtil';
+import { buildHistoryValues } from '@/helpers/searchAppHelpers/historyUtil';
 
 export function useFormValidation({
                                       model,
@@ -102,7 +102,7 @@ export function useFormValidation({
             }
         }
 
-        oldFilterValues.value = constructFilterValues(model.value, fields.value);
+        oldFilterValues.value = buildHistoryValues(model.value, fields.value);
 
         actualRequest.value = false;
 
@@ -174,7 +174,7 @@ export function useFormValidation({
         inputCancel.value = setTimeout(() => {
             inputCancel.value = null;
 
-            const filterValues = constructFilterValues(model.value, fields.value);
+            const filterValues = buildHistoryValues(model.value, fields.value);
             const hasFilterChanges = JSON.stringify(filterValues) !== JSON.stringify(oldFilterValues.value);
 
             if (hasFilterChanges) {
