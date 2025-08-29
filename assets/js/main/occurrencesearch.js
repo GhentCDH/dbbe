@@ -1,11 +1,11 @@
 import Vue from 'vue';
 import OccurrenceSearchApp from '../apps/OccurrenceSearchApp.vue'; // Root component
 import Delete from "../components/Edit/Modals/Delete.vue"; // Custom component
-import CollectionManager from "../components/Search/CollectionManager.vue"; // Custom component
+import CollectionManager from "../components/SearchFilters/CollectionManager.vue"; // Custom component
 import VueCookies from "vue-cookies"; // Cookies library
 import VueFormGenerator from "vue-form-generator"; // Form generator library
 import fieldRadio from '../components/FormFields/fieldRadio.vue';
-import VueTables from 'vue-tables-2';
+;
 import fieldMultiselectClear from '../components/FormFields/fieldMultiselectClear.vue'
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
@@ -17,7 +17,7 @@ window.axios = axios;
 
 
 Vue.use(uiv);
-Vue.use(VueTables.ServerTable);
+
 Vue.component('multiselect', VueMultiselect)
 Vue.component('FieldRadio', fieldRadio);
 Vue.component('FieldMultiselectClear', fieldMultiselectClear);

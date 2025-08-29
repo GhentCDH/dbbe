@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import BibliographySearchApp from '@/apps/BibliographySearchApp'
 import fieldRadio from '../components/FormFields/fieldRadio.vue';
-import VueTables from 'vue-tables-2';
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
 import VueFormGenerator from 'vue-form-generator'
@@ -12,7 +11,7 @@ import * as uiv from 'uiv'
 
 Vue.use(uiv);
 Vue.use(VueFormGenerator);
-Vue.use(VueTables.ServerTable);
+
 
 Vue.component('multiselect', VueMultiselect);
 Vue.component('field-multiselect', fieldMultiselectClear);

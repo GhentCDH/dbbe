@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import PersonSearchApp from '@/apps/PersonSearchApp'
-import VueTables from 'vue-tables-2';
+;
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
 import VueFormGenerator from 'vue-form-generator'
@@ -16,7 +16,7 @@ Vue.use(VueFormGenerator);
 Vue.component('FieldCheckboxes', fieldCheckboxes);
 
 
-Vue.use(VueTables.ServerTable);
+
 Vue.component('multiselect', VueMultiselect)
 Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 Vue.component('alerts', Alerts)

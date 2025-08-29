@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import ManuscriptSearchApp from '@/apps/ManuscriptSearchApp'
 
-import VueTables from 'vue-tables-2';
+;
 import Alerts from '../components/Alerts.vue'
 import axios from 'axios';
 import VueFormGenerator from 'vue-form-generator'
@@ -11,7 +11,7 @@ import fieldCheckboxes from '../components/FormFields/fieldCheckboxes.vue';
 import * as uiv from 'uiv'
 
 Vue.use(uiv);
-Vue.use(VueTables.ServerTable);
+
 Vue.use(VueFormGenerator);
 
 Vue.component('multiselect', VueMultiselect);
