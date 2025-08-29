@@ -25,17 +25,26 @@
           @resetFilters="resetAllFilters"
           @deletedActiveFilter="handleDeletedActiveFilter"
       />
-      <div
-          v-if="countRecords"
-          class="count-records"
-      >
-        <h6>{{ countRecords }}</h6>
+      <div>
+        <div v-if="countRecords" class="count-records d-flex justify-content-end mb-2">
+          <h6>{{ countRecords }}</h6>
+        </div>
+        <div>
+          <div class="per-page-container">
+            <label class="me-2">Records:</label>
+            <BSelect
+                id="perPageSelect"
+                label=""
+                :selected="currentPerPage"
+                :options="perPageOptions"
+                @update:selected="updatePerPage"
+            />
+          </div>
+        </div>
       </div>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all top"
-      >
-        <a
+      <div v-if="isViewInternal" class="per-page-container">
+
+      <a
             href="#"
             @click.prevent="clearCollection()"
         >
@@ -49,65 +58,64 @@
           (un)select all on this page
         </a>
       </div>
-      <v-server-table
-          ref="resultTableRef"
-          :url="urls['bibliographies_search_api']"
-          :columns="tableColumns"
-          :options="tableOptions"
-          @data="onData"
-          @loaded="onLoaded"
+
+      <BTable
+          :items="tableData"
+          :fields="tableFields"
+          :sort-by="sortBy"
+          :sort-ascending="sortAscending"
+          :sort-icon="{
+            base: 'fa',
+            up: 'fa-chevron-up',
+            down: 'fa-chevron-down',
+            is: 'fa-sort'
+          }"
+          @sort="handleSort"
       >
-        <template
-            slot="comment"
-            slot-scope="props"
-        >
-          <template v-if="props.row.public_comment">
+        <template #comment="{ item }">
+          <template v-if="item.public_comment">
             <em v-if="isEditor">Public</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.public_comment"
+                  v-for="(commentItem, index) in item.public_comment"
                   :key="index"
                   :value="Number(index) + 1"
-                  v-html="greekFont(item)"
+                  v-html="greekFont(commentItem)"
               />
             </ol>
           </template>
-          <template v-if="props.row.private_comment">
+          <template v-if="item.private_comment">
             <em>Private</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.private_comment"
+                  v-for="(commentItem, index) in item.private_comment"
                   :key="index"
                   :value="Number(index) + 1"
-                  v-html="greekFont(item)"
+                  v-html="greekFont(commentItem)"
               />
             </ol>
           </template>
         </template>
-        <template
-            slot="type"
-            slot-scope="props"
-        >
-          {{ props.row.type.name }}
+
+        <template #type="{ item }">
+          {{ item.type.name }}
         </template>
-        <template
-            slot="author"
-            slot-scope="props"
-        >
+
+        <template #author="{ item }">
           <!-- view internal -->
           <template
-              v-if="props.row.author && props.row.author.length > 0"
+              v-if="item.author && item.author.length > 0"
           >
             <ul
-                v-if="props.row.author.length > 1"
+                v-if="item.author.length > 1"
             >
               <li
-                  v-for="(author, index) in props.row.author"
+                  v-for="(author, index) in item.author"
                   :key="index"
               >
                 <a
                     :href="urls['person_get'].replace('person_id', author.id)"
-                    :class="{'bg-warning': !props.row.author_public || props.row.author_public.filter(auth => auth.id === author.id).length === 0}"
+                    :class="{'bg-warning': !item.author_public || item.author_public.filter(auth => auth.id === author.id).length === 0}"
                 >
                   {{ author.name }}
                 </a>
@@ -115,22 +123,22 @@
             </ul>
             <template v-else>
               <a
-                  :href="urls['person_get'].replace('person_id', props.row.author[0].id)"
-                  :class="{'bg-warning': !props.row.author_public || props.row.author_public.length === 0}"
+                  :href="urls['person_get'].replace('person_id', item.author[0].id)"
+                  :class="{'bg-warning': !item.author_public || item.author_public.length === 0}"
               >
-                {{ props.row.author[0].name }}
+                {{ item.author[0].name }}
               </a>
             </template>
           </template>
           <!-- no view internal -->
           <template
-              v-else-if="props.row.author_public && props.row.author_public.length > 0"
+              v-else-if="item.author_public && item.author_public.length > 0"
           >
             <ul
-                v-if="props.row.author_public.length > 1"
+                v-if="item.author_public.length > 1"
             >
               <li
-                  v-for="(author, index) in props.row.author_public"
+                  v-for="(author, index) in item.author_public"
                   :key="index"
               >
                 <a :href="urls['person_get'].replace('person_id', author.id)">
@@ -139,81 +147,89 @@
               </li>
             </ul>
             <template v-else>
-              <a :href="urls['person_get'].replace('person_id', props.row.author_public[0].id)">
-                {{ props.row.author_public[0].name }}
+              <a :href="urls['person_get'].replace('person_id', item.author_public[0].id)">
+                {{ item.author_public[0].name }}
               </a>
             </template>
           </template>
         </template>
-        <a
-            slot="title"
-            slot-scope="props"
-            :href="urls[types[props.row.type.id] + '_get'].replace(types[props.row.type.id] + '_id', props.row.id)"
-            v-html="greekFont(formatTitle(props.row.title))"
-        />
-        <template
-            slot="actions"
-            slot-scope="props"
-        >
+
+        <template #title="{ item }">
           <a
-              v-if="urls[types[props.row.type.id] + '_edit']"
-              :href="urls[types[props.row.type.id] + '_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
+              :href="urls[types[item.type.id] + '_get'].replace(types[item.type.id] + '_id', item.id)"
+              v-html="greekFont(formatTitle(item.title))"
+          />
+        </template>
+
+        <template #actions="{ item }">
+          <a
+              v-if="urls[types[item.type.id] + '_edit']"
+              :href="urls[types[item.type.id] + '_edit'].replace(types[item.type.id] + '_id', item.id)"
               class="action"
               title="Edit"
           >
             <i class="fa fa-pencil-square-o" />
           </a>
           <a
-              v-else-if="urls[types[props.row.type.id] + 's_edit']"
-              :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
+              v-else-if="urls[types[item.type.id] + 's_edit']"
+              :href="urls[types[item.type.id] + 's_edit'].replace(types[item.type.id] + '_id', item.id)"
               class="action"
               title="Edit"
           >
             <i class="fa fa-pencil-square-o" />
           </a>
           <a
-              v-if="types[props.row.type.id] === 'book' || types[props.row.type.id] === 'journal'"
+              v-if="types[item.type.id] === 'book' || types[item.type.id] === 'journal'"
               href="#"
               class="action"
               title="Merge"
-              @click.prevent="merge(props.row)"
+              @click.prevent="merge(item)"
           >
             <i class="fa fa-compress" />
           </a>
           <a
-              v-if="urls[types[props.row.type.id] + '_delete']"
+              v-if="urls[types[item.type.id] + '_delete']"
               href="#"
               class="action"
               title="Delete"
-              @click.prevent="del(props.row)"
+              @click.prevent="del(item)"
           >
             <i class="fa fa-trash-o" />
           </a>
           <a
-              v-else-if="urls[types[props.row.type.id] + 's_edit']"
-              :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
+              v-else-if="urls[types[item.type.id] + 's_edit']"
+              :href="urls[types[item.type.id] + 's_edit'].replace(types[item.type.id] + '_id', item.id)"
               class="action"
               title="Delete"
           >
             <i class="fa fa-trash-o" />
           </a>
         </template>
-        <template
-            slot="c"
-            slot-scope="props"
-        >
+
+        <template #c="{ item }">
           <span class="checkbox checkbox-primary">
             <input
-                :id="props.row.id"
+                :id="item.id"
                 v-model="collectionArray"
-                :name="props.row.id"
-                :value="props.row.id"
+                :name="item.id"
+                :value="item.id"
                 type="checkbox"
             >
-            <label :for="props.row.id" />
+            <label :for="item.id" />
           </span>
         </template>
-      </v-server-table>
+      </BTable>
+
+      <div class="mt-3 text-center">
+        <BPagination
+            v-if="totalRecords > 0"
+            :total-records="totalRecords"
+            :page="currentPage"
+            :per-page="currentPerPage"
+            @update:page="updatePage"
+        />
+      </div>
+
       <div
           v-if="isViewInternal"
           class="collection-select-all bottom"
@@ -362,10 +378,12 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import axios from 'axios';
-import VueTables from 'vue-tables-2';
 import qs from 'qs';
 import { nextTick } from 'vue';
 
+import BTable from "@/components/SearchTable/BTable.vue";
+import BSelect from "@/components/SearchTable/BSelect.vue";
+import BPagination from "@/components/SearchTable/BPagination.vue";
 import {
   createMultiSelect,
   createLanguageToggle
@@ -374,9 +392,9 @@ import { greekFont } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 
 import Alerts from "@/components/Alerts.vue";
-import ActiveFilters from '../components/Search/ActiveFilters.vue';
+import ActiveFilters from '../components/SearchFilters/ActiveFilters.vue';
 import Merge from '../components/Edit/Modals/Merge.vue';
-import CollectionManager from '../components/Search/CollectionManager.vue';
+import CollectionManager from '../components/SearchFilters/CollectionManager.vue';
 
 import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
 import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
@@ -426,6 +444,20 @@ const data = JSON.parse(props.initData);
 const identifiers = JSON.parse(props.initIdentifiers);
 const managements = JSON.parse(props.initManagements);
 
+// Pagination and table state
+const currentPage = ref(1);
+const currentPerPage = ref(25);
+const totalRecords = ref(0);
+const sortBy = ref('title');
+const sortAscending = ref(true);
+const tableData = ref([]);
+
+const perPageOptions = [
+  { value: 25, text: '25' },
+  { value: 50, text: '50' },
+  { value: 100, text: '100' }
+];
+
 const formOptions = ref({
   validateAfterLoad: true,
   validateAfterChanged: true,
@@ -445,27 +477,6 @@ const originalModel = ref({});
 
 const books = ref(null);
 const journals = ref(null);
-
-const tableOptions = ref({
-  headings: {
-    comment: 'Comment (matching lines only)',
-    author: 'Author(s)',
-  },
-  columnsClasses: {
-    author: 'no-wrap',
-  },
-  filterable: false,
-  orderBy: {
-    column: 'title',
-  },
-  perPage: 25,
-  perPageValues: [25, 50, 100],
-  sortable: ['type', 'author', 'title'],
-  customFilters: ['filters'],
-  rowClassCallback(row) {
-    return (row.public == null || row.public) ? '' : 'warning';
-  },
-});
 
 const submitModel = reactive({
   submitType: null,
@@ -490,7 +501,6 @@ const defaultOrdering = ref('title');
 const initialized = ref(false);
 const noHistory = ref(false);
 const tableCancel = ref(false);
-const resultTableRef = ref(null);
 const aggregation = ref({});
 const historyRequest = ref(false);
 const biblioElRef = ref(null);
@@ -604,7 +614,6 @@ const buildSchema = () => {
   };
 };
 
-
 const types = ref({
   0: 'article',
   1: 'book',
@@ -643,8 +652,6 @@ const mergeSchema = ref({
     ),
   },
 });
-
-
 
 const fields = computed(() => {
   const res = {};
@@ -716,7 +723,12 @@ const depUrls = computed(() => {
   return depUrls;
 });
 
-const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
+const countRecords = computed(() => {
+  if (totalRecords.value === 0) return '';
+  const start = (currentPage.value - 1) * currentPerPage.value + 1;
+  const end = Math.min(currentPage.value * currentPerPage.value, totalRecords.value);
+  return `Showing ${start} to ${end} of ${totalRecords.value} entries`;
+});
 
 const {
   openRequests,
@@ -736,10 +748,12 @@ const {
 } = useFormValidation({
   model,
   fields,
-  resultTableRef,
-  defaultOrdering: ref('title'),
-  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
-  historyRequest
+  defaultOrdering,
+  historyRequest,
+  currentPage,
+  sortBy,
+  sortAscending,
+  onDataRefresh: loadData
 });
 
 const {
@@ -752,8 +766,6 @@ const {
   commentSearch
 } = useSearchFields(model, schema, fields, aggregation, {
   multiple: true,
-  updateCountRecords,
-  initFromURL,
   endRequest,
   historyRequest
 });
@@ -781,11 +793,37 @@ const {
   data,
   urls,
   constructFilterValues,
-  resultTableRef,
   alerts,
   startRequest,
   endRequest,
   noHistory
+});
+
+const tableFields = computed(() => {
+  const fields = [];
+
+  if (commentSearch.value) {
+    fields.push({
+      key: 'comment',
+      label: 'Comment (matching lines only)',
+      sortable: false
+    });
+  }
+
+  fields.push(
+      { key: 'type', label: 'Type', sortable: true },
+      { key: 'author', label: 'Author(s)', sortable: true },
+      { key: 'title', label: 'Title', sortable: true }
+  );
+
+  if (props.isViewInternal) {
+    fields.push(
+        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'c', label: '', sortable: false }
+    );
+  }
+
+  return fields;
 });
 
 const identificationValue = (identifier) => {
@@ -799,63 +837,127 @@ const identificationValue = (identifier) => {
   );
 };
 
-const tableColumns = computed(() => {
-  const columns = ['type', 'author', 'title'];
-  if (commentSearch.value) {
-    columns.unshift('comment');
-  }
-  if (props.isViewInternal) {
-    columns.push('actions');
-    columns.push('c');
-  }
-  return columns;
-});
 const handleDeletedActiveFilter = (field) => {
   deleteActiveFilter(field);
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
+  sortBy.value = newSortBy;
+  sortAscending.value = newSortAscending;
+  currentPage.value = 1;
+  loadData(true);
+};
+
+const updatePage = (newPage) => {
+  currentPage.value = newPage;
+  loadData(true);
+};
+
+const updatePerPage = (newPerPage) => {
+  currentPerPage.value = parseInt(newPerPage);
+  currentPage.value = 1;
+  loadData(true);
+};
+
+async function loadData(forcedRequest = false) {
+  if (!initialized.value) {
+    if (data && data.data) {
+      onData(data);
+      tableData.value = data.data || [];
+      totalRecords.value = data.count || 0;
+      initialized.value = true;
+    }
+    return;
+  }
+
+  const shouldMakeRequest = actualRequest.value || forcedRequest || hasActiveFilters();
+  if (!shouldMakeRequest) return;
+
+  if (!model.value || !fields.value || !urls['bibliographies_search_api']) return;
+
+  const filterParams = {};
+
+  Object.entries(model.value).forEach(([key, value]) => {
+    if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+      if (Array.isArray(value) && value.length > 0) {
+        if (key.endsWith('_mode')) {
+          filterParams[key] = value[0];
+        } else {
+          filterParams[key] = value.map(item =>
+              typeof item === 'object' && item.id ? item.id : item
+          );
+        }
+      } else if (typeof value === 'object' && value.id) {
+        filterParams[key] = value.id;
+      } else {
+        filterParams[key] = value;
+      }
+    }
+  });
+
+  const params = {
+    page: currentPage.value,
+    limit: currentPerPage.value,
+    orderBy: sortBy.value,
+    ascending: sortAscending.value ? 1 : 0,
+    filters: filterParams
+  };
+
   startRequest();
   let url = urls['bibliographies_search_api'];
 
-  if (!initialized || !actualRequest) {
-    if (!initialized) {
-      onData(data);
+  try {
+    if (historyRequest.value) {
+      if (historyRequest.value !== 'init') {
+        url = `${url}?${historyRequest.value}`;
+      }
+      const response = await axiosGet(url, {}, tableCancel, onData, data);
+      tableData.value = response?.data?.data || [];
+      totalRecords.value = response?.data?.count || 0;
+    } else {
+      if (!noHistory.value) {
+        pushHistory(params, model, originalModel, fields, defaultOrdering.value, currentPerPage.value);
+      } else {
+        noHistory.value = false;
+      }
+
+      const response = await axiosGet(
+          url,
+          { params, paramsSerializer: qs.stringify },
+          tableCancel,
+          onData,
+          data
+      );
+      tableData.value = response?.data?.data || [];
+      totalRecords.value = response?.data?.count || 0;
+      if (onLoaded && aggregation.value) {
+        await onLoaded(aggregation.value);
+      }
     }
+  } catch (error) {
+    handleError(error);
+    tableData.value = [];
+    totalRecords.value = 0;
+  } finally {
     endRequest();
-    return {
-      data: {
-        data: initialized ? data : data.data,
-        count: initialized ? countRecords : data.count,
-      },
-    };
   }
+}
 
-  if (historyRequest.value) {
-    if (historyRequest.value !== 'init') {
-      url = `${url}?${historyRequest.value}`;
+const hasActiveFilters = () => {
+  if (!model.value) return false;
+
+  for (const [key, value] of Object.entries(model.value)) {
+    if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+      if (key === 'title_mode' && JSON.stringify(value) === JSON.stringify(['latin'])) continue;
+      if (key === 'comment_mode' && JSON.stringify(value) === JSON.stringify(['latin'])) continue;
+      if (key === 'title_type' && value === 'any') continue;
+
+      return true;
     }
-    return await axiosGet(url, {}, tableCancel, onData, data);
   }
-
-  if (!noHistory.value) {
-    pushHistory(params, model, originalModel, fields, tableOptions);
-  } else {
-    noHistory.value = false;
-  }
-
-  return await axiosGet(
-      url,
-      {
-        params,
-        paramsSerializer: qs.stringify
-      },
-      tableCancel,
-      onData,
-      data
-  );};
+  return false;
+};
 
 const merge = async (row) => {
   mergeModel.submitType = types.value[row.type.id];
@@ -873,8 +975,6 @@ const merge = async (row) => {
       mergeModel.secondary = null;
       mergeSchema.value.fields.primary.values = books.value;
       mergeSchema.value.fields.secondary.values = books.value;
-      // enableField(mergeSchema.value.fields.primary);
-      // enableField(mergeSchema.value.fields.secondary);
       originalMergeModel.value = JSON.parse(JSON.stringify(mergeModel));
       mergeModal.value = true;
     } else if (types.value[row.type.id] === 'journal') {
@@ -888,8 +988,6 @@ const merge = async (row) => {
       mergeModel.secondary = null;
       mergeSchema.value.fields.primary.values = journals.value;
       mergeSchema.value.fields.secondary.values = journals.value;
-      // enableField(mergeSchema.value.fields.primary);
-      // enableField(mergeSchema.value.fields.secondary);
       originalMergeModel.value = JSON.parse(JSON.stringify(mergeModel));
       mergeModal.value = true;
     }
@@ -922,8 +1020,7 @@ const submitMerge = async () => {
     }
 
     await axios.put(url);
-    // update(); // Assuming this refreshes the table
-    resultTableRef.value?.refresh();
+    await loadData(true);
     mergeAlerts.value = [];
     alerts.value.push({
       type: 'success',
@@ -951,9 +1048,8 @@ const submitDelete = async () => {
         urls[`${submitModel.submitType}_delete`]
             .replace(`${submitModel.submitType}_id`, submitModel[submitModel.submitType].id),
     );
-    // Don't create a new history item
     noHistory.value = true;
-    resultTableRef.value?.refresh();
+    await loadData(true);
     alerts.value.push({
       type: 'success',
       message: `${submitModel.submitType.replace(/^\w/, (c) => c.toUpperCase())} deleted successfully.`,
@@ -994,6 +1090,7 @@ const del = async (row) => {
     endRequest();
   }
 };
+
 const cancelMerge = () => {
   mergeModal.value = false;
   mergeModel.primary = originalMergeModel.value.primary;
@@ -1012,7 +1109,7 @@ const resetMerge = () => {
 
 const modelUpdated = (fieldName) => {
   lastChangedField.value = fieldName;
-}
+};
 
 const resetAllFilters = () => {
   model.value = JSON.parse(JSON.stringify(originalModel.value));
@@ -1134,20 +1231,88 @@ watch(
     { immediate: true }
 );
 
+watch(() => actualRequest.value, (newVal) => {
+  if (newVal && initialized.value) {
+    currentPage.value = 1;
+    loadData();
+  }
+});
 
-tableOptions.value.requestFunction = requestFunction;
+if (setUpOperatorWatchers) setUpOperatorWatchers();
 
-setUpOperatorWatchers();
-
-onMounted(() => {
+onMounted(async () => {
   buildSchema();
-  updateCountRecords();
   initFromURL(aggregation.value);
   originalModel.value = JSON.parse(JSON.stringify(model.value));
+
+  if (data && data.data) {
+    tableData.value = data.data;
+    totalRecords.value = data.count || 0;
+    initialized.value = true;
+
+    if (onData) {
+      onData(data);
+    }
+  }
+
+  if (onLoaded && aggregation.value) {
+    try {
+      await onLoaded(aggregation.value);
+    } catch (error) {
+      console.error('Error in onLoaded:', error);
+    }
+  }
+
   window.onpopstate = (event) => {
-    historyRequest.value = popHistory();
-    resultTableRef.value?.refresh();
+    if (popHistory) {
+      historyRequest.value = popHistory();
+      if (initialized.value) {
+        loadData(true);
+      }
+    }
   };
-  updateCountRecords();
 });
 </script>
+
+<style scoped>
+.collection-select-all a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 0.25rem;
+}
+
+.collection-select-all a:hover {
+  text-decoration: underline;
+}
+
+.count-records {
+  margin-bottom: 1rem;
+}
+
+.count-records h6 {
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.per-page-container {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.per-page-container label {
+  margin: 0;
+}
+
+.per-page-container select {
+  width: auto;
+}
+
+.collection-controls a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 0.25rem;
+}
+</style>

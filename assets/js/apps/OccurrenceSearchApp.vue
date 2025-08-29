@@ -207,13 +207,13 @@
 import { computed, onMounted, reactive, ref, watch, nextTick } from 'vue';
 import qs from 'qs';
 
-import BTable from "@/components/BTable.vue";
-import BSelect from "@/components/BSelect.vue";
-import BPagination from "@/components/BPagination.vue";
+import BTable from "@/components/SearchTable/BTable.vue";
+import BSelect from "@/components/SearchTable/BSelect.vue";
+import BPagination from "@/components/SearchTable/BPagination.vue";
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
-import ActiveFilters from '../components/Search/ActiveFilters.vue';
-import CollectionManager from '../components/Search/CollectionManager.vue';
+import ActiveFilters from '../components/SearchFilters/ActiveFilters.vue';
+import CollectionManager from '../components/SearchFilters/CollectionManager.vue';
 
 import {
   createMultiSelect,

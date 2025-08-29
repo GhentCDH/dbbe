@@ -25,187 +25,132 @@
           @resetFilters="resetAllFilters"
           @deletedActiveFilter="handleDeletedActiveFilter"
       />
-      <div
-          v-if="countRecords"
-          class="count-records"
-      >
-        <h6>{{ countRecords }}</h6>
+      <div>
+        <div v-if="countRecords" class="count-records d-flex justify-content-end mb-2">
+          <h6>{{ countRecords }}</h6>
+        </div>
+        <div>
+          <div class="per-page-container">
+            <label class="me-2">Records:</label>
+            <BSelect
+                id="perPageSelect"
+                label=""
+                :selected="currentPerPage"
+                :options="perPageOptions"
+                @update:selected="updatePerPage"
+            />
+          </div>
+        </div>
       </div>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all top"
-      >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
-        >
-          clear selection
-        </a>
+      <div v-if="isViewInternal" class="per-page-container">
+        <a href="#" @click.prevent="clearCollection()">clear selection</a>
         |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
+        <a href="#" @click.prevent="collectionToggleAll()">(un)select all on this page</a>
       </div>
-      <v-server-table
-          ref="resultTableRef"
-          :url="urls['manuscripts_search_api']"
-          :columns="tableColumns"
-          :options="tableOptions"
-          @data="onData"
-          @loaded="onLoaded"
+
+      <BTable
+          :items="tableData"
+          :fields="tableFields"
+          :sort-by="sortBy"
+          :sort-ascending="sortAscending"
+          :sort-icon="{
+            base: 'fa',
+            up: 'fa-chevron-up',
+            down: 'fa-chevron-down',
+            is: 'fa-sort'
+          }"
+          @sort="handleSort"
       >
-        <template
-            slot="comment"
-            slot-scope="props"
-        >
-          <template v-if="props.row.public_comment">
+        <template #comment="{ item }">
+          <template v-if="item.public_comment">
             <em v-if="isEditor">Public</em>
             <ol>
-              <li
-                  v-for="(item, index) in props.row.public_comment"
-                  :key="index"
-                  :value="Number(index) + 1"
-                  v-html="greekFont(item)"
-              />
+              <li v-for="(commentItem, index) in item.public_comment" :key="index" :value="Number(index) + 1" v-html="greekFont(commentItem)" />
             </ol>
           </template>
-          <template v-if="props.row.private_comment">
+          <template v-if="item.private_comment">
             <em>Private</em>
             <ol>
-              <li
-                  v-for="(item, index) in props.row.private_comment"
-                  :key="index"
-                  :value="Number(index) + 1"
-                  v-html="greekFont(item)"
-              />
+              <li v-for="(commentItem, index) in item.private_comment" :key="index" :value="Number(index) + 1" v-html="greekFont(commentItem)" />
             </ol>
           </template>
         </template>
-        <a
-            slot="name"
-            slot-scope="props"
-            :href="urls['manuscript_get'].replace('manuscript_id', props.row.id)"
-        >
-          {{ props.row.name }}
-        </a>
-        <template
-            v-if="props.row.date_floor_year && props.row.date_ceiling_year"
-            slot="date"
-            slot-scope="props"
-        >
-          <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
-            {{ props.row.date_floor_year }}
-          </template>
-          <template v-else>
-            {{ props.row.date_floor_year }} - {{ props.row.date_ceiling_year }}
-          </template>
+
+        <template #name="{ item }">
+          <a :href="urls['manuscript_get'].replace('manuscript_id', item.id)">{{ item.name }}</a>
         </template>
-        <template
-            v-if="props.row.content"
-            slot="content"
-            slot-scope="props"
-        >
-          <!-- set displayContent using a v-for -->
-          <!-- eslint-disable-next-line max-len -->
-          <template v-for="(displayContent, index) in [props.row.content.filter((content) => content['display'])]">
-            <ul
-                v-if="displayContent.length > 1"
-                :key="index"
-            >
-              <li
-                  v-for="(content, contentIndex) in displayContent"
-                  :key="contentIndex"
-              >
-                {{ content.name }}
-              </li>
-            </ul>
+
+        <template #date="{ item }">
+          <template v-if="item.date_floor_year && item.date_ceiling_year">
+            <template v-if="item.date_floor_year === item.date_ceiling_year">
+              {{ item.date_floor_year }}
+            </template>
             <template v-else>
-              {{ displayContent[0].name }}
+              {{ item.date_floor_year }} - {{ item.date_ceiling_year }}
             </template>
           </template>
         </template>
-        <template
-            slot="occ"
-            slot-scope="props"
-        >
-          {{ props.row.number_of_occurrences }}
+
+        <template #content="{ item }">
+          <template v-if="item.content">
+            <!-- set displayContent using a v-for -->
+            <div v-for="(displayContent, index) in [item.content.filter((content) => content['display'])]" :key="index">
+              <ul v-if="displayContent.length > 1">
+                <li v-for="(content, contentIndex) in displayContent" :key="contentIndex">
+                  {{ content.name }}
+                </li>
+              </ul>
+              <template v-else>
+                {{ displayContent[0]?.name }}
+              </template>
+            </div>
+          </template>
         </template>
-        <template
-            slot="created"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.created) }}
+
+        <template #occ="{ item }">
+          {{ item.number_of_occurrences }}
         </template>
-        <template
-            slot="modified"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.modified) }}
+
+        <template #created="{ item }">
+          {{ formatDate(item.created) }}
         </template>
-        <template
-            slot="actions"
-            slot-scope="props"
-        >
-          <a
-              :href="urls['manuscript_edit'].replace('manuscript_id', props.row.id)"
-              class="action"
-              title="Edit"
-          >
+
+        <template #modified="{ item }">
+          {{ formatDate(item.modified) }}
+        </template>
+
+        <template #actions="{ item }">
+          <a :href="urls['manuscript_edit'].replace('manuscript_id', item.id)" class="action" title="Edit">
             <i class="fa fa-pencil-square-o" />
           </a>
-          <a
-              href="#"
-              class="action"
-              title="Delete"
-              @click.prevent="del(props.row)"
-          >
+          <a href="#" class="action" title="Delete" @click.prevent="del(item)">
             <i class="fa fa-trash-o" />
           </a>
         </template>
-        <template
-            slot="c"
-            slot-scope="props"
-        >
-                    <span class="checkbox checkbox-primary">
-                        <input
-                            :id="props.row.id"
-                            v-model="collectionArray"
-                            :name="props.row.id"
-                            :value="props.row.id"
-                            type="checkbox"
-                        >
-                        <label :for="props.row.id" />
-                    </span>
+
+        <template #c="{ item }">
+          <span class="checkbox checkbox-primary">
+            <input :id="item.id" v-model="collectionArray" :name="item.id" :value="item.id" type="checkbox">
+            <label :for="item.id" />
+          </span>
         </template>
-      </v-server-table>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all bottom"
-      >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
-        >
-          clear selection
-        </a>
-        |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
+      </BTable>
+
+      <div class="mt-3 text-center">
+        <BPagination
+            v-if="totalRecords > 0"
+            :total-records="totalRecords"
+            :page="currentPage"
+            :per-page="currentPerPage"
+            @update:page="updatePage"
+        />
       </div>
-      <!--          <div style="position: relative; height: 100px;">-->
-      <!--            <button @click="downloadCSVHandler"-->
-      <!--                    class="btn btn-primary"-->
-      <!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-      <!--              Download results CSV-->
-      <!--            </button>-->
-      <!--          </div>-->
+      <div v-if="isViewInternal" class="per-page-container">
+        <a href="#" @click.prevent="clearCollection()">clear selection</a>
+        |
+        <a href="#" @click.prevent="collectionToggleAll()">(un)select all on this page</a>
+      </div>
+
       <collectionManager
           v-if="isViewInternal"
           :collection-array="collectionArray"
@@ -217,23 +162,20 @@
       />
     </article>
     <div class="col-xs-12">
-      <alerts
+      <Alerts
           :alerts="alerts"
           @dismiss="alerts.splice($event, 1)"
       />
     </div>
     <Delete
         :show="deleteModal"
-        :del-dependencies="delDependencies.value"
+        :del-dependencies="delDependencies"
         :submit-model="submitModel"
         @cancel="deleteModal=false"
         @confirm="submitDelete()"
     />
     <transition name="fade">
-      <div
-          v-if="openRequests"
-          class="loading-overlay"
-      >
+      <div v-if="openRequests" class="loading-overlay">
         <div class="spinner" />
       </div>
     </transition>
@@ -241,70 +183,71 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch, nextTick } from 'vue';
+import qs from 'qs';
+
+import BTable from "@/components/SearchTable/BTable.vue";
+import BSelect from "@/components/SearchTable/BSelect.vue";
+import BPagination from "@/components/SearchTable/BPagination.vue";
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
-import qs from 'qs';
-import VueTables from 'vue-tables-2';
+import ActiveFilters from '../components/SearchFilters/ActiveFilters.vue';
+import CollectionManager from '../components/SearchFilters/CollectionManager.vue';
 
-import ActiveFilters from '../components/Search/ActiveFilters.vue';
-import {createLanguageToggle, createMultiMultiSelect, createMultiSelect} from '@/helpers/formFieldUtils';
-import {formatDate, greekFont, YEAR_MAX, YEAR_MIN} from "@/helpers/formatUtil";
+import {
+  createMultiSelect,
+  createMultiMultiSelect,
+  createLanguageToggle
+} from '@/helpers/formFieldUtils';
+import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
-
-import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
-import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
-import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
-import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
-import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
-import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
-import CollectionManager from '../components/Search/CollectionManager.vue';
+import { downloadCSV } from "@/helpers/downloadUtil";
 import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
-import { downloadCSV } from "@/helpers/downloadUtil";
+
+import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
+import { useFormValidation } from "@/composables/searchAppComposables/useFormValidation";
+import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
+import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
 
 const props = defineProps({
-  isEditor: {
-    type: Boolean,
-    default: false,
-  },
-  isViewInternal: {
-    type: Boolean,
-    default: false,
-  },
-  initUrls: {
-    type: String,
-    default: '',
-  },
-  initData: {
-    type: String,
-    default: '',
-  },
-  initIdentifiers: {
-    type: String,
-    default: '',
-  },
-  initManagements: {
-    type: String,
-    default: '',
-  },
+  isEditor: { type: Boolean, default: false },
+  isViewInternal: { type: Boolean, default: false },
+  initUrls: { type: String, default: '' },
+  initData: { type: String, default: '' },
+  initIdentifiers: { type: String, default: '' },
+  initManagements: { type: String, default: '' }
 });
 
 const emit = defineEmits();
+const aggregation = ref({});
 
-const urls = JSON.parse(props.initUrls);
-const data = JSON.parse(props.initData);
-const identifiers = JSON.parse(props.initIdentifiers);
-const managements = JSON.parse(props.initManagements);
+const urls = JSON.parse(props.initUrls || '{}');
+const data = JSON.parse(props.initData || '{}');
+const identifiers = JSON.parse(props.initIdentifiers || '[]');
+const managements = JSON.parse(props.initManagements || '{}');
+
+const currentPage = ref(1);
+const currentPerPage = ref(25);
+const totalRecords = ref(0);
+const sortBy = ref('name');
+const sortAscending = ref(true);
+const tableData = ref([]);
+
+const perPageOptions = [
+  { value: 25, text: '25' },
+  { value: 50, text: '50' },
+  { value: 100, text: '100' }
+];
 
 const formOptions = ref({
   validateAfterLoad: true,
   validateAfterChanged: true,
   validationErrorClass: 'has-error',
-  validationSuccessClass: 'success',
+  validationSuccessClass: 'success'
 });
 
 const model = ref({
@@ -321,66 +264,12 @@ const model = ref({
 });
 
 const originalModel = ref({});
-
-const tableOptions = ref({
-  headings: {
-    comment: 'Comment (matching lines only)',
-  },
-  filterable: false,
-  orderBy: {
-    column: 'name',
-  },
-  perPage: 25,
-  perPageValues: [25, 50, 100],
-  sortable: ['name', 'date', 'occ', 'created', 'modified'],
-  customFilters: ['filters'],
-  rowClassCallback(row) {
-    return row.public == null || row.public ? '' : 'warning';
-  },
-});
-
-const submitModel = reactive({
-  submitType: 'manuscript',
-  manuscript: {},
-});
-
-const defaultOrdering = ref('name');
-const initialized = ref(false);
-const noHistory = ref(false);
-const tableCancel = ref(false);
-const resultTableRef = ref(null);
-const aggregation = ref({});
-const historyRequest = ref(false);
-const elRef = ref(null);
-
-const idList = [];
-for (const identifier of identifiers) {
-  idList.push(createMultiSelect(
-      `${identifier.name} available?`,
-      { model: `${identifier.systemName}_available` },
-      {
-        customLabel: ({ name }) => name === 'true' ? 'Yes' : 'No',
-      }
-  ));
-
-  idList.push(createMultiSelect(
-      identifier.name,
-      {
-        dependency: `${identifier.systemName}_available`,
-        model: identifier.systemName,
-      },
-      {
-        optionsLimit: 7000,
-      }
-  ));
-}
-
 const schema = ref({
   fields: {},
-  groups: [],
+  groups: []
 });
 
-const buildSchemaFields = () => {
+const buildInitialSchema = () => {
   const schemaFields = {};
 
   schemaFields.city = createMultiSelect('City');
@@ -448,16 +337,64 @@ const buildSchemaFields = () => {
     model: 'acknowledgement',
   });
 
-  return schemaFields;
+  // Add identifier fields
+  const idList = [];
+  for (const identifier of identifiers) {
+    idList.push(createMultiSelect(
+        `${identifier.name} available?`,
+        { model: `${identifier.systemName}_available` },
+        { customLabel: ({ _id, name }) => (name === 'true' ? 'Yes' : 'No') }
+    ));
+    idList.push(createMultiSelect(
+        identifier.name,
+        { dependency: `${identifier.systemName}_available`, model: identifier.systemName },
+        { optionsLimit: 7000 }
+    ));
+  }
+
+  if (props.isViewInternal) {
+    schemaFields.public = createMultiSelect('Public', { styleClasses: 'has-warning' }, {
+      customLabel: ({ _id, name }) => (name === 'true' ? 'Public only' : 'Internal only')
+    });
+
+    schemaFields.management = createMultiSelect('Management collection', {
+      model: 'management',
+      styleClasses: 'has-warning'
+    });
+
+    schemaFields.management_inverse = {
+      type: 'checkbox',
+      styleClasses: 'has-warning',
+      label: 'Inverse management collection selection',
+      labelClasses: 'control-label',
+      model: 'management_inverse'
+    };
+  }
+
+  const groups = [
+    {
+      styleClasses: 'collapsible collapsed',
+      legend: 'External identifiers',
+      fields: idList
+    }
+  ];
+
+  return { fields: schemaFields, groups };
 };
 
-schema.value.fields = buildSchemaFields();
-schema.value.groups.push({
-  styleClasses: 'collapsible collapsed',
-  legend: 'External identifiers',
-  fields: idList,
+const submitModel = reactive({
+  submitType: 'manuscript',
+  manuscript: {}
 });
 
+const defaultOrdering = ref('name');
+const initialized = ref(false);
+const noHistory = ref(false);
+const tableCancel = ref(false);
+const historyRequest = ref(false);
+const elRef = ref(null);
+const deleteModal = ref(false);
+const delDependencies = ref({});
 
 const fields = computed(() => {
   const res = {};
@@ -467,99 +404,83 @@ const fields = computed(() => {
     }
   };
 
-  if (schema.value) {
-    if (schema.value.fields) {
-      Object.values(schema.value.fields).forEach(addField);
-    }
-    if (schema.value.groups) {
-      schema.value.groups.forEach(group => {
-        if (group.fields) {
-          group.fields.forEach(field => {
-            res[field.model] = field;
-          });
-        }
-      });
-    }
+  if (schema.value?.fields) {
+    Object.values(schema.value.fields).forEach(addField);
   }
-
-  if (props.isViewInternal) {
-    res.public = createMultiSelect('Public', {
-      styleClasses: 'has-warning',
-    }, {
-      customLabel: ({ name }) => name === 'true' ? 'Public only' : 'Internal only',
+  if (schema.value?.groups) {
+    schema.value.groups.forEach(group => {
+      if (group.fields) {
+        group.fields.forEach(field => {
+          res[field.model] = field;
+        });
+      }
     });
-
-    res.management = createMultiSelect('Management collection', {
-      model: 'management',
-      styleClasses: 'has-warning',
-    });
-
-    res.management_inverse = {
-      type: 'checkbox',
-      styleClasses: 'has-warning',
-      label: 'Inverse management collection selection',
-      labelClasses: 'control-label',
-      model: 'management_inverse',
-    };
   }
-
   return res;
 });
 
-const depUrls = computed(() => ({
-  Occurrences: {
-    depUrl: urls.occurrence_deps_by_manuscript.replace(
-        'manuscript_id',
-        submitModel.manuscript.id
-    ),
-    url: urls.occurrence_get,
-    urlIdentifier: 'occurrence_id',
-  },
-}));
-
-const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
-
-const {
-  openRequests,
-  alerts,
-  startRequest,
-  endRequest,
-  cleanParams,
-  handleError,
-  axiosGet
-} = useRequestTracker();
-
-const {
-  onValidated,
-  lastChangedField,
-  actualRequest,
-  initFromURL
-} = useFormValidation({
-  model,
-  fields,
-  resultTableRef,
-  defaultOrdering: ref('name'),
-  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
-  historyRequest
+const depUrls = computed(() => {
+  if (!submitModel.manuscript?.id || !urls.occurrence_deps_by_manuscript || !urls.occurrence_get) {
+    return {};
+  }
+  return {
+    Occurrences: {
+      depUrl: urls.occurrence_deps_by_manuscript.replace('manuscript_id', submitModel.manuscript.id),
+      url: urls.occurrence_get,
+      urlIdentifier: 'occurrence_id'
+    }
+  };
 });
 
-const {
-  notEmptyFields,
-  changeTextMode,
-  setUpOperatorWatchers,
-  onLoaded,
-  deleteActiveFilter,
-  onDataExtend,
-  commentSearch
-} = useSearchFields(model, schema, fields, aggregation, {
+const tableFields = computed(() => {
+  if (!schema.value?.fields || !initialized.value) return [];
+
+  const fields = [
+    { key: 'name', label: 'Name', sortable: true }
+  ];
+
+  if (commentSearch.value) {
+    fields.unshift({
+      key: 'comment',
+      label: 'Comment (matching lines only)',
+      sortable: false
+    });
+  }
+
+  fields.push(
+      { key: 'date', label: 'Date', sortable: true },
+      { key: 'content', label: 'Content', sortable: false }
+  );
+
+  if (props.isViewInternal) {
+    fields.push(
+        { key: 'occ', label: 'Number of Occurrences', sortable: true },
+        { key: 'created', label: 'Created', sortable: true },
+        { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'c', label: '', sortable: false }
+    );
+  }
+
+  return fields;
+});
+
+const countRecords = computed(() => {
+  if (totalRecords.value === 0) return '';
+  const start = (currentPage.value - 1) * currentPerPage.value + 1;
+  const end = Math.min(currentPage.value * currentPerPage.value, totalRecords.value);
+  return `Showing ${start} to ${end} of ${totalRecords.value} entries`;
+});
+
+const { openRequests, alerts, startRequest, endRequest, handleError, axiosGet } = useRequestTracker();
+
+const { notEmptyFields, changeTextMode, setUpOperatorWatchers, deleteActiveFilter, onDataExtend, commentSearch, onLoaded } = useSearchFields(model, schema, fields, aggregation, {
   multiple: true,
-  updateCountRecords,
-  initFromURL,
   endRequest,
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useSearchSession({
+const { onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
@@ -568,36 +489,14 @@ const { init, onData, setupCollapsibleLegends } = useSearchSession({
   onDataExtend
 }, 'ManuscriptSearchConfig');
 
-const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
-
-const {
-  collectionArray,
-  collectionToggleAll,
-  clearCollection,
-  addManagementsToSelection,
-  removeManagementsFromSelection,
-  addManagementsToResults,
-  removeManagementsFromResults,
-} = useCollectionManagement({
+const { collectionArray, collectionToggleAll, clearCollection, addManagementsToSelection, removeManagementsFromSelection, addManagementsToResults, removeManagementsFromResults } = useCollectionManagement({
   data,
   urls,
   constructFilterValues,
-  resultTableRef,
   alerts,
   startRequest,
   endRequest,
   noHistory
-});
-
-const tableColumns = computed(() => {
-  const columns = ['name', 'date', 'content'];
-  if (commentSearch.value === true) {
-    columns.unshift('comment');
-  }
-  if (props.isViewInternal) {
-    columns.push('occ', 'created', 'modified', 'actions', 'c');
-  }
-  return columns;
 });
 
 const handleDeletedActiveFilter = (field) => {
@@ -605,82 +504,161 @@ const handleDeletedActiveFilter = (field) => {
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
+  sortBy.value = newSortBy;
+  sortAscending.value = newSortAscending;
+  currentPage.value = 1;
+  loadData(true);
+};
+
+const updatePage = (newPage) => {
+  currentPage.value = newPage;
+  loadData(true);
+};
+
+const updatePerPage = (newPerPage) => {
+  currentPerPage.value = parseInt(newPerPage);
+  currentPage.value = 1;
+  loadData(true);
+};
+
+const loadData = async (forcedRequest = false) => {
+  if (!initialized.value) {
+    if (data && data.data) {
+      onData(data);
+      tableData.value = data.data || [];
+      totalRecords.value = data.count || 0;
+      initialized.value = true;
+    }
+    return;
+  }
+
+  const shouldMakeRequest = actualRequest.value || forcedRequest || hasActiveFilters();
+  if (!shouldMakeRequest) return;
+
+  if (!model.value || !fields.value || !urls['manuscripts_search_api']) return;
+
+  const filterParams = {};
+
+  Object.entries(model.value).forEach(([key, value]) => {
+    if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+      if (Array.isArray(value) && value.length > 0) {
+        if (key.endsWith('_mode')) {
+          filterParams[key] = value[0];
+        } else {
+          filterParams[key] = value.map(item =>
+              typeof item === 'object' && item.id ? item.id : item
+          );
+        }
+      } else if (typeof value === 'object' && value.id) {
+        filterParams[key] = value.id;
+      } else {
+        filterParams[key] = value;
+      }
+    }
+  });
+
+  const params = {
+    page: currentPage.value,
+    limit: currentPerPage.value,
+    orderBy: sortBy.value,
+    ascending: sortAscending.value ? 1 : 0,
+    filters: filterParams
+  };
+
   startRequest();
   let url = urls['manuscripts_search_api'];
 
-  if (!initialized || !actualRequest) {
-    if (!initialized) {
-      onData(data);
-    }
-    endRequest();
-    return {
-      data: {
-        data: initialized ? data : data.data,
-        count: initialized ? count : data.count,
-      },
-    };
-  }
-
-  if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
-    }
-    return await axiosGet(url, {}, tableCancel, onData, data);
-  }
-
-  if (!noHistory) {
-    pushHistory(params, model, originalModel, fields, tableOptions);
-  } else {
-    noHistory.value = false;
-  }
-
-  return await axiosGet(
-      url,
-      {
-        params,
-        paramsSerializer: qs.stringify
-      },
-      tableCancel,
-      onData,
-      data
-  );
-};
-
-const submitDelete = async () => {
-  startRequest();
-  deleteModal.value = false;
-
   try {
-    await axios.delete(
-        urls.manuscript_delete.replace('manuscript_id', submitModel.manuscript.id)
-    );
-    noHistory.value = true;
-    resultTableRef.value?.refresh();
-    alerts.value.push({ type: 'success', message: 'Manuscript deleted successfully.' });
+    if (historyRequest.value) {
+      if (historyRequest.value !== 'init') {
+        url = `${url}?${historyRequest.value}`;
+      }
+      const response = await axiosGet(url, {}, tableCancel, onData, data);
+      tableData.value = response?.data?.data || [];
+      totalRecords.value = response?.data?.count || 0;
+    } else {
+      if (!noHistory.value) {
+        pushHistory(params, model, originalModel, fields, defaultOrdering.value, 25);
+      } else {
+        noHistory.value = false;
+      }
+
+      const response = await axiosGet(
+          url,
+          { params, paramsSerializer: qs.stringify },
+          tableCancel,
+          onData,
+          data
+      );
+      tableData.value = response?.data?.data || [];
+      totalRecords.value = response?.data?.count || 0;
+      if (onLoaded && aggregation.value) {
+        await onLoaded(aggregation.value);
+      }
+    }
   } catch (error) {
-    alerts.value.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
-    console.error(error);
+    handleError(error);
+    tableData.value = [];
+    totalRecords.value = 0;
   } finally {
     endRequest();
   }
 };
 
+const hasActiveFilters = () => {
+  if (!model.value) return false;
+
+  for (const [key, value] of Object.entries(model.value)) {
+    if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+      if (key === 'comment_mode' && JSON.stringify(value) === JSON.stringify(['latin'])) continue;
+      if (key === 'date_search_type' && value === 'exact') continue;
+      if (key.endsWith('_op') && value === 'or') continue;
+
+      return true;
+    }
+  }
+  return false;
+};
+
 const del = async (row) => {
-  submitModel.manuscript = row;
+  if (!row?.id || !row?.name) return;
+
+  submitModel.manuscript = { id: row.id, name: row.name };
   startRequest();
-  const depUrlsEntries = Object.entries(depUrls.value);
+
   try {
-    delDependencies.value = await fetchDependencies(depUrlsEntries);
+    const depUrlsEntries = Object.entries(depUrls.value);
+    if (depUrlsEntries.length > 0) {
+      delDependencies.value = await fetchDependencies(depUrlsEntries);
+    } else {
+      delDependencies.value = {};
+    }
     deleteModal.value = true;
   } catch (error) {
     alerts.value.push({
       type: 'error',
       message: 'Something went wrong while checking for dependencies.',
-      login: isLoginError(error),
+      login: isLoginError(error)
     });
-    console.error(error);
+  } finally {
+    endRequest();
+  }
+};
+
+const submitDelete = async () => {
+  if (!submitModel.manuscript?.id || !urls.manuscript_delete) return;
+
+  startRequest();
+  deleteModal.value = false;
+
+  try {
+    await axios.delete(urls.manuscript_delete.replace('manuscript_id', submitModel.manuscript.id));
+    noHistory.value = true;
+    await loadData(true);
+    alerts.value.push({ type: 'success', message: 'Manuscript deleted successfully.' });
+  } catch (error) {
+    alerts.value.push({ type: 'error', message: 'Something went wrong while deleting the manuscript.' });
   } finally {
     endRequest();
   }
@@ -691,52 +669,136 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  if (!originalModel.value || Object.keys(originalModel.value).length === 0) {
+    originalModel.value = JSON.parse(JSON.stringify(model.value));
+  }
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
   onValidated(true);
 };
 
-const downloadCSVHandler = async () => {
-  try {
-    await downloadCSV(urls);
-  } catch (error) {
-    console.error(error);
-    alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
-  }
-};
-
-watch(() => model.value.text_mode, (val, oldVal) => {
-  changeTextMode(val, oldVal, 'text');
+const { onValidated, lastChangedField, actualRequest, initFromURL } = useFormValidation({
+  model,
+  fields,
+  defaultOrdering,
+  historyRequest,
+  currentPage,
+  sortBy,
+  sortAscending,
+  onDataRefresh: loadData
 });
 
 watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
 
-watch(elRef, (el) => {
-  console.log('elRef changed');
-  if (el) setupCollapsibleLegends(schema);
-});
-
-watch(() => model.value.comment, (newValue) => {
-  if (newValue && newValue.trim().length > 0) {
-    commentSearch.value = true;
-  } else {
-    commentSearch.value = false;
+watch(() => schema.value?.groups, async (groups) => {
+  if (!groups || !Array.isArray(groups)) return;
+  await nextTick();
+  const legends = elRef.value?.$el?.querySelectorAll('.vue-form-generator .collapsible legend') || [];
+  if (legends.length > 0) {
+    setupCollapsibleLegends(schema);
   }
 }, { immediate: true });
 
-tableOptions.value.requestFunction = requestFunction;
+watch(() => model.value.comment, (newValue) => {
+  commentSearch.value = !!(newValue && newValue.trim().length > 0);
+}, { immediate: true });
 
-setUpOperatorWatchers();
+watch(() => actualRequest.value, (newVal) => {
+  if (newVal && initialized.value) {
+    currentPage.value = 1;
+    loadData();
+  }
+});
 
-onMounted(() => {
-  updateCountRecords();
+if (setUpOperatorWatchers) setUpOperatorWatchers();
+
+onMounted(async () => {
+  const schemaResult = buildInitialSchema();
+  schema.value.fields = schemaResult.fields;
+  schema.value.groups = schemaResult.groups;
+
   initFromURL(aggregation.value);
-  originalModel.value = JSON.parse(JSON.stringify(model));
+  originalModel.value = JSON.parse(JSON.stringify(model.value));
+
+  if (data && data.data) {
+    tableData.value = data.data;
+    totalRecords.value = data.count || 0;
+    initialized.value = true;
+
+    if (onData) {
+      onData(data);
+    }
+  }
+
+  if (onLoaded && aggregation.value) {
+    try {
+      await onLoaded(aggregation.value);
+    } catch (error) {
+      console.error('Error in onLoaded:', error);
+    }
+  }
+
+  await nextTick();
+
+  if (initFromURL && aggregation.value) {
+    try {
+      initFromURL(aggregation.value);
+    } catch (error) {
+      console.error('Error initializing from URL:', error);
+    }
+  }
+
   window.onpopstate = (event) => {
-    historyRequest.value = popHistory();
-    resultTableRef.value?.refresh();
+    if (popHistory) {
+      historyRequest.value = popHistory();
+      if (initialized.value) {
+        loadData(true);
+      }
+    }
   };
-  updateCountRecords();
 });
 </script>
+
+<style scoped>
+.collection-select-all a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 0.25rem;
+}
+
+.collection-select-all a:hover {
+  text-decoration: underline;
+}
+
+.count-records {
+  margin-bottom: 1rem;
+}
+
+.count-records h6 {
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.per-page-container {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.per-page-container label {
+  margin: 0;
+}
+
+.per-page-container select {
+  width: auto;
+}
+
+.collection-controls a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 0.25rem;
+}
+</style>
