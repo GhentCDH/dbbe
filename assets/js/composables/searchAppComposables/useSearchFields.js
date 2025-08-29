@@ -78,7 +78,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
             const field = fields.value[fieldName];
 
             if (field.type === 'multiselectClear') {
-                console.log('should b here')
                 field.values = aggregation.value[fieldName]?.sort(sortByName) ?? [];
                 field.originalValues = JSON.parse(JSON.stringify(field.values));
 

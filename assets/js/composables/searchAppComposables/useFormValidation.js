@@ -85,6 +85,7 @@ export function useFormValidation({
                         model.value.year_to = Number(params.filters.date.to);
                     }
                 } else if (key in fields.value) {
+                    console.log('here',fields, params)
                     const field = fields.value[key];
                     if (field.type === 'multiselectClear' && aggregation?.[key]) {
                         const values = params.filters[key];
@@ -128,7 +129,6 @@ export function useFormValidation({
     };
 
     const onValidated = (isValid) => {
-        console.log('onValidated called with isValid:', isValid, 'lastChangedField:', lastChangedField.value);
 
         if (!isValid) {
             if (clearInvalidYearFields()) return 'revalidate';
@@ -143,7 +143,6 @@ export function useFormValidation({
         const isInput = lastChangedField.value && fields.value[lastChangedField.value]?.type === 'input';
         const timeoutValue = isInput ? 1000 : 0;
 
-        // Handle text/comment fields specially for sorting
         if (['text', 'comment'].includes(lastChangedField.value)) {
             const lastValue = model.value[lastChangedField.value];
             if (!lastValue) {
@@ -158,25 +157,20 @@ export function useFormValidation({
             }
         }
 
-        // Set actualRequest to true for most field changes
         if (lastChangedField.value === 'text_type') {
             actualRequest.value = !!model.value.text;
             if (actualRequest.value) {
                 setOrder(null);
             }
         } else {
-            // Always set to true for filtering - this was the main issue
             actualRequest.value = true;
         }
 
-        // Don't trigger request if this is from history navigation
         if (historyRequest.value) {
             actualRequest.value = false;
             console.log('Skipping request due to historyRequest');
             return;
         }
-
-        console.log('Setting up timeout with actualRequest:', actualRequest.value, 'timeout:', timeoutValue);
 
         inputCancel.value = setTimeout(() => {
             console.log('Timeout executing, actualRequest:', actualRequest.value);
@@ -185,16 +179,10 @@ export function useFormValidation({
             const filterValues = constructFilterValues(model.value, fields.value);
             const hasFilterChanges = JSON.stringify(filterValues) !== JSON.stringify(oldFilterValues.value);
 
-            console.log('Filter values changed:', hasFilterChanges);
-            console.log('Old filters:', oldFilterValues.value);
-            console.log('New filters:', filterValues);
-
             if (hasFilterChanges) {
                 oldFilterValues.value = filterValues;
                 currentPage.value = 1; // Reset to first page for new searches
 
-                // Force the data refresh regardless of actualRequest value
-                console.log('Calling onDataRefresh with force=true');
                 onDataRefresh(true); // Pass true to force the request
             } else {
                 console.log('No filter changes detected, skipping refresh');
