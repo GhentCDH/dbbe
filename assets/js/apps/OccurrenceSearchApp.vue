@@ -223,7 +223,6 @@ import {
 import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 
@@ -233,7 +232,7 @@ import { useSearchFields } from "@/composables/searchAppComposables/useSearchFie
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useSearchSession} from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
-import {buildFilterParams} from "@/helpers/filterParamUtil";
+import {buildFilterParams} from "@/helpers/searchAppHelpers/filterUtil";
 
 const props = defineProps({
   isEditor: { type: Boolean, default: false },
@@ -554,7 +553,6 @@ const {  onData, setupCollapsibleLegends } = useSearchSession({
 const { collectionArray, collectionToggleAll, clearCollection, addManagementsToSelection, removeManagementsFromSelection, addManagementsToResults, removeManagementsFromResults } = useCollectionManagement({
   data,
   urls,
-  constructFilterValues,
   alerts,
   startRequest,
   endRequest,
@@ -595,7 +593,7 @@ const loadData = async (forcedRequest = false) => {
     return;
   }
 
-  const shouldMakeRequest = actualRequest.value || forcedRequest || hasActiveFilters();
+  const shouldMakeRequest = actualRequest.value || forcedRequest || hasActiveFilters(model);
   if (!shouldMakeRequest) return;
 
   if (!model.value || !fields.value || !urls['occurrences_search_api']) return;
@@ -718,10 +716,30 @@ const modelUpdated = (fieldName) => {
 };
 
 const resetAllFilters = () => {
-  if (!originalModel.value || Object.keys(originalModel.value).length === 0) {
-    originalModel.value = JSON.parse(JSON.stringify(model.value));
+  model.value = {
+    text_mode: ['greek'],
+    comment_mode: ['latin'],
+    date_search_type: 'exact',
+    text_fields: 'text',
+    text_combination: 'all',
+    person: [],
+    role: [],
+    metre: [],
+    metre_op: 'or',
+    genre: [],
+    genre_op: 'or',
+    subject: [],
+    subject_op: 'or',
+    manuscript_content: [],
+    manuscript_content_op: 'or',
+    acknowledgement: [],
+    acknowledgement_op: 'or'
+  };
+
+  if (props.isViewInternal) {
+    model.value.text_stem = 'original';
   }
-  model.value = JSON.parse(JSON.stringify(originalModel.value));
+
   onValidated(true);
 };
 

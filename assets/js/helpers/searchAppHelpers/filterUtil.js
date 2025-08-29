@@ -1,41 +1,40 @@
 import { changeMode } from '../formatUtil'; // import dependencies explicitly
 
-export function constructFilterValues(model, fields) {
-    const result = {};
-    if (model == null) return result;
-    for (const fieldName of Object.keys(model)) {
-        const fieldValue = model[fieldName];
-        const fieldDef = fields[fieldName];
-        if (fieldDef?.type === 'multiselectClear' && fieldValue != null) {
-            if (Array.isArray(fieldValue)) {
-                result[fieldName] = fieldValue.map(v => v.id);
+export function buildFilterParams(model) {
+    const filterParams = {};
+
+    Object.entries(model).forEach(([key, value]) => {
+        if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+
+            if (key === 'year_from' || key === 'year_to') {
+                const numericValue = Number(value);
+                if (isNaN(numericValue) || !isFinite(numericValue)) return;
+
+                if (!filterParams.date) filterParams.date = {};
+                const dateKey = key === 'year_from' ? 'from' : 'to';
+                filterParams.date[dateKey] = numericValue;
+                return;
+            }
+
+            if (Array.isArray(value) && value.length > 0) {
+                if (key.endsWith('_mode')) {
+                    filterParams[key] = value[0];
+                } else {
+                    filterParams[key] = value.map(item =>
+                        typeof item === 'object' && item.id ? item.id : item
+                    );
+                }
+            } else if (typeof value === 'object' && value.id) {
+                filterParams[key] = value.id;
             } else {
-                result[fieldName] = fieldValue.id;
+                filterParams[key] = value;
             }
-            continue;
         }
-        if (fieldName === 'year_from' || fieldName === 'year_to') {
-            if (fieldValue != null && !Number.isNaN(fieldValue) && fieldValue !== '') {
-                if (!result.date) result.date = {};
-                result.date[fieldName === 'year_from' ? 'from' : 'to'] = fieldValue;
-            }
-            continue;
-        }
-        const modeField = `${fieldName}_mode`;
-        if (modeField in model) {
-            if (model[modeField]?.[0] === 'betacode') {
-                result[fieldName] = changeMode('betacode', 'greek', fieldValue.trim());
-            } else {
-                result[fieldName] = fieldValue.trim();
-            }
-            continue;
-        }
-        if (Array.isArray(fieldValue)) {
-            result[fieldName] = fieldValue[0];
-        } else {
-            result[fieldName] = fieldValue;
-        }
+    });
+
+    if (filterParams.date && Object.keys(filterParams.date).length === 0) {
+        delete filterParams.date;
     }
 
-    return result;
+    return filterParams;
 }
