@@ -212,6 +212,7 @@ import { useSearchFields } from "@/composables/searchAppComposables/useSearchFie
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
+import {buildFilterParams} from "@/helpers/filterParamUtil";
 
 const props = defineProps({
   isEditor: { type: Boolean, default: false },
@@ -538,25 +539,7 @@ const loadData = async (forcedRequest = false) => {
 
   if (!model.value || !fields.value || !urls['manuscripts_search_api']) return;
 
-  const filterParams = {};
-
-  Object.entries(model.value).forEach(([key, value]) => {
-    if (value != null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
-      if (Array.isArray(value) && value.length > 0) {
-        if (key.endsWith('_mode')) {
-          filterParams[key] = value[0];
-        } else {
-          filterParams[key] = value.map(item =>
-              typeof item === 'object' && item.id ? item.id : item
-          );
-        }
-      } else if (typeof value === 'object' && value.id) {
-        filterParams[key] = value.id;
-      } else {
-        filterParams[key] = value;
-      }
-    }
-  });
+  const filterParams = buildFilterParams(model.value)
 
   const params = {
     page: currentPage.value,
