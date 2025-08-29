@@ -20,19 +20,20 @@
       margin-top: -1em;
     }
   }
-
-  .VueTables {
-    .row:first-child {
-      display: block !important;
-
-      .col-md-12:first-child {
-        min-height: 3.667em;
-      }
-    }
+  .per-page-container {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
-  .VuePagination__count {
-    display: none;
+  .per-page-container label {
+    margin: 0;
+  }
+
+  .per-page-container select {
+    width: auto;
   }
 
   table {
