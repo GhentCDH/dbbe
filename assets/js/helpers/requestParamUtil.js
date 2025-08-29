@@ -1,6 +1,6 @@
 import qs from 'qs';
 
-export function getSearchParams(url = window.location.href, tableOptions = {}) {
+export function buildRequestParams(url = window.location.href, tableOptions = {}) {
     const [_, queryString] = url.split('?', 2);
     const query = qs.parse(queryString, { plainObjects: true }) ?? {};
 
