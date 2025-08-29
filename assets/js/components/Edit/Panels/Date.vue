@@ -336,6 +336,7 @@ export default {
     methods: {
         init() {
           this.originalModel = JSON.parse(JSON.stringify(this.model));
+          this.recalculateTypeValues();
         },
         reload(type) {
           if (!this.reloads.includes(type)) {
