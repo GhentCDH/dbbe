@@ -180,7 +180,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
         setUpOperatorWatchers,
         onDataExtend,
         onLoaded,
-        addActiveFilter,
-        deleteActiveFilter,
+        deleteActiveFilter
     };
 }
