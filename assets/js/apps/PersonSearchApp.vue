@@ -416,13 +416,12 @@ import { useSearchFields } from "@/composables/searchAppComposables/useSearchFie
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useEditMergeMigrateDelete } from "@/composables/editAppComposables/useEditMergeMigrateDelete";
 import CollectionManager from '../components/SearchFilters/CollectionManager.vue';
-import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from '@/helpers/validatorUtil';
-import {buildFilterParams} from "@/helpers/filterParamUtil";
+import {buildFilterParams} from "@/helpers/searchAppHelpers/filterUtil";
 
 const props = defineProps({
   isEditor: {
@@ -872,7 +871,6 @@ const {
 } = useCollectionManagement({
   data,
   urls,
-  constructFilterValues,
   alerts,
   startRequest,
   endRequest,

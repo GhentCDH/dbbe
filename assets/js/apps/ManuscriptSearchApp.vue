@@ -202,7 +202,6 @@ import {
 import { formatDate, greekFont, YEAR_MAX, YEAR_MIN } from "@/helpers/formatUtil";
 import { isLoginError } from "@/helpers/errorUtil";
 import { downloadCSV } from "@/helpers/downloadUtil";
-import { constructFilterValues } from "@/helpers/searchAppHelpers/filterUtil";
 import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil";
 import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 
@@ -212,7 +211,7 @@ import { useSearchFields } from "@/composables/searchAppComposables/useSearchFie
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
-import {buildFilterParams} from "@/helpers/filterParamUtil";
+import {buildFilterParams} from "@/helpers/searchAppHelpers/filterUtil";
 
 const props = defineProps({
   isEditor: { type: Boolean, default: false },
@@ -493,7 +492,6 @@ const { onData, setupCollapsibleLegends } = useSearchSession({
 const { collectionArray, collectionToggleAll, clearCollection, addManagementsToSelection, removeManagementsFromSelection, addManagementsToResults, removeManagementsFromResults } = useCollectionManagement({
   data,
   urls,
-  constructFilterValues,
   alerts,
   startRequest,
   endRequest,
