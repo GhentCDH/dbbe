@@ -112,6 +112,15 @@ export default {
 </script>
 
 <style scoped>
+.table {
+  table-layout: auto; /* allow column widths to be based on content */
+  width: 100%;
+}
+.table td:first-child,
+.table th:first-child {
+  white-space: nowrap; /* keep ID on one line */
+  width: 1%; /* let it shrink/expand as needed */
+}
 .row-light {
   background-color: #f9f9f9; /* very light gray */
 }
