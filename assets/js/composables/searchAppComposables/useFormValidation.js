@@ -85,7 +85,6 @@ export function useFormValidation({
                         model.value.year_to = Number(params.filters.date.to);
                     }
                 } else if (key in fields.value) {
-                    console.log('here',fields, params)
                     const field = fields.value[key];
                     if (field.type === 'multiselectClear' && aggregation?.[key]) {
                         const values = params.filters[key];
@@ -173,7 +172,6 @@ export function useFormValidation({
         }
 
         inputCancel.value = setTimeout(() => {
-            console.log('Timeout executing, actualRequest:', actualRequest.value);
             inputCancel.value = null;
 
             const filterValues = constructFilterValues(model.value, fields.value);
