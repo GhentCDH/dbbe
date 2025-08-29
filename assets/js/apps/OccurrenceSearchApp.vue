@@ -533,7 +533,7 @@ const countRecords = computed(() => {
   return `Showing ${start} to ${end} of ${totalRecords.value} entries`;
 });
 
-const { openRequests, alerts, startRequest, endRequest, cleanParams, handleError, axiosGet } = useRequestTracker();
+const { openRequests, alerts, startRequest, endRequest, handleError, axiosGet } = useRequestTracker();
 
 const { notEmptyFields, changeTextMode, setUpOperatorWatchers, deleteActiveFilter, onDataExtend, commentSearch, textSearch, onLoaded } = useSearchFields(model, schema, fields, aggregation, {
   multiple: true,
@@ -669,6 +669,9 @@ const loadData = async (forcedRequest = false) => {
       );
       tableData.value = response?.data?.data || [];
       totalRecords.value = response?.data?.count || 0;
+      if (onLoaded && aggregation.value) {
+        await onLoaded(aggregation.value);
+      }
     }
   } catch (error) {
     handleError(error);

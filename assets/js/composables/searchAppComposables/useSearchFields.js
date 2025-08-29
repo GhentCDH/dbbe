@@ -80,8 +80,13 @@ export function useSearchFields(model, schema, fields, aggregation, {
             if (field.type === 'multiselectClear') {
                 field.values = aggregation.value[fieldName]?.sort(sortByName) ?? [];
                 field.originalValues = JSON.parse(JSON.stringify(field.values));
-
-                if (field.dependency && model.value[field.dependency] == null) {
+                if (
+                    field.dependency &&
+                    (
+                        model.value[field.dependency] == null ||
+                        (Array.isArray(model.value[field.dependency]) && model.value[field.dependency].length === 0)
+                    )
+                ){
                     dependencyField(field, model.value);
                 } else {
                     enableField(field, null, true);
@@ -93,7 +98,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
             }
         }
 
-        // updateCountRecords();
         endRequest();
     }
 
