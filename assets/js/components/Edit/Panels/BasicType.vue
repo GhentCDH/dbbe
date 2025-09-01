@@ -101,14 +101,14 @@ export default {
       }
     },
     disableFields(disableKeys) {
-      disableFields(this.keys, this.fields, disableKeys);
+      disableFields(this.keys, this.schema.fields, disableKeys);
     },
     enableFields(enableKeys) {
-      enableFields(this.keys, this.fields, this.values, enableKeys);
+      enableFields(this.keys, this.schema.fields, this.values, enableKeys);
     },
     validated(isValid, errors) {
       this.isValid = isValid
-      this.changes = calcChanges(this.model, this.originalModel, this.fields);
+      this.changes = calcChanges(this.model, this.originalModel, this.schema.fields);
       this.$emit('validated', isValid, this.errors, this)
     },
     validate() {
