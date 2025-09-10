@@ -1,9 +1,8 @@
-// src/helpers/downloadUtils.js
 import qs from 'qs';
-import { getSearchParams } from '@/helpers/searchParamUtil';
+import { buildRequestParams } from '@/helpers/requestParamUtil';
 
 export async function downloadCSV(urls) {
-    const params = getSearchParams();
+    const params = buildRequestParams();
     params.limit = 10000;
     params.page = 1;
 

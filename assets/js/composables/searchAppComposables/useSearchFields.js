@@ -5,9 +5,7 @@ import {changeMode} from "@/helpers/formatUtil";
 
 export function useSearchFields(model, schema, fields, aggregation, {
     multiple = false,
-    updateCountRecords,
     initFromURL,
-    initFromUrl,
     endRequest,
     historyRequest
 } = {}) {
@@ -76,26 +74,19 @@ export function useSearchFields(model, schema, fields, aggregation, {
     }
 
     function onLoaded() {
-        updateCountRecords();
-
-        if (!initialized.value) {
-            initFromURL(aggregation.value);
-            initialized.value = true;
-        }
-
-        if (historyRequest.value) {
-            initFromUrl(aggregation.value);
-            historyRequest.value = false;
-        }
-
         for (const fieldName of Object.keys(fields.value)) {
             const field = fields.value[fieldName];
 
             if (field.type === 'multiselectClear') {
                 field.values = aggregation.value[fieldName]?.sort(sortByName) ?? [];
                 field.originalValues = JSON.parse(JSON.stringify(field.values));
-
-                if (field.dependency && model.value[field.dependency] == null) {
+                if (
+                    field.dependency &&
+                    (
+                        model.value[field.dependency] == null ||
+                        (Array.isArray(model.value[field.dependency]) && model.value[field.dependency].length === 0)
+                    )
+                ){
                     dependencyField(field, model.value);
                 } else {
                     enableField(field, null, true);
@@ -107,7 +98,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
             }
         }
 
-        updateCountRecords();
         endRequest();
     }
 
@@ -190,7 +180,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
         setUpOperatorWatchers,
         onDataExtend,
         onLoaded,
-        addActiveFilter,
-        deleteActiveFilter,
+        deleteActiveFilter
     };
 }
