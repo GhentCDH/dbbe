@@ -676,6 +676,18 @@ const {
   emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
   historyRequest
 });
+const urlInitialized = ref(false);
+
+watch(() => aggregation.value,async (newAggregation, oldAggregation) => {
+  if (!urlInitialized.value && newAggregation && Object.keys(newAggregation).length > 0) {
+    initFromURL(newAggregation);
+    urlInitialized.value = true;
+    await nextTick()
+    onValidated(true);
+
+  }
+}, { immediate: true });
+
 
 const {
   notEmptyFields,

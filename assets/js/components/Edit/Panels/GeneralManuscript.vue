@@ -66,6 +66,16 @@ export default {
         let data =  {
             schema: {
                 fields: {
+                  acknowledgements: createMultiSelect(
+                      'Acknowledgements',
+                      {
+                        model: 'acknowledgements',
+                      },
+                      {
+                        multiple: true,
+                        closeOnSelect: false,
+                      }
+                  ),
                     publicComment: {
                         type: 'textArea',
                         label: 'Public comment',
