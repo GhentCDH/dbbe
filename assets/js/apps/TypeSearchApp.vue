@@ -678,15 +678,7 @@ const {
 });
 const urlInitialized = ref(false);
 
-watch(() => aggregation.value,async (newAggregation, oldAggregation) => {
-  if (!urlInitialized.value && newAggregation && Object.keys(newAggregation).length > 0) {
-    initFromURL(newAggregation);
-    urlInitialized.value = true;
-    await nextTick()
-    onValidated(true);
 
-  }
-}, { immediate: true });
 
 
 const {
@@ -707,7 +699,12 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useSearchSession({
+const {
+  init,
+  onData,
+  setupCollapsibleLegends,
+  aggregationLoaded, // Make sure this is destructured
+} = useSearchSession({
   urls,
   data,
   aggregation,
@@ -716,6 +713,17 @@ const { init, onData, setupCollapsibleLegends } = useSearchSession({
   onDataExtend
 }, 'TypeSearchConfig');
 
+watch(
+    () => aggregationLoaded.value,
+    (loaded) => {
+      if (loaded && !urlInitialized.value) {
+        initFromURL(aggregation.value);
+        urlInitialized.value = true;
+        nextTick(() => onValidated(true));
+      }
+    },
+    { immediate: true }
+);
 const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
 
 const {
@@ -901,7 +909,6 @@ setUpOperatorWatchers();
 onMounted(() => {
   buildSchema();
   updateCountRecords();
-  initFromURL(aggregation.value);
   originalModel.value = JSON.parse(JSON.stringify(model));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();

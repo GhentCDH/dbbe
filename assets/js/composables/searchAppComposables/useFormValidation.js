@@ -70,7 +70,7 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
             }
         }
 
-        oldFilterValues.value = constructFilterValues(model.value, fields.value);
+        oldFilterValues.value = constructFilterValues(model, fields.value);
 
         actualRequest.value = false;
 
