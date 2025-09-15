@@ -42,7 +42,7 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
 
     const initFromURL = (aggregation) => {
         const params = qs.parse(window.location.href.split('?', 2)[1]);
-
+        const hasFilters = Object.keys(params.filters || {}).length > 0;
         if ('filters' in params) {
             for (const key of Object.keys(params.filters)) {
                 if (key === 'date') {
@@ -72,7 +72,7 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
 
         oldFilterValues.value = constructFilterValues(model, fields.value);
 
-        actualRequest.value = false;
+        actualRequest.value = hasFilters;
 
         if ('page' in params) {
             actualRequest.value = false;
