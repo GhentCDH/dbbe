@@ -197,7 +197,7 @@ export default {
         validationErrorClass: 'has-error',
         validationSuccessClass: 'success',
       },
-      isValid: false,
+      isValid: true,
       originalModel: {}
     }
   },
