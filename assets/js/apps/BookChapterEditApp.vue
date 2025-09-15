@@ -249,13 +249,21 @@ const setData = () => {
     model.identification = { ...bookChapter.value.identification }
     model.managements = { ...bookChapter.value.managements }
   }
-  Object.assign(model.basic, {
-    title: bookChapter.value.title,
-    book: bookChapter.value.book,
-    startPage: bookChapter.value.startPage,
-    endPage: bookChapter.value.endPage,
-    rawPages: bookChapter.value.rawPages,
-  })
+  else {
+    model.basic = {
+      title: null,
+      book: null,
+      startPage: null,
+      endPage: null,
+      rawPages: null,
+    }
+    model.urls = {}
+    model.general = {}
+    model.personRoles = { ...personRoles }
+    model.identification = {}
+    model.managements = {}
+  }
+
 
 }
 

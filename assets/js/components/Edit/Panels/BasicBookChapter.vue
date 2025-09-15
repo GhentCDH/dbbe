@@ -70,9 +70,12 @@ export default {
                         required: true,
                         validator: validatorUtil.string,
                     },
-                    book: createMultiSelect(
-                        'Book'
-                    ),
+                    book: {
+                      ...createMultiSelect(
+                      'Book'),
+                      required: true,
+                      validator: [validatorUtil.required],
+                      },
                     startPage: {
                         type: 'input',
                         inputType: 'number',
