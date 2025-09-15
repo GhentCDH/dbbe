@@ -649,24 +649,38 @@ const save = () => {
   }
 }
 
-const reload = (type,items) => {
-  switch (type) {
-    case 'articles':
-    case 'blogPosts':
-    case 'books':
-    case 'bookChapters':
-    case 'onlineSources':
-    case 'phds':
-    case 'bibVarias':
-      reloadNestedItems(type, bibliographies.value)
-      break
-    case 'acknowledgements':
-    case 'statuses':
-      reloadNestedItems(type, generals.value)
-      break
-    default:
-      reloadSimpleItems(type,items)
+const reload = (type, items) => {
+  const bibliographyTypes = ['articles', 'blogPosts', 'books', 'bookChapters', 'onlineSources', 'phds', 'bibVarias']
+  const generalTypes = ['acknowledgements', 'statuses']
+
+  if (bibliographyTypes.includes(type)) {
+    reloadNestedItems(type, bibliographies.value)
+    return
   }
+
+  if (generalTypes.includes(type)) {
+    reloadNestedItems(type, generals.value)
+    return
+  }
+
+  if (items === undefined) {
+    const itemsMap = {
+      origins: origins.value,
+      locations: locations.value,
+      historicalPersons: historicalPersons.value,
+      dbbePersons: dbbePersons.value,
+      managements: managements.value,
+      contents: contents.value,
+    }
+
+    items = itemsMap[type]
+    if (items === undefined) {
+      console.warn(`No items reference found for type: ${type}`)
+      return
+    }
+  }
+
+  reloadSimpleItems(type, items)
 }
 
 const validated = (isValid, errors) => {
