@@ -39,7 +39,7 @@ export function useSaveModel(urls ) {
                 saveModal.value = true
                 saveAlerts.value.push({
                     type: 'error',
-                    message: 'Something went wrong while saving the blog post data.',
+                    message: 'Something went wrong while saving the data.',
                     extra: getErrorMessage(error),
                     login: isLoginError(error)
                 })

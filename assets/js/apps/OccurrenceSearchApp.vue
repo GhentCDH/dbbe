@@ -694,7 +694,9 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends } = useSearchSession({
+
+
+const { init, onData, setupCollapsibleLegends, aggregationLoaded } = useSearchSession({
   urls,
   data,
   aggregation,
@@ -703,6 +705,19 @@ const { init, onData, setupCollapsibleLegends } = useSearchSession({
   onDataExtend
 }, 'OccurrenceSearchConfig');
 
+const urlInitialized = ref(false);
+
+watch(
+    () => aggregationLoaded.value,
+    (loaded) => {
+      if (loaded && !urlInitialized.value) {
+        initFromURL(aggregation.value);
+        urlInitialized.value = true;
+        nextTick(() => onValidated(true));
+      }
+    },
+    { immediate: true }
+);
 const {
   collectionArray,
   collectionToggleAll,
@@ -753,7 +768,7 @@ const requestFunction = async (requestData) => {
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
-  if (!noHistory.value) {
+  if (!noHistory) {
     pushHistory(params, model, originalModel, fields, tableOptions);
   } else {
     noHistory.value = false;
@@ -879,7 +894,6 @@ setUpOperatorWatchers();
 // Mounted lifecycle
 onMounted(() => {
   updateCountRecords();
-  initFromURL(aggregation.value);
   originalModel.value = JSON.parse(JSON.stringify(model.value));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();
