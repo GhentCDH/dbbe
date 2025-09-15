@@ -46,6 +46,8 @@
           header="Urls"
           v-slot:extra
           :model="submitModel.journal"
+          :as-slot="true"
+          @validated="onUrlsChanged"
       /></template>
     </Edit>
 
@@ -132,6 +134,7 @@ const props = defineProps({
   initUrls: { type: String, default: '{}' },
   initData: { type: String, default: '[]' },
 })
+
 
 
 const depUrls = reactive({
@@ -276,9 +279,12 @@ function del() {
   deleteDependencies()
 }
 
-// The submit handlers (submitEdit, submitMerge, submitDelete)
-// and update function follow the same logic as before but rewritten with Composition API:
-
+function onUrlsChanged() {
+  submitModel.journal = {
+    ...submitModel.journal,
+    urls: submitModel.journal.urls ? [...submitModel.journal.urls] : null
+  }
+}
 async function submitEdit() {
   editModalValue.value = false
   openRequests.value++
