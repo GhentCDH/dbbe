@@ -28,7 +28,6 @@ export function useSaveModel(urls ) {
     }
 
     const putUpdatedModel = (modelType, itemsToSave) => {
-        console.log(urls[`${modelType}_put`], 'urls',urls)
         axios.put(urls[`${modelType}_put`], itemsToSave)
             .then((response) => {
                 window.onbeforeunload = function () {}

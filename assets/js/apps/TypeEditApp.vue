@@ -847,6 +847,22 @@ const reload = (reloadType,items=[]) => {
           urls['dbbe_persons_get']
       )
       break
+    case 'metres':
+      reloadItems(
+          'metres',
+          ['metres'],
+          [metres.value],
+          urls['metres_get']
+      )
+      break
+    case 'genres':
+      reloadItems(
+          'genres',
+          ['genres'],
+          [genres.value],
+          urls['genres_get']
+      )
+      break
     case 'modernPersons':
       reloadNestedItems(reloadType, [translations.value])
       break
@@ -864,6 +880,14 @@ const reload = (reloadType,items=[]) => {
           ['keywords'],
           [keywords.value],
           urls['keywords_type_get']
+      )
+      break
+    case 'managements':
+      reloadItems(
+          'managements',
+          ['managements'],
+          [managements.value],
+          urls['managements_get']
       )
       break
     case 'articles':

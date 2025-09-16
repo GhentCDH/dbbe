@@ -713,7 +713,6 @@ watch(() => model.value.comment_mode, (val, oldVal) => {
 });
 
 watch(elRef, (el) => {
-  console.log('elRef changed');
   if (el) setupCollapsibleLegends(schema);
 });
 

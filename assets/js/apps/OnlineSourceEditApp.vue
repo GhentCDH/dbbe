@@ -281,7 +281,6 @@ const save = () => {
   openRequests.value++
   saveModal.value = false
   if (onlineSource.value == null) {
-    axios.post(urls['online_source_post'], toSave())
     postUpdatedModel('online_source',toSave());
   } else {
     putUpdatedModel('online_source',toSave());

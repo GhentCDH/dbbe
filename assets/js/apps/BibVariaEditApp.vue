@@ -355,11 +355,17 @@ const reset = ()=> {
   nextTick(() => validateForms())
 }
 
-const reload=(type, items)=> {
-  reloadSimpleItems(type, items)
-}
+const reload = (type, items) => {
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    managements: [managements.value]
+  }
 
-const reloadSimpleItems=(type, items) =>{
+  if (simpleRefMappings[type]) {
+    reloadItems(type, [type], simpleRefMappings[type], urls[type.replace(/([A-Z])/g, '_$1').toLowerCase() + '_get'])
+    return
+  }
+
   reloadItems(type, [type], [items], urls[type.replace(/([A-Z])/g, '_$1').toLowerCase() + '_get'])
 }
 

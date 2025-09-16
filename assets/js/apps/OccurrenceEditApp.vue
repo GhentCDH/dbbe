@@ -792,6 +792,25 @@ const save = () => {
 }
 
 const reload = (type, items=[]) => {
+  const simpleRefMappings = {
+    manuscripts: [manuscripts.value],
+    types: [types.value],
+    metres: [metres.value],
+    genres: [genres.value],
+    managements: [managements.value],
+    dbbePersons: [dbbePersons.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    reloadItems(
+        type,
+        [type],
+        simpleRefMappings[type],
+        urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+    )
+    return
+  }
+
   switch (type) {
     case 'historicalPersons':
       reloadItems(
@@ -834,12 +853,11 @@ const reload = (type, items=[]) => {
       reloadItems(
           type,
           [type],
-          [items], // Note: Using eval as in original - consider a better approach
-          urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+          [items],
+          urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
       )
   }
 }
-
 const validated = (isValid, errors) => {
   checkInvalidPanels()
   calcDiff()
