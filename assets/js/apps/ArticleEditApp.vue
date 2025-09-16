@@ -406,11 +406,6 @@ const reload = (type, items) => {
   reloadItems(type, [type], [items], url)
 }
 
-const reloadSimpleItems = (type,items) => {
-  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
-  reloadItems(type, [type], [items], url)
-}
-
 const reloadNestedItems = (type, parent) => {
   const items = Array.isArray(parent) ? parent.map(p => p[type]) : [parent[type]]
   const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
