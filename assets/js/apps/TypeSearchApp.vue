@@ -617,6 +617,9 @@ const buildSchema = () => {
   };
 };
 
+buildSchema();
+
+
 const fields = computed(() => {
   const res = {};
   const addField = (field) => {
@@ -770,26 +773,23 @@ const handleDeletedActiveFilter = (field) => {
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const requestFunction = async (requestData) => {
+  const params = cleanParams(requestData);
   startRequest();
   let url = urls['types_search_api'];
 
-  if (!initialized || !actualRequest) {
-    if (!initialized) {
+  if (!initialized.value || !actualRequest.value) {
+    if (!initialized.value) {
       onData(data);
+      initialized.value = true;
+      endRequest();
+      return;
     }
-    return {
-      data: {
-        data: initialized ? data : data.data,
-        count: initialized ? count : data.count,
-      },
-    };
   }
 
   if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
+    if (historyRequest.value !== 'init') {
+      url = `${url}?${historyRequest.value}`;
     }
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
@@ -907,9 +907,8 @@ tableOptions.value.requestFunction = requestFunction;
 setUpOperatorWatchers();
 
 onMounted(() => {
-  buildSchema();
   updateCountRecords();
-  originalModel.value = JSON.parse(JSON.stringify(model));
+  originalModel.value = JSON.parse(JSON.stringify(model.value));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();
     resultTableRef.value?.refresh();
