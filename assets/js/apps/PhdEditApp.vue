@@ -370,6 +370,16 @@ const cancelSave = () => {
 const handleError = useErrorAlert(alerts)
 
 const reload = (type, items) => {
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    managements: [managements.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    reloadItems(type, [type], simpleRefMappings[type], urls[type.replace(/([A-Z])/g, '_$1').toLowerCase() + '_get'])
+    return
+  }
+
   reloadItems(type, [type], [items], urls[type.replace(/([A-Z])/g, '_$1').toLowerCase() + '_get'])
 }
 

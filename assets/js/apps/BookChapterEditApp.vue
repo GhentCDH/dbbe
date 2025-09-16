@@ -316,11 +316,23 @@ const cancelSave = () => {
 }
 
 const reload = (type, items) => {
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    managements: [managements.value],
+    books: [books.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    const keys = [type]
+    const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+    reloadItems(type, keys, simpleRefMappings[type], url)
+    return
+  }
+
   const keys = [type]
   const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
   reloadItems(type, keys, [items], url)
 }
-
 const reloadItems = (type, keys, items, url, filters) => {
   disablePanels(panelRefs, panels, keys)
   reloads.value.push(type)

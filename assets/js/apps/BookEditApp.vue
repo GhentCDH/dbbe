@@ -389,14 +389,27 @@ const cancelSave = () => {
 const reload = (type, items) => {
   if (['bookClusters', 'bookSeriess'].includes(type)) {
     reloadNestedItems(type, clustersAndSeries)
-  } else {
-    reloadSimpleItems(type, items)
+    return
   }
+
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    managements: [managements.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+    reloadItems(type, [type], simpleRefMappings[type], url)
+    return
+  }
+
+  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+  reloadItems(type, [type], [items], url)
 }
 
 const reloadSimpleItems = (type, items) => {
   const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
-  reloadItems(type, [type], [items], url)
+  reloadItems(type, [type], [items], url)  // Passes [items] instead of the actual ref
 }
 
 const reloadNestedItems = (type, parent) => {

@@ -364,11 +364,27 @@ const cancelSave = () => {
 }
 
 const reload = (type, items) => {
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    blogs: [blogs.value],
+    managements: [managements.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    reloadItems(
+        type,
+        [type],
+        simpleRefMappings[type],
+        urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+    )
+    return
+  }
+
   reloadItems(
       type,
       [type],
-      [items], // Note: using eval here as in original, but consider a better approach
-      urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+      [items],
+      urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
   )
 }
 const reloadItems = (type, keys, items, url, filters) => {
