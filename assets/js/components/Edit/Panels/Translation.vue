@@ -294,7 +294,6 @@ export default {
         },
         enableFields(enableKeys) {
           if (enableKeys == null) {
-                console.log('enableFields called without enableKeys', this.schema.fields.language)
                 enableField(this.schema.fields.language);
                 this.$refs.translators.enableFields('modernPersons');
             } else {

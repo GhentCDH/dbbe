@@ -221,7 +221,6 @@ export default {
             for (let key of Object.keys(this.keys)) {
                 if ((this.keys[key].init && enableKeys == null) || (enableKeys != null && enableKeys.includes(key))) {
                     for (let role of this.roles) {
-                        console.log(role.systemName, 'schemas in person')
                         this.schemas[role.systemName]['fields'][role.systemName].values = this.values;
                         enableField(this.schemas[role.systemName]['fields'][role.systemName]);
                     }

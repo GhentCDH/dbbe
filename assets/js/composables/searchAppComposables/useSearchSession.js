@@ -57,7 +57,6 @@ export function useSearchSession({
 
         legends.forEach((legend) => {
             legend.onclick = (e) => {
-                console.log('on click triggers')
                 const group = e.target.parentElement;
                 const index = Array.from(group?.parentNode?.children || []).indexOf(group) - 1;
                 setConfig(index, !config.groupIsOpen[index]);
