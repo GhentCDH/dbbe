@@ -385,12 +385,25 @@ const cancelSave = () => {
   saveAlerts.value = []
 }
 
-const reload = (type,items) => {
+const reload = (type, items) => {
   if (type === 'journals' || type === 'journalIssues') {
     reloadNestedItems(type, journalsAndIssues)
-  } else {
-    reloadSimpleItems(type,items)
+    return
   }
+
+  const simpleRefMappings = {
+    modernPersons: [modernPersons.value],
+    managements: [managements.value]
+  }
+
+  if (simpleRefMappings[type]) {
+    const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+    reloadItems(type, [type], simpleRefMappings[type], url)
+    return
+  }
+
+  const url = urls[type.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
+  reloadItems(type, [type], [items], url)
 }
 
 const reloadSimpleItems = (type,items) => {
