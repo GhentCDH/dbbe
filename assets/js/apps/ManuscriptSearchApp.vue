@@ -651,18 +651,18 @@ const requestFunction = async (requestData) => {
 
 watch(
     () => aggregationLoaded.value,
-    async (loaded) => {
+    (loaded) => {
       if (loaded && !urlInitialized.value) {
-        await nextTick()
         initFromURL(aggregation.value);
         urlInitialized.value = true;
-        await nextTick()
-        initialized.value = true;
-        onValidated(true)
+        nextTick(() => {
+          initialized.value = true;
+          onValidated(true);
+        });
       }
     },
     { immediate: true }
-);
+)
 
 const submitDelete = async () => {
   startRequest();
