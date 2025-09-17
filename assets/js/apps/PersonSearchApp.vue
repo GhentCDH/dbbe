@@ -903,8 +903,8 @@ const handleDeletedActiveFilter = (field) => {
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const requestFunction = async (requestData) => {
+  const params = cleanParams(requestData);
   startRequest();
   let url = urls['persons_search_api'];
 
@@ -913,8 +913,8 @@ const requestFunction = async (data) => {
     endRequest();
     return {
       data: {
-        data: initialized.value ? data : data.data,
-        count: initialized.value ? count : data.count,
+        data: data.data,
+        count: data.count,
       },
     }
   }
