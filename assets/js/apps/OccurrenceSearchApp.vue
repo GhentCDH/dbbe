@@ -764,8 +764,8 @@ const requestFunction = async (requestData) => {
       endRequest();
       return {
         data: {
-          data: this.data || data.data,
-          count: this.count || data.count,
+          data: data.data || data.data,
+          count: data.count || data.count,
         },
       };
 
