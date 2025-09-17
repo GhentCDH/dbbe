@@ -651,14 +651,14 @@ const requestFunction = async (requestData) => {
 
 watch(
     () => aggregationLoaded.value,
-    (loaded) => {
+    async (loaded) => {
       if (loaded && !urlInitialized.value) {
+        await nextTick()
         initFromURL(aggregation.value);
         urlInitialized.value = true;
-        nextTick(() => {
-          initialized.value = true;
-          onValidated(true);
-        });
+        await nextTick()
+        initialized.value = true;
+        onValidated(true)
       }
     },
     { immediate: true }
