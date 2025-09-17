@@ -104,7 +104,7 @@ export function useSearchFields(model, schema, fields, aggregation, {
 
         updateCountRecords();
         endRequest();
-        initialized.value = true;
+        // initialized.value = true;
     }
 
     function addActiveFilter(key) {
