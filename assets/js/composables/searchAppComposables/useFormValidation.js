@@ -41,6 +41,7 @@ export function useFormValidation({ model, fields, resultTableRef, defaultOrderi
     };
 
     const initFromURL = (aggregation) => {
+        coonsole.log('calling init from url')
         const params = qs.parse(window.location.href.split('?', 2)[1]);
         const hasFilters = Object.keys(params.filters || {}).length > 0;
         if ('filters' in params) {
