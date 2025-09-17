@@ -783,8 +783,23 @@ const requestFunction = async (requestData) => {
       onData(data);
       initialized.value = true;
       endRequest();
-      return;
+      return {
+        data: {
+          data: data.data,
+          count: data.count,
+        },
+      };
     }
+    if (!actualRequest.value && !requestData.page && !requestData.orderBy) {
+      endRequest();
+      return {
+        data: {
+          data: this.data || data.data,
+          count: this.count || data.count,
+        },
+      };
+    }
+
   }
 
   if (historyRequest.value) {
