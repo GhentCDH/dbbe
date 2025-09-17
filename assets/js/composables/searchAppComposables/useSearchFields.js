@@ -78,11 +78,6 @@ export function useSearchFields(model, schema, fields, aggregation, {
     function onLoaded() {
         updateCountRecords();
 
-        if (!initialized.value) {
-            initFromURL(aggregation.value);
-            initialized.value = true;
-        }
-
         if (historyRequest.value) {
             initFromUrl(aggregation.value);
             historyRequest.value = false;
@@ -109,6 +104,7 @@ export function useSearchFields(model, schema, fields, aggregation, {
 
         updateCountRecords();
         endRequest();
+        // initialized.value = true;
     }
 
     function addActiveFilter(key) {

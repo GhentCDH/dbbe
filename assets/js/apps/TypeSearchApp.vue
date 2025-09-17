@@ -617,6 +617,9 @@ const buildSchema = () => {
   };
 };
 
+buildSchema();
+
+
 const fields = computed(() => {
   const res = {};
   const addField = (field) => {
@@ -703,7 +706,7 @@ const {
   init,
   onData,
   setupCollapsibleLegends,
-  aggregationLoaded, // Make sure this is destructured
+  aggregationLoaded,
 } = useSearchSession({
   urls,
   data,
@@ -719,6 +722,7 @@ watch(
       if (loaded && !urlInitialized.value) {
         initFromURL(aggregation.value);
         urlInitialized.value = true;
+        initialized.value = true;
         nextTick(() => onValidated(true));
       }
     },
@@ -770,26 +774,37 @@ const handleDeletedActiveFilter = (field) => {
   onValidated(true);
 };
 
-const requestFunction = async (data) => {
-  const params = cleanParams(data);
+const requestFunction = async (requestData) => {
+  const params = cleanParams(requestData);
   startRequest();
   let url = urls['types_search_api'];
 
-  if (!initialized || !actualRequest) {
-    if (!initialized) {
+  if (!initialized.value || !actualRequest.value) {
+    if (!initialized.value) {
       onData(data);
+      endRequest();
+      return {
+        data: {
+          data: data.data,
+          count: data.count,
+        },
+      };
     }
-    return {
-      data: {
-        data: initialized ? data : data.data,
-        count: initialized ? count : data.count,
-      },
-    };
+    if (!actualRequest.value && !requestData.page && !requestData.orderBy) {
+      endRequest();
+      return {
+        data: {
+          data: this.data || data.data,
+          count: this.count || data.count,
+        },
+      };
+    }
+
   }
 
   if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
+    if (historyRequest.value !== 'init') {
+      url = `${url}?${historyRequest.value}`;
     }
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
@@ -907,9 +922,8 @@ tableOptions.value.requestFunction = requestFunction;
 setUpOperatorWatchers();
 
 onMounted(() => {
-  buildSchema();
   updateCountRecords();
-  originalModel.value = JSON.parse(JSON.stringify(model));
+  originalModel.value = JSON.parse(JSON.stringify(model.value));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();
     resultTableRef.value?.refresh();
