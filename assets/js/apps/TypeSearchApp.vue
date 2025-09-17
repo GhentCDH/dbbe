@@ -782,7 +782,6 @@ const requestFunction = async (requestData) => {
   if (!initialized.value || !actualRequest.value) {
     if (!initialized.value) {
       onData(data);
-      initialized.value = true;
       endRequest();
       return {
         data: {
