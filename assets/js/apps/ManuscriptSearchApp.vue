@@ -660,10 +660,16 @@ const requestFunction = async (requestData) => {
   );
 };
 
+// Add these console logs
+console.log('aggregationLoaded initial value:', aggregationLoaded.value);
+console.log('urlInitialized initial value:', urlInitialized.value);
+
 watch(
     () => aggregationLoaded.value,
     (loaded) => {
+      console.log('Watch triggered - aggregationLoaded:', loaded, 'urlInitialized:', urlInitialized.value);
       if (loaded && !urlInitialized.value) {
+        console.log('About to call initFromURL');
         initFromURL(aggregation.value);
         urlInitialized.value = true;
         initialized.value = true;
@@ -671,7 +677,7 @@ watch(
       }
     },
     { immediate: true }
-);
+)
 const submitDelete = async () => {
   startRequest();
   deleteModal.value = false;
