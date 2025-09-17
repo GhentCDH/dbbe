@@ -722,6 +722,7 @@ watch(
       if (loaded && !urlInitialized.value) {
         initFromURL(aggregation.value);
         urlInitialized.value = true;
+        initialized.value = true;
         nextTick(() => onValidated(true));
       }
     },
