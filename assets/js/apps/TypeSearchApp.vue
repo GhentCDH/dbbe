@@ -706,7 +706,7 @@ const {
   init,
   onData,
   setupCollapsibleLegends,
-  aggregationLoaded, // Make sure this is destructured
+  aggregationLoaded,
 } = useSearchSession({
   urls,
   data,
