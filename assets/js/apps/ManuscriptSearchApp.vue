@@ -624,6 +624,17 @@ const requestFunction = async (requestData) => {
     };
   }
 
+  if (!actualRequest.value && !requestData.page && !requestData.orderBy) {
+    endRequest();
+    return {
+      data: {
+        data: data.data,
+        count: data.count,
+      },
+    };
+  }
+
+
   if (historyRequest.value) {
     if (historyRequest.value !== 'init') {
       url = `${url}?${historyRequest.value}`;
@@ -655,15 +666,12 @@ watch(
       if (loaded && !urlInitialized.value) {
         initFromURL(aggregation.value);
         urlInitialized.value = true;
-        nextTick(() => {
-          initialized.value = true;
-          onValidated(true);
-        });
+        initialized.value = true;
+        nextTick(() => onValidated(true));
       }
     },
     { immediate: true }
-)
-
+);
 const submitDelete = async () => {
   startRequest();
   deleteModal.value = false;
