@@ -808,4 +808,62 @@ class TypeManager extends PoemManager
         return $stream;
     }
 
+    public function generateJsonStream(
+        array $params,
+        ElasticTypeService $elasticTypeService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+
+        if (isset($params['ids']) && !empty($params['ids'])) {
+            $params['limit'] = count($params['ids']);
+            $result = $elasticTypeService->runFullSearch($params, $isAuthorized);
+            $allData = $result['data'] ?? [];
+        } else {
+            $params['limit'] = 1000;
+            $params['orderBy'] = ['id'];
+            $params['ascending'] = 1;
+            $params['allow_large_results'] = true;
+
+            $totalFetched = 0;
+            $searchAfter = null;
+            $allData = [];
+
+            while (true) {
+                if ($searchAfter !== null) {
+                    $params['search_after'] = $searchAfter;
+                }
+
+                $result = $elasticTypeService->runFullSearch($params, $isAuthorized);
+                $data = $result['data'] ?? [];
+                $count = count($data);
+
+                if ($count === 0) {
+                    break;
+                }
+
+                foreach ($data as $item) {
+                    if (!$isAuthorized && $totalFetched >= 1000) {
+                        break 2;
+                    }
+
+                    $allData[] = $item;
+                    $totalFetched++;
+                }
+
+                $last = end($data);
+                if (!isset($last['_search_after'])) {
+                    break;
+                }
+
+                $searchAfter = $last['_search_after'];
+            }
+        }
+
+        fwrite($stream, json_encode($allData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        rewind($stream);
+        return $stream;
+    }
+
+
 }

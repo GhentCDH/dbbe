@@ -2,6 +2,7 @@
 
 namespace App\ObjectStorage;
 
+use App\ElasticSearchService\ElasticBibliographyService;
 use App\Model\Bibliography;
 use App\Model\ArticleBibliography;
 use App\Model\BibVariaBibliography;
@@ -151,5 +152,62 @@ class BibliographyManager extends ObjectManager
     public function deleteMultiple(array $ids): void
     {
         $this->dbs->deleteMultiple($ids);
+    }
+
+    public function generateJsonStream(
+        array $params,
+        ElasticBibliographyService $elasticBibliographyService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+
+        if (isset($params['ids']) && !empty($params['ids'])) {
+            $params['limit'] = count($params['ids']);
+            $result = $elasticBibliographyService->runFullSearch($params, $isAuthorized);
+            $allData = $result['data'] ?? [];
+        } else {
+            $params['limit'] = 1000;
+            $params['orderBy'] = ['id'];
+            $params['ascending'] = 1;
+            $params['allow_large_results'] = true;
+
+            $totalFetched = 0;
+            $searchAfter = null;
+            $allData = [];
+
+            while (true) {
+                if ($searchAfter !== null) {
+                    $params['search_after'] = $searchAfter;
+                }
+
+                $result = $elasticBibliographyService->runFullSearch($params, $isAuthorized);
+                $data = $result['data'] ?? [];
+                $count = count($data);
+
+                if ($count === 0) {
+                    break;
+                }
+
+                foreach ($data as $item) {
+                    if (!$isAuthorized && $totalFetched >= 1000) {
+                        break 2;
+                    }
+
+                    $allData[] = $item;
+                    $totalFetched++;
+                }
+
+                $last = end($data);
+                if (!isset($last['_search_after'])) {
+                    break;
+                }
+
+                $searchAfter = $last['_search_after'];
+            }
+        }
+
+        fwrite($stream, json_encode($allData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        rewind($stream);
+        return $stream;
     }
 }

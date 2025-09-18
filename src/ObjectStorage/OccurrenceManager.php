@@ -1107,7 +1107,60 @@ class OccurrenceManager extends PoemManager
         return $stream;
     }
 
+    public function generateJsonStream(
+        array                    $params,
+        ElasticOccurrenceService $occurrenceService,
+        ElasticVerseService      $verseService,
+        bool                     $isAuthorized
+    )
+    {
+        $stream = fopen('php://temp', 'r+');
 
+        $params['limit'] = 1000;
+        $params['orderBy'] = ['id'];
+        $params['ascending'] = 1;
+        $params['allow_large_results'] = true;
 
+        $totalFetched = 0;
+        $searchAfter = null;
+        $allData = [];
 
+        while (true) {
+            if ($searchAfter !== null) {
+                $params['search_after'] = $searchAfter;
+            }
+
+            $result = $occurrenceService->runFullSearch($params, $isAuthorized);
+            $data = $result['data'] ?? [];
+            $count = count($data);
+
+            if ($count === 0) {
+                break;
+            }
+
+            foreach ($data as $item) {
+                if (!$isAuthorized && $totalFetched >= 1000) {
+                    break 2;
+                }
+
+                // Fetch verses for this occurrence (same as CSV export)
+                $verses = $verseService->findVersesByOccurrenceId($item['id']);
+                $item['verses'] = $verses;
+                $allData[] = $item;
+                $totalFetched++;
+            }
+
+            $last = end($data);
+            if (!isset($last['_search_after'])) {
+                break;
+            }
+
+            $searchAfter = $last['_search_after'];
+        }
+
+        fwrite($stream, json_encode($allData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        rewind($stream);
+
+        return $stream;
+    }
 }

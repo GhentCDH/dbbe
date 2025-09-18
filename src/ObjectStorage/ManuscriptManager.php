@@ -509,4 +509,65 @@ class ManuscriptManager extends DocumentManager
         }
         return $stream;
     }
+
+
+    public function generateJsonStream(
+        array $params,
+        ElasticManuscriptService $elasticManuscriptService,
+        bool $isAuthorized
+    ) {
+        $stream = fopen('php://temp', 'r+');
+
+        // Handle specific IDs if provided
+        if (isset($params['ids']) && !empty($params['ids'])) {
+            $params['limit'] = count($params['ids']);
+            $result = $elasticManuscriptService->runFullSearch($params, $isAuthorized);
+            $allData = $result['data'] ?? [];
+        } else {
+            // Paginated export for all results
+            $params['limit'] = 1000;
+            $params['orderBy'] = ['id'];
+            $params['ascending'] = 1;
+            $params['allow_large_results'] = true;
+
+            $totalFetched = 0;
+            $searchAfter = null;
+            $allData = [];
+
+            while (true) {
+                if ($searchAfter !== null) {
+                    $params['search_after'] = $searchAfter;
+                }
+
+                $result = $elasticManuscriptService->runFullSearch($params, $isAuthorized);
+                $data = $result['data'] ?? [];
+                $count = count($data);
+
+                if ($count === 0) {
+                    break;
+                }
+
+                foreach ($data as $item) {
+                    if (!$isAuthorized && $totalFetched >= 1000) {
+                        break 2;
+                    }
+
+                    $allData[] = $item;
+                    $totalFetched++;
+                }
+
+                $last = end($data);
+                if (!isset($last['_search_after'])) {
+                    break;
+                }
+
+                $searchAfter = $last['_search_after'];
+            }
+        }
+
+        fwrite($stream, json_encode($allData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        rewind($stream);
+        return $stream;
+    }
+
 }
