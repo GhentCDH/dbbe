@@ -710,7 +710,7 @@ const urlInitialized = ref(false);
 watch(
     () => aggregationLoaded.value,
     (loaded) => {
-      if (loaded && !urlInitialized.value && data.value) {
+      if (loaded && !urlInitialized.value) {
         initFromURL(aggregation.value);
         urlInitialized.value = true;
         nextTick(() => onValidated(true));
