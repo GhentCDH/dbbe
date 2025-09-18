@@ -28,6 +28,12 @@ export function useRequestTracker() {
 
     function handleError(error, data, count) {
         endRequest(); // Always end request on error
+
+        if (error.code === 'ECONNABORTED' || error.code === 'ERR_CANCELED') {
+            console.log('Request cancelled, ignoring error');
+            return;
+        }
+
         alerts.value.push({
             type: 'error',
             message: 'Something went wrong while processing your request. Please verify your input is valid.',
@@ -67,6 +73,7 @@ export function useRequestTracker() {
                     },
                 };
             }
+
             return handleError(error, fallbackData?.data, fallbackData?.count);
         }
     }
