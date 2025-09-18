@@ -25,7 +25,7 @@
                                         </a>
                                         &nbsp;
                                         {% if content.getPerson() != null %}
-                                            <a href="{{ path('person_get', {'id': content.getPerson().getId()}) }}">(person page)</a>
+                                            <a href="{{ path('person_get', {'id': content.getPerson().getId()}) }}" title="Go to the person page of {{content.getPerson().getName()}}">(person page)</a>
                                         {% endif %}
                                         {% if not loop.last %}
                                             >
