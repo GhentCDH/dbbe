@@ -748,15 +748,15 @@ const requestFunction = async (requestData) => {
   startRequest();
   let url = urls['occurrences_search_api'];
 
-  if (!initialized || !actualRequest) {
-    if (!initialized) {
+  if (!initialized.value || !actualRequest.value) {
+    if (!initialized.value) {
       onData(data);
     }
     endRequest();
     return {
       data: {
-        data: initialized ? data : data.data,
-        count: initialized ? count : data.count,
+        data: data.data,
+        count: data.count,
       },
     };
   }
