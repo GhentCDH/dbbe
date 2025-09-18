@@ -610,10 +610,9 @@ const requestFunction = async (requestData) => {
   startRequest();
   let url = urls['manuscripts_search_api'];
 
-  if (!initialized.value || !actualRequest.value) {
-    if (!initialized.value) {
-      onData(data);
-    }
+  if (!initialized.value) {
+    onData(data);
+    initialized.value = true;
     endRequest();
     return {
       data: {

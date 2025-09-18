@@ -775,10 +775,10 @@ const requestFunction = async (requestData) => {
   startRequest();
   let url = urls['types_search_api'];
 
-  if (!initialized.value || !actualRequest.value) {
-    if (!initialized.value) {
-      onData(data);
-    }
+  if (!initialized.value) {
+    onData(data);
+    initialized.value = true;
+    endRequest();
     return {
       data: {
         data: data.data,
@@ -787,14 +787,15 @@ const requestFunction = async (requestData) => {
     };
   }
 
+
   if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
+    if (historyRequest.value !== 'init') {
+      url = `${url}?${historyRequest.value}`;
     }
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
-  if (!noHistory) {
+  if (!noHistory.value) {
     pushHistory(params, model, originalModel, fields, tableOptions);
   } else {
     noHistory.value = false;
