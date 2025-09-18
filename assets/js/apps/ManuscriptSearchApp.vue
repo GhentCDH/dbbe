@@ -265,7 +265,6 @@ import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies"
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
 import validatorUtil from "@/helpers/validatorUtil";
-import { nextTick } from 'vue';
 
 const props = defineProps({
   isEditor: {
@@ -300,7 +299,6 @@ const urls = JSON.parse(props.initUrls);
 const data = JSON.parse(props.initData);
 const identifiers = JSON.parse(props.initIdentifiers);
 const managements = JSON.parse(props.initManagements);
-const urlInitialized = ref(false);
 
 const formOptions = ref({
   validateAfterLoad: true,
@@ -561,14 +559,13 @@ const {
   historyRequest
 });
 
-const { init, onData, setupCollapsibleLegends,  aggregationLoaded
-} = useSearchSession({
+const { init, onData, setupCollapsibleLegends } = useSearchSession({
   urls,
   data,
   aggregation,
   emit,
   elRef,
-  onDataExtend,
+  onDataExtend
 }, 'ManuscriptSearchConfig');
 
 const { delDependencies, deleteModal } = useEditMergeMigrateDelete(props.initUrls, props.initData);
@@ -613,8 +610,10 @@ const requestFunction = async (requestData) => {
   startRequest();
   let url = urls['manuscripts_search_api'];
 
-  if (!initialized.value) {
-    onData(data);
+  if (!initialized.value || !actualRequest.value) {
+    if (!initialized.value) {
+      onData(data);
+    }
     endRequest();
     return {
       data: {
@@ -623,26 +622,15 @@ const requestFunction = async (requestData) => {
       },
     };
   }
-
-  if (!actualRequest.value && !requestData.page && !requestData.orderBy) {
-    endRequest();
-    return {
-      data: {
-        data: data.data,
-        count: data.count,
-      },
-    };
-  }
-
 
   if (historyRequest.value) {
-    if (historyRequest.value !== 'init') {
-      url = `${url}?${historyRequest.value}`;
+    if (historyRequest !== 'init') {
+      url = `${url}?${historyRequest}`;
     }
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
-  if (!noHistory.value) {
+  if (!noHistory) {
     pushHistory(params, model, originalModel, fields, tableOptions);
   } else {
     noHistory.value = false;
@@ -660,18 +648,6 @@ const requestFunction = async (requestData) => {
   );
 };
 
-watch(
-    () => aggregationLoaded.value,
-    (loaded) => {
-      if (loaded && !urlInitialized.value) {
-        initFromURL(aggregation.value);
-        urlInitialized.value = true;
-        initialized.value = true;
-        nextTick(() => onValidated(true));
-      }
-    },
-    { immediate: true }
-)
 const submitDelete = async () => {
   startRequest();
   deleteModal.value = false;
@@ -754,6 +730,7 @@ setUpOperatorWatchers();
 
 onMounted(() => {
   updateCountRecords();
+  initFromURL(aggregation.value);
   originalModel.value = JSON.parse(JSON.stringify(model));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();

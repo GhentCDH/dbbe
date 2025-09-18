@@ -713,7 +713,6 @@ watch(
       if (loaded && !urlInitialized.value) {
         initFromURL(aggregation.value);
         urlInitialized.value = true;
-        initialized.value = true;
         nextTick(() => onValidated(true));
       }
     },
@@ -752,25 +751,14 @@ const requestFunction = async (requestData) => {
   if (!initialized.value || !actualRequest.value) {
     if (!initialized.value) {
       onData(data);
-      endRequest();
-      return {
-        data: {
-          data: data.data,
-          count: data.count,
-        },
-      };
     }
-    if (!actualRequest.value && !requestData.page && !requestData.orderBy) {
-      endRequest();
-      return {
-        data: {
-          data: data.data || data.data,
-          count: data.count || data.count,
-        },
-      };
-
-
-    }
+    endRequest();
+    return {
+      data: {
+        data: data.data,
+        count: data.count,
+      },
+    };
   }
 
   if (historyRequest.value) {
@@ -859,6 +847,7 @@ const downloadCSVHandler = async () => {
   }
 };
 
+// Watchers
 watch(() => model.value.text_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'text');
 });
@@ -896,10 +885,13 @@ watch(() => model.value.comment, (newValue) => {
 }, { immediate: true });
 
 
+// Setup table options request function
 tableOptions.value.requestFunction = requestFunction;
 
+// Setup operator watchers
 setUpOperatorWatchers();
 
+// Mounted lifecycle
 onMounted(() => {
   updateCountRecords();
   originalModel.value = JSON.parse(JSON.stringify(model.value));
