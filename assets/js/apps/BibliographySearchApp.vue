@@ -1015,7 +1015,7 @@ const modelUpdated = (fieldName) => {
 }
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel.value));
+  model.value = JSON.parse(JSON.stringify(originalModel));
   onValidated(true);
 };
 
