@@ -795,7 +795,7 @@ const requestFunction = async (requestData) => {
     return await axiosGet(url, {}, tableCancel, onData, data);
   }
 
-  if (!noHistory.value) {
+  if (noHistory.value===false) {
     pushHistory(params, model, originalModel, fields, tableOptions);
   } else {
     noHistory.value = false;
