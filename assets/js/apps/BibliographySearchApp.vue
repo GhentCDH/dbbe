@@ -850,7 +850,7 @@ const requestFunction = async (requestData) => {
       url,
       {
         params,
-        paramsSerializer: qs.stringify
+        paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' })
       },
       tableCancel,
       onData,
