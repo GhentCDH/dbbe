@@ -68,6 +68,8 @@ class ElasticTypeService extends ElasticEntityService
             'translation_language' => ['type' => 'nested'],
             'acknowledgement' => ['type' => 'nested'],
             'management' => ['type' => 'nested'],
+            'occurrence_ids' => ['type' => 'integer'],
+
         ];
         foreach ($this->getRoleSystemNames(true) as $role) {
             $properties[$role] = ['type' => 'nested'];

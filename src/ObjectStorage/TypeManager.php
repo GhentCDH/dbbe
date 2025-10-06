@@ -775,13 +775,14 @@ class TypeManager extends PoemManager
     private function formatRow(array $item): array
     {
         $implodeNames = fn($key) => !empty($item[$key]) ? implode(' | ', array_column($item[$key], 'name')) : '';
-
+        $occurrenceIds = !empty($item['occurrence_ids']) ? implode(' | ', $item['occurrence_ids']) : '';
         return [
             $item['id'] ?? '',
             $implodeNames('genre'),
             $implodeNames('subject'),
             $implodeNames('metre'),
             $item['text_original'] ?? '',
+            $occurrenceIds
         ];
     }
 
@@ -793,7 +794,7 @@ class TypeManager extends PoemManager
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
-            'id', 'genres', 'subjects', 'metres', 'text'
+            'id', 'genres', 'subjects', 'metres', 'text', 'occurrence_ids'
         ],';');
         $maxResults = $isAuthorized ? 10000 : 1000;
         $params['limit'] = $maxResults;
@@ -803,7 +804,8 @@ class TypeManager extends PoemManager
         $totalFetched = 0;
         foreach ($data as $item) {
             if ($totalFetched++ >= $maxResults) break;
-            fputcsv($stream, $this->formatRow($item),';');
+            $row = $this->formatRow($item);
+            fputcsv($stream,$row,';');
         }
         return $stream;
     }
