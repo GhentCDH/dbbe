@@ -25,112 +25,111 @@
           @resetFilters="resetAllFilters"
           @deletedActiveFilter="handleDeletedActiveFilter"
       />
-      <div
-          v-if="countRecords"
-          class="count-records"
-      >
-        <h6>{{ countRecords }}</h6>
+
+      <div style="position: relative; margin-bottom: 1rem;">
+        <div style="text-align: center;">
+          <h6 v-if="totalRecords" class="mb-0" style="display: inline-block;">
+            <record-count
+                :per-page="perPage"
+                :total-records="totalRecords"
+                :page="currentPage"
+            />
+          </h6>
+        </div>
+
+        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+          Records: <b-select
+            id="per-page"
+            label="Per page"
+            :selected="perPage"
+            :options="[25, 50, 100].map(v => ({ value: v, text: v }))"
+            @update:selected="updatePerPage"
+            style="min-width: 120px; width: auto;"
+        />
+        </div>
       </div>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all top"
+
+      <b-table
+          :items="tableData"
+          :fields="tableFields"
+          :sort-by="sortBy"
+          :sort-ascending="sortAscending"
+          @sort="handleSort"
       >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
-        >
-          clear selection
-        </a>
-        |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
-      </div>
-      <v-server-table
-          ref="resultTableRef"
-          :url="urls['bibliographies_search_api']"
-          :columns="tableColumns"
-          :options="tableOptions"
-          @data="onData"
-          @loaded="onLoaded"
-      >
-        <template
-            slot="comment"
-            slot-scope="props"
-        >
-          <template v-if="props.row.public_comment">
+        <template #actionsPreRowHeader v-if="isViewInternal">
+          <th>
+            <input type="checkbox" @change="handleCollectionToggleAll" />
+          </th>
+        </template>
+
+        <template #actionsPreRow="{ row }" v-if="isViewInternal">
+          <td>
+            <input
+                :id="row.id"
+                v-model="collectionArray"
+                :value="row.id"
+                type="checkbox"
+            />
+          </td>
+        </template>
+
+        <template #comment="{ row }">
+          <template v-if="row.public_comment">
             <em v-if="isEditor">Public</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.public_comment"
-                  :key="index"
+                  v-for="(item, index) in row.public_comment"
+                  :key="'public-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
             </ol>
           </template>
-          <template v-if="props.row.private_comment">
+          <template v-if="row.private_comment">
             <em>Private</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.private_comment"
-                  :key="index"
+                  v-for="(item, index) in row.private_comment"
+                  :key="'private-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
             </ol>
           </template>
         </template>
-        <template
-            slot="type"
-            slot-scope="props"
-        >
-          {{ props.row.type.name }}
+
+        <template #type="{ row }">
+          {{ row.type.name }}
         </template>
-        <template
-            slot="author"
-            slot-scope="props"
-        >
-          <!-- view internal -->
-          <template
-              v-if="props.row.author && props.row.author.length > 0"
-          >
-            <ul
-                v-if="props.row.author.length > 1"
-            >
+
+        <template #author="{ row }">
+          <template v-if="row.author && row.author.length > 0">
+            <ul v-if="row.author.length > 1">
               <li
-                  v-for="(author, index) in props.row.author"
+                  v-for="(author, index) in row.author"
                   :key="index"
               >
-                <a
-                    :href="urls['person_get'].replace('person_id', author.id)"
-                    :class="{'bg-warning': !props.row.author_public || props.row.author_public.filter(auth => auth.id === author.id).length === 0}"
+
+                <a :href="urls['person_get'].replace('person_id', author.id)"
+                :class="{'bg-warning': !row.author_public || row.author_public.filter(auth => auth.id === author.id).length === 0}"
                 >
-                  {{ author.name }}
+                {{ author.name }}
                 </a>
               </li>
             </ul>
             <template v-else>
-              <a
-                  :href="urls['person_get'].replace('person_id', props.row.author[0].id)"
-                  :class="{'bg-warning': !props.row.author_public || props.row.author_public.length === 0}"
+
+             <a :href="urls['person_get'].replace('person_id', row.author[0].id)"
+              :class="{'bg-warning': !row.author_public || row.author_public.length === 0}"
               >
-                {{ props.row.author[0].name }}
+              {{ row.author[0].name }}
               </a>
             </template>
           </template>
-          <!-- no view internal -->
-          <template
-              v-else-if="props.row.author_public && props.row.author_public.length > 0"
-          >
-            <ul
-                v-if="props.row.author_public.length > 1"
-            >
+          <template v-else-if="row.author_public && row.author_public.length > 0">
+            <ul v-if="row.author_public.length > 1">
               <li
-                  v-for="(author, index) in props.row.author_public"
+                  v-for="(author, index) in row.author_public"
                   :key="index"
               >
                 <a :href="urls['person_get'].replace('person_id', author.id)">
@@ -139,99 +138,95 @@
               </li>
             </ul>
             <template v-else>
-              <a :href="urls['person_get'].replace('person_id', props.row.author_public[0].id)">
-                {{ props.row.author_public[0].name }}
+              <a :href="urls['person_get'].replace('person_id', row.author_public[0].id)">
+                {{ row.author_public[0].name }}
               </a>
             </template>
           </template>
         </template>
-        <a
-            slot="title"
-            slot-scope="props"
-            :href="urls[types[props.row.type.id] + '_get'].replace(types[props.row.type.id] + '_id', props.row.id)"
-            v-html="greekFont(formatTitle(props.row.title))"
-        />
-        <template
-            slot="actions"
-            slot-scope="props"
-        >
-          <a
-              v-if="urls[types[props.row.type.id] + '_edit']"
-              :href="urls[types[props.row.type.id] + '_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
-              class="action"
-              title="Edit"
+
+        <template #title="{ row }">
+
+          <a :href="urls[types[row.type.id] + '_get'].replace(types[row.type.id] + '_id', row.id)"
+          v-html="greekFont(formatTitle(row.title))"
+          />
+        </template>
+
+        <template #actions="{ row }" v-if="isViewInternal">
+
+          <a v-if="urls[types[row.type.id] + '_edit']"
+           :href="urls[types[row.type.id] + '_edit'].replace(types[row.type.id] + '_id', row.id)"
+          class="action"
+          title="Edit"
           >
-            <i class="fa fa-pencil-square-o" />
+          <i class="fa fa-pencil-square-o" />
           </a>
-          <a
-              v-else-if="urls[types[props.row.type.id] + 's_edit']"
-              :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
-              class="action"
-              title="Edit"
+
+          <a v-else-if="urls[types[row.type.id] + 's_edit']"
+          :href="urls[types[row.type.id] + 's_edit'].replace(types[row.type.id] + '_id', row.id)"
+          class="action"
+          title="Edit"
           >
-            <i class="fa fa-pencil-square-o" />
+          <i class="fa fa-pencil-square-o" />
           </a>
-          <a
-              v-if="types[props.row.type.id] === 'book' || types[props.row.type.id] === 'journal'"
-              href="#"
-              class="action"
-              title="Merge"
-              @click.prevent="merge(props.row)"
+
+          <a v-if="types[row.type.id] === 'book' || types[row.type.id] === 'journal'"
+          href="#"
+          class="action"
+          title="Merge"
+          @click.prevent="merge(row)"
           >
-            <i class="fa fa-compress" />
+          <i class="fa fa-compress" />
           </a>
-          <a
-              v-if="urls[types[props.row.type.id] + '_delete']"
-              href="#"
-              class="action"
-              title="Delete"
-              @click.prevent="del(props.row)"
+
+          <a v-if="urls[types[row.type.id] + '_delete']"
+          href="#"
+          class="action"
+          title="Delete"
+          @click.prevent="del(row)"
           >
-            <i class="fa fa-trash-o" />
+          <i class="fa fa-trash-o" />
           </a>
-          <a
-              v-else-if="urls[types[props.row.type.id] + 's_edit']"
-              :href="urls[types[props.row.type.id] + 's_edit'].replace(types[props.row.type.id] + '_id', props.row.id)"
-              class="action"
-              title="Delete"
+
+          <a v-else-if="urls[types[row.type.id] + 's_edit']"
+          :href="urls[types[row.type.id] + 's_edit'].replace(types[row.type.id] + '_id', row.id)"
+          class="action"
+          title="Delete"
           >
-            <i class="fa fa-trash-o" />
+          <i class="fa fa-trash-o" />
           </a>
         </template>
-        <template
-            slot="c"
-            slot-scope="props"
-        >
-          <span class="checkbox checkbox-primary">
-            <input
-                :id="props.row.id"
-                v-model="collectionArray"
-                :name="props.row.id"
-                :value="props.row.id"
-                type="checkbox"
-            >
-            <label :for="props.row.id" />
-          </span>
-        </template>
-      </v-server-table>
+      </b-table>
+
       <div
           v-if="isViewInternal"
           class="collection-select-all bottom"
       >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
+        <a href="#"
+        @click.prevent="clearCollection()"
         >
-          clear selection
+        clear selection
         </a>
         |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
+
+        <a href="#"
+        @click.prevent="handleCollectionToggleAll()"
         >
-          (un)select all on this page
+        (un)select all on this page
         </a>
       </div>
+
+      <div style="position: relative; margin-bottom: 5rem; margin-top: 5rem;">
+        <div style="text-align: center;">
+          <b-pagination
+              :total-records="totalRecords"
+              :per-page="perPage"
+              :page="currentPage"
+              @update:page="updatePage"
+          />
+        </div>
+      </div>
+
       <collectionManager
           v-if="isViewInternal"
           :collection-array="collectionArray"
@@ -362,7 +357,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import axios from 'axios';
-import VueTables from 'vue-tables-2';
 import qs from 'qs';
 import { nextTick } from 'vue';
 
@@ -377,6 +371,10 @@ import Alerts from "@/components/Alerts.vue";
 import ActiveFilters from '../components/Search/ActiveFilters.vue';
 import Merge from '../components/Edit/Modals/Merge.vue';
 import CollectionManager from '../components/Search/CollectionManager.vue';
+import BTable from '@/components/Bootstrap/BTable.vue';
+import BPagination from '@/components/Bootstrap/BPagination.vue';
+import BSelect from '@/components/Bootstrap/BSelect.vue';
+import RecordCount from '@/components/Bootstrap/RecordCount.vue';
 
 import { useRequestTracker } from "@/composables/searchAppComposables/useRequestTracker";
 import { usePaginationCount } from "@/composables/searchAppComposables/usePaginationCount";
@@ -425,6 +423,14 @@ const urls = JSON.parse(props.initUrls);
 const data = JSON.parse(props.initData);
 const identifiers = JSON.parse(props.initIdentifiers);
 const managements = JSON.parse(props.initManagements);
+
+// Add pagination state
+const currentPage = ref(1);
+const sortBy = ref('title');
+const sortAscending = ref(true);
+const tableData = ref([]);
+const totalRecords = ref(0);
+const perPage = ref(25);
 
 const formOptions = ref({
   validateAfterLoad: true,
@@ -502,6 +508,125 @@ const schema = ref({
   fields: {},
   groups: []
 });
+
+const types = ref({
+  0: 'article',
+  1: 'book',
+  2: 'book_chapter',
+  3: 'online_source',
+  4: 'journal',
+  5: 'book_cluster',
+  6: 'book_series',
+  7: 'blog',
+  8: 'blog_post',
+  9: 'phd',
+  10: 'bib_varia',
+});
+
+const mergeSchema = ref({
+  fields: {
+    primary: createMultiSelect(
+        'Primary',
+        {
+          required: true,
+          validator: validatorUtil.required,
+        },
+        {
+          customLabel: ({ id, name }) => `[${id}] ${name}`,
+        },
+    ),
+    secondary: createMultiSelect(
+        'Secondary',
+        {
+          required: true,
+          validator: validatorUtil.required,
+        },
+        {
+          customLabel: ({ id, name }) => `[${id}] ${name}`,
+        },
+    ),
+  },
+});
+
+// Computed for table fields
+const tableFields = computed(() => {
+  const fields = [
+    { key: 'type', label: 'Type', sortable: true },
+    { key: 'author', label: 'Author(s)', sortable: true, thClass: 'no-wrap' },
+    { key: 'title', label: 'Title', sortable: true },
+  ];
+
+  if (commentSearch.value) {
+    fields.unshift({ key: 'comment', label: 'Comment (matching lines only)' });
+  }
+
+  if (props.isViewInternal) {
+    fields.push({ key: 'actions', label: 'Actions' });
+  }
+
+  return fields;
+});
+
+// Fetch data function
+const fetchData = async () => {
+  const params = cleanParams({
+    orderBy: sortBy.value,
+    ascending: sortAscending.value ? 1 : 0,
+    page: currentPage.value,
+    limit: perPage.value,
+    filters: constructFilterValues(model.value, fields.value)
+  });
+
+  startRequest();
+
+  try {
+    const response = await axiosGet(
+        urls['bibliographies_search_api'],
+        {
+          params,
+          paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' })
+        },
+        tableCancel,
+        onData,
+        data
+    );
+
+    tableData.value = response.data.data || [];
+    totalRecords.value = response.data.count || 0;
+    onLoaded();
+
+    if (!noHistory.value) {
+      pushHistory(params, model, originalModel, fields, { value: { orderBy: { column: sortBy.value } } });
+    }
+  } finally {
+    endRequest();
+  }
+};
+
+// Pagination handlers
+const updatePage = (page) => {
+  currentPage.value = page;
+  fetchData();
+};
+
+const updatePerPage = (newPerPage) => {
+  perPage.value = parseInt(newPerPage);
+  currentPage.value = 1;
+  fetchData();
+};
+
+// Sorting handler
+const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
+  sortBy.value = newSortBy;
+  sortAscending.value = newSortAscending;
+  fetchData();
+};
+
+// Collection toggle handler
+const handleCollectionToggleAll = () => {
+  const currentData = { data: tableData.value };
+  collectionToggleAll(currentData);
+};
 
 const buildSchema = () => {
   const fields = {};
@@ -604,48 +729,6 @@ const buildSchema = () => {
   };
 };
 
-
-const types = ref({
-  0: 'article',
-  1: 'book',
-  2: 'book_chapter',
-  3: 'online_source',
-  4: 'journal',
-  5: 'book_cluster',
-  6: 'book_series',
-  7: 'blog',
-  8: 'blog_post',
-  9: 'phd',
-  10: 'bib_varia',
-});
-
-const mergeSchema = ref({
-  fields: {
-    primary: createMultiSelect(
-        'Primary',
-        {
-          required: true,
-          validator: validatorUtil.required,
-        },
-        {
-          customLabel: ({ id, name }) => `[${id}] ${name}`,
-        },
-    ),
-    secondary: createMultiSelect(
-        'Secondary',
-        {
-          required: true,
-          validator: validatorUtil.required,
-        },
-        {
-          customLabel: ({ id, name }) => `[${id}] ${name}`,
-        },
-    ),
-  },
-});
-
-
-
 const fields = computed(() => {
   const res = {};
   const addField = (field) => {
@@ -738,7 +821,10 @@ const {
   fields,
   resultTableRef,
   defaultOrdering: ref('title'),
-  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
+  emitFilter: (filters) => {
+    currentPage.value = 1;
+    fetchData();
+  },
   historyRequest
 });
 
@@ -799,63 +885,10 @@ const identificationValue = (identifier) => {
   );
 };
 
-const tableColumns = computed(() => {
-  const columns = ['type', 'author', 'title'];
-  if (commentSearch.value) {
-    columns.unshift('comment');
-  }
-  if (props.isViewInternal) {
-    columns.push('actions');
-    columns.push('c');
-  }
-  return columns;
-});
 const handleDeletedActiveFilter = (field) => {
   deleteActiveFilter(field);
   onValidated(true);
 };
-
-const requestFunction = async (requestData) => {
-  const params = cleanParams(requestData);
-  startRequest();
-  let url = urls['bibliographies_search_api'];
-
-  if (!initialized.value) {
-    onData(data);
-    initialized.value = true;
-    endRequest();
-    return {
-      data: {
-        data: data.data,
-        count: data.count,
-      },
-    };
-  }
-
-
-  if (historyRequest.value) {
-    if (historyRequest.value !== 'init') {
-      url = `${url}?${historyRequest.value}`;
-    }
-    return await axiosGet(url, {}, tableCancel, onData, data);
-  }
-
-  if (noHistory.value===false) {
-    pushHistory(params, model, originalModel, fields, tableOptions);
-  } else {
-    noHistory.value = false;
-  }
-
-  return await axiosGet(
-      url,
-      {
-        params,
-        paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' })
-      },
-      tableCancel,
-      onData,
-      data
-  );};
 
 const merge = async (row) => {
   mergeModel.submitType = types.value[row.type.id];
@@ -873,8 +906,6 @@ const merge = async (row) => {
       mergeModel.secondary = null;
       mergeSchema.value.fields.primary.values = books.value;
       mergeSchema.value.fields.secondary.values = books.value;
-      // enableField(mergeSchema.value.fields.primary);
-      // enableField(mergeSchema.value.fields.secondary);
       originalMergeModel.value = JSON.parse(JSON.stringify(mergeModel));
       mergeModal.value = true;
     } else if (types.value[row.type.id] === 'journal') {
@@ -888,8 +919,6 @@ const merge = async (row) => {
       mergeModel.secondary = null;
       mergeSchema.value.fields.primary.values = journals.value;
       mergeSchema.value.fields.secondary.values = journals.value;
-      // enableField(mergeSchema.value.fields.primary);
-      // enableField(mergeSchema.value.fields.secondary);
       originalMergeModel.value = JSON.parse(JSON.stringify(mergeModel));
       mergeModal.value = true;
     }
@@ -922,8 +951,7 @@ const submitMerge = async () => {
     }
 
     await axios.put(url);
-    // update(); // Assuming this refreshes the table
-    resultTableRef.value?.refresh();
+    fetchData();
     mergeAlerts.value = [];
     alerts.value.push({
       type: 'success',
@@ -951,9 +979,8 @@ const submitDelete = async () => {
         urls[`${submitModel.submitType}_delete`]
             .replace(`${submitModel.submitType}_id`, submitModel[submitModel.submitType].id),
     );
-    // Don't create a new history item
     noHistory.value = true;
-    resultTableRef.value?.refresh();
+    fetchData();
     alerts.value.push({
       type: 'success',
       message: `${submitModel.submitType.replace(/^\w/, (c) => c.toUpperCase())} deleted successfully.`,
@@ -994,6 +1021,7 @@ const del = async (row) => {
     endRequest();
   }
 };
+
 const cancelMerge = () => {
   mergeModal.value = false;
   mergeModel.primary = originalMergeModel.value.primary;
@@ -1012,10 +1040,10 @@ const resetMerge = () => {
 
 const modelUpdated = (fieldName) => {
   lastChangedField.value = fieldName;
-}
+};
 
 const resetAllFilters = () => {
-  model.value = JSON.parse(JSON.stringify(originalModel));
+  model.value = JSON.parse(JSON.stringify(originalModel.value));
   onValidated(true);
 };
 
@@ -1134,20 +1162,16 @@ watch(
     { immediate: true }
 );
 
-
-tableOptions.value.requestFunction = requestFunction;
-
 setUpOperatorWatchers();
 
 onMounted(() => {
   buildSchema();
-  updateCountRecords();
   initFromURL(aggregation.value);
+  fetchData();
   originalModel.value = JSON.parse(JSON.stringify(model.value));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();
-    resultTableRef.value?.refresh();
+    fetchData();
   };
-  updateCountRecords();
 });
 </script>
