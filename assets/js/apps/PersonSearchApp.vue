@@ -265,6 +265,7 @@
             <div style="position: relative; height: 100px;">
               <button @click="downloadCSVHandler"
                       class="btn btn-primary"
+                      :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"
                       style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">
                 Download results CSV
               </button>
