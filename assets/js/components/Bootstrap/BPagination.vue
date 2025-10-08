@@ -121,7 +121,6 @@ export default {
         start = Math.max(1, end - maxVisible + 1);
       }
 
-      // Generate array of page numbers
       const pages = [];
       for (let i = start; i <= end; i++) {
         pages.push(i);
@@ -160,9 +159,9 @@ export default {
 }
 
 .page-item.active .page-link {
-  background-color: #007bff;
+  background-color: rgb(30,100,200);
   color: white;
-  border-color: #007bff;
+  border-color: rgb(30,100,200);
 }
 
 .page-link {
@@ -171,7 +170,7 @@ export default {
   border: 1px solid #dee2e6;
   border-right: none;
   text-decoration: none;
-  color: #007bff;
+  color: rgb(30,100,200);
   cursor: pointer;
   display: block;
 }

@@ -120,7 +120,6 @@ export default {
   background-color: #f5f5f5;
 }
 
-/* Header content layout */
 .header-content {
   display: flex;
   justify-content: space-between;
@@ -149,15 +148,13 @@ tbody tr:hover {
   background-color: #f1f1f1;
 }
 
-/* Prevent wrapping for columns with no-wrap class - MORE SPECIFIC */
 th.no-wrap,
 td.no-wrap {
   white-space: nowrap;
-  min-width: 80px; /* Adjust this value as needed */
+  min-width: 80px;
   width: auto;
 }
 
-/* Checkbox column should be minimal */
 th:first-child,
 td:first-child {
   white-space: nowrap;
@@ -169,5 +166,12 @@ td:first-child {
   width: 100%;
   border-collapse: collapse;
   table-layout: auto;
+  border: 1px solid #ddd;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 </style>
