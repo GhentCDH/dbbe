@@ -362,7 +362,7 @@ const noHistory = ref(false);
 const tableCancel = ref(false);
 const resultTableRef = ref(null);
 const aggregation = ref({});
-const historyRequest = ref(false);
+const historyRequest = ref(null);
 const elRef = ref(null);
 
 const idList = [];
@@ -496,19 +496,34 @@ const tableFields = computed(() => {
 
 // Fetch data function
 const fetchData = async () => {
-  const params = cleanParams({
-    orderBy: sortBy.value,
-    ascending: sortAscending.value ? 1 : 0,
-    page: currentPage.value,
-    limit: perPage.value,
-    filters: constructFilterValues(model.value, fields.value)
-  });
-
   startRequest();
 
   try {
+    let url = urls['manuscripts_search_api'];
+
+    if (historyRequest.value) {
+      if (historyRequest.value !== 'init') {
+        url = `${url}?${historyRequest.value}`;
+      }
+      const response = await axiosGet(url, {}, tableCancel, onData, data);
+      tableData.value = response.data.data || [];
+      totalRecords.value = response.data.count || 0;
+
+      historyRequest.value = false;
+      onLoaded();
+      return;
+    }
+
+    const params = cleanParams({
+      orderBy: sortBy.value,
+      ascending: sortAscending.value ? 1 : 0,
+      page: currentPage.value,
+      limit: perPage.value,
+      filters: constructFilterValues(model.value, fields.value)
+    });
+
     const response = await axiosGet(
-        urls['manuscripts_search_api'],
+        url,
         {
           params,
           paramsSerializer: qs.stringify
@@ -524,11 +539,14 @@ const fetchData = async () => {
 
     if (!noHistory.value) {
       pushHistory(params, model, originalModel, fields, { value: { orderBy: { column: sortBy.value } } });
+    } else {
+      noHistory.value = false;
     }
   } finally {
     endRequest();
   }
 };
+
 
 // Pagination handlers
 const updatePage = (page) => {
@@ -772,12 +790,8 @@ watch(() => model.value.comment, (newValue) => {
 setUpOperatorWatchers();
 
 onMounted(() => {
-  initFromURL(aggregation.value);
-  fetchData();
   originalModel.value = JSON.parse(JSON.stringify(model.value));
-  window.onpopstate = (event) => {
-    historyRequest.value = popHistory();
-    fetchData();
-  };
+  historyRequest.value = popHistory();
+  resultTableRef.value?.refresh();
 });
 </script>
