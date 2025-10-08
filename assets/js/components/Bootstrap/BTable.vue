@@ -1,14 +1,14 @@
 <template>
-  <table class="table">
+  <table class="b-table">
     <thead>
     <tr>
       <slot name="actionsPreRowHeader">
       </slot>
       <th v-for="field in fieldData" :key="field.key" :class="getFieldHeaderClass(field)" @click="changeSort(field)">
-        <div class="header-content">
-          <span class="heading-label">{{ field.label }}</span>
+        <div class="b-header-content">
+          <span class="b-heading-label">{{ field.label }}</span>
           <template v-if="field.sortable">
-            <i :class="getSortIcon(field.key)" class="sort-icon"></i>
+            <i :class="getSortIcon(field.key)" class="b-sort-icon"></i>
           </template>
         </div>
       </th>
@@ -81,7 +81,7 @@ export default {
     getFieldHeaderClass(field) {
       return [
         field.thClass,
-        field.sortable ? 'sortable' : '',
+        field.sortable ? 'b-sortable' : '',
         this.sortBy === field.key ? ( `${field.key}-sorted-`+ (this.sortAscending ? 'asc' : 'desc') ) : ''
       ].filter(i => i).join(' ');
     },
@@ -111,67 +111,67 @@ export default {
 </script>
 
 <style scoped>
-.sortable {
-  cursor: pointer !important;
-  user-select: none !important;
+.b-sortable {
+  cursor: pointer;
+  user-select: none;
 }
 
-.sortable:hover {
-  background-color: #f5f5f5 !important;
+.b-sortable:hover {
+  background-color: #f5f5f5;
 }
 
-.header-content {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100% !important;
+.b-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
-.heading-label {
-  flex: 1 !important;
+.b-heading-label {
+  flex: 1;
 }
 
-.sort-icon {
-  margin-left: auto !important;
-  padding-left: 8px !important;
+.b-sort-icon {
+  margin-left: auto;
+  padding-left: 8px;
 }
 
-tbody tr:nth-child(odd) {
-  background-color: #ffffff !important;
+.b-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 
-tbody tr:nth-child(even) {
-  background-color: #f9f9f9 !important;
+.b-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
-tbody tr:hover {
-  background-color: #f1f1f1 !important;
+.b-table tbody tr:hover {
+  background-color: #f1f1f1;
 }
 
-th.no-wrap,
-td.no-wrap {
-  white-space: nowrap !important;
-  min-width: 80px !important;
-  width: auto !important;
+.b-table th.no-wrap,
+.b-table td.no-wrap {
+  white-space: nowrap;
+  min-width: 80px;
+  width: auto;
 }
 
-th:first-child,
-td:first-child {
-  white-space: nowrap !important;
-  width: 1% !important;
-  text-align: left !important;
+.b-table th:first-child,
+.b-table td:first-child {
+  white-space: nowrap;
+  width: 1%;
+  text-align: left;
 }
 
-.table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  table-layout: auto !important;
-  border: 1px solid #ddd !important;
+.b-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  border: 1px solid #ddd;
 }
 
-.table th,
-.table td {
-  border: 1px solid #ddd !important;
-  padding: 8px !important;
+.b-table th,
+.b-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 </style>
