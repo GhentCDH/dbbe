@@ -170,19 +170,20 @@
       <div
           v-if="isViewInternal"
           class="collection-select-all bottom"
+          style="margin-top: 1rem; clear: both;"
       >
 
         <a href="#"
-        @click.prevent="clearCollection()"
+           @click.prevent="clearCollection()"
         >
-        clear selection
+          clear selection
         </a>
         |
 
         <a href="#"
-        @click.prevent="handleCollectionToggleAll()"
+           @click.prevent="collectionToggleAll()"
         >
-        (un)select all on this page
+          (un)select all on this page
         </a>
       </div>
 
