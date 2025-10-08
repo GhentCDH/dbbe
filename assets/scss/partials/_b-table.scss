@@ -12,6 +12,10 @@
     padding: 8px;
   }
 
+  thead th {
+    border-bottom: 1px solid #ddd; // Change from default thicker border
+  }
+
   tbody tr:nth-child(odd) {
     background-color: #ffffff;
   }

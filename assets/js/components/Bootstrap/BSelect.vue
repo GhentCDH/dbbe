@@ -39,21 +39,3 @@ export default {
   </select>
 </template>
 
-<style lang="scss">
-.form-select:focus {
-  box-shadow: none !important;
-}
-
-.form-select {
-  background-color: white !important;
-  border-radius: 0 !important;
-  border: 1px solid #ccc !important;
-  padding: 0.5rem !important;
-}
-
-.form-select:focus {
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-</style>
