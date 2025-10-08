@@ -866,7 +866,6 @@ watch(() => model.value.comment, (newValue) => {
 setUpOperatorWatchers();
 
 onMounted(() => {
-  fetchData();
   originalModel.value = JSON.parse(JSON.stringify(model.value));
   window.onpopstate = (event) => {
     historyRequest.value = popHistory();

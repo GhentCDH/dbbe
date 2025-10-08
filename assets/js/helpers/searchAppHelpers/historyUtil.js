@@ -40,7 +40,8 @@ export function pushHistory(data, model, originalModel, fields, tableOptions) {
     window.history.pushState(
         filteredData,
         document.title,
-        `${document.location.href.split('?')[0]}?${qs.stringify(filteredData, { arrayFormat: 'repeat' })}`
+        `${document.location.href.split('?')[0]}?${qs.stringify(filteredData, 
+            { arrayFormat: 'indices', encode:false })}`
     );
 }
 
