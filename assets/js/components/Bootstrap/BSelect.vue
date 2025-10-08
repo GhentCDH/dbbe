@@ -41,19 +41,19 @@ export default {
 
 <style lang="scss">
 .form-select:focus {
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
 .form-select {
-  background-color: white;  // Set white background
-  border-radius: 0;         // Remove rounded corners
-  border: 1px solid #ccc;   // Optional: keep a border to make it visible
-  padding: 0.5rem;          // Optional: adjust padding if needed
+  background-color: white !important;
+  border-radius: 0 !important;
+  border: 1px solid #ccc !important;
+  padding: 0.5rem !important;
 }
 
 .form-select:focus {
-  box-shadow: none;         // Keep focus shadow removed
-  outline: none;            // Optional: remove default outline
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 </style>

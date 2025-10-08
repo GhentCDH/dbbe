@@ -112,66 +112,66 @@ export default {
 
 <style scoped>
 .sortable {
-  cursor: pointer;
-  user-select: none;
+  cursor: pointer !important;
+  user-select: none !important;
 }
 
 .sortable:hover {
-  background-color: #f5f5f5;
+  background-color: #f5f5f5 !important;
 }
 
 .header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .heading-label {
-  flex: 1;
+  flex: 1 !important;
 }
 
 .sort-icon {
-  margin-left: auto;
-  padding-left: 8px;
+  margin-left: auto !important;
+  padding-left: 8px !important;
 }
 
 tbody tr:nth-child(odd) {
-  background-color: #ffffff;
+  background-color: #ffffff !important;
 }
 
 tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f9f9f9 !important;
 }
 
 tbody tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f1f1f1 !important;
 }
 
 th.no-wrap,
 td.no-wrap {
-  white-space: nowrap;
-  min-width: 80px;
-  width: auto;
+  white-space: nowrap !important;
+  min-width: 80px !important;
+  width: auto !important;
 }
 
 th:first-child,
 td:first-child {
-  white-space: nowrap;
-  width: 1%;
-  text-align: left;
+  white-space: nowrap !important;
+  width: 1% !important;
+  text-align: left !important;
 }
 
 .table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-  border: 1px solid #ddd;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: auto !important;
+  border: 1px solid #ddd !important;
 }
 
 .table th,
 .table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid #ddd !important;
+  padding: 8px !important;
 }
 </style>
