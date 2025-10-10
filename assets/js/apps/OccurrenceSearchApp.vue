@@ -185,7 +185,16 @@
             </template>
           </template>
 
-          <template #actions="{ row }" v-if="isViewInternal">
+        <template #created="{ row }">
+          {{ formatDate(row.created) }}
+        </template>
+
+        <template #modified="{ row }">
+          {{ formatDate(row.modified) }}
+        </template>
+
+
+        <template #actions="{ row }" v-if="isViewInternal">
 
             <a :href="urls['occurrence_edit'].replace('occurrence_id', row.id)"
             class="action"
