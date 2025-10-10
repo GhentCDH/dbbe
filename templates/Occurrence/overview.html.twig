@@ -15,12 +15,12 @@
     </div>
     <div id="occurrence-search-app">
         <occurrence-search-app
-            :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
-            :is-view-internal="{{ is_granted('ROLE_VIEW_INTERNAL') ? 'true' : 'false' }}"
-            init-urls="{{ urls }}"
-            init-data="{{ data }}"
-            init-identifiers="{{ identifiers }}"
-            init-managements="{{ managements }}"
+                :is-editor="{{ is_granted('ROLE_EDITOR_VIEW') ? 'true' : 'false' }}"
+                :is-view-internal="{{ is_granted('ROLE_VIEW_INTERNAL') ? 'true' : 'false' }}"
+                init-urls='{{ urls }}'
+                init-data='{{ data }}'
+                init-identifiers='{{ identifiers }}'
+                init-managements='{{ managements }}'
         />
     </div>
 {% endblock %}

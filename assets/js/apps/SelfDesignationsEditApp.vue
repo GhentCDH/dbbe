@@ -94,7 +94,7 @@ import Alerts from '@/components/Alerts.vue'
 import EditListRow from '@/components/Edit/EditListRow.vue'
 import { isLoginError } from '@/helpers/errorUtil'
 import { createMultiSelect, enableField } from '@/helpers/formFieldUtils'
-import VueFormGenerator from 'vue-form-generator'
+import VueFormGenerator from 'vue3-form-generator-legacy'
 import { useEditMergeMigrateDelete } from '@/composables/editAppComposables/useEditMergeMigrateDelete'
 import { removeGreekAccents } from '@/helpers/formFieldUtils'
 import validatorUtil from "@/helpers/validatorUtil";

@@ -179,7 +179,7 @@
           id="actions"
           type="warning"
           :disabled="diff.length === 0"
-          @click="resetModal = true"
+          @click.native="resetModal = true"
       >
         Reset
       </btn>
@@ -187,7 +187,7 @@
           v-if="type"
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save changes
       </btn>
@@ -195,7 +195,7 @@
           v-else
           type="success"
           :disabled="(diff.length === 0)"
-          @click="saveButton()"
+          @click.native="saveButton()"
       >
         Save
       </btn>
@@ -218,89 +218,89 @@
         <h2>Quick navigation</h2>
         <ul class="linklist linklist-dark">
           <li>
-            <a
-                href="#basic"
-                :class="{'bg-danger': !(basicRef && basicRef.isValid)}"
+
+            <a href="#basic"
+            :class="{'bg-danger': !(basicRef && basicRef.isValid)}"
             >Basic information</a>
           </li>
           <li>
-            <a
-                href="#verses"
-                :class="{'bg-danger': !(versesRef && versesRef.isValid)}"
+
+            <a href="#verses"
+            :class="{'bg-danger': !(versesRef && versesRef.isValid)}"
             >Verses</a>
           </li>
           <li>
-            <a
-                href="#types"
-                :class="{'bg-danger': !(typesRef && typesRef.isValid)}"
+
+            <a href="#types"
+            :class="{'bg-danger': !(typesRef && typesRef.isValid)}"
             >Types</a>
           </li>
           <li>
-            <a
-                href="#persons"
-                :class="{'bg-danger': !(personsRef && personsRef.isValid)}"
+
+            <a href="#persons"
+            :class="{'bg-danger': !(personsRef && personsRef.isValid)}"
             >Persons</a>
           </li>
           <li>
-            <a
-                href="#metres"
-                :class="{'bg-danger': !(metresRef && metresRef.isValid)}"
+
+            <a href="#metres"
+            :class="{'bg-danger': !(metresRef && metresRef.isValid)}"
             >Metres</a>
           </li>
           <li>
-            <a
-                href="#genres"
-                :class="{'bg-danger': !(genresRef && genresRef.isValid)}"
+
+            <a href="#genres"
+            :class="{'bg-danger': !(genresRef && genresRef.isValid)}"
             >Genres</a>
           </li>
           <li>
-            <a
-                href="#subjects"
-                :class="{'bg-danger': !(subjectsRef && subjectsRef.isValid)}"
+
+            <a href="#subjects"
+            :class="{'bg-danger': !(subjectsRef && subjectsRef.isValid)}"
             >Subjects</a>
           </li>
           <li>
-            <a
-                href="#tags"
-                :class="{'bg-danger': !(keywordsRef && keywordsRef.isValid)}"
+
+           <a href="#tags"
+            :class="{'bg-danger': !(keywordsRef && keywordsRef.isValid)}"
             >Tags</a>
           </li>
           <li v-if="identifiers.length > 0">
-            <a
-                href="#identification"
-                :class="{'bg-danger': !(identificationRef && identificationRef.isValid)}"
+
+            <a href="#identification"
+            :class="{'bg-danger': !(identificationRef && identificationRef.isValid)}"
             >Identification</a>
           </li>
           <li>
-            <a
-                href="#bibliography"
-                :class="{'bg-danger': !(bibliographyRef && bibliographyRef.isValid)}"
+
+            <a href="#bibliography"
+            :class="{'bg-danger': !(bibliographyRef && bibliographyRef.isValid)}"
             >Bibliography</a>
           </li>
           <li>
-            <a
-                href="#translations"
-                :class="{'bg-danger': !(translationsRef && translationsRef.isValid)}"
+
+            <a href="#translations"
+            :class="{'bg-danger': !(translationsRef && translationsRef.isValid)}"
             >Translations</a>
           </li>
           <li>
-            <a
-                href="#general"
-                :class="{'bg-danger': !(generalRef && generalRef.isValid)}"
+
+            <a href="#general"
+            :class="{'bg-danger': !(generalRef && generalRef.isValid)}"
             >
-              General
+            General
             </a>
           </li>
           <li>
-            <a
-                href="#contributors"
-                :class="{'bg-danger': !(contributorsRef && contributorsRef.isValid)}"
+
+            <a href="#contributors"
+            :class="{'bg-danger': !(contributorsRef && contributorsRef.isValid)}"
             >Contributors</a>
           </li>
           <li>
-            <a
-                href="#managements"
-                :class="{'bg-danger': !(managementsRef && managementsRef.isValid)}"
+
+            <a href="#managements"
+            :class="{'bg-danger': !(managementsRef && managementsRef.isValid)}"
             >Management collections</a>
           </li>
           <li>
@@ -311,18 +311,18 @@
     </aside>
     <Reset
         title="type"
-        :show="resetModal"
+        v-model:show="resetModal"
         @cancel="resetModal = false"
         @confirm="reset()"
     />
     <Invalid
-        :show="invalidModal"
+        v-model:show="invalidModal"
         @cancel="invalidModal = false"
         @confirm="invalidModal = false"
     />
     <Save
         title="type"
-        :show="saveModal"
+        v-model:show="saveModal"
         :diff="diff"
         :alerts="saveAlerts"
         @cancel="cancelSave()"
@@ -354,10 +354,10 @@ import Translation from "@/components/Edit/Panels/Translation.vue"
 import GeneralType from "@/components/Edit/Panels/GeneralType.vue"
 import Management from "@/components/Edit/Panels/Management.vue"
 import Alerts from "@/components/Alerts.vue"
-import {usePanelValidation} from "@/composables/editAppComposables/usePanelValidation";
-import {useModelDiff} from "@/composables/editAppComposables/useModelDiff";
-import {useStickyNav} from "@/composables/editAppComposables/useStickyNav";
-import {useSaveModel} from "@/composables/editAppComposables/useSaveModel";
+import { usePanelValidation } from "@/composables/editAppComposables/usePanelValidation"
+import { useModelDiff } from "@/composables/editAppComposables/useModelDiff"
+import { useStickyNav } from "@/composables/editAppComposables/useStickyNav"
+import { useSaveModel } from "@/composables/editAppComposables/useSaveModel"
 
 const props = defineProps({
   initUrls: {
@@ -777,15 +777,15 @@ const setData = () => {
 // Load async data
 const loadAsync = () => {
   reload('types', types.value)
-  reload('historicalPersons',historicalPersons.validateAfterLoad)
+  reload('historicalPersons', historicalPersons.validateAfterLoad)
   reload('occurrences')
-  reload('books',bibliographies.value)
-  reload('articles',bibliographies.value)
-  reload('bookChapters',bibliographies.value)
-  reload('onlineSources',bibliographies.value)
-  reload('blogPosts',bibliographies.value)
-  reload('phds',bibliographies.value)
-  reload('bibVarias',bibliographies.value)
+  reload('books', bibliographies.value)
+  reload('articles', bibliographies.value)
+  reload('bookChapters', bibliographies.value)
+  reload('onlineSources', bibliographies.value)
+  reload('blogPosts', bibliographies.value)
+  reload('phds', bibliographies.value)
+  reload('bibVarias', bibliographies.value)
 }
 
 const {
@@ -822,11 +822,10 @@ const save = () => {
     postUpdatedModel('type', toSave())
   } else {
     putUpdatedModel('type', toSave())
-
   }
 }
 
-const reload = (reloadType,items=[]) => {
+const reload = (reloadType, items = []) => {
   switch (reloadType) {
     case 'types':
       reloadNestedItems(reloadType, types.value)
@@ -932,7 +931,6 @@ const validated = (isValid, errors) => {
   calcDiff()
 }
 
-
 const toSave = () => {
   let result = {}
   for (let diffItem of diff.value) {
@@ -970,31 +968,28 @@ const cancelSave = () => {
   saveAlerts.value = []
 }
 
-const reloadSimpleItems = (reloadType,items) => {
+const reloadSimpleItems = (reloadType, items) => {
   reloadItems(
       reloadType,
       [reloadType],
-      [items], // Note: Using eval as in original - consider a better approach
-      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+      [items],
+      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
   )
 }
 
-// parent can either be an array of multiple parents or a single parent
 const reloadNestedItems = (reloadType, parent) => {
   reloadItems(
       reloadType,
       [reloadType],
       Array.isArray(parent) ? parent.map(p => p[reloadType]) : [parent[reloadType]],
-      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get'] // convert camel case to snake case
+      urls[reloadType.split(/(?=[A-Z])/).join('_').toLowerCase() + '_get']
   )
 }
 
 const reloadItems = (reloadType, keys, items, url, filters) => {
-  // Be careful to mutate the existing array and not create a new one
   for (let panel of panels) {
     const panelRef = panelRefs.value[panel]
-    if (panelRef) {
-      panelRef.disableFields(keys)
+    if (panelRef) {panelRef.disableFields(keys)
     }
   }
   reloads.value.push(reloadType)
@@ -1032,7 +1027,6 @@ const reloadItems = (reloadType, keys, items, url, filters) => {
           message: 'Something went wrong while loading data.',
           login: isLoginError(error)
         })
-        // Note: $notify might need to be replaced with your notification system
         console.log(error)
       })
 }

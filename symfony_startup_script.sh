@@ -15,6 +15,6 @@ if [ ! -d "./vendor" ]; then
     php bin/console app:elasticsearch:index
 fi
 
-pnpm dev & symfony server:start --no-tls --allow-http --allow-all-ip
+#pnpm dev & symfony server:start --no-tls --allow-http --allow-all-ip
 
 sleep infinity

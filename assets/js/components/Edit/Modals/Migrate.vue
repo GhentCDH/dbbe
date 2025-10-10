@@ -1,9 +1,9 @@
 <template>
     <modal
-        :value="show"
+        :model-value="show"
         size="lg"
         auto-focus
-        :backdrop="false"
+        :backdrop="null"
         @input="$emit('cancel')"
     >
         <alerts
@@ -16,43 +16,39 @@
             :options="formOptions"
             @validated="validated"
         />
-        <div slot="header">
+      <template #header>
             <h4 class="modal-title">
                 Migrate {{ formatType(migrateModel.submitType) }} to {{ formatType(migrateModel.toType) }}
             </h4>
-        </div>
-        <div slot="footer">
-            <btn @click="$emit('cancel')">Cancel</btn>
+      </template>
+      <template #footer>
+            <btn @click.native="$emit('cancel')">Cancel</btn>
             <btn
                 :disabled="JSON.stringify(migrateModel) === JSON.stringify(originalMigrateModel)"
                 type="warning"
-                @click="$emit('reset')"
+                @click.native="$emit('reset')"
             >
                 Reset
             </btn>
             <btn
                 type="success"
                 :disabled="invalidForm"
-                @click="$emit('confirm')"
+                @click.native="$emit('confirm')"
             >
                 Migrate
             </btn>
-        </div>
+        </template>
     </modal>
 </template>
 <script>
-import Vue from 'vue';
 import Alert from "@/components/Alerts.vue";
-import * as uiv from 'uiv';
-import VueFormGenerator from 'vue-form-generator'
-
-Vue.use(uiv);
-Vue.use(VueFormGenerator);
-
+import {Btn,Modal} from "uiv";
 
 export default {
   components: {
-    alerts: Alert
+    alerts: Alert,
+    btn: Btn,
+    modal: Modal
   },
     props: {
         show: {

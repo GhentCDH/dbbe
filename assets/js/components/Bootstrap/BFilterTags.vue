@@ -5,7 +5,7 @@
     </div>
     <span v-for="props in items" class="btn btn-outline-primary me-1 mt-1 nonclickable">
             {{`${props.label}${props.value}`}}
-            <button class="btn btn-close btn-sm btn-close" @click="clickClose(props)"></button>
+            <button class="btn btn-close btn-sm btn-close" @click.native="clickClose(props)"></button>
         </span>
   </div>
 </template>

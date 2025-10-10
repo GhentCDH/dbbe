@@ -15,20 +15,17 @@
   </panel>
 </template>
 <script>
-import Vue from 'vue';
 import {
   createMultiSelect,
 
   disableField,
   dependencyField,
   enableField,
-  loadLocationField, disableFields, enableFields,
+  loadLocationField
 
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 
-Vue.component('panel', Panel)
 
 export default {
   props: {
