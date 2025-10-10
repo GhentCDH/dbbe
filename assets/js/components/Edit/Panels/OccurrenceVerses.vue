@@ -365,6 +365,8 @@ const formOptions = {
   validationSuccessClass: 'success',
 };
 
+const isInitialized = ref(false);
+
 // Schemas
 const generalSchema = {
   fields: {
@@ -549,10 +551,12 @@ const init = () => {
   originalModel.value = JSON.parse(JSON.stringify(props.model));
   nextTick(() => {
     initSortable();
+    isInitialized.value = true;
   });
 };
 
 const validate = () => {
+  if (!isInitialized.value) return;
   generalFormRef.value?.validate();
 };
 
@@ -993,9 +997,11 @@ watch(
     (newValue) => {
       if (isNaN(newValue)) {
         props.model.numberOfVerses = null;
-        nextTick(() => {
-          validate();
-        });
+        if (isInitialized.value) {
+          nextTick(() => {
+            validate();
+          });
+        }
       }
     }
 );

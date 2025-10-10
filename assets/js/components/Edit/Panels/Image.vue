@@ -425,6 +425,7 @@ const delLink = (index) => {
 };
 
 const validated = (valid, errors) => {
+  console.log('setting image validated',valid,errors)
   isValid.value = valid;
 };
 
@@ -558,6 +559,7 @@ defineExpose({
   disableFields: disableFieldsMethod,
   enableFields: enableFieldsMethod,
   changes,
+  isValid
 });
 </script>
 

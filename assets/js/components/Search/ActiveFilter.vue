@@ -2,7 +2,7 @@
     <div class="active-filter-array-container">
         <button
             class="btn btn-sm btn-primary active-filter-item"
-            @click.native="onDelete()"
+            @click="onDelete()"
         >
             <span class="active-filter-label">{{ label }} <span
                 v-if="mode"
