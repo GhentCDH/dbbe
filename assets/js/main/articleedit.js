@@ -4,6 +4,7 @@ import * as uiv from 'uiv'
 import VueFormGenerator from 'vue3-form-generator-legacy'
 import fieldMultiselectClear from '@/components/FormFields/fieldMultiselectClear.vue';
 import VueMultiselect from 'vue-multiselect';
+import Panel from "@/components/Edit/Panel.vue";
 const app = createApp({
     el: '#article-edit-app',
     components: {
@@ -14,4 +15,7 @@ const app = createApp({
 app.use(uiv);
 app.component('field-multiselectClear', fieldMultiselectClear)
 app.component('multiselect', VueMultiselect);
+app.use(VueFormGenerator);
+app.component('panel',Panel)
+
 app.mount('#article-edit-app');

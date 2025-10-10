@@ -15,10 +15,11 @@ const app = createApp({
 
 
 app.use(uiv);
-app.use(VueFormGenerator);
 app.component('field-multiselectClear', fieldMultiselectClear)
 app.component('multiselect', VueMultiselect);
 app.component('panel',Panel)
+app.use(VueFormGenerator);
+
 app.component('autoDate', AutoDate);
 
 app.mount('#occurrence-edit-app');

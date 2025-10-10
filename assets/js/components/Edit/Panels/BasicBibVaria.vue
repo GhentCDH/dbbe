@@ -15,16 +15,10 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
 import VueFormGenerator from 'vue3-form-generator-legacy'
-
-
-import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import {disableFields, enableField, enableFields} from "@/helpers/formFieldUtils";
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
 
 export default {
   props: {

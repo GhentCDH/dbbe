@@ -15,8 +15,6 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
-import VueFormGenerator from 'vue3-form-generator-legacy'
 
 import {
   createMultiSelect, disableFields, enableFields,
@@ -25,8 +23,6 @@ import Panel from '../Panel'
 import validatorUtil from "@/helpers/validatorUtil";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 
-Vue.use(VueFormGenerator)
-Vue.component('panel', Panel)
 
 export default {
 

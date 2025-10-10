@@ -142,7 +142,6 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
-import Vue from 'vue'
 import axios from 'axios'
 
 import Reset from "@/components/Edit/Modals/Reset.vue"
