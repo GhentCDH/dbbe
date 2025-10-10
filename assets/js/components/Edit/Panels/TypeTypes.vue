@@ -90,13 +90,10 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
 import {
   createMultiSelect, disableFields, enableFields,
   removeGreekAccents
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
-import {calcChanges} from "@/helpers/modelChangeUtil";
 import validatorUtil from "@/helpers/validatorUtil";
 import Alerts from "@/components/Alerts.vue";
 import {Btn, Modal} from "uiv";

@@ -22,4 +22,6 @@ app.config.globalProperties.$emit = function (event, ...args) {
         return this.$.emit(event, ...args)
     }
 }
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.component('multiselect', VueMultiselect)
 app.mount('#genres-edit-app');

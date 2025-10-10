@@ -6,16 +6,18 @@ import createVuePlugin from '@vitejs/plugin-vue'
 export default defineConfig({
     plugins: [
         symfonyPlugin(),
-        createVuePlugin({
-            template: {
-                compilerOptions: {
-                    compatConfig: {
-                        MODE: 2
-                    },
-                    whitespace: 'condense'
-                }
-            }
-        }),
+        createVuePlugin(
+        //     {
+        //     template: {
+        //         compilerOptions: {
+        //             compatConfig: {
+        //                 MODE: 2
+        //             },
+        //             whitespace: 'condense'
+        //         }
+        //     }
+        // }
+        ),
         viteStaticCopy({
             targets: [
                 {
@@ -92,7 +94,8 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'assets/js'),
-            vue: '@vue/compat'
+            vue: path.resolve('node_modules/vue/dist/vue.esm-bundler.js'),
+            // vue: '@vue/compat'
         },
         extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue'],
         dedupe: ['vue']

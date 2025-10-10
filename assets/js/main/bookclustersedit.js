@@ -15,4 +15,6 @@ const app = createApp({
 app.use(uiv);
 app.component('field-multiselect', fieldMultiselectClear);
 app.use(VueFormGenerator);
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.component('multiselect', VueMultiselect)
 app.mount('#book-clusters-edit-app');

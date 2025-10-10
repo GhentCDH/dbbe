@@ -105,7 +105,6 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
 
 import {
   createMultiSelect, disableFields,

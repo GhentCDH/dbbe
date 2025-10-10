@@ -248,7 +248,7 @@
     </div>
     <Delete
         :show="deleteModal"
-        :del-dependencies="delDependencies.value"
+        :del-dependencies="delDependencies"
         :submit-model="submitModel"
         @cancel="deleteModal=false"
         @confirm="submitDelete()"

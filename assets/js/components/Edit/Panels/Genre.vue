@@ -15,15 +15,11 @@
     </panel>
 </template>
 <script>
-import Vue from 'vue';
-import VueFormGenerator from 'vue3-form-generator-legacy'
-
 
 import {
   createMultiSelect, disableFields, enableFields,
 
 } from '@/helpers/formFieldUtils';
-import Panel from '../Panel'
 import {calcChanges} from "@/helpers/modelChangeUtil";
 export default {
 

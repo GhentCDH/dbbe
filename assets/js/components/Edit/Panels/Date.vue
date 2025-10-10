@@ -160,7 +160,6 @@
   </panel>
 </template>
 <script>
-import Vue from 'vue';
 
 import AutoDate from './Components/AutoDate'
 import validatorUtil from "@/helpers/validatorUtil";
@@ -168,7 +167,6 @@ import {disableFields, enableFields} from "@/helpers/formFieldUtils";
 import {calcChanges} from "@/helpers/modelChangeUtil";
 import Alerts from "@/components/Alerts.vue";
 import {Btn, Modal} from "uiv";
-Vue.component('autoDate', AutoDate);
 
 
 const YEAR_MIN = -5000;

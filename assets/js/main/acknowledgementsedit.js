@@ -14,4 +14,6 @@ const app = createApp({
 
 app.use(uiv);
 app.use(VueFormGenerator);
+app.component('FieldMultiselectClear', fieldMultiselectClear)
+app.component('multiselect', VueMultiselect)
 app.mount('#acknowledgements-edit-app');

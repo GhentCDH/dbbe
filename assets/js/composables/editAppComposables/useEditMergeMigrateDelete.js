@@ -1,12 +1,7 @@
 import { ref, reactive } from 'vue';
 import axios from 'axios';
 import { isLoginError } from '@/helpers/errorUtil';
-import Vue from 'vue';
-import VueMultiselect from 'vue-multiselect'
-import fieldMultiselectClear from '../../components/FormFields/fieldMultiselectClear.vue'
 
-Vue.component('multiselect', VueMultiselect)
-Vue.component('fieldMultiselectClear', fieldMultiselectClear)
 
 export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depUrls = {}) {
     const urls = reactive(JSON.parse(initUrls));
@@ -19,7 +14,7 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
     const migrateAlerts = ref([]);
     const deleteAlerts = ref([]);
 
-    const delDependencies = reactive({});
+    const delDependencies = ref({});
 
     const deleteModal = ref(null);
     const editModalValue = ref(null);
@@ -49,12 +44,12 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
         axios
             .all(depUrlsEntries.map(([_, depUrlCat]) => axios.get(depUrlCat.depUrl)))
             .then(results => {
-                Object.keys(delDependencies).forEach(k => delete delDependencies[k]); // clear
+                delDependencies.value = {};  // ← Change: clear by reassigning
                 results.forEach((response, index) => {
                     const data = response.data;
                     if (data.length > 0) {
                         const [category, depUrlCat] = depUrlsEntries[index];
-                        delDependencies[category] = {
+                        delDependencies.value[category] = {  // ← Change: add .value
                             list: data,
                             ...(depUrlCat.url && { url: depUrlCat.url }),
                             ...(depUrlCat.urlIdentifier && { urlIdentifier: depUrlCat.urlIdentifier }),
@@ -74,7 +69,6 @@ export function useEditMergeMigrateDelete(initUrls = '{}', initData = '{}', depU
                 console.error(error);
             });
     }
-
     function cancelEdit() {
         editModalValue.value = null;
         editAlerts.value = [];
