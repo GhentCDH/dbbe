@@ -367,6 +367,12 @@ class Type extends Poem
             }
         }
         $result['translation_language'] = array_values($keyedTranslationLanguages);
+        $result['occurrence_ids'] = array_map(
+            function ($occurrence) {
+                return $occurrence->getId();
+            },
+            $this->occurrences
+        );
 
         return $result;
     }

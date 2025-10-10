@@ -9,13 +9,13 @@
     <aside class="col-sm-3">
       <div class="bg-tertiary padding-default">
         <div class="form-group">
-          <a
-              :href="urls['help'] + '#how-to-search-for-persons'"
-              class="action"
-              target="_blank"
+
+          <a :href="urls['help'] + '#how-to-search-for-persons'"
+          class="action"
+          target="_blank"
           >
-            <i class="fa fa-info-circle" />
-            More information about the person search options.
+          <i class="fa fa-info-circle" />
+          More information about the person search options.
           </a>
         </div>
         <vue-form-generator
@@ -35,240 +35,242 @@
           @resetFilters="resetAllFilters"
           @deletedActiveFilter="handleDeletedActiveFilter"
       />
-      <div
-          v-if="countRecords"
-          class="count-records"
-      >
-        <h6>{{ countRecords }}</h6>
+
+      <div style="position: relative; margin-bottom: 1rem;">
+        <div style="text-align: center;">
+          <h6 v-if="totalRecords" class="mb-0" style="display: inline-block;">
+            <record-count
+                :per-page="perPage"
+                :total-records="totalRecords"
+                :page="currentPage"
+            />
+          </h6>
+        </div>
+
+        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+          Records: <b-select
+            id="per-page"
+            label="Per page"
+            :selected="perPage"
+            :options="[25, 50, 100].map(v => ({ value: v, text: v }))"
+            @update:selected="updatePerPage"
+            style="min-width: 120px; width: auto;"
+        />
+        </div>
       </div>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all top"
+
+      <b-table
+          :items="tableData"
+          :fields="tableFields"
+          :sort-by="sortBy"
+          :sort-ascending="sortAscending"
+          @sort="handleSort"
       >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
-        >
-          clear selection
-        </a>
-        |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
-      </div>
-      <v-server-table
-          ref="resultTableRef"
-          :url="urls['persons_search_api']"
-          :columns="tableColumns"
-          :options="tableOptions"
-          @data="onData"
-          @loaded="onLoaded"
-      >
-        <template slot="h__self_designation">
+        <template #h__self_designation>
           (Self) designation
         </template>
-        <template
-            slot="comment"
-            slot-scope="props"
-        >
-          <template v-if="props.row.public_comment">
+
+        <template #actionsPreRowHeader v-if="isViewInternal">
+          <th>
+            <input type="checkbox" @change="handleCollectionToggleAll" />
+          </th>
+        </template>
+
+        <template #actionsPreRow="{ row }" v-if="isViewInternal">
+          <td>
+            <input
+                :id="row.id"
+                v-model="collectionArray"
+                :value="row.id"
+                type="checkbox"
+            />
+          </td>
+        </template>
+
+        <template #comment="{ row }">
+          <template v-if="row.public_comment">
             <em v-if="isEditor">Public</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.public_comment"
-                  :key="index"
+                  v-for="(item, index) in row.public_comment"
+                  :key="'public-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
             </ol>
           </template>
-          <template v-if="props.row.private_comment">
+          <template v-if="row.private_comment">
             <em>Private</em>
             <ol>
               <li
-                  v-for="(item, index) in props.row.private_comment"
-                  :key="index"
+                  v-for="(item, index) in row.private_comment"
+                  :key="'private-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
             </ol>
           </template>
         </template>
-        <template
-            slot="name"
-            slot-scope="props"
-        >
-          <a
-              v-if="props.row.name.constructor !== Array"
-              :href="urls['person_get'].replace('person_id', props.row.id)"
+
+        <template #name="{ row }">
+
+        <a v-if="row.name.constructor !== Array"
+          :href="urls['person_get'].replace('person_id', row.id)"
           >
-            {{ props.row.name }}
+          {{ row.name }}
           </a>
           <template v-else>
-            <a
-                v-if="props.row.name.length === 1"
-                :href="urls['person_get'].replace('person_id', props.row.id)"
-                v-html="props.row.name[0]"
+
+          <a v-if="row.name.length === 1"
+            :href="urls['person_get'].replace('person_id', row.id)"
+            v-html="row.name[0]"
             />
             <ul v-else>
               <li
-                  v-for="(item, index) in props.row.name"
+                  v-for="(item, index) in row.name"
                   :key="index"
                   v-html="item"
               />
             </ul>
           </template>
         </template>
-        <template
-            v-if="hasIdentification(props.row)"
-            slot="identification"
-            slot-scope="props"
-        >
-          {{ formatIdentification(props.row) }}
-        </template>
-        <template
-            v-if="props.row.self_designation"
-            slot="self_designation"
-            slot-scope="props"
-        >
-          <ul v-if="props.row.self_designation.length > 1">
-            <li
-                v-for="(self_designation, index) in props.row.self_designation"
-                :key="index"
-                class="greek"
-            >
-              {{ self_designation.name }}
-            </li>
-          </ul>
-          <template v-else>
-            <span class="greek">{{ props.row.self_designation[0].name }}</span>
+
+        <template #identification="{ row }">
+          <template v-if="hasIdentification(row)">
+            {{ formatIdentification(row) }}
           </template>
         </template>
-        <template
-            v-if="props.row.office"
-            slot="office"
-            slot-scope="props"
-        >
-          <template v-for="(displayOffice, index) in [props.row.office.filter((office) => office['display'])]">
-            <ul
-                v-if="displayOffice.length > 1"
-                :key="index"
-            >
+
+        <template #self_designation="{ row }">
+          <template v-if="row.self_designation">
+            <ul v-if="row.self_designation.length > 1">
               <li
-                  v-for="(office, officeIndex) in displayOffice"
-                  :key="officeIndex"
+                  v-for="(self_designation, index) in row.self_designation"
+                  :key="index"
+                  class="greek"
               >
-                {{ office.name }}
+                {{ self_designation.name }}
               </li>
             </ul>
             <template v-else>
-              {{ displayOffice[0].name }}
+              <span class="greek">{{ row.self_designation[0].name }}</span>
             </template>
           </template>
         </template>
-        <template
-            v-if="props.row.born_date_floor_year || props.row.born_date_ceiling_year || props.row.death_date_floor_year || props.row.death_date_ceiling_year"
-            slot="date"
-            slot-scope="props"
-        >
-          {{ formatInterval(props.row.born_date_floor_year, props.row.born_date_ceiling_year, props.row.death_date_floor_year, props.row.death_date_ceiling_year) }}
-        </template>
-        <template
-            v-if="props.row.death_date_floor_year && props.row.death_date_ceiling_year"
-            slot="deathdate"
-            slot-scope="props"
-        >
-          <template v-if="props.row.death_date_floor_year === props.row.death_date_ceiling_year">
-            {{ props.row.death_date_floor_year }}
+
+        <template #office="{ row }">
+          <template v-if="row.office">
+            <template v-for="(displayOffice, index) in [row.office.filter((office) => office['display'])]">
+              <ul
+                  v-if="displayOffice.length > 1"
+                  :key="index"
+              >
+                <li
+                    v-for="(office, officeIndex) in displayOffice"
+                    :key="officeIndex"
+                >
+                  {{ office.name }}
+                </li>
+              </ul>
+              <template v-else>
+                {{ displayOffice[0]?.name }}
+              </template>
+            </template>
           </template>
-          <template v-else>
-            {{ props.row.death_date_floor_year }} - {{ props.row.death_date_ceiling_year }}
+        </template>
+
+        <template #date="{ row }">
+          <template v-if="row.born_date_floor_year || row.born_date_ceiling_year || row.death_date_floor_year || row.death_date_ceiling_year">
+            {{ formatInterval(row.born_date_floor_year, row.born_date_ceiling_year, row.death_date_floor_year, row.death_date_ceiling_year) }}
           </template>
         </template>
-        <template
-            slot="created"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.created) }}
+
+        <template #deathdate="{ row }">
+          <template v-if="row.death_date_floor_year && row.death_date_ceiling_year">
+            <template v-if="row.death_date_floor_year === row.death_date_ceiling_year">
+              {{ row.death_date_floor_year }}
+            </template>
+            <template v-else>
+              {{ row.death_date_floor_year }} - {{ row.death_date_ceiling_year }}
+            </template>
+          </template>
         </template>
-        <template
-            slot="modified"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.modified) }}
+
+        <template #created="{ row }">
+          {{ formatDate(row.created) }}
         </template>
-        <template
-            slot="actions"
-            slot-scope="props"
-        >
-          <a
-              :href="urls['person_edit'].replace('person_id', props.row.id)"
-              class="action"
-              title="Edit"
+
+        <template #modified="{ row }">
+          {{ formatDate(row.modified) }}
+        </template>
+
+        <template #actions="{ row }" v-if="isViewInternal">
+
+         <a :href="urls['person_edit'].replace('person_id', row.id)"
+          class="action"
+          title="Edit"
           >
-            <i class="fa fa-pencil-square-o" />
+          <i class="fa fa-pencil-square-o" />
           </a>
-          <a
-              href="#"
-              class="action"
-              title="Merge"
-              @click.prevent="merge(props.row)"
+
+          <a href="#"
+          class="action"
+          title="Merge"
+          @click.prevent="merge(row)"
           >
-            <i class="fa fa-compress" />
+          <i class="fa fa-compress" />
           </a>
-          <a
-              href="#"
-              class="action"
-              title="Delete"
-              @click.prevent="del(props.row)"
+
+          <a href="#"
+          class="action"
+          title="Delete"
+          @click.prevent="del(row)"
           >
-            <i class="fa fa-trash-o" />
+          <i class="fa fa-trash-o" />
           </a>
         </template>
-        <template
-            slot="c"
-            slot-scope="props"
-        >
-          <span class="checkbox checkbox-primary">
-            <input
-                :id="props.row.id"
-                v-model="collectionArray"
-                :name="props.row.id"
-                :value="props.row.id"
-                type="checkbox"
-            >
-            <label :for="props.row.id" />
-          </span>
-        </template>
-      </v-server-table>
+      </b-table>
+
       <div
           v-if="isViewInternal"
           class="collection-select-all bottom"
+          style="margin-top: 1rem; clear: both;"
       >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
+
+        <a href="#"
+           @click.prevent="clearCollection()"
         >
           clear selection
         </a>
         |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
+
+        <a href="#"
+           @click.prevent="collectionToggleAll()"
         >
           (un)select all on this page
         </a>
       </div>
-      <!--      <div style="position: relative; height: 100px;">-->
-      <!--        <button @click="downloadCSVHandler"-->
-      <!--                class="btn btn-primary"-->
-      <!--                style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-      <!--          Download results CSV-->
-      <!--        </button>-->
-      <!--      </div>-->
+
+      <div style="position: relative; margin-bottom: 5rem; margin-top: 5rem;">
+        <div style="text-align: center;">
+          <b-pagination
+              :total-records="totalRecords"
+              :per-page="perPage"
+              :page="currentPage"
+              @update:page="updatePage"
+          />
+        </div>
+
+<!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
+<!--          <button @click="downloadCSVHandler"-->
+<!--                  class="btn btn-primary"-->
+<!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
+<!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--            Download results CSV-->
+<!--          </button>-->
+<!--        </div>-->
+      </div>
+
       <collectionManager
           v-if="isViewInternal"
           :collection-array="collectionArray"
@@ -396,7 +398,6 @@ import Delete from '../components/Edit/Modals/Delete.vue';
 import Merge from "../components/Edit/Modals/Merge.vue";
 import Alerts from "@/components/Alerts.vue";
 import qs from 'qs';
-import VueTables from 'vue-tables-2';
 
 import ActiveFilters from '../components/Search/ActiveFilters.vue';
 import {
@@ -421,6 +422,10 @@ import { popHistory, pushHistory } from "@/helpers/searchAppHelpers/historyUtil"
 import { fetchDependencies } from "@/helpers/searchAppHelpers/fetchDependencies";
 import { downloadCSV } from "@/helpers/downloadUtil";
 import { useSearchSession } from "@/composables/searchAppComposables/useSearchSession";
+import BTable from '@/components/Bootstrap/BTable.vue';
+import BPagination from '@/components/Bootstrap/BPagination.vue';
+import BSelect from '@/components/Bootstrap/BSelect.vue';
+import RecordCount from '@/components/Bootstrap/RecordCount.vue';
 import validatorUtil from '@/helpers/validatorUtil';
 import { nextTick } from 'vue';
 
@@ -461,6 +466,14 @@ const urls = JSON.parse(props.initUrls);
 const data = JSON.parse(props.initData);
 const identifiers = JSON.parse(props.initIdentifiers);
 const managements = JSON.parse(props.initManagements);
+
+// Add pagination state
+const currentPage = ref(1);
+const sortBy = ref('name');
+const sortAscending = ref(true);
+const tableData = ref([]);
+const totalRecords = ref(0);
+const perPage = ref(25);
 
 const formOptions = ref({
   validateAfterLoad: true,
@@ -527,7 +540,7 @@ const noHistory = ref(false);
 const tableCancel = ref(false);
 const resultTableRef = ref(null);
 const aggregation = ref({});
-const historyRequest = ref(false);
+const historyRequest = ref(null);
 const personElRef = ref(null);
 const mergeModal = ref(false);
 const mergeAlerts = ref([]);
@@ -563,6 +576,109 @@ const mergePersonSchema = ref({
     ),
   },
 });
+
+// Computed for table fields
+const tableFields = computed(() => {
+  const fields = [
+    { key: 'name', label: 'Name', sortable: true, thClass: 'no-wrap' },
+    { key: 'identification', label: 'Identification' },
+    { key: 'self_designation', label: '(Self) designation' },
+    { key: 'office', label: 'Office' },
+    { key: 'date', label: 'Date', sortable: true },
+  ];
+
+  if (commentSearch.value) {
+    fields.unshift({ key: 'comment', label: 'Comment (matching lines only)' });
+  }
+
+  if (props.isViewInternal) {
+    fields.push(
+        { key: 'created', label: 'Created', sortable: true },
+        { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'actions', label: 'Actions' }
+    );
+  }
+
+  return fields;
+});
+
+// Fetch data function
+const fetchData = async () => {
+  startRequest();
+
+  try {
+    let url = urls['persons_search_api'];
+
+    if (historyRequest.value) {
+      if (historyRequest.value !== 'init') {
+        url = `${url}?${historyRequest.value}`;
+      }
+      const response = await axiosGet(url, {}, tableCancel, onData, data);
+      tableData.value = response.data.data || [];
+      totalRecords.value = response.data.count || 0;
+
+      historyRequest.value = false;
+      onLoaded();
+      return;
+    }
+
+    const params = cleanParams({
+      orderBy: sortBy.value,
+      ascending: sortAscending.value ? 1 : 0,
+      page: currentPage.value,
+      limit: perPage.value,
+      filters: constructFilterValues(model.value, fields.value)
+    });
+
+    const response = await axiosGet(
+        url,
+        {
+          params,
+          paramsSerializer: qs.stringify
+        },
+        tableCancel,
+        onData,
+        data
+    );
+
+    tableData.value = response.data.data || [];
+    totalRecords.value = response.data.count || 0;
+    onLoaded();
+
+    if (!noHistory.value) {
+      pushHistory(params, model, originalModel, fields, { value: { orderBy: { column: sortBy.value } } });
+    } else {
+      noHistory.value = false;
+    }
+  } finally {
+    endRequest();
+  }
+};
+
+// Pagination handlers
+const updatePage = (page) => {
+  currentPage.value = page;
+  fetchData();
+};
+
+const updatePerPage = (newPerPage) => {
+  perPage.value = parseInt(newPerPage);
+  currentPage.value = 1;
+  fetchData();
+};
+
+// Sorting handler
+const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
+  sortBy.value = newSortBy;
+  sortAscending.value = newSortAscending;
+  fetchData();
+};
+
+// Collection toggle handler
+const handleCollectionToggleAll = () => {
+  const currentData = { data: tableData.value };
+  collectionToggleAll(currentData);
+};
 
 const buildSchema = () => {
   const fields = {};
@@ -615,7 +731,6 @@ const buildSchema = () => {
         styleClasses: 'field-inline-options field-checkboxes-labels-only field-checkboxes-sm two-line',
       },
   );
-  // disable latin
   fields.self_designation_mode.values[2].disabled = true;
 
   [fields.self_designation_op, fields.self_designation] = createMultiMultiSelect(
@@ -832,7 +947,10 @@ const {
   fields,
   resultTableRef,
   defaultOrdering: ref('name'),
-  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
+  emitFilter: (filters) => {
+    currentPage.value = 1;
+    fetchData();
+  },
   historyRequest
 });
 
@@ -882,66 +1000,10 @@ const {
   noHistory
 });
 
-const tableColumns = computed(() => {
-  const columns = ['name', 'identification', 'self_designation', 'office', 'date'];
-  if (commentSearch.value) {
-    columns.unshift('comment');
-  }
-  if (props.isViewInternal) {
-    columns.push('created');
-    columns.push('modified');
-    columns.push('actions');
-    columns.push('c');
-  }
-  return columns;
-});
-
 const handleDeletedActiveFilter = (field) => {
   deleteActiveFilter(field);
   onValidated(true);
 };
-
-const requestFunction = async (requestData) => {
-  const params = cleanParams(requestData);
-  startRequest();
-  let url = urls['persons_search_api'];
-
-  if (!initialized.value) {
-    onData(data);
-    initialized.value = true;
-    endRequest();
-    return {
-      data: {
-        data: data.data,
-        count: data.count,
-      },
-    };
-  }
-
-
-  if (historyRequest.value) {
-    if (historyRequest !== 'init') {
-      url = `${url}?${historyRequest}`;
-    }
-    return await axiosGet(url, {}, tableCancel, onData, data);
-  }
-
-  if (!noHistory) {
-    pushHistory(params, model, originalModel, fields, tableOptions);
-  } else {
-    noHistory.value = false;
-  }
-
-  return await axiosGet(
-      url,
-      {
-        params,
-        paramsSerializer: qs.stringify
-      },
-      tableCancel,
-      onData,
-      data
-  );};
 
 const getMergedIdentification = (identifier) => {
   const { systemName } = identifier;
@@ -990,6 +1052,7 @@ const submitMerge = async () => {
     );
     mergeAlerts.value = [];
     alerts.value.push({ type: 'success', message: 'Merge successful.' });
+    fetchData();
   } catch (error) {
     mergeModal.value = true;
     mergeAlerts.value.push({
@@ -1010,7 +1073,7 @@ const submitDelete = async () => {
   try {
     await axios.delete(urls.person_delete.replace('person_id', submitModel.person.id));
     noHistory.value = true;
-    resultTableRef.value?.refresh();
+    fetchData();
     alerts.value.push({ type: 'success', message: 'Person deleted successfully.' });
   } catch (error) {
     alerts.value.push({ type: 'error', message: 'Something went wrong while deleting the person.' });
@@ -1065,7 +1128,7 @@ const resetAllFilters = () => {
 
 const downloadCSVHandler = async () => {
   try {
-    await downloadCSV(urls);
+    await downloadCSV(urls, 'persons');
   } catch (error) {
     console.error(error);
     alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
@@ -1199,6 +1262,7 @@ watch(() => mergeModel.secondary, async (newSecondary) => {
 watch(() => model.value.comment_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'comment');
 });
+
 watch(
     () => schema.value?.groups,
     async (groups) => {
@@ -1212,20 +1276,12 @@ watch(
     { immediate: true }
 );
 
-
-tableOptions.value.requestFunction = requestFunction;
-
 setUpOperatorWatchers();
 
 onMounted(() => {
   buildSchema();
-  updateCountRecords();
-  initFromURL(aggregation.value);
   originalModel.value = JSON.parse(JSON.stringify(model.value));
-  window.onpopstate = (event) => {
-    historyRequest.value = popHistory();
-    resultTableRef.value?.refresh();
-  };
-  updateCountRecords();
+  historyRequest.value = popHistory();
+  resultTableRef.value?.refresh();
 });
 </script>

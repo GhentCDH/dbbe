@@ -1,19 +1,13 @@
 <template>
   <div>
     <div class="col-xs-12">
-      <alerts
-          :alerts="alerts"
-          @dismiss="alerts.splice($event, 1)"
-      />
+      <alerts :alerts="alerts" @dismiss="alerts.splice($event, 1)" />
     </div>
+
     <aside class="col-sm-3">
       <div class="bg-tertiary padding-default">
         <div class="form-group">
-          <a
-              :href="urls['help']"
-              class="action"
-              target="_blank"
-          >
+          <a :href="urls['help']" class="action" target="_blank">
             <i class="fa fa-info-circle" />
             More information about the text search options.
           </a>
@@ -28,6 +22,7 @@
         />
       </div>
     </aside>
+
     <article class="col-sm-9 search-page">
       <active-filters
           :filters="notEmptyFields"
@@ -35,240 +30,225 @@
           @resetFilters="resetAllFilters"
           @deletedActiveFilter="handleDeletedActiveFilter"
       />
-      <div
-          v-if="countRecords"
-          class="count-records"
-      >
-        <h6>{{ countRecords }}</h6>
+
+      <div style="position: relative; margin-bottom: 1rem;">
+        <div style="text-align: center;">
+          <h6 v-if="totalRecords" class="mb-0" style="display: inline-block;">
+            <record-count
+                :per-page="perPage"
+                :total-records="totalRecords"
+                :page="currentPage"
+            />
+          </h6>
+        </div>
+
+        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+          Records: <b-select
+              id="per-page"
+              label="Per page"
+              :selected="perPage"
+              :options="[25, 50, 100].map(v => ({ value: v, text: v }))"
+              @update:selected="updatePerPage"
+              style="min-width: 120px; width: auto;"
+          />
+        </div>
       </div>
-      <div
-          v-if="isViewInternal"
-          class="collection-select-all top"
-      >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
+
+      <b-table
+            :items="tableData"
+            :fields="tableFields"
+            :sort-by="sortBy"
+            :sort-ascending="sortAscending"
+            @sort="handleSort"
         >
-          clear selection
-        </a>
-        |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
-        >
-          (un)select all on this page
-        </a>
-      </div>
-      <v-server-table
-          ref="resultTableRef"
-          :url="urls['occurrences_search_api']"
-          :columns="tableColumns"
-          :options="tableOptions"
-          @data="onData"
-          @loaded="onLoaded"
-      >
-        <span
-            slot="text"
-            slot-scope="props"
-            class="greek"
-        >
-          <template v-if="props.row.title">
-            <ol type="A">
-              <!-- eslint-disable vue/no-v-html -->
-              <li
-                  v-for="(item, index) in props.row.title"
-                  :key="index"
-                  value="20"
-                  v-html="item"
-              />
-              <!-- eslint-enable -->
-            </ol>
+          <template #actionsPreRowHeader v-if="isViewInternal">
+            <th>
+              <input type="checkbox" @change="handleCollectionToggleAll" />
+            </th>
           </template>
-          <template v-if="props.row.text">
-            <ol>
-              <!-- eslint-disable vue/no-v-html -->
-              <li
-                  v-for="(item, index) in props.row.text"
-                  :key="index"
-                  :value="Number(index) + 1"
-                  v-html="item"
+
+          <template #actionsPreRow="{ row }" v-if="isViewInternal">
+            <td>
+              <input
+                  :id="row.id"
+                  v-model="collectionArray"
+                  :value="row.id"
+                  type="checkbox"
               />
-              <!-- eslint-enable -->
-            </ol>
+            </td>
           </template>
-        </span>
-        <template
-            slot="comment"
-            slot-scope="props"
-        >
-          <template v-if="props.row.palaeographical_info">
+
+          <template #text="{ row }">
+          <span class="greek">
+            <template v-if="row.title">
+              <ol type="A">
+                <li
+                    v-for="(item, index) in row.title"
+                    :key="index"
+                    value="20"
+                    v-html="item"
+                />
+              </ol>
+            </template>
+            <template v-if="row.text">
+              <ol>
+                <li
+                    v-for="(item, index) in row.text"
+                    :key="index"
+                    :value="Number(index) + 1"
+                    v-html="item"
+                />
+              </ol>
+            </template>
+          </span>
+          </template>
+
+        <template #comment="{ row }">
+          <template v-if="row.palaeographical_info">
             <em>Palaeographical info</em>
             <ol>
-              <!-- eslint-disable vue/no-v-html -->
               <li
-                  v-for="(item, index) in props.row.palaeographical_info"
-                  :key="index"
+                  v-for="(item, index) in row.palaeographical_info"
+                  :key="'paleo-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
-              <!-- eslint-enable -->
             </ol>
           </template>
-          <template v-if="props.row.contextual_info">
+          <template v-if="row.contextual_info">
             <em>Contextual info</em>
             <ol>
-              <!-- eslint-disable vue/no-v-html -->
               <li
-                  v-for="(item, index) in props.row.contextual_info"
-                  :key="index"
+                  v-for="(item, index) in row.contextual_info"
+                  :key="'context-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
-              <!-- eslint-enable -->
             </ol>
           </template>
-          <template v-if="props.row.public_comment">
+          <template v-if="row.public_comment">
             <em v-if="isViewInternal">Public comment</em>
             <em v-else>Comment</em>
             <ol>
-              <!-- eslint-disable vue/no-v-html -->
               <li
-                  v-for="(item, index) in props.row.public_comment"
-                  :key="index"
+                  v-for="(item, index) in row.public_comment"
+                  :key="'public-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
-              <!-- eslint-enable -->
             </ol>
           </template>
-          <template v-if="props.row.private_comment">
+          <template v-if="row.private_comment">
             <em>Private comment</em>
             <ol>
-              <!-- eslint-disable vue/no-v-html -->
               <li
-                  v-for="(item, index) in props.row.private_comment"
-                  :key="index"
+                  v-for="(item, index) in row.private_comment"
+                  :key="'private-' + index"
                   :value="Number(index) + 1"
                   v-html="greekFont(item)"
               />
-              <!-- eslint-enable -->
             </ol>
           </template>
         </template>
-        <a
-            slot="id"
-            slot-scope="props"
-            :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
-        >
-          {{ props.row.id }}
-        </a>
-        <a
-            slot="incipit"
-            slot-scope="props"
-            :href="urls['occurrence_get'].replace('occurrence_id', props.row.id)"
+
+          <template #id="{ row }">
+            <a :href="urls['occurrence_get'].replace('occurrence_id', row.id)">
+              {{ row.id }}
+            </a>
+          </template>
+
+          <template #incipit="{ row }">
+
+            <a :href="urls['occurrence_get'].replace('occurrence_id', row.id)"
             class="greek"
-            v-html="props.row.incipit"
-        />
-        <a
-            v-if="props.row.manuscript"
-            slot="manuscript"
-            slot-scope="props"
-            :href="urls['manuscript_get'].replace('manuscript_id', props.row.manuscript.id)"
-        >
-          {{ props.row.manuscript.name }} ({{ props.row.location }})
-        </a>
-        <template
-            v-if="props.row.date_floor_year && props.row.date_ceiling_year"
-            slot="date"
-            slot-scope="props"
-        >
-          <template v-if="props.row.date_floor_year === props.row.date_ceiling_year">
-            {{ props.row.date_floor_year }}
+            v-html="row.incipit"
+            />
           </template>
-          <template v-else>
-            {{ props.row.date_floor_year }} - {{ props.row.date_ceiling_year }}
-          </template>
-        </template>
-        <template
-            slot="created"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.created) }}
-        </template>
-        <template
-            slot="modified"
-            slot-scope="props"
-        >
-          {{ formatDate(props.row.modified) }}
-        </template>
-        <template
-            slot="actions"
-            slot-scope="props"
-        >
-          <a
-              :href="urls['occurrence_edit'].replace('occurrence_id', props.row.id)"
-              class="action"
-              title="Edit"
-          >
-            <i class="fa fa-pencil-square-o" />
-          </a>
-          <a
-              :href="urls['occurrence_edit'].replace('occurrence_id', props.row.id) + '?clone=1'"
-              class="action"
-              title="Duplicate"
-          >
-            <i class="fa fa-files-o" />
-          </a>
-          <a
-              href="#"
-              class="action"
-              title="Delete"
-              @click.prevent="del(props.row)"
-          >
-            <i class="fa fa-trash-o" />
-          </a>
-        </template>
-        <template
-            slot="c"
-            slot-scope="props"
-        >
-          <span class="checkbox checkbox-primary">
-            <input
-                :id="props.row.id"
-                v-model="collectionArray"
-                :name="props.row.id"
-                :value="props.row.id"
-                type="checkbox"
+
+          <template #manuscript="{ row }">
+
+            <a v-if="row.manuscript"
+            :href="urls['manuscript_get'].replace('manuscript_id', row.manuscript.id)"
             >
-            <label :for="props.row.id" />
-          </span>
-        </template>
-      </v-server-table>
+            {{ row.manuscript.name }} ({{ row.location }})
+            </a>
+          </template>
+
+          <template #date="{ row }">
+            <template v-if="row.date_floor_year && row.date_ceiling_year">
+              <template v-if="row.date_floor_year === row.date_ceiling_year">
+                {{ row.date_floor_year }}
+              </template>
+              <template v-else>
+                {{ row.date_floor_year }} - {{ row.date_ceiling_year }}
+              </template>
+            </template>
+          </template>
+
+          <template #actions="{ row }" v-if="isViewInternal">
+
+            <a :href="urls['occurrence_edit'].replace('occurrence_id', row.id)"
+            class="action"
+            title="Edit"
+            >
+            <i class="fa fa-pencil-square-o" />
+            </a>
+
+            <a :href="urls['occurrence_edit'].replace('occurrence_id', row.id) + '?clone=1'"
+            class="action"
+            title="Duplicate"
+            >
+            <i class="fa fa-files-o" />
+            </a>
+
+            <a href="#"
+            class="action"
+            title="Delete"
+            @click.prevent="del(row)"
+            >
+            <i class="fa fa-trash-o" />
+            </a>
+          </template>
+        </b-table>
       <div
           v-if="isViewInternal"
           class="collection-select-all bottom"
+          style="margin-top: 1rem; clear: both;"
       >
-        <a
-            href="#"
-            @click.prevent="clearCollection()"
+
+        <a href="#"
+        @click.prevent="clearCollection()"
         >
-          clear selection
+        clear selection
         </a>
         |
-        <a
-            href="#"
-            @click.prevent="collectionToggleAll()"
+
+        <a href="#"
+        @click.prevent="collectionToggleAll()"
         >
-          (un)select all on this page
+        (un)select all on this page
         </a>
       </div>
-      <!--          <div style="position: relative; height: 100px;">-->
-      <!--            <button @click="downloadCSVHandler"-->
-      <!--                    class="btn btn-primary"-->
-      <!--                    style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
-      <!--              Download results CSV-->
-      <!--            </button>-->
-      <!--          </div>-->
+      <div style="position: relative; margin-bottom: 5rem; margin-top: 5rem;">
+        <div style="text-align: center;">
+          <b-pagination
+              :total-records="totalRecords"
+              :per-page="perPage"
+              :page="currentPage"
+              @update:page="updatePage"
+          />
+        </div>
+
+<!--        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">-->
+<!--          <button @click="downloadCSVHandler"-->
+<!--                  class="btn btn-primary"-->
+<!--                  :title="!isViewInternal ? 'For anonymous users, download is limited to 1000 results' : 'Download results as csv'"-->
+<!--                  style="position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);">-->
+<!--            Download results CSV-->
+<!--          </button>-->
+<!--        </div>-->
+      </div>
+
       <collectionManager
           v-if="isViewInternal"
           :collection-array="collectionArray"
@@ -306,7 +286,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import qs from 'qs';
-import VueTables from 'vue-tables-2';
 
 import Delete from '../components/Edit/Modals/Delete.vue';
 import Alerts from "@/components/Alerts.vue";
@@ -332,6 +311,10 @@ import { useFormValidation } from "@/composables/searchAppComposables/useFormVal
 import { useSearchFields } from "@/composables/searchAppComposables/useSearchFields";
 import { useCollectionManagement } from "@/composables/searchAppComposables/useCollectionManagement";
 import { useSearchSession} from "@/composables/searchAppComposables/useSearchSession";
+import BTable from '@/components/Bootstrap/BTable.vue';
+import BPagination from '@/components/Bootstrap/BPagination.vue';
+import BSelect from '@/components/Bootstrap/BSelect.vue';
+import RecordCount from '@/components/Bootstrap/RecordCount.vue';
 import validatorUtil from "@/helpers/validatorUtil";
 const props = defineProps({
   isEditor: {
@@ -356,23 +339,12 @@ const props = defineProps({
   },
 });
 
-// Define emits
-const emit = defineEmits();
+const currentPage = ref(1);
+const sortBy = ref('incipit');
+const sortAscending = ref(true);
+const tableData = ref([]);
+const totalRecords = ref(0);
 
-// Parse props
-const urls = JSON.parse(props.initUrls || '{}');
-const data = JSON.parse(props.initData || '{}');
-const managements = JSON.parse(props.initManagements || '{}');
-
-// Form options
-const formOptions = ref({
-  validateAfterLoad: true,
-  validateAfterChanged: true,
-  validationErrorClass: 'has-error',
-  validationSuccessClass: 'success',
-});
-
-// Model
 const model = ref({
   text_mode: ['greek'],
   comment_mode: ['latin'],
@@ -393,23 +365,128 @@ const model = ref({
   acknowledgement_op: 'or',
 });
 
-// Add internal fields if needed
+const perPage = ref(25);
+
+const tableFields = computed(() => {
+  const fields = [
+    { key: 'id', label: 'ID', sortable: true, thClass: 'no-wrap' },
+    { key: 'incipit', label: 'Incipit', sortable: true },
+    { key: 'manuscript', label: 'Manuscript', sortable: true },
+    { key: 'date', label: 'Date', sortable: true },
+  ];
+
+  if (textSearch.value) {
+    fields.unshift({ key: 'text', label: 'Title (T.) / text (matching verses only)' });
+  }
+  if (commentSearch.value) {
+    fields.unshift({ key: 'comment', label: 'Comment (matching lines only)' });
+  }
+  if (props.isViewInternal) {
+    fields.push(
+        { key: 'created', label: 'Created', sortable: true },
+        { key: 'modified', label: 'Modified', sortable: true },
+        { key: 'actions', label: 'Actions' }
+    );
+  }
+
+  return fields;
+});
+
+const fetchData = async () => {
+  startRequest();
+
+  try {
+    let url = urls['occurrences_search_api'];
+
+    if (historyRequest.value) {
+      if (historyRequest.value !== 'init') {
+        url = `${url}?${historyRequest.value}`;
+      }
+      const response = await axiosGet(url, {}, tableCancel, onData, data);
+      tableData.value = response.data.data || [];
+      totalRecords.value = response.data.count || 0;
+
+      historyRequest.value = false;
+      onLoaded();
+      return;
+    }
+
+    const params = cleanParams({
+      orderBy: sortBy.value,
+      ascending: sortAscending.value ? 1 : 0,
+      page: currentPage.value,
+      limit: perPage.value,
+      filters: constructFilterValues(model.value, fields.value)
+    });
+
+    const response = await axiosGet(
+        url,
+        {
+          params,
+          paramsSerializer: qs.stringify
+        },
+        tableCancel,
+        onData,
+        data
+    );
+
+    tableData.value = response.data.data || [];
+    totalRecords.value = response.data.count || 0;
+    onLoaded();
+
+    if (!noHistory.value) {
+      pushHistory(params, model, originalModel, fields, { value: { orderBy: { column: sortBy.value } } });
+    } else {
+      noHistory.value = false;
+    }
+  } finally {
+    endRequest();
+  }
+};
+const updatePage = (page) => {
+  currentPage.value = page;
+  fetchData();
+};
+
+const updatePerPage = (newPerPage) => {
+  perPage.value = parseInt(newPerPage);
+  currentPage.value = 1;
+  fetchData();
+};
+
+const handleSort = ({ sortBy: newSortBy, sortAscending: newSortAscending }) => {
+  sortBy.value = newSortBy;
+  sortAscending.value = newSortAscending;
+  fetchData();
+};
+
+const emit = defineEmits();
+
+const urls = JSON.parse(props.initUrls || '{}');
+const data = JSON.parse(props.initData || '{}');
+const managements = JSON.parse(props.initManagements || '{}');
+
+const formOptions = ref({
+  validateAfterLoad: true,
+  validateAfterChanged: true,
+  validationErrorClass: 'has-error',
+  validationSuccessClass: 'success',
+});
+
+
 if (props.isViewInternal) {
   model.value.text_stem = 'original';
 }
 
 const originalModel = ref({});
 
-// Schema
 const schema = ref({
   fields: {},
 });
 
-// Build schema fields
 const buildSchema = () => {
   const fields = {};
 
-  // Text mode and search fields
   fields.text_mode = createLanguageToggle('text');
   fields.text = {
     type: 'input',
@@ -460,7 +537,6 @@ const buildSchema = () => {
     ],
   };
 
-  // Date fields
   fields.year_from = {
     type: 'input',
     inputType: 'number',
@@ -495,7 +571,6 @@ const buildSchema = () => {
     ],
   };
 
-  // Multi-select fields
   fields.person = createMultiSelect('Person', {}, {
     multiple: true,
     closeOnSelect: false,
@@ -516,7 +591,6 @@ const buildSchema = () => {
       { model: 'manuscript_content' }
   );
 
-  // Comment fields
   fields.comment_mode = createLanguageToggle('comment');
   fields.comment = {
     type: 'input',
@@ -527,7 +601,6 @@ const buildSchema = () => {
     validator: validatorUtil.string,
   };
 
-  // Additional fields
   fields.dbbe = createMultiSelect('Transcribed by DBBE', {
     model: 'dbbe',
   }, {
@@ -542,7 +615,6 @@ const buildSchema = () => {
   fields.id = createMultiSelect('DBBE ID', { model: 'id' });
   fields.prev_id = createMultiSelect('Former DBBE ID', { model: 'prev_id' });
 
-  // Internal only fields
   if (props.isViewInternal) {
     fields.text_status = createMultiSelect('Text Status', {
       model: 'text_status',
@@ -572,50 +644,24 @@ const buildSchema = () => {
   schema.value.fields = fields;
 };
 
-// Build schema on initialization
 buildSchema();
 
-// Table options
-const tableOptions = ref({
-  headings: {
-    text: 'Title (T.) / text (matching verses only)',
-    comment: 'Comment (matching lines only)',
-  },
-  columnsClasses: {
-    id: 'no-wrap',
-  },
-  filterable: false,
-  orderBy: {
-    column: 'incipit',
-  },
-  perPage: 25,
-  perPageValues: [25, 50, 100],
-  sortable: ['id', 'incipit', 'manuscript', 'date', 'created', 'modified'],
-  customFilters: ['filters'],
-  rowClassCallback(row) {
-    return (row.public == null || row.public) ? '' : 'warning';
-  },
-});
-
-// Submit model
 const submitModel = reactive({
   submitType: 'occurrence',
   occurrence: {},
 });
 
-// Refs
 const defaultOrdering = ref('incipit');
 const initialized = ref(false);
 const noHistory = ref(false);
 const tableCancel = ref(false);
 const resultTableRef = ref(null);
 const aggregation = ref({});
-const historyRequest = ref(false);
+const historyRequest = ref(null);
 const occRef = ref(null);
 const deleteModal = ref(false);
 const delDependencies = ref({});
 
-// Computed properties
 const fields = computed(() => {
   const res = {};
   if (schema.value && schema.value.fields) {
@@ -636,21 +682,7 @@ const depUrls = computed(() => ({
   },
 }));
 
-const tableColumns = computed(() => {
-  const columns = ['id', 'incipit', 'manuscript', 'date'];
-  if (textSearch.value) {
-    columns.unshift('text');
-  }
-  if (commentSearch.value) {
-    columns.unshift('comment');
-  }
-  if (props.isViewInternal) {
-    columns.push('created', 'modified', 'actions', 'c');
-  }
-  return columns;
-});
 
-// Use composables
 const { countRecords, updateCountRecords } = usePaginationCount(resultTableRef);
 
 const {
@@ -673,7 +705,10 @@ const {
   fields,
   resultTableRef,
   defaultOrdering,
-  emitFilter: (filters) => VueTables.Event.$emit('vue-tables.filter::filters', filters),
+  emitFilter: (filters) => {
+    currentPage.value = 1;
+    fetchData();
+  },
   historyRequest
 });
 
@@ -737,53 +772,9 @@ const {
   noHistory
 });
 
-// Functions
 const handleDeletedActiveFilter = (field) => {
   deleteActiveFilter(field);
   onValidated(true);
-};
-
-const requestFunction = async (requestData) => {
-  const params = cleanParams(requestData);
-  startRequest();
-  let url = urls['occurrences_search_api'];
-
-  if (!initialized.value) {
-    onData(data);
-    initialized.value = true;
-    endRequest();
-    return {
-      data: {
-        data: data.data,
-        count: data.count,
-      },
-    };
-  }
-
-
-  if (historyRequest.value) {
-    if (historyRequest.value !== 'init') {
-      url = `${url}?${historyRequest.value}`;
-    }
-    return await axiosGet(url, {}, tableCancel, onData, data);
-  }
-
-  if (!noHistory) {
-    pushHistory(params, model, originalModel, fields, tableOptions);
-  } else {
-    noHistory.value = false;
-  }
-
-  return await axiosGet(
-      url,
-      {
-        params,
-        paramsSerializer: qs.stringify
-      },
-      tableCancel,
-      onData,
-      data
-  );
 };
 
 const del = async (row) => {
@@ -808,6 +799,11 @@ const del = async (row) => {
   } finally {
     endRequest();
   }
+};
+
+const handleCollectionToggleAll = () => {
+  const currentData = { data: tableData.value };
+  collectionToggleAll(currentData);
 };
 
 const submitDelete = async () => {
@@ -840,14 +836,13 @@ const resetAllFilters = () => {
 
 const downloadCSVHandler = async () => {
   try {
-    await downloadCSV(urls);
+    await downloadCSV(urls, 'occurrences');
   } catch (error) {
     console.error(error);
     alerts.value.push({ type: 'error', message: 'Error downloading CSV.' });
   }
 };
 
-// Watchers
 watch(() => model.value.text_mode, (val, oldVal) => {
   changeTextMode(val, oldVal, 'text');
 });
@@ -884,21 +879,11 @@ watch(() => model.value.comment, (newValue) => {
   }
 }, { immediate: true });
 
-
-// Setup table options request function
-tableOptions.value.requestFunction = requestFunction;
-
-// Setup operator watchers
 setUpOperatorWatchers();
 
-// Mounted lifecycle
 onMounted(() => {
-  updateCountRecords();
   originalModel.value = JSON.parse(JSON.stringify(model.value));
-  window.onpopstate = (event) => {
-    historyRequest.value = popHistory();
-    resultTableRef.value?.refresh();
-  };
-  updateCountRecords();
+  historyRequest.value = popHistory();
+  resultTableRef.value?.refresh();
 });
 </script>

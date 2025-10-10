@@ -1,0 +1,13 @@
+// _b-select.scss
+
+.form-select {
+  background-color: white;
+  border-radius: 0;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+
+  &:focus {
+    box-shadow: none;
+    outline: none;
+  }
+}

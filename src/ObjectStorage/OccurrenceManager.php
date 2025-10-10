@@ -1060,11 +1060,18 @@ class OccurrenceManager extends PoemManager
         bool $isAuthorized
     ) {
         $stream = fopen('php://temp', 'r+');
-        fwrite($stream, "\xEF\xBB\xBF");
-        fputcsv($stream, [
-            'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
-            'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
-        ],';');
+
+        fwrite($stream, "\xFF\xFE");
+
+        $header = mb_convert_encoding(
+            implode(';', [
+                'id', 'incipit', 'verses', 'genres', 'subjects', 'metres',
+                'date_floor_year', 'date_ceiling_year', 'manuscript_id', 'manuscript_name'
+            ]) . "\n",
+            'UTF-16LE',
+            'UTF-8'
+        );
+        fwrite($stream, $header);
 
         $params['limit'] = 1000;
         $params['orderBy'] = ['id'];
@@ -1092,7 +1099,20 @@ class OccurrenceManager extends PoemManager
                     break 2;
                 }
                 $verses = $verseService->findVersesByOccurrenceId($item['id']);
-                fputcsv($stream, $this->formatRow($item, implode("\n", array_column($verses, 'verse'))),';');
+                $row = $this->formatRow($item, implode("\n", array_column($verses, 'verse')));
+
+                $line = mb_convert_encoding(
+                    implode(';', array_map(function($field) {
+                        $field = str_replace('"', '""', $field);
+                        if (strpos($field, ';') !== false || strpos($field, "\n") !== false) {
+                            $field = '"' . $field . '"';
+                        }
+                        return $field;
+                    }, $row)) . "\n",
+                    'UTF-16LE',
+                    'UTF-8'
+                );
+                fwrite($stream, $line);
                 $totalFetched++;
             }
 
@@ -1104,6 +1124,7 @@ class OccurrenceManager extends PoemManager
             $searchAfter = $last['_search_after'];
         }
 
+        rewind($stream);
         return $stream;
     }
 

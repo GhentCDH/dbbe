@@ -36,7 +36,6 @@ export function pushHistory(data, model, originalModel, fields, tableOptions) {
             }
         }
     }
-
     window.history.pushState(
         filteredData,
         document.title,

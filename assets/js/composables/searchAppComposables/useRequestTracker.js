@@ -61,7 +61,7 @@ export function useRequestTracker() {
             });
             alerts.value = [];
             onData(response.data);
-            endRequest(); // End request on success
+            endRequest();
             return response;
         } catch (error) {
             if (axios.isCancel(error)) {
